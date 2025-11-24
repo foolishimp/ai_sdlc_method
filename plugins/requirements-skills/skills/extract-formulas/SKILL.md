@@ -84,7 +84,7 @@ Identify formulas by looking for:
 ## Output Format
 
 ```
-[EXTRACT FORMULAS - REQ-F-PAY-001]
+[EXTRACT FORMULAS - <REQ-ID>]
 
 Requirement: Payment processing
 

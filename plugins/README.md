@@ -389,40 +389,40 @@ cd your-project
 The **aisdlc-methodology v2.0.0** plugin provides complete agent configurations for all 7 SDLC stages:
 
 ### 1. Requirements Stage (Section 4.0)
-**Agent**: Requirements Agent
+**Agent**: AISDLC Requirements Agent
 **Purpose**: Transform intent into structured requirements with unique, immutable keys
 **Output**: REQ-F-* (functional), REQ-NFR-* (non-functional), REQ-DATA-* (data quality), REQ-BR-* (business rules)
 
 ### 2. Design Stage (Section 5.0)
-**Agent**: Design Agent / Solution Designer
+**Agent**: AISDLC Design Agent / Solution Designer
 **Purpose**: Transform requirements into technical solution architecture
 **Output**: Component diagrams, data models, API specs, ADRs, traceability matrix
 
 ### 3. Tasks Stage (Section 6.0)
-**Agent**: Tasks Stage Orchestrator
+**Agent**: AISDLC Tasks Stage Orchestrator
 **Purpose**: Break design into work units and orchestrate Jira workflow
 **Output**: Jira tickets with requirement tags, dependency graph, capacity planning
 
 ### 4. Code Stage (Section 7.0)
-**Agent**: Code Agent / Developer Agent
+**Agent**: AISDLC Code Agent / Developer Agent
 **Purpose**: Implement work units using TDD workflow
 **Output**: Production code with requirement tags, unit tests, integration tests
 **Methodology**: TDD (RED → GREEN → REFACTOR) + Key Principles principles
 
 ### 5. System Test Stage (Section 8.0)
-**Agent**: System Test Agent / QA Agent
+**Agent**: AISDLC System Test Agent / QA Agent
 **Purpose**: Create BDD integration tests validating requirements
 **Output**: BDD feature files (Gherkin), step definitions, coverage matrix
 **Methodology**: BDD (Given/When/Then)
 
 ### 6. UAT Stage (Section 9.0)
-**Agent**: UAT Agent
+**Agent**: AISDLC UAT Agent
 **Purpose**: Business validation and sign-off
 **Output**: Manual UAT test cases, automated UAT tests, business sign-off
 **Methodology**: BDD in pure business language
 
 ### 7. Runtime Feedback Stage (Section 10.0)
-**Agent**: Runtime Feedback Agent
+**Agent**: AISDLC Runtime Feedback Agent
 **Purpose**: Close the feedback loop from production to requirements
 **Output**: Release manifests, runtime telemetry (tagged with REQ keys), alerts, new intents
 
@@ -430,21 +430,21 @@ The **aisdlc-methodology v2.0.0** plugin provides complete agent configurations 
 ```
 Intent: INT-001 "Customer self-service portal"
   ↓
-Requirements: REQ-F-AUTH-001 "User login with email/password"
+Requirements: <REQ-ID> "User login with email/password"
   ↓
-Design: AuthenticationService → REQ-F-AUTH-001
+Design: AuthenticationService → <REQ-ID>
   ↓
-Tasks: PORTAL-123 (Jira ticket) → REQ-F-AUTH-001
+Tasks: PORTAL-123 (Jira ticket) → <REQ-ID>
   ↓
 Code: auth_service.py
-      # Implements: REQ-F-AUTH-001
+      # Implements: <REQ-ID>
   ↓
-Tests: test_auth.py # Validates: REQ-F-AUTH-001
-       auth.feature # BDD: Given/When/Then for REQ-F-AUTH-001
+Tests: test_auth.py # Validates: <REQ-ID>
+       auth.feature # BDD: Given/When/Then for <REQ-ID>
   ↓
-UAT: UAT-001 → REQ-F-AUTH-001 (Business sign-off ✅)
+UAT: UAT-001 → <REQ-ID> (Business sign-off ✅)
   ↓
-Runtime: Datadog alert: "ERROR: REQ-F-AUTH-001 - Auth timeout"
+Runtime: Datadog alert: "ERROR: <REQ-ID> - Auth timeout"
   ↓
 Feedback: New intent: INT-042 "Fix auth timeout"
   [Cycle repeats...]
@@ -662,7 +662,7 @@ plugin-name/
 │   ├── principles/         # Key Principles principles
 │   ├── processes/          # TDD workflow, BDD guides
 │   └── guides/             # Stage-specific guides
-└── project.json            # Legacy: for MCP service compatibility
+└── project.json            # Project metadata
 ```
 
 ---
@@ -695,9 +695,8 @@ See complete 7-stage AI SDLC examples:
 ## Comparison: Old vs New Approach
 
 ### Old Approach (Complex)
-- Custom MCP service with federated servers
-- Context tuples: `corporate.aisdlc_methodology`
-- Custom merging logic
+- Custom context service with federated servers
+- Context tuples with custom merging logic
 - URI resolution system
 - Complex project initialization
 
@@ -709,22 +708,6 @@ See complete 7-stage AI SDLC examples:
 - Simple: add marketplace, install plugins
 
 **Result**: 90% less complexity, same functionality!
-
----
-
-## For Non-Claude LLMs (Codex, Gemini, etc.)
-
-Use the **MCP service** (fallback):
-
-```bash
-# Start MCP context service
-python -m mcp_service.server --port 8000 --plugins-dir plugins/
-
-# MCP clients (non-Claude) can connect and query contexts
-# See mcp_service/docs/ for details
-```
-
-The MCP service is being updated to support the 7-stage AI SDLC methodology. See `../mcp_service/MCP_SDLC_INTEGRATION_PLAN.md` for the integration plan.
 
 ---
 
@@ -822,7 +805,6 @@ New (Claude Code):
 ✅ **Federated** - Multiple marketplaces (corporate, division, local)
 ✅ **Composable** - Plugin loading order = merge priority
 ✅ **Portable** - Export marketplace to GitHub/Git for sharing
-✅ **Fallback** - MCP service still available for non-Claude LLMs
 
 ---
 
@@ -838,11 +820,6 @@ New (Claude Code):
 ### Claude Code Resources
 - [Claude Code Plugin Documentation](https://docs.claude.com/en/docs/claude-code/plugins)
 - [Marketplace Guide](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces)
-
-### MCP Service (Non-Claude LLMs)
-- [MCP Service Overview](../mcp_service/README.md)
-- [MCP SDLC Integration Plan](../mcp_service/MCP_SDLC_INTEGRATION_PLAN.md) - 7-stage integration roadmap
-- [MCP Personas Documentation](../mcp_service/docs/PERSONAS.md)
 
 ### Examples
 - [Examples Directory](../examples/) - All example projects

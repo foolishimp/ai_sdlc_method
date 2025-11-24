@@ -40,7 +40,7 @@ grep -rho "^## REQ-[A-Z-]*-[0-9]*" docs/requirements/ | sort | uniq -d
 **Example**:
 ```
 ✅ Pass: All REQ-* keys unique
-❌ Fail: REQ-F-AUTH-001 appears in 2 files
+❌ Fail: <REQ-ID> appears in 2 files
 ```
 
 ---

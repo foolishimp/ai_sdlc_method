@@ -25,7 +25,7 @@ Requirements → Component Diagrams → API Specs → Data Models → ADRs → T
 ## Outputs
 ```yaml
 Component: AuthenticationService
-Maps to: REQ-F-AUTH-001, REQ-NFR-SEC-001
+Maps to: <REQ-ID>, REQ-NFR-SEC-001
 API: POST /api/v1/auth/login
 Data: users table (email, password_hash, created_at)
 ADR: ADR-001 "Use JWT tokens" (rationale: scalability)

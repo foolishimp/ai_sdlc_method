@@ -1,18 +1,11 @@
 # Developer Workspace Configuration
 version: "1.0"
 
-# Two-tier task tracking
+# Task tracking (single-tier: lightweight or formal)
 task_tracking:
   enabled: true
 
-  # TIER 1: Quick capture
-  todos:
-    enabled: true
-    file: "tasks/todo/TODO_LIST.md"
-    slash_command: "/todo"
-    auto_timestamp: true
-
-  # TIER 2: Formal tasks
+  # Tasks (can be lightweight or formal based on need)
   tasks:
     enabled: true
     active_file: "tasks/active/ACTIVE_TASKS.md"
@@ -23,7 +16,7 @@ task_tracking:
       enabled: true
       pattern: "task-{id}-{description}"
 
-  # TIER 3: Archive
+  # Archive
   archive:
     enabled: true
     retention_days: 365  # Keep finished tasks for 1 year

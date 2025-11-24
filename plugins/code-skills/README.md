@@ -29,7 +29,7 @@ The `code-skills` plugin provides comprehensive skills for implementing code usi
 
 **Workflow**:
 ```
-User: "Implement REQ-F-AUTH-001 (user login)"
+User: "Implement <REQ-ID> (user login)"
 
 Claude (autonomously):
   1. Invokes: red-phase skill
@@ -48,7 +48,7 @@ Claude (autonomously):
      → Tests still pass ✓ (REFACTOR)
 
   4. Invokes: commit-with-req-tag skill
-     → Commit: "feat: Add user login (REQ-F-AUTH-001)"
+     → Commit: "feat: Add user login (<REQ-ID>)"
 ```
 
 **Status**: 1/5 complete (refactor-phase ✅)
@@ -68,7 +68,7 @@ Claude (autonomously):
 
 **Workflow**:
 ```
-User: "Create scenario for REQ-F-AUTH-001 (user login)"
+User: "Create scenario for <REQ-ID> (user login)"
 
 Claude (autonomously):
   1. Invokes: write-scenario skill
@@ -104,7 +104,7 @@ Claude (autonomously):
 **Example**:
 ```yaml
 Input (from requirements-skills plugin):
-  REQ-F-AUTH-001: User login
+  <REQ-ID>: User login
     BR-001: Email validation (regex: ^[a-zA-Z0-9._%+-]+@...)
     BR-002: Password minimum 12 characters
     C-001: Max 3 login attempts, 15min lockout
@@ -259,7 +259,7 @@ Checking for tech debt...
 Tests still passing ✓
 
 [COMMIT Phase]
-Commit: feat: Add user registration (REQ-F-AUTH-002)
+Commit: feat: Add user registration (<REQ-ID>)
 
 ✅ Complete! Coverage: 100%
 ```
@@ -291,7 +291,7 @@ Implemented login feature...
 ### Code Generation
 
 ```
-You: "Generate validators for REQ-F-AUTH-001"
+You: "Generate validators for <REQ-ID>"
 
 Claude: I found these business rules:
   - BR-001: Email regex validation

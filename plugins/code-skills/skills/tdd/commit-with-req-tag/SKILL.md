@@ -42,7 +42,7 @@ Your goal is to create a commit that:
 
 **Example**:
 ```yaml
-Requirement: REQ-F-AUTH-001
+Requirement: <REQ-ID>
 Description: User login with email and password
 Business Rules: BR-001, BR-002, BR-003
 Files Changed:
@@ -90,7 +90,7 @@ Coverage: 95%
    - Prefix with type (feat:, fix:, etc.)
    - Brief description
    - REQ-* key in parentheses
-   - Example: `feat: Add user login (REQ-F-AUTH-001)`
+   - Example: `feat: Add user login (<REQ-ID>)`
 
 2. **Body** (detailed description):
    - What was implemented?
@@ -112,7 +112,7 @@ Coverage: 95%
 **Template**:
 
 ```
-feat: Add user login (REQ-F-AUTH-001)
+feat: Add user login (<REQ-ID>)
 
 Implement user authentication with email and password validation.
 Users can log in with valid credentials and will be locked out after
@@ -137,7 +137,7 @@ Files:
 - src/auth/login.py (created, 87 lines)
 - tests/auth/test_login.py (created, 94 lines)
 
-Implements: REQ-F-AUTH-001
+Implements: <REQ-ID>
 Validates: BR-001, BR-002, BR-003
 Tests: 5 tests, 100% passing
 Coverage: 95%
@@ -175,7 +175,7 @@ git commit -F commit_message.txt
 
 ```bash
 git add .
-git commit -m "feat: Add user login (REQ-F-AUTH-001)
+git commit -m "feat: Add user login (<REQ-ID>)
 
 Implement user authentication with email and password validation.
 Users can log in with valid credentials and will be locked out after
@@ -200,7 +200,7 @@ Files:
 - src/auth/login.py (created, 87 lines)
 - tests/auth/test_login.py (created, 94 lines)
 
-Implements: REQ-F-AUTH-001
+Implements: <REQ-ID>
 Validates: BR-001, BR-002, BR-003
 Tests: 5 tests, 100% passing
 Coverage: 95%
@@ -227,7 +227,7 @@ commit abc123def456
 Author: Developer <dev@example.com>
 Date:   Thu Nov 20 22:00:00 2025 +1100
 
-    feat: Add user login (REQ-F-AUTH-001)
+    feat: Add user login (<REQ-ID>)
 
     Implement user authentication with email and password validation.
     ...
@@ -244,29 +244,29 @@ Date:   Thu Nov 20 22:00:00 2025 +1100
 When you complete the commit, show:
 
 ```
-[COMMIT Phase - REQ-F-AUTH-001]
+[COMMIT Phase - <REQ-ID>]
 
 Commit Type: feat (new feature)
 
 Commit Message:
-  Subject: feat: Add user login (REQ-F-AUTH-001)
+  Subject: feat: Add user login (<REQ-ID>)
   Body: Implement user authentication with email/password...
-  Footer: Implements: REQ-F-AUTH-001, Validates: BR-001/002/003
+  Footer: Implements: <REQ-ID>, Validates: BR-001/002/003
 
 Files Changed:
   + src/auth/login.py (87 lines)
   + tests/auth/test_login.py (94 lines)
 
 Traceability:
-  Forward: REQ-F-AUTH-001 → commit abc123
-  Backward: git log --grep="REQ-F-AUTH-001" → this commit
+  Forward: <REQ-ID> → commit abc123
+  Backward: git log --grep="<REQ-ID>" → this commit
 
 Commit SHA: abc123def456
 
 ✅ COMMIT Complete!
    Requirement traceability established
-   Forward traceability: REQ-F-AUTH-001 → code
-   Backward traceability: code → REQ-F-AUTH-001
+   Forward traceability: <REQ-ID> → code
+   Backward traceability: code → <REQ-ID>
 ```
 
 ---
@@ -277,11 +277,11 @@ Commit SHA: abc123def456
 
 **From requirement, find implementation**:
 ```bash
-# Find all commits implementing REQ-F-AUTH-001
-git log --grep="REQ-F-AUTH-001" --oneline
+# Find all commits implementing <REQ-ID>
+git log --grep="<REQ-ID>" --oneline
 
-# Find files implementing REQ-F-AUTH-001
-git log --grep="REQ-F-AUTH-001" --name-only
+# Find files implementing <REQ-ID>
+git log --grep="<REQ-ID>" --name-only
 ```
 
 ### Backward Traceability (Code → REQ)
@@ -299,8 +299,8 @@ grep "Implements: BR-" src/auth/login.py
 
 **When requirement changes**:
 ```bash
-# Find all code implementing REQ-F-AUTH-001
-git log --grep="REQ-F-AUTH-001" --name-only | grep -v "^commit" | sort -u
+# Find all code implementing <REQ-ID>
+git log --grep="<REQ-ID>" --name-only | grep -v "^commit" | sort -u
 
 # Output:
 # src/auth/login.py
@@ -357,7 +357,7 @@ plugins:
 ### Feature (REQ-F-*)
 
 ```
-feat: Add password reset (REQ-F-AUTH-002)
+feat: Add password reset (<REQ-ID>)
 
 Implement password reset via email with time-limited tokens.
 
@@ -365,7 +365,7 @@ Business Rules:
 - BR-010: Reset token expires after 1 hour
 - BR-011: Token usable only once
 
-Implements: REQ-F-AUTH-002
+Implements: <REQ-ID>
 Tests: 7 tests, 100% passing
 Coverage: 92%
 ```
@@ -373,14 +373,14 @@ Coverage: 92%
 ### Bug Fix (Remediation)
 
 ```
-fix: Correct email validation regex (REQ-F-AUTH-001)
+fix: Correct email validation regex (<REQ-ID>)
 
 Fix email validation to reject invalid TLDs.
 
 Issue: Email validation accepted invalid domains like user@example.c
 Fix: Updated regex pattern to require minimum 2-char TLD
 
-Fixes: REQ-F-AUTH-001, BR-001
+Fixes: <REQ-ID>, BR-001
 Tests: 3 new tests added, all passing
 ```
 
@@ -413,7 +413,7 @@ Tests: Performance tests added
 ```
 Intent (INT-042)
   ↓ (forward)
-Requirements (REQ-F-AUTH-001)
+Requirements (<REQ-ID>)
   ↓ (forward)
 Design (AuthService component)
   ↓ (forward)
@@ -421,9 +421,9 @@ Code (src/auth/login.py)
   ↓ (forward)
 Tests (tests/auth/test_login.py)
   ↓ (forward)
-Runtime (Datadog metrics tagged with REQ-F-AUTH-001)
+Runtime (Datadog metrics tagged with <REQ-ID>)
   ↓ (forward)
-Alerts ("ERROR: REQ-F-AUTH-001 - Auth timeout")
+Alerts ("ERROR: <REQ-ID> - Auth timeout")
   ↑ (backward)
 New Intent (INT-150: "Fix auth timeout")
 ```

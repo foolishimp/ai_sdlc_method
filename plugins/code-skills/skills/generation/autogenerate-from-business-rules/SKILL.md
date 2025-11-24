@@ -32,7 +32,7 @@ Your goal is to transform **structured BR-* specifications** into **production c
 
 **Example**:
 ```yaml
-REQ-F-AUTH-001: User login with email and password
+<REQ-ID>: User login with email and password
 
 Business Rules:
 - BR-001: Email validation
@@ -61,7 +61,7 @@ Business Rules:
 
 ```python
 # src/auth/constants.py
-# Generated from: REQ-F-AUTH-001
+# Generated from: <REQ-ID>
 
 # BR-001: Email validation
 EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -95,7 +95,7 @@ EMAIL_UNIQUE_ERROR = "Email already registered"
 
 ```python
 # src/auth/validators.py
-# Generated from: REQ-F-AUTH-001
+# Generated from: <REQ-ID>
 
 import re
 from typing import Optional
@@ -193,7 +193,7 @@ def validate_email_unique(email: str) -> Optional[str]:
 
 ```python
 # src/auth/lockout.py
-# Generated from: REQ-F-AUTH-001
+# Generated from: <REQ-ID>
 
 from datetime import datetime, timedelta
 from typing import Optional
@@ -272,7 +272,7 @@ class LoginAttemptTracker:
 
 ```python
 # tests/auth/test_validators.py
-# Generated from: REQ-F-AUTH-001
+# Generated from: <REQ-ID>
 
 import pytest
 from src.auth.validators import (
@@ -342,7 +342,7 @@ pytest tests/auth/test_validators.py -v
 
 ```bash
 git add src/auth/constants.py src/auth/validators.py src/auth/lockout.py tests/auth/test_validators.py
-git commit -m "GEN: Autogenerate code from BR-* for REQ-F-AUTH-001
+git commit -m "GEN: Autogenerate code from BR-* for <REQ-ID>
 
 Autogenerate production code and tests from business rules.
 
@@ -361,7 +361,7 @@ Files Generated:
 Tests: 24 tests, all passing ✓
 Coverage: 100%
 
-Generated from: REQ-F-AUTH-001 (BR-001, BR-002, BR-003, BR-004)
+Generated from: <REQ-ID> (BR-001, BR-002, BR-003, BR-004)
 "
 ```
 
@@ -372,7 +372,7 @@ Generated from: REQ-F-AUTH-001 (BR-001, BR-002, BR-003, BR-004)
 When you complete code generation, show:
 
 ```
-[CODE GENERATION - REQ-F-AUTH-001]
+[CODE GENERATION - <REQ-ID>]
 
 Parsed Business Rules:
   ✓ BR-001: Email validation (regex pattern)
@@ -418,7 +418,7 @@ Running generated tests...
 
 Coverage: 100%
 
-Commit: GEN: Autogenerate code from BR-* for REQ-F-AUTH-001
+Commit: GEN: Autogenerate code from BR-* for <REQ-ID>
 
 ✅ Code Generation Complete!
    Generated: 333 lines of production code + tests

@@ -551,7 +551,7 @@ asset_types:
 
 **Old Way (Hardcoded)**:
 ```python
-# Implements: REQ-F-AUTH-001
+# Implements: REQ-F-DEMO-AUTH-001
 ```
 ❌ Assumes specific format
 ❌ Not flexible

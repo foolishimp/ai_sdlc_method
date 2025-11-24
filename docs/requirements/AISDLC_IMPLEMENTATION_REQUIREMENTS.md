@@ -121,26 +121,7 @@ This document defines the requirements for building the AI SDLC Method tooling i
 
 ---
 
-### REQ-F-CMD-002: Context Switching
-
-**Priority**: Medium
-**Type**: Functional
-
-**Description**: The system shall provide commands for switching between projects and contexts.
-
-**Acceptance Criteria**:
-- [ ] /switch-context command
-- [ ] /load-context command
-- [ ] /current-context command
-- [ ] Context preserves across sessions
-
-**Rationale**: Support multi-project workflows.
-
-**Dependencies**: REQ-F-CMD-001, REQ-NFR-CONTEXT-001
-
----
-
-### REQ-F-CMD-003: Persona Management
+### REQ-F-CMD-002: Persona Management
 
 **Priority**: Low
 **Type**: Functional
@@ -191,8 +172,7 @@ This document defines the requirements for building the AI SDLC Method tooling i
 **Acceptance Criteria**:
 - [ ] TASK_TEMPLATE.md with acceptance criteria
 - [ ] FINISHED_TASK_TEMPLATE.md with problem/solution/lessons
-- [ ] TODO_LIST.md for quick capture
-- [ ] ACTIVE_TASKS.md for formal tasks
+- [ ] ACTIVE_TASKS.md for task tracking
 
 **Rationale**: Structured task documentation.
 
@@ -218,65 +198,7 @@ This document defines the requirements for building the AI SDLC Method tooling i
 
 ---
 
-## 4. TODO System
-
-### REQ-F-TODO-001: Create TODO Item
-
-**Priority**: High
-**Type**: Functional
-
-**Description**: The system shall allow quick capture of TODO items via /todo command.
-
-**Acceptance Criteria**:
-- [ ] /todo "description" command creates entry
-- [ ] TODO stored in .ai-workspace/tasks/todo/TODO_LIST.md
-- [ ] Timestamp added automatically
-- [ ] Context captured if provided
-
-**Rationale**: Low-friction idea capture.
-
-**Dependencies**: REQ-F-WORKSPACE-002
-
----
-
-### REQ-F-TODO-002: Mark TODO as Complete
-
-**Priority**: Medium
-**Type**: Functional
-
-**Description**: The system shall allow marking TODOs as complete or promoted to formal tasks.
-
-**Acceptance Criteria**:
-- [ ] TODO can be marked completed
-- [ ] TODO can be promoted to ACTIVE_TASKS.md
-- [ ] Completed TODOs move to archive section
-- [ ] Promotion creates formal task with acceptance criteria
-
-**Rationale**: TODO lifecycle management.
-
-**Dependencies**: REQ-F-TODO-001
-
----
-
-### REQ-F-TODO-003: List All TODOs
-
-**Priority**: Low
-**Type**: Functional
-
-**Description**: The system shall provide command to list all active TODOs.
-
-**Acceptance Criteria**:
-- [ ] /aisdlc-status shows TODO count
-- [ ] TODO_LIST.md organized by section (active, promoted, completed)
-- [ ] TODOs sorted by date
-
-**Rationale**: TODO visibility.
-
-**Dependencies**: REQ-F-TODO-001
-
----
-
-## 5. Testing Requirements
+## 4. Testing Requirements
 
 ### REQ-F-TESTING-001: Test Coverage Validation
 
@@ -443,7 +365,7 @@ This document defines the requirements for building the AI SDLC Method tooling i
 
 **Status**:
 - ✅ Implemented but untagged: 16 (design exists, code exists, no traceability tags)
-- ⚠️ Partially implemented: 4 (REQ-F-PLUGIN-004, REQ-F-CMD-002, REQ-F-TODO-002, REQ-F-TESTING-002)
+- ⚠️ Partially implemented: 3 (REQ-F-PLUGIN-004, REQ-F-CMD-002, REQ-F-TESTING-002)
 - ❌ Not implemented: 0
 
 ---
@@ -453,7 +375,6 @@ This document defines the requirements for building the AI SDLC Method tooling i
 - REQ-F-PLUGIN-* → [PLUGIN_ARCHITECTURE.md](../design/PLUGIN_ARCHITECTURE.md)
 - REQ-F-CMD-* → [COMMAND_SYSTEM.md](../design/COMMAND_SYSTEM.md) (to be created)
 - REQ-F-WORKSPACE-* → [TEMPLATE_SYSTEM.md](../design/TEMPLATE_SYSTEM.md)
-- REQ-F-TODO-* → [AI_SDLC_UX_DESIGN.md](../design/AI_SDLC_UX_DESIGN.md)
 - REQ-F-TESTING-* → testing-skills plugin
 - REQ-NFR-TRACE-* → validate_traceability.py
 - REQ-NFR-CONTEXT-* → .ai-workspace/ structure

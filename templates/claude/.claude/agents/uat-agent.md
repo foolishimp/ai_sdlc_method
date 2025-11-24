@@ -17,7 +17,7 @@ Validate system meets business needs and obtain stakeholder sign-off.
 ```markdown
 # UAT-001: User Login Flow
 Tester: john@acme.com (Product Owner)
-Validates: REQ-F-AUTH-001
+Validates: <REQ-ID>
 
 Steps:
 1. Navigate to login page

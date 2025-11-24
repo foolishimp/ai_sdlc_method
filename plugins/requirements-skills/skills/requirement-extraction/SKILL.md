@@ -76,7 +76,7 @@ Success: Reduced support calls
 **Determine requirement type**:
 
 **REQ-F-* (Functional)** - Features users can use:
-- User login → `REQ-F-AUTH-001`
+- User login → `<REQ-ID>`
 - View balance → `REQ-F-PORTAL-001`
 - Update profile → `REQ-F-PORTAL-002`
 - Download invoices → `REQ-F-PORTAL-003`
@@ -102,7 +102,7 @@ Success: Reduced support calls
 **Format for each requirement**:
 
 ```markdown
-## REQ-F-AUTH-001: User Login with Email and Password
+## <REQ-ID>: User Login with Email and Password
 
 **Type**: Functional Requirement
 **Domain**: Authentication
@@ -182,13 +182,13 @@ docs/requirements/
 
 ---
 
-## REQ-F-AUTH-001: User Login with Email and Password
+## <REQ-ID>: User Login with Email and Password
 
 [Full specification as shown above]
 
 ---
 
-## REQ-F-AUTH-002: Password Reset via Email
+## <REQ-ID>: Password Reset via Email
 
 **Type**: Functional Requirement
 **Domain**: Authentication
@@ -223,8 +223,8 @@ INT-042:
   date_created: "2025-11-20"
   status: "In Progress"
   requirements:
-    - REQ-F-AUTH-001
-    - REQ-F-AUTH-002
+    - <REQ-ID>
+    - <REQ-ID>
     - REQ-F-PORTAL-001
     - REQ-F-PORTAL-002
     - REQ-F-PORTAL-003
@@ -248,8 +248,8 @@ git commit -m "REQUIREMENTS: Extract requirements from INT-042
 Extract structured requirements from customer portal intent.
 
 Requirements Extracted:
-- REQ-F-AUTH-001: User login with email/password
-- REQ-F-AUTH-002: Password reset via email
+- <REQ-ID>: User login with email/password
+- <REQ-ID>: Password reset via email
 - REQ-F-PORTAL-001: View account balance
 - REQ-F-PORTAL-002: Update user profile
 - REQ-F-PORTAL-003: Download invoices
@@ -279,8 +279,8 @@ Intent: Customer self-service portal
 Requirements Extracted:
 
 Functional Requirements (5):
-  ✓ REQ-F-AUTH-001: User login with email/password
-  ✓ REQ-F-AUTH-002: Password reset via email
+  ✓ <REQ-ID>: User login with email/password
+  ✓ <REQ-ID>: Password reset via email
   ✓ REQ-F-PORTAL-001: View account balance
   ✓ REQ-F-PORTAL-002: Update user profile
   ✓ REQ-F-PORTAL-003: Download invoices
@@ -295,7 +295,7 @@ Data Quality Requirements (1):
 Total: 8 requirements
 
 Files Created:
-  + docs/requirements/authentication.md (REQ-F-AUTH-001, 002)
+  + docs/requirements/authentication.md (<REQ-ID>, 002)
   + docs/requirements/customer-portal.md (REQ-F-PORTAL-001, 002, 003)
   + docs/requirements/performance.md (REQ-NFR-PERF-001)
   + docs/requirements/security.md (REQ-NFR-SEC-001)

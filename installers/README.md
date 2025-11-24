@@ -27,17 +27,10 @@ This directory contains Python scripts that install the **AI SDLC development en
 ### Method 1: Python Installers (This Directory)
 Direct installation via Python scripts - works offline, fully customizable.
 
-### Method 2: Claude Marketplace
+### Method 2: Claude Marketplace (Recommended)
 ```bash
 /plugin marketplace add foolishimp/ai_sdlc_method
 /plugin install @aisdlc/startup-bundle
-```
-
-### Method 3: MCP Service
-```bash
-cd ../mcp_service
-pip install -e .
-python -m server.main --stdio
 ```
 
 ---

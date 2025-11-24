@@ -1,27 +1,11 @@
-Checkpoint active tasks against current conversation context and update their status.
+Checkpoint active tasks against current conversation context and update ACTIVE_TASKS.md.
+
+<!-- Implements: REQ-F-WORKSPACE-002 (Task Management Templates) -->
+<!-- Implements: REQ-NFR-CONTEXT-001 (Persistent Context Across Sessions) -->
 
 **Usage**: `/aisdlc-checkpoint-tasks`
 
 **Instructions**:
-
-## Phase 0: Refresh AI SDLC Context
-
-**CRITICAL**: Before proceeding, refresh Claude's context with the AI SDLC methodology:
-
-1. **Read** `.ai-workspace/templates/AISDLC_METHOD_REFERENCE.md`
-   - This loads workspace structure rules
-   - This loads workflow patterns
-   - This loads violation warnings
-   - This ensures correct file locations
-
-2. **Confirm understanding**:
-   - Finished tasks go in: `.ai-workspace/tasks/finished/`
-   - Active tasks are in: `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
-   - Never put tasks in `docs/` or anywhere else
-
-**Why this matters**: Without context refresh, Claude may violate workspace structure rules and create files in wrong locations.
-
----
 
 ## Phase 1: Analyze Current Context
 1. **Review conversation history** to identify:
@@ -40,45 +24,35 @@ Checkpoint active tasks against current conversation context and update their st
    - **Not Started**: No evidence of work in current context
    - **Partially Relevant**: Side work relates to this task
 
-## Phase 3: Update Task Status
-For each task, perform appropriate action:
+## Phase 3: Update ACTIVE_TASKS.md
 
-### For COMPLETED tasks:
+For each task:
+
+**For COMPLETED tasks**:
 1. **Read** `.ai-workspace/templates/FINISHED_TASK_TEMPLATE.md`
 2. **Create** finished task document:
    - Path: `.ai-workspace/tasks/finished/{YYYYMMDD_HHMM}_{task_slug}.md`
-   - Fill all sections based on conversation context:
-     - Problem: Original task description
-     - Investigation: What was discovered during work
-     - Solution: How it was solved
-     - TDD Process: RED/GREEN/REFACTOR phases (if applicable)
-     - Files Modified: Extract from conversation (git commits, edits, writes)
-     - Test Coverage: Extract from test runs in conversation
-     - Code Changes: Relevant before/after snippets
-     - Testing: Commands run and results
-     - Result: Final outcome
-     - Traceability: REQ-* keys from task
-     - Metrics: Estimate based on changes
-   - **Note**: If documentation task, adapt sections appropriately
-3. **Remove** completed task from `ACTIVE_TASKS.md`
-4. Log: "✅ Task #{id} completed and archived"
+   - Fill all sections based on conversation context
+3. **Remove** completed task from ACTIVE_TASKS.md
+4. **Add** to "Recently Completed" in Summary section
+5. **Update** timestamp at top of file
+6. Log: "✅ Task #{id} completed and archived"
 
-### For IN PROGRESS tasks:
-1. **Update** status in `ACTIVE_TASKS.md`:
-   - Change status from "Not Started" to "In Progress"
-   - Add progress notes with what has been done
-   - Update acceptance criteria checkboxes based on completion
-   - Add any blockers or dependencies discovered
-2. Log: "🔄 Task #{id} status updated to In Progress"
+**For IN PROGRESS tasks**:
+1. **Update** status field to "In Progress"
+2. Add progress notes (if any)
+3. Update acceptance criteria checkboxes
+4. Add any blockers discovered
+5. **Update** timestamp at top of file
+6. Log: "🔄 Task #{id} status updated to In Progress"
 
-### For BLOCKED tasks:
-1. **Update** status in `ACTIVE_TASKS.md`:
-   - Change status to "Blocked"
-   - Document blocker reason
-   - Note dependencies or required actions
-2. Log: "🚫 Task #{id} marked as Blocked"
+**For BLOCKED tasks**:
+1. **Update** status to "Blocked"
+2. Document blocker reason in task Notes
+3. **Update** timestamp at top of file
+4. Log: "🚫 Task #{id} marked as Blocked"
 
-### For NOT STARTED tasks:
+**For NOT STARTED tasks**:
 1. **No changes** - leave as is
 2. Log: "⏸️  Task #{id} not started (no changes)"
 

@@ -39,7 +39,7 @@ grep -rho "REQ-[A-Z-]*-[0-9]*" docs/requirements/ | sort -u
 
 ```bash
 # Check if requirement has design
-grep -rn "REQ-F-AUTH-001" docs/design/ docs/adrs/
+grep -rn "<REQ-ID>" docs/design/ docs/adrs/
 
 # Expected: At least 1 design doc mentions this requirement
 ```
@@ -55,14 +55,14 @@ grep -rn "REQ-F-AUTH-001" docs/design/ docs/adrs/
 **For covered requirements, check if design is complete**:
 
 ```yaml
-REQ-F-AUTH-001:
+<REQ-ID>:
   ✓ Component: AuthenticationService (in architecture doc)
   ✓ API: POST /auth/login (in API spec)
   ✓ Data Model: User entity (in data model doc)
   ✓ Diagram: Figure 1 (in component diagram)
   Result: COMPLETE ✅
 
-REQ-F-PAY-001:
+<REQ-ID>:
   ✓ Component: PaymentService (in architecture doc)
   ✗ API: No API spec found
   ✗ Data Model: No data model
@@ -106,7 +106,7 @@ Requirements Without Design (2):
      Missing: All design
 
 Requirements with Partial Design (5):
-  ⚠️ REQ-F-PAY-001: Payment processing
+  ⚠️ <REQ-ID>: Payment processing
      Has: Component (PaymentService), Diagram
      Missing: API spec, Data model
 
@@ -117,8 +117,8 @@ Requirements with Partial Design (5):
   ... (3 more)
 
 Requirements with Complete Design (35):
-  ✅ REQ-F-AUTH-001: User login (complete)
-  ✅ REQ-F-AUTH-002: Password reset (complete)
+  ✅ <REQ-ID>: User login (complete)
+  ✅ <REQ-ID>: Password reset (complete)
   ... (33 more)
 
 Homeostasis Deviation:

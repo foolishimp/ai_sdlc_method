@@ -408,38 +408,6 @@ examples/local_projects/
 
 ---
 
-## 7. MCP Service (Non-Claude LLMs)
-
-**Version:** 1.0.0 (Legacy), 2.0.0 (Planned)
-**Location:** `/mcp_service/`
-**Purpose:** MCP service for non-Claude LLMs
-**Language:** Python 3.8+
-
-### 7.1 Current Implementation (v1.0.0)
-
-```
-mcp_service/
-├── src/ai_sdlc_config/                          # Python package
-├── server/                                      # MCP server
-├── client/                                      # Client utilities
-├── tests/                                       # Test suite
-├── setup.py                                     # Package setup
-└── README.md                                    # MCP overview
-```
-
-### 7.2 Planned 7-Stage Integration (v2.0.0)
-
-**Status:** In Planning
-**Roadmap:** See `mcp_service/MCP_SDLC_INTEGRATION_PLAN.md`
-
-**New MCP Tools:**
-- `load_stage_context` - Load AI agent config for specific stage
-- `list_available_stages` - List all 7 stages
-- `trace_requirement_key` - Trace REQ-* through stages
-- `get_requirement_lineage` - Get full lineage from intent to runtime
-- `load_agent_persona` - Load agent persona for stage
-- `switch_agent_persona` - Switch between stage personas
-
 ---
 
 ## 8. Deployment Matrix

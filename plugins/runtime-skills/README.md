@@ -35,7 +35,7 @@ The `runtime-skills` plugin closes the feedback loop from production back to int
 ```
 1. Deploy (Code tagged with REQ-*)
    ↓
-2. Runtime (Telemetry tagged: req:REQ-F-AUTH-001)
+2. Runtime (Telemetry tagged: req:<REQ-ID>)
    ↓
 3. Monitor (Dashboard per REQ-*)
    ↓

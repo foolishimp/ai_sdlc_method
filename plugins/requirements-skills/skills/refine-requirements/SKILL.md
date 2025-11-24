@@ -65,7 +65,7 @@ New BR-*:
 
 **Example**:
 ```
-Original: REQ-F-PAY-001: Payment processing
+Original: <REQ-ID>: Payment processing
 
 TDD Implementation (RED phase):
   Developer writing test: "Should I test duplicate payments?"

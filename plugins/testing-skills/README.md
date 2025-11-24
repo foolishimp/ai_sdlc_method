@@ -113,7 +113,7 @@ Discover integration tests → Run BDD scenarios → Run API tests
 
 ```
 1. validate-test-coverage (Sensor):
-   → Detects: REQ-F-PAY-001 at 72.1% (below 80%)
+   → Detects: <REQ-ID> at 72.1% (below 80%)
    → Signal: "Coverage gap detected"
    ↓
 
@@ -124,7 +124,7 @@ Discover integration tests → Run BDD scenarios → Run API tests
    ↓
 
 3. validate-test-coverage (Sensor):
-   → Re-checks: REQ-F-PAY-001 now at 95.3%
+   → Re-checks: <REQ-ID> now at 95.3%
    → Status: ✅ Homeostasis achieved
 ```
 
@@ -151,7 +151,7 @@ Claude: (invokes validate-test-coverage)
 Overall Coverage: 87.5% ✅
 
 Requirements Below 80% (2):
-  ⚠️ REQ-F-PAY-001: 72.1%
+  ⚠️ <REQ-ID>: 72.1%
   ❌ REQ-F-CART-001: 45.8%
 
 Recommendation: Generate missing tests?
@@ -162,11 +162,11 @@ Recommendation: Generate missing tests?
 ### Example 2: Generate Missing Tests
 
 ```
-You: "Generate tests for REQ-F-PAY-001"
+You: "Generate tests for <REQ-ID>"
 
 Claude: (invokes generate-missing-tests)
 
-Analyzing coverage gaps for REQ-F-PAY-001...
+Analyzing coverage gaps for <REQ-ID>...
 
 Uncovered Lines: 28 lines
   - Line 45: Zero amount check
@@ -228,7 +228,7 @@ Requirements: 36/42 tested (85.7%)
 
 Top Gaps:
   1. REQ-F-CART-001: 45.8%
-  2. REQ-F-PAY-001: 72.1%
+  2. <REQ-ID>: 72.1%
   3. REQ-F-PROFILE-001: 0%
 
 Report generated:

@@ -31,9 +31,9 @@ The `design-skills` plugin transforms requirements into technical solution archi
 Requirements (REQ-*, BR-*, C-*, F-*)
   ↓ design-with-traceability
 Technical Architecture:
-  - Components (AuthenticationService → REQ-F-AUTH-001)
-  - APIs (POST /auth/login → REQ-F-AUTH-001)
-  - Data Models (User entity → REQ-F-AUTH-001)
+  - Components (AuthenticationService → <REQ-ID>)
+  - APIs (POST /auth/login → <REQ-ID>)
+  - Data Models (User entity → <REQ-ID>)
   - All tagged for traceability
 ```
 

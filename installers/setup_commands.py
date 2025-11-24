@@ -5,8 +5,7 @@ AI SDLC Method - Claude Commands Setup Script
 Installs the .claude/commands/ directory into a target project.
 
 # Implements: REQ-F-CMD-001 (Slash commands for workflow)
-# Implements: REQ-F-CMD-002 (Context switching commands)
-# Implements: REQ-F-CMD-003 (Persona management commands)
+# Implements: REQ-F-CMD-002 (Persona management commands)
 
 The commands provide slash command functionality:
 - /todo - Quick task capture
@@ -14,7 +13,6 @@ The commands provide slash command functionality:
 - /finish-task - Complete task with documentation
 - /commit-task - Commit with proper message
 - /apply-persona - Apply development persona
-- /switch-context - Switch project context
 - And more...
 
 Usage:

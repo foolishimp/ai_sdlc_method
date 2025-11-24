@@ -38,7 +38,7 @@ You are creating **Architecture Decision Records (ADRs)** that acknowledge **eco
 ## Context
 
 **Requirements**:
-- REQ-F-AUTH-001: User authentication
+- <REQ-ID>: User authentication
 - REQ-NFR-SEC-001: Secure password storage
 
 **Problem**:
@@ -193,7 +193,7 @@ against brute force attacks while maintaining acceptable performance.
 Decision: Use bcrypt for password hashing
 
 Context:
-  Requirements: REQ-F-AUTH-001, REQ-NFR-SEC-001
+  Requirements: <REQ-ID>, REQ-NFR-SEC-001
   Problem: Need secure password hashing
   Ecosystem E(t): Team knows bcrypt, PCI-DSS compliant, AWS supported
 

@@ -121,7 +121,7 @@ mappings:
 ## 7-Stage AI SDLC Flow
 
 ### 1. Requirements Stage
-**Agent**: Requirements Agent
+**Agent**: AISDLC Requirements Agent
 **Output**: `.ai-workspace/requirements/`
 
 Generate structured requirements:
@@ -239,7 +239,7 @@ Feature: Data Mapping
 ```
 
 ### 6. UAT Stage
-**Agent**: UAT Agent
+**Agent**: AISDLC UAT Agent
 **Output**: Business validation test cases
 
 Data team validates with real-world data:
@@ -248,7 +248,7 @@ Data team validates with real-world data:
 - Sign-off on data quality
 
 ### 7. Runtime Feedback Stage
-**Agent**: Runtime Feedback Agent
+**Agent**: AISDLC Runtime Feedback Agent
 **Output**: Production monitoring
 
 Tag all metrics with requirement keys:

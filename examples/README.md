@@ -38,9 +38,9 @@ Team/Project Plugin (Local: .claude-plugins/)
 
 ---
 
-## Plugin vs MCP Service
+## Using the AI SDLC Plugins
 
-### Claude Code Users → Use Plugins (Recommended)
+**For Claude Code Users** (Recommended):
 
 **Advantages**:
 - ✅ Native Claude Code integration
@@ -59,12 +59,6 @@ Team/Project Plugin (Local: .claude-plugins/)
 /plugin install @aisdlc/aisdlc-methodology
 /plugin install @aisdlc/startup-bundle
 ```
-
-### Non-Claude LLMs → Use MCP Service
-
-**For**: Copilot, Gemini, other LLMs with MCP support
-
-**See**: [../mcp_service/README.md](../mcp_service/README.md)
 
 ---
 
@@ -470,7 +464,6 @@ For more information:
 - [Plugin Guide](../PLUGIN_GUIDE.md) - How to create plugins
 - [Plugins Documentation](../plugins/README.md) - All available plugins
 - [Complete Methodology](../docs/ai_sdlc_method.md) - 7-stage SDLC reference
-- [MCP Service](../mcp_service/README.md) - For non-Claude LLMs
 
 ---
 

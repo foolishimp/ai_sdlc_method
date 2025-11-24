@@ -38,10 +38,10 @@ grep -rho "REQ-[A-Z-]*-[0-9]*" docs/requirements/ | sort -u
 
 **Example output**:
 ```
-REQ-F-AUTH-001
-REQ-F-AUTH-002
+<REQ-ID>
+<REQ-ID>
 REQ-F-AUTH-003
-REQ-F-PAY-001
+<REQ-ID>
 REQ-NFR-PERF-001
 REQ-NFR-SEC-001
 REQ-DATA-PII-001
@@ -55,9 +55,9 @@ REQ-DATA-PII-001
 
 ```bash
 # Check if requirement has code implementation
-grep -rn "# Implements: REQ-F-AUTH-001" src/
+grep -rn "# Implements: <REQ-ID>" src/
 
-# Expected: At least 1 file with "# Implements: REQ-F-AUTH-001"
+# Expected: At least 1 file with "# Implements: <REQ-ID>"
 ```
 
 **Coverage criteria**:
@@ -66,9 +66,9 @@ grep -rn "# Implements: REQ-F-AUTH-001" src/
 
 **Example**:
 ```
-REQ-F-AUTH-001:
-  ✅ src/auth/login.py:23  # Implements: REQ-F-AUTH-001
-  ✅ src/auth/validators.py:67  # Implements: REQ-F-AUTH-001, BR-001
+<REQ-ID>:
+  ✅ src/auth/login.py:23  # Implements: <REQ-ID>
+  ✅ src/auth/validators.py:67  # Implements: <REQ-ID>, BR-001
   Result: COVERED (2 files)
 
 REQ-F-PROFILE-001:
@@ -84,10 +84,10 @@ REQ-F-PROFILE-001:
 
 ```bash
 # Check if requirement has tests
-grep -rn "# Validates: REQ-F-AUTH-001" tests/
+grep -rn "# Validates: <REQ-ID>" tests/
 
 # Also check BDD scenarios
-grep -rn "# Validates: REQ-F-AUTH-001" features/
+grep -rn "# Validates: <REQ-ID>" features/
 
 # Expected: At least 1 test file
 ```
@@ -98,13 +98,13 @@ grep -rn "# Validates: REQ-F-AUTH-001" features/
 
 **Example**:
 ```
-REQ-F-AUTH-001:
-  ✅ tests/auth/test_login.py:15  # Validates: REQ-F-AUTH-001
-  ✅ features/authentication.feature:8  # Validates: REQ-F-AUTH-001
+<REQ-ID>:
+  ✅ tests/auth/test_login.py:15  # Validates: <REQ-ID>
+  ✅ features/authentication.feature:8  # Validates: <REQ-ID>
   Result: COVERED (2 test files)
 
-REQ-F-PAY-001:
-  ✅ src/payments/payment.py:45  # Implements: REQ-F-PAY-001
+<REQ-ID>:
+  ✅ src/payments/payment.py:45  # Implements: <REQ-ID>
   ❌ No test files found
   Result: COVERED (code) but NOT COVERED (tests) ⚠️
 ```
@@ -156,7 +156,7 @@ Recommended Action: Implement these requirements using TDD workflow
 **Gap Type 2: Has Code, No Tests**:
 ```
 Requirements Without Tests (10):
-├─ REQ-F-PAY-001 - Payment processing
+├─ <REQ-ID> - Payment processing
 │   Code: src/payments/payment.py:45
 │   Missing: Unit tests
 │
@@ -211,7 +211,7 @@ Coverage Gaps by Type:
   6. REQ-DATA-LIN-001 - Data lineage tracking
 
 ⚠️ No Tests (10 requirements):
-  1. REQ-F-PAY-001 - Payment processing
+  1. <REQ-ID> - Payment processing
      Code: src/payments/payment.py:45
   2. REQ-F-CART-001 - Shopping cart
      Code: src/cart/cart.py:23

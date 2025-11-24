@@ -83,7 +83,7 @@ src/test/java/steps/AuthenticationSteps.java
 ```python
 # features/steps/authentication_steps.py
 
-# Validates: REQ-F-AUTH-001
+# Validates: <REQ-ID>
 # Business Rules: BR-001, BR-002, BR-003
 
 from behave import given, when, then
@@ -99,7 +99,7 @@ _ui_state = {}
 @given('I am a registered user with email "{email}"')
 def step_impl(context, email):
     """Create a test user with specified email"""
-    # Validates: REQ-F-AUTH-001
+    # Validates: <REQ-ID>
     user = create_test_user(email=email)
     _test_users[email] = user
     context.user = user
@@ -166,7 +166,7 @@ def step_impl(context):
 ```javascript
 // features/step_definitions/authentication_steps.js
 
-// Validates: REQ-F-AUTH-001
+// Validates: <REQ-ID>
 // Business Rules: BR-001, BR-002, BR-003
 
 const { Given, When, Then } = require('@cucumber/cucumber');
@@ -178,7 +178,7 @@ let loginResult;
 let uiState = {};
 
 Given('I am a registered user with email {string}', function(email) {
-  // Validates: REQ-F-AUTH-001
+  // Validates: <REQ-ID>
   testUser = createTestUser(email);
 });
 
@@ -254,7 +254,7 @@ Feature: User Login
 
 ```bash
 git add features/steps/authentication_steps.py
-git commit -m "STEP DEF: Add step definitions for REQ-F-AUTH-001
+git commit -m "STEP DEF: Add step definitions for <REQ-ID>
 
 Implement step definitions for user login scenarios.
 
@@ -265,7 +265,7 @@ Step definitions:
 
 Steps: 12 step definitions (scenarios fail - no implementation yet)
 
-Validates: REQ-F-AUTH-001
+Validates: <REQ-ID>
 "
 ```
 
@@ -276,7 +276,7 @@ Validates: REQ-F-AUTH-001
 When you complete the STEP DEFINITIONS phase, show:
 
 ```
-[STEP DEFINITIONS Phase - REQ-F-AUTH-001]
+[STEP DEFINITIONS Phase - <REQ-ID>]
 
 Feature File: features/authentication.feature
 
@@ -308,7 +308,7 @@ Running scenarios...
 
 Result: 5 scenarios FAILED ✓ (expected - implementation missing)
 
-Commit: STEP DEF: Add step definitions for REQ-F-AUTH-001
+Commit: STEP DEF: Add step definitions for <REQ-ID>
 
 ✅ STEP DEFINITIONS Phase Complete!
    Next: Invoke implement-feature skill to implement functionality

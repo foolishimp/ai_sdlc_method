@@ -31,7 +31,7 @@ The `aisdlc-core` plugin provides the **foundational traceability layer** for AI
 
 **Key Patterns**:
 ```
-REQ-F-{DOMAIN}-{ID}      Example: REQ-F-AUTH-001
+REQ-F-{DOMAIN}-{ID}      Example: <REQ-ID>
 REQ-NFR-{TYPE}-{ID}      Example: REQ-NFR-PERF-001
 REQ-DATA-{TYPE}-{ID}     Example: REQ-DATA-PII-001
 REQ-BR-{DOMAIN}-{ID}     Example: REQ-BR-REFUND-001
@@ -98,8 +98,8 @@ Recommended: Invoke 'generate-missing-tests' skill
 **Example**:
 ```
 Before: No tags in code
-After:  # Implements: REQ-F-AUTH-001 added to 3 files
-        # Validates: REQ-F-AUTH-001 added to 2 test files
+After:  # Implements: <REQ-ID> added to 3 files
+        # Validates: <REQ-ID> added to 2 test files
 Result: Bidirectional traceability ✅
 ```
 
@@ -136,7 +136,7 @@ Result: Bidirectional traceability ✅
 
 **How It Works**:
 1. **Sensor** detects requirements without tags
-2. **Signal** sent: "REQ-F-AUTH-001 needs tags"
+2. **Signal** sent: "<REQ-ID> needs tags"
 3. **Actuator** invoked: Add tags to files
 4. **Sensor** re-checks: Tags now present
 5. **Homeostasis achieved**: coverage = 100%
@@ -176,11 +176,11 @@ cd your-project
 ### Example 1: Validate Requirement Key
 
 ```
-You: "Is REQ-F-AUTH-001 a valid requirement key?"
+You: "Is <REQ-ID> a valid requirement key?"
 
 Claude: (invokes requirement-traceability skill)
 
-Validating: REQ-F-AUTH-001
+Validating: <REQ-ID>
 
 Format Check:
   ✓ Starts with "REQ-"
@@ -210,7 +210,7 @@ Coverage Report:
 Gap: 10 requirements without tests
 
 Missing Tests:
-  1. REQ-F-PAY-001 - Payment processing
+  1. <REQ-ID> - Payment processing
   2. REQ-F-CART-001 - Shopping cart
   ... (8 more)
 
@@ -222,17 +222,17 @@ Recommended: Generate missing tests?
 ### Example 3: Add Tags to Code
 
 ```
-You: "Tag login.py with REQ-F-AUTH-001"
+You: "Tag login.py with <REQ-ID>"
 
 Claude: (invokes propagate-req-keys skill)
 
 Tagging Files:
   ✓ src/auth/login.py
-    Added: # Implements: REQ-F-AUTH-001 (line 1)
+    Added: # Implements: <REQ-ID> (line 1)
 
 Traceability:
-  Forward: REQ-F-AUTH-001 → src/auth/login.py ✅
-  Backward: src/auth/login.py → REQ-F-AUTH-001 ✅
+  Forward: <REQ-ID> → src/auth/login.py ✅
+  Backward: src/auth/login.py → <REQ-ID> ✅
 
 Done!
 ```

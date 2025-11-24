@@ -9,7 +9,7 @@ allowed-tools: [Read, Write, Edit, Bash, Grep, Glob]
 **Skill Type**: Orchestrator (TDD Workflow)
 **Purpose**: Coordinate complete TDD cycle with requirement traceability
 **Prerequisites**:
-- Work unit with REQ-* key (e.g., "Implement REQ-F-AUTH-001")
+- Work unit with REQ-* key (e.g., "Implement <REQ-ID>")
 - Requirement details available
 
 ---
@@ -104,7 +104,7 @@ Your goal is to implement a requirement using the **RED → GREEN → REFACTOR �
 - Squashes RED, GREEN, REFACTOR commits (optional)
 - Creates final commit message:
   ```
-  feat: Add user login (REQ-F-AUTH-001)
+  feat: Add user login (<REQ-ID>)
 
   Implements user authentication with email and password.
 
@@ -125,23 +125,23 @@ Your goal is to implement a requirement using the **RED → GREEN → REFACTOR �
 When you complete the TDD workflow, show:
 
 ```
-[TDD Workflow: REQ-F-AUTH-001]
+[TDD Workflow: <REQ-ID>]
 
 ✅ Phase 0: Prerequisites
-  ✓ Requirement: REQ-F-AUTH-001 (User login)
+  ✓ Requirement: <REQ-ID> (User login)
   ✓ Git repository: initialized
   ✓ Working tree: clean
 
 ✅ Phase 1: RED (Write Failing Tests)
   ✓ Created: test_user_login.py (5 tests)
   ✓ Tests FAILED as expected ✓
-  ✓ Commit: RED: Add tests for REQ-F-AUTH-001
+  ✓ Commit: RED: Add tests for <REQ-ID>
 
 ✅ Phase 2: GREEN (Make Tests Pass)
   ✓ Created: auth_service.py
   ✓ Implemented: login() function
   ✓ Tests PASSED ✓
-  ✓ Commit: GREEN: Implement REQ-F-AUTH-001
+  ✓ Commit: GREEN: Implement <REQ-ID>
 
 ✅ Phase 3: REFACTOR (Improve Quality + Eliminate Tech Debt)
   Code Quality Improvements:
@@ -155,16 +155,16 @@ When you complete the TDD workflow, show:
     ✓ Simplified validation logic (complexity 12 → 6)
 
   ✓ Tests still PASSING ✓
-  ✓ Commit: REFACTOR: Clean up REQ-F-AUTH-001
+  ✓ Commit: REFACTOR: Clean up <REQ-ID>
 
 ✅ Phase 4: COMMIT (Final Commit)
-  ✓ Final commit: feat: Add user login (REQ-F-AUTH-001)
+  ✓ Final commit: feat: Add user login (<REQ-ID>)
 
 🎉 TDD Workflow Complete!
   Files: 2 files (auth_service.py, test_user_login.py)
   Tests: 5 tests, 100% coverage
   Commits: 4 commits (RED, GREEN, REFACTOR, final)
-  Traceability: REQ-F-AUTH-001 → commit abc123
+  Traceability: <REQ-ID> → commit abc123
 ```
 
 ---

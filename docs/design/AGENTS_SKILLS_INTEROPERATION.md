@@ -111,7 +111,7 @@ ai_sdlc:
 
 **3. Manual Context** (user specifies):
 ```
-User: "I'm working on the Code stage for REQ-F-AUTH-001"
+User: "I'm working on the Code stage for REQ-F-DEMO-AUTH-001"
 Claude: [Internally loads code-agent.md context]
 ```
 
@@ -239,10 +239,10 @@ User: "Create requirements for authentication feature"
 │ Action: Extract REQ-F-*, REQ-NFR-*, REQ-DATA-*         │
 ├─────────────────────────────────────────────────────────┤
 │ Output:                                                 │
-│   REQ-F-AUTH-001: User login with email/password       │
-│   REQ-F-AUTH-002: User registration                    │
-│   REQ-NFR-PERF-001: Login response < 500ms             │
-│   REQ-NFR-SEC-001: Passwords hashed with bcrypt        │
+│   REQ-F-DEMO-AUTH-001: User login with email/password       │
+│   REQ-F-DEMO-AUTH-002: User registration                    │
+│   REQ-NFR-DEMO-PERF-001: Login response < 500ms             │
+│   REQ-NFR-DEMO-SEC-001: Passwords hashed with bcrypt        │
 │   REQ-DATA-001: Email format validation                │
 └────────────────┬────────────────────────────────────────┘
                  │
@@ -264,7 +264,7 @@ User: "Create requirements for authentication feature"
 │ Action: Generate requirement traceability               │
 ├─────────────────────────────────────────────────────────┤
 │ Output: traceability_matrix.yml                         │
-│   REQ-F-AUTH-001 → [Components, Tests, Code]           │
+│   REQ-F-DEMO-AUTH-001 → [Components, Tests, Code]           │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -273,7 +273,7 @@ User: "Create requirements for authentication feature"
 ### Example 2: Code Agent Uses Code Skills (TDD)
 
 ```
-User: "Implement REQ-F-AUTH-001 (user login)"
+User: "Implement REQ-F-DEMO-AUTH-001 (user login)"
 
 ┌─────────────────────────────────────────────────────────┐
 │ AGENT: code-agent.md                                    │
@@ -288,7 +288,7 @@ User: "Implement REQ-F-AUTH-001 (user login)"
 ├─────────────────────────────────────────────────────────┤
 │ Output: test_auth.py                                    │
 │   def test_login_with_valid_credentials():             │
-│       # Validates: REQ-F-AUTH-001                       │
+│       # Validates: REQ-F-DEMO-AUTH-001                       │
 │       result = login("user@example.com", "Pass123!")    │
 │       assert result.success == True                     │
 │                                                          │
@@ -301,7 +301,7 @@ User: "Implement REQ-F-AUTH-001 (user login)"
 │ Action: Implement minimal code to pass                  │
 ├─────────────────────────────────────────────────────────┤
 │ Output: auth_service.py                                 │
-│   # Implements: REQ-F-AUTH-001                          │
+│   # Implements: REQ-F-DEMO-AUTH-001                          │
 │   def login(email: str, password: str) -> LoginResult:  │
 │       user = UserRepository.find_by_email(email)        │
 │       if user and user.check_password(password):        │
@@ -354,7 +354,7 @@ User: "Implement REQ-F-AUTH-001 (user login)"
 │ Action: Git commit with requirement traceability        │
 ├─────────────────────────────────────────────────────────┤
 │ Output:                                                 │
-│   git commit -m "feat: Add user login (REQ-F-AUTH-001)" │
+│   git commit -m "feat: Add user login (REQ-F-DEMO-AUTH-001)" │
 │                                                          │
 │ Status: ✅ COMMITTED                                    │
 └─────────────────────────────────────────────────────────┘
@@ -365,7 +365,7 @@ User: "Implement REQ-F-AUTH-001 (user login)"
 ### Example 3: System Test Agent Uses Testing Skills + Code Skills (BDD)
 
 ```
-User: "Create BDD scenarios for REQ-F-AUTH-001"
+User: "Create BDD scenarios for REQ-F-DEMO-AUTH-001"
 
 ┌─────────────────────────────────────────────────────────┐
 │ AGENT: system-test-agent.md                             │
@@ -380,7 +380,7 @@ User: "Create BDD scenarios for REQ-F-AUTH-001"
 ├─────────────────────────────────────────────────────────┤
 │ Output: features/authentication.feature                 │
 │   Feature: User Authentication                          │
-│     # Validates: REQ-F-AUTH-001                         │
+│     # Validates: REQ-F-DEMO-AUTH-001                         │
 │                                                          │
 │     Scenario: Successful login                          │
 │       Given I am on the login page                      │
@@ -412,9 +412,9 @@ User: "Create BDD scenarios for REQ-F-AUTH-001"
 │ Action: Validate ≥95% requirement coverage              │
 ├─────────────────────────────────────────────────────────┤
 │ Output:                                                 │
-│   REQ-F-AUTH-001: ✅ 100% covered (login.feature)       │
-│   REQ-F-AUTH-002: ✅ 100% covered (register.feature)    │
-│   REQ-NFR-PERF-001: ✅ Validated (< 500ms)              │
+│   REQ-F-DEMO-AUTH-001: ✅ 100% covered (login.feature)       │
+│   REQ-F-DEMO-AUTH-002: ✅ 100% covered (register.feature)    │
+│   REQ-NFR-DEMO-PERF-001: ✅ Validated (< 500ms)              │
 │                                                          │
 │ Overall Coverage: 100% ✅                               │
 └─────────────────────────────────────────────────────────┘
@@ -441,7 +441,7 @@ Production Issue: "Auth timeout 850ms (target: 500ms)"
 │ Output: Datadog/CloudWatch metrics                      │
 │   logger.info('User login', {                           │
 │     event: 'USER_LOGIN',                                │
-│     requirements: ['REQ-F-AUTH-001', 'REQ-NFR-PERF-001']│
+│     requirements: ['REQ-F-DEMO-AUTH-001', 'REQ-NFR-DEMO-PERF-001']│
 │     duration: 850,                                      │
 │     success: true                                       │
 │   });                                                   │
@@ -449,7 +449,7 @@ Production Issue: "Auth timeout 850ms (target: 500ms)"
                  │
                  ▼
 ┌─────────────────────────────────────────────────────────┐
-│ Alert Detected: REQ-NFR-PERF-001 violated               │
+│ Alert Detected: REQ-NFR-DEMO-PERF-001 violated               │
 │   Target: 500ms                                         │
 │   Actual: 850ms                                         │
 │   Deviation: +70%                                       │
@@ -462,9 +462,9 @@ Production Issue: "Auth timeout 850ms (target: 500ms)"
 ├─────────────────────────────────────────────────────────┤
 │ Output: New Intent                                      │
 │   INT-042: "Optimize authentication performance"       │
-│   Reason: REQ-NFR-PERF-001 violated (850ms vs 500ms)    │
+│   Reason: REQ-NFR-DEMO-PERF-001 violated (850ms vs 500ms)    │
 │   Priority: HIGH                                        │
-│   Impacted Requirements: [REQ-NFR-PERF-001]             │
+│   Impacted Requirements: [REQ-NFR-DEMO-PERF-001]             │
 │                                                          │
 │ Status: ✅ Feedback loop closed                         │
 │ Next: Feed INT-042 back to Requirements Agent           │
@@ -644,7 +644,7 @@ Output (requirement-traceable artifacts)
 INT-001 "Customer Portal"
   ↓
 Requirements Agent + requirement-extraction skill
-  → REQ-F-AUTH-001
+  → REQ-F-DEMO-AUTH-001
   ↓
 Design Agent + component-design skill
   → AuthenticationService
@@ -656,7 +656,7 @@ System Test Agent + bdd-scenarios skill
   → login.feature (Given/When/Then)
   ↓
 Runtime Feedback Agent + telemetry-setup skill
-  → Production metrics tagged with REQ-F-AUTH-001
+  → Production metrics tagged with REQ-F-DEMO-AUTH-001
   ↓
 Feedback loop closes: New intent generated if issues detected
 ```

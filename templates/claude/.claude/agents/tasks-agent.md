@@ -17,8 +17,8 @@ Break design into work units and orchestrate Code Agent execution.
 ## Outputs
 ```
 Epic: PORTAL-100 (Authentication System)
-├─ PORTAL-101: User Login (8 pts) → REQ-F-AUTH-001
-├─ PORTAL-102: Registration (5 pts) → REQ-F-AUTH-002
+├─ PORTAL-101: User Login (8 pts) → <REQ-ID>
+├─ PORTAL-102: Registration (5 pts) → <REQ-ID>
 └─ PORTAL-103: Password Reset (3 pts) → REQ-F-AUTH-003
 
 Dependency: PORTAL-105 (DB) → PORTAL-101 → PORTAL-102

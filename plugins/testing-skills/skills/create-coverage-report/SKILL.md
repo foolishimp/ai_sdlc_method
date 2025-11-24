@@ -57,9 +57,9 @@ You are generating a **comprehensive coverage report** with requirement traceabi
 
 | REQ-* | Description | Files | Coverage | Tests | Status |
 |-------|-------------|-------|----------|-------|--------|
-| REQ-F-AUTH-001 | User login | 2 files | 97.6% | 12 | ✅ |
-| REQ-F-AUTH-002 | Password reset | 1 file | 100% | 8 | ✅ |
-| REQ-F-PAY-001 | Payment processing | 3 files | 72.1% | 6 | ⚠️ |
+| <REQ-ID> | User login | 2 files | 97.6% | 12 | ✅ |
+| <REQ-ID> | Password reset | 1 file | 100% | 8 | ✅ |
+| <REQ-ID> | Payment processing | 3 files | 72.1% | 6 | ⚠️ |
 | REQ-F-CART-001 | Shopping cart | 1 file | 45.8% | 2 | ❌ |
 | REQ-NFR-PERF-001 | Response time | 2 files | 100% | 5 | ✅ |
 | ... | ... | ... | ... | ... | ... |
@@ -79,7 +79,7 @@ You are generating a **comprehensive coverage report** with requirement traceabi
 
 ### Requirements Below 80% (3)
 
-**REQ-F-PAY-001**: Payment processing (72.1%)
+**<REQ-ID>**: Payment processing (72.1%)
 - Files: src/payments/payment.py
 - Uncovered: 28 lines (error handling, edge cases)
 - Missing Tests:
@@ -115,8 +115,8 @@ You are generating a **comprehensive coverage report** with requirement traceabi
 
 | File | Lines | Covered | Coverage | Requirements |
 |------|-------|---------|----------|--------------|
-| src/auth/login.py | 87 | 85 | 97.7% | REQ-F-AUTH-001 |
-| src/payments/payment.py | 142 | 102 | 71.8% | REQ-F-PAY-001 |
+| src/auth/login.py | 87 | 85 | 97.7% | <REQ-ID> |
+| src/payments/payment.py | 142 | 102 | 71.8% | <REQ-ID> |
 | src/cart/cart.py | 98 | 45 | 45.9% | REQ-F-CART-001 |
 | src/auth/validators.py | 65 | 65 | 100% | BR-001, BR-002 |
 
@@ -186,7 +186,7 @@ You are generating a **comprehensive coverage report** with requirement traceabi
    - Command: Invoke 'generate-missing-tests' for REQ-F-CART-001
    - Estimated: +34.2% coverage, ~15 tests
 
-2. **Improve REQ-F-PAY-001 Coverage** (72.1% → 80%)
+2. **Improve <REQ-ID> Coverage** (72.1% → 80%)
    - Action: Add edge case tests
    - Missing: Zero amount, negative amount, max limit
    - Estimated: +7.9% coverage, ~5 tests
@@ -227,7 +227,7 @@ Quality Gate: ✅ PASS (87.5% > 80%)
 
 Top Gaps:
   1. REQ-F-CART-001: 45.8% (needs 15 tests)
-  2. REQ-F-PAY-001: 72.1% (needs 5 tests)
+  2. <REQ-ID>: 72.1% (needs 5 tests)
   3. REQ-F-PROFILE-001: 0% (not implemented)
 
 Recommendation: Fix 3 gaps to reach 95%+ coverage
@@ -264,7 +264,7 @@ npm test -- --coverage --coverageReporters=html
   "overall_coverage": 87.5,
   "requirements": [
     {
-      "req_key": "REQ-F-AUTH-001",
+      "req_key": "<REQ-ID>",
       "description": "User login",
       "files": ["src/auth/login.py", "src/auth/validators.py"],
       "coverage": 97.6,
@@ -272,7 +272,7 @@ npm test -- --coverage --coverageReporters=html
       "status": "pass"
     },
     {
-      "req_key": "REQ-F-PAY-001",
+      "req_key": "<REQ-ID>",
       "description": "Payment processing",
       "files": ["src/payments/payment.py"],
       "coverage": 72.1,

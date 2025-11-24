@@ -199,7 +199,7 @@ C-{ID}: {Constraint Name}
 ## Output Format
 
 ```
-[EXTRACT CONSTRAINTS - REQ-F-AUTH-001]
+[EXTRACT CONSTRAINTS - <REQ-ID>]
 
 Requirement: User login
 

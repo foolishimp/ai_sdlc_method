@@ -1,15 +1,13 @@
 # ai_sdlc_method Quick Start Guide
 
-Get started with the **7-Stage AI SDLC Methodology** in 3 different ways:
+Get started with the **7-Stage AI SDLC Methodology** in 2 different ways:
 1. Claude Code Plugin (recommended)
 2. Direct Python usage (programmatic)
-3. Through Claude Desktop (MCP)
 
 ## Table of Contents
 - [What is ai_sdlc_method?](#what-is-ai_sdlc_method)
 - [Method 1: Claude Code Plugin (Recommended)](#method-1-claude-code-plugin-recommended)
 - [Method 2: Direct Python Usage](#method-2-direct-python-usage)
-- [Method 3: MCP with Claude Desktop](#method-3-mcp-with-claude-desktop)
 - [Common Use Cases](#common-use-cases)
 
 ---
@@ -144,24 +142,6 @@ python installers/validate_traceability.py --inventory > INVENTORY.md
 # Validate traceability (check for gaps)
 python installers/validate_traceability.py --check-all
 ```
-
----
-
-## Method 3: MCP with Claude Desktop
-
-For Claude Desktop users, the MCP service provides 7-stage AI SDLC support.
-
-### Quick Setup
-
-See [mcp_service/README.md](mcp_service/README.md) for complete instructions.
-
-**Summary:**
-1. `pip install mcp pyyaml`
-2. Configure `~/Library/Application Support/Claude/claude_desktop_config.json`
-3. Restart Claude Desktop
-4. Ask Claude: "What MCP tools are available?"
-
-**Note**: Full MCP integration for 7-stage methodology is in progress. See [mcp_service/MCP_SDLC_INTEGRATION_PLAN.md](mcp_service/MCP_SDLC_INTEGRATION_PLAN.md) for roadmap.
 
 ---
 
@@ -333,10 +313,6 @@ New cycle begins at Requirements stage
 ### Examples
 - **[examples/local_projects/customer_portal/README.md](examples/local_projects/customer_portal/README.md)** - Complete 7-stage walkthrough (800+ lines) ⭐
 - [examples/README.md](examples/README.md) - All examples overview
-
-### MCP Service (Non-Claude LLMs)
-- [mcp_service/README.md](mcp_service/README.md) - MCP service overview
-- [mcp_service/MCP_SDLC_INTEGRATION_PLAN.md](mcp_service/MCP_SDLC_INTEGRATION_PLAN.md) - 7-stage integration roadmap
 
 ---
 

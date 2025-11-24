@@ -26,7 +26,7 @@ The `requirements-skills` plugin transforms raw intent into structured requireme
 ```
 Raw Intent: "Add user login feature"
   ↓ (extraction)
-REQ-F-AUTH-001: User login with email/password
+<REQ-ID>: User login with email/password
   - Unique key
   - Description
   - Acceptance criteria
@@ -151,7 +151,7 @@ You: "Visa and Mastercard via Stripe, PCI-DSS Level 1, USD only"
 Claude: Creating requirements...
 
 Requirements Extracted:
-  REQ-F-PAY-001: Credit card payment via Stripe
+  <REQ-ID>: Credit card payment via Stripe
   REQ-NFR-SEC-001: PCI-DSS Level 1 compliance
   REQ-DATA-AQ-001: Card number validation
 
@@ -163,7 +163,7 @@ Created: docs/requirements/payments.md
 ### Example 2: Disambiguate Requirements
 
 ```
-You: "Disambiguate REQ-F-PAY-001"
+You: "Disambiguate <REQ-ID>"
 
 Claude: (invokes disambiguate-requirements)
 
@@ -197,7 +197,7 @@ Ready for code generation!
 ### Example 3: Refine from TDD Discovery
 
 ```
-You: "I'm implementing REQ-F-PAY-001 and discovered an issue"
+You: "I'm implementing <REQ-ID> and discovered an issue"
 
 Claude: What did you discover?
 
@@ -207,7 +207,7 @@ Claude: (invokes refine-requirements)
 
 Great catch! That's a duplicate payment issue.
 
-Adding to REQ-F-PAY-001:
+Adding to <REQ-ID>:
 
   BR-015: Duplicate payment prevention ⭐ NEW
     - Use Stripe idempotency keys
@@ -290,7 +290,7 @@ plugins:
 User: "Add payment processing feature"
 
 1. requirement-extraction:
-   → Creates REQ-F-PAY-001
+   → Creates <REQ-ID>
 
 2. disambiguate-requirements:
    → Extracts BR-001 through BR-005 (validation rules)
@@ -304,7 +304,7 @@ User: "Add payment processing feature"
 4. (Design stage - different plugin)
 
 5. (Code stage - code-skills plugin)
-   tdd-workflow for REQ-F-PAY-001:
+   tdd-workflow for <REQ-ID>:
      → RED: Write tests for BR-001 through BR-005
      → GREEN: Implement payment processing
      → Developer discovers: "What about duplicate payments?"

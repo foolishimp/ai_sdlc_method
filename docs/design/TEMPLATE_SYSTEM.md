@@ -163,7 +163,7 @@ Formal Task (5 minutes):
 
   **Priority**: High
   **Estimate**: 4 hours
-  **Requirements**: REQ-NFR-PERF-003
+  **Requirements**: REQ-NFR-DEMO-PERF-003
   **Acceptance Criteria**:
   - [ ] Rate limit: 100 req/min per IP
   - [ ] Tests for rate limiting
@@ -323,7 +323,7 @@ Implement token bucket algorithm with Redis backend.
 **Priority**: High
 **Status**: Not Started
 **Estimated Time**: 4 hours
-**Requirements**: REQ-NFR-PERF-003
+**Requirements**: REQ-NFR-DEMO-PERF-003
 
 **Acceptance Criteria**:
 - [ ] Rate limit: 100 req/min per IP

@@ -358,7 +358,7 @@ Proceeding with TDD workflow...
 **TDD workflow invokes this checklist automatically**:
 
 ```
-User: "Implement REQ-F-AUTH-001"
+User: "Implement <REQ-ID>"
 
 1. seven-questions-checklist (Sensor):
    → Ask 7 questions

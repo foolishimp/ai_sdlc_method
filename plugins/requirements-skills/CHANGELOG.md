@@ -121,7 +121,7 @@ Claude (requirement-extraction):
   3. Compliance? → "PCI-DSS Level 1"
 
   Creating:
-    REQ-F-PAY-001: Credit card payment via Stripe
+    <REQ-ID>: Credit card payment via Stripe
     REQ-NFR-SEC-001: PCI-DSS compliance
 ```
 

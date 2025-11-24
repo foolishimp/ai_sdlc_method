@@ -48,7 +48,7 @@ def login(email: str, password: str) -> LoginResult:
     return authenticate(email, password)
 
 # After
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 def login(email: str, password: str) -> LoginResult:
     """User login functionality"""
     return authenticate(email, password)
@@ -62,7 +62,7 @@ export function login(email: string, password: string): LoginResult {
 }
 
 // After
-// Implements: REQ-F-AUTH-001
+// Implements: <REQ-ID>
 export function login(email: string, password: string): LoginResult {
   return authenticate(email, password);
 }
@@ -78,7 +78,7 @@ public class LoginService {
 }
 
 // After
-// Implements: REQ-F-AUTH-001
+// Implements: <REQ-ID>
 public class LoginService {
     public LoginResult login(String email, String password) {
         return authenticate(email, password);
@@ -94,7 +94,7 @@ public class LoginService {
 
 **Multiple requirements example**:
 ```python
-# Implements: REQ-F-AUTH-001, REQ-NFR-SEC-001
+# Implements: <REQ-ID>, REQ-NFR-SEC-001
 def secure_login(email: str, password: str, mfa_token: str) -> LoginResult:
     """Secure login with MFA"""
     pass
@@ -114,7 +114,7 @@ def test_user_login_with_valid_credentials():
     assert result.success == True
 
 # After
-# Validates: REQ-F-AUTH-001
+# Validates: <REQ-ID>
 def test_user_login_with_valid_credentials():
     result = login("user@example.com", "SecurePass123!")
     assert result.success == True
@@ -129,7 +129,7 @@ test('user login with valid credentials', () => {
 });
 
 // After
-// Validates: REQ-F-AUTH-001
+// Validates: <REQ-ID>
 test('user login with valid credentials', () => {
   const result = login('user@example.com', 'SecurePass123!');
   expect(result.success).toBe(true);
@@ -146,7 +146,7 @@ Feature: User Login
     Then I should see "Welcome"
 
 # After
-# Validates: REQ-F-AUTH-001
+# Validates: <REQ-ID>
 Feature: User Login
   Scenario: Successful login
     Given I am on the login page
@@ -161,7 +161,7 @@ Feature: User Login
 **Tag BR-*, C-*, F-* implementations**:
 
 ```python
-# Implements: REQ-F-AUTH-001, BR-001
+# Implements: <REQ-ID>, BR-001
 def validate_email(email: str) -> bool:
     """Email validation (BR-001)"""
     pattern = r'^[a-zA-Z0-9._%+-]+@...'
@@ -186,7 +186,7 @@ def calculate_stripe_fee(amount: float) -> float:
 
 **Format 1: In subject line**:
 ```
-feat: Add user login (REQ-F-AUTH-001)
+feat: Add user login (<REQ-ID>)
 ```
 
 **Format 2: In footer**:
@@ -195,13 +195,13 @@ feat: Add user login
 
 Implement authentication with email and password.
 
-Implements: REQ-F-AUTH-001
+Implements: <REQ-ID>
 Validates: BR-001, BR-002, BR-003
 ```
 
 **Format 3: Both**:
 ```
-feat: Add user login (REQ-F-AUTH-001)
+feat: Add user login (<REQ-ID>)
 
 Implement authentication with email and password.
 
@@ -210,7 +210,7 @@ Business Rules:
 - BR-002: Password minimum length
 - BR-003: Account lockout
 
-Implements: REQ-F-AUTH-001
+Implements: <REQ-ID>
 Validates: BR-001, BR-002, BR-003
 ```
 
@@ -222,10 +222,10 @@ Validates: BR-001, BR-002, BR-003
 
 ```bash
 # Verify implementation tags
-grep -rn "# Implements: REQ-F-AUTH-001" src/
+grep -rn "# Implements: <REQ-ID>" src/
 
 # Verify test tags
-grep -rn "# Validates: REQ-F-AUTH-001" tests/
+grep -rn "# Validates: <REQ-ID>" tests/
 
 # Count tags added
 echo "Implementation tags: $(grep -rc "# Implements:" src/ | grep -v ":0" | wc -l)"
@@ -239,31 +239,31 @@ echo "Test tags: $(grep -rc "# Validates:" tests/ | grep -v ":0" | wc -l)"
 When you complete tagging:
 
 ```
-[PROPAGATE REQ-KEYS - REQ-F-AUTH-001]
+[PROPAGATE REQ-KEYS - <REQ-ID>]
 
 Files Tagged:
 
 Implementation Files (3):
   ✓ src/auth/login.py:23
-    Added: # Implements: REQ-F-AUTH-001
+    Added: # Implements: <REQ-ID>
   ✓ src/auth/validators.py:67
-    Added: # Implements: REQ-F-AUTH-001, BR-001
+    Added: # Implements: <REQ-ID>, BR-001
   ✓ src/auth/lockout.py:34
-    Added: # Implements: REQ-F-AUTH-001, BR-003
+    Added: # Implements: <REQ-ID>, BR-003
 
 Test Files (2):
   ✓ tests/auth/test_login.py:15
-    Added: # Validates: REQ-F-AUTH-001
+    Added: # Validates: <REQ-ID>
   ✓ features/authentication.feature:8
-    Added: # Validates: REQ-F-AUTH-001
+    Added: # Validates: <REQ-ID>
 
 Total Tags Added: 5
   - Implementation tags: 3
   - Test tags: 2
 
 Traceability Status:
-  Forward: REQ-F-AUTH-001 → 3 code files, 2 test files ✅
-  Backward: Code/tests → REQ-F-AUTH-001 ✅
+  Forward: <REQ-ID> → 3 code files, 2 test files ✅
+  Backward: Code/tests → <REQ-ID> ✅
 
 Verification:
   ✓ All tags added
@@ -279,7 +279,7 @@ Verification:
 
 **Triggering this actuator**:
 1. **Sensor detects**: Requirements without tags (via check-requirement-coverage)
-2. **Signal**: "Need tags for REQ-F-AUTH-001"
+2. **Signal**: "Need tags for <REQ-ID>"
 3. **User confirms** or auto-invoke if configured
 4. **Actuator runs**: Add tags
 5. **Re-check**: Sensor should show homeostasis achieved
@@ -287,7 +287,7 @@ Verification:
 **Homeostasis loop**:
 ```
 Sensor (check-requirement-coverage):
-  → Deviation: REQ-F-AUTH-001 has no tags
+  → Deviation: <REQ-ID> has no tags
   → Signal: "Missing tags"
   ↓
 Actuator (propagate-req-keys):
@@ -295,7 +295,7 @@ Actuator (propagate-req-keys):
   → Report: "Tags added"
   ↓
 Sensor (check-requirement-coverage):
-  → Check: REQ-F-AUTH-001 now has tags
+  → Check: <REQ-ID> now has tags
   → Status: Homeostasis achieved ✓
 ```
 
@@ -318,7 +318,7 @@ If prerequisites not met:
 ### Option 1: Single Line Above
 
 ```python
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 def login(email, password):
     pass
 ```
@@ -330,7 +330,7 @@ def login(email, password):
     """
     User login functionality.
 
-    Implements: REQ-F-AUTH-001
+    Implements: <REQ-ID>
     Business Rules: BR-001, BR-002, BR-003
     """
     pass
@@ -340,7 +340,7 @@ def login(email, password):
 
 ```python
 # ═══════════════════════════════════════
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 # Business Rules: BR-001, BR-002, BR-003
 # ═══════════════════════════════════════
 def login(email, password):
@@ -358,9 +358,9 @@ def login(email, password):
 ```python
 # Tag all files in a module
 files_to_tag = [
-    ("src/auth/login.py", "REQ-F-AUTH-001"),
-    ("src/auth/validators.py", "REQ-F-AUTH-001, BR-001"),
-    ("src/auth/lockout.py", "REQ-F-AUTH-001, BR-003"),
+    ("src/auth/login.py", "<REQ-ID>"),
+    ("src/auth/validators.py", "<REQ-ID>, BR-001"),
+    ("src/auth/lockout.py", "<REQ-ID>, BR-003"),
 ]
 
 for file_path, req_keys in files_to_tag:

@@ -91,38 +91,7 @@ Or add to your `.claude/settings.json`:
 
 Claude will now follow the 7-stage AI SDLC methodology automatically.
 
-### Option 2: Use MCP Service (For Non-Claude LLMs)
-
-If you're using Copilot, Gemini, or other LLMs that support Model Context Protocol:
-
-```bash
-# Clone repository
-git clone https://github.com/foolishimp/ai_sdlc_method.git
-cd ai_sdlc_method
-
-# Install the configuration management library
-pip install -e .
-
-# Install MCP service
-cd mcp_service
-pip install -e .
-
-# Run MCP server (for Claude Desktop integration)
-python -m mcp_service.server.main --stdio
-
-# Or run as HTTP service
-python -m mcp_service.server.main --port 8080
-```
-
-**What you get**:
-- MCP tools for project management
-- Configuration merging engine
-- Stage-specific context loading
-- Requirement traceability tracking
-
-👉 **Complete MCP Setup**: [mcp_service/README.md](mcp_service/README.md)
-
-### Option 3: Explore the Methodology First
+### Option 2: Explore the Methodology First
 
 ```bash
 # Clone the repository
@@ -147,44 +116,44 @@ open plugins/aisdlc-methodology/README.md
 ## The 7 Stages Explained
 
 ### 1. Requirements Stage (Section 4.0)
-**Agent**: Requirements Agent
+**Agent**: AISDLC Requirements Agent
 **Purpose**: Transform intent into structured requirements with unique, immutable keys
 
 **Outputs**: REQ-F-* (functional), REQ-NFR-* (non-functional), REQ-DATA-* (data quality), REQ-BR-* (business rules)
 
 ### 2. Design Stage (Section 5.0)
-**Agent**: Design Agent / Solution Designer
+**Agent**: AISDLC Design Agent / Solution Designer
 **Purpose**: Transform requirements into implementable technical and data solution
 
 **Outputs**: Component diagrams, data models, API specifications, architecture decision records (ADRs)
 
 ### 3. Tasks Stage (Section 6.0)
-**Agent**: Tasks Stage Orchestrator
+**Agent**: AISDLC Tasks Stage Orchestrator
 **Purpose**: Work breakdown with Jira integration and agent orchestration
 
 **Outputs**: Jira epics/stories with requirement tags, dependency graph, capacity planning
 
 ### 4. Code Stage (Section 7.0)
-**Agent**: Code Agent / Developer Agent
+**Agent**: AISDLC Code Agent / Developer Agent
 **Purpose**: TDD-driven implementation (RED → GREEN → REFACTOR)
 
 **Methodology**: Key Principles principles + TDD cycle
 **Outputs**: Production code with requirement tags, unit tests, integration tests
 
 ### 5. System Test Stage (Section 8.0)
-**Agent**: System Test Agent / QA Agent
+**Agent**: AISDLC System Test Agent / QA Agent
 **Purpose**: BDD integration testing (Given/When/Then)
 
 **Outputs**: BDD feature files (Gherkin), step definitions, coverage matrix (≥95% requirement coverage)
 
 ### 6. UAT Stage (Section 9.0)
-**Agent**: UAT Agent
+**Agent**: AISDLC UAT Agent
 **Purpose**: Business validation with BDD in pure business language
 
 **Outputs**: Manual UAT test cases, automated UAT tests, business sign-off
 
 ### 7. Runtime Feedback Stage (Section 10.0)
-**Agent**: Runtime Feedback Agent
+**Agent**: AISDLC Runtime Feedback Agent
 **Purpose**: Production telemetry and feedback loop closure
 
 **Outputs**: Release manifests with requirement traceability, runtime alerts linked to requirement keys, new intents from production issues
@@ -668,29 +637,6 @@ Each layer can override the previous, creating a flexible hierarchy.
 
 ---
 
-## For Non-Claude LLMs
-
-This repository includes an **MCP service** for non-Claude Code LLMs (Copilot, Gemini, etc.).
-
-**Installation**: See [Quick Start - Option 2](#option-2-use-mcp-service-for-non-claude-llms) above.
-
-**MCP Service Features**:
-- Project CRUD operations
-- Stage-specific context loading
-- Requirement traceability tracking
-- Configuration merging engine (`ai_sdlc_config` Python library)
-- AI agent orchestration
-- Persona management (human + AI agents)
-
-**Documentation**:
-- [MCP Service README](mcp_service/README.md) - Complete setup and usage
-- [MCP Integration Plan](mcp_service/MCP_SDLC_INTEGRATION_PLAN.md) - 7-stage integration roadmap
-- [MCP Service Docs](mcp_service/docs/) - API documentation
-
-**For Claude Code users**: Just use the marketplace approach (Option 1) - it's simpler and doesn't require Python installation!
-
----
-
 ## Project Structure
 
 ```
@@ -719,27 +665,6 @@ ai_sdlc_method/
 ├── installers/                      # Python installation scripts
 │   └── README.md                    # Installation scripts documentation
 │
-├── mcp_service/                     # MCP service (non-Claude Code LLMs)
-│   ├── src/                         # Python package source
-│   │   └── ai_sdlc_config/          # Configuration management library
-│   │       ├── core/                # Core configuration manager
-│   │       ├── models/              # Data models (hierarchy_node)
-│   │       ├── mergers/             # Configuration merging logic
-│   │       └── loaders/             # YAML loader and URI resolver
-│   ├── tests/                       # Test suite
-│   │   ├── test_config_manager.py   # Configuration manager tests
-│   │   ├── test_hierarchy_merger.py # Merger tests
-│   │   └── test_hierarchy_node.py   # Data model tests
-│   ├── server/                      # MCP server implementation
-│   ├── client/                      # Client utilities
-│   ├── storage/                     # Project storage
-│   ├── docs/                        # MCP documentation
-│   ├── examples/                    # MCP usage examples
-│   ├── setup.py                     # Python package setup
-│   ├── pytest.ini                   # Pytest configuration
-│   ├── MCP_SDLC_INTEGRATION_PLAN.md # 7-stage integration roadmap
-│   └── README.md                    # MCP service documentation
-│
 ├── examples/                        # Example projects
 │   ├── local_projects/
 │   │   ├── customer_portal/         # ⭐ Complete 7-stage example
@@ -758,8 +683,6 @@ ai_sdlc_method/
 ├── PLUGIN_GUIDE.md                  # Plugin creation guide
 └── README.md                        # This file
 ```
-
-**Note**: The `mcp_service/src/ai_sdlc_config/` Python library is only needed for the MCP service (Option 2). Claude Code plugin users (Option 1) don't need to install it - plugins work directly with YAML configuration files.
 
 ---
 
@@ -780,8 +703,6 @@ ai_sdlc_method/
 ### Guides
 - **[Plugins Guide](plugins/README.md)** - How to use and create plugins
 - **[Examples Guide](examples/README.md)** - Example local contexts
-- **[MCP Service](mcp_service/README.md)** - For non-Claude LLMs
-- **[MCP Integration Plan](mcp_service/MCP_SDLC_INTEGRATION_PLAN.md)** - 7-stage integration roadmap
 
 ---
 
@@ -803,7 +724,6 @@ ai_sdlc_method/
 ✅ **Composable** - Plugin loading order = merge priority
 ✅ **Portable** - Share via GitHub/Git marketplaces
 ✅ **Extensible** - Create your own plugins easily
-✅ **Fallback** - MCP service for non-Claude LLMs
 
 ---
 
@@ -870,7 +790,6 @@ MIT
 - ✨ Added Runtime Feedback stage with observability integration
 - ✨ Added complete example project (customer_portal)
 - ✨ Added comprehensive methodology guide (3,300+ lines)
-- ✨ Added MCP service integration plan
 
 ### v1.0.0 (2025-10-17) - Initial Release
 - Initial release with Key Principles principles

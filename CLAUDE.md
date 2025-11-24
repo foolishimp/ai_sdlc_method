@@ -58,20 +58,6 @@ ai_sdlc_method/
 ├── installers/                  # Python installation scripts
 │   └── README.md                # Installation scripts documentation
 │
-├── mcp_service/                 # MCP service for non-Claude Code LLMs
-│   ├── src/                     # Python package source
-│   │   └── ai_sdlc_config/      # Configuration management library
-│   ├── tests/                   # Test suite
-│   ├── server/                  # MCP server implementation
-│   ├── client/                  # Client utilities
-│   ├── storage/                 # Project storage
-│   ├── docs/                    # MCP documentation
-│   ├── examples/                # MCP usage examples
-│   ├── setup.py                 # Python package setup
-│   ├── pytest.ini               # Pytest configuration
-│   ├── README.md                # MCP overview
-│   └── MCP_SDLC_INTEGRATION_PLAN.md  # 7-stage integration roadmap
-│
 ├── examples/                    # Example projects
 │   ├── local_projects/
 │   │   └── customer_portal/     # ⭐ Complete 7-stage example (800+ lines)
@@ -89,6 +75,64 @@ ai_sdlc_method/
 
 ---
 
+## Context Auto-Loading
+
+**IMPORTANT**: This project uses an **implicit session model** where context loads automatically when Claude Code starts.
+
+### What Auto-Loads
+
+When you open this project in Claude Code, the following context is automatically available:
+
+1. **This file (CLAUDE.md)** - Project guide, methodology overview, development guidelines
+2. **Method Reference** - `.ai-workspace/templates/AISDLC_METHOD_REFERENCE.md` (workspace structure, workflow patterns)
+3. **Active Tasks + Work Context** - `.ai-workspace/tasks/active/ACTIVE_TASKS.md` (single file with everything)
+
+**One File. That's It.**
+
+### No Explicit Session Start Needed
+
+**You do NOT need to run `/aisdlc-start-session`** - that command has been removed.
+
+- **Session = Context** - Your "session" is simply your current working context
+- **Context persists** - Automatically saved via `/aisdlc-checkpoint-tasks`
+- **No ceremony** - Just open Claude and start working
+- **One file** - ACTIVE_TASKS.md has both tasks and work context
+
+### How It Works
+
+```
+Open Claude → CLAUDE.md mentions ACTIVE_TASKS.md → Work → /aisdlc-checkpoint-tasks → Close
+                          ↑                                         ↓
+                          └──────── Context persists in one file ──┘
+```
+
+### The One File: ACTIVE_TASKS.md
+
+This single file contains:
+- **Active Tasks** - All your current work items with status
+- **Summary** - Task counts and recently completed
+- **Recovery Commands** - Quick commands to regain context
+
+Simple. Just tasks. Context comes from conversation history.
+
+### Checkpointing Your Work
+
+Use **`/aisdlc-checkpoint-tasks`** to save your work:
+- Updates task status (completed, in-progress, blocked)
+- Creates finished task documentation for completed work
+- Updates ACTIVE_TASKS.md with current state
+- Moves completed tasks to "Recently Completed" section
+
+### Quick Recovery
+
+If you need to quickly understand where you are:
+```bash
+cat .ai-workspace/tasks/active/ACTIVE_TASKS.md  # Everything is here
+git status                                       # Current git state
+```
+
+---
+
 ## The 7-Stage AI SDLC Methodology
 
 ### Complete Lifecycle
@@ -102,7 +146,7 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 ### Stage Details
 
 #### 1. Requirements Stage (Section 4.0)
-**Agent**: Requirements Agent
+**Agent**: AISDLC Requirements Agent
 **Purpose**: Transform intent into structured requirements with unique, immutable keys
 **Input**: Raw intent from Intent Manager
 **Output**:
@@ -112,40 +156,40 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 - REQ-BR-* (business rules)
 
 #### 2. Design Stage (Section 5.0)
-**Agent**: Design Agent / Solution Designer
+**Agent**: AISDLC Design Agent / Solution Designer
 **Purpose**: Transform requirements into technical solution architecture
 **Input**: Structured requirements from Requirements stage
 **Output**: Component diagrams, data models, API specs, ADRs, traceability matrix
 
 #### 3. Tasks Stage (Section 6.0)
-**Agent**: Tasks Stage Orchestrator
+**Agent**: AISDLC Tasks Stage Orchestrator
 **Purpose**: Break design into work units and orchestrate Jira workflow
 **Input**: Design artifacts
 **Output**: Jira tickets with requirement tags, dependency graph, capacity planning
 
 #### 4. Code Stage (Section 7.0)
-**Agent**: Code Agent / Developer Agent
+**Agent**: AISDLC Code Agent / Developer Agent
 **Purpose**: Implement work units using TDD workflow
 **Input**: Work units from Tasks stage
 **Output**: Production code with requirement tags, unit tests, integration tests
 **Methodology**: TDD (RED → GREEN → REFACTOR) + Key Principles principles
 
 #### 5. System Test Stage (Section 8.0)
-**Agent**: System Test Agent / QA Agent
+**Agent**: AISDLC System Test Agent / QA Agent
 **Purpose**: Create BDD integration tests validating requirements
 **Input**: Deployed code
 **Output**: BDD feature files (Gherkin), step definitions, coverage matrix
 **Methodology**: BDD (Given/When/Then)
 
 #### 6. UAT Stage (Section 9.0)
-**Agent**: UAT Agent
+**Agent**: AISDLC UAT Agent
 **Purpose**: Business validation and sign-off
 **Input**: System test passed
 **Output**: Manual UAT test cases, automated UAT tests, business sign-off
 **Methodology**: BDD in pure business language
 
 #### 7. Runtime Feedback Stage (Section 10.0)
-**Agent**: Runtime Feedback Agent
+**Agent**: AISDLC Runtime Feedback Agent
 **Purpose**: Close the feedback loop from production to requirements
 **Input**: Production deployment
 **Output**: Release manifests, runtime telemetry (tagged with REQ keys), alerts, new intents
@@ -472,34 +516,6 @@ Project Plugin
 ```
 
 Plugin loading order determines priority - later plugins override earlier ones.
-
----
-
-## MCP Service (For Non-Claude LLMs)
-
-The MCP service provides 7-stage AI SDLC support for non-Claude LLMs (Copilot, Gemini, etc.).
-
-### Integration Status
-
-See [mcp_service/MCP_SDLC_INTEGRATION_PLAN.md](mcp_service/MCP_SDLC_INTEGRATION_PLAN.md) for:
-- 7 AI agent persona specifications
-- Enhanced human persona structure
-- New MCP tools for stage context loading
-- Requirement traceability tools
-- 4-week implementation timeline
-
-### Current MCP Tools (Legacy)
-
-- Project CRUD: create_project, get_project, list_projects, update_project, delete_project
-- Content CRUD: add_node, remove_node, add_document
-- Merge Operations: merge_projects
-- LLM Inspection: inspect_project, compare_projects
-
-### Planned MCP Tools (7-Stage)
-
-- Stage Context: load_stage_context, list_available_stages
-- Requirement Traceability: trace_requirement_key, get_requirement_lineage
-- Agent Personas: load_agent_persona, switch_agent_persona
 
 ---
 

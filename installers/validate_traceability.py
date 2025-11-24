@@ -12,7 +12,7 @@ Usage:
     python validate_traceability.py --check-all
     python validate_traceability.py --requirements docs/requirements/
     python validate_traceability.py --design docs/design/
-    python validate_traceability.py --code installers/ mcp_service/ plugins/
+    python validate_traceability.py --code installers/ plugins/
     python validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
     python validate_traceability.py --inventory > INVENTORY.md
 """
@@ -37,41 +37,72 @@ class TraceabilityValidator:
     ARROW_PATTERN = re.compile(r'→\s*(REQ-[A-Z]+-[A-Z0-9]+-\d{3})')
 
     def __init__(self):
-        self.requirements: Dict[str, dict] = {}  # REQ-ID → {file, line, description}
+        self.all_requirements: Set[str] = set()  # ALL REQ-IDs found anywhere (code, design, tests, docs)
+        self.requirements: Dict[str, dict] = {}  # REQ-ID → {file, line, description} (documented only)
         self.design_refs: Dict[str, List[Tuple[str, int]]] = defaultdict(list)  # REQ-ID → [(file, line)]
         self.code_refs: Dict[str, List[Tuple[str, int]]] = defaultdict(list)  # REQ-ID → [(file, line)]
         self.test_refs: Dict[str, List[Tuple[str, int]]] = defaultdict(list)  # REQ-ID → [(file, line)]
 
     def extract_requirements(self, requirements_dir: Path) -> None:
-        """Extract all requirement keys from requirements documents.
+        """Extract all requirement keys from AISDLC_IMPLEMENTATION_REQUIREMENTS.md only.
 
-        Only scans *.md files directly in requirements_dir, not subdirectories.
-        This excludes examples/ subdirectory with documentation-only requirements.
+        This is the synthesis document that translates upstream requirements/principles
+        into implementable features. Other files in requirements_dir are working documents.
         """
         print(f"📋 Scanning requirements in: {requirements_dir}")
 
         requirements_dir = requirements_dir.resolve()
         cwd = Path.cwd().resolve()
 
-        for md_file in requirements_dir.glob("*.md"):
-            with open(md_file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
+        # Only scan AISDLC_IMPLEMENTATION_REQUIREMENTS.md
+        implementation_req_file = requirements_dir / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
 
-            for line_num, line in enumerate(lines, 1):
-                matches = self.REQ_PATTERN.findall(line)
-                for req_id in matches:
-                    if req_id not in self.requirements:
-                        # Extract description (rest of line after REQ-ID)
-                        desc = line.split(req_id, 1)[1].strip()
-                        try:
-                            rel_path = str(md_file.relative_to(cwd))
-                        except ValueError:
-                            rel_path = str(md_file)
-                        self.requirements[req_id] = {
-                            'file': rel_path,
-                            'line': line_num,
-                            'description': desc[:80]  # Truncate long descriptions
-                        }
+        if not implementation_req_file.exists():
+            print(f"   ⚠️  Implementation requirements file not found: {implementation_req_file}")
+            print(f"   Expected: AISDLC_IMPLEMENTATION_REQUIREMENTS.md")
+            return
+
+        with open(implementation_req_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        for line_num, line in enumerate(lines, 1):
+            matches = self.REQ_PATTERN.findall(line)
+            for req_id in matches:
+                self.all_requirements.add(req_id)  # Track all requirements
+
+                # Extract description from header lines (### REQ-ID: Description)
+                # Always prefer header definitions over dependency references
+                if line.strip().startswith('###'):
+                    # Extract description (rest of line after REQ-ID:)
+                    desc = line.split(req_id, 1)[1].strip()
+                    # Remove leading colon if present
+                    if desc.startswith(':'):
+                        desc = desc[1:].strip()
+
+                    try:
+                        rel_path = str(implementation_req_file.relative_to(cwd))
+                    except ValueError:
+                        rel_path = str(implementation_req_file)
+
+                    # Always use header definition (overwrite if already exists)
+                    self.requirements[req_id] = {
+                        'file': rel_path,
+                        'line': line_num,
+                        'description': desc[:80]  # Truncate long descriptions
+                    }
+                elif req_id not in self.requirements:
+                    # Non-header reference found first (e.g., dependency line)
+                    # Create placeholder entry, will be overwritten if header found later
+                    try:
+                        rel_path = str(implementation_req_file.relative_to(cwd))
+                    except ValueError:
+                        rel_path = str(implementation_req_file)
+
+                    self.requirements[req_id] = {
+                        'file': rel_path,
+                        'line': line_num,
+                        'description': "(see definition)"
+                    }
 
         print(f"   Found {len(self.requirements)} requirement keys\n")
 
@@ -95,11 +126,13 @@ class TraceabilityValidator:
                 # Look for → REQ-* pattern
                 for match in self.ARROW_PATTERN.finditer(line):
                     req_id = match.group(1)
+                    self.all_requirements.add(req_id)  # Track all requirements
                     self.design_refs[req_id].append((rel_path, line_num))
 
                 # Look for explicit REQ-* mentions
                 for match in self.REQ_PATTERN.finditer(line):
                     req_id = match.group(1)
+                    self.all_requirements.add(req_id)  # Track all requirements
                     if req_id not in [ref[0] for ref in self.design_refs[req_id]]:
                         self.design_refs[req_id].append((rel_path, line_num))
 
@@ -118,6 +151,7 @@ class TraceabilityValidator:
                 print(f"   ⚠️  Directory not found: {code_dir}")
                 continue
 
+            # Scan Python files
             for py_file in code_dir.glob("**/*.py"):
                 with open(py_file, 'r', encoding='utf-8') as f:
                     lines = f.readlines()
@@ -131,11 +165,36 @@ class TraceabilityValidator:
                     # Look for # Implements: REQ-*
                     for match in self.IMPLEMENTS_PATTERN.finditer(line):
                         req_id = match.group(1)
+                        self.all_requirements.add(req_id)  # Track all requirements
                         self.code_refs[req_id].append((rel_path, line_num))
 
                     # Look for # Validates: REQ-*
                     for match in self.VALIDATES_PATTERN.finditer(line):
                         req_id = match.group(1)
+                        self.all_requirements.add(req_id)  # Track all requirements
+                        self.test_refs[req_id].append((rel_path, line_num))
+
+            # Scan markdown files (for .claude/commands/*.md and templates)
+            for md_file in code_dir.glob("**/*.md"):
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+
+                try:
+                    rel_path = str(md_file.relative_to(cwd))
+                except ValueError:
+                    rel_path = str(md_file)
+
+                for line_num, line in enumerate(lines, 1):
+                    # Look for <!-- Implements: REQ-* --> in comments
+                    for match in self.IMPLEMENTS_PATTERN.finditer(line):
+                        req_id = match.group(1)
+                        self.all_requirements.add(req_id)  # Track all requirements
+                        self.code_refs[req_id].append((rel_path, line_num))
+
+                    # Look for <!-- Validates: REQ-* --> in comments
+                    for match in self.VALIDATES_PATTERN.finditer(line):
+                        req_id = match.group(1)
+                        self.all_requirements.add(req_id)  # Track all requirements
                         self.test_refs[req_id].append((rel_path, line_num))
 
         code_total = sum(len(refs) for refs in self.code_refs.values())
@@ -257,18 +316,22 @@ class TraceabilityValidator:
         output.append("")
         output.append("## Summary")
         output.append("")
-        output.append(f"- **Total Requirements**: {len(self.requirements)}")
+        output.append(f"- **Total Requirements Found**: {len(self.all_requirements)}")
+        output.append(f"- **Documented in Requirements Docs**: {len(self.requirements)}")
+        output.append(f"- **Undocumented (orphaned)**: {len(self.all_requirements - set(self.requirements.keys()))}")
         output.append(f"- **Requirements with Design**: {len(self.design_refs)}")
         output.append(f"- **Requirements with Implementation**: {len(self.code_refs)}")
         output.append(f"- **Requirements with Tests**: {len(self.test_refs)}")
         output.append("")
 
         # Calculate coverage
-        if self.requirements:
-            design_coverage = (len(self.design_refs) / len(self.requirements)) * 100
-            code_coverage = (len(self.code_refs) / len(self.requirements)) * 100
-            test_coverage = (len(self.test_refs) / len(self.requirements)) * 100
+        if self.all_requirements:
+            doc_coverage = (len(self.requirements) / len(self.all_requirements)) * 100
+            design_coverage = (len(self.design_refs) / len(self.all_requirements)) * 100
+            code_coverage = (len(self.code_refs) / len(self.all_requirements)) * 100
+            test_coverage = (len(self.test_refs) / len(self.all_requirements)) * 100
 
+            output.append(f"- **Documentation Coverage**: {doc_coverage:.1f}%")
             output.append(f"- **Design Coverage**: {design_coverage:.1f}%")
             output.append(f"- **Implementation Coverage**: {code_coverage:.1f}%")
             output.append(f"- **Test Coverage**: {test_coverage:.1f}%")
@@ -279,12 +342,18 @@ class TraceabilityValidator:
         # Full traceability table
         output.append("## Full Traceability")
         output.append("")
-        output.append("| Requirement | Description | Design | Implementation | Tests | Status |")
-        output.append("|-------------|-------------|--------|----------------|-------|--------|")
+        output.append("| Requirement ID | Description | Requirements | Design | Implementation | Tests | Status |")
+        output.append("|----------------|-------------|--------------|--------|----------------|-------|--------|")
 
-        for req_id in sorted(self.requirements.keys()):
-            req = self.requirements[req_id]
-            desc = req['description'][:40]
+        for req_id in sorted(self.all_requirements):
+            # Get description (from requirements doc if available, otherwise mark as undocumented)
+            if req_id in self.requirements:
+                desc = self.requirements[req_id]['description'][:40]
+            else:
+                desc = "(not documented)"
+
+            # Requirements column
+            documented = "✅" if req_id in self.requirements else "❌"
 
             # Design references
             design = "✅" if req_id in self.design_refs else "❌"
@@ -305,11 +374,14 @@ class TraceabilityValidator:
                 tests = f"✅ ({test_count})"
 
             # Overall status
+            is_documented = req_id in self.requirements
             has_design = req_id in self.design_refs
             has_code = req_id in self.code_refs
             has_tests = req_id in self.test_refs
 
-            if has_design and has_code and has_tests:
+            if not is_documented:
+                status = "🚨 Orphaned"
+            elif has_design and has_code and has_tests:
                 status = "✅ Complete"
             elif has_code and has_tests:
                 status = "⚠️ No Design"
@@ -320,7 +392,7 @@ class TraceabilityValidator:
             else:
                 status = "❌ Not Started"
 
-            output.append(f"| {req_id} | {desc} | {design} | {code} | {tests} | {status} |")
+            output.append(f"| {req_id} | {desc} | {documented} | {design} | {code} | {tests} | {status} |")
 
         output.append("")
         output.append("---")
@@ -330,14 +402,22 @@ class TraceabilityValidator:
         output.append("## Detailed Traceability")
         output.append("")
 
-        for req_id in sorted(self.requirements.keys()):
-            req = self.requirements[req_id]
+        for req_id in sorted(self.all_requirements):
             output.append(f"### {req_id}")
             output.append("")
-            output.append(f"**Description**: {req['description']}")
-            output.append("")
-            output.append(f"**Defined in**: {req['file']}:{req['line']}")
-            output.append("")
+
+            # Description and definition
+            if req_id in self.requirements:
+                req = self.requirements[req_id]
+                output.append(f"**Description**: {req['description']}")
+                output.append("")
+                output.append(f"**Defined in**: {req['file']}:{req['line']}")
+                output.append("")
+            else:
+                output.append(f"**Description**: (not documented)")
+                output.append("")
+                output.append(f"**Status**: 🚨 Orphaned - referenced in code/design but not documented in requirements")
+                output.append("")
 
             # Design references
             if req_id in self.design_refs:
@@ -375,7 +455,9 @@ class TraceabilityValidator:
         print("=" * 80)
         print()
         print(f"📊 Requirements Summary:")
-        print(f"   Total requirements: {len(self.requirements)}")
+        print(f"   Total requirements found: {len(self.all_requirements)}")
+        print(f"   Documented requirements: {len(self.requirements)}")
+        print(f"   Undocumented (orphaned): {len(self.all_requirements - set(self.requirements.keys()))}")
         print(f"   Design references: {len(self.design_refs)}")
         print(f"   Code implementations: {len(self.code_refs)}")
         print(f"   Test validations: {len(self.test_refs)}")
@@ -412,12 +494,14 @@ class TraceabilityValidator:
             print()
 
         # Coverage
-        if self.requirements:
-            design_coverage = (len(self.design_refs) / len(self.requirements)) * 100
-            code_coverage = (len(self.code_refs) / len(self.requirements)) * 100
-            test_coverage = (len(self.test_refs) / len(self.requirements)) * 100
+        if self.all_requirements:
+            doc_coverage = (len(self.requirements) / len(self.all_requirements)) * 100
+            design_coverage = (len(self.design_refs) / len(self.all_requirements)) * 100
+            code_coverage = (len(self.code_refs) / len(self.all_requirements)) * 100
+            test_coverage = (len(self.test_refs) / len(self.all_requirements)) * 100
 
             print(f"📈 Coverage:")
+            print(f"   Documentation: {doc_coverage:.1f}%")
             print(f"   Design: {design_coverage:.1f}%")
             print(f"   Implementation: {code_coverage:.1f}%")
             print(f"   Tests: {test_coverage:.1f}%")
@@ -425,10 +509,12 @@ class TraceabilityValidator:
 
         # Quality gates
         print("🚦 Quality Gates:")
-        design_pass = len(self.design_refs) >= len(self.requirements) * 0.8
-        code_pass = len(self.code_refs) >= len(self.requirements) * 0.8
-        test_pass = len(self.test_refs) >= len(self.requirements) * 0.8
+        doc_pass = len(self.requirements) >= len(self.all_requirements) * 1.0  # All should be documented
+        design_pass = len(self.design_refs) >= len(self.all_requirements) * 0.8
+        code_pass = len(self.code_refs) >= len(self.all_requirements) * 0.8
+        test_pass = len(self.test_refs) >= len(self.all_requirements) * 0.8
 
+        print(f"   Documentation =100%: {'✅ PASS' if doc_pass else '❌ FAIL'}")
         print(f"   Design ≥80%: {'✅ PASS' if design_pass else '❌ FAIL'}")
         print(f"   Implementation ≥80%: {'✅ PASS' if code_pass else '❌ FAIL'}")
         print(f"   Tests ≥80%: {'✅ PASS' if test_pass else '❌ FAIL'}")
@@ -436,7 +522,7 @@ class TraceabilityValidator:
 
         print("=" * 80)
 
-        if has_issues or not (design_pass and code_pass and test_pass):
+        if has_issues or not (doc_pass and design_pass and code_pass and test_pass):
             print("❌ TRACEABILITY VALIDATION FAILED")
             return 1
         else:
@@ -451,7 +537,7 @@ def main():
     parser.add_argument('--design', type=Path, default=Path('docs/design'),
                        help='Design directory')
     parser.add_argument('--code', nargs='+', type=Path,
-                       default=[Path('installers'), Path('mcp_service'), Path('plugins')],
+                       default=[Path('installers'), Path('plugins'), Path('.claude'), Path('templates')],
                        help='Code directories')
     parser.add_argument('--matrix', action='store_true',
                        help='Generate traceability matrix (markdown)')

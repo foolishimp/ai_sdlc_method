@@ -35,7 +35,7 @@ You are **closing the feedback loop** from production to intent.
   "title": "Login latency exceeded",
   "description": "p95 latency is 750ms (threshold: 500ms)",
   "tags": {
-    "req": "REQ-F-AUTH-001",  // ← Extract this
+    "req": "<REQ-ID>",  // ← Extract this
     "severity": "critical",
     "sla": "performance"
   },
@@ -45,7 +45,7 @@ You are **closing the feedback loop** from production to intent.
 }
 ```
 
-**Extracted**: `REQ-F-AUTH-001`
+**Extracted**: `<REQ-ID>`
 
 ---
 
@@ -55,16 +55,16 @@ You are **closing the feedback loop** from production to intent.
 
 ```bash
 # Search for requirement
-grep -rn "^## REQ-F-AUTH-001" docs/requirements/
+grep -rn "^## <REQ-ID>" docs/requirements/
 
 # Output:
-# docs/requirements/authentication.md:15:## REQ-F-AUTH-001: User Login
+# docs/requirements/authentication.md:15:## <REQ-ID>: User Login
 ```
 
 **Load requirement**:
 
 ```markdown
-## REQ-F-AUTH-001: User Login with Email and Password
+## <REQ-ID>: User Login with Email and Password
 
 **Type**: Functional Requirement
 **Priority**: P0
@@ -110,11 +110,11 @@ Secure user authentication for personalization and data protection.
 **Find code implementing requirement**:
 
 ```bash
-# Find files implementing REQ-F-AUTH-001
-grep -rn "# Implements: REQ-F-AUTH-001" src/
+# Find files implementing <REQ-ID>
+grep -rn "# Implements: <REQ-ID>" src/
 
 # Output:
-# src/auth/login.py:23:# Implements: REQ-F-AUTH-001
+# src/auth/login.py:23:# Implements: <REQ-ID>
 ```
 
 **Analyze code**:
@@ -130,12 +130,12 @@ grep -rn "# Implements: REQ-F-AUTH-001" src/
 **Git history for requirement**:
 
 ```bash
-git log --all --grep="REQ-F-AUTH-001" --oneline
+git log --all --grep="<REQ-ID>" --oneline
 
 # Output:
-# abc123 feat: Add user login (REQ-F-AUTH-001)
-# def456 perf: Add caching to login (REQ-F-AUTH-001)
-# ghi789 fix: Optimize db query (REQ-F-AUTH-001)
+# abc123 feat: Add user login (<REQ-ID>)
+# def456 perf: Add caching to login (<REQ-ID>)
+# ghi789 fix: Optimize db query (<REQ-ID>)
 ```
 
 **Recent changes**: Did recent commit introduce regression?
@@ -158,7 +158,7 @@ git log --all --grep="REQ-F-AUTH-001" --oneline
 
 **Related To**:
 - **Original Intent**: INT-100 (User Authentication System)
-- **Requirement**: REQ-F-AUTH-001 (User login)
+- **Requirement**: <REQ-ID> (User login)
 - **SLA Violated**: REQ-NFR-PERF-001 (Login response < 500ms)
 
 **Problem**:
@@ -167,7 +167,7 @@ SLA violation detected in production.
 
 **Alert Details**:
 - Alert: "Login latency exceeded"
-- Metric: auth.login.duration{req:REQ-F-AUTH-001}
+- Metric: auth.login.duration{req:<REQ-ID>}
 - Current: 750ms
 - Threshold: 500ms
 - Violation: +250ms (+50% over limit)
@@ -182,7 +182,7 @@ SLA violation detected in production.
 1. Check database query times (should be < 100ms)
 2. Profile bcrypt hashing time (should be ~200ms)
 3. Check for N+1 queries
-4. Review recent code changes (commits for REQ-F-AUTH-001)
+4. Review recent code changes (commits for <REQ-ID>)
 
 **Success Criteria**:
 - p95 latency < 500ms (back within SLA)
@@ -209,7 +209,7 @@ alerts:
   - alert_id: "alert_12345"
     timestamp: "2025-11-20T15:30:00Z"
     title: "Login latency exceeded"
-    requirement: "REQ-F-AUTH-001"
+    requirement: "<REQ-ID>"
     original_intent: "INT-100"
     remediation_intent: "INT-150"  # ← New intent created
     status: "OPEN"
@@ -222,7 +222,7 @@ alerts:
 
 ```bash
 git add docs/intents/remediation.md docs/traceability/feedback-loops.yml
-git commit -m "FEEDBACK: Create INT-150 from production alert (REQ-F-AUTH-001)
+git commit -m "FEEDBACK: Create INT-150 from production alert (<REQ-ID>)
 
 Create remediation intent from SLA violation alert.
 
@@ -230,15 +230,15 @@ Alert:
 - ID: alert_12345
 - Title: Login latency exceeded
 - Metric: auth.login.duration (750ms, threshold 500ms)
-- Requirement: REQ-F-AUTH-001
+- Requirement: <REQ-ID>
 
 Traceability:
-  Alert → req:REQ-F-AUTH-001 → REQ-NFR-PERF-001 → INT-100 → INT-150 (new)
+  Alert → req:<REQ-ID> → REQ-NFR-PERF-001 → INT-100 → INT-150 (new)
 
 Remediation Intent Created:
 - INT-150: Fix login performance degradation
 - Priority: P0 (SLA violation)
-- Related: REQ-F-AUTH-001, REQ-NFR-PERF-001
+- Related: <REQ-ID>, REQ-NFR-PERF-001
 
 Feedback Loop:
   Production Issue → New Intent → SDLC Cycle Begins Again ♻️
@@ -261,9 +261,9 @@ Alert Details:
   Severity: CRITICAL
 
 Requirement Trace:
-  Alert Tag: req:REQ-F-AUTH-001
+  Alert Tag: req:<REQ-ID>
     ↓
-  Requirement: REQ-F-AUTH-001 (User Login)
+  Requirement: <REQ-ID> (User Login)
   Location: docs/requirements/authentication.md:15
     ↓
   Related SLA: REQ-NFR-PERF-001 (Login < 500ms)
@@ -288,7 +288,7 @@ Remediation Intent Created:
   ✓ INT-150: Fix login performance degradation
     - Type: Remediation (URGENT)
     - Priority: P0
-    - Related: REQ-F-AUTH-001, REQ-NFR-PERF-001
+    - Related: <REQ-ID>, REQ-NFR-PERF-001
     - Source: Production alert_12345
 
 Feedback Loop:
@@ -321,11 +321,11 @@ Next Steps:
 **Feedback loop**:
 ```
 Intent (INT-100)
-  → Requirements (REQ-F-AUTH-001)
+  → Requirements (<REQ-ID>)
   → Design → Code → Deploy
   → Production (running)
   → Alert (SLA violation)
-  → Trace back to REQ-F-AUTH-001
+  → Trace back to <REQ-ID>
   → Create new Intent (INT-150: Fix performance)
   → SDLC cycle begins again ♻️
 ```

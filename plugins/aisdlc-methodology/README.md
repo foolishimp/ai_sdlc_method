@@ -28,48 +28,51 @@ AI SDLC Pipeline
        │
        ▼
 ┌─────────────────────┐  ◄──────────────┐
-│ 1. Requirements     │                  │
-│    Agent            │  Feedback Loop   │
-│    (Section 4.0)    │  (All stages     │
-└──────┬──────────────┘   feed back)     │
+│ 1. AISDLC           │                  │
+│    Requirements     │  Feedback Loop   │
+│    Agent            │  (All stages     │
+│    (Section 4.0)    │   feed back)     │
+└──────┬──────────────┘                  │
        │                                  │
        ▼                                  │
 ┌─────────────────────┐                  │
-│ 2. Design           │                  │
+│ 2. AISDLC Design    │                  │
 │    Agent            │                  │
 │    (Section 5.0)    │                  │
 └──────┬──────────────┘                  │
        │                                  │
        ▼                                  │
 ┌─────────────────────┐                  │
-│ 3. Tasks            │  ◄─ Jira         │
+│ 3. AISDLC Tasks     │  ◄─ Jira         │
 │    Orchestrator     │     Integration  │
 │    (Section 6.0)    │                  │
 └──────┬──────────────┘                  │
        │                                  │
        ▼                                  │
 ┌─────────────────────┐                  │
-│ 4. Code Agent       │  TDD Cycle       │
-│    (Section 7.0)    │  RED→GREEN       │
-│    [Key Principles]   │  →REFACTOR       │
+│ 4. AISDLC Code      │  TDD Cycle       │
+│    Agent            │  RED→GREEN       │
+│    (Section 7.0)    │  →REFACTOR       │
+│    [Key Principles]   │                  │
 └──────┬──────────────┘                  │
        │                                  │
        ▼                                  │
 ┌─────────────────────┐                  │
-│ 5. System Test      │  BDD Testing     │
-│    Agent            │  (Given/When/    │
+│ 5. AISDLC System    │  BDD Testing     │
+│    Test Agent       │  (Given/When/    │
 │    (Section 8.0)    │   Then)          │
 └──────┬──────────────┘                  │
        │                                  │
        ▼                                  │
 ┌─────────────────────┐                  │
-│ 6. UAT Agent        │  Business        │
-│    (Section 9.0)    │  Validation      │
+│ 6. AISDLC UAT       │  Business        │
+│    Agent            │  Validation      │
+│    (Section 9.0)    │                  │
 └──────┬──────────────┘                  │
        │                                  │
        ▼                                  │
 ┌─────────────────────┐                  │
-│ 7. Runtime          │  Production      │
+│ 7. AISDLC Runtime   │  Production      │
 │    Feedback Agent   │  Telemetry   ────┘
 │    (Section 10.0)   │
 └─────────────────────┘
@@ -79,7 +82,7 @@ AI SDLC Pipeline
 
 ### 1. Requirements Stage (Section 4.0)
 
-**Agent**: Requirements Agent
+**Agent**: AISDLC Requirements Agent
 **Purpose**: Transform intent into structured requirements with unique, immutable keys
 
 **Key Responsibilities**:
@@ -95,7 +98,7 @@ AI SDLC Pipeline
 - Product Owner / Business Analyst / Data Steward review
 
 **Outputs**:
-- `REQ-F-AUTH-001`: Functional requirements
+- `<REQ-ID>`: Functional requirements
 - `REQ-NFR-PERF-001`: Non-functional requirements
 - `REQ-DATA-CQ-001`: Data quality requirements
 - `REQ-BR-CALC-001`: Business rules
@@ -104,7 +107,7 @@ AI SDLC Pipeline
 
 ### 2. Design Stage (Section 5.0)
 
-**Agent**: Design Agent / Solution Designer
+**Agent**: AISDLC Design Agent / Solution Designer
 **Purpose**: Transform requirements into implementable technical and data solution
 
 **Key Responsibilities**:
@@ -130,7 +133,7 @@ AI SDLC Pipeline
 
 ### 3. Tasks / Work Breakdown Stage (Section 6.0)
 
-**Agent**: Tasks Stage Orchestrator
+**Agent**: AISDLC Tasks Stage Orchestrator
 **Purpose**: Convert design into actionable work units with Jira integration and agent orchestration
 
 **Dual Purpose**:
@@ -161,7 +164,7 @@ AI SDLC Pipeline
 
 ### 4. Code Stage (Section 7.0) - TDD-Driven
 
-**Agent**: Code Agent / Developer Agent
+**Agent**: AISDLC Code Agent / Developer Agent
 **Purpose**: Implement solution using Test-Driven Development
 
 **Methodology**: **RED → GREEN → REFACTOR → COMMIT**
@@ -194,7 +197,7 @@ AI SDLC Pipeline
 
 ### 5. System Test Stage (Section 8.0) - BDD-Driven
 
-**Agent**: System Test Agent / QA Agent
+**Agent**: AISDLC System Test Agent / QA Agent
 **Purpose**: Verify integrated system behavior using BDD
 
 **Methodology**: **Given/When/Then** scenarios
@@ -223,7 +226,7 @@ AI SDLC Pipeline
 
 ### 6. UAT Stage (Section 9.0) - BDD for Business
 
-**Agent**: UAT Agent
+**Agent**: AISDLC UAT Agent
 **Purpose**: Business validation through pure business language BDD
 
 **Three Parallel Activities**:
@@ -260,7 +263,7 @@ AI SDLC Pipeline
 
 ### 7. Runtime Feedback Stage (Section 10.0)
 
-**Agent**: Runtime Feedback Agent
+**Agent**: AISDLC Runtime Feedback Agent
 **Purpose**: Close feedback loop between production and requirements
 
 **Key Responsibilities**:
@@ -294,21 +297,21 @@ Every artifact at every stage is tagged with requirement keys:
 ```
 Intent
   ↓
-REQ-F-AUTH-001 (User Login)
+<REQ-ID> (User Login)
   ↓
-Design: AuthenticationService → REQ-F-AUTH-001
+Design: AuthenticationService → <REQ-ID>
   ↓
-Jira: PROJ-123 → REQ-F-AUTH-001
+Jira: PROJ-123 → <REQ-ID>
   ↓
-Code: auth_service.py # Implements: REQ-F-AUTH-001
+Code: auth_service.py # Implements: <REQ-ID>
   ↓
-Tests: test_auth.py # Validates: REQ-F-AUTH-001
+Tests: test_auth.py # Validates: <REQ-ID>
   ↓
-BDD: "Given user has credentials..." → REQ-F-AUTH-001
+BDD: "Given user has credentials..." → <REQ-ID>
   ↓
-UAT: Manual test case → REQ-F-AUTH-001
+UAT: Manual test case → <REQ-ID>
   ↓
-Runtime: ERROR: REQ-F-AUTH-001 - Auth failure
+Runtime: ERROR: <REQ-ID> - Auth failure
   ↓
 Feedback: New intent to improve auth UX
 ```
@@ -365,7 +368,7 @@ Each stage agent can be configured with:
 - Persona collaboration rules
 - Traceability requirements
 
-### Example: Requirements Agent Configuration
+### Example: AISDLC Requirements Agent Configuration
 
 ```yaml
 requirements_agent:

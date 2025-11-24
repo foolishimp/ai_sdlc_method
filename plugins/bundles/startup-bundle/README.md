@@ -57,12 +57,12 @@ Claude: Before we code, Seven Questions:
   1. Tests first? → Using TDD ✅
   2-7. ... all yes ✅
 
-  Starting TDD for REQ-F-AUTH-001...
+  Starting TDD for <REQ-ID>...
 
 [RED] Tests created ✓
 [GREEN] Code implemented ✓
 [REFACTOR] Tech debt eliminated ✓
-[COMMIT] Tagged with REQ-F-AUTH-001 ✓
+[COMMIT] Tagged with <REQ-ID> ✓
 
 Done! 100% coverage, zero tech debt 🔥
 ```

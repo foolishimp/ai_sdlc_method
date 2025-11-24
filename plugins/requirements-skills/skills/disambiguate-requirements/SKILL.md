@@ -31,7 +31,7 @@ Your goal is to transform **vague requirements** into **precise specifications**
 
 **Example**:
 ```markdown
-## REQ-F-AUTH-001: User Login
+## <REQ-ID>: User Login
 
 **Description**: Users can log in with email and password
 
@@ -59,7 +59,7 @@ Your goal is to transform **vague requirements** into **precise specifications**
 3. What edge cases exist? (null, empty, boundary values)
 4. What error handling? (what goes wrong, what messages)
 
-**Generated BR-* for REQ-F-AUTH-001**:
+**Generated BR-* for <REQ-ID>**:
 ```yaml
 Business Rules:
 - BR-001: Email validation
@@ -98,7 +98,7 @@ Business Rules:
 3. What ecosystem constraints? (APIs, libraries, platforms)
 4. What performance constraints? (SLAs, latency)
 
-**Generated C-* for REQ-F-AUTH-001**:
+**Generated C-* for <REQ-ID>**:
 ```yaml
 Constraints:
 - C-001: Database query timeout
@@ -136,7 +136,7 @@ Constraints:
 2. What mathematical formulas? (interest, conversions, algorithms)
 3. What derived values? (totals, averages, percentages)
 
-**Generated F-* for REQ-F-AUTH-001**:
+**Generated F-* for <REQ-ID>**:
 ```yaml
 Formulas:
 - F-001: Lockout expiry time
@@ -162,7 +162,7 @@ Formulas:
 **Add BR-*, C-*, F-* to requirement**:
 
 ```markdown
-## REQ-F-AUTH-001: User Login with Email and Password
+## <REQ-ID>: User Login with Email and Password
 
 [Previous content...]
 
@@ -281,7 +281,7 @@ score = length_score + complexity_score + uniqueness_score
 When disambiguation complete:
 
 ```
-[DISAMBIGUATION - REQ-F-AUTH-001]
+[DISAMBIGUATION - <REQ-ID>]
 
 Original Requirement:
   "Users can log in with email and password"

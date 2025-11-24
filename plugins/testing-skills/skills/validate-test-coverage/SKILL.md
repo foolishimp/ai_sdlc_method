@@ -65,20 +65,20 @@ mvn test jacoco:report
 **For each REQ-*, find associated code and check coverage**:
 
 ```bash
-# Find files implementing REQ-F-AUTH-001
-grep -rl "# Implements: REQ-F-AUTH-001" src/
+# Find files implementing <REQ-ID>
+grep -rl "# Implements: <REQ-ID>" src/
 
 # For each file, check coverage
 # Output:
 src/auth/login.py: 95.2% coverage
 src/auth/validators.py: 100% coverage
-Average for REQ-F-AUTH-001: 97.6% ✅
+Average for <REQ-ID>: 97.6% ✅
 ```
 
 **Coverage by requirement**:
 ```
-REQ-F-AUTH-001: 97.6% ✅ (2 files, high coverage)
-REQ-F-PAY-001: 72.1% ⚠️ (1 file, below threshold)
+<REQ-ID>: 97.6% ✅ (2 files, high coverage)
+<REQ-ID>: 72.1% ⚠️ (1 file, below threshold)
 REQ-F-CART-001: 0% ❌ (1 file, no tests)
 ```
 
@@ -103,7 +103,7 @@ done
 **Output**:
 ```
 Requirements Without Tests:
-- REQ-F-PAY-001 (has code, no tests) ❌
+- <REQ-ID> (has code, no tests) ❌
 - REQ-F-CART-001 (has code, no tests) ❌
 - REQ-F-PROFILE-001 (no code, no tests) ⚠️
 ```
@@ -116,8 +116,8 @@ Requirements Without Tests:
 
 ```yaml
 Critical Requirements (P0):
-- REQ-F-AUTH-001: 97.6% ✅ (Pass)
-- REQ-F-PAY-001: 72.1% ❌ (Fail - critical path needs 100%)
+- <REQ-ID>: 97.6% ✅ (Pass)
+- <REQ-ID>: 72.1% ❌ (Fail - critical path needs 100%)
 - REQ-NFR-SEC-001: 100% ✅ (Pass)
 ```
 
@@ -158,17 +158,17 @@ When validation finds deviations:
 Overall Coverage: 87.5% ✅ (threshold: 80%)
 
 Coverage by Requirement:
-  ✅ REQ-F-AUTH-001: 97.6% (2 files)
-  ⚠️ REQ-F-PAY-001: 72.1% (below 80%)
+  ✅ <REQ-ID>: 97.6% (2 files)
+  ⚠️ <REQ-ID>: 72.1% (below 80%)
   ❌ REQ-F-CART-001: 0% (no tests)
 
 Critical Path Coverage (P0):
-  ✅ REQ-F-AUTH-001: 97.6%
-  ❌ REQ-F-PAY-001: 72.1% (Critical! Needs 100%)
+  ✅ <REQ-ID>: 97.6%
+  ❌ <REQ-ID>: 72.1% (Critical! Needs 100%)
   ✅ REQ-NFR-SEC-001: 100%
 
 Requirements Without Tests (2):
-  1. REQ-F-PAY-001
+  1. <REQ-ID>
      Code: src/payments/payment.py (72.1% coverage)
      Missing: Unit tests for edge cases
 
@@ -177,12 +177,12 @@ Requirements Without Tests (2):
      Missing: All tests
 
 Homeostasis Deviation:
-  - Critical path REQ-F-PAY-001 below 100%
+  - Critical path <REQ-ID> below 100%
   - 2 requirements without sufficient tests
   - Data requirements (REQ-DATA-*) at 65%
 
 Recommended Actions:
-  1. Invoke 'generate-missing-tests' for REQ-F-PAY-001, REQ-F-CART-001
+  1. Invoke 'generate-missing-tests' for <REQ-ID>, REQ-F-CART-001
   2. Focus on critical path (P0) requirements
   3. Improve REQ-DATA-* coverage (65% → 80%)
 

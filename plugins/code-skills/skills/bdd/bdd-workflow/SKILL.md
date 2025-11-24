@@ -9,7 +9,7 @@ allowed-tools: [Read, Write, Edit, Bash, Grep, Glob]
 **Skill Type**: Orchestrator (BDD Workflow)
 **Purpose**: Coordinate complete BDD cycle with Given/When/Then scenarios
 **Prerequisites**:
-- Work unit with REQ-* key (e.g., "Create scenario for REQ-F-AUTH-001")
+- Work unit with REQ-* key (e.g., "Create scenario for <REQ-ID>")
 - Requirement details available
 
 ---
@@ -113,10 +113,10 @@ Your goal is to implement a requirement using **Given/When/Then scenarios** in p
 When you complete the BDD workflow, show:
 
 ```
-[BDD Workflow: REQ-F-AUTH-001]
+[BDD Workflow: <REQ-ID>]
 
 ✅ Phase 0: Prerequisites
-  ✓ Requirement: REQ-F-AUTH-001 (User login)
+  ✓ Requirement: <REQ-ID> (User login)
   ✓ BDD Framework: behave (Python)
   ✓ Git repository: initialized
   ✓ Working tree: clean
@@ -124,18 +124,18 @@ When you complete the BDD workflow, show:
 ✅ Phase 1: SCENARIO (Write Given/When/Then)
   ✓ Created: features/authentication.feature (3 scenarios)
   ✓ Business language ✓ (no technical jargon)
-  ✓ Commit: SCENARIO: Add scenarios for REQ-F-AUTH-001
+  ✓ Commit: SCENARIO: Add scenarios for <REQ-ID>
 
 ✅ Phase 2: STEP DEFINITIONS (Implement Test Code)
   ✓ Created: steps/authentication_steps.py (12 step definitions)
   ✓ Scenarios running... FAILED ✓ (expected - no implementation)
-  ✓ Commit: STEP DEF: Add step definitions for REQ-F-AUTH-001
+  ✓ Commit: STEP DEF: Add step definitions for <REQ-ID>
 
 ✅ Phase 3: IMPLEMENT (Make Scenarios Pass)
   ✓ Created: src/auth/authentication.py
   ✓ Implemented: login() function
   ✓ Scenarios running... PASSED ✓
-  ✓ Commit: IMPLEMENT: Implement REQ-F-AUTH-001
+  ✓ Commit: IMPLEMENT: Implement <REQ-ID>
 
 ✅ Phase 4: REFACTOR (Improve Quality)
   Code Quality Improvements:
@@ -147,13 +147,13 @@ When you complete the BDD workflow, show:
     ✓ Simplified step definition logic
 
   ✓ Scenarios still PASSING ✓
-  ✓ Commit: REFACTOR: Clean up REQ-F-AUTH-001
+  ✓ Commit: REFACTOR: Clean up <REQ-ID>
 
 🎉 BDD Workflow Complete!
   Files: 3 files (authentication.feature, authentication_steps.py, authentication.py)
   Scenarios: 3 scenarios, all passing
   Step Definitions: 12 steps
-  Traceability: REQ-F-AUTH-001 → commit xyz789
+  Traceability: <REQ-ID> → commit xyz789
 ```
 
 ---

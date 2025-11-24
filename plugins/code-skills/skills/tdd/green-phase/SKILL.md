@@ -75,7 +75,7 @@ src/test/java/auth/LoginTest.java → src/main/java/auth/Login.java
 ```python
 # src/auth/login.py
 
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 # Business Rules: BR-001, BR-002, BR-003
 
 import re
@@ -100,7 +100,7 @@ class User:
         # Simplified: In real code, use bcrypt
         return self.password_hash == hash_password(password)
 
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 def login(email: str, password: str) -> LoginResult:
     # Implements: BR-001 (email validation)
     if not validate_email(email):
@@ -216,12 +216,12 @@ mvn test jacoco:report
 
 ```bash
 git add src/auth/login.py
-git commit -m "GREEN: Implement REQ-F-AUTH-001
+git commit -m "GREEN: Implement <REQ-ID>
 
 Implement user login functionality with email/password.
 
 Implements:
-- REQ-F-AUTH-001: User login
+- <REQ-ID>: User login
 - BR-001: Email validation (regex pattern)
 - BR-002: Password minimum 12 characters
 - BR-003: Account lockout after 3 failed attempts (15min)
@@ -244,14 +244,14 @@ Coverage: 95%
 When you complete the GREEN phase, show:
 
 ```
-[GREEN Phase - REQ-F-AUTH-001]
+[GREEN Phase - <REQ-ID>]
 
 Implementation: src/auth/login.py
 
 Code Created:
   ✓ LoginResult dataclass
   ✓ User class
-  ✓ login() function (REQ-F-AUTH-001)
+  ✓ login() function (<REQ-ID>)
   ✓ validate_email() function (BR-001)
   ✓ hash_password() helper
   ✓ get_user_by_email() helper
@@ -271,7 +271,7 @@ Result: 4/4 tests PASSING ✓ (GREEN phase)
 
 Coverage: 95% (38/40 lines covered)
 
-Commit: GREEN: Implement REQ-F-AUTH-001
+Commit: GREEN: Implement <REQ-ID>
 
 ✅ GREEN Phase Complete!
    Next: Invoke refactor-phase skill to improve code quality

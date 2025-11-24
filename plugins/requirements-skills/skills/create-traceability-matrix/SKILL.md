@@ -30,7 +30,7 @@ You are creating a **traceability matrix** showing the complete lineage from int
 
 | INT-* | REQ-* | Design | Code | Tests | Commits | Runtime | Status |
 |-------|-------|--------|------|-------|---------|---------|--------|
-| INT-042 | REQ-F-AUTH-001 | AuthService | login.py:23 | test_login.py:15 | 5 | Datadog ✅ | ✅ Complete |
+| INT-042 | <REQ-ID> | AuthService | login.py:23 | test_login.py:15 | 5 | Datadog ✅ | ✅ Complete |
 | INT-042 | REQ-F-PORTAL-001 | PortalService | balance.py:12 | test_balance.py:8 | 3 | Datadog ✅ | ✅ Complete |
 | INT-042 | REQ-F-PORTAL-002 | ProfileService | profile.py:45 | test_profile.py:22 | 2 | ❌ No metrics | ⚠️ Partial |
 | INT-050 | REQ-NFR-PERF-001 | CacheLayer | cache.py:67 | test_cache.py:34 | 4 | Prometheus ✅ | ✅ Complete |
@@ -56,8 +56,8 @@ INT-042:
   date: "2025-11-20"
   status: "In Progress"
   requirements:
-    - REQ-F-AUTH-001
-    - REQ-F-AUTH-002
+    - <REQ-ID>
+    - <REQ-ID>
     - REQ-F-PORTAL-001
     - REQ-F-PORTAL-002
     - REQ-F-PORTAL-003
@@ -125,8 +125,8 @@ done
 
 | REQ-* | Description | Design | Code | Tests | Commits | Runtime | Status |
 |-------|-------------|--------|------|-------|---------|---------|--------|
-| REQ-F-AUTH-001 | User login | AuthService | ✅ login.py | ✅ test_login.py | ✅ 5 | ✅ Datadog | ✅ |
-| REQ-F-AUTH-002 | Password reset | EmailService | ✅ reset.py | ✅ test_reset.py | ✅ 3 | ⚠️ Partial | ⚠️ |
+| <REQ-ID> | User login | AuthService | ✅ login.py | ✅ test_login.py | ✅ 5 | ✅ Datadog | ✅ |
+| <REQ-ID> | Password reset | EmailService | ✅ reset.py | ✅ test_reset.py | ✅ 3 | ⚠️ Partial | ⚠️ |
 | REQ-F-PORTAL-001 | View balance | PortalService | ✅ balance.py | ✅ test_balance.py | ✅ 2 | ❌ None | ⚠️ |
 | REQ-F-PORTAL-002 | Update profile | ProfileService | ❌ None | ❌ None | ❌ 0 | ❌ None | ❌ |
 | REQ-F-PORTAL-003 | Download invoices | ❌ No design | ❌ None | ❌ None | ❌ 0 | ❌ None | ❌ |
@@ -181,7 +181,7 @@ Requirements Without Code (6):
   - REQ-DATA-LIN-001
 
 Requirements Without Tests (7):
-  - REQ-F-PAY-001 (has code, no tests)
+  - <REQ-ID> (has code, no tests)
   - REQ-F-CART-001 (has code, no tests)
   ... (5 more)
 

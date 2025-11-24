@@ -230,7 +230,7 @@ You **MUST** verify:
 
 ```bash
 git add features/ src/auth/ steps/
-git commit -m "REFACTOR: Clean up REQ-F-AUTH-001 (BDD)
+git commit -m "REFACTOR: Clean up <REQ-ID> (BDD)
 
 Refactor BDD implementation for user login.
 
@@ -261,7 +261,7 @@ Tech Debt: 0 violations (Principle #6)
 When you complete the REFACTOR phase, show:
 
 ```
-[REFACTOR Phase - REQ-F-AUTH-001 (BDD)]
+[REFACTOR Phase - <REQ-ID> (BDD)]
 
 Feature Implementation Refactored:
   ✓ Deleted 2 unused imports
@@ -305,7 +305,7 @@ Before Commit Checklist:
 
 Ready to commit!
 
-Commit: REFACTOR: Clean up REQ-F-AUTH-001 (BDD)
+Commit: REFACTOR: Clean up <REQ-ID> (BDD)
 
 ✅ REFACTOR Phase Complete!
 ```

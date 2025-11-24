@@ -34,7 +34,7 @@ You are setting up **observability** with **requirement-level monitoring**.
 # datadog/dashboards/req-f-auth-001.json
 
 {
-  "title": "REQ-F-AUTH-001: User Login Monitoring",
+  "title": "<REQ-ID>: User Login Monitoring",
   "description": "Real-time monitoring for user login functionality",
   "widgets": [
     {
@@ -42,7 +42,7 @@ You are setting up **observability** with **requirement-level monitoring**.
       "definition": {
         "type": "timeseries",
         "requests": [{
-          "q": "sum:auth.login.attempts{req:REQ-F-AUTH-001,success:true}.as_count() / sum:auth.login.attempts{req:REQ-F-AUTH-001}.as_count()"
+          "q": "sum:auth.login.attempts{req:<REQ-ID>,success:true}.as_count() / sum:auth.login.attempts{req:<REQ-ID>}.as_count()"
         }]
       }
     },
@@ -51,7 +51,7 @@ You are setting up **observability** with **requirement-level monitoring**.
       "definition": {
         "type": "timeseries",
         "requests": [{
-          "q": "p95:auth.login.duration{req:REQ-F-AUTH-001}"
+          "q": "p95:auth.login.duration{req:<REQ-ID>}"
         }],
         "markers": [{
           "value": 500,  // REQ-NFR-PERF-001 threshold
@@ -64,7 +64,7 @@ You are setting up **observability** with **requirement-level monitoring**.
       "definition": {
         "type": "toplist",
         "requests": [{
-          "q": "top(auth.login.failures{req:REQ-F-AUTH-001} by {error}, 10, 'sum', 'desc')"
+          "q": "top(auth.login.failures{req:<REQ-ID>} by {error}, 10, 'sum', 'desc')"
         }]
       }
     }
@@ -78,11 +78,11 @@ You are setting up **observability** with **requirement-level monitoring**.
 # datadog/monitors/req-f-auth-001-latency.json
 
 {
-  "name": "REQ-F-AUTH-001: Login latency exceeded",
+  "name": "<REQ-ID>: Login latency exceeded",
   "type": "metric alert",
-  "query": "avg(last_5m):p95:auth.login.duration{req:REQ-F-AUTH-001} > 500",
-  "message": "Login latency exceeded 500ms threshold (REQ-NFR-PERF-001)\n\nRequirement: REQ-F-AUTH-001 (User Login)\nSLA: < 500ms\nCurrent: {{value}}ms\n\n@slack-alerts",
-  "tags": ["req:REQ-F-AUTH-001", "sla:performance"],
+  "query": "avg(last_5m):p95:auth.login.duration{req:<REQ-ID>} > 500",
+  "message": "Login latency exceeded 500ms threshold (REQ-NFR-PERF-001)\n\nRequirement: <REQ-ID> (User Login)\nSLA: < 500ms\nCurrent: {{value}}ms\n\n@slack-alerts",
+  "tags": ["req:<REQ-ID>", "sla:performance"],
   "options": {
     "thresholds": {
       "critical": 500,
@@ -110,17 +110,17 @@ groups:
       # Success rate
       - record: req:auth_login_success_rate
         expr: |
-          sum(rate(auth_login_attempts_total{req="REQ-F-AUTH-001",success="true"}[5m]))
+          sum(rate(auth_login_attempts_total{req="<REQ-ID>",success="true"}[5m]))
           /
-          sum(rate(auth_login_attempts_total{req="REQ-F-AUTH-001"}[5m]))
+          sum(rate(auth_login_attempts_total{req="<REQ-ID>"}[5m]))
         labels:
-          req: "REQ-F-AUTH-001"
+          req: "<REQ-ID>"
 
       # Latency p95
       - record: req:auth_login_duration_p95
-        expr: histogram_quantile(0.95, rate(auth_login_duration_seconds_bucket{req="REQ-F-AUTH-001"}[5m]))
+        expr: histogram_quantile(0.95, rate(auth_login_duration_seconds_bucket{req="<REQ-ID>"}[5m]))
         labels:
-          req: "REQ-F-AUTH-001"
+          req: "<REQ-ID>"
 ```
 
 **Alerts**:
@@ -132,14 +132,14 @@ groups:
   - name: req_f_auth_001_alerts
     rules:
       - alert: REQ_F_AUTH_001_LatencyHigh
-        expr: req:auth_login_duration_p95{req="REQ-F-AUTH-001"} > 0.5
+        expr: req:auth_login_duration_p95{req="<REQ-ID>"} > 0.5
         for: 5m
         labels:
           severity: critical
-          req: REQ-F-AUTH-001
+          req: <REQ-ID>
           sla: performance
         annotations:
-          summary: "Login latency exceeded (REQ-F-AUTH-001)"
+          summary: "Login latency exceeded (<REQ-ID>)"
           description: "p95 latency is {{ $value }}s (threshold: 0.5s)"
           requirement: "REQ-NFR-PERF-001: Login response < 500ms"
           runbook: "docs/runbooks/performance-degradation.md"
@@ -152,9 +152,9 @@ groups:
 **Log Search**:
 
 ```
-# Splunk saved search for REQ-F-AUTH-001
+# Splunk saved search for <REQ-ID>
 
-index=production sourcetype=app_logs req="REQ-F-AUTH-001"
+index=production sourcetype=app_logs req="<REQ-ID>"
 | stats count by success, error
 | eval success_rate = round(count(eval(success="true")) / count() * 100, 2)
 ```
@@ -163,14 +163,14 @@ index=production sourcetype=app_logs req="REQ-F-AUTH-001"
 
 ```xml
 <dashboard>
-  <label>REQ-F-AUTH-001: User Login</label>
+  <label><REQ-ID>: User Login</label>
   <row>
     <panel>
       <title>Login Success Rate</title>
       <single>
         <search>
           <query>
-            index=production req="REQ-F-AUTH-001"
+            index=production req="<REQ-ID>"
             | stats count by success
             | eval rate = round(count(eval(success="true")) / count() * 100, 2)
           </query>
@@ -186,7 +186,7 @@ index=production sourcetype=app_logs req="REQ-F-AUTH-001"
 ## Output Format
 
 ```
-[TELEMETRY TAGGING - REQ-F-AUTH-001]
+[TELEMETRY TAGGING - <REQ-ID>]
 
 Platform: Datadog
 
@@ -207,26 +207,26 @@ Monitors/Alerts (3):
 
   ✓ datadog/monitors/req-f-auth-001-errors.json
     - Alert: Error rate > 5%
-    - Links to: REQ-F-AUTH-001
+    - Links to: <REQ-ID>
 
   ✓ datadog/monitors/req-f-auth-001-lockouts.json
     - Alert: Lockout rate > 10%
     - Links to: BR-003
 
 Logs:
-  ✓ All log statements tagged with req="REQ-F-AUTH-001"
-  ✓ Searchable: logs.req:REQ-F-AUTH-001
+  ✓ All log statements tagged with req="<REQ-ID>"
+  ✓ Searchable: logs.req:<REQ-ID>
 
 Metrics:
-  ✓ auth.login.attempts{req:REQ-F-AUTH-001}
-  ✓ auth.login.duration{req:REQ-F-AUTH-001}
-  ✓ auth.login.lockouts{req:REQ-F-AUTH-001}
+  ✓ auth.login.attempts{req:<REQ-ID>}
+  ✓ auth.login.duration{req:<REQ-ID>}
+  ✓ auth.login.lockouts{req:<REQ-ID>}
 
 Traces:
-  ✓ Span "auth.login" tagged with req="REQ-F-AUTH-001"
+  ✓ Span "auth.login" tagged with req="<REQ-ID>"
 
 Backward Traceability Enabled:
-  Alert → req:REQ-F-AUTH-001 → docs/requirements/auth.md → INT-100 ✅
+  Alert → req:<REQ-ID> → docs/requirements/auth.md → INT-100 ✅
 
 ✅ Observability Setup Complete!
 ```

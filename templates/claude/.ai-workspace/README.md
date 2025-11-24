@@ -32,11 +32,9 @@ The Developer Workspace provides a lightweight, file-based system for managing d
 │   ├── current_session.md          # Active session (git-ignored)
 │   └── history/                    # Past sessions (git-ignored)
 ├── tasks/
-│   ├── todo/
-│   │   └── TODO_LIST.md            # TIER 1: Quick capture
 │   ├── active/
-│   │   └── ACTIVE_TASKS.md         # TIER 2: Formal tasks
-│   ├── finished/                   # TIER 3: Completed task docs
+│   │   └── ACTIVE_TASKS.md         # Active tasks (lightweight or formal)
+│   ├── finished/                   # Completed task docs
 │   └── archive/                    # Old completed tasks
 └── templates/
     ├── TASK_TEMPLATE.md
@@ -48,7 +46,6 @@ The Developer Workspace provides a lightweight, file-based system for managing d
 
 ### 2. Available Commands
 
-- `/todo "description"` - Quick capture a todo item
 - `/start-session` - Begin a new development session
 - `/finish-task {id}` - Complete a task and create documentation
 - `/commit-task {id}` - Commit a finished task with proper message
@@ -60,11 +57,7 @@ The Developer Workspace provides a lightweight, file-based system for managing d
 /start-session
 # Set goals, align with Claude, begin work
 
-# Capture quick thoughts
-/todo "add error handling to payment flow"
-/todo "investigate slow query performance"
-
-# Promote important todos to formal tasks
+# Work on tasks (lightweight or formal based on need)
 # (edit ACTIVE_TASKS.md manually or with Claude's help)
 
 # Work on tasks using TDD
@@ -81,32 +74,25 @@ The Developer Workspace provides a lightweight, file-based system for managing d
 
 ---
 
-## Two-Tier Task System
+## Task Management
 
-### TIER 1: Quick Capture (Informal)
-
-**File**: `tasks/todo/TODO_LIST.md`
-**Purpose**: Capture thoughts without breaking flow
-**Command**: `/todo "description"`
-**No TDD required**: Just quick notes
-
-**Example**:
-```
-/todo "add rate limiting to password reset"
-✅ Added to quick capture list
-```
-
-### TIER 2: Formal Tasks (TDD Workflow)
+### Active Tasks (Lightweight or Formal)
 
 **File**: `tasks/active/ACTIVE_TASKS.md`
-**Purpose**: Structured development work
-**Requirements**:
-- Priority, estimate, acceptance criteria
-- TDD mandatory (RED → GREEN → REFACTOR)
-- Tagged with REQ keys from Tasks Stage
-- Feature flag: `task-N-description`
+**Purpose**: Track all development work (can be lightweight or formal based on need)
 
-**Example Task**:
+**Lightweight Task** (quick work):
+```markdown
+## Task #3: Add rate limiting
+
+**Priority**: Medium
+**Status**: Not Started
+**Estimated Time**: 1 hour
+
+**Description**: Add rate limiting to password reset endpoint
+```
+
+**Formal Task** (complex work with TDD):
 ```markdown
 ## Task #5: Refactor Authentication Service
 
@@ -116,7 +102,7 @@ The Developer Workspace provides a lightweight, file-based system for managing d
 **Feature Flag**: `task-5-auth-refactor`
 
 **Requirements Traceability**:
-- REQ-F-AUTH-001: User login functionality
+- <REQ-ID>: User login functionality
 - REQ-NFR-PERF-003: Response time < 200ms
 
 **Acceptance Criteria**:
@@ -131,7 +117,7 @@ The Developer Workspace provides a lightweight, file-based system for managing d
 - [ ] COMMIT: Create finished task document
 ```
 
-### TIER 3: Finished Tasks (Documentation)
+### Finished Tasks (Documentation)
 
 **Directory**: `tasks/finished/`
 **Purpose**: Learning and reference
@@ -278,18 +264,7 @@ Templates, configs, and finished tasks are tracked in git. Active session state 
 
 ## Examples
 
-### Example 1: Quick Todo Capture
-
-```bash
-# During coding, you think of something
-/todo "add input validation to payment form"
-✅ Added to quick capture list
-
-# Continue coding without breaking flow
-# Later, review todos and promote to formal task if important
-```
-
-### Example 2: Starting a Task
+### Example 1: Starting a Task
 
 ```markdown
 ## Task #6: Add Payment Processing
@@ -300,7 +275,7 @@ Templates, configs, and finished tasks are tracked in git. Active session state 
 **Feature Flag**: `task-6-payment-processing`
 
 **Requirements Traceability**:
-- REQ-F-PAY-001: Credit card processing
+- <REQ-ID>: Credit card processing
 - REQ-NFR-SEC-005: PCI DSS compliance
 
 **Acceptance Criteria**:
@@ -311,7 +286,7 @@ Templates, configs, and finished tasks are tracked in git. Active session state 
 # Then follow TDD workflow...
 ```
 
-### Example 3: Finishing a Task
+### Example 2: Finishing a Task
 
 ```bash
 # All tests passing, task complete
@@ -339,7 +314,7 @@ Templates, configs, and finished tasks are tracked in git. Active session state 
 #
 # Tests: 42 unit tests, 91% coverage
 # TDD: RED → GREEN → REFACTOR
-# Implements: REQ-F-PAY-001, REQ-NFR-SEC-005
+# Implements: <REQ-ID>, REQ-NFR-SEC-005
 
 ✅ Committed: abc123d
 ```
@@ -351,14 +326,14 @@ Templates, configs, and finished tasks are tracked in git. Active session state 
 ### Daily Routine
 
 1. **Morning**: Run `/start-session` to set goals
-2. **During Work**: Use `/todo` for quick captures
+2. **During Work**: Track tasks in ACTIVE_TASKS.md (lightweight or formal)
 3. **Task Completion**: Use `/finish-task` + `/commit-task`
 4. **End of Day**: Review progress in session file
 
 ### Weekly Routine
 
 1. Review finished tasks for patterns and learnings
-2. Archive old todos (completed/cancelled)
+2. Archive completed tasks
 3. Update estimates based on actual time tracking
 4. Share key learnings with team
 
@@ -368,9 +343,6 @@ Templates, configs, and finished tasks are tracked in git. Active session state 
 # Archive finished tasks older than 90 days
 find tasks/finished/ -name "*.md" -mtime +90 \
   -exec mv {} tasks/archive/ \;
-
-# Clean up completed/cancelled todos
-# (Edit TODO_LIST.md manually)
 ```
 
 ---
@@ -385,13 +357,6 @@ cat .ai-workspace/session/current_session.md
 git status
 git log --oneline -5
 ```
-
-### Issue: "Todo list cluttered"
-
-**Solution**: Regular cleanup
-- Promote important todos to formal tasks
-- Mark completed/cancelled items
-- Archive old items
 
 ### Issue: "Can't find finished task"
 
@@ -419,10 +384,6 @@ cp claude_tasks/finished/*.md .ai-workspace/tasks/finished/
 
 # Update slash commands (paths changed)
 sed -i 's|claude_tasks|.ai-workspace/tasks|g' .claude/commands/*.md
-
-# Test
-/todo "test migration"
-cat .ai-workspace/tasks/todo/TODO_LIST.md
 
 # Cleanup (after verification)
 rm -rf claude_tasks/

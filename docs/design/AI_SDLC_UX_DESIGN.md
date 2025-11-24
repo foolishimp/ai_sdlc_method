@@ -222,7 +222,7 @@ Sarah: "Build custom, keep it simple"
 
 Claude: Got it. Creating requirement:
 
-REQ-F-AUTH-001: User authentication with email/password
+REQ-F-DEMO-AUTH-001: User authentication with email/password
 
 Business Rules:
 - BR-001: Email validation (standard regex)
@@ -234,7 +234,7 @@ Starting TDD workflow...
 [RED Phase]
 Creating test_auth.py:
 
-# Validates: REQ-F-AUTH-001
+# Validates: REQ-F-DEMO-AUTH-001
 def test_user_login_with_valid_credentials():
     user = create_test_user(email="sarah@startup.com", password="SecurePass123!")
     result = auth.login("sarah@startup.com", "SecurePass123!")
@@ -243,12 +243,12 @@ def test_user_login_with_valid_credentials():
 
 Test created. Running... FAILED ✓ (expected - RED phase)
 
-Commit: RED: Add test for REQ-F-AUTH-001
+Commit: RED: Add test for REQ-F-DEMO-AUTH-001
 
 [GREEN Phase]
 Creating auth.py:
 
-# Implements: REQ-F-AUTH-001
+# Implements: REQ-F-DEMO-AUTH-001
 def login(email: str, password: str) -> LoginResult:
     user = User.get_by_email(email)
     if user and user.check_password(password):
@@ -257,20 +257,20 @@ def login(email: str, password: str) -> LoginResult:
 
 Test running... PASSED ✓
 
-Commit: GREEN: Implement REQ-F-AUTH-001
+Commit: GREEN: Implement REQ-F-DEMO-AUTH-001
 
 [REFACTOR Phase]
 Improving code quality...
 - Added type hints
-- Added logging (tagged with REQ-F-AUTH-001)
+- Added logging (tagged with REQ-F-DEMO-AUTH-001)
 - Extracted validation to separate function
 - Added docstrings
 
 Tests still passing ✓
 
-Commit: REFACTOR: Clean up REQ-F-AUTH-001
+Commit: REFACTOR: Clean up REQ-F-DEMO-AUTH-001
 
-Final commit: feat: Add user authentication (REQ-F-AUTH-001)
+Final commit: feat: Add user authentication (REQ-F-DEMO-AUTH-001)
 
 ✅ Complete! Coverage: 100%
 ```
@@ -343,7 +343,7 @@ Developer: "Visa and Mastercard only, use Stripe, PCI-DSS Level 1, USD only"
 
 Requirements Agent: Creating disambiguated requirements...
 
-REQ-F-PAY-001: Credit card payment processing via Stripe
+REQ-F-DEMO-PAY-001: Credit card payment processing via Stripe
 
 Business Rules:
 - BR-001: Card types: Visa, Mastercard only
@@ -362,7 +362,7 @@ Formulas:
 - F-001: Stripe fee = (amount * 0.029) + 0.30
 - F-002: Idempotency key = SHA256(merchant_id + timestamp + amount + card_last4)
 
-REQ-NFR-SEC-001: Card data security
+REQ-NFR-DEMO-SEC-001: Card data security
 - BR-006: Never log full card numbers
 - BR-007: Tokenize cards via Stripe API
 - BR-008: HTTPS only for payment endpoints
@@ -371,7 +371,7 @@ REQ-DATA-001: Payment audit trail
 - BR-009: Log all payment attempts (success + failure)
 - BR-010: Retain logs for 7 years (PCI-DSS)
 
-Traceability matrix created: INT-042 → REQ-F-PAY-001, REQ-NFR-SEC-001, REQ-DATA-001
+Traceability matrix created: INT-042 → REQ-F-DEMO-PAY-001, REQ-NFR-DEMO-SEC-001, REQ-DATA-001
 
 Ready for Design stage. Proceed?
 
@@ -383,7 +383,7 @@ Invoking: Design Agent
 Creating architecture for payment processing...
 
 Components:
-- PaymentService (implements REQ-F-PAY-001)
+- PaymentService (implements REQ-F-DEMO-PAY-001)
 - StripeGateway (adapter pattern)
 - CardValidator (implements BR-001 through BR-004)
 - AuditLogger (implements REQ-DATA-001)
@@ -405,7 +405,7 @@ Data Model:
     - status: enum(pending, completed, failed)
     - stripe_charge_id: String
     - created_at: Timestamp
-    - requirement: "REQ-F-PAY-001"  # Traceability
+    - requirement: "REQ-F-DEMO-PAY-001"  # Traceability
 
 ADR Created:
   ADR-012: Use Stripe for payment processing
@@ -421,18 +421,18 @@ Invoking: Tasks Agent
 
 Creating Jira tickets...
 
-ACME-123: Implement CardValidator (REQ-F-PAY-001, BR-001-004)
+ACME-123: Implement CardValidator (REQ-F-DEMO-PAY-001, BR-001-004)
   Estimate: 3 points
   Assigned: Auto-generated
 
-ACME-124: Implement PaymentService (REQ-F-PAY-001)
+ACME-124: Implement PaymentService (REQ-F-DEMO-PAY-001)
   Estimate: 5 points
   Dependencies: ACME-123
 
 ACME-125: Implement AuditLogger (REQ-DATA-001)
   Estimate: 2 points
 
-ACME-126: Integration tests (REQ-F-PAY-001)
+ACME-126: Integration tests (REQ-F-DEMO-PAY-001)
   Estimate: 3 points
 
 Ready for Code stage. Pick a ticket to implement.
@@ -445,7 +445,7 @@ Invoking: Code Agent (TDD workflow)
 [RED Phase]
 Creating test_card_validator.py:
 
-# Validates: REQ-F-PAY-001, BR-001 (Visa/MC only)
+# Validates: REQ-F-DEMO-PAY-001, BR-001 (Visa/MC only)
 def test_validate_visa_card():
     result = CardValidator.validate("4532015112830366", "Visa")
     assert result.valid == True
@@ -467,7 +467,7 @@ Tests created. Running... 0/3 FAILED ✓ (RED phase)
 [GREEN Phase]
 Creating card_validator.py:
 
-# Implements: REQ-F-PAY-001, BR-001, BR-002
+# Implements: REQ-F-DEMO-PAY-001, BR-001, BR-002
 class CardValidator:
     ALLOWED_TYPES = ["Visa", "Mastercard"]  # BR-001
 
@@ -502,11 +502,11 @@ Seven Questions Checklist:
 
 Code quality check passed ✓
 
-Commit: feat: Add CardValidator (REQ-F-PAY-001, BR-001, BR-002)
+Commit: feat: Add CardValidator (REQ-F-DEMO-PAY-001, BR-001, BR-002)
 
 ✅ ACME-123 Complete!
    Coverage: 100%
-   Traceability: REQ-F-PAY-001 → ACME-123 → commit abc123
+   Traceability: REQ-F-DEMO-PAY-001 → ACME-123 → commit abc123
 
 Continue with next ticket?
 ```
@@ -530,7 +530,7 @@ Maria: "Add password reset functionality"
 Claude: I'll use BDD workflow since you have code-bdd-skills installed.
 
 [Requirements Phase]
-REQ-F-AUTH-002: Password reset via email
+REQ-F-DEMO-AUTH-002: Password reset via email
 
 Business Rules:
 - BR-010: Email must be registered user
@@ -544,7 +544,7 @@ Formulas:
 [BDD Workflow - SCENARIO Phase]
 Creating auth.feature:
 
-# Validates: REQ-F-AUTH-002
+# Validates: REQ-F-DEMO-AUTH-002
 Feature: Password Reset
 
   As a user
@@ -589,7 +589,7 @@ def step_impl(context, button):
 [IMPLEMENT Phase]
 Implementing password reset service...
 
-# Implements: REQ-F-AUTH-002
+# Implements: REQ-F-DEMO-AUTH-002
 class PasswordResetService:
     def send_reset_email(self, email: str) -> ResetResult:
         # BR-010: Check user exists
@@ -621,17 +621,17 @@ Scenarios running... 3/3 PASSED ✓
 
 ### Journey 4: Requirements Refinement Loop (Discovery)
 
-**Context**: Developer implementing REQ-F-PAY-001 (payment processing)
+**Context**: Developer implementing REQ-F-DEMO-PAY-001 (payment processing)
 
 ```
-Developer: "Implement payment processing for REQ-F-PAY-001"
+Developer: "Implement payment processing for REQ-F-DEMO-PAY-001"
 
-Claude: Starting TDD workflow for REQ-F-PAY-001...
+Claude: Starting TDD workflow for REQ-F-DEMO-PAY-001...
 
 [RED Phase]
 Creating test_payment_service.py:
 
-# Validates: REQ-F-PAY-001
+# Validates: REQ-F-DEMO-PAY-001
 def test_process_payment_success():
     result = PaymentService.process(amount=100.00, card_token="tok_visa")
     assert result.success == True
@@ -675,9 +675,9 @@ Discovered requirement during GREEN phase:
 
 Missing: Idempotency handling for duplicate payments
 
-Adding to REQ-F-PAY-001:
+Adding to REQ-F-DEMO-PAY-001:
 
-REQ-F-PAY-001: Credit card payment processing via Stripe
+REQ-F-DEMO-PAY-001: Credit card payment processing via Stripe
 
 Business Rules (UPDATED):
 - BR-001: Card types: Visa, Mastercard only
@@ -740,7 +740,7 @@ def test_duplicate_payment_prevented():
 Tests running... 3/3 PASSED ✓
 
 ✅ Requirement refined during implementation!
-   REQ-F-PAY-001 updated with BR-015
+   REQ-F-DEMO-PAY-001 updated with BR-015
    Code regenerated with idempotency handling
    New test added for BR-015
    Coverage: 100%
@@ -989,12 +989,12 @@ Allowed Tools:
   - Read, Write, Edit, Bash
 
 Example:
-  User: "Implement user login for REQ-F-AUTH-001"
+  User: "Implement user login for REQ-F-DEMO-AUTH-001"
   Claude: (invokes tdd-workflow skill)
     → RED: test_user_login()
     → GREEN: login() implementation
     → REFACTOR: Add logging, improve code
-    → COMMIT: feat: Add login (REQ-F-AUTH-001)
+    → COMMIT: feat: Add login (REQ-F-DEMO-AUTH-001)
 
 Success Rate: 94% (8,234 invocations)
 Avg Duration: 4.2 minutes
@@ -1024,11 +1024,11 @@ Claude (internal reasoning):
   1. Now have intent details
   2. Invoke: requirement-extraction skill
   3. Invoke: disambiguate-requirements skill (add business rules)
-  4. Output: REQ-F-PAY-001 with BR-*, C-*, F-*
+  4. Output: REQ-F-DEMO-PAY-001 with BR-*, C-*, F-*
 
 Claude: I've created detailed requirements:
 
-REQ-F-PAY-001: Credit card payment via Stripe
+REQ-F-DEMO-PAY-001: Credit card payment via Stripe
   Business Rules: 5 rules (card validation, amount limits)
   Constraints: 4 constraints (PCI-DSS, timeouts, idempotency)
   Formulas: 2 formulas (Stripe fee calculation, idempotency key)
@@ -1038,7 +1038,7 @@ Ready to implement using TDD workflow?
 User: "Yes"
 
 Claude (internal reasoning):
-  1. Prerequisites met: REQ-F-PAY-001 exists ✓
+  1. Prerequisites met: REQ-F-DEMO-PAY-001 exists ✓
   2. Invoke: tdd-workflow skill
   3. Invoke: red-phase skill (write tests)
   4. Invoke: green-phase skill (implement)
@@ -1047,7 +1047,7 @@ Claude (internal reasoning):
 
 Claude: [Shows TDD workflow progress...]
 
-✅ Complete! REQ-F-PAY-001 implemented with 100% coverage.
+✅ Complete! REQ-F-DEMO-PAY-001 implemented with 100% coverage.
 ```
 
 **Key point**: User never said "use tdd-workflow skill" - Claude autonomously decided based on context and prerequisites.
@@ -1085,12 +1085,12 @@ I'm the Requirements Agent. Let me extract structured requirements from your int
 - Builds traceability matrix
 
 Output:
-  REQ-F-PORTAL-001: Customer login
-  REQ-F-PORTAL-002: View account balance
-  REQ-F-PORTAL-003: Update profile
+  REQ-F-DEMO-PORTAL-001: Customer login
+  REQ-F-DEMO-PORTAL-002: View account balance
+  REQ-F-DEMO-PORTAL-003: Update profile
   ...
 
-Traceability: INT-055 → [REQ-F-PORTAL-001, ...]
+Traceability: INT-055 → [REQ-F-DEMO-PORTAL-001, ...]
 
 Ready for Design Agent?
 
@@ -1108,9 +1108,9 @@ I'm the Design Agent. Let me create the architecture for these requirements.
 
 Output:
   Components:
-    - AuthenticationService (REQ-F-PORTAL-001)
-    - AccountService (REQ-F-PORTAL-002)
-    - ProfileService (REQ-F-PORTAL-003)
+    - AuthenticationService (REQ-F-DEMO-PORTAL-001)
+    - AccountService (REQ-F-DEMO-PORTAL-002)
+    - ProfileService (REQ-F-DEMO-PORTAL-003)
 
   ADR-023: Use OAuth2 for authentication
     Context: E(t) = Existing OAuth2 infrastructure
@@ -1138,13 +1138,13 @@ Claude: Let me validate test coverage...
 [Invoking: validate-test-coverage skill (Sensor)]
 
 Coverage Report:
-  REQ-F-PAY-001: 85% coverage ⚠️
+  REQ-F-DEMO-PAY-001: 85% coverage ⚠️
     ✓ test_process_payment_success
     ✓ test_payment_fails_below_minimum
     ✗ Missing: Test for BR-003 (CVV validation)
     ✗ Missing: Test for BR-015 (idempotency)
 
-  REQ-NFR-SEC-001: 0% coverage ❌
+  REQ-NFR-DEMO-SEC-001: 0% coverage ❌
     ✗ Missing: All security tests
 
 Homeostasis deviation detected! Coverage below 100%.
@@ -1175,8 +1175,8 @@ Updated PaymentService to validate CVV...
 Code quality check passed ✓
 
 Coverage re-checked:
-  REQ-F-PAY-001: 95% coverage ✓
-  REQ-NFR-SEC-001: 100% coverage ✓
+  REQ-F-DEMO-PAY-001: 95% coverage ✓
+  REQ-NFR-DEMO-SEC-001: 100% coverage ✓
 
 Homeostasis achieved! All requirements have >= 80% coverage.
 ```
@@ -1294,11 +1294,11 @@ File size reduced: 487 lines → 312 lines (-36%)
 **Scenario: Developer discovers edge case**
 
 ```
-User: "Implement user registration with REQ-F-AUTH-003"
+User: "Implement user registration with REQ-F-DEMO-AUTH-003"
 
-Claude: Starting TDD for REQ-F-AUTH-003...
+Claude: Starting TDD for REQ-F-DEMO-AUTH-003...
 
-REQ-F-AUTH-003: User registration with email
+REQ-F-DEMO-AUTH-003: User registration with email
 
 Business Rules:
 - BR-020: Email must be unique
@@ -1307,7 +1307,7 @@ Business Rules:
 
 [RED Phase]
 test_user_registration():
-  # Validates: REQ-F-AUTH-003
+  # Validates: REQ-F-DEMO-AUTH-003
   def test_register_new_user():
       result = auth.register("newuser@example.com", "SecurePass123!")
       assert result.success == True
@@ -1343,9 +1343,9 @@ Claude: Excellent catch! That's a race condition. Let me refine the requirements
 Discovered requirement:
   "Concurrent registration with same email should be prevented"
 
-Adding to REQ-F-AUTH-003:
+Adding to REQ-F-DEMO-AUTH-003:
 
-REQ-F-AUTH-003: User registration with email (UPDATED)
+REQ-F-DEMO-AUTH-003: User registration with email (UPDATED)
 
 Business Rules:
 - BR-020: Email must be unique
@@ -1388,7 +1388,7 @@ def test_concurrent_registration_prevented():
     ...
 
 ✅ Requirements refined!
-   REQ-F-AUTH-003 updated with BR-023
+   REQ-F-DEMO-AUTH-003 updated with BR-023
    Code updated with race condition handling
    New test added
    Coverage: 100%
@@ -1454,13 +1454,13 @@ New Dev: "Show me an example workflow"
 Claude: I'll walk you through our complete workflow using a real ticket.
 
 Pick a ticket from Jira, or try:
-  ACME-234: Add support for EUR currency (REQ-F-PAY-005)
+  ACME-234: Add support for EUR currency (REQ-F-DEMO-PAY-005)
 
 New Dev: "Let's do ACME-234"
 
 Claude: Great choice! Let me pull the requirement details...
 
-REQ-F-PAY-005: Multi-currency support (EUR)
+REQ-F-DEMO-PAY-005: Multi-currency support (EUR)
 
 Business Rules:
 - BR-030: Support USD and EUR only (initially)
@@ -1480,7 +1480,7 @@ Starting TDD workflow...
 
 [RED Phase]
 test_payment_in_euros():
-  # Validates: REQ-F-PAY-005
+  # Validates: REQ-F-DEMO-PAY-005
   def test_process_payment_in_euros():
       result = PaymentService.process(
           amount=100.00,
@@ -1499,7 +1499,7 @@ Updating PaymentService.process() to support currency parameter...
 
 ✅ ACME-234 Complete!
    Coverage: 100%
-   Traceability: REQ-F-PAY-005 → ACME-234 → commit xyz789
+   Traceability: REQ-F-DEMO-PAY-005 → ACME-234 → commit xyz789
    Security scan: PASSED
    Ready to push!
 
@@ -1510,7 +1510,7 @@ New Dev: "Yes"
 Claude: git push origin feature/ACME-234
 
 Pushed! Create PR with:
-  gh pr create --title "Add EUR support (REQ-F-PAY-005, ACME-234)"
+  gh pr create --title "Add EUR support (REQ-F-DEMO-PAY-005, ACME-234)"
 ```
 
 **New Dev's reaction**: "I didn't have to learn your process - Claude guided me through your exact workflow, and I shipped a feature on Day 1!"
@@ -1605,7 +1605,7 @@ Current State:
 Sensors (Monitoring):
   ✓ check-requirement-coverage    - Last run: 2 min ago
     Status: 2 requirements below 80% coverage
-    Deviation: REQ-F-PAY-005 (75%), REQ-NFR-SEC-002 (60%)
+    Deviation: REQ-F-DEMO-PAY-005 (75%), REQ-NFR-DEMO-SEC-002 (60%)
 
   ✓ validate-test-coverage         - Last run: 2 min ago
     Status: 2 tests failing
@@ -1624,7 +1624,7 @@ Sensors (Monitoring):
 
 Actuators (Correcting):
   🔄 generate-missing-tests        - Running now...
-    Target: REQ-F-PAY-005, REQ-NFR-SEC-002
+    Target: REQ-F-DEMO-PAY-005, REQ-NFR-DEMO-SEC-002
     Progress: 1/2 tests generated
 
   🔄 prune-unused-code             - Queued
@@ -1669,7 +1669,7 @@ Execution Flow:
      Detected: No REQ-* for payment processing
      ↓
   3. requirement-extraction (Actuator)
-     Output: REQ-F-PAY-001
+     Output: REQ-F-DEMO-PAY-001
      Duration: 15s
      ↓
   4. disambiguate-requirements (Actuator)
@@ -1690,7 +1690,7 @@ Execution Flow:
      │  Output: Improved code quality
      │  Duration: 12s
      └─ commit-with-req-tag (Actuator)
-        Output: commit abc123 "feat: Add payment (REQ-F-PAY-001)"
+        Output: commit abc123 "feat: Add payment (REQ-F-DEMO-PAY-001)"
         Duration: 3s
      ↓
   7. validate-test-coverage (Sensor)
@@ -1718,7 +1718,7 @@ Status: ✓ Success
 
 Execution Details:
   Prerequisites Check:
-    ✓ Work unit with REQ-* tag: REQ-F-PAY-001
+    ✓ Work unit with REQ-* tag: REQ-F-DEMO-PAY-001
     ✓ Requirement details available
     ✓ git repository initialized
 
@@ -1750,11 +1750,11 @@ Execution Details:
     Commits: 4 commits (RED, GREEN, REFACTOR, final)
 
 Previous Executions (last 5):
-  1. 5 min ago: ✓ Success (REQ-F-PAY-001)
-  2. 2 hours ago: ✓ Success (REQ-F-AUTH-002)
-  3. 1 day ago: ✓ Success (REQ-F-PORTAL-003)
+  1. 5 min ago: ✓ Success (REQ-F-DEMO-PAY-001)
+  2. 2 hours ago: ✓ Success (REQ-F-DEMO-AUTH-002)
+  3. 1 day ago: ✓ Success (REQ-F-DEMO-PORTAL-003)
   4. 2 days ago: ✗ Failed (Missing REQ-* tag) ← Click to debug
-  5. 3 days ago: ✓ Success (REQ-NFR-PERF-001)
+  5. 3 days ago: ✓ Success (REQ-NFR-DEMO-PERF-001)
 
 Success Rate: 80% (4/5 succeeded)
 
@@ -1781,31 +1781,31 @@ Debug specific execution: claude debug skill tdd-workflow --execution <id>
 Claude: I'll help build a todo app using TDD. Let me start with requirements.
 
 [Creating requirements on-the-fly]
-REQ-F-TODO-001: Create todo item
-REQ-F-TODO-002: Mark todo as complete
-REQ-F-TODO-003: List all todos
+REQ-F-DEMO-TASK-001: Create task item
+REQ-F-DEMO-TASK-002: Mark task as complete
+REQ-F-DEMO-TASK-003: List all tasks
 
-Starting with REQ-F-TODO-001...
+Starting with REQ-F-DEMO-TASK-001...
 
 [RED Phase]
-test_create_todo.py:
-  def test_create_todo():
-      todo = Todo.create(title="Buy milk")
-      assert todo.title == "Buy milk"
-      assert todo.completed == False
+test_create_task.py:
+  def test_create_task():
+      task = Task.create(title="Buy milk")
+      assert task.title == "Buy milk"
+      assert task.completed == False
 
 [GREEN Phase]
-todo.py:
-  class Todo:
+task.py:
+  class Task:
       def create(title):
-          return Todo(title=title, completed=False)
+          return Task(title=title, completed=False)
 
 [REFACTOR Phase]
 (Improved with validation, logging)
 
-✅ REQ-F-TODO-001 complete!
+✅ REQ-F-DEMO-TASK-001 complete!
 
-Continue with REQ-F-TODO-002?
+Continue with REQ-F-DEMO-TASK-002?
 
 Sarah: "Yes, all of them"
 
@@ -1814,7 +1814,7 @@ Sarah: "Yes, all of them"
 3 hours later:
 
 ✅ Todo app complete!
-   - 3 features (REQ-F-TODO-001, 002, 003)
+   - 3 features (REQ-F-DEMO-TASK-001, 002, 003)
    - 15 tests, 100% coverage
    - Clean code (7/7 principles met)
    - Production ready
@@ -1853,7 +1853,7 @@ PO: "All user data, JSON format, async email, user-initiated only"
 
 Requirements Agent: Creating requirements...
 
-REQ-F-GDPR-001: User data export
+REQ-F-DEMO-GDPR-001: User data export
 
 Business Rules:
 - BR-100: User can only export their own data
@@ -1870,20 +1870,20 @@ Constraints:
 Formulas:
 - F-100: download_link_expiry = generation_time + (24 * 3600) seconds
 
-REQ-NFR-SEC-003: Data export security
+REQ-NFR-DEMO-SEC-003: Data export security
 - BR-105: Authenticate user before export
 - BR-106: Audit log every export request
 - BR-107: Delete export file after 24 hours
 
-Traceability: INT-100 → REQ-F-GDPR-001, REQ-NFR-SEC-003
+Traceability: INT-100 → REQ-F-DEMO-GDPR-001, REQ-NFR-DEMO-SEC-003
 
 [STAGE 2: Design]
 Design Agent: Creating architecture...
 
 Components:
-- DataExportService (REQ-F-GDPR-001)
+- DataExportService (REQ-F-DEMO-GDPR-001)
 - ExportJobQueue (async processing)
-- StorageService (encrypted storage, REQ-NFR-SEC-003)
+- StorageService (encrypted storage, REQ-NFR-DEMO-SEC-003)
 - NotificationService (email delivery)
 
 API Design:
@@ -1898,11 +1898,11 @@ ADR-045: Use S3 for export file storage
 [STAGE 3: Tasks]
 Tasks Agent: Creating Jira tickets...
 
-ACME-500: Implement DataExportService (REQ-F-GDPR-001) [8 points]
-ACME-501: Setup export job queue (REQ-F-GDPR-001) [5 points]
-ACME-502: Integrate S3 storage (REQ-NFR-SEC-003) [3 points]
-ACME-503: Add audit logging (REQ-NFR-SEC-003) [2 points]
-ACME-504: Integration tests (REQ-F-GDPR-001) [5 points]
+ACME-500: Implement DataExportService (REQ-F-DEMO-GDPR-001) [8 points]
+ACME-501: Setup export job queue (REQ-F-DEMO-GDPR-001) [5 points]
+ACME-502: Integrate S3 storage (REQ-NFR-DEMO-SEC-003) [3 points]
+ACME-503: Add audit logging (REQ-NFR-DEMO-SEC-003) [2 points]
+ACME-504: Integration tests (REQ-F-DEMO-GDPR-001) [5 points]
 
 Capacity: 23 points total, 2 week sprint
 
@@ -1929,8 +1929,8 @@ BDD scenarios:
   18 scenarios, all passing ✓
 
 Coverage:
-  REQ-F-GDPR-001: 100% ✓
-  REQ-NFR-SEC-003: 100% ✓
+  REQ-F-DEMO-GDPR-001: 100% ✓
+  REQ-NFR-DEMO-SEC-003: 100% ✓
 
 [STAGE 6: UAT]
 UAT Agent: Creating UAT test cases...
@@ -1950,22 +1950,22 @@ Deploy to production...
 Runtime Agent: Setting up telemetry...
 
 Datadog metrics:
-  - export_requests (tagged: REQ-F-GDPR-001)
-  - export_duration (tagged: REQ-F-GDPR-001)
-  - export_failures (tagged: REQ-F-GDPR-001)
+  - export_requests (tagged: REQ-F-DEMO-GDPR-001)
+  - export_duration (tagged: REQ-F-DEMO-GDPR-001)
+  - export_failures (tagged: REQ-F-DEMO-GDPR-001)
 
 Alerts:
-  - export_duration > 5 minutes → "ERROR: REQ-F-GDPR-001 - Export timeout"
+  - export_duration > 5 minutes → "ERROR: REQ-F-DEMO-GDPR-001 - Export timeout"
 
 Production (1 week later):
-  Alert fired: "ERROR: REQ-F-GDPR-001 - Export timeout for large accounts"
+  Alert fired: "ERROR: REQ-F-DEMO-GDPR-001 - Export timeout for large accounts"
 
 Runtime Agent: Tracing back...
-  REQ-F-GDPR-001 → INT-100 → Create new intent
+  REQ-F-DEMO-GDPR-001 → INT-100 → Create new intent
 
 New Intent Created:
   INT-150: Optimize GDPR export for large accounts
-  Related: REQ-F-GDPR-001
+  Related: REQ-F-DEMO-GDPR-001
   Impact: 5% of exports timing out
   Priority: P1
 

@@ -95,7 +95,7 @@ mvn test -Dtest=ApiIntegrationTest
 **Example tests**:
 ```python
 # tests/integration/api/test_auth_api.py
-# Validates: REQ-F-AUTH-001 (API integration)
+# Validates: <REQ-ID> (API integration)
 
 def test_login_api_returns_token():
     response = requests.post(
@@ -122,7 +122,7 @@ def test_login_api_rejects_invalid_email():
 
 ```python
 # tests/integration/database/test_user_db.py
-# Validates: REQ-F-AUTH-002 (database integration)
+# Validates: <REQ-ID> (database integration)
 
 def test_user_registration_persists_to_database(db_session):
     """Test user registration saves to database"""
@@ -206,13 +206,13 @@ Total Duration: 59.6s
 ```
 Requirements Validated by Integration Tests:
 
-REQ-F-AUTH-001 (User login):
+<REQ-ID> (User login):
   ✓ BDD: features/authentication.feature (3 scenarios)
   ✓ API: tests/integration/api/test_auth_api.py (5 tests)
   ✓ E2E: tests/e2e/test_user_flow.py (1 test)
   Total: 9 integration tests ✅
 
-REQ-F-PAY-001 (Payment processing):
+<REQ-ID> (Payment processing):
   ✓ BDD: features/payments.feature (2 scenarios)
   ✓ API: tests/integration/api/test_payment_api.py (8 tests)
   Total: 10 integration tests ✅
@@ -255,9 +255,9 @@ Pass Rate: 100% (57/57) ✅
 Total Duration: 59.6s
 
 Requirements Coverage (Integration Tests):
-  ✅ REQ-F-AUTH-001: 9 tests
-  ✅ REQ-F-AUTH-002: 7 tests
-  ✅ REQ-F-PAY-001: 10 tests
+  ✅ <REQ-ID>: 9 tests
+  ✅ <REQ-ID>: 7 tests
+  ✅ <REQ-ID>: 10 tests
   ⚠️ REQ-NFR-PERF-001: 0 tests (missing)
 
 Integration Test Coverage: 90% (27/30 requirements)

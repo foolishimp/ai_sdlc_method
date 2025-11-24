@@ -82,7 +82,7 @@ features/authentication.feature → src/main/java/auth/Authentication.java
 ```python
 # src/auth/authentication.py
 
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 # Business Rules: BR-001, BR-002, BR-003
 
 import re
@@ -120,12 +120,12 @@ class User:
         return str(hash(password))
 
 
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 def login(email: str, password: str) -> LoginResult:
     """
     Authenticate user with email and password.
 
-    Implements: REQ-F-AUTH-001 (User login)
+    Implements: <REQ-ID> (User login)
 
     Business Rules:
     - BR-001: Email must be valid format
@@ -266,12 +266,12 @@ Feature: User Login
 
 ```bash
 git add src/auth/authentication.py
-git commit -m "IMPLEMENT: Implement REQ-F-AUTH-001
+git commit -m "IMPLEMENT: Implement <REQ-ID>
 
 Implement user login functionality to satisfy BDD scenarios.
 
 Implements:
-- REQ-F-AUTH-001: User login
+- <REQ-ID>: User login
 - BR-001: Email validation
 - BR-002: Password minimum 12 characters
 - BR-003: Account lockout after 3 failed attempts
@@ -295,14 +295,14 @@ Steps: 27 steps passing ✓
 When you complete the IMPLEMENT phase, show:
 
 ```
-[IMPLEMENT Phase - REQ-F-AUTH-001]
+[IMPLEMENT Phase - <REQ-ID>]
 
 Implementation: src/auth/authentication.py
 
 Code Created:
   ✓ LoginResult dataclass
   ✓ User class with password handling
-  ✓ login() function (REQ-F-AUTH-001)
+  ✓ login() function (<REQ-ID>)
   ✓ _validate_email() helper (BR-001)
   ✓ _get_user_by_email() helper
   ✓ create_test_user() helper (for BDD)
@@ -321,7 +321,7 @@ Running scenarios...
 
 Result: 5/5 scenarios PASSING ✓ (IMPLEMENT phase)
 
-Commit: IMPLEMENT: Implement REQ-F-AUTH-001
+Commit: IMPLEMENT: Implement <REQ-ID>
 
 ✅ IMPLEMENT Phase Complete!
    Next: Invoke refactor-bdd skill to improve code quality

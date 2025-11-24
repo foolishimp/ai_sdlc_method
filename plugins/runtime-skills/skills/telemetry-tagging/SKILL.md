@@ -30,8 +30,8 @@ You are adding **REQ-* tags to telemetry** for production traceability.
 ### Step 1: Find Code Implementing Requirements
 
 ```bash
-# Find all files implementing REQ-F-AUTH-001
-grep -rn "# Implements: REQ-F-AUTH-001" src/
+# Find all files implementing <REQ-ID>
+grep -rn "# Implements: <REQ-ID>" src/
 ```
 
 ---
@@ -43,7 +43,7 @@ grep -rn "# Implements: REQ-F-AUTH-001" src/
 ```python
 # Before
 def login(email: str, password: str) -> LoginResult:
-    # Implements: REQ-F-AUTH-001
+    # Implements: <REQ-ID>
     result = authenticate(email, password)
     return result
 
@@ -53,11 +53,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 def login(email: str, password: str) -> LoginResult:
-    # Implements: REQ-F-AUTH-001
+    # Implements: <REQ-ID>
     logger.info(
         "User login attempt",
         extra={
-            "req": "REQ-F-AUTH-001",  # ← Tag for traceability
+            "req": "<REQ-ID>",  # ← Tag for traceability
             "email": email,
             "success": False  # Updated after auth
         }
@@ -68,7 +68,7 @@ def login(email: str, password: str) -> LoginResult:
     logger.info(
         "User login result",
         extra={
-            "req": "REQ-F-AUTH-001",
+            "req": "<REQ-ID>",
             "email": email,
             "success": result.success
         }
@@ -78,7 +78,7 @@ def login(email: str, password: str) -> LoginResult:
         logger.warning(
             "Login failed",
             extra={
-                "req": "REQ-F-AUTH-001",
+                "req": "<REQ-ID>",
                 "email": email,
                 "error": result.error
             }
@@ -90,17 +90,17 @@ def login(email: str, password: str) -> LoginResult:
 **TypeScript (Winston, Pino)**:
 
 ```typescript
-// Implements: REQ-F-AUTH-001
+// Implements: <REQ-ID>
 function login(email: string, password: string): LoginResult {
   logger.info('User login attempt', {
-    req: 'REQ-F-AUTH-001',  // ← Tag
+    req: '<REQ-ID>',  // ← Tag
     email,
   });
 
   const result = authenticate(email, password);
 
   logger.info('User login result', {
-    req: 'REQ-F-AUTH-001',
+    req: '<REQ-ID>',
     email,
     success: result.success,
   });
@@ -119,7 +119,7 @@ function login(email: string, password: string): LoginResult {
 from datadog import statsd
 
 def login(email: str, password: str) -> LoginResult:
-    # Implements: REQ-F-AUTH-001
+    # Implements: <REQ-ID>
 
     result = authenticate(email, password)
 
@@ -127,7 +127,7 @@ def login(email: str, password: str) -> LoginResult:
     statsd.increment(
         'auth.login.attempts',
         tags=[
-            'req:REQ-F-AUTH-001',  # ← Tag for traceability
+            'req:<REQ-ID>',  # ← Tag for traceability
             f'success:{result.success}',
             'env:production'
         ]
@@ -137,7 +137,7 @@ def login(email: str, password: str) -> LoginResult:
         statsd.timing(
             'auth.login.duration',
             login_duration_ms,
-            tags=['req:REQ-F-AUTH-001', 'env:production']
+            tags=['req:<REQ-ID>', 'env:production']
         )
 
     return result
@@ -162,13 +162,13 @@ login_duration = Histogram(
 )
 
 def login(email: str, password: str) -> LoginResult:
-    # Implements: REQ-F-AUTH-001
+    # Implements: <REQ-ID>
 
-    with login_duration.labels(req='REQ-F-AUTH-001', env='production').time():
+    with login_duration.labels(req='<REQ-ID>', env='production').time():
         result = authenticate(email, password)
 
     login_attempts.labels(
-        req='REQ-F-AUTH-001',  # ← Tag
+        req='<REQ-ID>',  # ← Tag
         success=str(result.success).lower(),
         env='production'
     ).inc()
@@ -188,10 +188,10 @@ from opentelemetry import trace
 tracer = trace.get_tracer(__name__)
 
 def login(email: str, password: str) -> LoginResult:
-    # Implements: REQ-F-AUTH-001
+    # Implements: <REQ-ID>
 
     with tracer.start_as_current_span("auth.login") as span:
-        span.set_attribute("req", "REQ-F-AUTH-001")  # ← Tag
+        span.set_attribute("req", "<REQ-ID>")  # ← Tag
         span.set_attribute("email", email)
 
         result = authenticate(email, password)
@@ -212,20 +212,20 @@ def login(email: str, password: str) -> LoginResult:
 **Check logs**:
 ```bash
 # Search logs for REQ tags
-grep "req.*REQ-F-AUTH-001" /var/log/app.log
+grep "req.*<REQ-ID>" /var/log/app.log
 ```
 
 **Check metrics (Datadog)**:
 ```
-auth.login.attempts{req:REQ-F-AUTH-001,success:true}
-auth.login.duration{req:REQ-F-AUTH-001}
+auth.login.attempts{req:<REQ-ID>,success:true}
+auth.login.duration{req:<REQ-ID>}
 ```
 
 **Check traces (OpenTelemetry)**:
 ```
 Span: auth.login
   Attributes:
-    - req: REQ-F-AUTH-001
+    - req: <REQ-ID>
     - email: user@example.com
     - success: true
 ```
@@ -235,22 +235,22 @@ Span: auth.login
 ## Output Format
 
 ```
-[TELEMETRY TAGGING - REQ-F-AUTH-001]
+[TELEMETRY TAGGING - <REQ-ID>]
 
 Files Tagged:
 
 src/auth/login.py:
   ✓ Logs: 3 log statements tagged
-    - logger.info("Login attempt", req="REQ-F-AUTH-001")
-    - logger.info("Login result", req="REQ-F-AUTH-001")
-    - logger.warning("Login failed", req="REQ-F-AUTH-001")
+    - logger.info("Login attempt", req="<REQ-ID>")
+    - logger.info("Login result", req="<REQ-ID>")
+    - logger.warning("Login failed", req="<REQ-ID>")
 
   ✓ Metrics: 2 metrics tagged
-    - auth.login.attempts{req:REQ-F-AUTH-001}
-    - auth.login.duration{req:REQ-F-AUTH-001}
+    - auth.login.attempts{req:<REQ-ID>}
+    - auth.login.duration{req:<REQ-ID>}
 
   ✓ Traces: 1 span tagged
-    - Span "auth.login" with req="REQ-F-AUTH-001"
+    - Span "auth.login" with req="<REQ-ID>"
 
 Total Tags Added: 6
   - Log tags: 3
@@ -258,7 +258,7 @@ Total Tags Added: 6
   - Trace tags: 1
 
 Traceability Enabled:
-  Production Alert → req:REQ-F-AUTH-001 → docs/requirements/authentication.md → INT-100
+  Production Alert → req:<REQ-ID> → docs/requirements/authentication.md → INT-100
 
 ✅ Telemetry Tagged!
    Backward traceability ready

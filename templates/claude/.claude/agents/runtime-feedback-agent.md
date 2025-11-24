@@ -18,7 +18,7 @@ Monitor production against requirements and close the feedback loop.
 ```javascript
 logger.info('User login', {
   event: 'USER_LOGIN',
-  requirements: ['REQ-F-AUTH-001'],
+  requirements: ['<REQ-ID>'],
   duration: 120,
   success: true
 });

@@ -62,19 +62,19 @@ New Intent → Cycle repeats
 user_stories:
   format: "Given/When/Then or As-a/I-want/So-that"
   keys: "REQ-F-{DOMAIN}-{SEQUENCE}"
-  example: "REQ-F-AUTH-001"
+  example: "REQ-F-DEMO-AUTH-001"
 
 non_functional_requirements:
   keys: "REQ-NFR-{CATEGORY}-{SEQUENCE}"
-  example: "REQ-NFR-PERF-001"
+  example: "REQ-NFR-DEMO-PERF-001"
 
 data_requirements:
   keys: "REQ-DATA-{ASPECT}-{SEQUENCE}"
-  example: "REQ-DATA-CQ-001"
+  example: "REQ-DATA-DEMO-CQ-001"
 
 business_rules:
   keys: "REQ-BR-{DOMAIN}-{SEQUENCE}"
-  example: "REQ-BR-CALC-001"
+  example: "REQ-BR-DEMO-CALC-001"
 ```
 
 **Quality Gates**:
@@ -91,16 +91,16 @@ Requirements Agent (Claude):
 "I'll transform this intent into requirements with unique keys...
 
 Generated:
-- REQ-F-AUTH-001: User can log in with email/password
+- REQ-F-DEMO-AUTH-001: User can log in with email/password
   Acceptance Criteria:
   - User enters valid credentials
   - System validates against database
   - JWT token returned on success
   - Response time < 500ms
 
-- REQ-NFR-PERF-001: Login performance < 500ms (p95)
-- REQ-DATA-AUTH-001: Email must be valid format
-- REQ-BR-AUTH-001: Account locks after 5 failed attempts
+- REQ-NFR-DEMO-PERF-001: Login performance < 500ms (p95)
+- REQ-DATA-DEMO-AUTH-001: Email must be valid format
+- REQ-BR-DEMO-AUTH-001: Account locks after 5 failed attempts
 ```
 
 ---
@@ -140,7 +140,7 @@ data_design:
   - Data integration patterns (ETL/ELT/CDC/streaming)
 
 traceability:
-  format: "Component → REQ-F-AUTH-001, REQ-NFR-SEC-001"
+  format: "Component → REQ-F-DEMO-AUTH-001, REQ-NFR-DEMO-SEC-001"
   requirement: "100% requirement coverage"
 
 architecture_decision_records:
@@ -173,14 +173,14 @@ graph TB
 ```
 
 Architecture Decision Records:
-- ADR-001: Use JWT tokens (REQ-F-AUTH-001, REQ-NFR-SEC-002)
+- ADR-001: Use JWT tokens (REQ-F-DEMO-AUTH-001, REQ-NFR-DEMO-SEC-002)
   Decision: JWT for stateless authentication
   Rationale: Scalability, no server-side session storage
 
 Traceability Matrix:
-- AuthenticationService → REQ-F-AUTH-001, REQ-NFR-SEC-001
-- UserRepository → REQ-DATA-AUTH-001
-- TokenService → REQ-NFR-SEC-002
+- AuthenticationService → REQ-F-DEMO-AUTH-001, REQ-NFR-DEMO-SEC-001
+- UserRepository → REQ-DATA-DEMO-AUTH-001
+- TokenService → REQ-NFR-DEMO-SEC-002
 ```
 
 ---
@@ -221,8 +221,8 @@ Traceability Matrix:
 work_items:
   epic: "PORTAL-100: Authentication System"
   stories:
-    - "PORTAL-101: User Login (REQ-F-AUTH-001)"
-    - "PORTAL-102: User Registration (REQ-F-AUTH-002)"
+    - "PORTAL-101: User Login (REQ-F-DEMO-AUTH-001)"
+    - "PORTAL-102: User Registration (REQ-F-DEMO-AUTH-002)"
 
   technical_tasks:
     - "PORTAL-103: JWT token service"
@@ -250,11 +250,11 @@ Epic: PORTAL-100 - Authentication System
 
 Stories:
 - PORTAL-101: User Login (8 points)
-  Requirements: REQ-F-AUTH-001, REQ-NFR-PERF-001
+  Requirements: REQ-F-DEMO-AUTH-001, REQ-NFR-DEMO-PERF-001
   Dependencies: PORTAL-105
 
 - PORTAL-102: User Registration (5 points)
-  Requirements: REQ-F-AUTH-002
+  Requirements: REQ-F-DEMO-AUTH-002
   Dependencies: PORTAL-101
 
 Technical Tasks:
@@ -312,19 +312,19 @@ phases:
 **Outputs**:
 ```python
 # Production code tagged with requirement keys
-# Implements: REQ-F-AUTH-001 (User Authentication)
+# Implements: REQ-F-DEMO-AUTH-001 (User Authentication)
 class AuthenticationService:
     async def login(self, email: str, password: str) -> LoginResult:
         """
         Authenticate user with email and password.
 
-        Implements: REQ-F-AUTH-001
-        Performance: < 500ms (REQ-NFR-PERF-001)
+        Implements: REQ-F-DEMO-AUTH-001
+        Performance: < 500ms (REQ-NFR-DEMO-PERF-001)
         """
         # ... implementation
 
 # Test code
-# Validates: REQ-F-AUTH-001
+# Validates: REQ-F-DEMO-AUTH-001
 def test_login_with_valid_credentials():
     """Test successful login with valid email/password."""
     auth = AuthenticationService()
@@ -352,7 +352,7 @@ Code Agent (Claude):
 RED Phase: Writing failing test
 ```python
 def test_user_login_valid_credentials():
-    # Validates: REQ-F-AUTH-001
+    # Validates: REQ-F-DEMO-AUTH-001
     auth = AuthenticationService()
     result = await auth.login('user@example.com', 'Password123!')
     assert result.success == True
@@ -362,7 +362,7 @@ Running tests... ❌ FAILED (no implementation)
 
 GREEN Phase: Minimal implementation
 ```python
-# Implements: REQ-F-AUTH-001
+# Implements: REQ-F-DEMO-AUTH-001
 async def login(self, email: str, password: str):
     user = await UserRepository.find_by_email(email)
     if user and bcrypt.verify(password, user.password_hash):
@@ -384,7 +384,7 @@ Running tests... ✅ STILL PASSING
 COMMIT: Ready to save
 - Coverage: 92% (target: ≥80%) ✅
 - All tests passing ✅
-- Tagged with REQ-F-AUTH-001 ✅
+- Tagged with REQ-F-DEMO-AUTH-001 ✅
 ```
 
 ---
@@ -409,7 +409,7 @@ COMMIT: Ready to save
 **Outputs**:
 ```gherkin
 # Feature file
-# Validates: REQ-F-AUTH-001, REQ-NFR-PERF-001
+# Validates: REQ-F-DEMO-AUTH-001, REQ-NFR-DEMO-PERF-001
 
 Feature: User Authentication
   As a registered customer
@@ -421,7 +421,7 @@ Feature: User Authentication
     And test user "user@example.com" exists
 
   Scenario: Successful login with valid credentials
-    # Validates: REQ-F-AUTH-001
+    # Validates: REQ-F-DEMO-AUTH-001
     Given I am on the login page
     When I enter email "user@example.com"
     And I enter password "Password123!"
@@ -429,10 +429,10 @@ Feature: User Authentication
     Then I should see "Welcome back"
     And I should have a valid JWT token
     And the response time should be less than 500ms
-    # REQ-NFR-PERF-001
+    # REQ-NFR-DEMO-PERF-001
 
   Scenario: Failed login with invalid password
-    # Validates: REQ-F-AUTH-001 (error case)
+    # Validates: REQ-F-DEMO-AUTH-001 (error case)
     Given I am on the login page
     When I enter email "user@example.com"
     And I enter password "WrongPassword"
@@ -441,7 +441,7 @@ Feature: User Authentication
     And I should not have a JWT token
 
   Scenario: Account lockout after 5 failed attempts
-    # Validates: REQ-BR-AUTH-001
+    # Validates: REQ-BR-DEMO-AUTH-001
     Given I am on the login page
     When I fail to login 5 times
     And I try to login with correct password
@@ -456,10 +456,10 @@ System Test Agent (Claude):
 "I'll generate BDD scenarios for all requirements...
 
 Analyzed requirements:
-- REQ-F-AUTH-001: User login
-- REQ-F-AUTH-002: User registration
-- REQ-NFR-PERF-001: Performance < 500ms
-- REQ-BR-AUTH-001: Account lockout
+- REQ-F-DEMO-AUTH-001: User login
+- REQ-F-DEMO-AUTH-002: User registration
+- REQ-NFR-DEMO-PERF-001: Performance < 500ms
+- REQ-BR-DEMO-AUTH-001: Account lockout
 
 Generated 15 BDD scenarios covering:
 - Happy path login ✓
@@ -491,7 +491,7 @@ Test execution: 15/15 passing ✅
 **Outputs**:
 ```markdown
 # UAT Test Case: UAT-001
-# Validates: REQ-F-AUTH-001
+# Validates: REQ-F-DEMO-AUTH-001
 
 Test Case: User Login Flow
 Tester: john@acme.com (Product Owner)
@@ -550,7 +550,7 @@ Ready for business stakeholder execution and sign-off.
 // Tagged metrics with requirement keys
 logger.info('User login successful', {
   event: 'USER_LOGIN',
-  requirements: ['REQ-F-AUTH-001'],
+  requirements: ['REQ-F-DEMO-AUTH-001'],
   userId: user.id,
   duration: 120,
   timestamp: new Date()
@@ -558,7 +558,7 @@ logger.info('User login successful', {
 
 // Performance metrics
 metrics.histogram('auth.login.duration', duration, {
-  requirement: 'REQ-NFR-PERF-001',
+  requirement: 'REQ-NFR-DEMO-PERF-001',
   success: true
 });
 
@@ -566,7 +566,7 @@ metrics.histogram('auth.login.duration', duration, {
 if (p95_latency > 500) {
   alert({
     severity: 'warning',
-    requirement: 'REQ-NFR-PERF-001',
+    requirement: 'REQ-NFR-DEMO-PERF-001',
     message: 'Login latency exceeds 500ms threshold',
     actual: p95_latency,
     expected: 500
@@ -577,12 +577,12 @@ if (p95_latency > 500) {
 **Feedback Loop**:
 ```
 Production Alert:
-  Requirement: REQ-NFR-PERF-001
+  Requirement: REQ-NFR-DEMO-PERF-001
   Issue: Login latency spike (850ms vs 500ms target)
   Affected users: 1,200
 
 Feedback to Requirements:
-  → Traces back to REQ-NFR-PERF-001
+  → Traces back to REQ-NFR-DEMO-PERF-001
   → Generates new intent: INT-042 "Optimize authentication performance"
   → Cycle repeats...
 ```
@@ -595,9 +595,9 @@ Runtime Feedback Agent (Claude):
 "I'll configure observability with requirement tagging...
 
 Metrics configured:
-- auth.login.duration (REQ-NFR-PERF-001) → p95 target: 500ms
-- auth.login.success_rate (REQ-F-AUTH-001) → target: > 98%
-- auth.lockout.count (REQ-BR-AUTH-001) → baseline
+- auth.login.duration (REQ-NFR-DEMO-PERF-001) → p95 target: 500ms
+- auth.login.success_rate (REQ-F-DEMO-AUTH-001) → target: > 98%
+- auth.lockout.count (REQ-BR-DEMO-AUTH-001) → baseline
 
 Alerts configured:
 - Performance degradation: latency > 500ms for 5 min
@@ -621,7 +621,7 @@ Intent: INT-001 "Add user authentication"
     ↓
 [Requirements Agent]
     Input: Raw intent
-    Output: REQ-F-AUTH-001, REQ-NFR-PERF-001, etc.
+    Output: REQ-F-DEMO-AUTH-001, REQ-NFR-DEMO-PERF-001, etc.
     ↓
 [Design Agent]
     Input: REQ-* keys with acceptance criteria
@@ -652,37 +652,37 @@ New Intent → Back to Requirements Agent
 
 ### 3.2 Requirement Key as Thread
 
-The **requirement key** (e.g., REQ-F-AUTH-001) is the common thread that flows through all stages:
+The **requirement key** (e.g., REQ-F-DEMO-AUTH-001) is the common thread that flows through all stages:
 
 ```
-REQ-F-AUTH-001: "User can log in with email/password"
+REQ-F-DEMO-AUTH-001: "User can log in with email/password"
     ↓
-Design: AuthenticationService implements REQ-F-AUTH-001
+Design: AuthenticationService implements REQ-F-DEMO-AUTH-001
     ↓
-Tasks: PORTAL-101 implements REQ-F-AUTH-001
+Tasks: PORTAL-101 implements REQ-F-DEMO-AUTH-001
     ↓
 Code:
-    # Implements: REQ-F-AUTH-001
+    # Implements: REQ-F-DEMO-AUTH-001
     async def login(...)
     ↓
 Tests:
-    # Validates: REQ-F-AUTH-001
+    # Validates: REQ-F-DEMO-AUTH-001
     def test_login(...)
     ↓
 BDD:
-    # Validates: REQ-F-AUTH-001
+    # Validates: REQ-F-DEMO-AUTH-001
     Scenario: Successful login
     ↓
 UAT:
-    # UAT-001 validates REQ-F-AUTH-001
+    # UAT-001 validates REQ-F-DEMO-AUTH-001
     ↓
 Runtime:
-    logger.info('login', requirements=['REQ-F-AUTH-001'])
+    logger.info('login', requirements=['REQ-F-DEMO-AUTH-001'])
     ↓
 Alert:
-    "REQ-F-AUTH-001 - Error rate spike detected"
+    "REQ-F-DEMO-AUTH-001 - Error rate spike detected"
     ↓
-New Intent: INT-042 "Fix auth error rate (REQ-F-AUTH-001)"
+New Intent: INT-042 "Fix auth error rate (REQ-F-DEMO-AUTH-001)"
 ```
 
 ### 3.3 Feedback Loops
@@ -807,7 +807,7 @@ Final approval on requirements
 
 **Example**:
 ```
-Agent: "I've generated these requirements: REQ-F-AUTH-001, REQ-F-AUTH-002"
+Agent: "I've generated these requirements: REQ-F-DEMO-AUTH-001, REQ-F-DEMO-AUTH-002"
 Persona (Product Owner): "Approved ✓"
 
 Agent: "I've designed the AuthenticationService"

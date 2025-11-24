@@ -17,7 +17,7 @@ Validate integrated system behavior using BDD (Given/When/Then scenarios).
 ## BDD Format
 ```gherkin
 Feature: User Authentication
-  # Validates: REQ-F-AUTH-001
+  # Validates: <REQ-ID>
 
   Scenario: Successful login
     Given I am on the login page

@@ -34,7 +34,7 @@ Your goal is to **write tests that FAIL** because the implementation doesn't exi
 
 **Example**:
 ```yaml
-REQ-F-AUTH-001: User login with email and password
+<REQ-ID>: User login with email and password
 
 Business Rules:
 - BR-001: Email must be valid format
@@ -56,7 +56,7 @@ Expected behavior:
 3. **Edge cases** - Boundary conditions, null inputs, empty strings
 4. **Error cases** - Invalid inputs, expected failures
 
-**Example test cases for REQ-F-AUTH-001**:
+**Example test cases for <REQ-ID>**:
 ```python
 # Happy path
 test_login_with_valid_credentials()
@@ -111,7 +111,7 @@ src/main/java/services/Payment.java   → src/test/java/services/PaymentTest.jav
 ```python
 # tests/auth/test_login.py
 
-# Validates: REQ-F-AUTH-001
+# Validates: <REQ-ID>
 # Business Rules: BR-001, BR-002, BR-003
 
 import pytest
@@ -119,7 +119,7 @@ from auth.login import login, LoginResult  # Will fail - doesn't exist yet
 
 def test_login_with_valid_credentials():
     """Test successful login with valid email and password"""
-    # Validates: REQ-F-AUTH-001 (happy path)
+    # Validates: <REQ-ID> (happy path)
     result = login("user@example.com", "SecurePass123!")
     assert result.success == True
     assert result.user is not None
@@ -155,7 +155,7 @@ def test_account_locked_after_3_failed_attempts():
 ```
 
 **Key elements**:
-- ✅ Comment at top: `# Validates: REQ-F-AUTH-001`
+- ✅ Comment at top: `# Validates: <REQ-ID>`
 - ✅ List business rules: `# Business Rules: BR-001, BR-002, BR-003`
 - ✅ Each test tagged with what it validates
 - ✅ Clear test names (what is being tested)
@@ -201,7 +201,7 @@ ImportError: cannot import name 'login' from 'auth.login'
 
 ```bash
 git add tests/auth/test_login.py
-git commit -m "RED: Add tests for REQ-F-AUTH-001
+git commit -m "RED: Add tests for <REQ-ID>
 
 Write failing tests for user login functionality.
 
@@ -212,7 +212,7 @@ Tests cover:
 
 Tests: 4 tests (all failing as expected - RED phase)
 
-Validates: REQ-F-AUTH-001
+Validates: <REQ-ID>
 "
 ```
 
@@ -229,7 +229,7 @@ Validates: REQ-F-AUTH-001
 When you complete the RED phase, show:
 
 ```
-[RED Phase - REQ-F-AUTH-001]
+[RED Phase - <REQ-ID>]
 
 Requirement: User login with email and password
 
@@ -249,7 +249,7 @@ Running tests...
 
 Result: 4 tests FAILED ✓ (expected - RED phase)
 
-Commit: RED: Add tests for REQ-F-AUTH-001
+Commit: RED: Add tests for <REQ-ID>
 
 ✅ RED Phase Complete!
    Next: Invoke green-phase skill to implement functionality
@@ -286,15 +286,15 @@ After RED phase completes:
 ```python
 # tests/test_feature.py
 
-# Validates: REQ-F-XXX-001
-# Business Rules: BR-001, BR-002
+# Validates: <REQ-ID>
+# Business Rules: <BR-ID>, <BR-ID>
 
 import pytest
 from module import function
 
 def test_happy_path():
     """Test successful case"""
-    # Validates: REQ-F-XXX-001
+    # Validates: <REQ-ID>
     result = function("valid_input")
     assert result == expected_output
 
@@ -310,14 +310,14 @@ def test_business_rule_validation():
 ```typescript
 // feature.test.ts
 
-// Validates: REQ-F-XXX-001
-// Business Rules: BR-001, BR-002
+// Validates: <REQ-ID>
+// Business Rules: <BR-ID>, <BR-ID>
 
 import { function } from './module';
 
 describe('Feature', () => {
   test('happy path - successful case', () => {
-    // Validates: REQ-F-XXX-001
+    // Validates: <REQ-ID>
     const result = function('valid_input');
     expect(result).toBe(expected_output);
   });
@@ -334,8 +334,8 @@ describe('Feature', () => {
 ```java
 // FeatureTest.java
 
-// Validates: REQ-F-XXX-001
-// Business Rules: BR-001, BR-002
+// Validates: <REQ-ID>
+// Business Rules: <BR-ID>, <BR-ID>
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -343,7 +343,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FeatureTest {
     @Test
     void testHappyPath() {
-        // Validates: REQ-F-XXX-001
+        // Validates: <REQ-ID>
         var result = Feature.function("valid_input");
         assertEquals(expected_output, result);
     }

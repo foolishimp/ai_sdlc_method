@@ -36,7 +36,7 @@ Your goal is to write scenarios in **pure business language** using **Given/When
 
 **Example**:
 ```yaml
-REQ-F-AUTH-001: User login with email and password
+<REQ-ID>: User login with email and password
 
 Business Rules:
 - BR-001: Email must be valid format
@@ -59,7 +59,7 @@ Acceptance Criteria:
 3. **Error cases** - User makes mistakes, sees helpful errors
 4. **Edge cases** - Boundary conditions
 
-**Example scenarios for REQ-F-AUTH-001**:
+**Example scenarios for <REQ-ID>**:
 ```
 Scenario 1: Successful login (happy path)
 Scenario 2: Login fails with invalid email (BR-001)
@@ -99,7 +99,7 @@ features/admin/user_management.feature
 ```gherkin
 # features/authentication.feature
 
-# Validates: REQ-F-AUTH-001
+# Validates: <REQ-ID>
 # Business Rules: BR-001, BR-002, BR-003
 
 Feature: User Login
@@ -112,7 +112,7 @@ Feature: User Login
     And I am on the login page
 
   Scenario: Successful login with valid credentials
-    # Validates: REQ-F-AUTH-001 (happy path)
+    # Validates: <REQ-ID> (happy path)
     Given I am a registered user with email "user@example.com"
     And my password is "SecurePassword123!"
     When I enter email "user@example.com"
@@ -162,7 +162,7 @@ Feature: User Login
 ```
 
 **Key elements**:
-- ✅ Comment at top: `# Validates: REQ-F-AUTH-001`
+- ✅ Comment at top: `# Validates: <REQ-ID>`
 - ✅ Feature description with user story (As a... I want... So that...)
 - ✅ Background section (common preconditions)
 - ✅ Each scenario tagged with what it validates
@@ -236,7 +236,7 @@ def step_impl(context, email):
 
 ```bash
 git add features/authentication.feature
-git commit -m "SCENARIO: Add scenarios for REQ-F-AUTH-001
+git commit -m "SCENARIO: Add scenarios for <REQ-ID>
 
 Write BDD scenarios for user login functionality in business language.
 
@@ -249,7 +249,7 @@ Scenarios cover:
 
 Scenarios: 5 scenarios (all undefined as expected - SCENARIO phase)
 
-Validates: REQ-F-AUTH-001
+Validates: <REQ-ID>
 "
 ```
 
@@ -260,7 +260,7 @@ Validates: REQ-F-AUTH-001
 When you complete the SCENARIO phase, show:
 
 ```
-[SCENARIO Phase - REQ-F-AUTH-001]
+[SCENARIO Phase - <REQ-ID>]
 
 Requirement: User login with email and password
 
@@ -287,7 +287,7 @@ Running scenarios...
 
 Result: 5 scenarios UNDEFINED ✓ (expected - SCENARIO phase)
 
-Commit: SCENARIO: Add scenarios for REQ-F-AUTH-001
+Commit: SCENARIO: Add scenarios for <REQ-ID>
 
 ✅ SCENARIO Phase Complete!
    Next: Invoke implement-step-definitions skill

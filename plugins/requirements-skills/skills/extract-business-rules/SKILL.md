@@ -165,7 +165,7 @@ BR-003: Password complexity validation
 
 **Example**:
 ```
-REQ-F-AUTH-001:
+<REQ-ID>:
   - BR-001: Email validation
   - BR-002: Password length
   - BR-003: Password complexity
@@ -178,7 +178,7 @@ REQ-F-AUTH-001:
 ## Output Format
 
 ```
-[EXTRACT BUSINESS RULES - REQ-F-AUTH-001]
+[EXTRACT BUSINESS RULES - <REQ-ID>]
 
 Requirement: User login with email and password
 

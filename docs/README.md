@@ -98,13 +98,12 @@ docs/
    python /path/to/ai_sdlc_method/installers/setup_all.py
    ```
 3. **Create INTENT.md:** Use template from [`../examples/local_projects/customer_portal/INTENT.md`](../examples/local_projects/customer_portal/INTENT.md)
-4. **Follow Workflow:** Use `.ai-workspace/` and slash commands (`/start-session`, `/todo`, etc.)
+4. **Follow Workflow:** Use `.ai-workspace/` and slash commands (`/start-session`, `/finish-task`, etc.)
 
 ### Want to Extend AI SDLC?
 
 1. **Plugin Development:** [`../PLUGIN_GUIDE.md`](../PLUGIN_GUIDE.md)
-2. **MCP Integration:** [`../mcp_service/README.md`](../mcp_service/README.md)
-3. **Agent Customization:** [`design/CLAUDE_AGENTS_EXPLAINED.md`](design/CLAUDE_AGENTS_EXPLAINED.md)
+2. **Agent Customization:** [`design/CLAUDE_AGENTS_EXPLAINED.md`](design/CLAUDE_AGENTS_EXPLAINED.md)
 
 ---
 
@@ -282,7 +281,7 @@ docs/
 
 ### Stage 4: Code
 
-**Output Location:** `src/`, `tests/`, `installers/`, `mcp_service/`, `plugins/`
+**Output Location:** `src/`, `tests/`, `installers/`, `plugins/`
 
 **Agent:** Code Agent (`.claude/agents/code-agent.md`)
 
@@ -293,7 +292,7 @@ docs/
 **Methodology:** TDD (RED → GREEN → REFACTOR) + Sacred Seven Principles
 
 **Key Documents:**
-- Source code in `../installers/`, `../mcp_service/`, `../plugins/`
+- Source code in `../installers/`, `../plugins/`
 - Tests co-located with source
 
 **Reference:**
@@ -359,12 +358,6 @@ docs/
 - **[../examples/local_projects/data_mapper.test02/](../examples/local_projects/data_mapper.test02/)** - Category Theory data mapper (dogfooding AI SDLC)
 - **[../examples/README.md](../examples/README.md)** - All examples overview
 
-### MCP Service (For Non-Claude LLMs)
-
-- **[../mcp_service/README.md](../mcp_service/README.md)** - MCP service overview
-- **[../mcp_service/MCP_SDLC_INTEGRATION_PLAN.md](../mcp_service/MCP_SDLC_INTEGRATION_PLAN.md)** - 7-stage integration plan
-- **[../mcp_service/docs/PERSONAS.md](../mcp_service/docs/PERSONAS.md)** - Persona-based context management
-
 ---
 
 ## 🔍 Common Questions
@@ -402,9 +395,6 @@ docs/
 **"How do I create my own project with this methodology?"**
 → [`../PLUGIN_GUIDE.md`](../PLUGIN_GUIDE.md) - Plugin creation guide
 → [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - Complete example
-
-**"Can I use this with non-Claude LLMs?"**
-→ [`../mcp_service/README.md`](../mcp_service/README.md)
 
 **"What are the advanced technical concepts?"**
 → [`methodology/ai_sdlc_appendices.md`](methodology/ai_sdlc_appendices.md) - Category theory, ecosystem integration

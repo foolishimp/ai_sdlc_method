@@ -35,7 +35,7 @@ Types:
 - BR: Business Rules (calculations, logic, constraints)
 
 Examples:
-- REQ-F-AUTH-001: User login with email/password
+- <REQ-ID>: User login with email/password
 - REQ-NFR-PERF-001: Login response < 500ms (p95)
 - REQ-DATA-AUTH-001: Email must be valid format
 - REQ-BR-AUTH-001: Account locks after 5 failed login attempts
@@ -72,7 +72,7 @@ Examples:
 Format: Given/When/Then or As-a/I-want/So-that
 
 ```markdown
-## REQ-F-AUTH-001: User Login
+## <REQ-ID>: User Login
 
 **Priority**: High
 **Persona**: Registered Customer
@@ -186,7 +186,7 @@ python installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.m
 
 | Requirement | Description | Design | Implementation | Tests | Status |
 |-------------|-------------|--------|----------------|-------|--------|
-| REQ-F-AUTH-001 | User login | ✅ (5) | ✅ (2) | ✅ (3) | ✅ Complete |
+| <REQ-ID> | User login | ✅ (5) | ✅ (2) | ✅ (3) | ✅ Complete |
 | REQ-NFR-PERF-001 | Login <500ms | ✅ (2) | ✅ (1) | ❌ | ⚠️ No Tests |
 ```
 
@@ -220,7 +220,7 @@ Action: Break intent into atomic requirements
 ```
 Action: Assign unique, immutable keys
 Format: REQ-{TYPE}-{DOMAIN}-{SEQUENCE}
-Example: REQ-F-AUTH-001
+Example: <REQ-ID>
 ```
 
 ### Step 4: Write Acceptance Criteria
@@ -251,7 +251,7 @@ Output: Auto-generated matrix showing:
 When feedback arrives from downstream stages:
 - Update requirement if clarification needed
 - Create new requirement if gap discovered
-- Version requirement if changed (REQ-F-AUTH-001 v2)
+- Version requirement if changed (<REQ-ID> v2)
 ```
 
 ---
@@ -318,12 +318,12 @@ Intent Analysis:
 
 Generated Requirements:
 
-1. REQ-F-AUTH-001: User Login
+1. <REQ-ID>: User Login
    - User can log in with email/password
    - JWT token returned on success
    - Acceptance: Valid credentials → token, < 500ms response
 
-2. REQ-F-AUTH-002: User Registration
+2. <REQ-ID>: User Registration
    - Self-service account creation
    - Email verification required
    - Acceptance: Valid data → account created, verification email sent
@@ -376,8 +376,8 @@ Action: Create REQ-F-AUTH-004 "Handle network timeout gracefully"
 
 ### Pattern 3: Version Management
 ```
-Original: REQ-F-AUTH-001 v1 "Login with email/password"
-Updated: REQ-F-AUTH-001 v2 "Login with email/password and optional 2FA"
+Original: <REQ-ID> v1 "Login with email/password"
+Updated: <REQ-ID> v2 "Login with email/password and optional 2FA"
 ```
 
 ---

@@ -16,7 +16,7 @@ ai_sdlc_stages:
     purpose: "Transform intent into formally documented, uniquely-keyed requirements"
 
     agent:
-      name: "Requirements Agent"
+      name: "AISDLC Requirements Agent"
       role: "Intent Store & Traceability Hub"
 
       responsibilities:
@@ -41,7 +41,7 @@ ai_sdlc_stages:
         user_stories:
           format: "Given/When/Then or As-a/I-want/So-that"
           keys: "REQ-F-{DOMAIN}-{SEQUENCE}"
-          example: "REQ-F-AUTH-001"
+          example: "<REQ-ID>"
 
         non_functional_requirements:
           categories: ["performance", "security", "scalability", "reliability"]
@@ -79,7 +79,7 @@ ai_sdlc_stages:
         requirement_keys:
           properties: ["unique", "immutable", "versioned", "traceable", "auditable"]
           structure: "REQ-{TYPE}-{DOMAIN}-{SEQUENCE}"
-          versioning: "REQ-F-AUTH-001 v2 (for refinements)"
+          versioning: "<REQ-ID> v2 (for refinements)"
 
         methodologies:
           - "Intent First - every requirement originates from validated intent"
@@ -111,7 +111,7 @@ ai_sdlc_stages:
     purpose: "Transform requirements into implementable technical and data solution"
 
     agent:
-      name: "Design Agent / Solution Designer"
+      name: "AISDLC Design Agent / Solution Designer"
       role: "Architecture & Data Design"
 
       responsibilities:
@@ -147,7 +147,7 @@ ai_sdlc_stages:
           - "Data access patterns"
 
         traceability:
-          format: "Component → REQ-F-AUTH-001, REQ-NFR-SEC-001"
+          format: "Component → <REQ-ID>, REQ-NFR-SEC-001"
           requirement: "100% requirement coverage in design"
           artifact: "Design-to-Requirement Traceability Matrix"
 
@@ -194,7 +194,7 @@ ai_sdlc_stages:
     dual_purpose: true  # Work planning + Agent orchestration
 
     agent:
-      name: "Tasks Stage Orchestrator"
+      name: "AISDLC Tasks Stage Orchestrator"
       role: "Work Breakdown & Code Execution Manager"
 
       responsibilities:
@@ -320,7 +320,7 @@ ai_sdlc_stages:
     methodology: "TDD"
 
     agent:
-      name: "Code Agent / Developer Agent"
+      name: "AISDLC Code Agent / Developer Agent"
       role: "TDD-Driven Implementation"
 
       responsibilities:
@@ -344,7 +344,7 @@ ai_sdlc_stages:
         production_code:
           tagged_with: "Requirement keys in docstrings/comments"
           examples:
-            - "# Implements: REQ-F-AUTH-001 (User Authentication)"
+            - "# Implements: <REQ-ID> (User Authentication)"
             - "# Satisfies: REQ-NFR-SEC-001 (Secure Authentication)"
 
         test_code:
@@ -435,7 +435,7 @@ ai_sdlc_stages:
     methodology: "BDD"
 
     agent:
-      name: "System Test Agent / QA Agent"
+      name: "AISDLC System Test Agent / QA Agent"
       role: "BDD-Driven Integration Testing"
 
       responsibilities:
@@ -534,7 +534,7 @@ ai_sdlc_stages:
     methodology: "BDD for Business Users"
 
     agent:
-      name: "UAT Agent"
+      name: "AISDLC UAT Agent"
       role: "Business Acceptance Facilitator"
 
       responsibilities:
@@ -646,7 +646,7 @@ ai_sdlc_stages:
     focus: "Requirement key tracking and feedback extraction (NOT deployment mechanics)"
 
     agent:
-      name: "Runtime Feedback Agent"
+      name: "AISDLC Runtime Feedback Agent"
       role: "Telemetry Aggregation & Feedback Generation"
 
       responsibilities:
@@ -672,7 +672,7 @@ ai_sdlc_stages:
       outputs:
         release_manifests:
           format: "Requirement keys with versions per release"
-          example: "v2.5.0: REQ-F-AUTH-001 (v1), REQ-NFR-PERF-001 (v2)"
+          example: "v2.5.0: <REQ-ID> (v1), REQ-NFR-PERF-001 (v2)"
 
         runtime_telemetry:
           tagged_with: "Requirement keys from code annotations"
@@ -694,7 +694,7 @@ ai_sdlc_stages:
       key_principles:
         requirement_key_tagging:
           - "Every log, metric, alert tagged with requirement key"
-          - "Example: ERROR: REQ-F-AUTH-001 - Authentication failure"
+          - "Example: ERROR: <REQ-ID> - Authentication failure"
 
         two_way_traceability:
           forward: "Intent → Design → Code → Test → UAT → Runtime Metrics"

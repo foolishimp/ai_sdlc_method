@@ -1,12 +1,12 @@
 📋 Scanning requirements in: docs/requirements
-   Found 20 requirement keys
+   Found 16 requirement keys
 
 🎨 Scanning design documents in: docs/design
-   Found 227 design references to 33 requirements
+   Found 35 design references to 12 requirements
 
-💻 Scanning code in: installers, mcp_service, plugins
-   Found 14 code implementations of 14 requirements
-   Found 10 test validations of 5 requirements
+💻 Scanning code in: installers, plugins, .claude, templates
+   Found 12 code implementations of 12 requirements
+   Found 0 test validations of 0 requirements
 
 # Requirements Traceability Matrix
 
@@ -14,41 +14,40 @@
 
 ## Summary
 
-- **Total Requirements**: 20
-- **Requirements with Design**: 33
-- **Requirements with Implementation**: 14
-- **Requirements with Tests**: 5
+- **Total Requirements Found**: 16
+- **Documented in Requirements Docs**: 16
+- **Undocumented (orphaned)**: 0
+- **Requirements with Design**: 12
+- **Requirements with Implementation**: 12
+- **Requirements with Tests**: 0
 
-- **Design Coverage**: 165.0%
-- **Implementation Coverage**: 70.0%
-- **Test Coverage**: 25.0%
+- **Documentation Coverage**: 100.0%
+- **Design Coverage**: 75.0%
+- **Implementation Coverage**: 75.0%
+- **Test Coverage**: 0.0%
 
 ---
 
 ## Full Traceability
 
-| Requirement | Description | Design | Implementation | Tests | Status |
-|-------------|-------------|--------|----------------|-------|--------|
-| REQ-F-CMD-001 | : Slash Commands for Workflow | ❌ | ✅ (1) | ❌ | ❌ Not Started |
-| REQ-F-CMD-002 | : Context Switching | ❌ | ✅ (1) | ❌ | ❌ Not Started |
-| REQ-F-CMD-003 | : Persona Management | ❌ | ✅ (1) | ❌ | ❌ Not Started |
-| REQ-F-PLUGIN-001 | : Plugin System with Marketplace Support | ✅ (3) | ✅ (1) | ✅ (2) | ✅ Complete |
-| REQ-F-PLUGIN-002 | : Federated Plugin Loading | ✅ (2) | ✅ (1) | ✅ (1) | ✅ Complete |
-| REQ-F-PLUGIN-003 | : Plugin Bundles | ✅ (3) | ✅ (1) | ❌ | ⚠️ No Tests |
-| REQ-F-PLUGIN-004 | : Plugin Versioning and Dependency Management | ✅ (3) | ✅ (1) | ❌ | ⚠️ No Tests |
-| REQ-F-TESTING-001 | : Test Coverage Validation | ✅ (1) | ❌ | ✅ (1) | 🚧 Design Only |
-| REQ-F-TESTING-002 | : Test Generation | ✅ (1) | ❌ | ❌ | 🚧 Design Only |
-| REQ-F-TODO-001 | : Create TODO Item | ✅ (4) | ❌ | ❌ | 🚧 Design Only |
-| REQ-F-TODO-002 | : Mark TODO as Complete | ✅ (2) | ❌ | ❌ | 🚧 Design Only |
-| REQ-F-TODO-003 | : List All TODOs | ✅ (1) | ❌ | ❌ | 🚧 Design Only |
-| REQ-F-WORKSPACE-001 | : Developer Workspace Structure | ✅ (4) | ✅ (1) | ❌ | ⚠️ No Tests |
-| REQ-F-WORKSPACE-002 | : Task Management Templates | ✅ (5) | ✅ (1) | ❌ | ⚠️ No Tests |
-| REQ-F-WORKSPACE-003 | : Session Tracking Templates | ✅ (4) | ✅ (1) | ❌ | ⚠️ No Tests |
-| REQ-NFR-CONTEXT-001 | : Persistent Context Across Sessions | ✅ (6) | ✅ (1) | ✅ (1) | ✅ Complete |
-| REQ-NFR-COVERAGE-001 | : Test Coverage Minimum | ✅ (1) | ❌ | ❌ | 🚧 Design Only |
-| REQ-NFR-FEDERATE-001 | (hierarchical composition) | ✅ (2) | ✅ (1) | ✅ (5) | ✅ Complete |
-| REQ-NFR-TRACE-001 | : Full Lifecycle Traceability | ❌ | ✅ (1) | ❌ | ❌ Not Started |
-| REQ-NFR-TRACE-002 | : Requirement Key Propagation | ❌ | ✅ (1) | ❌ | ❌ Not Started |
+| Requirement ID | Description | Requirements | Design | Implementation | Tests | Status |
+|----------------|-------------|--------------|--------|----------------|-------|--------|
+| REQ-F-CMD-001 | Slash Commands for Workflow | ✅ | ❌ | ✅ (1) | ❌ | ❌ Not Started |
+| REQ-F-CMD-002 | Persona Management | ✅ | ❌ | ✅ (1) | ❌ | ❌ Not Started |
+| REQ-F-PLUGIN-001 | Plugin System with Marketplace Support | ✅ | ✅ (3) | ✅ (1) | ❌ | ⚠️ No Tests |
+| REQ-F-PLUGIN-002 | Federated Plugin Loading | ✅ | ✅ (2) | ✅ (1) | ❌ | ⚠️ No Tests |
+| REQ-F-PLUGIN-003 | Plugin Bundles | ✅ | ✅ (3) | ✅ (1) | ❌ | ⚠️ No Tests |
+| REQ-F-PLUGIN-004 | Plugin Versioning and Dependency Managem | ✅ | ✅ (3) | ✅ (1) | ❌ | ⚠️ No Tests |
+| REQ-F-TESTING-001 | Test Coverage Validation | ✅ | ✅ (1) | ❌ | ❌ | 🚧 Design Only |
+| REQ-F-TESTING-002 | Test Generation | ✅ | ✅ (1) | ❌ | ❌ | 🚧 Design Only |
+| REQ-F-WORKSPACE-001 | Developer Workspace Structure | ✅ | ✅ (4) | ✅ (1) | ❌ | ⚠️ No Tests |
+| REQ-F-WORKSPACE-002 | Task Management Templates | ✅ | ✅ (5) | ✅ (1) | ❌ | ⚠️ No Tests |
+| REQ-F-WORKSPACE-003 | Session Tracking Templates | ✅ | ✅ (4) | ✅ (1) | ❌ | ⚠️ No Tests |
+| REQ-NFR-CONTEXT-001 | Persistent Context Across Sessions | ✅ | ✅ (6) | ✅ (1) | ❌ | ⚠️ No Tests |
+| REQ-NFR-COVERAGE-001 | Test Coverage Minimum | ✅ | ✅ (1) | ❌ | ❌ | 🚧 Design Only |
+| REQ-NFR-FEDERATE-001 | Hierarchical Configuration Composition | ✅ | ✅ (2) | ❌ | ❌ | 🚧 Design Only |
+| REQ-NFR-TRACE-001 | Full Lifecycle Traceability | ✅ | ❌ | ✅ (1) | ❌ | ❌ Not Started |
+| REQ-NFR-TRACE-002 | Requirement Key Propagation | ✅ | ❌ | ✅ (1) | ❌ | ❌ Not Started |
 
 ---
 
@@ -56,7 +55,7 @@
 
 ### REQ-F-CMD-001
 
-**Description**: : Slash Commands for Workflow
+**Description**: Slash Commands for Workflow
 
 **Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:105
 
@@ -67,7 +66,7 @@
 
 ### REQ-F-CMD-002
 
-**Description**: : Context Switching
+**Description**: Persona Management
 
 **Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:124
 
@@ -76,20 +75,9 @@
 
 ---
 
-### REQ-F-CMD-003
-
-**Description**: : Persona Management
-
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:143
-
-**Implementation**:
-- installers/setup_commands.py:9
-
----
-
 ### REQ-F-PLUGIN-001
 
-**Description**: : Plugin System with Marketplace Support
+**Description**: Plugin System with Marketplace Support
 
 **Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:21
 
@@ -101,15 +89,11 @@
 **Implementation**:
 - installers/setup_plugins.py:7
 
-**Tests**:
-- mcp_service/tests/test_yaml_loader.py:4
-- mcp_service/tests/test_uri_resolver.py:4
-
 ---
 
 ### REQ-F-PLUGIN-002
 
-**Description**: : Federated Plugin Loading
+**Description**: Federated Plugin Loading
 
 **Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:41
 
@@ -120,14 +104,11 @@
 **Implementation**:
 - installers/setup_plugins.py:8
 
-**Tests**:
-- mcp_service/tests/test_hierarchy_merger.py:5
-
 ---
 
 ### REQ-F-PLUGIN-003
 
-**Description**: : Plugin Bundles
+**Description**: Plugin Bundles
 
 **Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:63
 
@@ -143,9 +124,9 @@
 
 ### REQ-F-PLUGIN-004
 
-**Description**: : Plugin Versioning and Dependency Management
+**Description**: Plugin Versioning and Dependency Management
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:78
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:82
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:17
@@ -159,71 +140,31 @@
 
 ### REQ-F-TESTING-001
 
-**Description**: : Test Coverage Validation
+**Description**: Test Coverage Validation
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:281
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:203
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:695
-
-**Tests**:
-- mcp_service/tests/test_config_manager.py:5
 
 ---
 
 ### REQ-F-TESTING-002
 
-**Description**: : Test Generation
+**Description**: Test Generation
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:302
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:224
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:696
 
 ---
 
-### REQ-F-TODO-001
-
-**Description**: : Create TODO Item
-
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:223
-
-**Design**:
-- docs/design/AI_SDLC_UX_DESIGN.md:1784
-- docs/design/AI_SDLC_UX_DESIGN.md:1788
-- docs/design/AI_SDLC_UX_DESIGN.md:1806
-- docs/design/AI_SDLC_UX_DESIGN.md:1817
-
----
-
-### REQ-F-TODO-002
-
-**Description**: : Mark TODO as Complete
-
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:242
-
-**Design**:
-- docs/design/AI_SDLC_UX_DESIGN.md:1785
-- docs/design/AI_SDLC_UX_DESIGN.md:1808
-
----
-
-### REQ-F-TODO-003
-
-**Description**: : List All TODOs
-
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:261
-
-**Design**:
-- docs/design/AI_SDLC_UX_DESIGN.md:1786
-
----
-
 ### REQ-F-WORKSPACE-001
 
-**Description**: : Developer Workspace Structure
+**Description**: Developer Workspace Structure
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:164
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:145
 
 **Design**:
 - docs/design/TEMPLATE_SYSTEM.md:14
@@ -238,9 +179,9 @@
 
 ### REQ-F-WORKSPACE-002
 
-**Description**: : Task Management Templates
+**Description**: Task Management Templates
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:184
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:165
 
 **Design**:
 - docs/design/TEMPLATE_SYSTEM.md:15
@@ -256,9 +197,9 @@
 
 ### REQ-F-WORKSPACE-003
 
-**Description**: : Session Tracking Templates
+**Description**: Session Tracking Templates
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:203
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:183
 
 **Design**:
 - docs/design/TEMPLATE_SYSTEM.md:16
@@ -273,9 +214,9 @@
 
 ### REQ-NFR-CONTEXT-001
 
-**Description**: : Persistent Context Across Sessions
+**Description**: Persistent Context Across Sessions
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:139
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:287
 
 **Design**:
 - docs/design/TEMPLATE_SYSTEM.md:17
@@ -288,16 +229,13 @@
 **Implementation**:
 - installers/setup_workspace.py:16
 
-**Tests**:
-- mcp_service/tests/test_hierarchy_node.py:5
-
 ---
 
 ### REQ-NFR-COVERAGE-001
 
-**Description**: : Test Coverage Minimum
+**Description**: Test Coverage Minimum
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:404
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:326
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:697
@@ -306,31 +244,21 @@
 
 ### REQ-NFR-FEDERATE-001
 
-**Description**: (hierarchical composition)
+**Description**: Hierarchical Configuration Composition
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:59
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:306
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:19
 - docs/design/PLUGIN_ARCHITECTURE.md:85
 
-**Implementation**:
-- mcp_service/src/ai_sdlc_config/core/config_manager.py:4
-
-**Tests**:
-- mcp_service/tests/test_hierarchy_node.py:4
-- mcp_service/tests/test_yaml_loader.py:5
-- mcp_service/tests/test_uri_resolver.py:5
-- mcp_service/tests/test_hierarchy_merger.py:4
-- mcp_service/tests/test_config_manager.py:4
-
 ---
 
 ### REQ-NFR-TRACE-001
 
-**Description**: : Full Lifecycle Traceability
+**Description**: Full Lifecycle Traceability
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:323
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:245
 
 **Implementation**:
 - installers/validate_traceability.py:8
@@ -339,9 +267,9 @@
 
 ### REQ-NFR-TRACE-002
 
-**Description**: : Requirement Key Propagation
+**Description**: Requirement Key Propagation
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:344
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:266
 
 **Implementation**:
 - installers/validate_traceability.py:9

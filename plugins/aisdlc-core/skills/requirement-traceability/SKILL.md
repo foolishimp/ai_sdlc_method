@@ -31,8 +31,8 @@ Your role is to:
 **Pattern**: `REQ-F-{DOMAIN}-{ID}`
 
 **Examples**:
-- `REQ-F-AUTH-001` - Authentication functionality
-- `REQ-F-PAY-001` - Payment processing
+- `<REQ-ID>` - Authentication functionality
+- `<REQ-ID>` - Payment processing
 - `REQ-F-PORTAL-001` - Customer portal features
 
 **Naming Rules**:
@@ -111,7 +111,7 @@ These are **nested within** requirements for disambiguation:
 
 **Pattern**: `BR-{ID}`
 
-**Examples** (nested within REQ-F-AUTH-001):
+**Examples** (nested within <REQ-ID>):
 - `BR-001`: Email validation (regex pattern)
 - `BR-002`: Password minimum 12 characters
 - `BR-003`: Account lockout after 3 attempts
@@ -124,7 +124,7 @@ These are **nested within** requirements for disambiguation:
 
 **Pattern**: `C-{ID}`
 
-**Examples** (nested within REQ-F-PAY-001):
+**Examples** (nested within <REQ-ID>):
 - `C-001`: PCI-DSS Level 1 compliance
 - `C-002`: Stripe API timeout 10 seconds
 - `C-003`: Transaction idempotency required
@@ -137,7 +137,7 @@ These are **nested within** requirements for disambiguation:
 
 **Pattern**: `F-{ID}`
 
-**Examples** (nested within REQ-F-PAY-001):
+**Examples** (nested within <REQ-ID>):
 - `F-001`: Stripe fee = (amount * 0.029) + 0.30
 - `F-002`: Idempotency key = SHA256(merchant_id + timestamp + amount)
 
@@ -154,25 +154,25 @@ These are **nested within** requirements for disambiguation:
 ```
 INT-042: "Add user login"
   ↓ (Requirements stage)
-REQ-F-AUTH-001: User login with email/password
+<REQ-ID>: User login with email/password
   ↓ (Design stage)
 AuthenticationService component
   ↓ (Code stage)
-src/auth/login.py:23  # Implements: REQ-F-AUTH-001
+src/auth/login.py:23  # Implements: <REQ-ID>
   ↓ (Test stage)
-tests/auth/test_login.py:15  # Validates: REQ-F-AUTH-001
+tests/auth/test_login.py:15  # Validates: <REQ-ID>
   ↓ (Runtime stage)
-Datadog metric: auth_success{req="REQ-F-AUTH-001"}
+Datadog metric: auth_success{req="<REQ-ID>"}
 ```
 
 **Operations**:
 ```bash
 # Find all artifacts for a requirement
-git log --all --grep="REQ-F-AUTH-001"           # Commits
-grep -rn "REQ-F-AUTH-001" src/                  # Implementation
-grep -rn "REQ-F-AUTH-001" tests/                # Tests
-grep -rn "REQ-F-AUTH-001" docs/requirements/    # Definition
-grep -rn "REQ-F-AUTH-001" docs/design/          # Design
+git log --all --grep="<REQ-ID>"           # Commits
+grep -rn "<REQ-ID>" src/                  # Implementation
+grep -rn "<REQ-ID>" tests/                # Tests
+grep -rn "<REQ-ID>" docs/requirements/    # Definition
+grep -rn "<REQ-ID>" docs/design/          # Design
 ```
 
 ---
@@ -184,11 +184,11 @@ grep -rn "REQ-F-AUTH-001" docs/design/          # Design
 ```
 Datadog alert: "ERROR: auth_timeout"
   ↓ (tagged with)
-Metric: auth_latency{req="REQ-F-AUTH-001"}
+Metric: auth_latency{req="<REQ-ID>"}
   ↓ (find code)
-src/auth/login.py:23  # Implements: REQ-F-AUTH-001
+src/auth/login.py:23  # Implements: <REQ-ID>
   ↓ (find requirement)
-docs/requirements/auth.md:15  # REQ-F-AUTH-001
+docs/requirements/auth.md:15  # <REQ-ID>
   ↓ (find original intent)
 INT-042: "Add user login"
 ```
@@ -199,7 +199,7 @@ INT-042: "Add user login"
 grep "req=" alert.json | grep -o "REQ-[^\"]*"    # Extract REQ key from alert
 
 # From requirement, find original intent
-grep -rn "REQ-F-AUTH-001" docs/requirements/ | grep "INT-"
+grep -rn "<REQ-ID>" docs/requirements/ | grep "INT-"
 ```
 
 ---
@@ -216,7 +216,7 @@ grep -rn "REQ-F-AUTH-001" docs/requirements/ | grep "INT-"
 5. Total max length: 30 characters
 
 **Valid Examples**:
-- ✅ `REQ-F-AUTH-001`
+- ✅ `<REQ-ID>`
 - ✅ `REQ-NFR-PERF-001`
 - ✅ `REQ-DATA-PII-001`
 - ✅ `REQ-BR-REFUND-001`
@@ -241,8 +241,8 @@ def extract_req_keys(text: str) -> list[str]:
     return re.findall(pattern, text)
 
 # Example
-text = "Implements: REQ-F-AUTH-001, REQ-NFR-SEC-001"
-keys = extract_req_keys(text)  # ['REQ-F-AUTH-001', 'REQ-NFR-SEC-001']
+text = "Implements: <REQ-ID>, REQ-NFR-SEC-001"
+keys = extract_req_keys(text)  # ['<REQ-ID>', 'REQ-NFR-SEC-001']
 ```
 
 ---
@@ -255,12 +255,12 @@ keys = extract_req_keys(text)  # ['REQ-F-AUTH-001', 'REQ-NFR-SEC-001']
 
 **Examples**:
 ```python
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 def login(email: str, password: str) -> LoginResult:
     """User login functionality"""
     pass
 
-# Implements: REQ-F-AUTH-001, BR-001
+# Implements: <REQ-ID>, BR-001
 def validate_email(email: str) -> bool:
     """Email validation (BR-001)"""
     pass
@@ -268,7 +268,7 @@ def validate_email(email: str) -> bool:
 
 **Multiple implementations**:
 ```python
-# Implements: REQ-F-AUTH-001, REQ-NFR-SEC-001
+# Implements: <REQ-ID>, REQ-NFR-SEC-001
 # This function satisfies both authentication and security requirements
 def secure_login(email: str, password: str, mfa_token: str) -> LoginResult:
     pass
@@ -282,7 +282,7 @@ def secure_login(email: str, password: str, mfa_token: str) -> LoginResult:
 
 **Examples**:
 ```python
-# Validates: REQ-F-AUTH-001
+# Validates: <REQ-ID>
 def test_user_login_with_valid_credentials():
     """Test successful login"""
     result = login("user@example.com", "SecurePass123!")
@@ -302,16 +302,16 @@ def test_email_validation():
 
 **Examples**:
 ```
-feat: Add user login (REQ-F-AUTH-001)
+feat: Add user login (<REQ-ID>)
 
-Implements: REQ-F-AUTH-001
+Implements: <REQ-ID>
 Validates: BR-001, BR-002, BR-003
 ```
 
 **Search commits**:
 ```bash
 # Find all commits for a requirement
-git log --all --grep="REQ-F-AUTH-001"
+git log --all --grep="<REQ-ID>"
 
 # Find commits by requirement type
 git log --all --grep="REQ-F-"      # All functional requirements
@@ -326,7 +326,7 @@ git log --all --grep="REQ-NFR-"    # All non-functional requirements
 ```python
 logger.info(
     "User login successful",
-    extra={"req": "REQ-F-AUTH-001", "user_id": user.id}
+    extra={"req": "<REQ-ID>", "user_id": user.id}
 )
 ```
 
@@ -334,13 +334,13 @@ logger.info(
 ```python
 statsd.increment(
     "auth.login.success",
-    tags=["req:REQ-F-AUTH-001", "env:production"]
+    tags=["req:<REQ-ID>", "env:production"]
 )
 ```
 
 **Metrics (Prometheus)**:
 ```python
-auth_success_total{req="REQ-F-AUTH-001", env="production"}
+auth_success_total{req="<REQ-ID>", env="production"}
 ```
 
 ---
@@ -351,7 +351,7 @@ auth_success_total{req="REQ-F-AUTH-001", env="production"}
 
 | REQ-* | Requirement Doc | Design | Code | Tests | Commits | Runtime |
 |-------|----------------|--------|------|-------|---------|---------|
-| REQ-F-AUTH-001 | auth.md:15 | AuthService | login.py:23 | test_login.py:15 | 5 commits | Datadog ✅ |
+| <REQ-ID> | auth.md:15 | AuthService | login.py:23 | test_login.py:15 | 5 commits | Datadog ✅ |
 | REQ-NFR-PERF-001 | perf.md:8 | CacheLayer | cache.py:45 | test_cache.py:22 | 3 commits | Prometheus ✅ |
 
 ### Query Operations
@@ -437,11 +437,11 @@ plugins:
 
 ### Operation 1: Trace Forward (REQ → Artifacts)
 
-**Input**: `REQ-F-AUTH-001`
+**Input**: `<REQ-ID>`
 
 **Output**:
 ```
-REQ-F-AUTH-001: User login with email/password
+<REQ-ID>: User login with email/password
 │
 ├─ 📋 Requirements
 │   └─ docs/requirements/authentication.md:15
@@ -451,24 +451,24 @@ REQ-F-AUTH-001: User login with email/password
 │   └─ docs/adrs/ADR-003-auth-approach.md:10
 │
 ├─ 💻 Implementation
-│   ├─ src/auth/login.py:23  # Implements: REQ-F-AUTH-001
-│   ├─ src/auth/validators.py:67  # Implements: REQ-F-AUTH-001, BR-001
-│   └─ src/auth/lockout.py:34  # Implements: REQ-F-AUTH-001, BR-003
+│   ├─ src/auth/login.py:23  # Implements: <REQ-ID>
+│   ├─ src/auth/validators.py:67  # Implements: <REQ-ID>, BR-001
+│   └─ src/auth/lockout.py:34  # Implements: <REQ-ID>, BR-003
 │
 ├─ ✅ Tests
-│   ├─ tests/auth/test_login.py:15  # Validates: REQ-F-AUTH-001
+│   ├─ tests/auth/test_login.py:15  # Validates: <REQ-ID>
 │   ├─ tests/auth/test_validators.py:22  # Validates: BR-001
-│   └─ features/authentication.feature:5  # Validates: REQ-F-AUTH-001
+│   └─ features/authentication.feature:5  # Validates: <REQ-ID>
 │
 ├─ 📦 Commits
-│   ├─ abc123 "feat: Add user login (REQ-F-AUTH-001)"
-│   ├─ def456 "fix: Correct email validation (REQ-F-AUTH-001, BR-001)"
-│   └─ ghi789 "perf: Optimize login query (REQ-F-AUTH-001)"
+│   ├─ abc123 "feat: Add user login (<REQ-ID>)"
+│   ├─ def456 "fix: Correct email validation (<REQ-ID>, BR-001)"
+│   └─ ghi789 "perf: Optimize login query (<REQ-ID>)"
 │
 └─ 🚀 Runtime
-    ├─ Logs: logger.info("Login", extra={"req": "REQ-F-AUTH-001"})
-    ├─ Metrics: auth_success{req="REQ-F-AUTH-001"}
-    └─ Alerts: "ERROR: REQ-F-AUTH-001 - Auth timeout"
+    ├─ Logs: logger.info("Login", extra={"req": "<REQ-ID>"})
+    ├─ Metrics: auth_success{req="<REQ-ID>"}
+    └─ Alerts: "ERROR: <REQ-ID> - Auth timeout"
 
 Coverage: ✅ Full traceability
 ```
@@ -476,10 +476,10 @@ Coverage: ✅ Full traceability
 **Implementation**:
 ```bash
 # Grep across all files
-grep -rn "REQ-F-AUTH-001" docs/ src/ tests/ features/
+grep -rn "<REQ-ID>" docs/ src/ tests/ features/
 
 # Git log
-git log --all --grep="REQ-F-AUTH-001" --name-only
+git log --all --grep="<REQ-ID>" --name-only
 ```
 
 ---
@@ -491,12 +491,12 @@ git log --all --grep="REQ-F-AUTH-001" --name-only
 **Output**:
 ```
 src/auth/login.py implements:
-├─ REQ-F-AUTH-001 (line 23)
+├─ <REQ-ID> (line 23)
 ├─ REQ-NFR-SEC-001 (line 45)
 └─ REQ-NFR-PERF-001 (line 89)
 
 Tracing to requirements:
-├─ REQ-F-AUTH-001 → docs/requirements/authentication.md:15
+├─ <REQ-ID> → docs/requirements/authentication.md:15
 │   └─ Intent: INT-042 "Add user login"
 │
 ├─ REQ-NFR-SEC-001 → docs/requirements/security.md:8
@@ -551,7 +551,7 @@ Requirements Without Code (6):
 └─ REQ-DATA-LIN-001 - Data lineage tracking
 
 Requirements Without Runtime Telemetry (27):
-├─ REQ-F-AUTH-002 (has code, no metrics)
+├─ <REQ-ID> (has code, no metrics)
 ├─ REQ-F-AUTH-003 (has code, no metrics)
 ├─ ... (25 more)
 
@@ -583,7 +583,7 @@ When invoked for validation:
 ```
 [REQUIREMENT TRACEABILITY]
 
-Validating: REQ-F-AUTH-001
+Validating: <REQ-ID>
 
 Format Check:
   ✓ Starts with "REQ-"
@@ -600,7 +600,7 @@ Regex: ^REQ-F-[A-Z]{2,10}-\d{3}$
 When invoked for tracing:
 
 ```
-[TRACE: REQ-F-AUTH-001]
+[TRACE: <REQ-ID>]
 
 Forward Traceability:
   ✅ Requirements: docs/requirements/auth.md:15

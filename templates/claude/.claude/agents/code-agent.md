@@ -22,7 +22,7 @@ RED → GREEN → REFACTOR → COMMIT → REPEAT
 
 ### Phase 1: RED (Write Failing Test First)
 ```python
-# Validates: REQ-F-AUTH-001
+# Validates: <REQ-ID>
 def test_login_with_valid_credentials():
     """Test successful login with valid email/password."""
     auth = AuthenticationService()
@@ -37,7 +37,7 @@ def test_login_with_valid_credentials():
 
 ### Phase 2: GREEN (Minimal Code to Pass)
 ```python
-# Implements: REQ-F-AUTH-001
+# Implements: <REQ-ID>
 class AuthenticationService:
     async def login(self, email: str, password: str) -> LoginResult:
         """Authenticate user with email and password."""
@@ -60,12 +60,12 @@ class AuthenticationService:
 
 ### Phase 3: REFACTOR (Improve Quality)
 ```python
-# Implements: REQ-F-AUTH-001, REQ-NFR-PERF-001
+# Implements: <REQ-ID>, REQ-NFR-PERF-001
 class AuthenticationService:
     """
     Authentication service for user login and session management.
 
-    Implements: REQ-F-AUTH-001 (User Authentication)
+    Implements: <REQ-ID> (User Authentication)
     Performance: < 500ms (REQ-NFR-PERF-001)
     """
 
@@ -112,7 +112,7 @@ class AuthenticationService:
         await AuditLog.create({
             'event': 'USER_LOGIN',
             'user_id': user.id,
-            'requirements': ['REQ-F-AUTH-001'],
+            'requirements': ['<REQ-ID>'],
             'duration_ms': duration
         })
 
@@ -132,7 +132,7 @@ class AuthenticationService:
 ### Phase 4: COMMIT (Save with REQ Tags)
 ```bash
 git add .
-git commit -m "Implement user login (REQ-F-AUTH-001)
+git commit -m "Implement user login (<REQ-ID>)
 
 TDD implementation of authentication service with:
 - JWT token generation
@@ -145,7 +145,7 @@ Coverage: 92% (target: ≥80%)
 TDD: RED → GREEN → REFACTOR
 
 Implements:
-- REQ-F-AUTH-001: User login functionality
+- <REQ-ID>: User login functionality
 - REQ-NFR-PERF-001: Performance < 500ms
 - REQ-NFR-SEC-001: bcrypt password hashing
 - REQ-BR-AUTH-001: Account lockout after 5 attempts
@@ -211,7 +211,7 @@ Move to next test → Start cycle again
 1. **Work Units** (from Tasks Stage):
    ```
    PORTAL-101: User Login
-   Requirements: REQ-F-AUTH-001, REQ-NFR-PERF-001
+   Requirements: <REQ-ID>, REQ-NFR-PERF-001
    Acceptance Criteria: [detailed list]
    Story Points: 8
    ```
@@ -235,13 +235,13 @@ Move to next test → Start cycle again
 ### 1. Production Code
 Tagged with requirement keys:
 ```python
-# Implements: REQ-F-AUTH-001 (User Authentication)
+# Implements: <REQ-ID> (User Authentication)
 # Satisfies: REQ-NFR-SEC-001 (Secure Password Hashing)
 ```
 
 ### 2. Test Code
 ```python
-# Validates: REQ-F-AUTH-001
+# Validates: <REQ-ID>
 # Coverage target: 80% (critical paths 100%)
 ```
 
@@ -311,7 +311,7 @@ Before moving to next work unit:
 I'll implement using the TDD cycle...
 
 Work Unit: PORTAL-101
-Requirements: REQ-F-AUTH-001, REQ-NFR-PERF-001
+Requirements: <REQ-ID>, REQ-NFR-PERF-001
 Acceptance Criteria:
 - User enters valid credentials → JWT token returned
 - Response time < 500ms
@@ -324,7 +324,7 @@ Starting TDD Cycle #1...
 Writing failing test for valid credentials...
 
 def test_login_valid_credentials():
-    # Validates: REQ-F-AUTH-001
+    # Validates: <REQ-ID>
     auth = AuthenticationService()
     result = await auth.login('user@example.com', 'Password123!')
     assert result.success == True
@@ -359,7 +359,7 @@ Running tests...
 ✅ STILL PASSING
 
 ═══ COMMIT PHASE ═══
-git commit -m "Add login validation (REQ-F-AUTH-001)"
+git commit -m "Add login validation (<REQ-ID>)"
 
 ═══ TDD Cycle #1 Complete ═══
 
@@ -397,7 +397,7 @@ async def login(self, email, password):
 ### Pattern 3: Requirement Tagging
 ```python
 # Multiple requirements
-# Implements: REQ-F-AUTH-001, REQ-F-AUTH-002
+# Implements: <REQ-ID>, <REQ-ID>
 # Satisfies: REQ-NFR-PERF-001, REQ-NFR-SEC-001
 ```
 
