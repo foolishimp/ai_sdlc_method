@@ -420,53 +420,7 @@ This document defines the requirements for building the AI SDLC Method tooling i
 
 ---
 
-## 7. Example Requirements (from Customer Portal Example)
-
-These are example requirements used in documentation and examples, not actual implementation requirements for ai_sdlc_method itself.
-
-### REQ-F-AUTH-003: Password Reset
-**Type**: Example (Customer Portal)
-**Status**: Documentation only
-
-### REQ-F-PORTAL-002: Dashboard View
-**Type**: Example (Customer Portal)
-**Status**: Documentation only
-
-### REQ-F-PORTAL-003: Profile Management
-**Type**: Example (Customer Portal)
-**Status**: Documentation only
-
-### REQ-F-PAY-001: Payment Processing
-**Type**: Example (Payment Gateway)
-**Status**: Documentation only
-
-### REQ-F-PAY-005: Refund Processing
-**Type**: Example (Payment Gateway)
-**Status**: Documentation only
-
-### REQ-F-GDPR-001: Data Export
-**Type**: Example (GDPR Compliance)
-**Status**: Documentation only
-
-### REQ-BR-AUTH-001: Password Complexity
-**Type**: Example (Business Rule)
-**Status**: Documentation only
-
-### REQ-DATA-AUTH-001: User Data Model
-**Type**: Example (Data)
-**Status**: Documentation only
-
-### REQ-NFR-SEC-002: Encryption at Rest
-**Type**: Example (Security)
-**Status**: Documentation only
-
-### REQ-NFR-SEC-003: Encryption in Transit
-**Type**: Example (Security)
-**Status**: Documentation only
-
----
-
-## Requirement Summary
+## 7. Requirement Summary
 
 **Total Implementation Requirements**: 20
 - Functional (F): 13
@@ -498,12 +452,24 @@ These are example requirements used in documentation and examples, not actual im
 
 - REQ-F-PLUGIN-* → [PLUGIN_ARCHITECTURE.md](../design/PLUGIN_ARCHITECTURE.md)
 - REQ-F-CMD-* → [COMMAND_SYSTEM.md](../design/COMMAND_SYSTEM.md) (to be created)
-- REQ-F-WORKSPACE-* → [TEMPLATE_SYSTEM.md](../design/TEMPLATE_SYSTEM.md) (to be created)
+- REQ-F-WORKSPACE-* → [TEMPLATE_SYSTEM.md](../design/TEMPLATE_SYSTEM.md)
 - REQ-F-TODO-* → [AI_SDLC_UX_DESIGN.md](../design/AI_SDLC_UX_DESIGN.md)
 - REQ-F-TESTING-* → testing-skills plugin
 - REQ-NFR-TRACE-* → validate_traceability.py
 - REQ-NFR-CONTEXT-* → .ai-workspace/ structure
 - REQ-NFR-FEDERATE-* → Plugin loading mechanism
+
+---
+
+## Example Requirements
+
+Example requirements demonstrating the methodology have been moved to:
+- [examples/AI_SDLC_REQUIREMENTS.md](examples/AI_SDLC_REQUIREMENTS.md) - Complete 7-stage methodology examples
+- [examples/AI_SDLC_OVERVIEW.md](examples/AI_SDLC_OVERVIEW.md) - Overview examples
+- [examples/AI_SDLC_CONCEPTS.md](examples/AI_SDLC_CONCEPTS.md) - Conceptual examples
+- [examples/FOLDER_BASED_REQUIREMENTS.md](examples/FOLDER_BASED_REQUIREMENTS.md) - Discovery examples
+
+These demonstrate HOW to use the methodology, not how to BUILD ai_sdlc_method itself.
 
 ---
 

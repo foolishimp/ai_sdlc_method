@@ -1,8 +1,20 @@
 # AI SDLC Method - Component Inventory
 
 **Version:** 2.0.0
-**Last Updated:** 2025-11-23
+**Last Updated:** 2025-11-24
 **Purpose:** Track all deployable components, versions, and dependencies
+
+> **📊 Auto-Generation Available**
+> Per our methodology (REQ-NFR-TRACE-001), this can be auto-generated:
+> ```bash
+> python installers/validate_traceability.py --inventory > INVENTORY.md
+> ```
+> The Requirements Agent generates:
+> - `docs/TRACEABILITY_MATRIX.md` - Requirement-level coverage (20 implementation requirements)
+> - `INVENTORY.md` - Component-level inventory (generated from filesystem scan)
+>
+> This document is currently maintained manually for version history and deployment guidance.
+> Component counts and requirement mappings can be regenerated from actual code.
 
 ---
 

@@ -66,6 +66,15 @@ ai_sdlc_stages:
           linked_to: "Parent requirement keys"
           format: "Testable validation points"
 
+        traceability_matrix:
+          format: "Markdown table or YAML/JSON"
+          location: "docs/TRACEABILITY_MATRIX.md"
+          content: "REQ-* → Intent, Design, Code, Tests, Runtime"
+          update_frequency: "Every stage transition"
+          auto_generated: true
+          tool: "validate_traceability.py --matrix"
+          purpose: "End-to-end requirement coverage and impact analysis"
+
       key_principles:
         requirement_keys:
           properties: ["unique", "immutable", "versioned", "traceable", "auditable"]
