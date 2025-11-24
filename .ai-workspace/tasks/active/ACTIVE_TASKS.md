@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-11-25 02:30*
+*Last Updated: 2025-11-25 03:01*
 
 ---
 
@@ -50,6 +50,13 @@ N/A - Documentation task
 - Not Started: 1 (needs scope update)
 
 **Recently Completed**:
+- ✅ Impromptu: Root Folder Cleanup and Guide Updates (2025-11-25 03:01)
+  - Reorganized root folder (9 → 3 files)
+  - Created docs/info/ and docs/guides/ directories
+  - Removed all MCP service references from root *.md files
+  - Updated QUICKSTART, NEW_PROJECT_SETUP, JOURNEY guides
+  - Established clear progressive learning path
+  - See: `.ai-workspace/tasks/finished/20251125_0301_root_folder_cleanup_and_guide_updates.md`
 - ✅ Task #5: Validate Implementation - MVP Baseline (2025-11-25 02:30)
   - Established 16 MVP requirements, 100% documentation coverage
   - Removed over-designed features (context switching, TODO system)

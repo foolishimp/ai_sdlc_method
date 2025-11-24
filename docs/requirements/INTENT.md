@@ -80,7 +80,6 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 **Year 1** (Production):
 - ✅ 50+ projects using methodology
 - ✅ Federated plugin marketplace (corporate, division, team levels)
-- ✅ MCP service for non-Claude LLMs (Copilot, Gemini)
 - ✅ Regulatory audit package generated automatically
 - ✅ Open-sourced with community adoption
 
@@ -106,7 +105,7 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 **Cost Reduction**:
 - 80% reduction in documentation time (auto-generated)
 - 90% reduction in onboarding time (standardized methodology)
-- Zero vendor lock-in (works with any LLM via MCP)
+- Zero vendor lock-in (extensible architecture for future LLM integrations)
 
 ---
 
@@ -184,12 +183,7 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
     - Skills plugins (testing, design, requirements)
     - Plugin bundles (startup, datascience, qa, enterprise)
 
-13. **MCP Service** (for non-Claude LLMs)
-    - Configuration management API
-    - Project hierarchy support
-    - Context loading for Copilot, Gemini, etc.
-
-14. **Regulatory Compliance**
+13. **Regulatory Compliance**
     - Requirement traceability matrix
     - Audit package generation
     - Deterministic builds
@@ -200,11 +194,11 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 ## Constraints & Non-Goals
 
 **In Scope:**
-- AI-augmented development (Claude, Copilot, etc.)
+- AI-augmented development (Claude Code as primary platform)
 - Full SDLC (requirements → runtime)
-- Claude Code as primary platform
-- MCP service for other LLMs
+- Claude Code plugins and marketplace
 - Open source release
+- Extensible architecture for future LLM integrations
 
 **Out of Scope (v1.0):**
 - Non-software projects (marketing, HR, etc.)
@@ -216,23 +210,23 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 - File-based configuration (YAML)
 - Git-friendly (all artifacts version controlled)
 - Platform agnostic (works on Mac, Linux, Windows)
-- LLM agnostic (Claude, GPT, Gemini via MCP)
+- Claude Code native (extensible for other LLMs in future)
 
 ---
 
 ## Dependencies & Assumptions
 
 **Assumes:**
-- Developers use Claude Code or MCP-compatible LLM
+- Developers use Claude Code
 - Projects use Git for version control
 - Teams willing to adopt TDD workflow
 - Organization values code quality and traceability
 
 **Depends On:**
-- Claude Code platform (for primary UX)
-- Model Context Protocol (MCP) for LLM interop
+- Claude Code platform (native plugin system)
 - YAML for configuration
 - Markdown for documentation
+- Git for version control
 
 ---
 
@@ -251,8 +245,8 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 **Year 1** (Enterprise Production):
 - ✅ 50+ projects using methodology
 - ✅ Federated plugin marketplace operational
-- ✅ MCP service supporting 3+ LLMs
 - ✅ Open-sourced with 100+ GitHub stars
+- ✅ Community-driven plugin ecosystem established
 
 ---
 
@@ -266,7 +260,6 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 **Design Stage:** ✅ COMPLETE
 - AI_SDLC_UX_DESIGN.md (1,400 lines)
 - Plugin architecture defined
-- MCP service architecture defined
 - Folder-based asset discovery designed
 
 **Tasks Stage:** ✅ COMPLETE
@@ -274,18 +267,18 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 - Slash commands implemented
 - Agent personas implemented
 
-**Code Stage:** ⚠️ IN PROGRESS
+**Code Stage:** ✅ COMPLETE (MVP Baseline - v0.1.0)
 - ✅ Workspace installer (`installers/setup_workspace.py`)
 - ✅ Commands installer (`installers/setup_commands.py`)
 - ✅ Plugins installer (`installers/setup_plugins.py`)
-- ✅ MCP service (basic implementation)
-- ⚠️ Plugins (9 plugins created, need testing)
-- ❌ MCP 7-stage integration (TODO)
+- ✅ 9 plugins + 4 bundles created
+- ✅ Requirements traceability matrix (auto-generated)
+- ✅ 16 MVP requirements defined (70% implemented, 25% tested)
+- ✅ Cleaned over-designed features (MCP service de-scoped for MVP)
 
-**System Test Stage:** ❌ TODO
-- BDD scenarios for installers
-- Integration tests for MCP service
-- End-to-end example project validation
+**System Test Stage:** ⚠️ IN PROGRESS
+- ⚠️ BDD scenarios for installers (TODO)
+- ⚠️ End-to-end example project validation (customer_portal exists, needs automated tests)
 
 **UAT Stage:** ❌ TODO
 - Internal team validation (5+ teams)
@@ -307,10 +300,10 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
    - ❌ Create config/config.yml with 7-stage configuration
    - ❌ Document current stage progress in .ai-workspace/
 
-2. **Complete Code Stage**
-   - Fix plugin installer (non-interactive mode)
-   - Complete MCP 7-stage integration
-   - Add comprehensive testing
+2. **Complete System Test Stage**
+   - Write BDD scenarios for installers
+   - Automated validation of example projects
+   - Increase test coverage from 25% to 60%+
 
 3. **System Test Stage**
    - Write BDD scenarios for all installers

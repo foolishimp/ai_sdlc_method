@@ -34,7 +34,7 @@ Each stage has:
 - **Traceability** to requirement keys
 - **Personas** (human roles and AI agents)
 
-👉 **Start Here**: [The AI SDLC Journey](docs/JOURNEY.md) - Complete happy path from setup to UAT (3 hour guided tour) ⭐
+👉 **Start Here**: [The AI SDLC Journey](docs/guides/JOURNEY.md) - Complete happy path from setup to UAT (3 hour guided tour) ⭐
 👉 **Quick Introduction**: [AI SDLC Overview](docs/requirements/examples/AI_SDLC_OVERVIEW.md) (~30 min read)
 👉 **Complete Methodology**: [AI SDLC Requirements](docs/requirements/examples/AI_SDLC_REQUIREMENTS.md) (Sections 1-13)
 👉 **Example Project**: [customer_portal](examples/local_projects/customer_portal/)
@@ -680,7 +680,6 @@ ai_sdlc_method/
 ├── marketplace.json                 # Claude Code marketplace registry
 ├── CLAUDE.md                        # Claude Code guidance
 ├── QUICKSTART.md                    # Quick start guide
-├── PLUGIN_GUIDE.md                  # Plugin creation guide
 └── README.md                        # This file
 ```
 
@@ -701,8 +700,16 @@ ai_sdlc_method/
 - **[Pair Programming](plugins/aisdlc-methodology/docs/guides/PAIR_PROGRAMMING_WITH_AI.md)** - Human-AI collaboration
 
 ### Guides
-- **[Plugins Guide](plugins/README.md)** - How to use and create plugins
+- **[New Project Setup](docs/guides/NEW_PROJECT_SETUP.md)** - Step-by-step setup guide
+- **[Plugin Guide](docs/guides/PLUGIN_GUIDE.md)** - How to create and use plugins
+- **[Plugins Overview](plugins/README.md)** - Plugin architecture and catalog
 - **[Examples Guide](examples/README.md)** - Example local contexts
+
+### Reference
+- **[Component Inventory](docs/info/INVENTORY.md)** - All deployable components and versions
+- **[Skills Inventory](docs/info/SKILLS_INVENTORY.md)** - Complete skills catalog (41 skills)
+- **[Agents vs Skills](docs/info/AGENTS_VS_SKILLS.md)** - Architecture explanation
+- **[Project Intent](docs/requirements/INTENT.md)** - Project vision and roadmap
 
 ---
 

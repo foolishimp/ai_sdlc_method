@@ -1,14 +1,18 @@
 # ai_sdlc_method Quick Start Guide
 
-Get started with the **7-Stage AI SDLC Methodology** in 2 different ways:
-1. Claude Code Plugin (recommended)
-2. Direct Python usage (programmatic)
+Get started with the **7-Stage AI SDLC Methodology** in 5-10 minutes.
+
+**Choose your path**:
+- ⚡ **Quick Start** (below) - Install plugin and try it out (5-10 min)
+- 🏗️ **[New Project Setup](docs/guides/NEW_PROJECT_SETUP.md)** - Complete project setup guide (30 min)
+- 🎯 **[Complete Journey](docs/guides/JOURNEY.md)** - Full 7-stage walkthrough with examples (2-3 hours)
 
 ## Table of Contents
 - [What is ai_sdlc_method?](#what-is-ai_sdlc_method)
-- [Method 1: Claude Code Plugin (Recommended)](#method-1-claude-code-plugin-recommended)
-- [Method 2: Direct Python Usage](#method-2-direct-python-usage)
+- [Quick Install (5 minutes)](#quick-install-5-minutes)
+- [Quick Start Example](#quick-start-example)
 - [Common Use Cases](#common-use-cases)
+- [Next Steps](#next-steps)
 
 ---
 
@@ -44,9 +48,9 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 
 ---
 
-## Method 1: Claude Code Plugin (Recommended)
+## Quick Install (5 minutes)
 
-### Installation
+### Step 1: Install the Plugin
 
 ```bash
 # In Claude Code (CLI or VS Code)
@@ -54,48 +58,48 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 /plugin install @aisdlc/aisdlc-methodology
 ```
 
-### Quick Start Example
+**Expected output**:
+```
+✓ @aisdlc/aisdlc-methodology v2.0.0 installed
 
-```bash
-# Install methodology plugin
-/plugin install @aisdlc/aisdlc-methodology
-
-# Claude now has access to:
-# - Complete 7-stage AI SDLC methodology
-# - AI agent configurations for each stage
-# - Key Principles (TDD, Fail Fast, Modular, etc.)
-# - TDD workflow (RED → GREEN → REFACTOR)
-# - BDD testing guides
-# - Requirement traceability system (auto-generated)
+Claude now has access to:
+- Complete 7-stage AI SDLC methodology
+- AI agent configurations for each stage
+- Key Principles (TDD, Fail Fast, Modular, etc.)
+- TDD workflow (RED → GREEN → REFACTOR)
+- BDD testing guides
+- Requirement traceability system
 ```
 
-### Example: Customer Portal Development
+### Step 2: Try It Out
 
 **Ask Claude:**
 ```
-"Help me implement the authentication feature following the AI SDLC methodology"
-
-Claude will:
-1. Generate requirements (REQ-F-AUTH-001, REQ-NFR-PERF-001, etc.)
-2. Create design artifacts (component diagrams, APIs)
-3. Break into tasks (Jira tickets with REQ tags)
-4. Implement using TDD (RED → GREEN → REFACTOR)
-5. Generate BDD tests (Given/When/Then)
-6. Create UAT scenarios
-7. Set up runtime telemetry with REQ key tagging
-8. Auto-generate traceability matrix showing all linkages
+"Help me implement user authentication following the AI SDLC methodology"
 ```
 
-### See Complete Examples
+**Claude will guide you through**:
+1. **Requirements** - Generate REQ-F-AUTH-001, REQ-NFR-PERF-001, etc.
+2. **Design** - Create AuthenticationService, API specs, data models
+3. **Tasks** - Break into work units (Jira tickets with REQ tags)
+4. **Code** - TDD implementation (RED → GREEN → REFACTOR)
+5. **System Test** - BDD scenarios (Given/When/Then)
+6. **UAT** - Business validation test cases
+7. **Runtime Feedback** - Telemetry setup with REQ key tagging
 
-👉 **[docs/JOURNEY.md](docs/JOURNEY.md)** - Complete happy path from setup to UAT (3 hour guided journey) ⭐
-👉 **[examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)** - Complete 7-stage walkthrough (800+ lines)
+✅ **That's it!** You're using the 7-stage methodology.
+
+### Want More Detail?
+
+👉 **[Complete Journey](docs/guides/JOURNEY.md)** - Full 7-stage walkthrough with code examples (2-3 hours) ⭐
+👉 **[New Project Setup](docs/guides/NEW_PROJECT_SETUP.md)** - Detailed setup guide for your project (30 min)
+👉 **[Customer Portal Example](examples/local_projects/customer_portal/)** - Complete example project (800+ lines)
 
 ---
 
-## Method 2: Direct Python Usage
+## Quick Start Example
 
-For programmatic access or custom integrations:
+Once the plugin is installed, Claude understands the 7-stage methodology:
 
 ```bash
 # Clone repository
@@ -318,7 +322,7 @@ New cycle begins at Requirements stage
 
 ## Component Inventory
 
-See [INVENTORY.md](INVENTORY.md) for complete list of all components.
+See [docs/info/INVENTORY.md](docs/info/INVENTORY.md) for complete list of all components.
 
 **Quick Stats** (v0.1.0):
 - **Implementation Requirements:** 20 (70% implemented, 25% tested)
@@ -425,11 +429,11 @@ python /path/to/ai_sdlc_method/installers/setup_commands.py --force
 
 ### For New Users
 
-1. **Follow the journey**: Read [docs/JOURNEY.md](docs/JOURNEY.md) - Complete happy path from setup to UAT ⭐
-2. **Learn the methodology**: Read [docs/README.md](docs/README.md) for role-based learning paths
-3. **Review example**: [examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)
-4. **Install plugin**: `/plugin install @aisdlc/aisdlc-methodology`
-5. **Start developing**: Ask Claude to follow the 7-stage AI SDLC methodology
+1. ✅ **You just did the quick start!** (above)
+2. 📖 **[Follow the Complete Journey](docs/guides/JOURNEY.md)** - See all 7 stages in detail (2-3 hours) ⭐
+3. 🏗️ **[Set Up Your Project](docs/guides/NEW_PROJECT_SETUP.md)** - Detailed setup for your real project (30 min)
+4. 📚 **[Learn the Methodology](docs/README.md)** - Role-based learning paths
+5. 💡 **[Review Example Project](examples/local_projects/customer_portal/)** - Complete walkthrough
 
 ### For Developers
 
@@ -453,10 +457,10 @@ See [docs/README.md](docs/README.md) for learning paths tailored to:
 ## Support & Resources
 
 - **Happy Path Journey:** [docs/JOURNEY.md](docs/JOURNEY.md) - Setup to UAT guided tour ⭐
-- **Component Inventory:** [INVENTORY.md](INVENTORY.md) - Complete deployment guide
+- **Component Inventory:** [docs/info/INVENTORY.md](docs/info/INVENTORY.md) - Complete deployment guide
 - **Traceability Matrix:** [docs/TRACEABILITY_MATRIX.md](docs/TRACEABILITY_MATRIX.md) - Auto-generated coverage
-- **New Project Setup:** [NEW_PROJECT_SETUP.md](NEW_PROJECT_SETUP.md) - Step-by-step setup
-- **Plugin Guide:** [PLUGIN_GUIDE.md](PLUGIN_GUIDE.md) - Plugin creation and usage
+- **New Project Setup:** [docs/guides/NEW_PROJECT_SETUP.md](docs/guides/NEW_PROJECT_SETUP.md) - Step-by-step setup
+- **Plugin Guide:** [docs/guides/PLUGIN_GUIDE.md](docs/guides/PLUGIN_GUIDE.md) - Plugin creation and usage
 - **Issues:** https://github.com/foolishimp/ai_sdlc_method/issues
 - **Examples:** [examples/](examples/) - Working examples
 

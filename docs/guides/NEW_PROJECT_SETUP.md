@@ -1,41 +1,43 @@
 # Setting Up a New Project with AI SDLC Method
 
-**Scenario**: You have `ai_sdlc_method` on your local disk and want to start a new project in a different folder.
+**Complete setup guide for creating a new project with the 7-Stage AI SDLC Methodology.**
+
+**Time**: 30-45 minutes
+**Audience**: Developers setting up their first project
+
+**Other guides**:
+- ⚡ **[Quick Start](../../QUICKSTART.md)** - Get started in 5 minutes
+- 🎯 **[Complete Journey](JOURNEY.md)** - Full 7-stage walkthrough with examples (2-3 hours)
 
 ---
 
 ## Prerequisites
 
-- ✅ AI SDLC Method repository: `/Users/jim/src/apps/ai_sdlc_method`
-- ✅ Claude Code installed
-- ✅ New project location: e.g., `/path/to/my-new-project`
+- ✅ Claude Code installed (CLI or VS Code extension)
+- ✅ Git installed
+- ✅ Optional: AI SDLC Method repository cloned (for Python tools)
 
 ---
 
 ## Step-by-Step Setup
 
-### Step 1: Install Plugins Globally (One-Time Setup)
+### Step 1: Install AI SDLC Plugin (One-Time)
 
-**Do this ONCE** - plugins will be available to all your future projects.
+**Do this ONCE** - the plugin will be available to all your future projects.
 
 ```bash
-# Navigate to ai_sdlc_method
-cd /Users/jim/src/apps/ai_sdlc_method
-
-# Install startup bundle (recommended) or enterprise (complete)
-python installers/setup_plugins.py --global --bundle startup
-
-# OR install enterprise bundle for full suite
-python installers/setup_plugins.py --global --bundle enterprise
+# In Claude Code
+/plugin marketplace add foolishimp/ai_sdlc_method
+/plugin install @aisdlc/aisdlc-methodology
 ```
 
 **Verify installation**:
 ```bash
-ls ~/.config/claude/plugins/
-# Should see: aisdlc-core, aisdlc-methodology, principles-key (+ more if enterprise)
+/plugin list
+# Should see: @aisdlc/aisdlc-methodology v2.0.0
 ```
 
-✅ **You only need to do this once!** Plugins are now available to all projects.
+✅ **You only need to do this once!** The methodology is now available to all projects.
 
 ---
 
@@ -52,28 +54,35 @@ git init
 
 ---
 
-### Step 3: Install AI SDLC Development Tools
+### Step 3: Optional - Install Development Tools
 
-Run the installer from your local ai_sdlc_method:
+For advanced features like workspace management and custom commands, you can install additional tools from the ai_sdlc_method repository:
 
 ```bash
-# Install workspace + commands (plugins already installed globally)
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_all.py
+# Clone the repository (if you haven't already)
+git clone https://github.com/foolishimp/ai_sdlc_method.git
+
+# Run installer from the repository
+cd my-new-project
+python ../ai_sdlc_method/installers/setup_all.py
 
 # This installs:
 # - .ai-workspace/ (task tracking, session management)
-# - .claude/commands/ (slash commands: /todo, /start-session, etc.)
+# - .claude/commands/ (slash commands)
+# - .claude/agents/ (7-stage agent definitions)
 # - CLAUDE.md (project guidance)
-# - .gitignore (configured for workspace)
 ```
 
 **Output**:
 ```
 ✅ Developer Workspace (.ai-workspace/)
 ✅ Claude Commands (.claude/commands/)
-✅ .gitignore updates
+✅ Agent Definitions (.claude/agents/)
 ✅ CLAUDE.md
+✅ .gitignore
 ```
+
+**Note**: This step is optional. The plugin alone provides the complete 7-stage methodology.
 
 ---
 
@@ -859,17 +868,29 @@ git commit -m "Migrate to AI SDLC Method v2.0.0"
 
 ---
 
+## Next Steps: See the Methodology in Action
+
+Now that your project is set up, see the complete 7-stage methodology with a real example:
+
+👉 **[Complete Journey Guide](JOURNEY.md)** - Full walkthrough from setup to UAT (2-3 hours) ⭐
+
+This guide shows you:
+- All 7 stages with concrete examples
+- Real code, real commands, real workflows
+- Complete traceability from intent to UAT sign-off
+- How to use the methodology for actual feature development
+
+---
+
 ## Getting Help
 
-- **Workspace Guide**: `.ai-workspace/README.md`
-- **Example Project**: `/Users/jim/src/apps/ai_sdlc_method/examples/local_projects/customer_portal/`
-- **Complete Docs**: `/Users/jim/src/apps/ai_sdlc_method/docs/`
-- **Plugin Docs**: `~/.config/claude/plugins/aisdlc-methodology/README.md`
-- **Component Inventory**: `/Users/jim/src/apps/ai_sdlc_method/INVENTORY.md` ⭐ **NEW!**
+- **Quick Start**: [QUICKSTART.md](../../QUICKSTART.md) - Get started in 5 minutes
+- **Complete Journey**: [JOURNEY.md](JOURNEY.md) - Full 7-stage walkthrough
+- **Documentation**: [docs/README.md](../README.md) - Complete documentation index
+- **Example Project**: [examples/local_projects/customer_portal/](../../examples/local_projects/customer_portal/)
+- **Component Inventory**: [docs/info/INVENTORY.md](../info/INVENTORY.md)
 - **Issues**: https://github.com/foolishimp/ai_sdlc_method/issues
 
 ---
 
 **"Excellence or nothing"** 🔥
-
-Ready to build great software with AI-assisted development!

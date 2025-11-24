@@ -1607,7 +1607,7 @@ Intent
    - Close the feedback loop
 
 3. **Customize the Methodology**
-   - See [PLUGIN_GUIDE.md](../PLUGIN_GUIDE.md)
+   - See [Plugin Guide](PLUGIN_GUIDE.md)
    - Create your own plugins
    - Customize agent configurations
    - Build federated context hierarchy
@@ -1620,23 +1620,20 @@ Intent
 
 ### Deep Dive Resources
 
-**For Complete Methodology**:
-- [docs/requirements/examples/AI_SDLC_REQUIREMENTS.md](../requirements/examples/AI_SDLC_REQUIREMENTS.md) - Complete 7-stage specifications (3,300+ lines)
-- [plugins/aisdlc-methodology/config/stages_config.yml](../plugins/aisdlc-methodology/config/stages_config.yml) - Agent configurations (1,273 lines)
+**Getting Started**:
+- ⚡ [Quick Start Guide](../../QUICKSTART.md) - Get started in 5-10 minutes
+- 🏗️ [New Project Setup](NEW_PROJECT_SETUP.md) - Detailed setup for your project (30 min)
 
-**For Specific Stages**:
-- Requirements: `.claude/agents/requirements-agent.md`
-- Design: `.claude/agents/design-agent.md`
-- Code: `.claude/agents/code-agent.md` + TDD_WORKFLOW.md
-- System Test: `.claude/agents/system-test-agent.md`
-- UAT: `.claude/agents/uat-agent.md`
-- Runtime Feedback: `.claude/agents/runtime-feedback-agent.md`
+**Complete Methodology**:
+- [AI SDLC Requirements](../requirements/examples/AI_SDLC_REQUIREMENTS.md) - Complete 7-stage specifications (3,300+ lines)
+- [Stage Configurations](../../plugins/aisdlc-methodology/config/stages_config.yml) - Agent configurations (1,273 lines)
 
-**For Key Principles**:
-- [plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
+**Key Principles**:
+- [Key Principles](../../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - The 7 core development principles
+- [TDD Workflow](../../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - Complete TDD cycle
 
-**For Examples**:
-- [examples/local_projects/customer_portal/](../../examples/local_projects/customer_portal/) - Complete working example
+**Examples**:
+- [Customer Portal Example](../../examples/local_projects/customer_portal/) - Complete 7-stage walkthrough
 
 ---
 

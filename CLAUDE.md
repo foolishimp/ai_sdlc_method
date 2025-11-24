@@ -474,7 +474,7 @@ See [docs/README.md](docs/README.md) for learning paths tailored to:
 
 ### Creating a Project Plugin
 
-See [PLUGIN_GUIDE.md](PLUGIN_GUIDE.md) for complete guide.
+See [docs/guides/PLUGIN_GUIDE.md](docs/guides/PLUGIN_GUIDE.md) for complete guide.
 
 **Quick example:**
 
@@ -529,7 +529,7 @@ This project evolved from and replaces:
 ## Questions?
 
 - **Quick Start**: See [QUICKSTART.md](QUICKSTART.md)
-- **Plugin Guide**: See [PLUGIN_GUIDE.md](PLUGIN_GUIDE.md)
+- **Plugin Guide**: See [docs/guides/PLUGIN_GUIDE.md](docs/guides/PLUGIN_GUIDE.md)
 - **Complete Methodology**: See [docs/ai_sdlc_method.md](docs/ai_sdlc_method.md)
 - **Examples**: See [examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)
 - **Documentation Index**: See [docs/README.md](docs/README.md)

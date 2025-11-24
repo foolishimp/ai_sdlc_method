@@ -514,7 +514,6 @@ python setup_commands.py --force
 - Claude commands (.claude/commands/)
 - Python installers
 - Plugin system
-- MCP service (legacy project/content management)
 
 ---
 
@@ -526,11 +525,6 @@ python setup_commands.py --force
 - Python 3.8+
 - pyyaml (for config parsing)
 - pathlib (standard library)
-
-**MCP Service:**
-- Python 3.8+
-- mcp
-- pyyaml
 
 **Claude Code Plugins:**
 - Claude Code CLI or VS Code extension
@@ -615,7 +609,6 @@ Before release:
 - [ ] Verify all slash commands work
 - [ ] Run traceability validation
 - [ ] Test example projects
-- [ ] Verify MCP service (if updated)
 
 ### 12.3 Release Process
 

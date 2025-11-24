@@ -1,20 +1,20 @@
 # AI SDLC Context Refresh for Claude
 
-**Version:** 2.0.0
+**Version:** 3.0.0 (v0.1.4 Implicit Session Model)
 **Purpose:** Load this to refresh Claude's context with AI SDLC methodology
-**When to use:** Start of session, after context loss, before any work, after violations
+**When to use:** After context loss, before any work, after violations
 
 ---
 
 ## 🎯 Core Principle
 
-**"No work without task tracking. No task without documentation."**
+**"Session = Context. Context persists in ACTIVE_TASKS.md."**
 
 **How to use this document:**
-1. Read at start of every session
-2. Read after making mistakes
-3. Read when unsure of workflow
-4. Reference quick cards at bottom for fast lookup
+1. Read after making mistakes
+2. Read when unsure of workflow
+3. Reference quick cards at bottom for fast lookup
+4. **Note**: You DON'T need to read this at session start - CLAUDE.md auto-loads context
 
 ---
 
@@ -23,57 +23,62 @@
 ```
 .ai-workspace/
 ├── tasks/
-│   ├── todo/
-│   │   └── TODO_LIST.md           # Quick capture (informal)
 │   ├── active/
-│   │   └── ACTIVE_TASKS.md        # Formal tasks (TDD required)
-│   └── finished/                  # Completed task documentation
-│       └── YYYYMMDD_HHMM_task_name.md
+│   │   └── ACTIVE_TASKS.md        # Single file: tasks + status + summary
+│   ├── finished/                  # Completed task documentation
+│   │   └── YYYYMMDD_HHMM_task_name.md
+│   └── archive/                   # Old completed tasks
 │
-├── session/
-│   └── current_session.md         # Active session tracking
+├── templates/                     # Templates for tasks
+│   ├── TASK_TEMPLATE.md
+│   ├── FINISHED_TASK_TEMPLATE.md
+│   ├── AISDLC_METHOD_REFERENCE.md (this file)
+│   └── deprecated/                # Archived session templates
+│       ├── SESSION_STARTER.md
+│       └── SESSION_TEMPLATE.md
 │
-├── templates/                     # Templates for tasks/sessions
 └── config/                        # Workspace configuration
 ```
 
 **CRITICAL RULES:**
 - ✅ **DO**: Put finished tasks in `.ai-workspace/tasks/finished/`
 - ❌ **DON'T**: Put tasks in `docs/`, `finished_tasks/`, or anywhere else
-- ✅ **DO**: Use `TodoWrite` tool for task tracking
+- ✅ **DO**: Use `TodoWrite` tool for task tracking during work
 - ❌ **DON'T**: Create task files manually without following workflow
+- ✅ **DO**: Update ACTIVE_TASKS.md via `/aisdlc-checkpoint-tasks`
+- ❌ **DON'T**: Manually edit ACTIVE_TASKS.md timestamp/summary sections
 
 ---
 
 ## 🔄 Proper Workflow (ALWAYS FOLLOW THIS!)
 
-### Session Start
-```bash
-/aisdlc-start-session
-# Claude prompts for:
-# - Primary goal (must complete)
-# - Secondary goal (should complete)
-# - Working mode (TDD / Bug Fix / Exploration)
-# - Check-in frequency (15 or 30 minutes)
-```
+### No Explicit Session Start Needed
+**v0.1.4 Change**: Context auto-loads via CLAUDE.md. Just open Claude and start working.
+
+**What auto-loads:**
+1. CLAUDE.md (project guide)
+2. This reference file (methodology)
+3. ACTIVE_TASKS.md (current work)
+
+**No ceremony. Just work.**
 
 ### During Work
 ```bash
-# Quick capture
-/aisdlc-todo "description"
-
 # Use TodoWrite tool to track progress
 # (Claude should proactively use this!)
+
+# Work on tasks from ACTIVE_TASKS.md
+# Follow TDD for code: RED → GREEN → REFACTOR
 ```
 
-### After Work
+### After Work (CRITICAL!)
 ```bash
 /aisdlc-checkpoint-tasks
 # Claude will:
 # - Review conversation history
 # - Evaluate active tasks
 # - Create finished task docs in CORRECT location
-# - Update ACTIVE_TASKS.md
+# - Update ACTIVE_TASKS.md (timestamp, status, summary)
 # - Provide summary report
 ```
 
@@ -93,12 +98,13 @@
   - Update status: pending → in_progress → completed
 
 ### Slash Commands
-- `/aisdlc-start-session` - Begin session
-- `/aisdlc-todo "desc"` - Quick capture
 - `/aisdlc-checkpoint-tasks` - Sync tasks with reality ⭐ **USE AFTER WORK**
 - `/aisdlc-finish-task <id>` - Complete specific task
 - `/aisdlc-commit-task <id>` - Generate commit message
-- `/aisdlc-status` - Show 7-stage SDLC status
+- `/aisdlc-status` - Show task queue status
+- `/aisdlc-release` - Deploy framework to example projects
+- `/apply-persona <name>` - Apply development persona
+- `/list-personas` - List available personas
 
 ### File Operations
 - **Read** - Read existing files
@@ -110,31 +116,33 @@
 
 ## 📋 Task Lifecycle
 
-### 1. Quick Todo (Informal)
-```markdown
-Location: .ai-workspace/tasks/todo/TODO_LIST.md
-Command: /aisdlc-todo "description"
-Purpose: Capture thoughts without breaking flow
-```
-
-### 2. Active Task (Formal)
+### 1. Active Task (Primary)
 ```markdown
 Location: .ai-workspace/tasks/active/ACTIVE_TASKS.md
-Required:
+Single file containing:
+- Task details (ID, priority, status, acceptance criteria)
+- Summary section (counts, recently completed)
+- Recovery commands
+
+Required per task:
 - Task ID
 - Priority (High/Medium/Low)
 - Status (Not Started/In Progress/Blocked)
 - Acceptance Criteria
-- Feature Flag (if code)
+- Feature Flag (if code, optional)
 - Requirement Traceability (REQ-*)
 
 TDD Required: YES (unless documentation task)
+
+Updated by: /aisdlc-checkpoint-tasks (timestamp, status, summary)
 ```
 
-### 3. Finished Task (Documentation)
+### 2. Finished Task (Documentation)
 ```markdown
 Location: .ai-workspace/tasks/finished/YYYYMMDD_HHMM_task_name.md
 Template: .ai-workspace/templates/FINISHED_TASK_TEMPLATE.md
+Created by: /aisdlc-checkpoint-tasks (when task completed)
+
 Required Sections:
 - Problem
 - Investigation
@@ -202,31 +210,40 @@ RIGHT: .ai-workspace/tasks/finished/YYYYMMDD_HHMM_task.md
 
 ### ❌ Workflow Violations
 ```
-WRONG: Start work immediately without task
 WRONG: Finish work without /aisdlc-checkpoint-tasks
 WRONG: Create task files manually
-RIGHT: /aisdlc-start-session → work → /aisdlc-checkpoint-tasks
+WRONG: Manually edit ACTIVE_TASKS.md sections
+RIGHT: Work → /aisdlc-checkpoint-tasks → commit
 ```
 
 ### ❌ Tool Violations
 ```
-WRONG: Don't use TodoWrite tool
+WRONG: Don't use TodoWrite tool during work
 WRONG: Manually create finished task files
-WRONG: Skip slash commands
+WRONG: Skip /aisdlc-checkpoint-tasks after work
 RIGHT: Use TodoWrite, use /aisdlc-checkpoint-tasks, follow workflow
+```
+
+### ❌ Outdated Command References
+```
+WRONG: /aisdlc-start-session (removed in v0.1.4)
+WRONG: /aisdlc-todo (removed in v0.1.4)
+WRONG: TODO_LIST.md (removed in v0.1.4)
+RIGHT: Just open Claude (context auto-loads), use ACTIVE_TASKS.md
 ```
 
 ---
 
 ## ✅ Pre-Flight Checklist (Before Starting ANY Work)
 
-1. [ ] Have I run `/aisdlc-start-session`?
-2. [ ] Is there a task in `ACTIVE_TASKS.md`?
-3. [ ] Am I using `TodoWrite` tool to track progress?
-4. [ ] Do I know which stage I'm in (Requirements/Design/Code/etc.)?
-5. [ ] Have I read this reference document?
+1. [ ] Is there a task in `ACTIVE_TASKS.md`? (If not, add one)
+2. [ ] Am I using `TodoWrite` tool to track progress?
+3. [ ] Do I know which stage I'm in (Requirements/Design/Code/etc.)?
+4. [ ] Will I run `/aisdlc-checkpoint-tasks` after completing work?
 
 **If ANY answer is "no", STOP and correct before proceeding.**
+
+**Note**: No need to run session start command - context auto-loads via CLAUDE.md
 
 ---
 
@@ -241,9 +258,14 @@ RIGHT: Use TodoWrite, use /aisdlc-checkpoint-tasks, follow workflow
 
 ### If you violated workflow:
 1. **STOP** and acknowledge
-2. Run `/aisdlc-checkpoint-tasks`
+2. Run `/aisdlc-checkpoint-tasks` to sync reality with docs
 3. Properly document work retroactively
 4. Learn from violation
+
+### If you used removed commands:
+1. **STOP** - /aisdlc-start-session and /aisdlc-todo were removed in v0.1.4
+2. Use ACTIVE_TASKS.md directly (single file model)
+3. Context auto-loads - no explicit session start needed
 
 ### If you're unsure:
 1. **ASK** the user before proceeding
@@ -253,26 +275,34 @@ RIGHT: Use TodoWrite, use /aisdlc-checkpoint-tasks, follow workflow
 
 ---
 
-## 📚 Quick Reference Card
+## 📚 Quick Reference Card (v0.1.4)
 
 ### File Locations
 | What | Where |
 |------|-------|
-| Quick todos | `.ai-workspace/tasks/todo/TODO_LIST.md` |
-| Active tasks | `.ai-workspace/tasks/active/ACTIVE_TASKS.md` |
+| Active tasks | `.ai-workspace/tasks/active/ACTIVE_TASKS.md` ⭐ (single file) |
 | Finished tasks | `.ai-workspace/tasks/finished/YYYYMMDD_HHMM_*.md` |
-| Session tracking | `.ai-workspace/session/current_session.md` |
 | Templates | `.ai-workspace/templates/` |
+| Archived sessions | `.ai-workspace/templates/deprecated/SESSION_*.md` |
 
-### Commands
+### Commands (Current)
 | When | Command |
 |------|---------|
-| Start session | `/aisdlc-start-session` |
-| Quick capture | `/aisdlc-todo "desc"` |
 | After work | `/aisdlc-checkpoint-tasks` ⭐ |
 | Finish task | `/aisdlc-finish-task <id>` |
 | Commit | `/aisdlc-commit-task <id>` |
-| Check stage | `/aisdlc-status` |
+| Check status | `/aisdlc-status` |
+| Deploy framework | `/aisdlc-release` |
+| Apply persona | `/apply-persona <name>` |
+
+### Removed Commands (v0.1.4)
+| Removed | Reason |
+|---------|--------|
+| `/aisdlc-start-session` | Context auto-loads (implicit model) |
+| `/aisdlc-todo` | Over-engineered, use ACTIVE_TASKS.md directly |
+| `/switch-context` | Not MVP |
+| `/load-context` | Not MVP |
+| `/current-context` | Not MVP |
 
 ### TDD Cycle
 ```
@@ -286,10 +316,6 @@ COMMIT → Save with REQ tags
 
 ## 🎓 Learning from Common Violations
 
-**Violation: Started work without session setup**
-- ❌ Started coding immediately
-- ✅ Should: `/aisdlc-start-session` → add to ACTIVE_TASKS.md → work
-
 **Violation: Put finished task in wrong location**
 - ❌ Created in `docs/finished_tasks/`
 - ✅ Should: `.ai-workspace/tasks/finished/YYYYMMDD_HHMM_*.md`
@@ -302,16 +328,39 @@ COMMIT → Save with REQ tags
 - ❌ Finished work without `/aisdlc-checkpoint-tasks`
 - ✅ Should: Always checkpoint after work to sync docs
 
+**Violation: Used removed commands**
+- ❌ Tried to use `/aisdlc-start-session` or `/aisdlc-todo`
+- ✅ Should: v0.1.4 uses implicit sessions, ACTIVE_TASKS.md only
+
 **Key Takeaways:**
-1. Load this document at session start
+1. Context auto-loads - no explicit session start needed
 2. Use `/aisdlc-checkpoint-tasks` after ANY work
-3. Never create files manually - use commands/tools
-4. When in doubt, ASK before proceeding
+3. Single file: ACTIVE_TASKS.md (no TODO_LIST.md, no session files)
+4. Never create files manually - use commands/tools
+5. When in doubt, ASK before proceeding
 
 ---
 
-**Version:** 2.0.0
-**Last Updated:** 2025-11-23
+## 📦 Version History
+
+**v3.0.0 (2025-11-25)** - Implicit Session Model (v0.1.4)
+- Removed /aisdlc-start-session (context auto-loads)
+- Removed /aisdlc-todo and TODO_LIST.md
+- Single file: ACTIVE_TASKS.md (tasks + status + summary)
+- No session/ directory (implicit sessions)
+- Simplified workflow: work → checkpoint → commit
+
+**v2.0.0 (2025-11-23)** - Explicit Session Model
+- Formal session start with goals
+- Two-tier task system (todos + formal tasks)
+- Session tracking in session/
+
+**v1.0.0** - Initial release
+
+---
+
+**Version:** 3.0.0
+**Last Updated:** 2025-11-25 (v0.1.4 release)
 **Maintained By:** AI SDLC Method Team
 
 **"Excellence or nothing"** 🔥
