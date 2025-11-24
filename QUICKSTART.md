@@ -6,7 +6,7 @@ Get started with the **7-Stage AI SDLC Methodology** in 3 different ways:
 3. Through Claude Desktop (MCP)
 
 ## Table of Contents
-- [What is ai_sdlc_method?](#what-is-ai_sdlc_context)
+- [What is ai_sdlc_method?](#what-is-ai_sdlc_method)
 - [Method 1: Claude Code Plugin (Recommended)](#method-1-claude-code-plugin-recommended)
 - [Method 2: Direct Python Usage](#method-2-direct-python-usage)
 - [Method 3: MCP with Claude Desktop](#method-3-mcp-with-claude-desktop)
@@ -30,17 +30,17 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 1. **Requirements** - Transform intent into structured requirements (REQ-F-*, REQ-NFR-*, REQ-DATA-*)
 2. **Design** - Create technical solution architecture (components, APIs, data models)
 3. **Tasks** - Break down into work units with Jira orchestration
-4. **Code** - TDD implementation (RED → GREEN → REFACTOR) + Key Principles principles
+4. **Code** - TDD implementation (RED → GREEN → REFACTOR) + Key Principles
 5. **System Test** - BDD integration testing (Given/When/Then scenarios)
 6. **UAT** - Business validation and sign-off
 7. **Runtime Feedback** - Production telemetry closes the loop back to requirements
 
 ### Key Features
 
-✅ **Requirement Traceability** - Track requirement keys from intent to runtime
+✅ **Requirement Traceability** - Auto-generated matrix tracking REQ-* from intent to runtime
 ✅ **AI Agent Configurations** - Detailed specs for AI agents at each SDLC stage
 ✅ **Bidirectional Feedback** - Production issues flow back to requirements
-✅ **Key Principles Principles** - Foundation for Code stage (TDD, Fail Fast, etc.)
+✅ **Key Principles** - Foundation for Code stage (TDD, Fail Fast, Modular, etc.)
 ✅ **Claude Code Plugins** - Installable methodology and standards
 ✅ **Federated Architecture** - Compose contexts across corporate → division → team → project
 
@@ -59,66 +59,33 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 ### Quick Start Example
 
 ```bash
-# See available projects
+# Install methodology plugin
 /plugin install @aisdlc/aisdlc-methodology
 
 # Claude now has access to:
 # - Complete 7-stage AI SDLC methodology
 # - AI agent configurations for each stage
-# - Key Principles principles
+# - Key Principles (TDD, Fail Fast, Modular, etc.)
 # - TDD workflow (RED → GREEN → REFACTOR)
 # - BDD testing guides
-# - Requirement traceability system
+# - Requirement traceability system (auto-generated)
 ```
 
 ### Example: Customer Portal Development
-
-Create a project using the 7-stage methodology:
-
-**Your `.claude/settings.json`:**
-```json
-{
-  "plugins": [
-    "@aisdlc/aisdlc-methodology",
-    "@aisdlc/python-standards"
-  ]
-}
-```
-
-**Your project's `config.yml`:**
-```yaml
-ai_sdlc:
-  methodology_plugin: "file://plugins/aisdlc-methodology/config/stages_config.yml"
-
-  enabled_stages:
-    - requirements    # Intent → Structured requirements
-    - design          # Requirements → Technical solution
-    - tasks           # Work breakdown + Jira
-    - code            # TDD (RED → GREEN → REFACTOR)
-    - system_test     # BDD integration testing
-    - uat             # Business validation
-    - runtime_feedback # Production telemetry feedback
-
-  stages:
-    code:
-      testing:
-        coverage_minimum: 90
-      key.principles:
-        enabled: true
-```
 
 **Ask Claude:**
 ```
 "Help me implement the authentication feature following the AI SDLC methodology"
 
 Claude will:
-1. Generate requirements (REQ-F-AUTH-001, etc.)
+1. Generate requirements (REQ-F-AUTH-001, REQ-NFR-PERF-001, etc.)
 2. Create design artifacts (component diagrams, APIs)
 3. Break into tasks (Jira tickets with REQ tags)
 4. Implement using TDD (RED → GREEN → REFACTOR)
 5. Generate BDD tests (Given/When/Then)
 6. Create UAT scenarios
 7. Set up runtime telemetry with REQ key tagging
+8. Auto-generate traceability matrix showing all linkages
 ```
 
 ### See Complete Example
@@ -157,19 +124,24 @@ code_stage = methodology['ai_sdlc']['stages']['code']
 
 # Get agent configuration for Requirements stage
 requirements_agent = requirements_stage['agent']
-print(f"Role: {requirements_agent['role']}")
-print(f"Purpose: {requirements_agent['purpose']}")
+print(f"Role: {requirements_agent['role']}")  # "Intent Store & Traceability Hub"
 
-# Get Key Principles principles for Code stage
-key.principles = code_stage['key.principles']
-print(f"TDD Workflow: {key.principles['tdd']['workflow']}")
+# Get traceability matrix specification
+traceability = requirements_stage['outputs']['traceability_matrix']
+print(f"Tool: {traceability['tool']}")  # "validate_traceability.py --matrix"
 ```
 
-### Run Examples
+### Generate Traceability Matrix
 
 ```bash
-# See all 7 stages in action
-python examples/local_projects/customer_portal/walkthrough.py
+# Auto-generate requirements traceability matrix
+python installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
+
+# Auto-generate component inventory
+python installers/validate_traceability.py --inventory > INVENTORY.md
+
+# Validate traceability (check for gaps)
+python installers/validate_traceability.py --check-all
 ```
 
 ---
@@ -180,7 +152,7 @@ For Claude Desktop users, the MCP service provides 7-stage AI SDLC support.
 
 ### Quick Setup
 
-See [mcp_service/README.md](mcp_service/README.md) and [mcp_service/MCP_SDLC_INTEGRATION_PLAN.md](mcp_service/MCP_SDLC_INTEGRATION_PLAN.md) for complete instructions.
+See [mcp_service/README.md](mcp_service/README.md) for complete instructions.
 
 **Summary:**
 1. `pip install mcp pyyaml`
@@ -188,36 +160,7 @@ See [mcp_service/README.md](mcp_service/README.md) and [mcp_service/MCP_SDLC_INT
 3. Restart Claude Desktop
 4. Ask Claude: "What MCP tools are available?"
 
-### Using MCP Tools (Planned)
-
-**Example Conversation:**
-
-```
-You: "Load the customer_portal project for the Requirements stage"
-Claude: [uses load_stage_context]
-        Loads Requirements Agent configuration with requirement types
-
-You: "Generate requirements for user authentication feature"
-Claude: [uses Requirements Agent spec]
-        Generates:
-        - REQ-F-AUTH-001: "User login with email/password"
-        - REQ-NFR-PERF-001: "Login response < 500ms"
-        - REQ-DATA-001: "Email must be valid format"
-
-You: "Switch to Code stage"
-Claude: [uses load_stage_context with stage="code"]
-        Loads Code Agent with Key Principles principles + TDD workflow
-
-You: "Implement REQ-F-AUTH-001"
-Claude: [uses Code Agent spec]
-        Follows TDD workflow:
-        1. RED: Write failing test_user_login()
-        2. GREEN: Implement login() to pass
-        3. REFACTOR: Clean up code
-        4. Tag code with # Implements: REQ-F-AUTH-001
-```
-
-**Note**: Full MCP integration for 7-stage methodology is in progress. See [mcp_service/MCP_SDLC_INTEGRATION_PLAN.md](mcp_service/MCP_SDLC_INTEGRATION_PLAN.md) for details.
+**Note**: Full MCP integration for 7-stage methodology is in progress. See [mcp_service/MCP_SDLC_INTEGRATION_PLAN.md](mcp_service/MCP_SDLC_INTEGRATION_PLAN.md) for roadmap.
 
 ---
 
@@ -244,55 +187,52 @@ Claude guides you through:
 6. UAT: Business validation test cases
 7. Runtime Feedback: Setup telemetry with REQ key tagging
 
-Result: Complete traceability from intent to production
+Result:
+- Complete traceability from intent to production
+- Auto-generated traceability matrix (docs/TRACEABILITY_MATRIX.md)
+- 70%+ implementation coverage, 25%+ test coverage
 ```
 
 ### Use Case 2: Code Stage Only (TDD Focus)
 
 **Scenario:** You already have requirements and design, just need implementation.
 
-**With Claude Code Plugin:**
-```yaml
-# config.yml - Enable only Code stage
-ai_sdlc:
-  enabled_stages:
-    - code  # TDD implementation only
-
-  stages:
-    code:
-      key.principles:
-        enabled: true
-      tdd:
-        workflow: "RED → GREEN → REFACTOR"
-      testing:
-        coverage_minimum: 80
-```
-
-Claude will:
-- Follow TDD workflow strictly
-- Apply Key Principles principles
-- Ensure 80%+ test coverage
-- Tag code with requirement keys
-
-### Use Case 3: Multi-Stage Review
-
-**Scenario:** Review code across different SDLC perspectives.
-
 **Ask Claude:**
 ```
-"Review this authentication code from Requirements, Code, and System Test perspectives"
+"Implement these requirements using TDD and the Key Principles"
 
-Claude reviews:
-1. Requirements Stage: Does code satisfy REQ-F-AUTH-001?
-2. Code Stage: Does code follow TDD and Key Principles principles?
-3. System Test Stage: Are there BDD scenarios validating the requirements?
+Claude will:
+- Follow TDD workflow strictly (RED → GREEN → REFACTOR)
+- Apply Key Principles (Test First, Fail Fast, Modular, etc.)
+- Ensure test coverage meets targets
+- Tag code with requirement keys (# Implements: REQ-*)
+```
+
+### Use Case 3: Traceability Audit
+
+**Scenario:** Understand which requirements are implemented and tested.
+
+```bash
+# Generate traceability matrix
+python installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
+
+# View summary
+cat docs/TRACEABILITY_MATRIX.md | head -30
+
+Output:
+- Total Requirements: 20
+- Implementation Coverage: 70.0% (14/20)
+- Test Coverage: 25.0% (5/20)
+- Design Coverage: 165.0%
+
+# Identify gaps
+python installers/validate_traceability.py --check-all
 ```
 
 ### Use Case 4: Runtime Issue → New Intent
 
 **Scenario:** Production alert triggers feedback loop to requirements.
 
-**With Runtime Feedback Stage:**
 ```
 Alert: "ERROR: REQ-F-AUTH-001 - Auth timeout in production"
 
@@ -317,8 +257,9 @@ New cycle begins at Requirements stage
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  1. REQUIREMENTS STAGE                                      │
+│  1. REQUIREMENTS STAGE (Traceability Hub)                   │
 │     • Transform intent → structured requirements            │
+│     • Generate traceability matrix (auto)                   │
 │     • Output: REQ-F-AUTH-001, REQ-NFR-PERF-001, etc.       │
 └────────────────────────┬────────────────────────────────────┘
                          │
@@ -340,7 +281,7 @@ New cycle begins at Requirements stage
 ┌─────────────────────────────────────────────────────────────┐
 │  4. CODE STAGE                                              │
 │     • TDD: RED → GREEN → REFACTOR                          │
-│     • Key Principles principles                               │
+│     • Key Principles (7 principles)                         │
 │     • Output: auth_service.py # Implements: REQ-F-AUTH-001 │
 └────────────────────────┬────────────────────────────────────┘
                          │
@@ -348,7 +289,7 @@ New cycle begins at Requirements stage
 ┌─────────────────────────────────────────────────────────────┐
 │  5. SYSTEM TEST STAGE                                       │
 │     • BDD: Given/When/Then scenarios                        │
-│     • Output: auth.feature validating REQ-F-AUTH-001       │
+│     • Output: auth.feature # Validates: REQ-F-AUTH-001     │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
@@ -373,17 +314,23 @@ New cycle begins at Requirements stage
 ## Documentation
 
 ### Core Methodology
-- [docs/ai_sdlc_overview.md](docs/ai_sdlc_overview.md) - High-level overview (~30 min read) ⭐ **Start here**
-- [docs/ai_sdlc_method.md](docs/ai_sdlc_method.md) - Complete 7-stage methodology (3,300+ lines)
-- [docs/ai_sdlc_appendices.md](docs/ai_sdlc_appendices.md) - Technical deep-dives
-- [docs/README.md](docs/README.md) - Documentation index with role-based learning paths
+- **[docs/README.md](docs/README.md)** - Documentation index with role-based learning paths ⭐ **Start here**
+- [docs/requirements/examples/AI_SDLC_OVERVIEW.md](docs/requirements/examples/AI_SDLC_OVERVIEW.md) - High-level overview (~30 min read)
+- [docs/requirements/examples/AI_SDLC_REQUIREMENTS.md](docs/requirements/examples/AI_SDLC_REQUIREMENTS.md) - Complete examples with 7-stage methodology
+- [plugins/aisdlc-methodology/config/stages_config.yml](plugins/aisdlc-methodology/config/stages_config.yml) - Complete agent specifications (1,273 lines)
+
+### Implementation Requirements
+- [docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) - 20 requirements for building ai_sdlc_method itself
+- [docs/TRACEABILITY_MATRIX.md](docs/TRACEABILITY_MATRIX.md) - Auto-generated traceability matrix
+- [docs/REQUIREMENTS_AUDIT.md](docs/REQUIREMENTS_AUDIT.md) - Requirements audit and analysis
 
 ### Plugin Documentation
 - [plugins/README.md](plugins/README.md) - Plugin creation and usage guide
 - [plugins/aisdlc-methodology/README.md](plugins/aisdlc-methodology/README.md) - Methodology plugin docs
+- [plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - The 7 Key Principles
 
 ### Examples
-- [examples/local_projects/customer_portal/README.md](examples/local_projects/customer_portal/README.md) - Complete 7-stage walkthrough (800+ lines)
+- **[examples/local_projects/customer_portal/README.md](examples/local_projects/customer_portal/README.md)** - Complete 7-stage walkthrough (800+ lines) ⭐
 - [examples/README.md](examples/README.md) - All examples overview
 
 ### MCP Service (Non-Claude LLMs)
@@ -392,142 +339,108 @@ New cycle begins at Requirements stage
 
 ---
 
-## Updating & Refreshing
+## Component Inventory
+
+See [INVENTORY.md](INVENTORY.md) for complete list of all components.
+
+**Quick Stats** (v0.1.0):
+- **Implementation Requirements:** 20 (70% implemented, 25% tested)
+- **Templates:** 38 files (~27,400 lines)
+- **Plugins:** 9 plugins + 4 bundles
+- **Commands:** 16 slash commands
+- **Agents:** 7 stage-specific agents
+- **Total:** 129+ files (~48,900 lines)
+
+**Auto-Generated Artifacts:**
+- `docs/TRACEABILITY_MATRIX.md` - Requirement coverage matrix
+- `INVENTORY.md` - Component inventory (can be auto-generated)
+
+---
+
+## Installation Methods
+
+### Method 1: Claude Code Marketplace (Recommended)
+
+```bash
+# Add marketplace
+/plugin marketplace add foolishimp/ai_sdlc_method
+
+# Install plugins
+/plugin install @aisdlc/aisdlc-methodology
+
+# Check status
+/plugin list
+```
+
+**Pros:** Easy to use, auto-updates
+**Cons:** Plugins only (no templates/commands)
+
+### Method 2: Python Installer (Complete)
+
+```bash
+# Clone repository
+git clone https://github.com/foolishimp/ai_sdlc_method.git
+cd ai_sdlc_method
+
+# Install to your project
+python installers/setup_all.py \
+  --target /path/to/your/project \
+  --with-plugins \
+  --bundle startup
+```
+
+**Pros:** Complete installation (templates, commands, agents, plugins)
+**Cons:** Manual updates
+
+### Method 3: Hybrid (Best of Both)
+
+Use Python installers for templates/commands, marketplace for plugins:
+
+```bash
+# Install workspace and commands
+python installers/setup_workspace.py --target /path/to/your/project
+python installers/setup_commands.py --target /path/to/your/project
+
+# Install plugins via marketplace
+/plugin install @aisdlc/aisdlc-methodology
+```
+
+**Pros:** Flexibility + convenience
+**Cons:** Two-step process
+
+---
+
+## Updating
 
 ### Check Current Version
 
 ```bash
-# Check installed version
-cat ~/.config/claude/plugins/aisdlc-methodology/README.md | grep "Version"
+# View version tags
+git tag -l "v*"
 
-# Check component inventory
-cat INVENTORY.md  # See complete component list
+# Current version
+cat INVENTORY.md | grep "Version:"
 ```
 
-### Update Strategies
-
-#### Strategy 1: Marketplace Update (Plugins Only)
-
-**Best for:** Production use, automatic updates
+### Update Plugins
 
 ```bash
-# Update all plugins
+# Claude Code marketplace
 /plugin update @aisdlc/aisdlc-methodology
-/plugin update @aisdlc/python-standards
-
-# Lists available updates
-/plugin list
 ```
 
-**Note:** This only updates plugins, not templates or commands.
-
-#### Strategy 2: Python Installer Refresh (Complete)
-
-**Best for:** Development, dogfooding, full control
+### Update Templates & Commands
 
 ```bash
-# Navigate to your project
+# Navigate to ai_sdlc_method repository
+cd /path/to/ai_sdlc_method
+git pull
+
+# Refresh your project
 cd /path/to/your/project
-
-# Backup
-git commit -am "Checkpoint before AISDLC refresh"
-
-# Full refresh
-python /path/to/ai_sdlc_method/installers/setup_all.py \
-  --force \
-  --with-plugins \
-  --bundle startup
-
-# Review and commit
-git diff
-git add .
-git commit -m "Update AI SDLC Method to latest version"
-```
-
-#### Strategy 3: Hybrid (Recommended)
-
-**Best for:** Flexibility + convenience
-
-**Templates/Commands:** Use Python installers
-```bash
-# Update workspace and commands
 python /path/to/ai_sdlc_method/installers/setup_workspace.py --force
 python /path/to/ai_sdlc_method/installers/setup_commands.py --force
 ```
-
-**Plugins:** Use marketplace
-```bash
-/plugin update @aisdlc/aisdlc-methodology
-```
-
-### Create Project Update Script
-
-Add to your project for easy refresh:
-
-```bash
-# Create refresh script
-mkdir -p .ai-workspace/scripts
-cat > .ai-workspace/scripts/refresh_aisdlc.sh <<'EOF'
-#!/bin/bash
-# Refresh AI SDLC Method from repository
-
-AISDLC_ROOT="/path/to/ai_sdlc_method"
-PROJECT_ROOT="$(pwd)"
-
-echo "🔄 Refreshing AI SDLC Method..."
-
-# Backup
-git commit -am "Checkpoint before AISDLC refresh" || true
-
-# Refresh all components
-python "$AISDLC_ROOT/installers/setup_all.py" \
-  --target "$PROJECT_ROOT" \
-  --force \
-  --with-plugins \
-  --bundle startup
-
-echo "✅ Refresh complete! Review: git diff"
-EOF
-
-chmod +x .ai-workspace/scripts/refresh_aisdlc.sh
-```
-
-**Usage:**
-```bash
-bash .ai-workspace/scripts/refresh_aisdlc.sh
-```
-
-### What Gets Updated
-
-| Component | Installer | Marketplace |
-|-----------|-----------|-------------|
-| .ai-workspace/ | ✅ Yes | ❌ No |
-| .claude/commands/ | ✅ Yes | ❌ No |
-| .claude/agents/ | ✅ Yes | ❌ No |
-| Plugins | ✅ Yes | ✅ Yes |
-| CLAUDE.md | ✅ Yes | ❌ No |
-
-**Recommendation:**
-- **Use installers** for templates, commands, and agents
-- **Use marketplace** for plugins (easier version tracking)
-
----
-
-## Component Inventory
-
-See [INVENTORY.md](INVENTORY.md) for complete list of:
-- All templates and their versions
-- All plugins and dependencies
-- All installers and their capabilities
-- Update strategies and deployment matrix
-- Version history and breaking changes
-
-**Quick Stats:**
-- **Templates:** 36 files (~27,000 lines)
-- **Plugins:** 10 plugins + 4 bundles
-- **Commands:** 16 slash commands
-- **Agents:** 7 stage-specific agents
-- **Total:** 127+ files (~48,500 lines)
 
 ---
 
@@ -535,17 +448,17 @@ See [INVENTORY.md](INVENTORY.md) for complete list of:
 
 ### For New Users
 
-1. **Read the methodology**: Start with [docs/ai_sdlc_overview.md](docs/ai_sdlc_overview.md), then [docs/ai_sdlc_method.md](docs/ai_sdlc_method.md)
-2. **Review the example**: [examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)
-3. **Install the plugin**: `/plugin install @aisdlc/aisdlc-methodology`
+1. **Learn the methodology**: Read [docs/README.md](docs/README.md) for role-based learning paths
+2. **Review example**: [examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)
+3. **Install plugin**: `/plugin install @aisdlc/aisdlc-methodology`
 4. **Start developing**: Ask Claude to follow the 7-stage AI SDLC methodology
 
-### For Existing Users
+### For Developers
 
-1. **Check updates**: Review [INVENTORY.md](INVENTORY.md) version history
-2. **Update components**: Use one of the refresh strategies above
-3. **Review changes**: Check git diff for breaking changes
-4. **Test**: Run `/aisdlc-status` to verify installation
+1. **Review implementation requirements**: [docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
+2. **Check traceability**: [docs/TRACEABILITY_MATRIX.md](docs/TRACEABILITY_MATRIX.md)
+3. **Read Key Principles**: [plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
+4. **Follow TDD workflow**: [plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md](plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
 
 ### For Role-Specific Learning
 
@@ -562,10 +475,21 @@ See [docs/README.md](docs/README.md) for learning paths tailored to:
 ## Support & Resources
 
 - **Component Inventory:** [INVENTORY.md](INVENTORY.md) - Complete deployment guide
+- **Traceability Matrix:** [docs/TRACEABILITY_MATRIX.md](docs/TRACEABILITY_MATRIX.md) - Auto-generated coverage
 - **New Project Setup:** [NEW_PROJECT_SETUP.md](NEW_PROJECT_SETUP.md) - Step-by-step setup
 - **Plugin Guide:** [PLUGIN_GUIDE.md](PLUGIN_GUIDE.md) - Plugin creation and usage
 - **Issues:** https://github.com/foolishimp/ai_sdlc_method/issues
 - **Examples:** [examples/](examples/) - Working examples
+
+---
+
+## Version History
+
+- **v0.1.0** (2025-11-24) - Initial Requirements Traceability Implementation
+  - Requirements Agent as Traceability Hub
+  - Auto-generated traceability matrix
+  - 20 implementation requirements (70% implemented, 25% tested)
+  - Clean separation: implementation vs example requirements
 
 ---
 
