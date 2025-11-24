@@ -7,7 +7,7 @@ Apply a role-based persona to the current project context. This customizes how C
 ## Usage
 
 ```
-/apply-persona <persona-name>
+/aisdlc-apply-persona <persona-name>
 ```
 
 ## Available Personas
@@ -31,7 +31,7 @@ When you apply a persona, Claude will:
 
 ```bash
 # Apply security engineer persona
-/apply-persona security_engineer
+/aisdlc-apply-persona security_engineer
 
 # Claude now focuses on:
 # • Security vulnerabilities
@@ -42,7 +42,7 @@ When you apply a persona, Claude will:
 
 ```bash
 # Apply business analyst persona
-/apply-persona business_analyst
+/aisdlc-apply-persona business_analyst
 
 # Claude now focuses on:
 # • Business requirements
@@ -57,13 +57,13 @@ Personas work ON TOP of project contexts:
 ```bash
 # Load project then apply persona
 /load-context payment_gateway
-/apply-persona security_engineer
+/aisdlc-apply-persona security_engineer
 
 # Result: Payment gateway requirements + security focus
 ```
 
 ## See Also
 
-- `/list-personas` - See all available personas
-- `/switch-persona` - Switch to different persona
-- `/persona-checklist` - Get review checklist
+- `/aisdlc-list-personas` - See all available personas
+- `/aisdlc-switch-persona` - Switch to different persona
+- `/aisdlc-persona-checklist` - Get review checklist

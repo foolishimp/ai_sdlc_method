@@ -7,7 +7,7 @@ Get the code review checklist for the current or specified persona.
 ## Usage
 
 ```
-/persona-checklist [persona-name]
+/aisdlc-persona-checklist [persona-name]
 ```
 
 If no persona name is provided, shows checklist for currently active persona.
@@ -51,13 +51,13 @@ DevOps Review Checklist:
 
 ```bash
 # Get checklist for current persona
-/persona-checklist
+/aisdlc-persona-checklist
 
 # Get checklist for specific persona
-/persona-checklist security_engineer
+/aisdlc-persona-checklist security_engineer
 ```
 
 ## See Also
 
-- `/apply-persona` - Apply a persona
-- `/list-personas` - See all personas
+- `/aisdlc-apply-persona` - Apply a persona
+- `/aisdlc-list-personas` - See all personas

@@ -8,11 +8,11 @@ Installs the .claude/commands/ directory into a target project.
 # Implements: REQ-F-CMD-002 (Persona management commands)
 
 The commands provide slash command functionality:
-- /todo - Quick task capture
-- /start-session - Begin development session
-- /finish-task - Complete task with documentation
-- /commit-task - Commit with proper message
-- /apply-persona - Apply development persona
+- /aisdlc-checkpoint-tasks - Save progress and update task status
+- /aisdlc-finish-task - Complete task with documentation
+- /aisdlc-commit-task - Commit with proper message
+- /aisdlc-status - Show task queue status
+- /aisdlc-apply-persona - Apply development persona
 - And more...
 
 Usage:
@@ -105,9 +105,9 @@ class CommandsSetup(InstallerBase):
         """Print next steps for the user."""
         print("\n📚 Next Steps:")
         print("1. List available commands: ls .claude/commands/")
-        print("2. Try a command: /todo \"test the new commands\"")
-        print("3. Start a session: /start-session")
-        print("4. View command details: cat .claude/commands/start-session.md")
+        print("2. Check task status: /aisdlc-status")
+        print("3. Work on tasks from ACTIVE_TASKS.md")
+        print("4. View command details: cat .claude/commands/aisdlc-checkpoint-tasks.md")
         print("\n📝 Available slash commands:")
 
         # List actual commands

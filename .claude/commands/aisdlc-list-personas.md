@@ -7,7 +7,7 @@ Show all available role-based personas that can be applied to project contexts.
 ## Usage
 
 ```
-/list-personas
+/aisdlc-list-personas
 ```
 
 ## Available Personas
@@ -30,6 +30,6 @@ Personas let you view the same project through different role lenses:
 
 ## See Also
 
-- `/apply-persona` - Apply a persona to current context
-- `/switch-persona` - Switch between personas
-- `/persona-checklist` - Get persona-specific review checklist
+- `/aisdlc-apply-persona` - Apply a persona to current context
+- `/aisdlc-switch-persona` - Switch between personas
+- `/aisdlc-persona-checklist` - Get persona-specific review checklist

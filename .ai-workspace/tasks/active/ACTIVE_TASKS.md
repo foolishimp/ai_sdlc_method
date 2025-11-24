@@ -1,8 +1,9 @@
 # Active Tasks
 
-*Last Updated: 2025-11-25 03:01*
+*Last Updated: 2025-11-25 03:06*
 
 ---
+
 
 ## Task #3: Complete Design Documentation for Command System
 
@@ -50,6 +51,11 @@ N/A - Documentation task
 - Not Started: 1 (needs scope update)
 
 **Recently Completed**:
+- ✅ Task #6: Rename Persona Commands with aisdlc- Prefix (2025-11-25 03:06)
+  - Renamed 4 persona commands for consistency (8 files total)
+  - Updated installer and cross-references
+  - Command naming now 100% consistent (10/10 with aisdlc- prefix)
+  - See: `.ai-workspace/tasks/finished/20251125_0305_rename_persona_commands_aisdlc_prefix.md`
 - ✅ Impromptu: Root Folder Cleanup and Guide Updates (2025-11-25 03:01)
   - Reorganized root folder (9 → 3 files)
   - Created docs/info/ and docs/guides/ directories
