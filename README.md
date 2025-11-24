@@ -34,8 +34,9 @@ Each stage has:
 - **Traceability** to requirement keys
 - **Personas** (human roles and AI agents)
 
-👉 **Quick Introduction**: [AI SDLC Overview](docs/ai_sdlc_overview.md) (~30 min read)
-👉 **Complete Methodology**: [AI SDLC Method](docs/ai_sdlc_method.md) (Sections 1-13)
+👉 **Start Here**: [The AI SDLC Journey](docs/JOURNEY.md) - Complete happy path from setup to UAT (3 hour guided tour) ⭐
+👉 **Quick Introduction**: [AI SDLC Overview](docs/requirements/examples/AI_SDLC_OVERVIEW.md) (~30 min read)
+👉 **Complete Methodology**: [AI SDLC Requirements](docs/requirements/examples/AI_SDLC_REQUIREMENTS.md) (Sections 1-13)
 👉 **Example Project**: [customer_portal](examples/local_projects/customer_portal/)
 
 ---

@@ -88,8 +88,9 @@ Claude will:
 8. Auto-generate traceability matrix showing all linkages
 ```
 
-### See Complete Example
+### See Complete Examples
 
+👉 **[docs/JOURNEY.md](docs/JOURNEY.md)** - Complete happy path from setup to UAT (3 hour guided journey) ⭐
 👉 **[examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)** - Complete 7-stage walkthrough (800+ lines)
 
 ---
@@ -448,10 +449,11 @@ python /path/to/ai_sdlc_method/installers/setup_commands.py --force
 
 ### For New Users
 
-1. **Learn the methodology**: Read [docs/README.md](docs/README.md) for role-based learning paths
-2. **Review example**: [examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)
-3. **Install plugin**: `/plugin install @aisdlc/aisdlc-methodology`
-4. **Start developing**: Ask Claude to follow the 7-stage AI SDLC methodology
+1. **Follow the journey**: Read [docs/JOURNEY.md](docs/JOURNEY.md) - Complete happy path from setup to UAT ⭐
+2. **Learn the methodology**: Read [docs/README.md](docs/README.md) for role-based learning paths
+3. **Review example**: [examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)
+4. **Install plugin**: `/plugin install @aisdlc/aisdlc-methodology`
+5. **Start developing**: Ask Claude to follow the 7-stage AI SDLC methodology
 
 ### For Developers
 
@@ -474,6 +476,7 @@ See [docs/README.md](docs/README.md) for learning paths tailored to:
 
 ## Support & Resources
 
+- **Happy Path Journey:** [docs/JOURNEY.md](docs/JOURNEY.md) - Setup to UAT guided tour ⭐
 - **Component Inventory:** [INVENTORY.md](INVENTORY.md) - Complete deployment guide
 - **Traceability Matrix:** [docs/TRACEABILITY_MATRIX.md](docs/TRACEABILITY_MATRIX.md) - Auto-generated coverage
 - **New Project Setup:** [NEW_PROJECT_SETUP.md](NEW_PROJECT_SETUP.md) - Step-by-step setup
