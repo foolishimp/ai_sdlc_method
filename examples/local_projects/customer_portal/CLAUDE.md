@@ -6,21 +6,29 @@ This file provides guidance to Claude Code when working with this project.
 
 This project uses the **AI SDLC Method** - a comprehensive framework for AI-augmented software development.
 
-### Quick Start
+### Context Auto-Loading
 
-**Start a development session:**
-```bash
-/start-session
-```
+**IMPORTANT**: This project uses an **implicit session model** where context loads automatically when Claude Code starts.
 
-**Capture quick ideas:**
-```bash
-/todo "your task description"
-```
+**What Auto-Loads:**
+1. This file (CLAUDE.md) - Project guide
+2. Method Reference - `.ai-workspace/templates/AISDLC_METHOD_REFERENCE.md`
+3. Active Tasks - `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
 
-**View active tasks:**
+**One File. That's It.**
+
+### No Explicit Session Start Needed
+
+- **Session = Context** - Your "session" is simply your current working context
+- **Context persists** - Automatically saved via `/aisdlc-checkpoint-tasks`
+- **No ceremony** - Just open Claude and start working
+- **One file** - ACTIVE_TASKS.md tracks all your work
+
+### Quick Recovery
+
 ```bash
-cat .ai-workspace/tasks/active/ACTIVE_TASKS.md
+cat .ai-workspace/tasks/active/ACTIVE_TASKS.md  # Everything is here
+git status                                       # Current git state
 ```
 
 ### Directory Structure
@@ -57,25 +65,23 @@ cat .ai-workspace/tasks/active/ACTIVE_TASKS.md
 RED → GREEN → REFACTOR → COMMIT
 ```
 
-**Task Workflow:**
-1. `/start-session` - Begin with goals
-2. `/todo "idea"` - Quick capture
-3. Work on formal tasks (ACTIVE_TASKS.md)
-4. Follow TDD for all code
-5. `/finish-task <id>` - Complete with documentation
-6. `/commit-task <id>` - Commit with proper message
+**Simple Workflow:**
+1. Open Claude (context auto-loads)
+2. Work on tasks from ACTIVE_TASKS.md
+3. Follow TDD for all code
+4. `/aisdlc-checkpoint-tasks` - Save progress
+5. `/aisdlc-commit-task <id>` - Commit completed work
 
 ### Available Commands
 
 Run these slash commands in Claude Code:
 
-- `/start-session` - Begin development session with checklist
-- `/todo "description"` - Quick capture a todo item
-- `/finish-task <id>` - Complete task with full documentation
-- `/commit-task <id>` - Generate proper commit message
-- `/apply-persona <name>` - Apply development persona
-- `/switch-context <project>` - Switch project context
-- `/current-context` - Show current working context
+- `/aisdlc-checkpoint-tasks` - Save progress and update task status
+- `/aisdlc-finish-task <id>` - Complete task with full documentation
+- `/aisdlc-commit-task <id>` - Generate proper commit message
+- `/aisdlc-status` - Show current task queue status
+- `/aisdlc-apply-persona <name>` - Apply development persona
+- `/aisdlc-list-personas` - List available personas
 
 View all commands: `ls .claude/commands/`
 
@@ -96,23 +102,20 @@ See [.ai-workspace/templates/PAIR_PROGRAMMING_GUIDE.md](.ai-workspace/templates/
 
 ### Task Management
 
-**Two-tier system:**
+**Simple system:**
 
-**TIER 1: Quick Todos** (Informal)
-- File: `.ai-workspace/tasks/todo/TODO_LIST.md`
-- Command: `/todo "description"`
-- Purpose: Capture thoughts without breaking flow
-
-**TIER 2: Formal Tasks** (TDD Required)
+**Active Tasks**
 - File: `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
-- Requirements: Priority, estimate, acceptance criteria
-- Must follow: RED → GREEN → REFACTOR
-- Feature flags: `task-N-description`
+- Contains: All current work with status, priority, acceptance criteria
+- Requirements: Follow TDD (RED → GREEN → REFACTOR)
+- Feature flags: `task-N-description` (optional)
+- Updated automatically by `/aisdlc-checkpoint-tasks`
 
-**TIER 3: Finished Tasks** (Documentation)
+**Finished Tasks** (Documentation)
 - Directory: `.ai-workspace/tasks/finished/`
 - Format: `YYYYMMDD_HHMM_task_name.md`
 - Contains: Problem, solution, tests, lessons learned
+- Created by `/aisdlc-finish-task <id>`
 
 ### Testing Requirements
 
@@ -177,8 +180,8 @@ If plugins are installed, additional capabilities include:
 **Templates:**
 - Task Template: `.ai-workspace/templates/TASK_TEMPLATE.md`
 - Finished Task: `.ai-workspace/templates/FINISHED_TASK_TEMPLATE.md`
-- Session Template: `.ai-workspace/templates/SESSION_TEMPLATE.md`
 - Pair Programming: `.ai-workspace/templates/PAIR_PROGRAMMING_GUIDE.md`
+- Method Reference: `.ai-workspace/templates/AISDLC_METHOD_REFERENCE.md`
 
 ### Project-Specific Configuration
 
