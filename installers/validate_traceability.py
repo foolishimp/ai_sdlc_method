@@ -14,6 +14,7 @@ Usage:
     python validate_traceability.py --design docs/design/
     python validate_traceability.py --code installers/ mcp_service/ plugins/
     python validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
+    python validate_traceability.py --inventory > INVENTORY.md
 """
 
 import argparse
@@ -42,13 +43,17 @@ class TraceabilityValidator:
         self.test_refs: Dict[str, List[Tuple[str, int]]] = defaultdict(list)  # REQ-ID → [(file, line)]
 
     def extract_requirements(self, requirements_dir: Path) -> None:
-        """Extract all requirement keys from requirements documents."""
+        """Extract all requirement keys from requirements documents.
+
+        Only scans *.md files directly in requirements_dir, not subdirectories.
+        This excludes examples/ subdirectory with documentation-only requirements.
+        """
         print(f"📋 Scanning requirements in: {requirements_dir}")
 
         requirements_dir = requirements_dir.resolve()
         cwd = Path.cwd().resolve()
 
-        for md_file in requirements_dir.glob("**/*.md"):
+        for md_file in requirements_dir.glob("*.md"):
             with open(md_file, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
 
@@ -167,6 +172,81 @@ class TraceabilityValidator:
                 orphaned.append(req_id)
 
         return unimplemented, untested, orphaned
+
+    def generate_inventory(self) -> str:
+        """Generate component inventory showing files implementing requirements."""
+        output = []
+        output.append("# Component Inventory (Auto-Generated)")
+        output.append("")
+        output.append("**Generated from**: Filesystem scan + requirement traceability")
+        output.append("**Tool**: `python installers/validate_traceability.py --inventory`")
+        output.append("**Last Updated**: Auto-generated on demand")
+        output.append("")
+        output.append("---")
+        output.append("")
+        output.append("## Summary")
+        output.append("")
+        output.append(f"- **Total Requirements**: {len(self.requirements)}")
+        output.append(f"- **Components with Implementations**: {len(set(f for refs in self.code_refs.values() for f, _ in refs))}")
+        output.append(f"- **Design Documents**: {len(set(f for refs in self.design_refs.values() for f, _ in refs))}")
+        output.append(f"- **Test Files**: {len(set(f for refs in self.test_refs.values() for f, _ in refs))}")
+        output.append("")
+
+        # Coverage stats
+        if self.requirements:
+            design_coverage = (len(self.design_refs) / len(self.requirements)) * 100
+            code_coverage = (len(self.code_refs) / len(self.requirements)) * 100
+            test_coverage = (len(self.test_refs) / len(self.requirements)) * 100
+            output.append(f"- **Design Coverage**: {design_coverage:.1f}%")
+            output.append(f"- **Implementation Coverage**: {code_coverage:.1f}%")
+            output.append(f"- **Test Coverage**: {test_coverage:.1f}%")
+        output.append("")
+        output.append("---")
+        output.append("")
+
+        # Component breakdown by requirement
+        output.append("## Components by Requirement Category")
+        output.append("")
+
+        # Group requirements by type
+        req_by_type = defaultdict(list)
+        for req_id in self.requirements:
+            req_type = req_id.split('-')[1] if '-' in req_id else 'UNKNOWN'
+            req_by_type[req_type].append(req_id)
+
+        for req_type in sorted(req_by_type.keys()):
+            output.append(f"### {req_type} Requirements ({len(req_by_type[req_type])})")
+            output.append("")
+
+            implemented = sum(1 for req in req_by_type[req_type] if req in self.code_refs)
+            tested = sum(1 for req in req_by_type[req_type] if req in self.test_refs)
+
+            output.append(f"- **Total**: {len(req_by_type[req_type])}")
+            output.append(f"- **Implemented**: {implemented}")
+            output.append(f"- **Tested**: {tested}")
+            output.append("")
+
+            # List implementing files
+            files_for_type = set()
+            for req in req_by_type[req_type]:
+                if req in self.code_refs:
+                    files_for_type.update(f for f, _ in self.code_refs[req])
+
+            if files_for_type:
+                output.append("**Implementation Files**:")
+                for file in sorted(files_for_type):
+                    output.append(f"- {file}")
+                output.append("")
+
+        output.append("---")
+        output.append("")
+        output.append("## Note")
+        output.append("")
+        output.append("This inventory is **auto-generated** from code traceability tags.")
+        output.append("For detailed requirement-to-artifact mapping, see `docs/TRACEABILITY_MATRIX.md`")
+        output.append("")
+
+        return "\n".join(output)
 
     def generate_matrix(self) -> str:
         """Generate traceability matrix in markdown format."""
@@ -375,6 +455,8 @@ def main():
                        help='Code directories')
     parser.add_argument('--matrix', action='store_true',
                        help='Generate traceability matrix (markdown)')
+    parser.add_argument('--inventory', action='store_true',
+                       help='Generate component inventory (markdown)')
     parser.add_argument('--check-all', action='store_true',
                        help='Run full validation and report')
 
@@ -399,6 +481,9 @@ def main():
     # Output
     if args.matrix:
         print(validator.generate_matrix())
+        return 0
+    elif args.inventory:
+        print(validator.generate_inventory())
         return 0
     elif args.check_all:
         return validator.print_report()

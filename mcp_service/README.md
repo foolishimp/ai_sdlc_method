@@ -2,6 +2,23 @@
 
 Model Context Protocol (MCP) service for managing AI_SDLC configuration projects.
 
+---
+
+## ⚠️ Important: For Claude Code Users
+
+**If you're using Claude Code**, you should use the **plugin marketplace** approach instead of this MCP service.
+
+👉 **See**: [../README.md](../README.md) for Claude Code plugin installation
+
+**This MCP service is for**:
+- Non-Claude LLMs (Copilot, Gemini, etc.)
+- LLMs with Model Context Protocol (MCP) support
+- Programmatic access to AI SDLC configuration
+
+**For Claude Code users**: Install plugins via `/plugin install @aisdlc/startup-bundle` - it's simpler and doesn't require Python!
+
+---
+
 ## Overview
 
 This MCP service provides:
@@ -10,6 +27,7 @@ This MCP service provides:
 3. **LLM Inspection** - Query and inspect projects using natural language
 4. **Merge Operations** - Merge multiple projects to create new configurations
 5. **Repository Storage** - Projects stored in git-friendly structure
+6. **7-Stage SDLC Integration** (planned) - See [MCP_SDLC_INTEGRATION_PLAN.md](MCP_SDLC_INTEGRATION_PLAN.md)
 
 ## Architecture
 

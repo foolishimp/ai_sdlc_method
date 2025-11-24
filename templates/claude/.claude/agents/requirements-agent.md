@@ -160,18 +160,42 @@ Aspects: sources, quality, privacy, lineage, retention
 
 ### 5. Traceability Matrix
 
-Map requirements to:
-- Upstream: Intent (INT-001)
-- Downstream: Design components, Code modules, Tests, Runtime metrics
+**Auto-Generated Deliverable**: `docs/TRACEABILITY_MATRIX.md`
 
-```markdown
-## Traceability Matrix
+Map requirements to all downstream artifacts:
+- **Upstream**: Intent (INT-*)
+- **Design**: Component diagrams, APIs, data models
+- **Code**: Implementation files with `# Implements: REQ-*` tags
+- **Tests**: Test files with `# Validates: REQ-*` tags
+- **Runtime**: Metrics, logs, alerts tagged with REQ-*
 
-| Requirement | Intent | Design | Tasks | Tests | Status |
-|-------------|--------|--------|-------|-------|--------|
-| REQ-F-AUTH-001 | INT-001 | AuthService | PORTAL-101 | test_login | ✅ |
-| REQ-NFR-PERF-001 | INT-001 | TokenCache | PORTAL-103 | perf_test | ✅ |
+**Generation Command**:
+```bash
+python installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
 ```
+
+**Matrix Structure**:
+```markdown
+## Requirements Traceability Matrix
+
+**Summary**:
+- Total Requirements: 58
+- Design Coverage: 56.9%
+- Implementation Coverage: 24.1%
+- Test Coverage: 8.6%
+
+| Requirement | Description | Design | Implementation | Tests | Status |
+|-------------|-------------|--------|----------------|-------|--------|
+| REQ-F-AUTH-001 | User login | ✅ (5) | ✅ (2) | ✅ (3) | ✅ Complete |
+| REQ-NFR-PERF-001 | Login <500ms | ✅ (2) | ✅ (1) | ❌ | ⚠️ No Tests |
+```
+
+**Update Frequency**: Generate after creating/updating requirements, and after each stage transition
+
+**Purpose**:
+- Coverage verification (which requirements are implemented)
+- Impact analysis (trace production issues back to requirements)
+- Compliance auditing (demonstrate requirement fulfillment)
 
 ---
 
@@ -207,11 +231,19 @@ Action: Define testable validation points
 - Approved by Product Owner
 ```
 
-### Step 5: Create Traceability
+### Step 5: Generate Traceability Matrix
 ```
-Action: Link requirements to:
-- Upstream: Intent that generated them
-- Downstream: Stages that implement them
+Action: Create docs/TRACEABILITY_MATRIX.md
+Tool: python installers/validate_traceability.py --matrix
+
+Links:
+- Upstream: Intent (INT-*) that generated requirements
+- Downstream: Design, Code, Tests, Runtime artifacts
+
+Output: Auto-generated matrix showing:
+- Total requirements and coverage percentages
+- REQ-* → artifacts mapping
+- Implementation status (✅ Complete, ⚠️ Partial, 🚧 Design Only, ❌ Not Started)
 ```
 
 ### Step 6: Process Feedback

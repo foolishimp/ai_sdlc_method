@@ -2,14 +2,25 @@
 
 Python-based installers for deploying the AI SDLC Method to any project.
 
+**Version**: 3.0.0
+
 ## Overview
 
-This directory contains Python scripts that install the AI SDLC development environment into target projects. These installers provide an **alternative to the Claude marketplace**, useful for:
+This directory contains Python scripts that install the **AI SDLC development environment** (with homeostatic control) into target projects. These installers provide an **alternative to the Claude marketplace**, useful for:
 
 - **Offline installation** - No network required
 - **Enterprise environments** - Where marketplace access may be restricted
 - **CI/CD integration** - Automated project setup
 - **Custom deployments** - Full control over installation
+- **Dogfooding** - Installing into ai_sdlc_method itself for development
+
+## What Gets Installed
+
+- ✅ `.ai-workspace/` - Task management with AI SDLC workflow
+- ✅ `.claude/commands/` - Slash commands (/aisdlc-start-session, /aisdlc-checkpoint-tasks, etc.)
+- ✅ `.claude/agents/` - 7-stage AI agent specifications
+- ✅ `plugins/` (optional) - Claude Code plugins with homeostatic control
+- ✅ `CLAUDE.md` - Project guidance template
 
 ## Installation Methods
 

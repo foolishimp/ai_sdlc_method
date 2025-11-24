@@ -1,95 +1,116 @@
-# Example Projects - Federated Context Usage
+# Example Projects - Claude Code Plugin Usage
 
-This directory contains **example projects** demonstrating how to use ai_sdlc_method in various scenarios, including federated multi-server setups.
+This directory contains **example projects** demonstrating how to use ai_sdlc_method with Claude Code plugins and the 7-stage AI SDLC methodology.
+
+**Version**: 3.0.0
 
 ## Directory Structure
 
 ```
 examples/
-├── local_projects/              # Example local project configurations
-│   ├── customer_portal/        # ⭐ Complete 7-stage example: Authentication system
-│   ├── data_mapper/            # ⭐ Complete 7-stage example: ETL configuration system
-│   ├── acme_corporate/         # Corporate-level standards
-│   ├── payment_gateway/        # High-risk enterprise project
-│   ├── admin_dashboard/        # Low-risk internal tool
-│   └── api_platform/           # Public API with backwards compatibility
+├── local_projects/              # Example project configurations
+│   ├── customer_portal/        # ⭐ Complete 7-stage example with homeostatic control
+│   ├── api_platform/           # Public API with backwards compatibility
+│   ├── data_mapper.test01/     # Simple data mapping example
+│   └── data_mapper.test02/     # Category theory data mapper (dogfooding)
 │
-├── federated_setup/            # Example federated configurations
-│   └── (to be added)           # Multi-server context composition
-│
-├── merged_projects/            # Example merged/deployed configs
-│   └── payment_gateway_prod_v1_0_0/
-│
-├── projects.json               # Registry of example projects
 └── README.md                   # This file
 ```
 
 ---
 
-## Baseline vs Local Contexts
+## Philosophy: Federated Plugin Architecture
 
-### Baseline Contexts (`/contexts/`)
+The AI SDLC uses **Claude Code plugin marketplaces** for federated configuration management:
 
-These are **read-only reference contexts** provided by ai_sdlc_method:
-- `aisdlc_methodology` - Core Key Principles principles and TDD workflow
-- `python_standards` - Python language standards and best practices
+```
+Corporate Marketplace (GitHub: acme-corp/claude-contexts)
+  └─ aisdlc-core, aisdlc-methodology, python-standards, security-baseline
+       ↓
+Division Marketplace (Git: eng-division/plugins)
+  └─ backend-standards, microservices-patterns
+       ↓
+Team/Project Plugin (Local: .claude-plugins/)
+  └─ team-conventions, project-context
+```
 
-**Use case**: Install once, reference from multiple projects
-
-### Local Contexts (`/examples/local_projects/`)
-
-These are **customized configurations** for your organization/division/team:
-- Corporate policies (e.g., `acme_corporate`)
-- Division-specific standards
-- Team customizations
-- Individual project configs
-
-**Use case**: Customize and extend baseline contexts for your needs
+**Plugin Loading Order** = **Merge Priority** (later plugins override earlier ones)
 
 ---
 
-## Federated Context Architecture
+## Plugin vs MCP Service
+
+### Claude Code Users → Use Plugins (Recommended)
+
+**Advantages**:
+- ✅ Native Claude Code integration
+- ✅ Auto-updates via marketplaces
+- ✅ Simpler setup (no Python required)
+- ✅ Federated via multiple marketplaces
+- ✅ Version control built-in
+
+**Setup**:
+```bash
+# Add marketplace
+/plugin marketplace add foolishimp/ai_sdlc_method
+
+# Install plugins
+/plugin install @aisdlc/aisdlc-core
+/plugin install @aisdlc/aisdlc-methodology
+/plugin install @aisdlc/startup-bundle
+```
+
+### Non-Claude LLMs → Use MCP Service
+
+**For**: Copilot, Gemini, other LLMs with MCP support
+
+**See**: [../mcp_service/README.md](../mcp_service/README.md)
+
+---
+
+## Federated Plugin Architecture
 
 ### Concept
 
-Multiple MCP context servers provide contexts that you can compose:
+Multiple plugin marketplaces compose to provide layered configuration:
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│ Your Development Environment                               │
+│ Your Development Environment (Claude Code)                 │
 │                                                             │
-│ Connected MCP Context Services:                            │
-│ ├─ corporate (mcp://contexts.corporate.com:8000)          │
-│ ├─ division  (mcp://eng-division.local:8000)              │
-│ └─ local     (mcp://localhost:8000)                       │
+│ Plugin Marketplaces:                                        │
+│ ├─ corporate (github:acme-corp/claude-contexts)           │
+│ ├─ division  (git:eng-division/plugins)                   │
+│ └─ local     (local:./.claude-plugins)                    │
 └────────────────────────────────────────────────────────────┘
 ```
 
-### Context Tuple Composition
+### Plugin Composition
 
-Contexts are loaded as **layers** with priority-based merging:
+Plugins are loaded as **layers** with priority-based merging:
 
-```yaml
-# .aisdlc_context/contexts_list.json (in your project root)
+```json
+// .claude/settings.json
 {
-  "servers": {
-    "corporate": "mcp://contexts.corporate.com:8000",
-    "division": "mcp://eng-division.local:8000",
-    "local": "mcp://localhost:8000"
+  "extraKnownMarketplaces": {
+    "corporate": {
+      "source": {"source": "github", "repo": "acme-corp/claude-contexts"}
+    },
+    "division": {
+      "source": {"source": "git", "url": "https://git.company.com/eng/plugins.git"}
+    },
+    "local": {
+      "source": {"source": "local", "path": "./.claude-plugins"}
+    }
   },
-  "context_tuple": [
-    "corporate.aisdlc_methodology",     # Layer 0: Base methodology
-    "corporate.python_standards",       # Layer 1: Language standards
-    "division.engineering_standards",   # Layer 2: Division overrides
-    "local.backend_team",               # Layer 3: Team customizations
-    "local.my_payment_api"              # Layer 4: Project-specific
-  ],
-  "merge_strategy": "priority",         # Later layers override earlier
-  "cache_policy": {
-    "corporate": "24h",
-    "division": "1h",
-    "local": "none"
-  }
+  "plugins": [
+    "@corporate/aisdlc-core",              // Layer 0: Foundation
+    "@corporate/aisdlc-methodology",       // Layer 1: Base methodology
+    "@corporate/python-standards",         // Layer 2: Language standards
+    "@division/backend-standards",         // Layer 3: Division overrides
+    "@local/team-conventions",             // Layer 4: Team customizations
+    "@local/my-project-context"            // Layer 5: Project-specific
+  ]
 }
 ```
 
@@ -99,92 +120,84 @@ Contexts are loaded as **layers** with priority-based merging:
 
 ## Usage Examples
 
-### Example 1: Single Server (Local Development)
+### Example 1: Startup Bundle (Quick Start)
 
 ```bash
-# Start local MCP context service
-cd /path/to/ai_sdlc_method
-python -m mcp_service.server --port 8000
+# In Claude Code, add marketplace and install startup bundle
+/plugin marketplace add foolishimp/ai_sdlc_method
+/plugin install @aisdlc/startup-bundle
 
-# In your project directory, create context configuration
-cat > .aisdlc_context/contexts_list.json <<EOF
-{
-  "servers": {
-    "local": "mcp://localhost:8000"
-  },
-  "context_tuple": [
-    "local.aisdlc_methodology",
-    "local.python_standards"
-  ]
-}
-EOF
-
-# Load contexts via MCP (from Claude Code or other client)
-# The MCP service will merge the contexts and provide unified config
+# Startup bundle includes:
+# - aisdlc-core (traceability foundation)
+# - code-skills (TDD workflow)
+# - principles-key (Seven Principles)
 ```
 
-### Example 2: Corporate + Local
+### Example 2: Enterprise Bundle (Full 7-Stage SDLC)
 
 ```bash
-# Connect to corporate context server (read-only)
-# and local server (read-write)
+# Install enterprise bundle for complete lifecycle
+/plugin install @aisdlc/enterprise-bundle
 
-cat > .aisdlc_context/contexts_list.json <<EOF
-{
-  "servers": {
-    "corporate": "mcp://contexts.corporate.com:8000",
-    "local": "mcp://localhost:8000"
-  },
-  "context_tuple": [
-    "corporate.aisdlc_methodology",    # From corporate
-    "corporate.python_standards",      # From corporate
-    "local.my_team_customizations",    # Local overrides
-    "local.my_api_project"             # This project
-  ]
-}
-EOF
+# Enterprise bundle includes:
+# - aisdlc-core (foundation)
+# - requirements-skills
+# - design-skills
+# - code-skills
+# - testing-skills
+# - runtime-skills
+# - principles-key
 ```
 
-### Example 3: Three-Tier (Corporate → Division → Local)
+### Example 3: Corporate + Division + Project (Federated)
 
-```bash
-# Full federated setup
-cat > .aisdlc_context/contexts_list.json <<EOF
+```json
+// .claude/settings.json
 {
-  "servers": {
-    "corporate": "mcp://contexts.corporate.com:8000",
-    "division": "mcp://eng-division.local:8000",
-    "local": "mcp://localhost:8000"
+  "extraKnownMarketplaces": {
+    "corporate": {
+      "source": {"source": "github", "repo": "acme-corp/claude-contexts"}
+    },
+    "division": {
+      "source": {"source": "git", "url": "https://git.company.com/eng/plugins.git"}
+    }
   },
-  "context_tuple": [
-    "corporate.aisdlc_methodology",
-    "corporate.python_standards",
-    "corporate.security_baseline",
-    "division.python_standards",        # Overrides corporate python
-    "division.engineering_process",
-    "local.backend_team",
-    "local.payment_api"
-  ],
-  "merge_strategy": "priority"
+  "plugins": [
+    "@corporate/aisdlc-core",           // Corporate foundation
+    "@corporate/aisdlc-methodology",    // Corporate 7-stage SDLC
+    "@corporate/python-standards",      // Corporate Python standards
+    "@division/backend-standards",      // Division overrides
+    "@aisdlc/startup-bundle"            // Add AI SDLC skills
+  ]
 }
-EOF
 ```
 
 ---
 
 ## Example Projects Explained
 
-### customer_portal/ ⭐ **NEW - 7-Stage AI SDLC Example**
+### customer_portal/ ⭐ **Complete 7-Stage AI SDLC Example**
 
-**Purpose**: Demonstrates **complete 7-stage AI SDLC methodology** with full requirement traceability
-**Inherits**: `aisdlc_methodology` (v2.0), `python_standards`, `acme_corporate`
+**Purpose**: Demonstrates **complete 7-stage AI SDLC methodology** with homeostatic control and full requirement traceability
+
+**Plugins Used**:
+- `@aisdlc/aisdlc-core` v3.0.0
+- `@aisdlc/aisdlc-methodology` v2.0.0
+- `@aisdlc/python-standards` v1.0.0
+
 **Demonstrates**:
-- All 7 stages: Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
-- Requirement key propagation (REQ-F-*, REQ-NFR-*, REQ-DATA-*)
-- TDD workflow (RED → GREEN → REFACTOR)
-- BDD testing (Given/When/Then scenarios)
-- Bidirectional traceability (Intent ↔ Runtime)
-- Agent orchestration and feedback loops
+- ✅ All 7 stages: Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
+- ✅ Requirement key propagation (REQ-F-*, REQ-NFR-*, REQ-DATA-*)
+- ✅ Homeostatic control (sensors detect gaps, actuators fix them)
+- ✅ TDD workflow (RED → GREEN → REFACTOR)
+- ✅ BDD testing (Given/When/Then scenarios)
+- ✅ Bidirectional traceability (Intent ↔ Runtime)
+- ✅ Agent orchestration and feedback loops
+
+**Files**:
+- `config/config.yml` - Complete 7-stage agent configuration (650+ lines)
+- `README.md` - Detailed walkthrough (800+ lines)
+- `INTENT.md` - Business problem statement
 
 **Use case**: **Start here** to understand the complete AI SDLC methodology
 
@@ -192,155 +205,185 @@ EOF
 
 ---
 
-### acme_corporate/
+### api_platform/
 
-**Purpose**: Demonstrates organizational-level configuration
-**Inherits**: `aisdlc_methodology`
-**Adds**: Corporate policies, compliance requirements, approval workflows
+**Purpose**: Public API with backwards compatibility requirements
+**Plugins**: `aisdlc-methodology`, `python-standards`
+**Special**: Overrides Principle #6 (No Legacy Baggage) using feature flags
 
-**Use case**: Your company's context server would host this
+**Use case**: Customer-facing APIs requiring backwards compatibility
 
-### payment_gateway/
+### data_mapper.test02/
 
-**Purpose**: High-risk payment processing service
-**Inherits**: `aisdlc_methodology`, `python_standards`, `acme_corporate`
-**Adds**: Strict security requirements, high test coverage (95%), PCI compliance
+**Purpose**: Category theory-based data mapper (dogfooding AI SDLC)
+**Plugins**: `enterprise-bundle`
+**Status**: Active development using AI SDLC methodology
 
-**Use case**: Mission-critical service with elevated standards
-
-### admin_dashboard/
-
-**Purpose**: Low-risk internal admin tool
-**Inherits**: `aisdlc_methodology`, `python_standards`, `acme_corporate`
-**Adds**: Relaxed requirements for internal tooling
-
-**Use case**: Rapid development for internal tools
+**Use case**: Advanced data transformation using category theory
 
 ---
 
 ## Project Initialization Workflow
 
-### Step 1: Set Up Context Servers
+### Step 1: Add Marketplaces
 
 ```bash
-# Corporate server (managed by IT)
-# Hosts: aisdlc_methodology, python_standards, security_baseline, etc.
+# In Claude Code, add marketplaces
+/plugin marketplace add foolishimp/ai_sdlc_method
 
-# Division server (managed by engineering team)
-# Hosts: division-specific standards and processes
-
-# Local server (you run it)
-cd /path/to/ai_sdlc_method
-python -m mcp_service.server --port 8000 --data-dir ~/my_contexts
+# If your company has a marketplace:
+# Add to .claude/settings.json:
+{
+  "extraKnownMarketplaces": {
+    "corporate": {
+      "source": {"source": "github", "repo": "acme-corp/claude-contexts"}
+    }
+  }
+}
 ```
 
-### Step 2: Initialize New Project
+### Step 2: Install Base Plugins
 
 ```bash
-# In your new project directory
-mkdir .aisdlc_context
+# Choose a bundle based on your needs:
 
-# Create context configuration
-cat > .aisdlc_context/contexts_list.json <<EOF
+# For solo developers / startups:
+/plugin install @aisdlc/startup-bundle
+
+# For data science teams:
+/plugin install @aisdlc/datascience-bundle
+
+# For QA teams:
+/plugin install @aisdlc/qa-bundle
+
+# For enterprise teams (full 7-stage SDLC):
+/plugin install @aisdlc/enterprise-bundle
+
+# Or install individual plugins:
+/plugin install @aisdlc/aisdlc-core
+/plugin install @aisdlc/aisdlc-methodology
+/plugin install @aisdlc/python-standards
+```
+
+### Step 3: Create Project Plugin (Optional)
+
+```bash
+# For project-specific customizations:
+mkdir -p .claude-plugins/my-project-context/.claude-plugin
+mkdir -p .claude-plugins/my-project-context/config
+
+# Create plugin.json
+cat > .claude-plugins/my-project-context/.claude-plugin/plugin.json <<EOF
 {
-  "servers": {
-    "corporate": "mcp://contexts.corporate.com:8000",
-    "local": "mcp://localhost:8000"
-  },
-  "context_tuple": [
-    "corporate.aisdlc_methodology",
-    "corporate.python_standards",
-    "local.my_new_project"
-  ]
+  "name": "my-project-context",
+  "version": "1.0.0",
+  "displayName": "My Project Context",
+  "dependencies": {
+    "aisdlc-core": "^3.0.0",
+    "aisdlc-methodology": "^2.0.0"
+  }
 }
 EOF
 
-# Create empty project context
-cat > .aisdlc_context/config.yml <<EOF
+# Create project config
+cat > .claude-plugins/my-project-context/config/context.yml <<EOF
 project:
-  name: "my_new_project"
+  name: "my-api-service"
   type: "api_service"
+  risk_level: "medium"
 
-# Add project-specific overrides here
+ai_sdlc:
+  methodology_plugin: "file://../../plugins/aisdlc-methodology/config/stages_config.yml"
+
+  enabled_stages:
+    - requirements
+    - design
+    - code
+    - system_test
+
+  stages:
+    code:
+      testing:
+        coverage_minimum: 90  # Override baseline 80%
 EOF
+
+# Install local plugin
+/plugin marketplace add ./.claude-plugins
+/plugin install my-project-context
 ```
 
-### Step 3: Load Context in Development
+### Step 4: Start Development
 
 ```bash
-# Claude Code with MCP plugin automatically:
-# 1. Reads .aisdlc_context/contexts_list.json
-# 2. Connects to specified servers
-# 3. Loads and merges context tuple
-# 4. Provides unified configuration
+# Claude Code now has access to:
+# - aisdlc-core (foundation with homeostatic control)
+# - aisdlc-methodology (7-stage SDLC)
+# - python-standards (language standards)
+# - my-project-context (project-specific overrides)
 
-# You can now query the merged context:
-# - What testing standards apply?
-# - What's the code review process?
-# - What security requirements must I meet?
+# Create INTENT.md and start the 7-stage workflow
 ```
 
 ---
 
-## Creating Your Own Contexts
+## Creating Your Own Project Plugin
 
-### 1. Start with Examples
+### 1. Start with Example
 
 Copy an example project and customize:
 
 ```bash
-cp -r examples/local_projects/payment_gateway my_contexts/my_service
-cd my_contexts/my_service
+cp -r examples/local_projects/customer_portal my-project
+cd my-project
 
-# Edit project.json
-# Edit config/config.yml
-# Customize for your needs
+# Edit config/config.yml for project-specific settings
+# Update INTENT.md with your business problem
 ```
 
-### 2. Register with Local Server
+### 2. Create Plugin Structure
 
 ```bash
-# Add to your local context server's registry
-cat >> ~/my_contexts/contexts.json <<EOF
+mkdir -p .claude-plugin
+cat > .claude-plugin/plugin.json <<EOF
 {
-  "my_service": {
-    "type": "project",
-    "path": "my_service",
-    "base_contexts": ["aisdlc_methodology", "python_standards"],
-    "description": "My custom service configuration"
+  "name": "my-project",
+  "version": "1.0.0",
+  "displayName": "My Project",
+  "dependencies": {
+    "aisdlc-core": "^3.0.0",
+    "aisdlc-methodology": "^2.0.0",
+    "python-standards": "^1.0.0"
   }
 }
 EOF
 ```
 
-### 3. Reference in Context Tuple
+### 3. Install and Use
 
-```json
-{
-  "context_tuple": [
-    "corporate.aisdlc_methodology",
-    "local.my_service"
-  ]
-}
+```bash
+# Add as local marketplace
+/plugin marketplace add /path/to/my-project
+/plugin install my-project
 ```
 
 ---
 
 ## Best Practices
 
-### 1. Layer Your Contexts
+### 1. Layer Your Plugins
 
-- **Layer 0**: Methodology (aisdlc_methodology)
-- **Layer 1**: Language standards (python_standards)
-- **Layer 2**: Organizational policies (acme_corporate)
-- **Layer 3**: Division/team customizations
-- **Layer 4**: Project-specific config
+- **Layer 0**: Foundation (`aisdlc-core`)
+- **Layer 1**: Methodology (`aisdlc-methodology`)
+- **Layer 2**: Language standards (`python-standards`)
+- **Layer 3**: Organizational policies (corporate plugins)
+- **Layer 4**: Division/team customizations (division plugins)
+- **Layer 5**: Project-specific config (local plugins)
 
-### 2. Use Appropriate Servers
+### 2. Use Appropriate Marketplaces
 
-- **Corporate server**: Baseline standards, read-only
-- **Division server**: Team-specific, managed by team leads
-- **Local server**: Your personal/project configs, full control
+- **Corporate marketplace**: Baseline standards, managed by IT
+- **Division marketplace**: Team-specific, managed by team leads
+- **Local plugins**: Project configs, full control
 
 ### 3. Override Strategically
 
@@ -348,63 +391,87 @@ Don't override everything - only customize what's needed:
 
 ```yaml
 # Good: Specific override
-testing:
-  coverage_minimum: 95  # Higher than baseline 80%
+ai_sdlc:
+  stages:
+    code:
+      testing:
+        coverage_minimum: 95  # Higher than baseline 80%
 
 # Bad: Copying entire config
-# (defeats purpose of inheritance)
+# (defeats purpose of plugin inheritance)
 ```
 
 ### 4. Document Overrides
 
 ```yaml
 # Always explain why you're overriding
-testing:
-  coverage_minimum: 95  # Payment processing requires higher coverage
+ai_sdlc:
+  stages:
+    code:
+      testing:
+        coverage_minimum: 95  # Payment processing requires higher coverage
 ```
+
+### 5. Use Bundles for Common Setups
+
+Instead of installing plugins individually, use bundles:
+- `startup-bundle` - Solo developers, quick projects
+- `datascience-bundle` - ML/data science teams
+- `qa-bundle` - QA-focused teams
+- `enterprise-bundle` - Full governance
 
 ---
 
 ## Troubleshooting
 
-### Context Not Found
+### Plugin Not Found
 
 ```
-Error: Context 'corporate.aisdlc_methodology' not found
+Error: Plugin '@aisdlc/aisdlc-core' not found
 ```
 
-**Solution**: Check server connectivity and context exists:
+**Solution**: Check marketplace is added:
 ```bash
-mcp list-contexts --server corporate
+/plugin marketplace list
+/plugin marketplace add foolishimp/ai_sdlc_method
 ```
 
-### Merge Conflicts
+### Version Conflicts
+
+```
+Warning: Plugin version conflict for 'aisdlc-core'
+```
+
+**Solution**: Update plugins to compatible versions:
+```bash
+/plugin update @aisdlc/aisdlc-core
+/plugin update @aisdlc/aisdlc-methodology
+```
+
+### Configuration Merge Issues
 
 ```
 Warning: Conflicting values at path 'testing.coverage_minimum'
 ```
 
-**Solution**: Check merge strategy and layer order
-
-### Cache Issues
-
-```
-Error: Stale context from division server
-```
-
-**Solution**: Clear cache or adjust cache policy
+**Solution**: Check plugin loading order in `.claude/settings.json`
 
 ---
 
 ## Next Steps
 
-1. **Run local examples**: See `/examples/local_projects/`
-2. **Set up your context server**: See MCP service docs
-3. **Create your first context tuple**: Start with corporate + local
-4. **Customize for your team**: Add division/team layer
-5. **Deploy to projects**: Use `.aisdlc_context/` in each project
+1. **Try the example**: See [customer_portal/](local_projects/customer_portal/) - Complete 7-stage walkthrough
+2. **Install plugins**: Use `/plugin install` with bundles or individual plugins
+3. **Create project plugin**: Customize for your project needs
+4. **Set up CI/CD**: Integrate AI SDLC into your deployment pipeline
+5. **Enable homeostatic control**: Let sensors/actuators maintain quality automatically
 
 For more information:
-- [MCP Service Documentation](../mcp_service/docs/)
-- [Baseline Contexts](../contexts/)
-- [Context Tutorial](./tutorial/)
+- [Plugin Guide](../PLUGIN_GUIDE.md) - How to create plugins
+- [Plugins Documentation](../plugins/README.md) - All available plugins
+- [Complete Methodology](../docs/ai_sdlc_method.md) - 7-stage SDLC reference
+- [MCP Service](../mcp_service/README.md) - For non-Claude LLMs
+
+---
+
+**"Excellence or nothing"** 🔥

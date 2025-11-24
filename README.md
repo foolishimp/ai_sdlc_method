@@ -1,8 +1,10 @@
 # ai_sdlc_method
 
-**Intent-Driven AI SDLC Methodology** with full requirement traceability and 7-stage agent orchestration.
+**Intent-Driven AI SDLC Methodology** with homeostatic control, requirement traceability, and 7-stage agent orchestration.
 
 **Mantra**: **"Excellence or nothing"** 🔥
+
+**Version**: 3.0.0
 
 ---
 
@@ -13,7 +15,8 @@ A complete **AI-Augmented Software Development Lifecycle (AI SDLC)** framework p
 - **🎯 7-Stage Methodology**: Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
 - **🔗 Requirement Traceability**: Track requirement keys (REQ-F-*, REQ-NFR-*, REQ-DATA-*) from intent to runtime
 - **🤖 AI Agent Configurations**: Detailed specifications for AI agents at each SDLC stage
-- **📦 Claude Code Plugins**: Installable methodology and standards as plugins
+- **⚖️ Homeostatic Control**: Sensors detect quality gaps, actuators automatically fix them
+- **📦 Claude Code Plugins**: Installable methodology and standards as plugins (9 plugins + 4 bundles)
 - **🏢 Federated Architecture**: Compose contexts across corporate → division → team → project
 - **🔄 Bidirectional Feedback**: Production issues flow back to requirements and generate new intents
 
@@ -189,6 +192,34 @@ open plugins/aisdlc-methodology/README.md
 
 ---
 
+## Homeostatic Control Architecture
+
+The AI SDLC uses a **homeostatic control system** to maintain quality automatically:
+
+### Sensors (Detect Quality Gaps)
+
+- **`aisdlc-core`**: Coverage detection - detect missing requirement traceability
+- **`testing-skills`**: Missing test detection - identify untested code paths
+- **`principles-key`**: Seven Questions Checklist - validate adherence to Key Principles
+
+### Actuators (Automatically Fix Gaps)
+
+- **`aisdlc-core`**: Key propagation - automatically tag code/tests with REQ-* keys
+- **`testing-skills`**: Test generation - auto-generate missing tests
+- **`code-skills`**: Tech debt pruning - enforce Principle #6 (No Legacy Baggage)
+
+### Feedback Loop
+
+```
+Sensor detects gap → Actuator fixes gap → Validate fix → Monitor for new gaps
+        ↑                                                              ↓
+        └──────────────────────── Continuous Improvement ─────────────┘
+```
+
+**Result**: Quality is maintained automatically through continuous sensing and correction.
+
+---
+
 ## Requirement Traceability Example
 
 ```
@@ -256,29 +287,145 @@ The Code Stage (Section 7.0) is built on these principles:
 
 ## Available Plugins
 
-### aisdlc-methodology v2.0.0
+### Foundation Layer
+
+#### aisdlc-core v3.0.0 ⭐
+
+**Requirement traceability foundation** with homeostatic control
+
+**Provides**:
+- REQ-* key pattern recognition and tracking
+- Coverage detection (sensor)
+- Key propagation (actuator)
+- Foundation for all AI SDLC plugins
+
+**Dependencies**: None (foundation)
+**Keywords**: traceability, requirements, homeostasis, sensor, actuator
+
+👉 [Full Documentation](plugins/aisdlc-core/README.md)
+
+---
+
+### Methodology Layer
+
+#### aisdlc-methodology v2.0.0
 
 **Core AI SDLC methodology** - Complete 7-stage workflow
 
 **Provides**:
-- ✅ Complete 7-stage AI SDLC agent configurations
+- ✅ Complete 7-stage AI SDLC agent configurations (1,273 lines)
 - ✅ Key Principles development principles
 - ✅ TDD workflow (RED → GREEN → REFACTOR)
 - ✅ BDD testing guidelines (Given/When/Then)
 - ✅ Requirement traceability framework
 - ✅ Quality gates for each stage
 - ✅ Persona specifications (human roles + AI agents)
-- ✅ Pair programming practices
-- ✅ Session management guides
 
-**Reference**: [docs/ai_sdlc_method.md](docs/ai_sdlc_method.md)
-**Dependencies**: None (foundation)
+**Dependencies**: `aisdlc-core`
+**Keywords**: methodology, multi-stage, tdd, bdd, traceability, agent-orchestration
 
 👉 [Full Documentation](plugins/aisdlc-methodology/README.md)
 
+#### principles-key v1.0.0
+
+**Seven Key Principles enforcement** with quality gates
+
+**Provides**:
+- The 7 Key Principles for development excellence
+- Seven Questions Checklist (sensor)
+- Principle validation and enforcement
+- Code quality gates
+
+**Dependencies**: `aisdlc-core`
+**Keywords**: principles, key-principles, tdd, code-quality, excellence, sensor
+
+👉 [Full Documentation](plugins/principles-key/README.md)
+
 ---
 
-### python-standards
+### Skills Layer
+
+#### requirements-skills v1.0.0
+
+**Transform intent into structured requirements**
+
+**Provides**:
+- Intent to REQ-* key transformation
+- Requirement disambiguation (business rules, constraints, formulas)
+- Requirements refinement loop
+- Requirement extraction and validation
+
+**Dependencies**: `aisdlc-core`
+**Keywords**: requirements, requirement-extraction, disambiguation, intent, refinement-loop
+
+👉 [Full Documentation](plugins/requirements-skills/README.md)
+
+#### design-skills v1.0.0
+
+**Architecture and ADRs with traceability**
+
+**Provides**:
+- Requirements to solution architecture transformation
+- Architecture Decision Records (ADRs)
+- Design coverage validation
+- Ecosystem acknowledgment E(t)
+
+**Dependencies**: `aisdlc-core`, `requirements-skills`
+**Keywords**: design, architecture, adr, solution-design, traceability, ecosystem
+
+👉 [Full Documentation](plugins/design-skills/README.md)
+
+#### code-skills v1.0.0
+
+**TDD, BDD, and code generation**
+
+**Provides**:
+- TDD workflow (RED→GREEN→REFACTOR)
+- BDD (Given/When/Then)
+- Code generation from business rules
+- Tech debt management (Principle #6 enforcement - actuator)
+
+**Dependencies**: `aisdlc-core`
+**Keywords**: tdd, bdd, code-generation, tech-debt, refactoring, homeostasis, actuator
+
+👉 [Full Documentation](plugins/code-skills/README.md)
+
+#### testing-skills v1.0.0
+
+**Coverage validation and test generation**
+
+**Provides**:
+- Test coverage validation
+- Missing test detection (sensor)
+- Automatic test generation (actuator)
+- Integration testing
+- Coverage reporting with requirement traceability
+
+**Dependencies**: `aisdlc-core`
+**Keywords**: testing, test-coverage, coverage-validation, test-generation, homeostasis, sensor, actuator
+
+👉 [Full Documentation](plugins/testing-skills/README.md)
+
+#### runtime-skills v1.0.0
+
+**Production feedback loop**
+
+**Provides**:
+- Telemetry tagging with REQ-* keys
+- Observability setup (Datadog, Prometheus)
+- Production issue tracing back to intent
+- Homeostatic production monitoring
+
+**Dependencies**: `aisdlc-core`
+**Keywords**: runtime, telemetry, observability, production, feedback-loop, monitoring, homeostasis
+
+👉 [Full Documentation](plugins/runtime-skills/README.md)
+
+---
+
+### Standards Layer
+
+#### python-standards v1.0.0
 
 **Python language standards** - PEP 8, pytest, type hints, tooling
 
@@ -290,8 +437,53 @@ The Code Stage (Section 7.0) is built on these principles:
 - Python project structure best practices
 
 **Dependencies**: `aisdlc-methodology`
+**Keywords**: python, pep8, pytest, standards, best-practices
 
-👉 [Full Documentation](plugins/python-standards/)
+👉 [Full Documentation](plugins/python-standards/README.md)
+
+---
+
+### Bundles
+
+#### startup-bundle v1.0.0
+
+**Quick-start for startups and solo developers**
+
+**Includes**: `aisdlc-core`, `code-skills`, `principles-key`
+**Best For**: Solo developers, startups, quick projects
+**Focus**: Minimal overhead, maximum quality, TDD workflow
+
+👉 [Full Documentation](plugins/bundles/startup-bundle/README.md)
+
+#### datascience-bundle v1.0.0
+
+**AI SDLC for data science and ML workflows**
+
+**Includes**: `aisdlc-core`, `code-skills`, `testing-skills`
+**Best For**: Data science teams, ML projects
+**Focus**: REPL-driven development (planned), notebook-to-module extraction (planned)
+
+👉 [Full Documentation](plugins/bundles/datascience-bundle/README.md)
+
+#### qa-bundle v1.0.0
+
+**Testing-focused for QA teams**
+
+**Includes**: `aisdlc-core`, `requirements-skills`, `code-skills`, `testing-skills`
+**Best For**: QA teams, test-first development
+**Focus**: BDD scenarios, coverage validation, requirements-to-tests traceability
+
+👉 [Full Documentation](plugins/bundles/qa-bundle/README.md)
+
+#### enterprise-bundle v1.0.0
+
+**Complete 7-stage AI SDLC for enterprise**
+
+**Includes**: All plugins (aisdlc-core, requirements-skills, design-skills, code-skills, testing-skills, runtime-skills, principles-key)
+**Best For**: Enterprise teams, full governance
+**Focus**: Complete lifecycle, traceability, compliance, feedback loop
+
+👉 [Full Documentation](plugins/bundles/enterprise-bundle/README.md)
 
 ---
 
@@ -656,6 +848,18 @@ MIT
 ---
 
 ## Version History
+
+### v3.0.0 (2025-11-24) - Homeostatic Control Architecture ⭐
+- ✨ Added homeostatic control system (sensors + actuators)
+- ✨ Promoted `aisdlc-core` to v3.0.0 as foundation plugin
+- ✨ Added 5 skills plugins (requirements, design, code, testing, runtime)
+- ✨ Added `principles-key` plugin (Seven Principles enforcement)
+- ✨ Added 4 bundles (startup, datascience, qa, enterprise)
+- ✨ Sensors: Coverage detection, missing test detection, Seven Questions Checklist
+- ✨ Actuators: Key propagation, test generation, tech debt pruning
+- ✨ Complete marketplace registry with 9 plugins + 4 bundles
+- ✨ Enhanced plugin architecture with clear layer separation
+- 🔄 Refactored to modular, composable plugin system
 
 ### v2.0.0 (2025-11-14) - 7-Stage AI SDLC
 - ✨ Added complete 7-stage AI SDLC methodology
