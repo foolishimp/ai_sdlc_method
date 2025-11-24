@@ -125,18 +125,24 @@ This document defines the requirements for building the AI SDLC Method tooling i
 
 **Priority**: Low
 **Type**: Functional
+**Status**: ✅ **Implemented by 7-Stage SDLC Agents** (not commands)
 
-**Description**: The system shall provide commands for managing AI agent personas.
+**Description**: The system shall provide role-based personas for different development stages and roles.
 
 **Acceptance Criteria**:
-- [ ] /apply-persona command
-- [ ] /list-personas command
-- [ ] /switch-persona command
-- [ ] /persona-checklist command
+- [x] Requirements agent (.claude/agents/requirements-agent.md)
+- [x] Design agent (.claude/agents/design-agent.md)
+- [x] Tasks agent (.claude/agents/tasks-agent.md)
+- [x] Code agent (.claude/agents/code-agent.md)
+- [x] System Test agent (.claude/agents/system-test-agent.md)
+- [x] UAT agent (.claude/agents/uat-agent.md)
+- [x] Runtime Feedback agent (.claude/agents/runtime-feedback-agent.md)
 
-**Rationale**: Support role-based development workflows (developer, tester, architect).
+**Rationale**: Support role-based development workflows through 7-stage SDLC agent system. Agents provide stage-specific focus and perspective.
 
-**Dependencies**: REQ-F-CMD-001
+**Implementation**: 7 agent files in `.claude/agents/` (not slash commands). Vestigial persona commands removed in v0.1.4+.
+
+**Dependencies**: None (agents are part of core methodology)
 
 ---
 

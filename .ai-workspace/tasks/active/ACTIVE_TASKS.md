@@ -1,9 +1,8 @@
 # Active Tasks
 
-*Last Updated: 2025-11-25 03:06*
+*Last Updated: 2025-11-25 03:15*
 
 ---
-
 
 ## Task #3: Complete Design Documentation for Command System
 
@@ -21,7 +20,7 @@
 **Description**:
 Create design documentation (docs/design/COMMAND_SYSTEM.md) covering:
 - Command structure (.claude/commands/*.md)
-- ~10 implemented commands (reduced after context switching removal)
+- 6 implemented commands (final after persona cleanup)
 - Command format and Claude Code integration
 - Installer mechanism (setup_commands.py)
 
@@ -36,11 +35,13 @@ Create design documentation (docs/design/COMMAND_SYSTEM.md) covering:
 N/A - Documentation task
 
 **Notes**:
-- ⚠️ Task scope changed after Task #5 (MVP Baseline)
+- ⚠️ Task scope changed after Task #5 (MVP Baseline) and Task #7 (Persona cleanup)
 - Context switching commands removed (5 commands)
 - TODO command removed
-- REQ-F-CMD-002 now refers to Persona Management (was CMD-003)
-- Should review current command list before starting
+- Persona commands removed (4 commands - vestigial)
+- Final command count: 6 commands
+- REQ-F-CMD-002 implemented by agents (not commands)
+- Current commands: checkpoint-tasks, finish-task, commit-task, status, release, refresh-context
 
 ---
 
@@ -51,6 +52,12 @@ N/A - Documentation task
 - Not Started: 1 (needs scope update)
 
 **Recently Completed**:
+- ✅ Task #7: Remove Vestigial Persona Commands (2025-11-25 03:15)
+  - Deleted 8 persona command files (4 main + 4 templates)
+  - Updated REQ-F-CMD-002 to show implemented by agents (not commands)
+  - Removed persona references from documentation
+  - Command count: 10 → 6 (40% reduction, 100% functional)
+  - See: `.ai-workspace/tasks/finished/20251125_0310_remove_vestigial_persona_commands.md`
 - ✅ Task #6: Rename Persona Commands with aisdlc- Prefix (2025-11-25 03:06)
   - Renamed 4 persona commands for consistency (8 files total)
   - Updated installer and cross-references

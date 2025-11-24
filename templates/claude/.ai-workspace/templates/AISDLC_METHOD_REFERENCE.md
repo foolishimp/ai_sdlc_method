@@ -103,8 +103,7 @@
 - `/aisdlc-commit-task <id>` - Generate commit message
 - `/aisdlc-status` - Show task queue status
 - `/aisdlc-release` - Deploy framework to example projects
-- `/apply-persona <name>` - Apply development persona
-- `/list-personas` - List available personas
+- `/aisdlc-refresh-context` - Refresh methodology context
 
 ### File Operations
 - **Read** - Read existing files
@@ -293,7 +292,7 @@ RIGHT: Just open Claude (context auto-loads), use ACTIVE_TASKS.md
 | Commit | `/aisdlc-commit-task <id>` |
 | Check status | `/aisdlc-status` |
 | Deploy framework | `/aisdlc-release` |
-| Apply persona | `/apply-persona <name>` |
+| Refresh context | `/aisdlc-refresh-context` |
 
 ### Removed Commands (v0.1.4)
 | Removed | Reason |

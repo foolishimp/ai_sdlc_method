@@ -103,8 +103,7 @@
 - `/aisdlc-commit-task <id>` - Generate commit message
 - `/aisdlc-status` - Show task queue status
 - `/aisdlc-release` - Deploy framework to example projects
-- `/apply-persona <name>` - Apply development persona
-- `/list-personas` - List available personas
+- `/aisdlc-refresh-context` - Refresh methodology context
 
 ### File Operations
 - **Read** - Read existing files
@@ -293,13 +292,17 @@ RIGHT: Just open Claude (context auto-loads), use ACTIVE_TASKS.md
 | Commit | `/aisdlc-commit-task <id>` |
 | Check status | `/aisdlc-status` |
 | Deploy framework | `/aisdlc-release` |
-| Apply persona | `/apply-persona <name>` |
+| Refresh context | `/aisdlc-refresh-context` |
 
-### Removed Commands (v0.1.4)
+### Removed Commands (v0.1.4+)
 | Removed | Reason |
 |---------|--------|
 | `/aisdlc-start-session` | Context auto-loads (implicit model) |
 | `/aisdlc-todo` | Over-engineered, use ACTIVE_TASKS.md directly |
+| `/aisdlc-apply-persona` | Replaced by 7-stage SDLC agents |
+| `/aisdlc-list-personas` | Replaced by 7-stage SDLC agents |
+| `/aisdlc-switch-persona` | Replaced by 7-stage SDLC agents |
+| `/aisdlc-persona-checklist` | Replaced by 7-stage SDLC agents |
 | `/switch-context` | Not MVP |
 | `/load-context` | Not MVP |
 | `/current-context` | Not MVP |

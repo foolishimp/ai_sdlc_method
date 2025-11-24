@@ -142,7 +142,7 @@
 
 **Description**: Test Coverage Validation
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:203
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:209
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:695
@@ -153,7 +153,7 @@
 
 **Description**: Test Generation
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:224
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:230
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:696
@@ -164,7 +164,7 @@
 
 **Description**: Developer Workspace Structure
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:145
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:151
 
 **Design**:
 - docs/design/TEMPLATE_SYSTEM.md:14
@@ -181,7 +181,7 @@
 
 **Description**: Task Management Templates
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:165
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:171
 
 **Design**:
 - docs/design/TEMPLATE_SYSTEM.md:15
@@ -199,7 +199,7 @@
 
 **Description**: Session Tracking Templates
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:183
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:189
 
 **Design**:
 - docs/design/TEMPLATE_SYSTEM.md:16
@@ -216,7 +216,7 @@
 
 **Description**: Persistent Context Across Sessions
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:287
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:293
 
 **Design**:
 - docs/design/TEMPLATE_SYSTEM.md:17
@@ -235,7 +235,7 @@
 
 **Description**: Test Coverage Minimum
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:326
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:332
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:697
@@ -246,7 +246,7 @@
 
 **Description**: Hierarchical Configuration Composition
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:306
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:312
 
 **Design**:
 - docs/design/PLUGIN_ARCHITECTURE.md:19
@@ -258,7 +258,7 @@
 
 **Description**: Full Lifecycle Traceability
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:245
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:251
 
 **Implementation**:
 - installers/validate_traceability.py:8
@@ -269,7 +269,7 @@
 
 **Description**: Requirement Key Propagation
 
-**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:266
+**Defined in**: docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md:272
 
 **Implementation**:
 - installers/validate_traceability.py:9

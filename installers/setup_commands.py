@@ -5,15 +5,15 @@ AI SDLC Method - Claude Commands Setup Script
 Installs the .claude/commands/ directory into a target project.
 
 # Implements: REQ-F-CMD-001 (Slash commands for workflow)
-# Implements: REQ-F-CMD-002 (Persona management commands)
+# Note: REQ-F-CMD-002 (Persona management) is implemented by .claude/agents/ (not commands)
 
 The commands provide slash command functionality:
 - /aisdlc-checkpoint-tasks - Save progress and update task status
 - /aisdlc-finish-task - Complete task with documentation
 - /aisdlc-commit-task - Commit with proper message
 - /aisdlc-status - Show task queue status
-- /aisdlc-apply-persona - Apply development persona
-- And more...
+- /aisdlc-release - Deploy framework to example projects
+- /aisdlc-refresh-context - Refresh methodology context
 
 Usage:
     python setup_commands.py [options]
