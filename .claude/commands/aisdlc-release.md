@@ -1,6 +1,6 @@
 # /aisdlc-release - Framework Release Management
 
-Create a new release of the ai_sdlc_method framework with version management, changelog generation, and git tagging.
+Create a new release of the ai_sdlc_method framework by bumping the build number, generating changelog, and creating a git tag.
 
 <!-- Implements: REQ-F-CMD-003 (Release Management Command) -->
 
@@ -8,7 +8,7 @@ Create a new release of the ai_sdlc_method framework with version management, ch
 
 Execute controlled release of the ai_sdlc_method framework:
 1. Validate release readiness (clean git state, on main branch)
-2. Determine version bump (major/minor/patch)
+2. Automatically bump build number (x.y.z → x.y.z+1)
 3. Generate changelog from git commits
 4. Create annotated git tag
 5. Generate release summary with next steps
@@ -38,19 +38,23 @@ CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 echo "📦 Current Version: $CURRENT_VERSION"
 ```
 
-### 2. Version Bump Selection
+### 2. Calculate Next Build Number
 
-Ask user for version bump type:
+Automatically increment the build number (patch version):
 
+```bash
+# Parse current version (e.g., v0.2.0 → major=0, minor=2, build=0)
+VERSION="${CURRENT_VERSION#v}"
+MAJOR=$(echo "$VERSION" | cut -d. -f1)
+MINOR=$(echo "$VERSION" | cut -d. -f2)
+BUILD=$(echo "$VERSION" | cut -d. -f3)
+
+# Increment build number
+NEW_BUILD=$((BUILD + 1))
+NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_BUILD}"
+
+echo "🆕 New Version: $NEW_VERSION (build bump)"
 ```
-Options:
-1. patch (v0.1.4 → v0.1.5) - Bug fixes, minor updates
-2. minor (v0.1.4 → v0.2.0) - New features, backwards compatible
-3. major (v0.1.4 → v1.0.0) - Breaking changes
-4. custom - Specify exact version
-```
-
-Parse current version and calculate new version based on selection.
 
 ### 3. Changelog Generation
 
@@ -119,21 +123,17 @@ echo ""
 ## Command Options
 
 ```bash
-# Standard release (prompts for version bump)
+# Standard release (auto-bumps build number)
 /aisdlc-release
 
 # Dry run (preview without changes)
 /aisdlc-release --dry-run
 
-# Specify version explicitly
-/aisdlc-release --version v0.2.0
-
 # Skip changelog display
 /aisdlc-release --no-changelog
-
-# Force release even with uncommitted changes (not recommended)
-/aisdlc-release --force
 ```
+
+**Note**: This command only bumps the build number (e.g., v0.2.0 → v0.2.1). For major/minor version changes, manually create the tag: `git tag -a v0.3.0 -m "Release v0.3.0"`
 
 ## Example Session
 
@@ -145,57 +145,50 @@ echo ""
 ║           AI SDLC Method Release                             ║
 ╚══════════════════════════════════════════════════════════════╝
 
-📦 Current Version: v0.1.4
+📦 Current Version: v0.2.0
 
 ✅ Pre-release Checks:
    - No uncommitted changes ✅
    - On main branch ✅
-   - Tests passing ✅
 
-📝 Changes since v0.1.4:
-   - feat: Add release target tracking to requirements
-   - feat: Repurpose release command for framework releases
-   - refactor: Move examples to separate repo
-   - docs: Update traceability matrix with release column
+🆕 New Version: v0.2.1 (build bump)
 
-🔢 Select version bump:
-   1. patch (v0.1.4 → v0.1.5)
-   2. minor (v0.1.4 → v0.2.0)
-   3. major (v0.1.4 → v1.0.0)
-   4. custom
-
-> User selects: 2 (minor)
-
-🆕 New Version: v0.2.0
+📝 Changes since v0.2.0:
+   - feat: Add /aisdlc-update command
+   - feat: Add REQ-F-UPDATE-001 requirement
+   - docs: Update traceability matrix (19 requirements)
 
 Creating release...
-   ✅ Tag created: v0.2.0
+   ✅ Tag created: v0.2.1
    ✅ Release notes generated
 
 ╔══════════════════════════════════════════════════════════════╗
 ║           AI SDLC Method Release Complete                    ║
 ╚══════════════════════════════════════════════════════════════╝
 
-📦 Previous Version: v0.1.4
-🆕 New Version: v0.2.0
-⏱️  Timestamp: 2025-11-25 13:45:00
+📦 Previous Version: v0.2.0
+🆕 New Version: v0.2.1
+⏱️  Timestamp: 2025-11-25 14:00:00
 
 📝 Next Steps:
-   1. Review tag: git show v0.2.0
-   2. Push tag: git push origin v0.2.0
-   3. Push commits: git push origin main
-   4. Create GitHub release (optional)
+   1. Review tag: git show v0.2.1
+   2. Push tag: git push origin v0.2.1
+   3. Create GitHub release (optional)
 ```
 
 ## Version Bump Rules
 
-Follow Semantic Versioning (SemVer):
+This command **only bumps the build number** (patch version) automatically.
 
-| Change Type | Bump | Example |
-|-------------|------|---------|
-| Bug fixes, typos, minor docs | patch | v0.1.4 → v0.1.5 |
-| New features, backwards compatible | minor | v0.1.4 → v0.2.0 |
-| Breaking changes, major rewrites | major | v0.1.4 → v1.0.0 |
+| Version Change | Method | Example |
+|----------------|--------|---------|
+| Build bump | `/aisdlc-release` (automatic) | v0.2.0 → v0.2.1 |
+| Minor bump | Manual: `git tag -a v0.3.0 -m "..."` | v0.2.1 → v0.3.0 |
+| Major bump | Manual: `git tag -a v1.0.0 -m "..."` | v0.2.1 → v1.0.0 |
+
+**When to bump manually:**
+- **Minor** (x.Y.z): New features, backwards compatible changes
+- **Major** (X.y.z): Breaking changes, major rewrites, MVP releases
 
 ## Safety Features
 
