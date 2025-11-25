@@ -1,0 +1,28 @@
+{
+  "name": "runtime-skills-codex",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Runtime Skills (Codex)",
+  "description": "Codex skills for observability, telemetry tagging with REQ-* keys, and production feedback loops into requirements.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "runtime",
+    "telemetry",
+    "observability",
+    "production",
+    "feedback-loop",
+    "monitoring",
+    "traceability",
+    "homeostasis",
+    "datadog",
+    "prometheus"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "dependencies": {
+    "aisdlc-core-codex": "^3.0.0"
+  },
+  "skills": {
+    "enabled": true,
+    "paths": ["skills/"]
+  }
+}

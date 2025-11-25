@@ -1,0 +1,25 @@
+{
+  "name": "principles-key-codex",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Key Principles (Codex)",
+  "description": "Enforces the 7 Key Principles with the Seven Questions Checklist for Codex workflows.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "principles",
+    "sacred-seven",
+    "key-principles",
+    "tdd",
+    "code-quality",
+    "excellence",
+    "sensor",
+    "quality-gate"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "dependencies": {
+    "aisdlc-core-codex": "^3.0.0"
+  },
+  "configuration": {
+    "checklist": "skills/seven-questions-checklist"
+  }
+}

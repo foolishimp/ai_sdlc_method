@@ -1,0 +1,60 @@
+{
+  "name": "runtime-skills",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Runtime Skills - Production Feedback Loop",
+  "description": "Close the feedback loop from production to requirements. Tag telemetry with REQ-* keys, setup observability, and trace production issues back to intent. Enables homeostatic production monitoring.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "runtime",
+    "telemetry",
+    "observability",
+    "production",
+    "feedback-loop",
+    "monitoring",
+    "traceability",
+    "homeostasis",
+    "datadog",
+    "prometheus"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "skills": {
+    "enabled": true,
+    "paths": ["skills/"]
+  },
+  "dependencies": {
+    "aisdlc-core": "^3.0.0"
+  },
+  "capabilities": {
+    "telemetry_tagging": {
+      "description": "Tag logs, metrics, and traces with REQ-* keys for production traceability",
+      "skills": ["telemetry-tagging"]
+    },
+    "observability_setup": {
+      "description": "Setup observability platforms (Datadog, Prometheus, Splunk) with REQ-* tagging",
+      "skills": ["create-observability-config"]
+    },
+    "production_tracing": {
+      "description": "Trace production alerts back to requirements and create new intents",
+      "skills": ["trace-production-issue"]
+    }
+  },
+  "configuration": {
+    "telemetry": {
+      "auto_tag_logs": true,
+      "auto_tag_metrics": true,
+      "tag_format": "req:{REQ-KEY}",
+      "platforms": ["datadog", "prometheus", "splunk"]
+    },
+    "observability": {
+      "default_platform": "datadog",
+      "include_req_dashboards": true,
+      "alert_on_req_errors": true
+    },
+    "feedback_loop": {
+      "auto_create_intent_on_alert": false,
+      "link_alerts_to_requirements": true,
+      "trace_to_original_intent": true
+    }
+  }
+}

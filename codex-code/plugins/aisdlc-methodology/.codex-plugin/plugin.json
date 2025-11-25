@@ -1,0 +1,74 @@
+{
+  "name": "aisdlc-methodology-codex",
+  "version": "2.0.0",
+  "displayName": "AI SDLC Methodology - Multi-Stage Agent Configuration (Codex)",
+  "description": "Codex-native 7-stage AI SDLC methodology with Requirements, Design, Tasks, Code (TDD), System Test (BDD), UAT (BDD), and Runtime Feedback configurations.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "methodology",
+    "ai-sdlc",
+    "multi-stage",
+    "tdd",
+    "bdd",
+    "sacred-seven",
+    "requirements",
+    "traceability",
+    "agent-orchestration"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "configuration": {
+    "stages": "config/stages_config.yml",
+    "sacred_seven": "config/config.yml",
+    "reference_guide": "../../docs/ai_sdlc_method.md"
+  },
+  "documentation": {
+    "ai_sdlc_overview": "../../docs/ai_sdlc_overview.md",
+    "ai_sdlc_method": "../../docs/ai_sdlc_method.md",
+    "ai_sdlc_appendices": "../../docs/ai_sdlc_appendices.md",
+    "stages_overview": "docs/README.md",
+    "principles": "docs/principles/SACRED_SEVEN.md",
+    "tdd_workflow": "docs/processes/TDD_WORKFLOW.md",
+    "pair_programming": "docs/guides/PAIR_PROGRAMMING_WITH_AI.md"
+  },
+  "stages": {
+    "requirements": {
+      "section": "4.0",
+      "agent": "Requirements Agent",
+      "purpose": "Intent to structured requirements with unique keys"
+    },
+    "design": {
+      "section": "5.0",
+      "agent": "Design Agent / Solution Designer",
+      "purpose": "Requirements to implementable technical and data solution"
+    },
+    "tasks": {
+      "section": "6.0",
+      "agent": "Tasks Stage Orchestrator",
+      "purpose": "Work breakdown with Jira integration and agent orchestration"
+    },
+    "code": {
+      "section": "7.0",
+      "agent": "Code Agent / Developer Agent",
+      "purpose": "TDD-driven implementation (RED → GREEN → REFACTOR)"
+    },
+    "system_test": {
+      "section": "8.0",
+      "agent": "System Test Agent / QA Agent",
+      "purpose": "BDD integration testing (Given/When/Then)"
+    },
+    "uat": {
+      "section": "9.0",
+      "agent": "UAT Agent",
+      "purpose": "Business validation with BDD in business language"
+    },
+    "runtime_feedback": {
+      "section": "10.0",
+      "agent": "Runtime Feedback Agent",
+      "purpose": "Production telemetry and feedback loop closure"
+    }
+  },
+  "dependencies": {
+    "aisdlc-core-codex": "^3.0.0"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "name": "design-skills",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Design Skills - Architecture and ADRs with Traceability",
+  "description": "Transform requirements into technical solution architecture with REQ-* traceability. Create Architecture Decision Records (ADRs) acknowledging ecosystem E(t). Validate design coverage for all requirements.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "design",
+    "architecture",
+    "adr",
+    "architecture-decision-records",
+    "solution-design",
+    "traceability",
+    "ecosystem",
+    "design-coverage"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "skills": {
+    "enabled": true,
+    "paths": ["skills/"]
+  },
+  "dependencies": {
+    "aisdlc-core": "^3.0.0",
+    "requirements-skills": "^1.0.0"
+  },
+  "capabilities": {
+    "solution_design": {
+      "description": "Create technical solution architecture with REQ-* traceability",
+      "skills": ["design-with-traceability"]
+    },
+    "architecture_decisions": {
+      "description": "Document architecture decisions acknowledging ecosystem E(t)",
+      "skills": ["create-adrs"]
+    },
+    "design_validation": {
+      "description": "Validate all requirements have design coverage",
+      "skills": ["validate-design-coverage"]
+    }
+  },
+  "configuration": {
+    "design": {
+      "require_component_diagrams": true,
+      "require_api_specs": true,
+      "require_data_models": true,
+      "tag_all_with_req": true
+    },
+    "adrs": {
+      "require_for_strategic_decisions": true,
+      "acknowledge_ecosystem": true,
+      "document_alternatives": true,
+      "adr_directory": "docs/adrs"
+    },
+    "validation": {
+      "require_all_req_have_design": true,
+      "minimum_coverage": 100
+    }
+  }
+}

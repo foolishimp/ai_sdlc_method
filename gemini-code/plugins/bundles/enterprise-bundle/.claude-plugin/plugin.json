@@ -1,0 +1,19 @@
+{
+  "name": "enterprise-bundle",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Enterprise Bundle",
+  "description": "Complete 7-stage AI SDLC for enterprise teams. Full governance, traceability, compliance, and feedback loop. Includes all core plugins for requirements, design, code, testing, runtime, and principles.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": ["bundle", "enterprise", "governance", "compliance", "full-sdlc"],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "dependencies": {
+    "aisdlc-core": "^3.0.0",
+    "requirements-skills": "^1.0.0",
+    "design-skills": "^1.0.0",
+    "code-skills": "^1.0.0",
+    "testing-skills": "^1.0.0",
+    "runtime-skills": "^1.0.0",
+    "principles-key": "^1.0.0"
+  }
+}

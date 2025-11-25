@@ -1,0 +1,56 @@
+{
+  "name": "aisdlc-core",
+  "version": "3.0.0",
+  "displayName": "AI SDLC Core - Requirement Traceability Foundation",
+  "description": "Foundation plugin providing requirement traceability with REQ-* key patterns, coverage detection (sensor), and key propagation (actuator). Essential foundation for all AI SDLC plugins.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "ai-sdlc",
+    "traceability",
+    "requirements",
+    "req-keys",
+    "coverage",
+    "homeostasis",
+    "sensor",
+    "actuator",
+    "foundation"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "skills": {
+    "enabled": true,
+    "paths": ["skills/"]
+  },
+  "capabilities": {
+    "requirement_traceability": {
+      "description": "REQ-* key pattern definitions and traceability rules",
+      "skills": ["requirement-traceability"]
+    },
+    "coverage_detection": {
+      "description": "Homeostatic sensor detecting requirements without coverage",
+      "skills": ["check-requirement-coverage"]
+    },
+    "key_propagation": {
+      "description": "Homeostatic actuator tagging code/commits/tests with REQ-* keys",
+      "skills": ["propagate-req-keys"]
+    }
+  },
+  "configuration": {
+    "req_key_patterns": {
+      "functional": "REQ-F-{DOMAIN}-{ID}",
+      "non_functional": "REQ-NFR-{DOMAIN}-{ID}",
+      "data_quality": "REQ-DATA-{DOMAIN}-{ID}",
+      "business_rule": "REQ-BR-{DOMAIN}-{ID}"
+    },
+    "coverage": {
+      "minimum_percentage": 80,
+      "require_req_tags": true,
+      "auto_detect_missing": true
+    },
+    "propagation": {
+      "auto_propagate_on_commit": true,
+      "tag_format": "# Implements: {REQ-KEY}",
+      "test_tag_format": "# Validates: {REQ-KEY}"
+    }
+  }
+}

@@ -1,0 +1,790 @@
+# AI SDLC Multi-Stage Agent Configuration
+# Reference: /Users/jim/src/apps/ai_sdlc_method/docs/ai_sdlc_method.md
+# Version: 1.0.0
+
+ai_sdlc_stages:
+  version: "1.0"
+  description: "Complete AI SDLC stage configurations with AI agent specifications"
+  reference_doc: "file://../../docs/ai_sdlc_method.md"
+
+  # ============================================================================ 
+  # STAGE 1: REQUIREMENTS
+  # Reference: Section 4.0
+  # ============================================================================ 
+  requirements_stage:
+    section_ref: "4.0"
+    purpose: "Transform intent into formally documented, uniquely-keyed requirements"
+
+    agent:
+      name: "AISDLC Requirements Agent"
+      role: "Intent Store & Traceability Hub"
+
+      responsibilities:
+        - "Transform raw intent into structured requirements"
+        - "Generate requirement artifacts with unique keys"
+        - "Process feedback from all downstream stages"
+        - "Maintain end-to-end traceability"
+        - "Apply templates and standards"
+        - "Collaborate with personas (PO, BA, Data Steward)"
+
+      inputs:
+        - source: "Intent Manager"
+          type: "Problems, goals, risks (raw business intent)"
+        - source: "Discovery Results"
+          type: "Read/Analyse work outputs"
+        - source: "Governance/Regulatory"
+          type: "Compliance and regulatory changes"
+        - source: "All Stages (Feedback)"
+          type: "Design gaps, implementation discoveries, test gaps"
+
+      outputs:
+        user_stories:
+          format: "Given/When/Then or As-a/I-want/So-that"
+          keys: "REQ-F-{DOMAIN}-{SEQUENCE}"
+          example: "<REQ-ID>"
+
+        non_functional_requirements:
+          categories: ["performance", "security", "scalability", "reliability"]
+          keys: "REQ-NFR-{CATEGORY}-{SEQUENCE}"
+          example: "REQ-NFR-PERF-001"
+
+        data_requirements:
+          aspects: ["sources", "quality", "privacy", "lineage", "retention"]
+          keys: "REQ-DATA-{ASPECT}-{SEQUENCE}"
+          examples: ["REQ-DATA-001", "REQ-DATA-CQ-001"]
+          sub_requirements:
+            - "Data quality (completeness, accuracy, timeliness, consistency)"
+            - "Privacy classifications (PII, PHI per GDPR/CCPA/HIPAA)"
+            - "Data lineage tracking"
+            - "Master data and reference data needs"
+
+        business_rules:
+          keys: "REQ-BR-{DOMAIN}-{SEQUENCE}"
+          example: "REQ-BR-CALC-001"
+
+        acceptance_criteria:
+          linked_to: "Parent requirement keys"
+          format: "Testable validation points"
+
+        traceability_matrix:
+          format: "Markdown table or YAML/JSON"
+          location: "docs/TRACEABILITY_MATRIX.md"
+          content: "REQ-* → Intent, Design, Code, Tests, Runtime"
+          update_frequency: "Every stage transition"
+          auto_generated: true
+          tool: "validate_traceability.py --matrix"
+          purpose: "End-to-end requirement coverage and impact analysis"
+
+      key_principles:
+        requirement_keys:
+          properties: ["unique", "immutable", "versioned", "traceable", "auditable"]
+          structure: "REQ-{TYPE}-{DOMAIN}-{SEQUENCE}"
+          versioning: "<REQ-ID> v2 (for refinements)"
+
+        methodologies:
+          - "Intent First - every requirement originates from validated intent"
+          - "Single Source of Truth - requirements are authoritative"
+          - "Bi-Directional Traceability - forward to deployment, backward to intent"
+          - "Centralized Feedback Hub - all gaps feed back here"
+          - "Persona-Centric Ownership - PO, BA, Data Steward each own aspects"
+          - "Data Requirements Parity - data specs receive same rigor as functional"
+
+      quality_gates:
+        - "All requirements have unique keys"
+        - "All requirements have acceptance criteria"
+        - "Product Owner review complete"
+        - "Data Steward review complete (for data requirements)"
+        - "Compliance Officer review complete (for regulatory)"
+
+      context:
+        regulatory: ["GDPR", "CCPA", "HIPAA", "compliance_standards"]
+        business: ["strategic_goals", "market_conditions", "competitive_landscape"]
+        domain: ["industry_rules", "domain_knowledge", "business_processes"]
+        risk: ["risk_appetite", "security_requirements", "audit_requirements"]
+
+  # ============================================================================ 
+  # STAGE 2: DESIGN
+  # Reference: Section 5.0
+  # ============================================================================ 
+  design_stage:
+    section_ref: "5.0"
+    purpose: "Transform requirements into implementable technical and data solution"
+
+    agent:
+      name: "AISDLC Design Agent / Solution Designer"
+      role: "Architecture & Data Design"
+
+      responsibilities:
+        - "Analyze requirements and extract specifications"
+        - "Apply architectural patterns from context"
+        - "Design components, APIs, and data models"
+        - "Tag all artifacts with requirement keys"
+        - "Generate traceability matrix (100% requirement coverage)"
+        - "Document trade-offs and ADRs"
+
+      inputs:
+        - source: "Requirements Stage"
+          type: "Approved requirements (REQ-F-*, REQ-NFR-*, REQ-DATA-*)"
+        - source: "Architecture Context"
+          type: "Approved tech stack, patterns, security standards"
+        - source: "Data Architecture Context"
+          type: "Data models, schemas, lineage, retention, privacy rules"
+
+      outputs:
+        technical_design:
+          - "Component diagrams with sequence flows"
+          - "API specifications (REST/GraphQL/gRPC)"
+          - "Integration specs (system-to-system)"
+          - "Security & compliance design"
+
+        data_design:
+          - "Data models (conceptual, logical, physical)"
+          - "Data flow diagrams (batch & streaming)"
+          - "Storage technology decisions (RDBMS/NoSQL/data lake)"
+          - "Partitioning & sharding strategies"
+          - "Schema evolution plans"
+          - "Data integration patterns (ETL/ELT/CDC/streaming)"
+          - "Data access patterns"
+
+        traceability:
+          format: "Component → <REQ-ID>, REQ-NFR-SEC-001"
+          requirement: "100% requirement coverage in design"
+          artifact: "Design-to-Requirement Traceability Matrix"
+
+        architecture_decision_records:
+          content: "Design decisions with rationale"
+          tagged_with: "Requirement keys"
+
+      key_principles:
+        - "Application AND Data Co-Design (never design app without data architecture)"
+        - "Requirement-Driven Traceability (every artifact maps to requirement keys)"
+        - "Early Iteration is Cheaper (design-stage iteration < code-stage iteration)"
+        - "Context as Constraints (design within approved patterns only)"
+        - "Explicit Trade-off Documentation (performance vs cost vs complexity)"
+        - "Two-Dimensional Design (Technical + Data must be coherent)"
+
+      quality_gates:
+        - "Design adheres to approved architectural patterns"
+        - "All components mapped to requirement keys (100% traceability)"
+        - "Data models follow data architecture standards"
+        - "Security patterns applied per security context"
+        - "Performance targets specified per NFRs"
+        - "Cost estimates within budget constraints"
+
+      required_reviews:
+        - "Architecture Review (patterns and tech stack compliance)"
+        - "Data Architecture Review (data models and integration)"
+        - "Security Review (threat modeling and controls)"
+        - "Performance Review (capacity planning and latency)"
+
+      context:
+        architecture: ["tech_stack", "platform_choices", "patterns"]
+        data_architecture: ["modeling_standards", "storage_technologies", "integration_patterns"]
+        performance: ["latency_requirements", "throughput_targets", "scalability_needs"]
+        security: ["auth_patterns", "encryption_standards", "audit_requirements"]
+        cost: ["infrastructure_budgets", "operational_cost_targets"]
+
+  # ============================================================================ 
+  # STAGE 3: TASKS / WORK BREAKDOWN
+  # Reference: Section 6.0
+  # ============================================================================ 
+  tasks_stage:
+    section_ref: "6.0"
+    purpose: "Convert design into actionable work units with Jira integration and agent orchestration"
+    dual_purpose: true  # Work planning + Agent orchestration
+
+    agent:
+      name: "AISDLC Tasks Stage Orchestrator"
+      role: "Work Breakdown & Code Execution Manager"
+
+      responsibilities:
+        work_planning:
+          - "Analyze design artifacts and decompose into work units"
+          - "Generate user stories, technical tasks, data tasks"
+          - "Estimate work units (story points/hours)"
+          - "Identify dependencies and critical path"
+          - "Validate capacity vs. demand"
+
+        jira_integration:
+          - "Create/update Jira tickets (epics, stories, subtasks)"
+          - "Populate custom fields (req keys, story points, acceptance criteria)"
+          - "Configure parent-child relationships"
+          - "Set workflow states and transitions"
+
+        agent_orchestration:
+          - "Assign work units to developer agents from Jira backlog"
+          - "Monitor TDD cycle execution (RED → GREEN → REFACTOR)"
+          - "Validate test coverage gates (≥80%, critical paths 100%)"
+          - "Track progress and update Jira status"
+          - "Escalate blockers"
+          - "Maintain requirement traceability"
+
+      inputs:
+        - source: "Design Stage"
+          type: "Architecture diagrams, technical designs, data models"
+        - source: "Requirements"
+          type: "REQ-F-*, REQ-NFR-*, REQ-DATA-* with acceptance criteria"
+        - source: "Context"
+          type: "Capacity, workload, estimation velocity, dependencies, tooling"
+
+      outputs:
+        work_units:
+          epics:
+            description: "High-level features spanning multiple sprints"
+            tagged_with: "Requirement keys"
+
+          user_stories:
+            description: "Deliverable functionality from user perspective"
+            tagged_with: "REQ-F-* keys"
+            attributes: ["acceptance_criteria", "estimation"]
+
+          technical_tasks:
+            description: "Infrastructure, refactoring, tech debt"
+            tagged_with: "REQ-NFR-* keys"
+
+          data_tasks:
+            description: "Pipelines, quality checks, schemas"
+            tagged_with: "REQ-DATA-* keys"
+            categories:
+              - "Data pipeline development (ingestion, transformation)"
+              - "Schema creation and migration"
+              - "Data quality rule implementation"
+              - "Data lineage tracking"
+              - "Data access and security configuration"
+
+          bugs:
+            tagged_with: "Original requirement keys"
+            attributes: ["root_cause", "impact"]
+
+          spikes:
+            description: "Research and investigation"
+            tagged_with: "Requirement keys"
+            attributes: ["time_boxed", "decision_gates"]
+
+        jira_artifacts:
+          - "Jira tickets with full metadata"
+          - "Epic hierarchy"
+          - "Dependency graph"
+          - "Capacity utilization report"
+          - "Requirement coverage matrix"
+
+      task_template:
+        required_fields:
+          - "Task ID and requirement keys"
+          - "Task type (feature, data, bug fix, tech debt)"
+          - "Description and acceptance criteria"
+          - "Technical approach and dependencies"
+          - "Estimation (story points/hours)"
+          - "Data considerations (sources, quality, volume)"
+          - "Subtasks breakdown"
+
+      key_principles:
+        decomposition:
+          criteria:
+            - "Single Responsibility (one concern per task)"
+            - "Independently Estimable"
+            - "Testable (clear acceptance criteria)"
+            - "Implementable in Sprint (3-5 story points)"
+            - "Traceability (direct link to requirements)"
+            - "Minimal Coupling (explicit dependencies)"
+
+        synchronization_points:
+          - "Requirements ↔ Tasks: Every requirement must have ≥1 task"
+          - "Design ↔ Tasks: Technical design informs breakdown"
+          - "Tasks ↔ Code: Tasks become Jira tickets for agents"
+          - "Tasks ↔ Testing: Acceptance criteria define test scenarios"
+          - "Capacity Synchronization: Estimated capacity ≥ planned demand"
+
+      quality_gates:
+        - "All tasks linked to requirement keys (no orphan tasks)"
+        - "All tasks estimated (story points or hours)"
+        - "All tasks have clear, testable acceptance criteria"
+        - "Dependencies identified and tracked"
+        - "Capacity vs. demand validated (no overallocation)"
+        - "Critical path identified and communicated"
+
+      context:
+        capacity: ["team_size", "skill_availability", "sprint_capacity"]
+        workload: ["existing_commitments", "competing_priorities"]
+        estimation: ["velocity_data", "historical_metrics", "complexity_factors"]
+        dependency: ["external_dependencies", "blocking_issues", "technical_constraints"]
+        tooling: ["jira_config", "azure_devops", "workflow_templates"]
+
+  # ============================================================================ 
+  # STAGE 4: CODE (TDD-DRIVEN)
+  # Reference: Section 7.0
+  # ============================================================================ 
+  code_stage:
+    section_ref: "7.0"
+    purpose: "Implement solution using Test-Driven Development (RED → GREEN → REFACTOR)"
+    methodology: "TDD"
+
+    agent:
+      name: "AISDLC Code Agent / Developer Agent"
+      role: "TDD-Driven Implementation"
+
+      responsibilities:
+        - "Receive work units from Tasks Stage (Jira tickets)"
+        - "Execute TDD cycle: RED → GREEN → REFACTOR → COMMIT"
+        - "Write tests first, always (Principle #1: No code without tests)"
+        - "Implement minimal code to pass tests"
+        - "Refactor while keeping tests green"
+        - "Tag all code with requirement keys"
+        - "Maintain ≥80% test coverage (critical paths 100%)"
+
+      inputs:
+        - source: "Tasks Stage"
+          type: "Work units (Jira tickets) with acceptance criteria"
+        - source: "Design"
+          type: "Technical specs, API contracts, data models"
+        - source: "Context"
+          type: "Coding standards, security guidelines, templates, approved libraries"
+
+      outputs:
+        production_code:
+          tagged_with: "Requirement keys in docstrings/comments"
+          examples:
+            - "# Implements: <REQ-ID> (User Authentication)"
+            - "# Satisfies: REQ-NFR-SEC-001 (Secure Authentication)"
+
+        test_code:
+          coverage_minimum: "80%"
+          coverage_critical_paths: "100%"
+          tagged_with: "Requirement keys"
+          structure: "AAA (Arrange-Act-Assert)"
+
+        git_commits:
+          format: "type: summary\n\ndetails\n\ntest evidence\n\nImplements: REQ-*"
+          co_author: "Gemini <noreply@google.com>"
+
+      tdd_cycle:
+        phases:
+          - phase: "RED"
+            action: "Write failing test first"
+            goal: "Define desired behavior"
+            validates: "Requirement acceptance criteria"
+
+          - phase: "GREEN"
+            action: "Write minimal code to pass"
+            goal: "Make it work"
+            constraint: "Simplest solution first"
+
+          - phase: "REFACTOR"
+            action: "Improve code quality"
+            goal: "Make it better"
+            constraint: "Keep tests passing"
+
+          - phase: "COMMIT"
+            action: "Save with requirement key"
+            goal: "Track progress and traceability"
+
+          - phase: "REPEAT"
+            action: "Next test"
+            goal: "Continue development"
+
+      ai_agent_constraints:
+        mandatory_rules:
+          - "Tests before code (always)"
+          - "One requirement per work unit"
+          - "TDD cycle for every change"
+          - "Coverage gates enforced"
+          - "Requirement key traceability maintained"
+
+      work_unit_execution:
+        flow: "Agent receives work unit → Executes TDD → Updates Jira → Next unit"
+        iteration: "Within work unit: Multiple TDD cycles until acceptance criteria met"
+
+      key_principles:
+        - "TDD Cycle (RED → GREEN → REFACTOR) is mandatory"
+        - "Tests are documentation (acceptance criteria → tests)"
+        - "Simplest solution first"
+        - "Keep tests passing during refactor"
+        - "Commit after each cycle with requirement key"
+
+      quality_gates:
+        - "All code has tests"
+        - "Test coverage ≥80% (critical paths 100%)"
+        - "All tests passing"
+        - "Code tagged with requirement keys"
+        - "Coding standards compliance"
+        - "Security scan passes"
+
+      context:
+        coding_standards: "file://standards/coding/python_style_guide.md"
+        security: "file://standards/security/secure_coding.md"
+        templates: "file://templates/code/service_template.py"
+        approved_libraries:
+          authentication: ["bcrypt", "PyJWT", "passlib"]
+
+        key_principles_integration:
+          principle_1: "Test Driven Development (TDD mandatory)"
+          principle_2: "Fail Fast & Root Cause (tests fail loudly)"
+          principle_3: "Modular & Maintainable (single responsibility)"
+          principle_4: "Reuse Before Build (check existing code)"
+          principle_5: "Open Source First (suggest alternatives)"
+          principle_6: "No Legacy Baggage (clean slate, no debt)"
+          principle_7: "Perfectionist Excellence (quality over quantity)"
+
+  # ============================================================================ 
+  # STAGE 5: SYSTEM TEST (BDD-DRIVEN)
+  # Reference: Section 8.0
+  # ============================================================================ 
+  system_test_stage:
+    section_ref: "8.0"
+    purpose: "Verify integrated system behavior using BDD (Given/When/Then)"
+    methodology: "BDD"
+
+    agent:
+      name: "AISDLC System Test Agent / QA Agent"
+      role: "BDD-Driven Integration Testing"
+
+      responsibilities:
+        - "Generate BDD scenarios from requirements"
+        - "Analyze requirements and create Given/When/Then scenarios"
+        - "Implement step definitions (Behave/Cucumber/SpecFlow)"
+        - "Perform coverage analysis (≥95% requirement coverage)"
+        - "Validate data quality and performance"
+        - "Generate requirement coverage reports"
+        - "Provide feedback to Requirements stage for gaps"
+
+      inputs:
+        - source: "Code Stage"
+          type: "Implemented system"
+        - source: "Requirements"
+          type: "REQ-F-*, REQ-NFR-*, REQ-DATA-CQ-*"
+        - source: "Design"
+          type: "Architecture, integration points"
+        - source: "Context"
+          type: "Test environments, data provisioning, performance baselines"
+
+      outputs:
+        bdd_feature_files:
+          format: "Gherkin (Given/When/Then)"
+          tagged_with: "Requirement keys in comments"
+          frameworks: ["Behave (Python)", "Cucumber (Java/JS)", "SpecFlow (.NET)"]
+
+        step_definitions:
+          implementation: "Automated test code"
+          tagged_with: "Requirement keys"
+
+        test_reports:
+          content: "Scenario execution results (pass/fail)"
+          tagged_with: "Requirement coverage status"
+
+        coverage_matrix:
+          format: "Scenario-to-requirement mapping"
+          requirement: "All requirement keys covered"
+
+        defect_reports:
+          tagged_with: "Original requirement keys"
+          severity: "Critical/High/Medium/Low"
+
+      scenario_types:
+        functional:
+          scope: "REQ-F-* (happy paths, error handling, edge cases)"
+
+        integration:
+          scope: "Service-to-service, API contracts, message flows"
+
+        data_quality:
+          scope: "REQ-DATA-CQ-* (completeness, accuracy, consistency, timeliness)"
+
+        performance:
+          scope: "REQ-NFR-PERF-* (load testing, response time, throughput)"
+
+      key_principles:
+        bdd_format:
+          given: "Setup/preconditions (system state before action)"
+          when: "Action/operation (what the system does)"
+          then: "Assertion/validation (expected outcome)"
+
+        characteristics:
+          - "Business-readable (non-technical stakeholders understand)"
+          - "Executable specifications (both documentation and tests)"
+          - "Requirement traceability (every scenario tags requirements)"
+
+        tester_focused:
+          - "Testers write scenarios (not developers)"
+          - "External perspective (tests from user's viewpoint)"
+          - "Integration focus (components working together)"
+          - "Coverage-driven (all requirements have scenarios)"
+
+      quality_gates:
+        - "All requirements have ≥1 BDD scenario"
+        - "All scenarios pass (or failures documented)"
+        - "Requirement coverage ≥95%"
+        - "No critical defects open"
+        - "Performance scenarios meet NFRs"
+        - "Data quality scenarios pass"
+        - "QA Lead approval"
+
+      context:
+        bdd_frameworks: ["behave", "cucumber", "specflow"]
+        test_environments: ["staging", "pre_prod"]
+        data_provisioning: "Test data lifecycle management"
+        performance_baselines: "NFR thresholds from requirements"
+
+  # ============================================================================ 
+  # STAGE 6: UAT (BDD-DRIVEN)
+  # Reference: Section 9.0
+  # ============================================================================ 
+  uat_stage:
+    section_ref: "9.0"
+    purpose: "Business validation through pure business language BDD scenarios"
+    methodology: "BDD for Business Users"
+
+    agent:
+      name: "AISDLC UAT Agent"
+      role: "Business Acceptance Facilitator"
+
+      responsibilities:
+        - "Support manual UAT test case creation (Business SMEs)"
+        - "Convert UAT scripts to automated BDD tests"
+        - "Generate data validation tests"
+        - "Track requirement-to-test traceability"
+        - "Generate sign-off documentation"
+        - "Facilitate three parallel activities"
+
+      inputs:
+        - source: "System Test Stage"
+          type: "Tested build and test results"
+        - source: "Requirements"
+          type: "Acceptance criteria (functional + data)"
+        - source: "Context"
+          type: "Production-like data, UAT environment, business personas"
+
+      outputs:
+        manual_uat_test_cases:
+          format: "Given/When/Then in pure business language"
+          tagged_with: "Requirement keys (REQ-F-*, REQ-BR-*)"
+          owned_by: "Business SMEs / Business Analysts"
+          example: "As a customer, when I log in with valid credentials, I should see my dashboard"
+
+        automated_uat_tests:
+          framework: "BDD (Cucumber/Behave)"
+          traceability: "Same requirement keys as manual cases"
+          owned_by: "QA Engineers"
+          execution: "Continuous in CI/CD"
+
+        automated_data_tests:
+          framework: "Great Expectations, dbt tests"
+          scope: "Data quality, business rules, reconciliation"
+          tagged_with: "REQ-DATA-* keys"
+          owned_by: "QA Engineers"
+
+        uat_results:
+          format: "Per-requirement status (✅ Accepted / ❌ Rejected)"
+          data_acceptance: "Data accuracy, completeness, reconciliation reports"
+          sign_off_document: "Formal approval with requirement traceability"
+
+      three_parallel_activities:
+        activity_1:
+          name: "Manual UAT Test Cases"
+          owned_by: "Business SMEs / Business Analysts"
+          language: "Pure business terms, Given/When/Then"
+          tagging: "Requirement keys (REQ-F-*, REQ-BR-*)"
+
+        activity_2:
+          name: "Automated UAT Tests"
+          owned_by: "QA Engineers"
+          framework: "BDD (Cucumber, Behave)"
+          traceability: "Same REQ keys as manual cases"
+          execution: "Continuous in CI/CD"
+
+        activity_3:
+          name: "Automated Data Tests"
+          owned_by: "QA Engineers"
+          framework: "Great Expectations, dbt tests"
+          scope: "Data quality, business rules, reconciliation"
+          tagging: "Data requirement keys (REQ-DATA-*)"
+
+      key_principles:
+        - "Pure business language (no technical jargon in UAT scenarios)"
+        - "Written by Business Analysts with user input (not QA alone)"
+        - "Focus on user journeys and business value"
+        - "Three workstreams run in parallel (not sequential)"
+        - "UAT reveals latent intent (feedback to Requirements)"
+
+      quality_gates:
+        entry_criteria:
+          - "System test complete and results approved"
+          - "UAT environment ready and validated"
+          - "Production-like data loaded"
+          - "Business SMEs and data stewards available"
+          - "UAT scripts reviewed and approved"
+
+        exit_criteria:
+          - "All planned scenarios executed"
+          - "Business sign-off obtained for all requirements"
+          - "Data validation complete with sign-off"
+          - "No open critical or high severity defects"
+          - "User training completed (if applicable)"
+          - "Deployment readiness checklist complete"
+
+      sign_off_authorities:
+        - "Business SME (functional behavior and business value)"
+        - "Business Data Steward (data quality and business rule compliance)"
+        - "UAT Lead (UAT activities complete)"
+        - "Compliance Officer (regulatory requirements, if applicable)"
+
+      context:
+        business_context: "Domain knowledge, business rules, workflows"
+        user_personas: "End user types, skill levels, accessibility"
+        uat_environment: "Production-like with representative data"
+        templates:
+          - "UAT script template"
+          - "Data validation template"
+          - "Sign-off process template"
+
+  # ============================================================================ 
+  # STAGE 7: RUNTIME FEEDBACK
+  # Reference: Section 10.0
+  # ============================================================================ 
+  runtime_feedback_stage:
+    section_ref: "10.0"
+    purpose: "Close feedback loop between production runtime and requirements"
+    focus: "Requirement key tracking and feedback extraction (NOT deployment mechanics)"
+
+    agent:
+      name: "AISDLC Runtime Feedback Agent"
+      role: "Telemetry Aggregation & Feedback Generation"
+
+      responsibilities:
+        - "Parse and validate release manifests"
+        - "Aggregate telemetry from observability platforms"
+        - "Link alerts to requirement keys"
+        - "Perform root cause and trend analysis"
+        - "Generate new intents from runtime observations"
+        - "Close the feedback loop to Requirements stage"
+
+      inputs:
+        - source: "UAT Stage"
+          type: "Sign-off and validated requirements for deployment"
+        - source: "CI/CD Platform"
+          type: "Release manifests with requirement keys"
+        - source: "Observability Platforms"
+          type: "Logs, metrics, traces, alerts"
+          platforms: ["Datadog", "New Relic", "Prometheus", "Grafana"]
+        - source: "Incident Management"
+          type: "Production issues and anomalies"
+          systems: ["PagerDuty", "Opsgenie"]
+
+      outputs:
+        release_manifests:
+          format: "Requirement keys with versions per release"
+          example: "v2.5.0: <REQ-ID> (v1), REQ-NFR-PERF-001 (v2)"
+
+        runtime_telemetry:
+          tagged_with: "Requirement keys from code annotations"
+          types: ["metrics", "logs", "traces"]
+
+        alerts:
+          tagged_with: "Requirement keys"
+          linked_to: "Incident management systems"
+
+        feedback_reports:
+          content: "New or refined intents from runtime observations"
+          links_to: "Requirement keys (traceability)"
+          destination: "Intent Manager → Re-enter lifecycle at Requirements"
+
+        traceability_reports:
+          analyses: ["impact_analysis", "trend_analysis", "root_cause_traces"]
+          mapping: "Requirement key to alert mappings"
+
+      key_principles:
+        requirement_key_tagging:
+          - "Every log, metric, alert tagged with requirement key"
+          - "Example: ERROR: <REQ-ID> - Authentication failure"
+
+        two_way_traceability:
+          forward: "Intent → Design → Code → Test → UAT → Runtime Metrics"
+          backward: "Production Alert → Requirement → Code → Design → Intent"
+
+        closed_loop:
+          principle: "Runtime feedback MUST create new intents"
+          flow: "Runtime data → New Intent → Re-enter at Requirements"
+
+        observability_complete:
+          - "Application telemetry (logs, metrics, traces)"
+          - "Data observability (quality, lineage, schema)"
+          - "Compliance data"
+
+        feedback_mechanisms:
+          - "Production issues → New intent to improve UAT"
+          - "Trend analysis → Intent to refactor/redesign"
+          - "Performance degradation → Intent to optimize"
+          - "Coverage gaps → Missing test scenarios"
+
+      quality_gates:
+        - "All deployed code tagged with requirement keys"
+        - "Telemetry systems capture requirement keys"
+        - "Alerts routed to Intent Manager"
+        - "Release manifests include requirement traceability"
+        - "Incident response links to requirements"
+
+      metrics:
+        telemetry_coverage: "% of code with requirement key tags (target: 100%)"
+        feedback_latency: "Time from production issue to new intent"
+        traceability_completeness: "% of alerts with linked requirement keys (target: 100%)"
+
+      context:
+        observability_platforms: ["Datadog", "New Relic", "Prometheus", "Grafana"]
+        ci_cd_platforms: ["Jenkins", "GitLab CI", "GitHub Actions", "ArgoCD"]
+        incident_management: ["PagerDuty", "Opsgenie"]
+        compliance_systems: "Regulatory audit systems"
+
+# ============================================================================ 
+# CROSS-STAGE INTEGRATION
+# ============================================================================ 
+integration:
+  traceability_flow:
+    forward: "Intent → Requirements → Design → Tasks → Code → System Test → UAT → Runtime"
+    backward: "Runtime Issues → Requirements → Intent"
+
+  requirement_key_propagation:
+    stages: ["Requirements", "Design", "Tasks", "Code", "System Test", "UAT", "Runtime"]
+    mandatory: "All artifacts tagged with requirement keys"
+
+  feedback_loops:
+    - from: "Design"
+      to: "Requirements"
+      trigger: "Design gaps, feasibility issues"
+
+    - from: "Tasks"
+      to: "Requirements"
+      trigger: "Capacity/feasibility constraints"
+
+    - from: "Code"
+      to: "Requirements"
+      trigger: "Implementation discoveries"
+
+    - from: "System Test"
+      to: "Requirements"
+      trigger: "Coverage gaps, ambiguous requirements"
+
+    - from: "UAT"
+      to: "Requirements"
+      trigger: "Rejected requirements, latent intent"
+
+    - from: "Runtime"
+      to: "Intent Manager"
+      trigger: "Production issues, performance degradation, new user needs"
+
+  concurrent_execution:
+    principle: "Any work that can run concurrently should run concurrently"
+    trigger: "When common asset like Requirements exists, dependent tasks can run in parallel"
+    examples:
+      - "Architecture SDLC and UAT Test SDLC run concurrently with main Code SDLC"
+      - "Data Pipeline SDLC runs alongside Application SDLC"
+
+# ============================================================================ 
+# METADATA
+# ============================================================================ 
+metadata:
+  created: "2025-11-26"
+  version: "1.0.0"
+  reference_document: "/Users/jim/src/apps/ai_sdlc_method/docs/ai_sdlc_method.md"
+  key_principles_integration: "file://config.yml (Key Principles for Code Stage)"
+  methodology_origin: "https://github.com/foolishimp/ai_sdlc_method"
+  ultimate_mantra: "Excellence or nothing"
+  note: "Key Principles can evolve per project context - see docs/principles/KEY_PRINCIPLES.md"

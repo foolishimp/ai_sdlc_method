@@ -1,0 +1,69 @@
+{
+  "name": "requirements-skills",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Requirements Skills - Intent to Structured Requirements",
+  "description": "Transform raw intent into structured, traceable requirements with REQ-* keys. Disambiguate into business rules (BR-*), constraints (C-*), and formulas (F-*). Support requirements refinement loop from TDD/BDD discoveries.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "requirements",
+    "requirement-extraction",
+    "disambiguation",
+    "business-rules",
+    "constraints",
+    "formulas",
+    "traceability",
+    "intent",
+    "refinement-loop"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "skills": {
+    "enabled": true,
+    "paths": ["skills/"]
+  },
+  "dependencies": {
+    "aisdlc-core": "^3.0.0"
+  },
+  "capabilities": {
+    "requirement_extraction": {
+      "description": "Extract structured requirements from raw intent",
+      "skills": ["requirement-extraction"]
+    },
+    "requirement_disambiguation": {
+      "description": "Break vague requirements into BR-*, C-*, F-* for code generation",
+      "skills": ["disambiguate-requirements", "extract-business-rules", "extract-constraints", "extract-formulas"]
+    },
+    "requirement_refinement": {
+      "description": "Refine requirements from discoveries during TDD/BDD",
+      "skills": ["refine-requirements"]
+    },
+    "traceability_management": {
+      "description": "Manage intent-to-requirement traceability",
+      "skills": ["create-traceability-matrix", "validate-requirements"]
+    }
+  },
+  "configuration": {
+    "extraction": {
+      "auto_extract_on_intent": true,
+      "require_acceptance_criteria": true,
+      "min_requirements_per_intent": 1
+    },
+    "disambiguation": {
+      "auto_disambiguate": true,
+      "require_business_rules": true,
+      "require_constraints": false,
+      "require_formulas": false,
+      "min_br_per_requirement": 2
+    },
+    "refinement": {
+      "auto_refine_on_discovery": true,
+      "track_discovery_source": true,
+      "update_traceability_on_refine": true
+    },
+    "validation": {
+      "require_unique_keys": true,
+      "require_acceptance_criteria": true,
+      "require_testable_format": true
+    }
+  }
+}

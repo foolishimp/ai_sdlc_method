@@ -1,0 +1,15 @@
+{
+  "name": "startup-bundle",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Startup Bundle",
+  "description": "Quick-start bundle for startups and solo developers. Includes core traceability, TDD workflow, and Key Principles enforcement. Minimal overhead, maximum quality.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": ["bundle", "startup", "quick-start", "tdd", "minimal"],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "dependencies": {
+    "aisdlc-core": "^3.0.0",
+    "code-skills": "^1.0.0",
+    "principles-key": "^1.0.0"
+  }
+}

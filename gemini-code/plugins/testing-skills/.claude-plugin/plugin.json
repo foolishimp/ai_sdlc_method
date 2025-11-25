@@ -1,0 +1,74 @@
+{
+  "name": "testing-skills",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Testing Skills - Coverage Validation and Test Generation",
+  "description": "Test coverage validation, missing test detection (sensor), automatic test generation (actuator), integration testing, and coverage reporting with requirement traceability.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "testing",
+    "test-coverage",
+    "coverage-validation",
+    "test-generation",
+    "integration-tests",
+    "homeostasis",
+    "sensor",
+    "actuator",
+    "requirement-coverage"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "skills": {
+    "enabled": true,
+    "paths": ["skills/"]
+  },
+  "dependencies": {
+    "aisdlc-core": "^3.0.0"
+  },
+  "capabilities": {
+    "coverage_validation": {
+      "description": "Homeostatic sensor detecting test coverage gaps and requirements without tests",
+      "skills": ["validate-test-coverage"]
+    },
+    "test_generation": {
+      "description": "Homeostatic actuator auto-generating missing tests for requirements",
+      "skills": ["generate-missing-tests"]
+    },
+    "integration_testing": {
+      "description": "Run integration tests validating cross-component requirements",
+      "skills": ["run-integration-tests"]
+    },
+    "coverage_reporting": {
+      "description": "Generate coverage reports with requirement traceability mapping",
+      "skills": ["create-coverage-report"]
+    }
+  },
+  "configuration": {
+    "coverage": {
+      "minimum_percentage": 80,
+      "require_per_requirement": true,
+      "exclude_patterns": ["**/migrations/**", "**/generated/**"],
+      "critical_paths_coverage": 100
+    },
+    "test_generation": {
+      "auto_generate_on_gap": false,
+      "include_edge_cases": true,
+      "include_error_cases": true,
+      "include_boundary_tests": true,
+      "frameworks": {
+        "python": "pytest",
+        "javascript": "jest",
+        "java": "junit"
+      }
+    },
+    "integration_tests": {
+      "auto_run_on_commit": false,
+      "timeout_seconds": 300,
+      "parallel_execution": true
+    },
+    "reporting": {
+      "format": "html",
+      "include_req_mapping": true,
+      "include_gap_analysis": true
+    }
+  }
+}

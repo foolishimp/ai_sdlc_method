@@ -1,0 +1,16 @@
+{
+  "name": "qa-bundle",
+  "version": "1.0.0",
+  "displayName": "AI SDLC QA Bundle",
+  "description": "Testing-focused bundle for QA teams. Includes BDD scenarios, coverage validation, test generation, and requirements-to-tests traceability. Perfect for test-first development teams.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": ["bundle", "qa", "testing", "bdd", "coverage"],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "dependencies": {
+    "aisdlc-core": "^3.0.0",
+    "requirements-skills": "^1.0.0",
+    "code-skills": "^1.0.0",
+    "testing-skills": "^1.0.0"
+  }
+}

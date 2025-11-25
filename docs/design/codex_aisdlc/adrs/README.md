@@ -12,3 +12,9 @@ Seed Decisions (to author as they are finalized)
 - ADR-102: Codex persona presets for SDLC stages (requirements, design, tasks, code, system_test, uat, runtime).
 - ADR-103: Packaging Codex skills as a pip-installable extension with SemVer and dependency metadata.
 - ADR-104: Context auto-loading strategy for Codex sessions (reference set + workspace validation).
+
+Authored
+- ADR-101-codex-command-layer.md
+- ADR-102-codex-stage-personas.md
+- ADR-103-codex-plugin-packaging.md
+- ADR-104-codex-context-loading-and-guardrails.md

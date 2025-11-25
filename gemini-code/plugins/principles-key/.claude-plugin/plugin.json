@@ -1,0 +1,53 @@
+{
+  "name": "principles-key",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Key Principles - Seven Development Principles Enforcement",
+  "description": "Enforce the 7 Key Principles during development: TDD, Fail Fast, Modular, Reuse Before Build, Open Source First, No Legacy Baggage, Perfectionist Excellence. Includes Seven Questions Checklist sensor.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "principles",
+    "sacred-seven",
+    "key-principles",
+    "tdd",
+    "code-quality",
+    "excellence",
+    "sensor",
+    "quality-gate"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "skills": {
+    "enabled": true,
+    "paths": ["skills/"]
+  },
+  "dependencies": {
+    "aisdlc-core": "^3.0.0"
+  },
+  "capabilities": {
+    "principles_enforcement": {
+      "description": "Apply and validate 7 Key Principles during development",
+      "skills": ["apply-key-principles"]
+    },
+    "quality_gate": {
+      "description": "Seven Questions Checklist sensor blocking code if principles violated",
+      "skills": ["seven-questions-checklist"]
+    }
+  },
+  "configuration": {
+    "principles": {
+      "enforce_tdd": true,
+      "enforce_fail_fast": true,
+      "enforce_modular": true,
+      "enforce_reuse_first": true,
+      "enforce_open_source_first": true,
+      "enforce_no_legacy": true,
+      "enforce_excellence": true,
+      "block_on_violation": true
+    },
+    "seven_questions": {
+      "require_all_yes": true,
+      "ask_before_coding": true,
+      "block_if_any_no": true
+    }
+  }
+}

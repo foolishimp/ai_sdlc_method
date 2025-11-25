@@ -1,0 +1,16 @@
+{
+  "name": "qa-bundle-codex",
+  "version": "1.0.0",
+  "displayName": "AI SDLC QA Bundle (Codex)",
+  "description": "Codex bundle for QA teams with BDD scenarios, coverage validation, test generation, and requirements-to-tests traceability.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": ["bundle", "qa", "testing", "bdd", "coverage"],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "dependencies": {
+    "aisdlc-core-codex": "^3.0.0",
+    "requirements-skills-codex": "^1.0.0",
+    "code-skills-codex": "^1.0.0",
+    "testing-skills-codex": "^1.0.0"
+  }
+}

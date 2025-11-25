@@ -1,6 +1,160 @@
 # Active Tasks
 
-*Last Updated: 2025-11-25 15:45*
+*Last Updated: 2025-11-26 12:30*
+
+---
+
+## Task #18: Gemini Implementation Parity
+
+**Priority**: High
+**Status**: In Progress
+**Release Target**: 2.0
+**Estimated Time**: 20-30 days
+**Dependencies**: Gemini Scaffolding and Initial Design (Task #17)
+
+**Requirements Traceability**:
+- REQ-F-PLUGIN-001: Plugin System
+- REQ-F-CMD-001: Slash Commands for Workflow
+- REQ-NFR-TRACE-001: Requirement Key Tagging Enforcement
+- REQ-NFR-REFINE-001: Iterative Refinement via Stage Feedback Loops
+
+**SDLC Stages**: 2 - Design, 4 - Code
+**Agents**: All
+
+**Description**:
+This master task tracks the work required to bring the `gemini-code` implementation to full functional parity with the `claude-code` reference implementation. This involves a deep prompt engineering effort to adapt all configurations, agent personas, and skills to be optimal for the Gemini family of models, and to implement the Gemini-native architecture defined in ADR-006.
+
+**Work Breakdown**:
+
+1.  **Adapt Core Methodology**: Rewrite agent personas and instructions in `stages_config.yml`.
+2.  **Adapt All Skills**: Rewrite all ~41 skill files for Gemini.
+3.  **Implement ADR-006**: Transition from the file-based system to the proposed "Blueprints" and "Workflows" architecture.
+4.  **Update Tooling**: Adapt installers and project templates for the new architecture.
+
+---
+
+### Component Adaptation Status
+
+| Component | File / Path | Status | Notes |
+|---|---|---|---|
+| **Core Methodology** | `gemini-code/.../config/stages_config.yml` | **Partially Complete** | Names and co-author updated. Deep prompt rewrite still required for all 7 agents. |
+| **Agents** | | | |
+| Requirements Agent | `gemini-code/plugins/aisdlc-methodology/config/stages_config.yml` | `Not Started` | Needs full rewrite of responsibilities and instructions. |
+| Design Agent | `gemini-code/plugins/aisdlc-methodology/config/stages_config.yml` | `Not Started` | Needs full rewrite of responsibilities and instructions. |
+| Tasks Agent | `gemini-code/plugins/aisdlc-methodology/config/stages_config.yml` | `Not Started` | Needs full rewrite of responsibilities and instructions. |
+| Code Agent | `gemini-code/plugins/aisdlc-methodology/config/stages_config.yml` | `Not Started` | Needs full rewrite of responsibilities and instructions. |
+| System Test Agent | `gemini-code/plugins/aisdlc-methodology/config/stages_config.yml` | `Not Started` | Needs full rewrite of responsibilities and instructions. |
+| UAT Agent | `gemini-code/plugins/aisdlc-methodology/config/stages_config.yml` | `Not Started` | Needs full rewrite of responsibilities and instructions. |
+| Runtime Feedback Agent | `gemini-code/plugins/aisdlc-methodology/config/stages_config.yml` | `Not Started` | Needs full rewrite of responsibilities and instructions. |
+| **Code Skills** | `gemini-code/plugins/code-skills/skills/` | | |
+| TDD Red Phase | `tdd/red-phase/SKILL.md` | **Partially Complete** | Initial adaptation done. Needs deeper review. |
+| TDD Green Phase| `tdd/green-phase/SKILL.md`| `Not Started` | |
+| TDD Refactor Phase|`tdd/refactor-phase/SKILL.md`| `Not Started` | |
+| ... (all other skills) | `...` | `Not Started` | ~40 skills require full prompt engineering adaptation. |
+| **Design Skills** | `gemini-code/plugins/design-skills/skills/` | `Not Started` | All skills need adaptation. |
+| **Requirements Skills**| `gemini-code/plugins/requirements-skills/skills/`| `Not Started` | All skills need adaptation. |
+| **Testing Skills**| `gemini-code/plugins/testing-skills/skills/`| `Not Started` | All skills need adaptation. |
+| **Runtime Skills**| `gemini-code/plugins/runtime-skills/skills/`| `Not Started` | All skills need adaptation. |
+| **Installers** | `gemini-code/installers/` | `Not Started` | Requires complete rewrite to support ADR-006 architecture. |
+| **Project Template** | `gemini-code/project-template/` | `Not Started` | Requires update to support ADR-006 architecture. |
+
+---
+
+## Task #16: Roo Code Agent Parity with Claude Reference Implementation
+
+**Priority**: High
+**Status**: Completed
+**Release Target**: 1.0 MVP
+**Estimated Time**: 1-2 days
+**Dependencies**: Aligns with Claude marketplace schema
+
+**Requirements Traceability**:
+- REQ-F-PLUGIN-001: Plugin System with Marketplace Support
+- REQ-F-PLUGIN-002: Federated Plugin Loading
+- REQ-F-PLUGIN-003: Plugin Bundles
+- REQ-F-PLUGIN-004: Plugin Versioning and Dependency Management
+
+**SDLC Stages**: 2 - Design, 4 - Code
+**Agents**: Design Agent, Code Agent
+
+**Description**:
+Create Codex-native plugin metadata (`plugin.json`) for all Codex packages and register them in `marketplace.json`, mirroring Claude package entries with correct SemVer, dependencies, and paths.
+
+**Current State**:
+- Codex plugins now have `.codex-plugin/plugin.json` with SemVer and dependencies.
+- `marketplace.json` updated with Codex plugin/bundle entries (provider: openai).
+- Documentation added for discovery/federated loading and parity (codex-code/plugins/README.md).
+
+**Target State**:
+```
+codex-code/plugins/*
+└── plugin.json with:
+    - name/version/description
+    - dependencies (SemVer ranges)
+    - entrypoints or package path
+marketplace.json includes codex plugin records and bundles
+Federated loading documented for Codex config layers
+```
+
+**Acceptance Criteria**:
+- [x] Each Codex plugin folder contains a valid plugin.json with SemVer and dependencies.
+- [x] marketplace.json lists Codex plugins and bundles with correct paths/versions.
+- [x] Documentation updated to explain Codex plugin discovery/loading.
+- [x] Parity documented vs Claude plugin records.
+
+**Work Breakdown**:
+1. Draft plugin.json templates for core, methodology, principles, requirements, design, code, testing, runtime, and bundles. ✅
+2. Add Codex entries to `marketplace.json` with SemVer and dependencies. ✅
+3. Document Codex federated loading behavior (global → project) aligned to Claude rules. ✅
+4. Validate schema against Claude reference and fix gaps. ✅ (parity map added)
+
+---
+
+## Task #14: Implement Codex Command Layer and Installers (MVP)
+
+**Priority**: High
+**Status**: Not Started
+**Release Target**: 1.0 MVP
+**Estimated Time**: 2-3 days
+**Dependencies**: Task #15 (plugin metadata for packaging)
+
+**Requirements Traceability**:
+- REQ-F-CMD-001: Slash Commands for Workflow (Codex CLI equivalents)
+- REQ-F-WORKSPACE-001/002/003: Developer Workspace and Templates
+- REQ-NFR-TRACE-001/002: Traceability Enforcement
+- REQ-NFR-CONTEXT-001: Persistent Context Across Sessions
+
+**SDLC Stages**: 2 - Design, 4 - Code
+**Agents**: Design Agent, Code Agent
+
+**Description**:
+Deliver Codex-friendly CLI commands (`codex-sdlc-*`) plus installer scripts to set up `.ai-workspace/`, register commands/personas, and validate traceability, mirroring the Claude installer behavior.
+
+**Current State**:
+- No Codex command implementations or personas.
+- Installers added as safe stubs (`codex-code/installers/setup_workspace.py`, `setup_commands.py`, `setup_plugins.py`, `validate_traceability.py`).
+- First command helper added: `codex_sdlc_context.py` (non-destructive context loader).
+
+**Target State**:
+```
+codex-sdlc-context, codex-sdlc-workspace, codex-sdlc-checkpoint, codex-sdlc-finish
+Setup scripts: setup_workspace.py, setup_commands.py, setup_plugins.py, validate_traceability.py
+Persona presets under codex/project-template for 7 stages
+Safe/idempotent writes to .ai-workspace/ and docs/TRACEABILITY_MATRIX.md
+```
+
+**Acceptance Criteria**:
+- [ ] Commands implemented as console scripts callable by Codex (context helper added; more needed).
+- [ ] Installers copy/validate `.ai-workspace/` and command/persona configs (currently stubbed).
+- [ ] Traceability validator enforces REQ tags and updates matrix entries (currently stubbed).
+- [ ] Docs updated to reference Codex commands/installers (aisdlc-methodology README updated with context helper).
+
+**Work Breakdown**:
+1. Scaffold Python package with console entrypoints for codex-sdlc-* commands.
+2. Port Claude workspace installer behavior to `codex-code/installers/setup_workspace.py`. ✅ stub
+3. Add `setup_commands.py`/`setup_plugins.py` and persona presets for the 7 stages. ✅ stubs for installers
+4. Add `validate_traceability.py` to check REQ tags and refresh matrix rows. ✅ stub
+5. Document usage and align with Codex design ADRs. ✅ (installer README stub status)
 
 ---
 
@@ -327,14 +481,36 @@ N/A - Documentation task
 
 ## Summary
 
-**Total Active Tasks**: 3
+**Total Active Tasks**: 6
+- High Priority: 3
 - Medium Priority: 3
-- Not Started: 3
-  - Task #13: Repurpose /aisdlc-release for Release Management (1.0 MVP)
-  - Task #3: Command System Documentation (needs scope update)
-  - Task #12: Ecosystem E(t) Tracking (v1.5 - planned)
+- Not Started: 4
+  - Task #16: Roo Code Agent Parity with Claude Reference (1.0 MVP) - HIGH
+  - Task #14: Implement Codex Command Layer and Installers (1.0 MVP) - HIGH
+  - Task #13: Repurpose /aisdlc-release for Release Management (1.0 MVP) - MEDIUM
+  - Task #3: Command System Documentation (needs scope update) - MEDIUM
+  - Task #12: Ecosystem E(t) Tracking (v1.5 - planned) - MEDIUM
+- In Progress: 1
+  - Task #16: Roo Code Agent Parity with Claude Reference (1.0 MVP) - HIGH
+- Completed (this file): 1
+  - Task #15: Ship Codex Plugin Packaging and Marketplace Entries (1.0 MVP) - HIGH
 
 **Recently Completed**:
+- ✅ Task #18: Implement Roo Code Installers - Full Suite (2025-11-26 14:00)
+  - Created complete installer suite mirroring Claude Code pattern (10 Python files)
+  - `common.py`, `setup_modes.py`, `setup_rules.py`, `setup_memory_bank.py`, `setup_workspace.py`
+  - `setup_all.py`, `setup_reset.py`, `aisdlc-reset.py` (curl-friendly)
+  - 36 unit tests (100% passing): `test_common.py`, `test_setup_reset.py`
+  - Comprehensive README.md documentation (389 lines)
+  - Implements: REQ-F-PLUGIN-001, REQ-F-WORKSPACE-001/002
+  - See: `.ai-workspace/tasks/finished/20251126_1400_roo_code_installers_implementation.md`
+- ✅ Task #15: Ship Codex Plugin Packaging and Marketplace Entries (2025-11-26 12:00)
+  - Added `.codex-plugin/plugin.json` metadata for all Codex plugins/bundles with SemVer/deps
+  - Updated `marketplace.json` with Codex entries (provider openai, Codex-suffixed names)
+  - Documented discovery, federated loading, and parity in `codex-code/plugins/README.md`
+  - Implements: REQ-F-PLUGIN-001/002/003/004
+- ✅ Task #17: Design and Scaffold Gemini AISDLC Implementation (2025-11-26 00:00)
+  - See: `.ai-workspace/tasks/finished/20251125_2353_design_and_scaffold_gemini_aisdlc.md`
 - ✅ Task #15: Create Roo Code AISDLC Solution (roo-code-iclaude) (2025-11-25 15:45)
   - Created complete `roo-code-iclaude/` directory matching Claude/Codex quality
   - Design docs: `docs/design/roo_aisdlc/` with 370+ line implementation design

@@ -1,0 +1,15 @@
+{
+  "name": "datascience-bundle",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Data Science Bundle",
+  "description": "AI SDLC adapted for data science and ML workflows. Future support for REPL-driven development, notebook-to-module extraction, and property-based testing. Currently includes core foundation.",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": ["bundle", "data-science", "ml", "jupyter", "repl", "notebooks"],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "dependencies": {
+    "aisdlc-core": "^3.0.0",
+    "code-skills": "^1.0.0",
+    "testing-skills": "^1.0.0"
+  }
+}

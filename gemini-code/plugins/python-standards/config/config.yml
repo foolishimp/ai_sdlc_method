@@ -1,0 +1,22 @@
+methodology:
+  coding:
+    standards:
+      style_guide: PEP 8
+      formatter: black
+      type_checking: true
+    linting:
+      tools:
+      - pylint
+      - flake8
+      - mypy
+      - black
+  testing:
+    framework: pytest
+    plugins:
+    - pytest-cov
+    - pytest-mock
+    - pytest-asyncio
+tools:
+  package_management:
+    tool: poetry
+    python_version: ^3.9

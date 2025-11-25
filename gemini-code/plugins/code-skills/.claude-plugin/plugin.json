@@ -1,0 +1,68 @@
+{
+  "name": "code-skills",
+  "version": "1.0.0",
+  "displayName": "AI SDLC Code Skills - TDD, BDD, and Code Generation",
+  "description": "Complete code development workflow skills: TDD (RED→GREEN→REFACTOR), BDD (Given/When/Then), code generation from business rules, and tech debt management (Principle #6 enforcement).",
+  "author": "foolishimp",
+  "license": "MIT",
+  "keywords": [
+    "tdd",
+    "bdd",
+    "test-driven-development",
+    "behavior-driven-development",
+    "code-generation",
+    "tech-debt",
+    "refactoring",
+    "homeostasis",
+    "sacred-seven",
+    "principle-6"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "skills": {
+    "enabled": true,
+    "paths": ["skills/"]
+  },
+  "dependencies": {
+    "aisdlc-core": "^3.0.0"
+  },
+  "capabilities": {
+    "tdd_workflow": {
+      "description": "Test-Driven Development with RED→GREEN→REFACTOR cycle",
+      "skills": ["tdd-workflow", "red-phase", "green-phase", "refactor-phase", "commit-with-req-tag"]
+    },
+    "bdd_workflow": {
+      "description": "Behavior-Driven Development with Given/When/Then scenarios",
+      "skills": ["bdd-workflow", "write-scenario", "implement-step-definitions", "implement-feature", "refactor-bdd"]
+    },
+    "code_generation": {
+      "description": "Autogenerate code from disambiguated requirements (BR-*, C-*, F-*)",
+      "skills": ["autogenerate-from-business-rules", "autogenerate-validators", "autogenerate-constraints", "autogenerate-formulas"]
+    },
+    "tech_debt_management": {
+      "description": "Homeostatic tech debt detection and elimination (Principle #6)",
+      "skills": ["detect-unused-code", "prune-unused-code", "detect-complexity", "simplify-complex-code"]
+    }
+  },
+  "configuration": {
+    "tdd": {
+      "minimum_coverage": 80,
+      "enforce_red_green_refactor": true,
+      "allow_skip_tests": false
+    },
+    "tech_debt": {
+      "auto_detect_on_refactor": true,
+      "auto_prune": false,
+      "max_complexity": 10,
+      "exclude_patterns": ["# KEEP:", "# TODO:"]
+    },
+    "bdd": {
+      "gherkin_style": "cucumber",
+      "require_scenarios_for_requirements": true
+    },
+    "code_generation": {
+      "auto_generate_from_br": true,
+      "auto_generate_validators": true,
+      "require_tests_for_generated_code": true
+    }
+  }
+}
