@@ -35,9 +35,9 @@ Each stage has:
 - **Personas** (human roles and AI agents)
 
 👉 **Start Here**: [The AI SDLC Journey](docs/guides/JOURNEY.md) - Complete happy path from setup to UAT (3 hour guided tour) ⭐
-👉 **Quick Introduction**: [AI SDLC Overview](docs/requirements/examples/AI_SDLC_OVERVIEW.md) (~30 min read)
-👉 **Complete Methodology**: [AI SDLC Requirements](docs/requirements/examples/AI_SDLC_REQUIREMENTS.md) (Sections 1-13)
-👉 **Example Project**: [customer_portal](examples/local_projects/customer_portal/)
+👉 **Quick Introduction**: [AI SDLC Overview](docs/requirements/AI_SDLC_OVERVIEW.md) (~30 min read)
+👉 **Complete Methodology**: [AI SDLC Requirements](docs/requirements/AI_SDLC_REQUIREMENTS.md) (Sections 1-13)
+👉 **Example Projects**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) (separate repo)
 
 ---
 
@@ -104,11 +104,11 @@ open docs/ai_sdlc_overview.md
 # Or dive into the complete method
 open docs/ai_sdlc_method.md
 
-# Explore the example project (7-stage workflow)
-open examples/local_projects/customer_portal/README.md
+# Explore example projects (separate repo)
+# git clone https://github.com/foolishimp/ai_sdlc_examples.git
 
 # Review the methodology plugin
-open plugins/aisdlc-methodology/README.md
+open claude-code/plugins/aisdlc-methodology/README.md
 ```
 
 ---
@@ -251,7 +251,7 @@ The Code Stage (Section 7.0) is built on these principles:
    - Quality over quantity
    - Excellence or nothing
 
-👉 **Full Principles**: [Key Principles](plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
+👉 **Full Principles**: [Key Principles](claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
 
 ---
 
@@ -272,7 +272,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: None (foundation)
 **Keywords**: traceability, requirements, homeostasis, sensor, actuator
 
-👉 [Full Documentation](plugins/aisdlc-core/README.md)
+👉 [Full Documentation](claude-code/plugins/aisdlc-core/README.md)
 
 ---
 
@@ -294,7 +294,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: `aisdlc-core`
 **Keywords**: methodology, multi-stage, tdd, bdd, traceability, agent-orchestration
 
-👉 [Full Documentation](plugins/aisdlc-methodology/README.md)
+👉 [Full Documentation](claude-code/plugins/aisdlc-methodology/README.md)
 
 #### principles-key v1.0.0
 
@@ -309,7 +309,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: `aisdlc-core`
 **Keywords**: principles, key-principles, tdd, code-quality, excellence, sensor
 
-👉 [Full Documentation](plugins/principles-key/README.md)
+👉 [Full Documentation](claude-code/plugins/principles-key/README.md)
 
 ---
 
@@ -328,7 +328,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: `aisdlc-core`
 **Keywords**: requirements, requirement-extraction, disambiguation, intent, refinement-loop
 
-👉 [Full Documentation](plugins/requirements-skills/README.md)
+👉 [Full Documentation](claude-code/plugins/requirements-skills/README.md)
 
 #### design-skills v1.0.0
 
@@ -343,7 +343,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: `aisdlc-core`, `requirements-skills`
 **Keywords**: design, architecture, adr, solution-design, traceability, ecosystem
 
-👉 [Full Documentation](plugins/design-skills/README.md)
+👉 [Full Documentation](claude-code/plugins/design-skills/README.md)
 
 #### code-skills v1.0.0
 
@@ -358,7 +358,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: `aisdlc-core`
 **Keywords**: tdd, bdd, code-generation, tech-debt, refactoring, homeostasis, actuator
 
-👉 [Full Documentation](plugins/code-skills/README.md)
+👉 [Full Documentation](claude-code/plugins/code-skills/README.md)
 
 #### testing-skills v1.0.0
 
@@ -374,7 +374,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: `aisdlc-core`
 **Keywords**: testing, test-coverage, coverage-validation, test-generation, homeostasis, sensor, actuator
 
-👉 [Full Documentation](plugins/testing-skills/README.md)
+👉 [Full Documentation](claude-code/plugins/testing-skills/README.md)
 
 #### runtime-skills v1.0.0
 
@@ -389,7 +389,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: `aisdlc-core`
 **Keywords**: runtime, telemetry, observability, production, feedback-loop, monitoring, homeostasis
 
-👉 [Full Documentation](plugins/runtime-skills/README.md)
+👉 [Full Documentation](claude-code/plugins/runtime-skills/README.md)
 
 ---
 
@@ -409,7 +409,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Dependencies**: `aisdlc-methodology`
 **Keywords**: python, pep8, pytest, standards, best-practices
 
-👉 [Full Documentation](plugins/python-standards/README.md)
+👉 [Full Documentation](claude-code/plugins/python-standards/README.md)
 
 ---
 
@@ -423,7 +423,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Best For**: Solo developers, startups, quick projects
 **Focus**: Minimal overhead, maximum quality, TDD workflow
 
-👉 [Full Documentation](plugins/bundles/startup-bundle/README.md)
+👉 [Full Documentation](claude-code/plugins/bundles/startup-bundle/README.md)
 
 #### datascience-bundle v1.0.0
 
@@ -433,7 +433,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Best For**: Data science teams, ML projects
 **Focus**: REPL-driven development (planned), notebook-to-module extraction (planned)
 
-👉 [Full Documentation](plugins/bundles/datascience-bundle/README.md)
+👉 [Full Documentation](claude-code/plugins/bundles/datascience-bundle/README.md)
 
 #### qa-bundle v1.0.0
 
@@ -443,7 +443,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Best For**: QA teams, test-first development
 **Focus**: BDD scenarios, coverage validation, requirements-to-tests traceability
 
-👉 [Full Documentation](plugins/bundles/qa-bundle/README.md)
+👉 [Full Documentation](claude-code/plugins/bundles/qa-bundle/README.md)
 
 #### enterprise-bundle v1.0.0
 
@@ -453,7 +453,7 @@ The Code Stage (Section 7.0) is built on these principles:
 **Best For**: Enterprise teams, full governance
 **Focus**: Complete lifecycle, traceability, compliance, feedback loop
 
-👉 [Full Documentation](plugins/bundles/enterprise-bundle/README.md)
+👉 [Full Documentation](claude-code/plugins/bundles/enterprise-bundle/README.md)
 
 ---
 
@@ -490,37 +490,21 @@ The power of this approach is **multiple marketplaces** for organizational hiera
 
 ## Example Projects
 
-### customer_portal (⭐ Complete 7-Stage Example)
+Example projects demonstrating the 7-stage AI SDLC are maintained in a separate repository:
 
-**Purpose**: Demonstrates complete 7-stage AI SDLC with full requirement traceability
+👉 **[ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)** - Complete example projects
 
-**Shows**:
-- All 7 stages in action
-- Requirement key propagation (REQ-F-AUTH-001 flows through all stages)
-- TDD workflow in Code stage
-- BDD testing in System Test and UAT stages
-- Runtime feedback creating new intents
-- Complete bidirectional traceability
-
-👉 [Detailed Walkthrough](examples/local_projects/customer_portal/README.md)
-
-### api_platform
-
-**Purpose**: Public API with backwards compatibility requirements
-
-**Shows**: How to override Principle #6 (No Legacy Baggage) for customer-facing APIs using feature flags
-
-👉 [API Platform Example](examples/local_projects/api_platform/README.md)
-
-### More Examples
-
-See [examples/README.md](examples/README.md) for complete list
+**Includes**:
+- **customer_portal** - Complete 7-stage example with full requirement traceability
+- **api_platform** - Public API with backwards compatibility requirements
+- **payment_gateway** - High-risk financial project example
+- **admin_dashboard** - Low-risk internal tool example
 
 ---
 
 ## Creating Your Own Project with AI SDLC
 
-See [plugins/README.md](plugins/README.md) for complete guide.
+See [claude-code/plugins/README.md](claude-code/plugins/README.md) for complete guide.
 
 ### Quick Example
 
@@ -551,7 +535,7 @@ project:
 
 # Reference 7-stage methodology plugin
 ai_sdlc:
-  methodology_plugin: "file://../../plugins/aisdlc-methodology/config/stages_config.yml"
+  methodology_plugin: "file://../../claude-code/plugins/aisdlc-methodology/config/stages_config.yml"
 
   # Enable stages you need
   enabled_stages:
@@ -617,7 +601,7 @@ division-marketplace/
 Individual teams create local contexts:
 
 ```
-.claude-plugins/
+.claude-claude-code/plugins/
 ├── team-conventions/
 └── project-specific/
     └── config/
@@ -648,7 +632,7 @@ ai_sdlc_method/
 │   ├── guides/                      # Role-specific guides
 │   └── README.md                    # Documentation index
 │
-├── plugins/                         # Claude Code plugins and skills
+├── claude-code/plugins/                         # Claude Code plugins and skills
 │   ├── aisdlc-methodology/          # 7-stage AI SDLC v2.0.0
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json          # Plugin metadata (7 stages)
@@ -664,15 +648,6 @@ ai_sdlc_method/
 │
 ├── installers/                      # Python installation scripts
 │   └── README.md                    # Installation scripts documentation
-│
-├── examples/                        # Example projects
-│   ├── local_projects/
-│   │   ├── customer_portal/         # ⭐ Complete 7-stage example
-│   │   ├── api_platform/            # Public API example
-│   │   ├── payment_gateway/         # High-risk project
-│   │   └── admin_dashboard/         # Low-risk project
-│   ├── federated_setup/             # Federated architecture examples
-│   └── README.md                    # Examples guide
 │
 ├── .claude-plugin/                  # Root plugin metadata
 │   └── plugin.json                  # Repository as plugin
@@ -691,19 +666,19 @@ ai_sdlc_method/
 - **[AI SDLC Overview](docs/ai_sdlc_overview.md)** - High-level introduction (~30 min read)
 - **[AI SDLC Method](docs/ai_sdlc_method.md)** ⭐ - Complete 7-stage methodology (3,300+ lines)
 - **[AI SDLC Appendices](docs/ai_sdlc_appendices.md)** - Technical deep-dives
-- **[7-Stage Example](examples/local_projects/customer_portal/README.md)** - Full walkthrough
-- **[Methodology Plugin](plugins/aisdlc-methodology/README.md)** - Plugin overview
+- **[Example Projects](https://github.com/foolishimp/ai_sdlc_examples)** - Full walkthrough examples (separate repo)
+- **[Methodology Plugin](claude-code/plugins/aisdlc-methodology/README.md)** - Plugin overview
 
 ### Principles & Processes
-- **[Key Principles Principles](plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)** - Core principles
-- **[TDD Workflow](plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)** - Development process
-- **[Pair Programming](plugins/aisdlc-methodology/docs/guides/PAIR_PROGRAMMING_WITH_AI.md)** - Human-AI collaboration
+- **[Key Principles Principles](claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)** - Core principles
+- **[TDD Workflow](claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)** - Development process
+- **[Pair Programming](claude-code/plugins/aisdlc-methodology/docs/guides/PAIR_PROGRAMMING_WITH_AI.md)** - Human-AI collaboration
 
 ### Guides
 - **[New Project Setup](docs/guides/NEW_PROJECT_SETUP.md)** - Step-by-step setup guide
 - **[Plugin Guide](docs/guides/PLUGIN_GUIDE.md)** - How to create and use plugins
-- **[Plugins Overview](plugins/README.md)** - Plugin architecture and catalog
-- **[Examples Guide](examples/README.md)** - Example local contexts
+- **[Plugins Overview](claude-code/plugins/README.md)** - Plugin architecture and catalog
+- **[Example Projects](https://github.com/foolishimp/ai_sdlc_examples)** - Example projects (separate repo)
 
 ### Reference
 - **[Component Inventory](docs/info/INVENTORY.md)** - All deployable components and versions
@@ -746,7 +721,7 @@ contexts.json
 
 **New**:
 ```
-plugins/aisdlc-methodology/  (v2.0 - Complete 7-stage SDLC)
+claude-code/plugins/aisdlc-methodology/  (v2.0 - Complete 7-stage SDLC)
 marketplace.json
 ```
 

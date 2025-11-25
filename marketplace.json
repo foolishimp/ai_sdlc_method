@@ -13,7 +13,7 @@
       "displayName": "AI SDLC Core - Requirement Traceability Foundation",
       "description": "Foundation plugin providing requirement traceability with REQ-* key patterns, coverage detection (sensor), and key propagation (actuator). Essential foundation for all AI SDLC plugins.",
       "version": "3.0.0",
-      "path": "plugins/aisdlc-core",
+      "path": "claude-code/plugins/aisdlc-core",
       "keywords": ["ai-sdlc", "traceability", "requirements", "req-keys", "coverage", "homeostasis", "sensor", "actuator", "foundation"],
       "dependencies": []
     },
@@ -22,7 +22,7 @@
       "displayName": "AI SDLC Methodology - Multi-Stage Agent Configuration",
       "description": "Complete AI SDLC methodology with 7-stage agent configurations: Requirements, Design, Tasks, Code (TDD), System Test (BDD), UAT (BDD), Runtime Feedback. Integrates Key Principles and full lifecycle traceability.",
       "version": "2.0.0",
-      "path": "plugins/aisdlc-methodology",
+      "path": "claude-code/plugins/aisdlc-methodology",
       "keywords": ["methodology", "ai-sdlc", "multi-stage", "tdd", "bdd", "sacred-seven", "requirements", "traceability", "agent-orchestration"],
       "dependencies": ["aisdlc-core"]
     },
@@ -31,7 +31,7 @@
       "displayName": "AI SDLC Key Principles - Seven Development Principles Enforcement",
       "description": "Enforce the 7 Key Principles during development: TDD, Fail Fast, Modular, Reuse Before Build, Open Source First, No Legacy Baggage, Perfectionist Excellence. Includes Seven Questions Checklist sensor.",
       "version": "1.0.0",
-      "path": "plugins/principles-key",
+      "path": "claude-code/plugins/principles-key",
       "keywords": ["principles", "sacred-seven", "key-principles", "tdd", "code-quality", "excellence", "sensor", "quality-gate"],
       "dependencies": ["aisdlc-core"]
     },
@@ -40,7 +40,7 @@
       "displayName": "AI SDLC Requirements Skills - Intent to Structured Requirements",
       "description": "Transform raw intent into structured, traceable requirements with REQ-* keys. Disambiguate into business rules (BR-*), constraints (C-*), and formulas (F-*). Support requirements refinement loop from TDD/BDD discoveries.",
       "version": "1.0.0",
-      "path": "plugins/requirements-skills",
+      "path": "claude-code/plugins/requirements-skills",
       "keywords": ["requirements", "requirement-extraction", "disambiguation", "business-rules", "constraints", "formulas", "traceability", "intent", "refinement-loop"],
       "dependencies": ["aisdlc-core"]
     },
@@ -49,7 +49,7 @@
       "displayName": "AI SDLC Design Skills - Architecture and ADRs with Traceability",
       "description": "Transform requirements into technical solution architecture with REQ-* traceability. Create Architecture Decision Records (ADRs) acknowledging ecosystem E(t). Validate design coverage for all requirements.",
       "version": "1.0.0",
-      "path": "plugins/design-skills",
+      "path": "claude-code/plugins/design-skills",
       "keywords": ["design", "architecture", "adr", "architecture-decision-records", "solution-design", "traceability", "ecosystem", "design-coverage"],
       "dependencies": ["aisdlc-core", "requirements-skills"]
     },
@@ -58,7 +58,7 @@
       "displayName": "AI SDLC Code Skills - TDD, BDD, and Code Generation",
       "description": "Complete code development workflow skills: TDD (RED→GREEN→REFACTOR), BDD (Given/When/Then), code generation from business rules, and tech debt management (Principle #6 enforcement).",
       "version": "1.0.0",
-      "path": "plugins/code-skills",
+      "path": "claude-code/plugins/code-skills",
       "keywords": ["tdd", "bdd", "test-driven-development", "behavior-driven-development", "code-generation", "tech-debt", "refactoring", "homeostasis", "sacred-seven", "principle-6"],
       "dependencies": ["aisdlc-core"]
     },
@@ -67,7 +67,7 @@
       "displayName": "AI SDLC Testing Skills - Coverage Validation and Test Generation",
       "description": "Test coverage validation, missing test detection (sensor), automatic test generation (actuator), integration testing, and coverage reporting with requirement traceability.",
       "version": "1.0.0",
-      "path": "plugins/testing-skills",
+      "path": "claude-code/plugins/testing-skills",
       "keywords": ["testing", "test-coverage", "coverage-validation", "test-generation", "integration-tests", "homeostasis", "sensor", "actuator", "requirement-coverage"],
       "dependencies": ["aisdlc-core"]
     },
@@ -76,7 +76,7 @@
       "displayName": "AI SDLC Runtime Skills - Production Feedback Loop",
       "description": "Close the feedback loop from production to requirements. Tag telemetry with REQ-* keys, setup observability, and trace production issues back to intent. Enables homeostatic production monitoring.",
       "version": "1.0.0",
-      "path": "plugins/runtime-skills",
+      "path": "claude-code/plugins/runtime-skills",
       "keywords": ["runtime", "telemetry", "observability", "production", "feedback-loop", "monitoring", "traceability", "homeostasis", "datadog", "prometheus"],
       "dependencies": ["aisdlc-core"]
     }
@@ -88,7 +88,7 @@
       "displayName": "AI SDLC Startup Bundle",
       "description": "Quick-start bundle for startups and solo developers. Includes core traceability, TDD workflow, and Key Principles enforcement. Minimal overhead, maximum quality.",
       "version": "1.0.0",
-      "path": "plugins/bundles/startup-bundle",
+      "path": "claude-code/plugins/bundles/startup-bundle",
       "keywords": ["bundle", "startup", "quick-start", "tdd", "minimal"],
       "dependencies": ["aisdlc-core", "code-skills", "principles-key"]
     },
@@ -97,7 +97,7 @@
       "displayName": "AI SDLC Data Science Bundle",
       "description": "AI SDLC adapted for data science and ML workflows. Future support for REPL-driven development, notebook-to-module extraction, and property-based testing. Currently includes core foundation.",
       "version": "1.0.0",
-      "path": "plugins/bundles/datascience-bundle",
+      "path": "claude-code/plugins/bundles/datascience-bundle",
       "keywords": ["bundle", "data-science", "ml", "jupyter", "repl", "notebooks"],
       "dependencies": ["aisdlc-core", "code-skills", "testing-skills"]
     },
@@ -106,7 +106,7 @@
       "displayName": "AI SDLC QA Bundle",
       "description": "Testing-focused bundle for QA teams. Includes BDD scenarios, coverage validation, test generation, and requirements-to-tests traceability. Perfect for test-first development teams.",
       "version": "1.0.0",
-      "path": "plugins/bundles/qa-bundle",
+      "path": "claude-code/plugins/bundles/qa-bundle",
       "keywords": ["bundle", "qa", "testing", "bdd", "coverage"],
       "dependencies": ["aisdlc-core", "requirements-skills", "code-skills", "testing-skills"]
     },
@@ -115,7 +115,7 @@
       "displayName": "AI SDLC Enterprise Bundle",
       "description": "Complete 7-stage AI SDLC for enterprise teams. Full governance, traceability, compliance, and feedback loop. Includes all core plugins for requirements, design, code, testing, runtime, and principles.",
       "version": "1.0.0",
-      "path": "plugins/bundles/enterprise-bundle",
+      "path": "claude-code/plugins/bundles/enterprise-bundle",
       "keywords": ["bundle", "enterprise", "governance", "compliance", "full-sdlc"],
       "dependencies": ["aisdlc-core", "requirements-skills", "design-skills", "code-skills", "testing-skills", "runtime-skills", "principles-key"]
     }

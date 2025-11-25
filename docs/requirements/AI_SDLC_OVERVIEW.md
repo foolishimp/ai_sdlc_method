@@ -627,11 +627,11 @@ Before coding, ask:
 - [PLUGIN_GUIDE](../PLUGIN_GUIDE.md) - Claude Code plugins
 
 **Principles & Workflows**:
-- [Key Principles](../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - Code stage principles (evolvable)
-- [TDD Workflow](../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - RED → GREEN → REFACTOR
+- [Key Principles](../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - Code stage principles (evolvable)
+- [TDD Workflow](../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - RED → GREEN → REFACTOR
 
 **Examples**:
-- [Customer Portal Example](../examples/local_projects/customer_portal/) - Complete 7-stage walkthrough
+- [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete 7-stage walkthrough (separate repo)
 
 **Role-Specific Guides** (coming soon):
 - [Architect Guide](guides/architect_guide.md) - ADRs, design, ecosystem

@@ -12,7 +12,7 @@ Usage:
     python validate_traceability.py --check-all
     python validate_traceability.py --requirements docs/requirements/
     python validate_traceability.py --design docs/design/
-    python validate_traceability.py --code installers/ plugins/
+    python validate_traceability.py --code installers/ claude-code/plugins/
     python validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
     python validate_traceability.py --inventory > INVENTORY.md
 """

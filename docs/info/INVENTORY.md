@@ -29,17 +29,17 @@ The AI SDLC Method consists of 4 major component categories:
 
 ---
 
-## 1. Templates (`templates/claude/`)
+## 1. Templates (`claude-code/project-template/`)
 
 **Version:** 2.0.0
-**Location:** `/templates/claude/`
+**Location:** `/claude-code/project-template/`
 **Purpose:** Base structure deployed to each project
 **Update Method:** Python installers
 
 ### 1.1 Workspace Templates
 
 ```
-templates/claude/.ai-workspace/
+claude-code/project-template/.ai-workspace/
 ├── README.md                                    # v2.0.0 - Workspace guide
 ├── config/
 │   └── workspace_config.yml                     # v2.0.0 - Workspace configuration
@@ -65,7 +65,7 @@ templates/claude/.ai-workspace/
 ### 1.2 Command Templates
 
 ```
-templates/claude/.claude/commands/
+claude-code/project-template/.claude/commands/
 ├── aisdlc-start-session.md                      # v2.0.0 - Start development session
 ├── aisdlc-status.md                             # v2.0.0 - Show 7-stage SDLC status
 ├── aisdlc-checkpoint-tasks.md                   # v2.0.0 - Auto-update task status
@@ -91,14 +91,14 @@ templates/claude/.claude/commands/
 ### 1.3 Agent Templates
 
 ```
-templates/claude/.claude/agents/
-├── requirements-agent.md                        # v2.0.0 - Requirements Stage agent (10,093 lines)
-├── design-agent.md                              # v2.0.0 - Design Stage agent (1,263 lines)
-├── tasks-agent.md                               # v2.0.0 - Tasks Stage agent (867 lines)
-├── code-agent.md                                # v2.0.0 - Code Stage agent (10,775 lines)
-├── system-test-agent.md                         # v2.0.0 - System Test Stage agent (860 lines)
-├── uat-agent.md                                 # v2.0.0 - UAT Stage agent (817 lines)
-└── runtime-feedback-agent.md                    # v2.0.0 - Runtime Feedback Stage agent (1,208 lines)
+claude-code/project-template/.claude/agents/
+├── aisdlc-requirements-agent.md                 # v2.0.0 - Requirements Stage agent (10,093 lines)
+├── aisdlc-design-agent.md                       # v2.0.0 - Design Stage agent (1,263 lines)
+├── aisdlc-tasks-agent.md                        # v2.0.0 - Tasks Stage agent (867 lines)
+├── aisdlc-code-agent.md                         # v2.0.0 - Code Stage agent (10,775 lines)
+├── aisdlc-system-test-agent.md                  # v2.0.0 - System Test Stage agent (860 lines)
+├── aisdlc-uat-agent.md                          # v2.0.0 - UAT Stage agent (817 lines)
+└── aisdlc-runtime-feedback-agent.md             # v2.0.0 - Runtime Feedback Stage agent (1,208 lines)
 ```
 
 **File Count:** 7 agents (one per SDLC stage)
@@ -107,7 +107,7 @@ templates/claude/.claude/agents/
 ### 1.4 Project Template
 
 ```
-templates/claude/
+claude-code/project-template/
 ├── CLAUDE.md.template                           # v2.0.0 - Project guidance template
 └── README.md                                    # v2.0.0 - Template documentation
 ```
@@ -117,10 +117,10 @@ templates/claude/
 
 ---
 
-## 2. Plugins (`plugins/`)
+## 2. Plugins (`claude-code/plugins/`)
 
 **Version:** 2.0.0
-**Location:** `/plugins/`
+**Location:** `/claude-code/plugins/`
 **Purpose:** Claude Code plugins with SDLC methodology
 **Update Method:** Claude marketplace or Python installers
 
@@ -129,12 +129,12 @@ templates/claude/
 #### aisdlc-methodology v2.0.0 ⭐
 
 **Description:** Complete 7-Stage AI SDLC Methodology
-**Path:** `plugins/aisdlc-methodology/`
+**Path:** `claude-code/plugins/aisdlc-methodology/`
 **Dependencies:** None (foundation plugin)
 
 **Contents:**
 ```
-plugins/aisdlc-methodology/
+claude-code/plugins/aisdlc-methodology/
 ├── .claude-plugin/
 │   └── plugin.json                              # Plugin metadata
 ├── config/
@@ -163,7 +163,7 @@ plugins/aisdlc-methodology/
 #### aisdlc-core v1.0.0
 
 **Description:** Core AI SDLC framework
-**Path:** `plugins/aisdlc-core/`
+**Path:** `claude-code/plugins/aisdlc-core/`
 **Dependencies:** None
 
 **Status:** Foundation for all other plugins
@@ -173,7 +173,7 @@ plugins/aisdlc-methodology/
 #### python-standards v1.0.0
 
 **Description:** Python language standards (PEP 8, pytest, type hints)
-**Path:** `plugins/python-standards/`
+**Path:** `claude-code/plugins/python-standards/`
 **Dependencies:** `aisdlc-methodology` v2.0.0+
 
 **Contents:**
@@ -185,7 +185,7 @@ plugins/aisdlc-methodology/
 #### principles-key v1.0.0
 
 **Description:** Core development principles
-**Path:** `plugins/principles-key/`
+**Path:** `claude-code/plugins/principles-key/`
 **Dependencies:** `aisdlc-methodology` v2.0.0+
 
 **The 7 Key Principles:**
@@ -200,33 +200,33 @@ plugins/aisdlc-methodology/
 ### 2.3 Skills Plugins
 
 #### testing-skills v1.0.0
-**Path:** `plugins/testing-skills/`
+**Path:** `claude-code/plugins/testing-skills/`
 **Dependencies:** `aisdlc-methodology`
 **Purpose:** Advanced testing patterns (unit, integration, E2E)
 
 #### code-skills v1.0.0
-**Path:** `plugins/code-skills/`
+**Path:** `claude-code/plugins/code-skills/`
 **Dependencies:** `aisdlc-methodology`
 **Purpose:** Code quality and refactoring patterns
 
 #### design-skills v1.0.0
-**Path:** `plugins/design-skills/`
+**Path:** `claude-code/plugins/design-skills/`
 **Dependencies:** `aisdlc-methodology`
 **Purpose:** Architecture and design patterns
 
 #### requirements-skills v1.0.0
-**Path:** `plugins/requirements-skills/`
+**Path:** `claude-code/plugins/requirements-skills/`
 **Dependencies:** `aisdlc-methodology`
 **Purpose:** Requirements engineering and elicitation
 
 #### runtime-skills v1.0.0
-**Path:** `plugins/runtime-skills/`
+**Path:** `claude-code/plugins/runtime-skills/`
 **Dependencies:** `aisdlc-methodology`
 **Purpose:** Deployment, monitoring, and observability
 
 ### 2.4 Plugin Bundles
 
-**Path:** `plugins/bundles/`
+**Path:** `claude-code/plugins/bundles/`
 
 #### startup Bundle
 **Plugins:** aisdlc-core, aisdlc-methodology, principles-key
@@ -389,22 +389,16 @@ docs/
 
 ## 6. Examples
 
-**Location:** `/examples/`
+**Location:** [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) (separate repo)
 
 ### 6.1 Example Projects
 
-```
-examples/local_projects/
-├── customer_portal/                             # Complete 7-stage example (800+ lines)
-│   ├── README.md                                # v2.0.0 - Complete walkthrough
-│   ├── INTENT.md                                # Example intent
-│   └── config/config.yml                        # 7-stage configuration (650+ lines)
-│
-└── data_mapper.test02/                          # Dogfooding test project
-    ├── INTENT.md                                # Category theory data mapper
-    ├── docs/requirements/
-    └── docs/design/
-```
+Example projects are maintained in a separate repository:
+- **customer_portal** - Complete 7-stage example with full requirement traceability
+- **api_platform** - Public API with backwards compatibility requirements
+- **payment_gateway** - High-risk financial project example
+- **admin_dashboard** - Low-risk internal tool example
+- **data_mapper** - Category Theory data mapper (dogfooding AI SDLC)
 
 ---
 
@@ -647,7 +641,7 @@ Before release:
 
 - **Issues:** https://github.com/foolishimp/ai_sdlc_method/issues
 - **Documentation:** `/docs/`
-- **Examples:** `/examples/`
+- **Examples:** [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) (separate repo)
 - **Installer Guide:** `/installers/README.md`
 - **Plugin Guide:** `/PLUGIN_GUIDE.md`
 

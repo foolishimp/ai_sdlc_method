@@ -1019,13 +1019,13 @@ npm test --silent
 
 ```bash
 # Review core principles
-cat plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md | head -50
+cat claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md | head -50
 
 # Review TDD workflow
-cat plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md | head -50
+cat claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md | head -50
 
 # Review pair programming
-cat plugins/aisdlc-methodology/docs/guides/PAIR_PROGRAMMING_WITH_AI.md | head -50
+cat claude-code/plugins/aisdlc-methodology/docs/guides/PAIR_PROGRAMMING_WITH_AI.md | head -50
 ```
 
 **Checklist**:
@@ -1161,7 +1161,7 @@ git diff
 cat .ai-workspace/session/current_session.md
 
 # What's the methodology?
-cat plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md | head -20
+cat claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md | head -20
 
 # Recent work?
 ls -lt .ai-workspace/tasks/finished/ | head -3
@@ -2212,8 +2212,8 @@ AI maintains discipline (always writes tests, follows conventions).
 
 **Deliverables**:
 - [ ] `docs/ai_sdlc_method.md` updated (Section 7.0)
-- [ ] `plugins/aisdlc-methodology/config/stages_config.yml` updated
-- [ ] `plugins/developer-workspace/` created
+- [ ] `claude-code/plugins/aisdlc-methodology/config/stages_config.yml` updated
+- [ ] `claude-code/plugins/developer-workspace/` created
 - [ ] MCP tools added: `get_todos`, `get_active_tasks`, `start_session`
 
 ---
@@ -2698,7 +2698,7 @@ Human: "Yes, extract the duplicate code"
 
    # Or manual
    git clone https://github.com/foolishimp/ai_sdlc_method.git
-   cp -r ai_sdlc_method/plugins/developer-workspace/ .claude-plugins/
+   cp -r ai_sdlc_method/claude-code/plugins/developer-workspace/ .claude-claude-code/plugins/
    ```
 
 2. **Initialize** (5 min):
@@ -2708,7 +2708,7 @@ Human: "Yes, extract the duplicate code"
 
    # Or manually create structure
    mkdir -p .ai-workspace/{session,tasks/{todo,active,finished},templates,config}
-   cp .claude-plugins/developer-workspace/templates/* .ai-workspace/templates/
+   cp .claude-claude-code/plugins/developer-workspace/templates/* .ai-workspace/templates/
    ```
 
 3. **Configure** (10 min):
@@ -2982,8 +2982,8 @@ claude-init workspace
 **Documentation**:
 - This document: `/docs/DEVELOPER_WORKSPACE_INTEGRATION.md`
 - Complete AI SDLC: `/docs/ai_sdlc_method.md`
-- Key Principles: `/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`
-- TDD Workflow: `/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`
+- Key Principles: `/claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`
+- TDD Workflow: `/claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`
 
 **Examples**:
 - Customer Portal (7-stage): `/examples/local_projects/customer_portal/`

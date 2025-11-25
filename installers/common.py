@@ -25,7 +25,7 @@ class InstallerBase:
         # installers/common.py -> go up one level
         self.ai_sdlc_root = Path(__file__).parent.parent
 
-        # Templates are in templates/claude/
+        # Templates are in claude-code/project-template/
         self.templates_root = self.ai_sdlc_root / "templates" / "claude"
 
     def validate_target(self) -> bool:

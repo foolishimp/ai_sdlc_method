@@ -401,7 +401,7 @@ All 7 Key Principles operationally enforced:
 
 ```
 ai_sdlc_method/
-├── plugins/
+├── claude-code/plugins/
 │   ├── aisdlc-core/              ✅ 3 skills
 │   ├── requirements-skills/      ✅ 8 skills
 │   ├── design-skills/            ✅ 3 skills

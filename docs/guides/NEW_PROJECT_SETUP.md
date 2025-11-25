@@ -193,8 +193,8 @@ project:
 
 ai_sdlc:
   # Load 7-stage methodology from global plugins
-  methodology_plugin: "~/.config/claude/plugins/aisdlc-methodology/config/stages_config.yml"
-  principles_key: "~/.config/claude/plugins/principles-key/config/config.yml"
+  methodology_plugin: "~/.config/claude/claude-code/plugins/aisdlc-methodology/config/stages_config.yml"
+  principles_key: "~/.config/claude/claude-code/plugins/principles-key/config/config.yml"
 
   # Enable stages you want to use
   enabled_stages:
@@ -557,7 +557,7 @@ python /Users/jim/src/apps/ai_sdlc_method/installers/setup_commands.py --force
 
 ```bash
 # Check global plugins
-ls ~/.config/claude/plugins/
+ls ~/.config/claude/claude-code/plugins/
 
 # Reinstall if needed
 cd /Users/jim/src/apps/ai_sdlc_method
@@ -571,7 +571,7 @@ python installers/setup_plugins.py --global --bundle startup --force
 cat config/config.yml
 
 # Verify plugin paths
-ls ~/.config/claude/plugins/aisdlc-methodology/config/stages_config.yml
+ls ~/.config/claude/claude-code/plugins/aisdlc-methodology/config/stages_config.yml
 ```
 
 ---
@@ -606,7 +606,7 @@ mkdir config && touch config/config.yml
 ## Next Steps
 
 1. **Read the guide**: `cat .ai-workspace/README.md`
-2. **Review the example**: `/Users/jim/src/apps/ai_sdlc_method/examples/local_projects/customer_portal/`
+2. **Review examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)
 3. **Start your first session**: `/start-session`
 4. **Generate requirements**: Ask Claude to process your INTENT.md
 
@@ -727,11 +727,11 @@ ls .claude/agents/ | wc -l
 # Should show: 7 agents (one per SDLC stage)
 
 # Check global plugins
-ls ~/.config/claude/plugins/
+ls ~/.config/claude/claude-code/plugins/
 # Should show: aisdlc-core, aisdlc-methodology, principles-key (+ more)
 
 # Check project plugins (if installed locally)
-ls .claude/plugins/
+ls .claude/claude-code/plugins/
 ```
 
 ### What Should Be Installed
@@ -851,7 +851,7 @@ python /Users/jim/src/apps/ai_sdlc_method/installers/setup_all.py \
   --bundle startup
 
 # 3. Update config.yml to use new schema
-# (See examples/local_projects/customer_portal/config/config.yml)
+# (See ai_sdlc_examples repo for config.yml examples)
 
 # 4. Update slash command references in documentation
 # Old: /todo "task"
@@ -887,7 +887,7 @@ This guide shows you:
 - **Quick Start**: [QUICKSTART.md](../../QUICKSTART.md) - Get started in 5 minutes
 - **Complete Journey**: [JOURNEY.md](JOURNEY.md) - Full 7-stage walkthrough
 - **Documentation**: [docs/README.md](../README.md) - Complete documentation index
-- **Example Project**: [examples/local_projects/customer_portal/](../../examples/local_projects/customer_portal/)
+- **Example Projects**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)
 - **Component Inventory**: [docs/info/INVENTORY.md](../info/INVENTORY.md)
 - **Issues**: https://github.com/foolishimp/ai_sdlc_method/issues
 

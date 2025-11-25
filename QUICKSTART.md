@@ -93,7 +93,7 @@ Claude now has access to:
 
 👉 **[Complete Journey](docs/guides/JOURNEY.md)** - Full 7-stage walkthrough with code examples (2-3 hours) ⭐
 👉 **[New Project Setup](docs/guides/NEW_PROJECT_SETUP.md)** - Detailed setup guide for your project (30 min)
-👉 **[Customer Portal Example](examples/local_projects/customer_portal/)** - Complete example project (800+ lines)
+👉 **[Example Projects](https://github.com/foolishimp/ai_sdlc_examples)** - Complete example projects (separate repo)
 
 ---
 
@@ -117,7 +117,7 @@ from pathlib import Path
 import yaml
 
 # Load the 7-stage methodology configuration
-stages_config_path = Path("plugins/aisdlc-methodology/config/stages_config.yml")
+stages_config_path = Path("claude-code/plugins/aisdlc-methodology/config/stages_config.yml")
 with open(stages_config_path) as f:
     methodology = yaml.safe_load(f)
 
@@ -300,9 +300,9 @@ New cycle begins at Requirements stage
 
 ### Core Methodology
 - **[docs/README.md](docs/README.md)** - Documentation index with role-based learning paths ⭐ **Start here**
-- [docs/requirements/examples/AI_SDLC_OVERVIEW.md](docs/requirements/examples/AI_SDLC_OVERVIEW.md) - High-level overview (~30 min read)
-- [docs/requirements/examples/AI_SDLC_REQUIREMENTS.md](docs/requirements/examples/AI_SDLC_REQUIREMENTS.md) - Complete examples with 7-stage methodology
-- [plugins/aisdlc-methodology/config/stages_config.yml](plugins/aisdlc-methodology/config/stages_config.yml) - Complete agent specifications (1,273 lines)
+- [docs/requirements/AI_SDLC_OVERVIEW.md](docs/requirements/AI_SDLC_OVERVIEW.md) - High-level overview (~30 min read)
+- [docs/requirements/AI_SDLC_REQUIREMENTS.md](docs/requirements/AI_SDLC_REQUIREMENTS.md) - Complete requirements with 7-stage methodology
+- [claude-code/plugins/aisdlc-methodology/config/stages_config.yml](claude-code/plugins/aisdlc-methodology/config/stages_config.yml) - Complete agent specifications (1,273 lines)
 
 ### Implementation Requirements
 - [docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) - 20 requirements for building ai_sdlc_method itself
@@ -310,13 +310,12 @@ New cycle begins at Requirements stage
 - [docs/REQUIREMENTS_AUDIT.md](docs/REQUIREMENTS_AUDIT.md) - Requirements audit and analysis
 
 ### Plugin Documentation
-- [plugins/README.md](plugins/README.md) - Plugin creation and usage guide
-- [plugins/aisdlc-methodology/README.md](plugins/aisdlc-methodology/README.md) - Methodology plugin docs
-- [plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - The 7 Key Principles
+- [claude-code/plugins/README.md](claude-code/plugins/README.md) - Plugin creation and usage guide
+- [claude-code/plugins/aisdlc-methodology/README.md](claude-code/plugins/aisdlc-methodology/README.md) - Methodology plugin docs
+- [claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - The 7 Key Principles
 
 ### Examples
-- **[examples/local_projects/customer_portal/README.md](examples/local_projects/customer_portal/README.md)** - Complete 7-stage walkthrough (800+ lines) ⭐
-- [examples/README.md](examples/README.md) - All examples overview
+- **[ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)** - Complete example projects (separate repo) ⭐
 
 ---
 
@@ -433,14 +432,14 @@ python /path/to/ai_sdlc_method/installers/setup_commands.py --force
 2. 📖 **[Follow the Complete Journey](docs/guides/JOURNEY.md)** - See all 7 stages in detail (2-3 hours) ⭐
 3. 🏗️ **[Set Up Your Project](docs/guides/NEW_PROJECT_SETUP.md)** - Detailed setup for your real project (30 min)
 4. 📚 **[Learn the Methodology](docs/README.md)** - Role-based learning paths
-5. 💡 **[Review Example Project](examples/local_projects/customer_portal/)** - Complete walkthrough
+5. 💡 **[Review Example Projects](https://github.com/foolishimp/ai_sdlc_examples)** - Complete walkthrough
 
 ### For Developers
 
 1. **Review implementation requirements**: [docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 2. **Check traceability**: [docs/TRACEABILITY_MATRIX.md](docs/TRACEABILITY_MATRIX.md)
-3. **Read Key Principles**: [plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
-4. **Follow TDD workflow**: [plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md](plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
+3. **Read Key Principles**: [claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
+4. **Follow TDD workflow**: [claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md](claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
 
 ### For Role-Specific Learning
 
@@ -462,7 +461,7 @@ See [docs/README.md](docs/README.md) for learning paths tailored to:
 - **New Project Setup:** [docs/guides/NEW_PROJECT_SETUP.md](docs/guides/NEW_PROJECT_SETUP.md) - Step-by-step setup
 - **Plugin Guide:** [docs/guides/PLUGIN_GUIDE.md](docs/guides/PLUGIN_GUIDE.md) - Plugin creation and usage
 - **Issues:** https://github.com/foolishimp/ai_sdlc_method/issues
-- **Examples:** [examples/](examples/) - Working examples
+- **Examples:** [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Working examples (separate repo)
 
 ---
 

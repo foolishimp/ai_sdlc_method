@@ -160,42 +160,18 @@ Aspects: sources, quality, privacy, lineage, retention
 
 ### 5. Traceability Matrix
 
-**Auto-Generated Deliverable**: `docs/TRACEABILITY_MATRIX.md`
+Map requirements to:
+- Upstream: Intent (INT-001)
+- Downstream: Design components, Code modules, Tests, Runtime metrics
 
-Map requirements to all downstream artifacts:
-- **Upstream**: Intent (INT-*)
-- **Design**: Component diagrams, APIs, data models
-- **Code**: Implementation files with `# Implements: REQ-*` tags
-- **Tests**: Test files with `# Validates: REQ-*` tags
-- **Runtime**: Metrics, logs, alerts tagged with REQ-*
-
-**Generation Command**:
-```bash
-python installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
-```
-
-**Matrix Structure**:
 ```markdown
-## Requirements Traceability Matrix
+## Traceability Matrix
 
-**Summary**:
-- Total Requirements: 58
-- Design Coverage: 56.9%
-- Implementation Coverage: 24.1%
-- Test Coverage: 8.6%
-
-| Requirement | Description | Design | Implementation | Tests | Status |
-|-------------|-------------|--------|----------------|-------|--------|
-| <REQ-ID> | User login | ✅ (5) | ✅ (2) | ✅ (3) | ✅ Complete |
-| REQ-NFR-PERF-001 | Login <500ms | ✅ (2) | ✅ (1) | ❌ | ⚠️ No Tests |
+| Requirement | Intent | Design | Tasks | Tests | Status |
+|-------------|--------|--------|-------|-------|--------|
+| <REQ-ID> | INT-001 | AuthService | PORTAL-101 | test_login | ✅ |
+| REQ-NFR-PERF-001 | INT-001 | TokenCache | PORTAL-103 | perf_test | ✅ |
 ```
-
-**Update Frequency**: Generate after creating/updating requirements, and after each stage transition
-
-**Purpose**:
-- Coverage verification (which requirements are implemented)
-- Impact analysis (trace production issues back to requirements)
-- Compliance auditing (demonstrate requirement fulfillment)
 
 ---
 
@@ -231,19 +207,11 @@ Action: Define testable validation points
 - Approved by Product Owner
 ```
 
-### Step 5: Generate Traceability Matrix
+### Step 5: Create Traceability
 ```
-Action: Create docs/TRACEABILITY_MATRIX.md
-Tool: python installers/validate_traceability.py --matrix
-
-Links:
-- Upstream: Intent (INT-*) that generated requirements
-- Downstream: Design, Code, Tests, Runtime artifacts
-
-Output: Auto-generated matrix showing:
-- Total requirements and coverage percentages
-- REQ-* → artifacts mapping
-- Implementation status (✅ Complete, ⚠️ Partial, 🚧 Design Only, ❌ Not Started)
+Action: Link requirements to:
+- Upstream: Intent that generated them
+- Downstream: Stages that implement them
 ```
 
 ### Step 6: Process Feedback
@@ -253,6 +221,64 @@ When feedback arrives from downstream stages:
 - Create new requirement if gap discovered
 - Version requirement if changed (<REQ-ID> v2)
 ```
+
+---
+
+## 🔄 Feedback Protocol (Universal Agent Behavior)
+
+**Implements**: REQ-NFR-REFINE-001 (Iterative Refinement via Stage Feedback Loops)
+**Reference**: [ADR-005](../../docs/design/adrs/ADR-005-iterative-refinement-feedback-loops.md)
+
+### Accept Feedback FROM Downstream Stages
+
+As Requirements Agent, you receive feedback from ALL 6 downstream stages:
+
+**From Design Agent**:
+- "Missing requirement for error handling component"
+- "Requirement ambiguous - what is 'fast'?"
+- "Conflicting requirements for data storage"
+
+**From Code Agent**:
+- "Acceptance criteria not implementable"
+- "Edge case discovered during TDD"
+- "Requirement needs technical clarification"
+
+**From System Test Agent**:
+- "Acceptance criteria not testable"
+- "Need measurable performance criteria"
+- "Test scenario reveals missing requirement"
+
+**From UAT Agent**:
+- "Business stakeholder requests new feature"
+- "Requirement doesn't match business need"
+- "Missing acceptance criteria for business validation"
+
+**From Runtime Agent**:
+- "Performance requirement violated in production"
+- "Security requirement insufficient"
+- "New requirement from production incident"
+
+### When Feedback Arrives:
+
+1. **Pause** - Stop current work to process feedback
+2. **Analyze** - Is this a gap, ambiguity, conflict, or error?
+3. **Decide**:
+   - **Gap** → Create new requirement (REQ-F-NEW-001)
+   - **Ambiguity** → Refine existing requirement
+   - **Conflict** → Resolve with Product Owner
+   - **Error** → Correct requirement
+4. **Update** - Modify requirements document
+5. **Version** - Track changes (v1 → v2 if substantive)
+6. **Notify** - Inform downstream stages of update
+7. **Resume** - Return to primary work
+
+### Provide Feedback TO Upstream Stages
+
+As Requirements Agent (Stage 1), you have NO upstream stages in the 7-stage flow.
+
+However, you DO provide feedback to:
+- **Intent Manager** - "Intent incomplete, needs clarification"
+- **Product Owner** - "Conflicting requirements, need decision"
 
 ---
 

@@ -48,7 +48,7 @@ The AI SDLC system uses a **two-layer architecture**:
                              ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   SKILLS LAYER                               │
-│  (plugins/*-skills/ - Reusable Execution Patterns)           │
+│  (claude-code/plugins/*-skills/ - Reusable Execution Patterns)           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  requirements-skills/        code-skills/                   │
@@ -75,7 +75,7 @@ The AI SDLC system uses a **two-layer architecture**:
 
 ## Agents (WHO + WHAT)
 
-**Location**: `.claude/agents/*.md` (project-specific) or `templates/claude/.claude/agents/*.md` (installed by installer)
+**Location**: `.claude/agents/*.md` (project-specific) or `claude-code/project-template/.claude/agents/*.md` (installed by installer)
 
 **Purpose**: Define Claude's **role, responsibilities, inputs, outputs** for each SDLC stage
 
@@ -83,13 +83,13 @@ The AI SDLC system uses a **two-layer architecture**:
 
 | Agent File | Stage | Role | Key Responsibilities |
 |------------|-------|------|---------------------|
-| `requirements-agent.md` | 1 - Requirements | Intent Store & Traceability Hub | Transform intent → REQ-* keys (F, NFR, DATA, BR) |
-| `design-agent.md` | 2 - Design | Architecture & Data Design | Create components, APIs, data models, ADRs |
-| `tasks-agent.md` | 3 - Tasks | Work Breakdown & Orchestration | Generate Jira tickets, map dependencies |
-| `code-agent.md` | 4 - Code | TDD Implementation | Implement using RED→GREEN→REFACTOR cycle |
-| `system-test-agent.md` | 5 - System Test | BDD Integration Testing | Create Given/When/Then scenarios, validate ≥95% coverage |
-| `uat-agent.md` | 6 - UAT | Business Validation | Generate UAT cases, obtain sign-off |
-| `runtime-feedback-agent.md` | 7 - Runtime Feedback | Production Monitoring | Setup telemetry, tag with REQ keys, close feedback loop |
+| `aisdlc-requirements-agent.md` | 1 - Requirements | Intent Store & Traceability Hub | Transform intent → REQ-* keys (F, NFR, DATA, BR) |
+| `aisdlc-design-agent.md` | 2 - Design | Architecture & Data Design | Create components, APIs, data models, ADRs |
+| `aisdlc-tasks-agent.md` | 3 - Tasks | Work Breakdown & Orchestration | Generate Jira tickets, map dependencies |
+| `aisdlc-code-agent.md` | 4 - Code | TDD Implementation | Implement using RED→GREEN→REFACTOR cycle |
+| `aisdlc-system-test-agent.md` | 5 - System Test | BDD Integration Testing | Create Given/When/Then scenarios, validate ≥95% coverage |
+| `aisdlc-uat-agent.md` | 6 - UAT | Business Validation | Generate UAT cases, obtain sign-off |
+| `aisdlc-runtime-feedback-agent.md` | 7 - Runtime Feedback | Production Monitoring | Setup telemetry, tag with REQ keys, close feedback loop |
 
 ### Agent Activation
 
@@ -106,20 +106,20 @@ Agents can be activated in multiple ways:
 # In config/config.yml
 ai_sdlc:
   current_stage: code
-  # Automatically loads code-agent.md
+  # Automatically loads aisdlc-code-agent.md
 ```
 
 **3. Manual Context** (user specifies):
 ```
 User: "I'm working on the Code stage for REQ-F-DEMO-AUTH-001"
-Claude: [Internally loads code-agent.md context]
+Claude: [Internally loads aisdlc-code-agent.md context]
 ```
 
 ---
 
 ## Skills (HOW)
 
-**Location**: `plugins/*-skills/skills/` (installed via plugin system)
+**Location**: `claude-code/plugins/*-skills/skills/` (installed via plugin system)
 
 **Purpose**: **Reusable execution patterns** that agents invoke to perform work
 
@@ -228,7 +228,7 @@ Claude: [Internally loads code-agent.md context]
 User: "Create requirements for authentication feature"
 
 ┌─────────────────────────────────────────────────────────┐
-│ AGENT: requirements-agent.md                            │
+│ AGENT: aisdlc-requirements-agent.md                     │
 │ Role: Intent Store & Traceability Hub                   │
 │ Mission: Transform intent into structured requirements  │
 └────────────────┬────────────────────────────────────────┘
@@ -276,7 +276,7 @@ User: "Create requirements for authentication feature"
 User: "Implement REQ-F-DEMO-AUTH-001 (user login)"
 
 ┌─────────────────────────────────────────────────────────┐
-│ AGENT: code-agent.md                                    │
+│ AGENT: aisdlc-code-agent.md                             │
 │ Role: TDD-Driven Implementation                         │
 │ Mission: Implement using RED→GREEN→REFACTOR cycle       │
 └────────────────┬────────────────────────────────────────┘
@@ -368,7 +368,7 @@ User: "Implement REQ-F-DEMO-AUTH-001 (user login)"
 User: "Create BDD scenarios for REQ-F-DEMO-AUTH-001"
 
 ┌─────────────────────────────────────────────────────────┐
-│ AGENT: system-test-agent.md                             │
+│ AGENT: aisdlc-system-test-agent.md                      │
 │ Role: BDD Integration Testing                           │
 │ Mission: Create Given/When/Then scenarios               │
 └────────────────┬────────────────────────────────────────┘
@@ -428,7 +428,7 @@ User: "Create BDD scenarios for REQ-F-DEMO-AUTH-001"
 Production Issue: "Auth timeout 850ms (target: 500ms)"
 
 ┌─────────────────────────────────────────────────────────┐
-│ AGENT: runtime-feedback-agent.md                        │
+│ AGENT: aisdlc-runtime-feedback-agent.md                 │
 │ Role: Production Monitoring & Feedback Loop             │
 │ Mission: Close feedback loop to requirements            │
 └────────────────┬────────────────────────────────────────┘
@@ -482,13 +482,13 @@ Production Issue: "Auth timeout 850ms (target: 500ms)"
 python /path/to/ai_sdlc_method/installers/setup_all.py
 
 # This copies agents to:
-#   .claude/agents/requirements-agent.md
-#   .claude/agents/design-agent.md
-#   .claude/agents/tasks-agent.md
-#   .claude/agents/code-agent.md
-#   .claude/agents/system-test-agent.md
-#   .claude/agents/uat-agent.md
-#   .claude/agents/runtime-feedback-agent.md
+#   .claude/agents/aisdlc-requirements-agent.md
+#   .claude/agents/aisdlc-design-agent.md
+#   .claude/agents/aisdlc-tasks-agent.md
+#   .claude/agents/aisdlc-code-agent.md
+#   .claude/agents/aisdlc-system-test-agent.md
+#   .claude/agents/aisdlc-uat-agent.md
+#   .claude/agents/aisdlc-runtime-feedback-agent.md
 ```
 
 ### Install Skills (via plugin system)
@@ -520,10 +520,10 @@ Agents can be auto-loaded based on current SDLC stage:
 ```yaml
 # config/config.yml
 ai_sdlc:
-  current_stage: code  # Auto-loads code-agent.md
+  current_stage: code  # Auto-loads aisdlc-code-agent.md
 
   # OR explicitly specify
-  agent: "code-agent"  # Loads .claude/agents/code-agent.md
+  agent: "aisdlc-code-agent"  # Loads .claude/agents/aisdlc-code-agent.md
 ```
 
 ### Skills Configuration

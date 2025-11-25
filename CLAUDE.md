@@ -40,7 +40,7 @@ ai_sdlc_method/
 │   ├── README.md                # Documentation index with role-based learning paths
 │   └── deprecated/              # Archive of previous versions
 │
-├── plugins/                     # Claude Code plugins and skills
+├── claude-code/plugins/                     # Claude Code plugins and skills
 │   ├── aisdlc-methodology/      # 7-stage methodology plugin (v2.0.0)
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json      # Plugin metadata
@@ -57,13 +57,6 @@ ai_sdlc_method/
 │
 ├── installers/                  # Python installation scripts
 │   └── README.md                # Installation scripts documentation
-│
-├── examples/                    # Example projects
-│   ├── local_projects/
-│   │   └── customer_portal/     # ⭐ Complete 7-stage example (800+ lines)
-│   │       ├── config/config.yml  # 7-stage agent configuration (650+ lines)
-│   │       └── README.md          # Detailed walkthrough
-│   └── README.md                # All examples overview
 │
 ├── .claude-plugin/              # Root plugin metadata
 ├── marketplace.json             # Claude Code marketplace registry
@@ -252,15 +245,6 @@ Claude will guide you through:
 7. Runtime Feedback: Setup telemetry with REQ key tagging
 ```
 
-### Running Examples
-
-```bash
-# See complete 7-stage example
-cd examples/local_projects/customer_portal
-cat README.md  # 800+ line walkthrough
-cat config/config.yml  # 650+ line agent configuration
-```
-
 ### Accessing the Methodology
 
 ```python
@@ -268,7 +252,7 @@ from pathlib import Path
 import yaml
 
 # Load 7-stage methodology configuration
-stages_config = Path("plugins/aisdlc-methodology/config/stages_config.yml")
+stages_config = Path("claude-code/plugins/aisdlc-methodology/config/stages_config.yml")
 with open(stages_config) as f:
     methodology = yaml.safe_load(f)
 
@@ -304,7 +288,7 @@ print(f"TDD Workflow: {key.principles['tdd']['workflow']}")
 
 **Ultimate Mantra**: **"Excellence or nothing"** 🔥
 
-👉 **Read Full Principles**: [plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
+👉 **Read Full Principles**: [claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
 
 ### TDD Workflow (Code Stage)
 
@@ -318,7 +302,7 @@ print(f"TDD Workflow: {key.principles['tdd']['workflow']}")
 
 **No code without tests. Ever.**
 
-👉 **Read Full Workflow**: [plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md](plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
+👉 **Read Full Workflow**: [claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md](claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
 
 ### Before You Code (7 Questions)
 
@@ -355,9 +339,9 @@ Ask these seven questions:
    - Section 12.0: Data Quality Integration
    - Section 13.0: Governance & Compliance
 
-2. **[plugins/aisdlc-methodology/config/stages_config.yml](plugins/aisdlc-methodology/config/stages_config.yml)** - 7-stage agent specifications (1,273 lines)
+2. **[claude-code/plugins/aisdlc-methodology/config/stages_config.yml](claude-code/plugins/aisdlc-methodology/config/stages_config.yml)** - 7-stage agent specifications (1,273 lines)
 
-3. **[examples/local_projects/customer_portal/README.md](examples/local_projects/customer_portal/README.md)** - Complete 7-stage walkthrough (800+ lines)
+3. **[ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)** - Complete 7-stage example projects (separate repo)
 
 ### Role-Based Learning Paths
 
@@ -479,9 +463,9 @@ See [docs/guides/PLUGIN_GUIDE.md](docs/guides/PLUGIN_GUIDE.md) for complete guid
 **Quick example:**
 
 ```yaml
-# .claude-plugins/my-project/config.yml
+# .claude-claude-code/plugins/my-project/config.yml
 ai_sdlc:
-  methodology_plugin: "file://plugins/aisdlc-methodology/config/stages_config.yml"
+  methodology_plugin: "file://claude-code/plugins/aisdlc-methodology/config/stages_config.yml"
 
   enabled_stages:
     - requirements
@@ -531,7 +515,7 @@ This project evolved from and replaces:
 - **Quick Start**: See [QUICKSTART.md](QUICKSTART.md)
 - **Plugin Guide**: See [docs/guides/PLUGIN_GUIDE.md](docs/guides/PLUGIN_GUIDE.md)
 - **Complete Methodology**: See [docs/ai_sdlc_method.md](docs/ai_sdlc_method.md)
-- **Examples**: See [examples/local_projects/customer_portal/](examples/local_projects/customer_portal/)
+- **Examples**: See [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)
 - **Documentation Index**: See [docs/README.md](docs/README.md)
 - **Ask Claude Code**: I'm here to help!
 

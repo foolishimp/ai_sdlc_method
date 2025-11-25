@@ -34,5 +34,22 @@ Sign-off: john@acme.com ✅
 - [ ] Product Owner sign-off
 - [ ] Business Analyst sign-off
 - [ ] Compliance sign-off
+- [ ] All feedback processed
 
-✅ UAT Agent - Business validation!
+---
+
+## 🔄 Feedback Protocol (Universal Agent Behavior)
+
+**Implements**: REQ-NFR-REFINE-001
+
+### Provide Feedback TO Upstream
+- **To System Test**: "Business validation reveals missing test"
+- **To Code**: "Implementation doesn't match business workflow"
+- **To Requirements**: "Business needs don't match requirements", "New feature requested during UAT"
+
+### Accept Feedback FROM Downstream
+- **From Runtime**: "Production usage patterns differ from UAT assumptions"
+
+---
+
+✅ UAT Agent - Business validation excellence!

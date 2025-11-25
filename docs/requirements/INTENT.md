@@ -322,7 +322,7 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 - Requirements: `docs/requirements/` (Stage 1 output - TODO: reorganize)
 - Design: `docs/design/` (Stage 2 output - TODO: reorganize)
 - Methodology: `docs/ai_sdlc_method.md` (3,300 lines)
-- Examples: `examples/local_projects/customer_portal/`, `data_mapper.test02/`
+- Examples: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) (separate repo)
 
 ---
 

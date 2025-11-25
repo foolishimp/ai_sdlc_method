@@ -484,7 +484,7 @@ Human Driver / AI Navigator:
 
 **Functionality**:
 1. Validates target directory
-2. Copies `templates/claude/.ai-workspace/` → `./.ai-workspace/`
+2. Copies `claude-code/project-template/.ai-workspace/` → `./.ai-workspace/`
 3. Updates `.gitignore` (session/ directory)
 4. Preserves existing tasks (if any)
 
@@ -609,8 +609,8 @@ python installers/setup_workspace.py --no-git
 ### 8.2 Code Artifacts
 
 **Implemented**:
-- `templates/claude/.ai-workspace/` - Complete workspace structure
-- `templates/claude/.ai-workspace/templates/` - 5 templates (794 lines)
+- `claude-code/project-template/.ai-workspace/` - Complete workspace structure
+- `claude-code/project-template/.ai-workspace/templates/` - 5 templates (794 lines)
 - `installers/setup_workspace.py` - Installer (150 lines)
 - `.ai-workspace/` - Working example (this project)
 
@@ -700,7 +700,7 @@ python installers/setup_workspace.py --no-git
 
 **Implementation**:
 - [.ai-workspace/README.md](../../.ai-workspace/README.md)
-- [templates/claude/.ai-workspace/](../../templates/claude/.ai-workspace/)
+- [claude-code/project-template/.ai-workspace/](../../claude-code/project-template/.ai-workspace/)
 - [installers/setup_workspace.py](../../installers/setup_workspace.py)
 
 **Templates** (794 lines total):

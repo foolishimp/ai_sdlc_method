@@ -19,7 +19,7 @@ This directory contains Python scripts that install the **AI SDLC development en
 - ✅ `.ai-workspace/` - Task management with AI SDLC workflow
 - ✅ `.claude/commands/` - Slash commands (/aisdlc-start-session, /aisdlc-checkpoint-tasks, etc.)
 - ✅ `.claude/agents/` - 7-stage AI agent specifications
-- ✅ `plugins/` (optional) - Claude Code plugins with homeostatic control
+- ✅ `claude-code/claude-code/plugins/` (optional) - Claude Code plugins with homeostatic control
 - ✅ `CLAUDE.md` - Project guidance template
 
 ## Installation Methods
@@ -178,7 +178,7 @@ python setup_plugins.py --target /my/project --bundle enterprise
 
 **Options:**
 - `--target PATH` - Project directory
-- `--global` - Install to `~/.config/claude/plugins/`
+- `--global` - Install to `~/.config/claude/claude-code/claude-code/plugins/`
 - `--plugins LIST` - Comma-separated plugin names
 - `--bundle NAME` - Install bundle
 - `--all` - Install all plugins
@@ -338,9 +338,9 @@ Creates `.claude/commands/` with:
 
 ### Plugins Installation
 
-Creates `.claude/plugins/` (project) or `~/.config/claude/plugins/` (global) with:
+Creates `.claude/claude-code/claude-code/plugins/` (project) or `~/.config/claude/claude-code/claude-code/plugins/` (global) with:
 ```
-plugins/
+claude-code/claude-code/plugins/
 ├── aisdlc-core/
 ├── aisdlc-methodology/
 ├── testing-skills/
@@ -361,12 +361,12 @@ Creates `CLAUDE.md` project guidance file with:
 
 ## Template Source
 
-All installers copy from `templates/claude/`:
+All installers copy from `claude-code/project-template/`:
 - `.ai-workspace/` - Workspace template
 - `.claude/` - Commands template
 - `CLAUDE.md.template` - Project guidance template
 
-Plugins are copied from `plugins/` directory.
+Plugins are copied from `claude-code/claude-code/plugins/` directory.
 
 ---
 
@@ -389,8 +389,8 @@ python setup_all.py --force
 ```bash
 # Restart Claude Code after plugin installation
 # Or check plugin location:
-ls ~/.config/claude/plugins/        # Global
-ls ./.claude/plugins/               # Project
+ls ~/.config/claude/claude-code/claude-code/plugins/        # Global
+ls ./.claude/claude-code/claude-code/plugins/               # Project
 ```
 
 ### Permission errors
@@ -464,7 +464,7 @@ done
 
 - **Issues**: https://github.com/foolishimp/ai_sdlc_method/issues
 - **Documentation**: [../docs/](../docs/)
-- **Examples**: [../examples/](../examples/)
+- **Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) (separate repo)
 
 ---
 

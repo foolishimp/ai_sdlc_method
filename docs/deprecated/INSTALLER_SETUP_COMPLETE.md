@@ -7,7 +7,7 @@
 
 ## What Was Created
 
-### 1. Templates Directory (`templates/claude/`)
+### 1. Templates Directory (`claude-code/project-template/`)
 
 Created template source directory containing:
 - ✅ `.ai-workspace/` - Developer workspace template
@@ -30,7 +30,7 @@ Created Python installer suite:
 ### 3. Documentation
 
 - ✅ Updated `installers/README.md` with full usage examples
-- ✅ Created `templates/claude/README.md` explaining template structure
+- ✅ Created `claude-code/project-template/README.md` explaining template structure
 - ✅ Created `CLAUDE.md.template` for target projects
 
 ---
@@ -58,7 +58,7 @@ ai_sdlc_method/                    # Source repository
 │   ├── setup_all.py               # Main orchestrator
 │   └── README.md                  # Usage documentation
 │
-└── plugins/                       # PLUGIN SOURCE
+└── claude-code/plugins/                       # PLUGIN SOURCE
     ├── aisdlc-core/
     ├── aisdlc-methodology/
     ├── testing-skills/
@@ -166,8 +166,8 @@ Complete SDLC suite (9 plugins):
 ## Testing Performed
 
 ✅ **Template Structure**
-- Verified templates/claude/.ai-workspace exists
-- Verified templates/claude/.claude exists
+- Verified claude-code/project-template/.ai-workspace exists
+- Verified claude-code/project-template/.claude exists
 - Verified CLAUDE.md.template exists
 
 ✅ **Installer Scripts**
@@ -183,7 +183,7 @@ Complete SDLC suite (9 plugins):
 
 ✅ **Documentation**
 - installers/README.md - comprehensive
-- templates/claude/README.md - detailed
+- claude-code/project-template/README.md - detailed
 - CLAUDE.md.template - complete
 
 ---
@@ -242,7 +242,7 @@ Complete SDLC suite (9 plugins):
 
 1. **Documentation:**
    - Read `installers/README.md` for usage
-   - Read `templates/claude/README.md` for template info
+   - Read `claude-code/project-template/README.md` for template info
 
 2. **Installation:**
    - Choose installation method (Python vs Marketplace)
@@ -289,8 +289,8 @@ installers/setup_plugins.py  13.0K
 installers/setup_workspace.py 5.2K
 installers/README.md         12.0K
 
-templates/claude/CLAUDE.md.template      6.5K
-templates/claude/README.md               8.2K
+claude-code/project-template/CLAUDE.md.template      6.5K
+claude-code/project-template/README.md               8.2K
 
 Total installer code: ~48K
 Total documentation: ~27K
@@ -313,7 +313,7 @@ Total documentation: ~27K
 
 - **Issues**: https://github.com/foolishimp/ai_sdlc_method/issues
 - **Installation Help**: See `installers/README.md`
-- **Template Info**: See `templates/claude/README.md`
+- **Template Info**: See `claude-code/project-template/README.md`
 - **Main Docs**: See `README.md`
 
 ---

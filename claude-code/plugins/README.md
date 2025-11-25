@@ -669,26 +669,23 @@ plugin-name/
 
 ## Example Projects
 
-See complete 7-stage AI SDLC examples:
+See complete 7-stage AI SDLC examples in the separate repository:
 
-### Customer Portal Example ⭐
+👉 **[ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)** - Complete example projects
 
-**Location**: `../examples/local_projects/customer_portal/`
+**Includes**:
+- **customer_portal** - Complete 7-stage example with full requirement traceability
+- **api_platform** - Public API with backwards compatibility requirements
+- **payment_gateway** - High-risk financial project example
+- **admin_dashboard** - Low-risk internal tool example
 
-**Demonstrates**:
+**Each example demonstrates**:
 - All 7 stages: Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
 - Requirement key propagation (REQ-F-*, REQ-NFR-*, REQ-DATA-*)
 - TDD workflow (RED → GREEN → REFACTOR)
 - BDD testing (Given/When/Then scenarios)
 - Bidirectional traceability (Intent ↔ Runtime)
 - Agent orchestration and feedback loops
-
-**Files**:
-- `config/config.yml` - Complete 7-stage agent configuration (650+ lines)
-- `README.md` - Detailed walkthrough (800+ lines)
-- Architecture diagram showing all stages
-
-👉 **Start here** to understand the complete AI SDLC methodology
 
 ---
 
@@ -815,15 +812,14 @@ New (Claude Code):
 - [Complete 7-Stage Methodology](../docs/ai_sdlc_method.md) - 3,300+ line reference
 - [Technical Deep-Dives](../docs/ai_sdlc_appendices.md) - Advanced concepts
 - [Documentation Index](../docs/README.md) - Role-based learning paths for BA, Architect, Developer, QA, DevOps, PM
-- [Customer Portal Example](../examples/local_projects/customer_portal/README.md) - Complete 7-stage walkthrough
+- [Example Projects](https://github.com/foolishimp/ai_sdlc_examples) - Complete 7-stage walkthrough (separate repo)
 
 ### Claude Code Resources
 - [Claude Code Plugin Documentation](https://docs.claude.com/en/docs/claude-code/plugins)
 - [Marketplace Guide](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces)
 
 ### Examples
-- [Examples Directory](../examples/) - All example projects
-- [API Platform Example](../examples/local_projects/api_platform/) - Public API example
+- [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - All example projects (customer_portal, api_platform, etc.)
 
 ---
 

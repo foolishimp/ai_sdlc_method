@@ -46,8 +46,8 @@ This document defines the requirements for building the AI SDLC Method tooling i
 **Description**: The system shall support hierarchical plugin composition where plugins load in order (corporate → division → team → project) with later plugins overriding earlier ones.
 
 **Acceptance Criteria**:
-- [ ] Global plugins load from `~/.claude/plugins/`
-- [ ] Project plugins load from `./.claude-plugins/`
+- [ ] Global plugins load from `~/.claude/claude-code/plugins/`
+- [ ] Project plugins load from `./.claude-claude-code/plugins/`
 - [ ] Project plugins override global plugins
 - [ ] Configuration deep-merges (primitives replace, objects merge, arrays concatenate)
 - [ ] Override priority documented
@@ -130,13 +130,13 @@ This document defines the requirements for building the AI SDLC Method tooling i
 **Description**: The system shall provide role-based personas for different development stages and roles.
 
 **Acceptance Criteria**:
-- [x] Requirements agent (.claude/agents/requirements-agent.md)
-- [x] Design agent (.claude/agents/design-agent.md)
-- [x] Tasks agent (.claude/agents/tasks-agent.md)
-- [x] Code agent (.claude/agents/code-agent.md)
-- [x] System Test agent (.claude/agents/system-test-agent.md)
-- [x] UAT agent (.claude/agents/uat-agent.md)
-- [x] Runtime Feedback agent (.claude/agents/runtime-feedback-agent.md)
+- [x] Requirements agent (.claude/agents/aisdlc-requirements-agent.md)
+- [x] Design agent (.claude/agents/aisdlc-design-agent.md)
+- [x] Tasks agent (.claude/agents/aisdlc-tasks-agent.md)
+- [x] Code agent (.claude/agents/aisdlc-code-agent.md)
+- [x] System Test agent (.claude/agents/aisdlc-system-test-agent.md)
+- [x] UAT agent (.claude/agents/aisdlc-uat-agent.md)
+- [x] Runtime Feedback agent (.claude/agents/aisdlc-runtime-feedback-agent.md)
 
 **Rationale**: Support role-based development workflows through 7-stage SDLC agent system. Agents provide stage-specific focus and perspective.
 
@@ -348,11 +348,41 @@ This document defines the requirements for building the AI SDLC Method tooling i
 
 ---
 
+### REQ-NFR-REFINE-001: Iterative Refinement via Stage Feedback Loops
+
+**Priority**: Critical
+**Type**: Non-Functional (Process)
+
+**Description**: The system shall support bidirectional feedback where downstream stages can provide feedback to upstream stages for iterative refinement of requirements, design, and implementation.
+
+**Acceptance Criteria**:
+- [ ] Every agent specifies "Process Feedback" in core responsibilities
+- [ ] Requirements Agent accepts feedback from all 6 downstream stages (Design, Tasks, Code, System Test, UAT, Runtime)
+- [ ] Design Agent accepts feedback from 5 downstream stages
+- [ ] Feedback types supported: gap, ambiguity, clarification, error
+- [ ] Feedback results in versioned updates (REQ-F-AUTH-001 v2)
+- [ ] Traceability maintained through feedback cycles
+- [ ] Feedback loop prevents infinite iterations (max 3 suggested)
+
+**Rationale**: Bidirectional feedback enables discovery-driven completeness. Requirements cannot be 100% complete upfront - they must refine based on downstream learning during design, code, test, and production stages. This is core to achieving true completeness of intent.
+
+**Examples**:
+- Design Agent discovers: "REQ-F-AUTH-001 doesn't specify error handling" → Requirements Agent creates REQ-F-AUTH-002
+- Code Agent discovers: "Requirement ambiguous" → Requirements Agent refines with specific criteria
+- Test Agent discovers: "Acceptance criteria not testable" → Requirements Agent adds measurable criteria
+- Runtime Agent discovers: "Performance requirement violated" → Requirements Agent creates new requirement
+
+**Dependencies**: REQ-F-CMD-002 (agents must exist to provide/receive feedback)
+
+**Design**: [ADR-005](../design/adrs/ADR-005-iterative-refinement-feedback-loops.md) - Iterative Refinement Architecture
+
+---
+
 ## 7. Requirement Summary
 
-**Total Implementation Requirements**: 20
+**Total Implementation Requirements**: 17 (was 16 + 1 new from feedback)
 - Functional (F): 13
-- Non-Functional (NFR): 7
+- Non-Functional (NFR): 8 (was 7)
 
 **By Category**:
 - Plugin System: 4
@@ -361,10 +391,11 @@ This document defines the requirements for building the AI SDLC Method tooling i
 - TODO System: 3
 - Testing: 2
 - Traceability: 2
-- Other NFR: 3
+- Process/Refinement: 1 (NEW)
+- Other NFR: 2
 
 **By Priority**:
-- Critical: 1 (REQ-NFR-TRACE-001)
+- Critical: 2 (REQ-NFR-TRACE-001, REQ-NFR-REFINE-001)
 - High: 12
 - Medium: 5
 - Low: 2
@@ -385,16 +416,14 @@ This document defines the requirements for building the AI SDLC Method tooling i
 - REQ-NFR-TRACE-* → validate_traceability.py
 - REQ-NFR-CONTEXT-* → .ai-workspace/ structure
 - REQ-NFR-FEDERATE-* → Plugin loading mechanism
+- REQ-NFR-REFINE-001 → [ADR-005](../design/adrs/ADR-005-iterative-refinement-feedback-loops.md) ✅ NEW
 
 ---
 
 ## Example Requirements
 
-Example requirements demonstrating the methodology have been moved to:
-- [examples/AI_SDLC_REQUIREMENTS.md](examples/AI_SDLC_REQUIREMENTS.md) - Complete 7-stage methodology examples
-- [examples/AI_SDLC_OVERVIEW.md](examples/AI_SDLC_OVERVIEW.md) - Overview examples
-- [examples/AI_SDLC_CONCEPTS.md](examples/AI_SDLC_CONCEPTS.md) - Conceptual examples
-- [examples/FOLDER_BASED_REQUIREMENTS.md](examples/FOLDER_BASED_REQUIREMENTS.md) - Discovery examples
+Example projects demonstrating the methodology are maintained in a separate repository:
+- [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete example projects
 
 These demonstrate HOW to use the methodology, not how to BUILD ai_sdlc_method itself.
 

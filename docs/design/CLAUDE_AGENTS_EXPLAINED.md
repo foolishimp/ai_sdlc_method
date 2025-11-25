@@ -40,7 +40,7 @@ New Intent → Cycle repeats
 
 ### 2.1 Requirements Agent
 
-**Configuration**: [plugins/aisdlc-methodology/config/stages_config.yml:18-95](../plugins/aisdlc-methodology/config/stages_config.yml)
+**Configuration**: [claude-code/plugins/aisdlc-methodology/config/stages_config.yml:18-95](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 
 **Role**: "Intent Store & Traceability Hub"
 
@@ -107,7 +107,7 @@ Generated:
 
 ### 2.2 Design Agent / Solution Designer
 
-**Configuration**: [plugins/aisdlc-methodology/config/stages_config.yml:100-177](../plugins/aisdlc-methodology/config/stages_config.yml)
+**Configuration**: [claude-code/plugins/aisdlc-methodology/config/stages_config.yml:100-177](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 
 **Role**: "Architecture & Data Design"
 
@@ -187,7 +187,7 @@ Traceability Matrix:
 
 ### 2.3 Tasks Stage Orchestrator
 
-**Configuration**: [plugins/aisdlc-methodology/config/stages_config.yml:182-303](../plugins/aisdlc-methodology/config/stages_config.yml)
+**Configuration**: [claude-code/plugins/aisdlc-methodology/config/stages_config.yml:182-303](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 
 **Role**: "Work Breakdown & Code Execution Manager"
 
@@ -269,7 +269,7 @@ Critical Path: PORTAL-105 → PORTAL-101 → PORTAL-102
 
 ### 2.4 Code Agent / Developer Agent
 
-**Configuration**: [plugins/aisdlc-methodology/config/stages_config.yml:308-418](../plugins/aisdlc-methodology/config/stages_config.yml)
+**Configuration**: [claude-code/plugins/aisdlc-methodology/config/stages_config.yml:308-418](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 
 **Role**: "TDD-Driven Implementation"
 
@@ -391,7 +391,7 @@ COMMIT: Ready to save
 
 ### 2.5 System Test Agent / QA Agent
 
-**Configuration**: [plugins/aisdlc-methodology/config/stages_config.yml:423-526](../plugins/aisdlc-methodology/config/stages_config.yml)
+**Configuration**: [claude-code/plugins/aisdlc-methodology/config/stages_config.yml:423-526](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 
 **Role**: "BDD-Driven Integration Testing"
 
@@ -476,7 +476,7 @@ Test execution: 15/15 passing ✅
 
 ### 2.6 UAT Agent
 
-**Configuration**: [plugins/aisdlc-methodology/config/stages_config.yml:527-638](../plugins/aisdlc-methodology/config/stages_config.yml)
+**Configuration**: [claude-code/plugins/aisdlc-methodology/config/stages_config.yml:527-638](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 
 **Role**: "Business Validation & Acceptance"
 
@@ -533,7 +533,7 @@ Ready for business stakeholder execution and sign-off.
 
 ### 2.7 Runtime Feedback Agent
 
-**Configuration**: [plugins/aisdlc-methodology/config/stages_config.yml:639-end](../plugins/aisdlc-methodology/config/stages_config.yml)
+**Configuration**: [claude-code/plugins/aisdlc-methodology/config/stages_config.yml:639-end](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 
 **Role**: "Production Monitoring & Feedback Loop"
 
@@ -717,7 +717,7 @@ When gaps are detected, they flow back to Requirements Agent to update or create
 ### 4.1 Where Agents Are Defined
 
 Agents are configured in:
-- **[plugins/aisdlc-methodology/config/stages_config.yml](../plugins/aisdlc-methodology/config/stages_config.yml)** (1,273 lines)
+- **[claude-code/plugins/aisdlc-methodology/config/stages_config.yml](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)** (1,273 lines)
   - Complete specification for all 7 agents
   - Responsibilities, inputs, outputs, quality gates
   - Context requirements
@@ -731,7 +731,7 @@ Agents are configured in:
 python installers/setup_plugins.py --global --bundle startup
 
 # This makes agent configurations available
-ls ~/.config/claude/plugins/aisdlc-methodology/config/stages_config.yml
+ls ~/.config/claude/claude-code/plugins/aisdlc-methodology/config/stages_config.yml
 ```
 
 #### Step 2: Configure Your Project
@@ -740,7 +740,7 @@ ls ~/.config/claude/plugins/aisdlc-methodology/config/stages_config.yml
 # config/config.yml in your project
 ai_sdlc:
   # Load agent configurations
-  methodology_plugin: "~/.config/claude/plugins/aisdlc-methodology/config/stages_config.yml"
+  methodology_plugin: "~/.config/claude/claude-code/plugins/aisdlc-methodology/config/stages_config.yml"
 
   # Enable stages (agents)
   enabled_stages:
@@ -934,9 +934,9 @@ Claude (as Requirements Agent):
 
 ### Learn More
 
-- **Complete Configuration**: [plugins/aisdlc-methodology/config/stages_config.yml](../plugins/aisdlc-methodology/config/stages_config.yml)
+- **Complete Configuration**: [claude-code/plugins/aisdlc-methodology/config/stages_config.yml](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 - **Full Methodology**: [docs/ai_sdlc_method.md](ai_sdlc_method.md)
-- **Example Walkthrough**: [examples/local_projects/customer_portal/RUN_AI_SDLC.md](../examples/local_projects/customer_portal/RUN_AI_SDLC.md)
+- **Example Projects**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) (separate repo)
 
 ---
 

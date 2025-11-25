@@ -10,7 +10,7 @@
 **Overall Coverage**: 92% of specification implemented ✅
 
 **Strengths**:
-- ✅ All 7 SDLC stages have corresponding plugins/skills
+- ✅ All 7 SDLC stages have corresponding claude-code/plugins/skills
 - ✅ Core workflows (TDD, BDD, Requirements, Traceability) fully implemented
 - ✅ Homeostasis architecture exceeds spec (sensors/actuators)
 - ✅ Requirements refinement loop (not in original spec - innovation)

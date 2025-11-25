@@ -18,7 +18,7 @@
 | `check-requirement-coverage` | Sensor | Detect requirements without implementation |
 | `propagate-req-keys` | Actuator | Auto-tag code/commits with REQ-* keys |
 
-**Location:** `plugins/aisdlc-core/skills/`
+**Location:** `claude-code/plugins/aisdlc-core/skills/`
 
 ---
 
@@ -31,7 +31,7 @@
 | `apply-key-principles` | Validator | Validate code against 7 principles |
 | `seven-questions-checklist` | Quality Gate | Pre-coding checklist (blocks if violated) |
 
-**Location:** `plugins/principles-key/skills/`
+**Location:** `claude-code/plugins/principles-key/skills/`
 
 **The 7 Principles:**
 1. Test Driven Development
@@ -68,7 +68,7 @@
 | `validate-requirements` | Validator | Ensure unique keys, testable format |
 | `refine-requirements` | Updater | Update requirements from TDD/BDD discoveries |
 
-**Location:** `plugins/requirements-skills/skills/`
+**Location:** `claude-code/plugins/requirements-skills/skills/`
 
 ---
 
@@ -82,7 +82,7 @@
 | `create-adrs` | Documentation | Document architecture decisions with ecosystem E(t) |
 | `validate-design-coverage` | Validator | Ensure all requirements have design coverage |
 
-**Location:** `plugins/design-skills/skills/`
+**Location:** `claude-code/plugins/design-skills/skills/`
 
 ---
 
@@ -124,7 +124,7 @@
 | `detect-complexity` | Sensor | Find overly complex functions |
 | `simplify-complex-code` | Actuator | Refactor complex code to simpler form |
 
-**Location:** `plugins/code-skills/skills/`
+**Location:** `claude-code/plugins/code-skills/skills/`
 
 ---
 
@@ -139,7 +139,7 @@
 | `run-integration-tests` | Runner | Execute cross-component integration tests |
 | `create-coverage-report` | Reporter | Generate coverage report with REQ-* mapping |
 
-**Location:** `plugins/testing-skills/skills/`
+**Location:** `claude-code/plugins/testing-skills/skills/`
 
 ---
 
@@ -153,7 +153,7 @@
 | `create-observability-config` | Setup | Configure Datadog/Prometheus with REQ-* dashboards |
 | `trace-production-issue` | Tracer | Trace production alert → requirement → intent |
 
-**Location:** `plugins/runtime-skills/skills/`
+**Location:** `claude-code/plugins/runtime-skills/skills/`
 
 ---
 
@@ -311,14 +311,14 @@
 // Edit .claude/settings.json
 {
   "plugins": [
-    "file://plugins/aisdlc-core",
-    "file://plugins/aisdlc-methodology",
-    "file://plugins/principles-key",
-    "file://plugins/requirements-skills",
-    "file://plugins/design-skills",
-    "file://plugins/code-skills",
-    "file://plugins/testing-skills",
-    "file://plugins/runtime-skills"
+    "file://claude-code/plugins/aisdlc-core",
+    "file://claude-code/plugins/aisdlc-methodology",
+    "file://claude-code/plugins/principles-key",
+    "file://claude-code/plugins/requirements-skills",
+    "file://claude-code/plugins/design-skills",
+    "file://claude-code/plugins/code-skills",
+    "file://claude-code/plugins/testing-skills",
+    "file://claude-code/plugins/runtime-skills"
   ]
 }
 ```

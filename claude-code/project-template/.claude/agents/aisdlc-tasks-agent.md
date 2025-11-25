@@ -29,5 +29,22 @@ Dependency: PORTAL-105 (DB) → PORTAL-101 → PORTAL-102
 - [ ] Dependencies mapped
 - [ ] Estimates validated
 - [ ] Capacity planning complete
+- [ ] All feedback processed
 
-📦 Tasks Agent - Work orchestration!
+---
+
+## 🔄 Feedback Protocol (Universal Agent Behavior)
+
+**Implements**: REQ-NFR-REFINE-001
+
+### Provide Feedback TO Upstream
+- **To Design**: "Component breakdown doesn't match sprint capacity", "Missing dependency specification"
+- **To Requirements**: "Work breakdown reveals missing requirement"
+
+### Accept Feedback FROM Downstream
+- **From Code**: "Task too large, needs splitting", "Dependencies incomplete"
+- **From System Test**: "Test dependencies not in task breakdown"
+
+---
+
+📦 Tasks Agent - Work orchestration excellence!

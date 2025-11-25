@@ -303,7 +303,7 @@ Plugins load in hierarchical order, with later plugins overriding earlier ones:
 3. Team Marketplace
    └─ payment-team-standards@1.0.0
 
-4. Project Plugin (.claude-plugins/my-project/)
+4. Project Plugin (.claude-claude-code/plugins/my-project/)
    └─ project-specific-config
 
 = Final Context (sent to Claude Code)
@@ -529,8 +529,8 @@ Bundles:
 ### 6.2 Plugin Loading in Claude Code
 
 **File Locations**:
-- **Global Plugins**: `~/.claude/plugins/`
-- **Project Plugins**: `./.claude-plugins/`
+- **Global Plugins**: `~/.claude/claude-code/plugins/`
+- **Project Plugins**: `./.claude-claude-code/plugins/`
 
 **Loading Order**:
 1. Global plugins (shared across all projects)
@@ -563,7 +563,7 @@ The plugin pattern is **Claude Code specific**, but the **concept is portable**:
 - Copilot loads as workspace context
 
 **For Cursor**:
-- Store plugins in `.cursor/plugins/`
+- Store plugins in `.cursor/claude-code/plugins/`
 - Use `.cursor-plugin.json` metadata
 - Same configuration structure
 - Cursor loads as project context
@@ -610,7 +610,7 @@ The plugin pattern is **Claude Code specific**, but the **concept is portable**:
 **Functionality**:
 1. Reads marketplace configuration
 2. Fetches plugin from GitHub or local path
-3. Copies plugin to `.claude-plugins/`
+3. Copies plugin to `.claude-claude-code/plugins/`
 4. Resolves dependencies
 5. Validates plugin.json schema
 6. Updates project settings
@@ -640,12 +640,12 @@ python installers/setup_plugins.py --plugin aisdlc-methodology --non-interactive
   "version": "1.0.0",
   "plugins": {
     "aisdlc-methodology": {
-      "path": "plugins/aisdlc-methodology",
+      "path": "claude-code/plugins/aisdlc-methodology",
       "version": "2.0.0",
       "category": "methodology"
     },
     "testing-skills": {
-      "path": "plugins/testing-skills",
+      "path": "claude-code/plugins/testing-skills",
       "version": "1.0.0",
       "category": "skills"
     }
@@ -762,7 +762,7 @@ python installers/setup_plugins.py --plugin aisdlc-methodology --non-interactive
 ### 11.2 Code Artifacts
 
 **Implemented**:
-- `plugins/` - 13 plugins
+- `claude-code/plugins/` - 13 plugins
 - `installers/setup_plugins.py` - Plugin installer
 - `marketplace.json` - Marketplace registry
 - `PLUGIN_GUIDE.md` - User guide
@@ -771,7 +771,7 @@ python installers/setup_plugins.py --plugin aisdlc-methodology --non-interactive
 - No automated tests yet (manual validation only)
 
 **Traceability**:
-- REQ-F-PLUGIN-001 → plugins/, marketplace.json ✅
+- REQ-F-PLUGIN-001 → claude-code/plugins/, marketplace.json ✅
 - REQ-F-PLUGIN-002 → Federated loading (project overrides) ✅
 - REQ-F-PLUGIN-003 → Plugin bundles (startup, qa, enterprise) ✅
 - REQ-F-PLUGIN-004 → SemVer in plugin.json, dependencies declared ⚠️ (not enforced)
@@ -789,7 +789,7 @@ python installers/setup_plugins.py --plugin aisdlc-methodology --non-interactive
 - [TEMPLATE_SYSTEM.md](TEMPLATE_SYSTEM.md) (to be created)
 
 **Implementation**:
-- [plugins/README.md](../../plugins/README.md)
+- [claude-code/plugins/README.md](../../claude-code/plugins/README.md)
 - [PLUGIN_GUIDE.md](../../PLUGIN_GUIDE.md)
 - [installers/setup_plugins.py](../../installers/setup_plugins.py)
 

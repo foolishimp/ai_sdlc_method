@@ -10,8 +10,8 @@ Installs AI SDLC plugins directly (alternative to Claude marketplace).
 # Implements: REQ-F-PLUGIN-004 (Plugin versioning and dependency management)
 
 Provides two installation modes:
-1. Global: ~/.config/claude/plugins/ (user-wide)
-2. Project: ./.claude/plugins/ (project-specific)
+1. Global: ~/.config/claude/claude-code/plugins/ (user-wide)
+2. Project: ./.claude/claude-code/plugins/ (project-specific)
 
 Supports:
 - Individual plugins
@@ -236,7 +236,7 @@ class PluginsSetup(InstallerBase):
             print("1. Restart Claude Code or reload project")
             print("2. Verify plugins: /plugin list")
 
-        print("3. Read plugin docs: cat .claude/plugins/aisdlc-core/README.md")
+        print("3. Read plugin docs: cat .claude/claude-code/plugins/aisdlc-core/README.md")
         print("4. Apply methodology: /apply-persona (if aisdlc-methodology installed)")
 
         print("\n💡 Plugin Locations:")
@@ -335,7 +335,7 @@ Examples:
         "--global",
         dest="install_global",
         action="store_true",
-        help="Install to user global plugins directory (~/.config/claude/plugins/)"
+        help="Install to user global plugins directory (~/.config/claude/claude-code/plugins/)"
     )
 
     parser.add_argument(

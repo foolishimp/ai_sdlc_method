@@ -1601,7 +1601,7 @@ Intent
    - Maintain traceability throughout
 
 2. **Deploy to Production (Stage 7)**
-   - See [docs/requirements/examples/AI_SDLC_REQUIREMENTS.md](../requirements/examples/AI_SDLC_REQUIREMENTS.md) Section 10: Runtime Feedback Stage
+   - See [AI SDLC Requirements](../requirements/AI_SDLC_REQUIREMENTS.md) Section 10: Runtime Feedback Stage
    - Set up telemetry with REQ-* tagging
    - Configure alerts that trace to requirements
    - Close the feedback loop
@@ -1625,15 +1625,15 @@ Intent
 - 🏗️ [New Project Setup](NEW_PROJECT_SETUP.md) - Detailed setup for your project (30 min)
 
 **Complete Methodology**:
-- [AI SDLC Requirements](../requirements/examples/AI_SDLC_REQUIREMENTS.md) - Complete 7-stage specifications (3,300+ lines)
-- [Stage Configurations](../../plugins/aisdlc-methodology/config/stages_config.yml) - Agent configurations (1,273 lines)
+- [AI SDLC Requirements](../requirements/AI_SDLC_REQUIREMENTS.md) - Complete 7-stage specifications (3,300+ lines)
+- [Stage Configurations](../../claude-code/plugins/aisdlc-methodology/config/stages_config.yml) - Agent configurations (1,273 lines)
 
 **Key Principles**:
-- [Key Principles](../../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - The 7 core development principles
-- [TDD Workflow](../../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - Complete TDD cycle
+- [Key Principles](../../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - The 7 core development principles
+- [TDD Workflow](../../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - Complete TDD cycle
 
 **Examples**:
-- [Customer Portal Example](../../examples/local_projects/customer_portal/) - Complete 7-stage walkthrough
+- [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete 7-stage walkthrough examples (separate repo)
 
 ---
 

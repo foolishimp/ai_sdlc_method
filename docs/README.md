@@ -42,8 +42,7 @@ New INTENT.md (if production issues reveal new needs)
 
 **Templates:**
 - **This project:** [`../INTENT.md`](../INTENT.md)
-- **Example:** [`../examples/local_projects/customer_portal/INTENT.md`](../examples/local_projects/customer_portal/INTENT.md)
-- **Example:** [`../examples/local_projects/data_mapper.test02/INTENT.md`](../examples/local_projects/data_mapper.test02/INTENT.md)
+- **Examples:** [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) (separate repo)
 
 ---
 
@@ -87,7 +86,7 @@ docs/
 1. Read the Intent: [`../INTENT.md`](../INTENT.md) - Why this project exists
 2. Quick Overview: [`methodology/ai_sdlc_overview.md`](methodology/ai_sdlc_overview.md) - 30-minute read
 3. Install: [`../QUICKSTART.md`](../QUICKSTART.md) - 10 minutes
-4. Try Example: [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - 1 hour
+4. Try Examples: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - 1 hour
 
 ### Want to Adopt AI SDLC?
 
@@ -97,7 +96,7 @@ docs/
    cd /path/to/your/project
    python /path/to/ai_sdlc_method/installers/setup_all.py
    ```
-3. **Create INTENT.md:** Use template from [`../examples/local_projects/customer_portal/INTENT.md`](../examples/local_projects/customer_portal/INTENT.md)
+3. **Create INTENT.md:** Use template from [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)
 4. **Follow Workflow:** Use `.ai-workspace/` and slash commands (`/start-session`, `/finish-task`, etc.)
 
 ### Want to Extend AI SDLC?
@@ -150,8 +149,7 @@ docs/
 2. Read [`methodology/ai_sdlc_overview.md`](methodology/ai_sdlc_overview.md) - Get the big picture
 3. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 4.0 (Requirements Stage)
 4. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 9.0 (UAT Stage)
-5. Review [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - Requirements artifacts
-6. Review [`../examples/local_projects/customer_portal/config/config.yml`](../examples/local_projects/customer_portal/config/config.yml) - Requirements agent configuration
+5. Review [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Requirements artifacts and agent configuration
 
 **Key Concepts**: Intent transformation, requirement keys (REQ-F-*, REQ-NFR-*, REQ-DATA-*), acceptance criteria, traceability
 
@@ -164,8 +162,8 @@ docs/
 3. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 5.0 (Design Stage)
 4. Read [`design/AI_SDLC_UX_DESIGN.md`](design/AI_SDLC_UX_DESIGN.md) - This project's UX design
 5. Read [`methodology/ai_sdlc_appendices.md`](methodology/ai_sdlc_appendices.md) - Advanced architectural concepts
-6. Review [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - Design artifacts
-7. Review [`../plugins/aisdlc-methodology/config/stages_config.yml`](../plugins/aisdlc-methodology/config/stages_config.yml) - Design agent spec
+6. Review [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Design artifacts
+7. Review [`../claude-code/plugins/aisdlc-methodology/config/stages_config.yml`](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml) - Design agent spec
 
 **Key Concepts**: Requirements → Technical solution, component design, data models, API specifications, ADRs, traceability matrix
 
@@ -176,9 +174,9 @@ docs/
 1. Read [`../INTENT.md`](../INTENT.md) - This project's intent
 2. Read [`methodology/ai_sdlc_overview.md`](methodology/ai_sdlc_overview.md) - Get the big picture
 3. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 7.0 (Code Stage)
-4. Read [`../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`](../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - Sacred Seven Principles
-5. Read [`../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`](../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - TDD cycle
-6. Review [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - Code stage walkthrough
+4. Read [`../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`](../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - Sacred Seven Principles
+5. Read [`../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`](../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - TDD cycle
+6. Review [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Code stage walkthrough
 
 **Key Concepts**: TDD (RED→GREEN→REFACTOR), requirement tagging, test coverage (≥80%), Sacred Seven Principles
 
@@ -190,8 +188,7 @@ docs/
 2. Read [`methodology/ai_sdlc_overview.md`](methodology/ai_sdlc_overview.md) - Get the big picture
 3. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 8.0 (System Test Stage)
 4. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 9.0 (UAT Stage)
-5. Review [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - BDD testing examples
-6. Review [`../examples/local_projects/customer_portal/config/config.yml`](../examples/local_projects/customer_portal/config/config.yml) - Test agent configurations
+5. Review [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - BDD testing examples and agent configurations
 
 **Key Concepts**: BDD (Given/When/Then), requirement coverage (≥95%), scenario-to-requirement matrix, business validation
 
@@ -203,8 +200,7 @@ docs/
 2. Read [`methodology/ai_sdlc_overview.md`](methodology/ai_sdlc_overview.md) - Get the big picture
 3. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 10.0 (Runtime Feedback Stage)
 4. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 2.0 (End-to-End Intent Lifecycle)
-5. Review [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - Runtime feedback section
-6. Review [`../examples/local_projects/customer_portal/config/config.yml`](../examples/local_projects/customer_portal/config/config.yml) - Runtime feedback agent config
+5. Review [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Runtime feedback examples and agent config
 
 **Key Concepts**: Release manifests, requirement key tagging in telemetry, alerts → intents feedback loop, observability platforms
 
@@ -216,8 +212,7 @@ docs/
 2. Read [`methodology/ai_sdlc_overview.md`](methodology/ai_sdlc_overview.md) - Get the big picture
 3. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 6.0 (Tasks Stage)
 4. Read [`methodology/ai_sdlc_method.md`](methodology/ai_sdlc_method.md) - Section 3.0 (Builder Pipeline Overview)
-5. Review [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - Tasks stage
-6. Review [`../examples/local_projects/customer_portal/config/config.yml`](../examples/local_projects/customer_portal/config/config.yml) - Tasks orchestrator config
+5. Review [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Tasks stage and orchestrator config
 
 **Key Concepts**: Design → Work units, Jira integration, requirement key tagging, dependency tracking, agent orchestration
 
@@ -229,7 +224,7 @@ docs/
 
 **Output Location:** `docs/requirements/`
 
-**Agent:** Requirements Agent (`.claude/agents/requirements-agent.md`)
+**Agent:** Requirements Agent (`.claude/agents/aisdlc-requirements-agent.md`)
 
 **Input:** `INTENT.md` (raw business intent)
 
@@ -240,13 +235,13 @@ docs/
 
 **Reference:**
 - [`methodology/ai_sdlc_method.md - Section 4.0`](methodology/ai_sdlc_method.md#40-requirements-stage)
-- [`../plugins/aisdlc-methodology/config/stages_config.yml`](../plugins/aisdlc-methodology/config/stages_config.yml)
+- [`../claude-code/plugins/aisdlc-methodology/config/stages_config.yml`](../claude-code/plugins/aisdlc-methodology/config/stages_config.yml)
 
 ### Stage 2: Design
 
 **Output Location:** `docs/design/`
 
-**Agent:** Design Agent (`.claude/agents/design-agent.md`)
+**Agent:** Design Agent (`.claude/agents/aisdlc-design-agent.md`)
 
 **Input:** Structured requirements
 
@@ -265,7 +260,7 @@ docs/
 
 **Output Location:** `.ai-workspace/tasks/`
 
-**Agent:** Tasks Agent (`.claude/agents/tasks-agent.md`)
+**Agent:** Tasks Agent (`.claude/agents/aisdlc-tasks-agent.md`)
 
 **Input:** Design artifacts
 
@@ -281,9 +276,9 @@ docs/
 
 ### Stage 4: Code
 
-**Output Location:** `src/`, `tests/`, `installers/`, `plugins/`
+**Output Location:** `src/`, `tests/`, `installers/`, `claude-code/plugins/`
 
-**Agent:** Code Agent (`.claude/agents/code-agent.md`)
+**Agent:** Code Agent (`.claude/agents/aisdlc-code-agent.md`)
 
 **Input:** Work units from Tasks stage
 
@@ -292,19 +287,19 @@ docs/
 **Methodology:** TDD (RED → GREEN → REFACTOR) + Sacred Seven Principles
 
 **Key Documents:**
-- Source code in `../installers/`, `../plugins/`
+- Source code in `../installers/`, `../claude-code/plugins/`
 - Tests co-located with source
 
 **Reference:**
 - [`methodology/ai_sdlc_method.md - Section 7.0`](methodology/ai_sdlc_method.md#70-code-stage)
-- [`../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`](../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
-- [`../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`](../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
+- [`../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`](../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
+- [`../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`](../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
 
 ### Stage 5: System Test
 
 **Output Location:** `tests/bdd/` (TODO)
 
-**Agent:** System Test Agent (`.claude/agents/system-test-agent.md`)
+**Agent:** System Test Agent (`.claude/agents/aisdlc-system-test-agent.md`)
 
 **Input:** Deployed code
 
@@ -319,7 +314,7 @@ docs/
 
 **Output Location:** `docs/uat/` (TODO)
 
-**Agent:** UAT Agent (`.claude/agents/uat-agent.md`)
+**Agent:** UAT Agent (`.claude/agents/aisdlc-uat-agent.md`)
 
 **Input:** System test passed
 
@@ -334,7 +329,7 @@ docs/
 
 **Output Location:** Production systems (telemetry, logs, alerts)
 
-**Agent:** Runtime Feedback Agent (`.claude/agents/runtime-feedback-agent.md`)
+**Agent:** Runtime Feedback Agent (`.claude/agents/aisdlc-runtime-feedback-agent.md`)
 
 **Input:** Production deployment
 
@@ -349,14 +344,15 @@ docs/
 
 ### Plugin Documentation
 
-- **[../plugins/aisdlc-methodology/README.md](../plugins/aisdlc-methodology/README.md)** - 7-stage methodology plugin
-- **[../plugins/README.md](../plugins/README.md)** - Plugin creation and usage guide
+- **[../claude-code/plugins/aisdlc-methodology/README.md](../claude-code/plugins/aisdlc-methodology/README.md)** - 7-stage methodology plugin
+- **[../claude-code/plugins/README.md](../claude-code/plugins/README.md)** - Plugin creation and usage guide
 
 ### Example Projects
 
-- **[../examples/local_projects/customer_portal/README.md](../examples/local_projects/customer_portal/README.md)** - Complete 7-stage workflow example (800+ lines)
-- **[../examples/local_projects/data_mapper.test02/](../examples/local_projects/data_mapper.test02/)** - Category Theory data mapper (dogfooding AI SDLC)
-- **[../examples/README.md](../examples/README.md)** - All examples overview
+- **[ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)** - Complete example projects (separate repo)
+  - customer_portal - Complete 7-stage workflow example
+  - data_mapper - Category Theory data mapper (dogfooding AI SDLC)
+  - api_platform, payment_gateway, admin_dashboard
 
 ---
 
@@ -376,14 +372,14 @@ docs/
 
 **"How does requirement traceability work?"**
 → [`methodology/ai_sdlc_method.md - Section 4.3.4`](methodology/ai_sdlc_method.md) - Requirement Keys
-→ [`../examples/local_projects/customer_portal/README.md`](../examples/local_projects/customer_portal/README.md) - Traceability section
+→ [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Traceability examples
 
 **"What are the Sacred Seven Principles?"**
-→ [`../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`](../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
+→ [`../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`](../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
 
 **"How does TDD work in this methodology?"**
 → [`methodology/ai_sdlc_method.md - Section 7.0`](methodology/ai_sdlc_method.md) - Code Stage
-→ [`../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`](../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
+→ [`../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`](../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
 
 **"How does BDD testing work?"**
 → [`methodology/ai_sdlc_method.md - Sections 8.0 & 9.0`](methodology/ai_sdlc_method.md) - System Test & UAT
@@ -394,7 +390,7 @@ docs/
 
 **"How do I create my own project with this methodology?"**
 → [`../PLUGIN_GUIDE.md`](../PLUGIN_GUIDE.md) - Plugin creation guide
-→ [`../examples/local_projects/customer_portal/`](../examples/local_projects/customer_portal/) - Complete example
+→ [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete examples
 
 **"What are the advanced technical concepts?"**
 → [`methodology/ai_sdlc_appendices.md`](methodology/ai_sdlc_appendices.md) - Category theory, ecosystem integration
@@ -414,8 +410,8 @@ This project dogfoods its own methodology. When contributing:
 
 1. **Requirements docs** → Add to `requirements/`
 2. **Design docs** → Add to `design/`
-3. **Methodology updates** → Update `methodology/ai_sdlc_method.md` or add to `../plugins/aisdlc-methodology/docs/`
-4. **Examples** → Add to `../examples/`
+3. **Methodology updates** → Update `methodology/ai_sdlc_method.md` or add to `../claude-code/plugins/aisdlc-methodology/docs/`
+4. **Examples** → Add to [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) repo
 5. **Update this README** → Add links to new documentation
 
 **Documentation Versioning:**

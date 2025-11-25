@@ -71,9 +71,9 @@ You can enable only the stages you need:
 
 **Enable all 7 stages:**
 ```yaml
-# .claude-plugins/my-project/config.yml
+# .claude-claude-code/plugins/my-project/config.yml
 ai_sdlc:
-  methodology_plugin: "file://plugins/aisdlc-methodology/config/stages_config.yml"
+  methodology_plugin: "file://claude-code/plugins/aisdlc-methodology/config/stages_config.yml"
 
   enabled_stages:
     - requirements
@@ -108,7 +108,7 @@ ai_sdlc:
 ### aisdlc-methodology Plugin Structure
 
 ```
-plugins/aisdlc-methodology/
+claude-code/plugins/aisdlc-methodology/
 ├── .claude-plugin/
 │   └── plugin.json                 # Plugin metadata (v2.0.0)
 ├── config/
@@ -210,8 +210,8 @@ methodology:
 ### Step 1: Create Plugin Structure
 
 ```bash
-mkdir -p .claude-plugins/my-project-context/.claude-plugin
-mkdir -p .claude-plugins/my-project-context/config
+mkdir -p .claude-claude-code/plugins/my-project-context/.claude-plugin
+mkdir -p .claude-claude-code/plugins/my-project-context/config
 ```
 
 ### Step 2: Create plugin.json
@@ -361,7 +361,7 @@ Use multiple marketplaces for organizational hierarchy:
 
 ### Project Plugin (Extends Division)
 
-**Local**: `./.claude-plugins/`
+**Local**: `./.claude-claude-code/plugins/`
 
 ```json
 {
@@ -547,12 +547,11 @@ New cycle begins at Requirements stage to address INT-042
 - [docs/README.md](docs/README.md) - Documentation index with role-based learning paths
 
 ### Plugin Documentation
-- [plugins/README.md](plugins/README.md) - Plugin creation and usage guide
-- [plugins/aisdlc-methodology/README.md](plugins/aisdlc-methodology/README.md) - Methodology plugin docs
+- [claude-code/plugins/README.md](claude-code/plugins/README.md) - Plugin creation and usage guide
+- [claude-code/plugins/aisdlc-methodology/README.md](claude-code/plugins/aisdlc-methodology/README.md) - Methodology plugin docs
 
 ### Examples
-- [examples/local_projects/customer_portal/README.md](examples/local_projects/customer_portal/README.md) - Complete 7-stage walkthrough
-- [examples/README.md](examples/README.md) - All examples overview
+- [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete example projects (separate repo)
 
 ### Quick Start
 - [QUICKSTART.md](QUICKSTART.md) - Quick start guide
@@ -579,7 +578,7 @@ Check your project's config.yml:
 ```yaml
 ai_sdlc:
   # Must reference the methodology plugin
-  methodology_plugin: "file://plugins/aisdlc-methodology/config/stages_config.yml"
+  methodology_plugin: "file://claude-code/plugins/aisdlc-methodology/config/stages_config.yml"
 
   # Ensure stages are enabled
   enabled_stages:

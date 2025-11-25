@@ -9,41 +9,41 @@
 
 **Definition:** Agents are **role-based personas** for specific SDLC stages. They define WHO is working and WHAT their goals are.
 
-**Location:** `templates/claude/.claude/agents/` (7 agents)
+**Location:** `claude-code/project-template/.claude/agents/` (7 agents)
 
 **The 7 Stage Agents:**
 
-1. **requirements-agent.md** - Requirements Stage
+1. **aisdlc-requirements-agent.md** - Requirements Stage
    - Role: Business Analyst / Requirements Engineer
    - Goal: Transform intent → structured REQ-* requirements
    - Mindset: Thorough, detail-oriented, business-focused
 
-2. **design-agent.md** - Design Stage
+2. **aisdlc-design-agent.md** - Design Stage
    - Role: Solution Architect / Technical Designer
    - Goal: Transform requirements → technical architecture
    - Mindset: Systematic, acknowledges ecosystem E(t)
 
-3. **tasks-agent.md** - Tasks Stage
+3. **aisdlc-tasks-agent.md** - Tasks Stage
    - Role: Project Manager / Scrum Master
    - Goal: Break design → work units (Jira tickets)
    - Mindset: Organized, dependency-aware, capacity-focused
 
-4. **code-agent.md** - Code Stage
+4. **aisdlc-code-agent.md** - Code Stage
    - Role: Software Developer / Engineer
    - Goal: Implement features using TDD
    - Mindset: Test-first, quality-obsessed, follows Key Principles
 
-5. **system-test-agent.md** - System Test Stage
+5. **aisdlc-system-test-agent.md** - System Test Stage
    - Role: QA Engineer / Test Automation Engineer
    - Goal: Create BDD integration tests
    - Mindset: Validation-focused, Given/When/Then thinking
 
-6. **uat-agent.md** - UAT Stage
+6. **aisdlc-uat-agent.md** - UAT Stage
    - Role: Business Analyst / Product Owner
    - Goal: Business validation and sign-off
    - Mindset: Business language, user acceptance
 
-7. **runtime-feedback-agent.md** - Runtime Feedback Stage
+7. **aisdlc-runtime-feedback-agent.md** - Runtime Feedback Stage
    - Role: DevOps / SRE / Production Support
    - Goal: Monitor production, close feedback loop
    - Mindset: Observability-focused, issue tracing
@@ -60,7 +60,7 @@
 
 **Definition:** Skills are **reusable capabilities** that perform specific tasks. They define HOW to accomplish something.
 
-**Location:** `plugins/*/skills/` (41 skills across 7 plugins)
+**Location:** `claude-code/plugins/*/skills/` (41 skills across 7 plugins)
 
 **Example Skills:**
 - `requirement-extraction` - Extract REQ-* from raw intent

@@ -31,5 +31,23 @@ Feature: User Authentication
 - [ ] All scenarios passing
 - [ ] Performance validated
 - [ ] Security validated
+- [ ] All feedback processed
 
-🧪 System Test Agent - Integration excellence!
+---
+
+## 🔄 Feedback Protocol (Universal Agent Behavior)
+
+**Implements**: REQ-NFR-REFINE-001
+
+### Provide Feedback TO Upstream
+- **To Code**: "Integration test fails - missing error handling", "Coverage gaps detected"
+- **To Design**: "Architecture doesn't support test scenario", "Performance bottlenecks found"
+- **To Requirements**: "Acceptance criteria not testable", "Need measurable performance criteria"
+
+### Accept Feedback FROM Downstream
+- **From UAT**: "Business test reveals integration gap"
+- **From Runtime**: "Production issue not caught by tests - missing scenario"
+
+---
+
+🧪 System Test Agent - Validation excellence!

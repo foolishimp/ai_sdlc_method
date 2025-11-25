@@ -9,7 +9,7 @@ Deploy ai_sdlc_method framework updates to all example projects using the latest
 Execute controlled deployment of ai_sdlc_method framework to example projects:
 1. Validate latest git tag and template files
 2. Discover all example projects
-3. Deploy framework updates from templates/claude/
+3. Deploy framework updates from claude-code/project-template/
 4. Preserve project-specific customizations
 5. Validate deployment and update documentation
 
@@ -22,8 +22,8 @@ Execute controlled deployment of ai_sdlc_method framework to example projects:
 LATEST_TAG=$(git describe --tags --abbrev=0)
 echo "📦 Latest Release: $LATEST_TAG"
 
-# Verify templates/claude/ is up to date
-git status templates/claude/
+# Verify claude-code/project-template/ is up to date
+git status claude-code/project-template/
 
 # Confirm deployment readiness
 echo "✅ Template files validated"
@@ -72,11 +72,11 @@ for project in $EXAMPLE_PROJECTS; do
     rsync -av --exclude='tasks/active/*' \
               --exclude='tasks/finished/*' \
               --exclude='session/*' \
-              templates/claude/.ai-workspace/ \
+              claude-code/project-template/.ai-workspace/ \
               "$project/.ai-workspace/"
 
     # Update .claude/ commands and agents
-    rsync -av templates/claude/.claude/ "$project/.claude/"
+    rsync -av claude-code/project-template/.claude/ "$project/.claude/"
 
     # Update CLAUDE.md (preserve project-specific sections)
     if [ -f "$project/CLAUDE.md" ]; then
@@ -84,7 +84,7 @@ for project in $EXAMPLE_PROJECTS; do
         PROJECT_CONFIG=$(sed -n '/^### Project-Specific Configuration/,$p' "$project/CLAUDE.md")
 
         # Use template CLAUDE.md
-        cp templates/claude/CLAUDE.md.template "$project/CLAUDE.md"
+        cp claude-code/project-template/CLAUDE.md.template "$project/CLAUDE.md"
 
         # Append preserved project config if it had customizations
         if [ -n "$PROJECT_CONFIG" ] && [ "$PROJECT_CONFIG" != "### Project-Specific Configuration
@@ -94,7 +94,7 @@ for project in $EXAMPLE_PROJECTS; do
             echo "$PROJECT_CONFIG" >> "$project/CLAUDE.md"
         fi
     else
-        cp templates/claude/CLAUDE.md.template "$project/CLAUDE.md"
+        cp claude-code/project-template/CLAUDE.md.template "$project/CLAUDE.md"
     fi
 
     echo "   ✅ .ai-workspace/ updated"
@@ -138,7 +138,7 @@ echo "╚═══════════════════════�
 echo ""
 echo "📦 Framework Version: $LATEST_TAG"
 echo "📋 Projects Updated: $(echo $EXAMPLE_PROJECTS | wc -w | tr -d ' ')"
-echo "📁 Template Source: templates/claude/"
+echo "📁 Template Source: claude-code/project-template/"
 echo "⏱️  Timestamp: $(date)"
 echo ""
 echo "✅ Updated Components:"
@@ -210,7 +210,7 @@ echo ""
 
 📦 Framework Version: v0.1.4
 📋 Projects Updated: 3
-📁 Template Source: templates/claude/
+📁 Template Source: claude-code/project-template/
 ⏱️  Timestamp: 2025-11-25 02:50:00
 
 ✅ Updated Components:
@@ -259,7 +259,7 @@ echo ""
 
 ## What Gets Updated
 
-**Updated from templates/claude/:**
+**Updated from claude-code/project-template/:**
 - ✅ `.ai-workspace/templates/` (all templates)
 - ✅ `.ai-workspace/config/` (configuration files)
 - ✅ `.ai-workspace/README.md` (workspace documentation)
@@ -345,7 +345,7 @@ git push origin main --tags
 **Common Issues:**
 
 1. **Template files missing**
-   - Error: "templates/claude/ not found"
+   - Error: "claude-code/project-template/ not found"
    - Fix: Ensure you're in the ai_sdlc_method root directory
 
 2. **Project directory access**
