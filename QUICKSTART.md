@@ -409,18 +409,52 @@ cat INVENTORY.md | grep "Version:"
 /plugin update @aisdlc/aisdlc-methodology
 ```
 
-### Update Templates & Commands
+### Reset Installation (Recommended for Clean Updates)
+
+The reset installer cleanly updates your project to a specific version, removing stale files while preserving your work:
+
+**One-liner via curl (no clone needed):**
+```bash
+cd /path/to/your/project
+
+# Reset to latest release
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 -
+
+# Reset to specific version
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --version v0.2.0
+
+# Preview changes first (recommended)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --dry-run
+```
+
+**What gets PRESERVED** (your work):
+- `.ai-workspace/tasks/active/` - Your current tasks
+- `.ai-workspace/tasks/finished/` - Your task history
+
+**What gets REPLACED** (framework code):
+- `.claude/commands/` - All slash commands
+- `.claude/agents/` - All agent specifications
+- `.ai-workspace/templates/` - All templates
+- `.ai-workspace/config/` - Configuration files
+
+This addresses stale installations that retain old folders (e.g., removed 'todo' folder) or renamed/deleted commands.
+
+### Manual Update (Force Overwrite)
+
+If you prefer manual updates with a local clone:
 
 ```bash
 # Navigate to ai_sdlc_method repository
 cd /path/to/ai_sdlc_method
 git pull
 
-# Refresh your project
+# Refresh your project (overwrites existing)
 cd /path/to/your/project
 python /path/to/ai_sdlc_method/installers/setup_workspace.py --force
 python /path/to/ai_sdlc_method/installers/setup_commands.py --force
 ```
+
+Note: `--force` overwrites but doesn't remove obsolete files. Use reset installation for clean updates.
 
 ---
 

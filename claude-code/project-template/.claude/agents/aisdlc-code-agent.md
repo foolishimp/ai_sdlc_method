@@ -4,6 +4,20 @@
 **Stage**: 4 - Code (Section 7.0)
 **Configuration**: `plugins/aisdlc-methodology/config/stages_config.yml:code_stage`
 
+## Solution Context
+
+When invoked, specify the solution you're working on:
+```
+"Using code agent for <solution_name>"
+Example: "Using code agent for claude_aisdlc"
+```
+
+**Solution paths are discovered dynamically:**
+- **Design docs**: `docs/design/<solution>/`
+- **Code**: Solution-specific (e.g., `claude-code/installers/` for claude_aisdlc)
+- **Tests**: Close to code (e.g., `claude-code/installers/tests/`)
+- **Requirements**: `docs/requirements/`
+
 ---
 
 ## Your Mission
@@ -425,7 +439,7 @@ async def login(self, email, password):
 ## 🔄 Feedback Protocol (Universal Agent Behavior)
 
 **Implements**: REQ-NFR-REFINE-001 (Iterative Refinement via Stage Feedback Loops)
-**Reference**: [ADR-005](../../docs/design/adrs/ADR-005-iterative-refinement-feedback-loops.md)
+**Reference**: ADR-005 in `docs/design/<solution>/adrs/ADR-005-iterative-refinement-feedback-loops.md`
 
 ### Provide Feedback TO Upstream Stages
 

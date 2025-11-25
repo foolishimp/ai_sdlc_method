@@ -709,6 +709,32 @@ ai_sdlc_method/
 
 ---
 
+## Updating Your Installation
+
+### Reset Installation (Recommended)
+
+The reset installer cleanly updates to a specific version, removing stale files while preserving your work:
+
+```bash
+cd /path/to/your/project
+
+# One-liner via curl (no clone needed)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 -
+
+# Specific version
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --version v0.2.0
+
+# Preview first
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --dry-run
+```
+
+**Preserves**: `.ai-workspace/tasks/active/`, `.ai-workspace/tasks/finished/` (your work)
+**Replaces**: `.claude/commands/`, `.claude/agents/`, `.ai-workspace/templates/`, `.ai-workspace/config/` (framework code)
+
+See [installers/README.md](installers/README.md) for complete documentation.
+
+---
+
 ## Migration from Old Version
 
 If you were using the previous `example_projects_repo/` structure:

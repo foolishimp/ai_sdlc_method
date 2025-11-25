@@ -59,6 +59,8 @@ python setup_all.py --force --with-plugins --plugin-list all
 **Options:**
 - `--target PATH` - Target directory (default: current)
 - `--force` - Overwrite existing files
+- `--reset` - Reset-style install (clean slate, see below)
+- `--version TAG` - Version tag for reset install (default: latest)
 - `--workspace-only` - Install only .ai-workspace
 - `--commands-only` - Install only .claude/commands
 - `--plugins-only` - Install only plugins
@@ -67,6 +69,96 @@ python setup_all.py --force --with-plugins --plugin-list all
 - `--bundle BUNDLE` - Install bundle (startup|datascience|qa|enterprise)
 - `--global-plugins` - Install plugins globally
 - `--no-git` - Don't update .gitignore
+
+---
+
+### `setup_reset.py` - Reset Installation (Clean Updates)
+
+Performs a clean reset-style installation that addresses stale files from previous versions.
+
+**Philosophy:** Only immutable framework code (commands, agents, templates) is replaced.
+User work (tasks) is always preserved and can roll forward/backward with versions.
+
+**What gets PRESERVED:**
+- `.ai-workspace/tasks/active/` - Your current active tasks
+- `.ai-workspace/tasks/finished/` - Your completed task documentation
+
+**What gets REMOVED and reinstalled:**
+- `.claude/commands/` - All commands (fresh from version)
+- `.claude/agents/` - All agent specs (fresh from version)
+- `.ai-workspace/templates/` - All templates (fresh from version)
+- `.ai-workspace/config/` - Configuration files (fresh from version)
+
+**Usage:**
+```bash
+# Reset to latest release (from GitHub)
+python setup_reset.py
+
+# Reset to specific version
+python setup_reset.py --version v0.2.0
+
+# Preview changes without executing
+python setup_reset.py --dry-run
+
+# Use local source (for development)
+python setup_reset.py --source /path/to/ai_sdlc_method
+
+# Reset specific project
+python setup_reset.py --target /my/project
+```
+
+**Options:**
+- `--target PATH` - Target directory (default: current)
+- `--version TAG` - Version tag to install (default: latest release)
+- `--source PATH` - Use local source instead of GitHub
+- `--dry-run` - Show plan without making changes
+- `--no-backup` - Skip backup creation (not recommended)
+- `--no-git` - Don't update .gitignore
+
+**Via setup_all.py:**
+```bash
+# Reset using main orchestrator
+python setup_all.py --reset
+
+# Reset to specific version
+python setup_all.py --reset --version v0.2.0
+```
+
+**When to use reset:**
+- After upgrading to a new version
+- When old commands/folders persist that should be removed
+- When you want a clean slate without losing your tasks
+- When rolling back to a previous version
+
+---
+
+### `aisdlc-reset.py` - Self-Contained Reset (curl-friendly)
+
+A single-file installer that can be run directly via curl - no clone required.
+
+**Usage:**
+```bash
+# Latest version
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 -
+
+# Specific version
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --version v0.2.0
+
+# Dry run
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --dry-run
+
+# Or download and run locally
+curl -O https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py
+python3 aisdlc-reset.py --version v0.2.0
+```
+
+**Options:**
+- `--target PATH` - Target directory (default: current)
+- `--version TAG` - Version tag to install (default: latest)
+- `--dry-run` - Show plan without executing
+- `--no-backup` - Skip backup creation
+
+This is the **recommended method** for updating existing projects since it requires no local clone of the ai_sdlc_method repository.
 
 ---
 
@@ -258,6 +350,32 @@ python setup_plugins.py \
 cd /my/project
 python setup_all.py --workspace-only
 python setup_all.py --commands-only
+```
+
+### Reset Installation (Upgrade/Downgrade)
+
+**One-liner via curl (no clone needed):**
+```bash
+cd /my/project
+
+# Reset to latest release
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 -
+
+# Reset to specific version
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --version v0.2.0
+
+# Dry run (preview changes)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --dry-run
+```
+
+**Or with local clone:**
+```bash
+python /path/to/ai_sdlc_method/installers/setup_reset.py --version v0.2.0
+python /path/to/ai_sdlc_method/installers/setup_all.py --reset
+
+# Your tasks are preserved in:
+# - .ai-workspace/tasks/active/
+# - .ai-workspace/tasks/finished/
 ```
 
 ### Offline Installation

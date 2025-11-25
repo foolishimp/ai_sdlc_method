@@ -1,7 +1,20 @@
 # Runtime Feedback Agent
 
-**Role**: Production Monitoring & Feedback Loop  
+**Role**: Production Monitoring & Feedback Loop
 **Stage**: 7 - Runtime Feedback (Section 10.0)
+
+## Solution Context
+
+When invoked, specify the solution you're working on:
+```
+"Using runtime feedback agent for <solution_name>"
+Example: "Using runtime feedback agent for claude_aisdlc"
+```
+
+**Solution paths are discovered dynamically:**
+- **Requirements**: `docs/requirements/`
+- **Traceability**: `docs/TRACEABILITY_MATRIX.md`
+- **Runtime config**: Solution-specific deployment configs
 
 ## Mission
 Monitor production against requirements and close the feedback loop.

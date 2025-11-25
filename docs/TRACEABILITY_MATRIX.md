@@ -27,7 +27,7 @@
 
 | Artifact Type | Count | Lines | Status |
 |--------------|-------|-------|--------|
-| **Design Synthesis** | 1 | 560 | ✅ [AISDLC_IMPLEMENTATION_DESIGN.md](design/AISDLC_IMPLEMENTATION_DESIGN.md) |
+| **Design Synthesis** | 1 | 560 | ✅ [AISDLC_IMPLEMENTATION_DESIGN.md](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) |
 | **Architecture Decision Records** | 5 | ~2,000 | ✅ ADR-001 through ADR-005 |
 | **Design Documents** | 6 | 5,744 | ✅ All referenced in synthesis |
 | **Total Design Artifacts** | 12 | ~8,300 | ✅ Complete |
@@ -100,15 +100,15 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:21](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **ADR-001**: [Claude Code as MVP Platform](design/adrs/ADR-001-claude-code-as-mvp-platform.md)
-- **ADR-004**: [Skills for Reusable Capabilities](design/adrs/ADR-004-skills-for-reusable-capabilities.md)
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Plugin System component
+- **ADR-001**: [Claude Code as MVP Platform](design/claude_aisdlc/adrs/ADR-001-claude-code-as-mvp-platform.md)
+- **ADR-004**: [Skills for Reusable Capabilities](design/claude_aisdlc/adrs/ADR-004-skills-for-reusable-capabilities.md)
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Plugin System component
 - **PLUGIN_ARCHITECTURE.md**: Lines 14, 85, 774
 
 **Implementation Traceability**:
 - `claude-code/plugins/` directory structure
 - `marketplace.json` registry
-- `installers/setup_plugins.py`
+- `claude-code/installers/setup_plugins.py`
 
 **Test Traceability**: ❌ None (Stage 5 not reached)
 
@@ -127,12 +127,12 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:41](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Federated loading
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Federated loading
 - **PLUGIN_ARCHITECTURE.md**: Lines 15, 775
 
 **Implementation Traceability**:
 - Plugin loader with override strategy
-- `installers/setup_plugins.py`
+- `claude-code/installers/setup_plugins.py`
 
 **Test Traceability**: ❌ None
 
@@ -151,13 +151,13 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:63](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Plugin bundles
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Plugin bundles
 - **PLUGIN_ARCHITECTURE.md**: Lines 16, 119, 776
 
 **Implementation Traceability**:
 - `claude-code/plugins/bundles/startup-bundle/`
 - Bundle plugin structure
-- `installers/setup_plugins.py`
+- `claude-code/installers/setup_plugins.py`
 
 **Test Traceability**: ❌ None
 
@@ -176,17 +176,18 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:82](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Versioning
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Versioning
 - **PLUGIN_ARCHITECTURE.md**: Lines 17, 165, 777
 
 **Implementation Traceability**:
 - SemVer in `plugin.json` files
 - ⚠️ Not enforced programmatically yet
-- `installers/setup_plugins.py`
+- `claude-code/installers/setup_plugins.py`
 
-**Test Traceability**: ❌ None
+**Test Traceability**:
+- ✅ `claude-code/installers/tests/test_common.py` - Version utilities (TC-COM-009 through TC-COM-012)
 
-**Status**: 🚧 Partial (SemVer present, not enforced)
+**Status**: 🚧 Partial (SemVer present, not enforced, tests added)
 
 ---
 
@@ -201,17 +202,18 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:105](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **ADR-002**: [Commands for Workflow Integration](design/adrs/ADR-002-commands-for-workflow-integration.md)
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.4](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Command System component
+- **ADR-002**: [Commands for Workflow Integration](design/claude_aisdlc/adrs/ADR-002-commands-for-workflow-integration.md)
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.4](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Command System component
 
 **Implementation Traceability**:
 - `.claude/commands/` directory (6 commands)
 - Commands: checkpoint-tasks, finish-task, commit-task, status, release, refresh-context
-- `installers/setup_commands.py`
+- `claude-code/installers/setup_commands.py`
 
-**Test Traceability**: ❌ None
+**Test Traceability**:
+- ✅ `claude-code/installers/tests/test_common.py` - InstallerBase tests (TC-COM-001 through TC-COM-008)
 
-**Status**: 🚧 Implemented, no tests
+**Status**: 🚧 Implemented, tests added for installer
 
 ---
 
@@ -226,14 +228,14 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:124](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **ADR-003**: [Agents for Stage Personas](design/adrs/ADR-003-agents-for-stage-personas.md)
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.2](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Agent System component
+- **ADR-003**: [Agents for Stage Personas](design/claude_aisdlc/adrs/ADR-003-agents-for-stage-personas.md)
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.2](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Agent System component
 - **CLAUDE_AGENTS_EXPLAINED.md**: Complete agent architecture
 
 **Implementation Traceability**:
 - `.claude/agents/` directory (7 agents with aisdlc- prefix)
 - Agents: requirements, design, tasks, code, system-test, uat, runtime-feedback
-- `installers/setup_commands.py`
+- `claude-code/installers/setup_commands.py`
 
 **Test Traceability**: ❌ None
 
@@ -277,17 +279,18 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:151](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.5](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Workspace System component
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.5](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Workspace System component
 - **TEMPLATE_SYSTEM.md**: Lines 14, 93, 576, 621
 
 **Implementation Traceability**:
 - `.ai-workspace/` directory structure
 - Subdirectories: tasks/, templates/, config/
-- `installers/setup_workspace.py`
+- `claude-code/installers/setup_workspace.py`
 
-**Test Traceability**: ❌ None
+**Test Traceability**:
+- ✅ `claude-code/installers/tests/test_common.py` - InstallerBase tests (TC-COM-001 through TC-COM-008)
 
-**Status**: 🚧 Implemented, no tests
+**Status**: 🚧 Implemented, tests added for installer
 
 ---
 
@@ -302,14 +305,14 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:171](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.5](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Task templates
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.5](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Task templates
 - **TEMPLATE_SYSTEM.md**: Lines 15, 131, 204, 577, 622
 
 **Implementation Traceability**:
 - `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
 - `.ai-workspace/tasks/finished/` directory
 - `.ai-workspace/templates/TASK_TEMPLATE.md`
-- `installers/setup_workspace.py`
+- `claude-code/installers/setup_workspace.py`
 
 **Test Traceability**: ❌ None
 
@@ -328,13 +331,13 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:189](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.5](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Session templates
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.5](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Session templates
 - **TEMPLATE_SYSTEM.md**: Lines 16, 178, 578, 623
 
 **Implementation Traceability**:
 - `.ai-workspace/templates/SESSION_TEMPLATE.md` (deprecated - simplified to implicit model)
 - Session context now in ACTIVE_TASKS.md + conversation history
-- `installers/setup_workspace.py`
+- `claude-code/installers/setup_workspace.py`
 
 **Test Traceability**: ❌ None
 
@@ -379,7 +382,7 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:209](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.7](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Testing System component
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.7](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Testing System component
 - **PLUGIN_ARCHITECTURE.md**: Line 695
 
 **Implementation Traceability**:
@@ -404,7 +407,7 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:230](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.7](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Test generation
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.7](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Test generation
 - **PLUGIN_ARCHITECTURE.md**: Line 696
 
 **Implementation Traceability**:
@@ -428,13 +431,13 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:251](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.6](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Traceability System component
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.6](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Traceability System component
 - **FOLDER_BASED_ASSET_DISCOVERY.md**: Asset discovery for traceability
 
 **Implementation Traceability**:
 - This TRACEABILITY_MATRIX.md file
 - REQ-* key format defined and enforced
-- `installers/validate_traceability.py`
+- `claude-code/installers/validate_traceability.py`
 
 **Test Traceability**: ❌ None
 
@@ -453,13 +456,13 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:272](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.6](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Key propagation through stages
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.6](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Key propagation through stages
 
 **Implementation Traceability**:
 - REQ-* tags in code comments (# Implements: REQ-F-*)
 - REQ-* tags in test comments (# Validates: REQ-F-*)
 - ⚠️ Runtime telemetry tagging not yet implemented
-- `installers/validate_traceability.py`
+- `claude-code/installers/validate_traceability.py`
 
 **Test Traceability**: ❌ None
 
@@ -478,7 +481,7 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:293](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.5](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Persistent context
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.5](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Persistent context
 - **TEMPLATE_SYSTEM.md**: Lines 17, 93, 178, 579, 624
 - **PLUGIN_ARCHITECTURE.md**: Line 18
 
@@ -486,7 +489,7 @@
 - `.ai-workspace/tasks/active/ACTIVE_TASKS.md` (persistent across sessions)
 - Git-tracked task files
 - Implicit session model (context from conversation + one file)
-- `installers/setup_workspace.py`
+- `claude-code/installers/setup_workspace.py`
 
 **Test Traceability**: ❌ None
 
@@ -505,7 +508,7 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:312](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Hierarchical composition
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.1](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Hierarchical composition
 - **PLUGIN_ARCHITECTURE.md**: Lines 19, 85
 
 **Implementation Traceability**:
@@ -530,7 +533,7 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:332](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.7](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Coverage enforcement
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.7](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Coverage enforcement
 - **PLUGIN_ARCHITECTURE.md**: Line 697
 
 **Implementation Traceability**:
@@ -555,8 +558,8 @@
 - **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:351](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 **Design Traceability**:
-- **ADR-005**: [Iterative Refinement via Feedback Loops](design/adrs/ADR-005-iterative-refinement-feedback-loops.md)
-- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.2](design/AISDLC_IMPLEMENTATION_DESIGN.md) - Feedback protocol in agents
+- **ADR-005**: [Iterative Refinement via Feedback Loops](design/claude_aisdlc/adrs/ADR-005-iterative-refinement-feedback-loops.md)
+- **Design Synthesis**: [AISDLC_IMPLEMENTATION_DESIGN.md:2.2](design/claude_aisdlc/AISDLC_IMPLEMENTATION_DESIGN.md) - Feedback protocol in agents
 
 **Implementation Traceability**:
 - All 7 agents in `.claude/agents/` have "🔄 Feedback Protocol" section
@@ -697,9 +700,10 @@ This traceability matrix demonstrates **dogfooding** - using the AI SDLC methodo
 
 **Owned by**: Requirements Agent (Traceability Hub)
 **Updated**: After each stage completion
-**Validation**: Run `python installers/validate_traceability.py`
+**Validation**: Run `python claude-code/installers/validate_traceability.py`
 
 ---
 
-**Last Updated**: 2025-11-25 11:30 by Requirements Agent
+**Last Updated**: 2025-11-25 14:50 by Requirements Agent
+**Changes**: Updated paths for atomic solution structure (docs/design/claude_aisdlc/, claude-code/installers/)
 **Next Update**: After Tasks Stage (Stage 3) completion

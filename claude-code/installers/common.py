@@ -195,20 +195,66 @@ class InstallerBase:
 
 
 def get_ai_sdlc_version() -> str:
-    """Get the AI SDLC Method version."""
+    """Get the AI SDLC Method version from git tag."""
     try:
-        ai_sdlc_root = Path(__file__).parent.parent
-        readme_path = ai_sdlc_root / "README.md"
+        import subprocess
+        result = subprocess.run(
+            ["git", "describe", "--tags", "--abbrev=0"],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        return "unknown"
+    except Exception:
+        return "unknown"
 
-        if readme_path.exists():
-            content = readme_path.read_text()
-            # Try to extract version from README
-            # This is a simple implementation - could be enhanced
-            return "1.0.0"
 
-        return "1.0.0"
-    except:
-        return "1.0.0"
+def get_latest_release_tag(repo_url: str = None) -> Optional[str]:
+    """Get the latest release tag from a git repository.
+
+    Args:
+        repo_url: Optional remote URL. If None, uses local repo tags.
+
+    Returns:
+        Latest tag version string (e.g., "v0.2.0") or None if not found.
+    """
+    try:
+        import subprocess
+
+        if repo_url:
+            # Fetch tags from remote without cloning
+            result = subprocess.run(
+                ["git", "ls-remote", "--tags", "--sort=-version:refname", repo_url],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            if result.returncode == 0 and result.stdout:
+                # Parse output: "sha\trefs/tags/v0.2.0"
+                for line in result.stdout.strip().split('\n'):
+                    if line and 'refs/tags/' in line:
+                        tag = line.split('refs/tags/')[-1]
+                        # Skip ^{} dereferenced tags
+                        if not tag.endswith('^{}'):
+                            return tag
+        else:
+            # Use local repository
+            result = subprocess.run(
+                ["git", "tag", "-l", "--sort=-version:refname"],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent.parent
+            )
+            if result.returncode == 0 and result.stdout:
+                tags = result.stdout.strip().split('\n')
+                if tags and tags[0]:
+                    return tags[0]
+
+        return None
+    except Exception:
+        return None
 
 
 def print_banner():

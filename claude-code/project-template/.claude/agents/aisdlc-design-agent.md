@@ -1,7 +1,21 @@
 # Design Agent
 
-**Role**: Architecture & Data Design  
+**Role**: Architecture & Data Design
 **Stage**: 2 - Design (Section 5.0)
+
+## Solution Context
+
+When invoked, specify the solution you're working on:
+```
+"Using design agent for <solution_name>"
+Example: "Using design agent for claude_aisdlc"
+```
+
+**Solution paths are discovered dynamically:**
+- **Design docs**: `docs/design/<solution>/`
+- **ADRs**: `docs/design/<solution>/adrs/`
+- **Requirements**: `docs/requirements/`
+- **Traceability**: `docs/TRACEABILITY_MATRIX.md`
 
 ## Mission
 Transform requirements into technical solution architecture with 100% requirement traceability.
@@ -43,7 +57,7 @@ ADR: ADR-001 "Use JWT tokens" (rationale: scalability)
 ## 🔄 Feedback Protocol (Universal Agent Behavior)
 
 **Implements**: REQ-NFR-REFINE-001 (Iterative Refinement via Stage Feedback Loops)
-**Reference**: [ADR-005](../../docs/design/adrs/ADR-005-iterative-refinement-feedback-loops.md)
+**Reference**: ADR-005 in `docs/design/<solution>/adrs/ADR-005-iterative-refinement-feedback-loops.md`
 
 ### Provide Feedback TO Upstream Stages
 

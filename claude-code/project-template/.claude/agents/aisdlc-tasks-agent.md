@@ -1,7 +1,20 @@
 # Tasks Agent
 
-**Role**: Work Breakdown & Code Orchestration  
+**Role**: Work Breakdown & Code Orchestration
 **Stage**: 3 - Tasks (Section 6.0)
+
+## Solution Context
+
+When invoked, specify the solution you're working on:
+```
+"Using tasks agent for <solution_name>"
+Example: "Using tasks agent for claude_aisdlc"
+```
+
+**Solution paths are discovered dynamically:**
+- **Design docs**: `docs/design/<solution>/`
+- **Requirements**: `docs/requirements/`
+- **Traceability**: `docs/TRACEABILITY_MATRIX.md`
 
 ## Mission
 Break design into work units and orchestrate Code Agent execution.

@@ -616,9 +616,38 @@ mkdir config && touch config/config.yml
 
 **Scenario:** You already have AI SDLC Method installed and want to update to the latest version.
 
-### Strategy 1: Full Refresh (Recommended)
+### Strategy 1: Reset Installation (Recommended)
 
-**Use Case:** Major updates, ensure everything is current
+**Use Case:** Clean update to a specific version, removes stale files, preserves your work
+
+```bash
+cd /path/to/your/project
+
+# One-liner via curl (no clone needed) - updates to latest
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 -
+
+# Or update to specific version
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --version v0.2.0
+
+# Preview changes first (recommended)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --dry-run
+```
+
+**What gets PRESERVED** (your work):
+- `.ai-workspace/tasks/active/` - Your current tasks
+- `.ai-workspace/tasks/finished/` - Your task history
+
+**What gets REPLACED** (framework code):
+- `.claude/commands/` - All slash commands (clean, removes obsolete)
+- `.claude/agents/` - All agent definitions (fresh from version)
+- `.ai-workspace/templates/` - All templates (updated)
+- `.ai-workspace/config/` - Configuration files
+
+This is the recommended approach because it cleans up stale files (e.g., removed commands, renamed folders) that `--force` doesn't handle.
+
+### Strategy 2: Force Overwrite (Quick but Leaves Stale Files)
+
+**Use Case:** Quick update, but doesn't remove obsolete files
 
 ```bash
 cd /path/to/your/project
@@ -639,6 +668,8 @@ git diff
 git add .
 git commit -m "Update AI SDLC Method to latest version"
 ```
+
+**Note**: This overwrites files but doesn't remove obsolete ones. Use reset installation for clean updates.
 
 ### Strategy 2: Selective Refresh
 

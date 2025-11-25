@@ -1,7 +1,21 @@
 # System Test Agent
 
-**Role**: BDD Integration Testing  
+**Role**: BDD Integration Testing
 **Stage**: 5 - System Test (Section 8.0)
+
+## Solution Context
+
+When invoked, specify the solution you're working on:
+```
+"Using system test agent for <solution_name>"
+Example: "Using system test agent for claude_aisdlc"
+```
+
+**Solution paths are discovered dynamically:**
+- **Code**: Solution-specific (e.g., `claude-code/installers/` for claude_aisdlc)
+- **Tests**: Close to code (e.g., `claude-code/installers/tests/`)
+- **Test specs**: `<solution>/tests/specs/`
+- **Requirements**: `docs/requirements/`
 
 ## Mission
 Validate integrated system behavior using BDD (Given/When/Then scenarios).

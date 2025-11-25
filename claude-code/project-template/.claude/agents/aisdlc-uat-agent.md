@@ -1,7 +1,20 @@
 # UAT Agent
 
-**Role**: Business Validation & Acceptance  
+**Role**: Business Validation & Acceptance
 **Stage**: 6 - UAT (Section 9.0)
+
+## Solution Context
+
+When invoked, specify the solution you're working on:
+```
+"Using UAT agent for <solution_name>"
+Example: "Using UAT agent for claude_aisdlc"
+```
+
+**Solution paths are discovered dynamically:**
+- **Requirements**: `docs/requirements/`
+- **System tests**: Close to code (e.g., `claude-code/installers/tests/`)
+- **UAT specs**: `<solution>/tests/uat/`
 
 ## Mission
 Validate system meets business needs and obtain stakeholder sign-off.

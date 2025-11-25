@@ -16,6 +16,8 @@ Usage:
 Options:
     --target PATH           Target directory for installation (default: current)
     --force                 Overwrite existing files
+    --reset                 Reset-style install: scrub old files and install fresh
+    --version TAG           Version tag for reset install (default: latest)
     --workspace-only        Install only .ai-workspace
     --commands-only         Install only .claude/commands
     --plugins-only          Install only plugins
@@ -41,6 +43,12 @@ Examples:
 
     # Force reinstall
     python setup_all.py --force
+
+    # Reset install (clean slate, preserves finished tasks)
+    python setup_all.py --reset
+
+    # Reset to specific version
+    python setup_all.py --reset --version v0.2.0
 """
 
 import sys
@@ -57,7 +65,8 @@ class AISDLCSetup(InstallerBase):
                  workspace_only: bool = False, commands_only: bool = False,
                  plugins_only: bool = False, with_plugins: bool = False,
                  plugin_list: str = None, bundle: str = None,
-                 global_plugins: bool = False, no_git: bool = False):
+                 global_plugins: bool = False, no_git: bool = False,
+                 reset: bool = False, version: str = None):
         super().__init__(target, force, no_git)
 
         self.workspace_only = workspace_only
@@ -67,15 +76,22 @@ class AISDLCSetup(InstallerBase):
         self.plugin_list = plugin_list
         self.bundle = bundle
         self.global_plugins = global_plugins
+        self.reset = reset
+        self.version = version
 
         # Paths to individual installers
         self.installers_dir = Path(__file__).parent
         self.workspace_installer = self.installers_dir / "setup_workspace.py"
         self.commands_installer = self.installers_dir / "setup_commands.py"
         self.plugins_installer = self.installers_dir / "setup_plugins.py"
+        self.reset_installer = self.installers_dir / "setup_reset.py"
 
     def run(self) -> bool:
         """Execute the complete setup process."""
+        # Handle reset mode separately
+        if self.reset:
+            return self._run_reset_installer()
+
         print_banner()
 
         self.print_section("AI SDLC Method - Complete Setup")
@@ -135,6 +151,27 @@ class AISDLCSetup(InstallerBase):
             self.print_error("Installation completed with errors - see messages above")
 
         return success
+
+    def _run_reset_installer(self) -> bool:
+        """Run reset-style installation that scrubs and reinstalls."""
+        if not self.reset_installer.exists():
+            self.print_error(f"Reset installer not found: {self.reset_installer}")
+            return False
+
+        cmd = [
+            sys.executable,
+            str(self.reset_installer),
+            "--target", str(self.target),
+            "--source", str(self.ai_sdlc_root)  # Use local source
+        ]
+
+        if self.version:
+            cmd.extend(["--version", self.version])
+
+        if self.no_git:
+            cmd.append("--no-git")
+
+        return self._run_subprocess(cmd, "Reset installation")
 
     def _validate_installers(self) -> bool:
         """Validate that all required installer scripts exist."""
@@ -387,6 +424,12 @@ Examples:
 
   # Force reinstall everything
   python setup_all.py --force --with-plugins --plugin-list all
+
+  # Reset install (clean slate, preserves finished tasks)
+  python setup_all.py --reset
+
+  # Reset to specific version
+  python setup_all.py --reset --version v0.2.0
         """
     )
 
@@ -400,6 +443,17 @@ Examples:
         "--force",
         action="store_true",
         help="Overwrite existing files"
+    )
+
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Reset-style install: scrub old files and install fresh (preserves finished tasks)"
+    )
+
+    parser.add_argument(
+        "--version",
+        help="Version tag for reset install (default: latest release)"
     )
 
     parser.add_argument(
@@ -456,7 +510,19 @@ Examples:
 
     exclusive_count = sum([args.workspace_only, args.commands_only, args.plugins_only])
     if exclusive_count > 1:
-        print("❌ Error: Cannot specify multiple --*-only options together")
+        print("Error: Cannot specify multiple --*-only options together")
+        sys.exit(1)
+
+    # Reset mode is exclusive of other options
+    if args.reset and any([args.workspace_only, args.commands_only, args.plugins_only,
+                           args.with_plugins, args.force]):
+        print("Error: --reset cannot be combined with --*-only, --with-plugins, or --force options")
+        print("       Reset mode does a complete clean reinstall automatically")
+        sys.exit(1)
+
+    # --version requires --reset
+    if args.version and not args.reset:
+        print("Error: --version requires --reset flag")
         sys.exit(1)
 
     # Run setup
@@ -470,7 +536,9 @@ Examples:
         plugin_list=args.plugin_list,
         bundle=args.bundle,
         global_plugins=args.global_plugins,
-        no_git=args.no_git
+        no_git=args.no_git,
+        reset=args.reset,
+        version=args.version
     )
 
     try:

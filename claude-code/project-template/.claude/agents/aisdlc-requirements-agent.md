@@ -4,6 +4,20 @@
 **Stage**: 1 - Requirements (Section 4.0)
 **Configuration**: `plugins/aisdlc-methodology/config/stages_config.yml:requirements_stage`
 
+## Solution Context
+
+When invoked, specify the solution you're working on:
+```
+"Using requirements agent for <solution_name>"
+Example: "Using requirements agent for claude_aisdlc"
+```
+
+**Solution paths are discovered dynamically:**
+- **Requirements**: `docs/requirements/`
+- **Design docs**: `docs/design/<solution>/`
+- **Traceability**: `docs/TRACEABILITY_MATRIX.md`
+- **Intent**: `docs/requirements/INTENT.md`
+
 ---
 
 ## Your Mission
@@ -227,7 +241,7 @@ When feedback arrives from downstream stages:
 ## 🔄 Feedback Protocol (Universal Agent Behavior)
 
 **Implements**: REQ-NFR-REFINE-001 (Iterative Refinement via Stage Feedback Loops)
-**Reference**: [ADR-005](../../docs/design/adrs/ADR-005-iterative-refinement-feedback-loops.md)
+**Reference**: ADR-005 in `docs/design/<solution>/adrs/ADR-005-iterative-refinement-feedback-loops.md`
 
 ### Accept Feedback FROM Downstream Stages
 

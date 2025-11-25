@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-11-25 13:30*
+*Last Updated: 2025-11-25 15:45*
 
 ---
 
@@ -335,6 +335,30 @@ N/A - Documentation task
   - Task #12: Ecosystem E(t) Tracking (v1.5 - planned)
 
 **Recently Completed**:
+- ✅ Task #15: Create Roo Code AISDLC Solution (roo-code-iclaude) (2025-11-25 15:45)
+  - Created complete `roo-code-iclaude/` directory matching Claude/Codex quality
+  - Design docs: `docs/design/roo_aisdlc/` with 370+ line implementation design
+  - 4 ADRs: ADR-201 (Custom Modes), ADR-202 (Rules Library), ADR-203 (Memory Bank), ADR-204 (Workspace Safeguards)
+  - 7 mode JSON files (one per SDLC stage)
+  - 6 rule markdown files (key-principles, tdd-workflow, bdd-workflow, req-tagging, feedback-protocol, workspace-safeguards)
+  - 4 memory bank templates (projectbrief, techstack, activecontext, methodref)
+  - Created `ROOCODE.md` guidance file (equivalent to CODEX.md)
+  - Updated `CODEX.md` to reference `codex_aisdlc`
+  - Removed redundant `implementations/` folders from design directories
+  - Implements: REQ-F-PLUGIN-001, REQ-F-CMD-002, REQ-NFR-CONTEXT-001, REQ-NFR-TRACE-001
+  - See: `.ai-workspace/tasks/finished/20251125_1545_roo_code_aisdlc_solution.md`
+- ✅ Task #14: Create Reset-Style Installer for Clean Updates (2025-11-25 14:30)
+  - Created `installers/setup_reset.py` - full-featured reset installer
+  - Created `installers/aisdlc-reset.py` - self-contained curl-friendly installer
+  - Updated `installers/common.py` with version fetching from git tags
+  - Updated `installers/setup_all.py` with `--reset` and `--version` options
+  - Updated `installers/README.md` with documentation
+  - Philosophy: Only immutable framework code replaced, user work preserved
+  - Preserves: tasks/active/, tasks/finished/
+  - Removes/reinstalls: commands/, agents/, templates/, config/
+  - One-liner: `curl -sL .../aisdlc-reset.py | python3 - --version v0.2.0`
+  - Implements: REQ-F-RESET-001 (New)
+  - See: `.ai-workspace/tasks/finished/20251125_1430_reset_installer_for_clean_updates.md`
 - ✅ Task #11: Refactor Directory Structure - Group Claude Code Assets (2025-11-25 12:00)
   - Moved plugins/ → claude-code/plugins/ (9 plugins + 4 bundles, 41 skills)
   - Moved templates/claude/ → claude-code/project-template/
