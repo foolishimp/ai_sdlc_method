@@ -229,6 +229,33 @@ This document defines the requirements for building the AI SDLC Method tooling i
 
 ---
 
+### REQ-F-UPDATE-001: Framework Updates from GitHub
+
+**Release**: 1.0 MVP
+**Priority**: Medium
+**Type**: Functional
+
+**Description**: Projects using the AI SDLC framework shall have a command to pull and apply framework updates from the official GitHub repository while preserving project-specific customizations.
+
+**Acceptance Criteria**:
+- [ ] Fetch latest release tag from GitHub (or specified tag)
+- [ ] Download framework template files via git clone
+- [ ] Update .ai-workspace/ templates and config
+- [ ] Update .claude/ commands and agents
+- [ ] Preserve ACTIVE_TASKS.md and finished tasks
+- [ ] Preserve project-specific CLAUDE.md sections
+- [ ] Create backup before updates
+- [ ] Provide dry-run mode
+- [ ] Validate update and report results
+
+**Rationale**: Enable projects to stay current with framework improvements without manual file management.
+
+**Dependencies**: REQ-F-WORKSPACE-001
+
+**Implementation**: `/aisdlc-update` command in project template
+
+---
+
 ## 4. Testing Requirements
 
 ### REQ-F-TESTING-001: Test Coverage Validation

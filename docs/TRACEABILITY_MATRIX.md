@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-**Total Requirements**: 18 (16 original + 1 feedback + 1 release command)
+**Total Requirements**: 19 (16 original + 1 feedback + 1 release + 1 update)
 **SDLC Stage**: Design Complete, Tasks Stage Next
 
 ### Coverage by Stage
@@ -36,7 +36,7 @@
 
 ## Summary
 
-- **Total Requirements**: 18
+- **Total Requirements**: 19
 - **Current Release**: 1.0 MVP
 - **Documented in Requirements Docs**: 17 (100%)
 - **Undocumented (orphaned)**: 0
@@ -48,7 +48,7 @@
 
 | Release | Count | Status |
 |---------|-------|--------|
-| **1.0 MVP** | 18 | All current requirements |
+| **1.0 MVP** | 19 | All current requirements |
 | 1.1 | 0 | - |
 | Backlog | 0 | - |
 
@@ -75,6 +75,7 @@
 | REQ-F-WORKSPACE-001 | 1.0 MVP | Developer Workspace Structure | ✅ | ✅ | ✅ Design Synthesis | ✅ Implemented | ❌ | 🚧 No Tests |
 | REQ-F-WORKSPACE-002 | 1.0 MVP | Task Management Templates | ✅ | ✅ | ✅ Design Synthesis | ✅ Implemented | ❌ | 🚧 No Tests |
 | REQ-F-WORKSPACE-003 | 1.0 MVP | Session Tracking Templates | ✅ | ✅ | ✅ Design Synthesis | ✅ Implemented | ❌ | 🚧 No Tests |
+| REQ-F-UPDATE-001 | 1.0 MVP | Framework Updates from GitHub | ✅ | ✅ | ⏳ Pending | ✅ Implemented | ❌ | ⏳ Planned |
 | REQ-F-TESTING-001 | 1.0 MVP | Test Coverage Validation | ✅ | ✅ | ✅ Design Synthesis | ⚠️ Partial | ❌ | 🚧 Partial |
 | REQ-F-TESTING-002 | 1.0 MVP | Test Generation | ✅ | ✅ | ✅ Design Synthesis | ⏳ Planned | ❌ | ⏳ Planned |
 | REQ-NFR-TRACE-001 | 1.0 MVP | Full Lifecycle Traceability | ✅ | ✅ | ✅ Design Synthesis | ✅ Implemented | ❌ | 🚧 No Tests |
@@ -338,6 +339,32 @@
 **Test Traceability**: ❌ None
 
 **Status**: 🚧 Implemented (simplified), no tests
+
+---
+
+### REQ-F-UPDATE-001: Framework Updates from GitHub
+
+**Release**: 1.0 MVP
+**Priority**: Medium
+**Type**: Functional
+
+**Upstream Traceability**:
+- **Intent**: INT-AISDLC-001 Section 3.1 (Framework maintenance)
+- **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:232](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
+
+**Design Traceability**:
+- ⏳ Pending design documentation
+
+**Implementation Traceability**:
+- `claude-code/project-template/.claude/commands/aisdlc-update.md`
+- Fetches from https://github.com/foolishimp/ai_sdlc_method
+- Uses shallow git clone for efficiency
+
+**Test Traceability**: ❌ None
+
+**Status**: ✅ Implemented (command created)
+
+**Notes**: This command is for **projects using the framework**, not the framework repo itself. It enables projects to pull framework updates from GitHub while preserving their project-specific customizations.
 
 ---
 
