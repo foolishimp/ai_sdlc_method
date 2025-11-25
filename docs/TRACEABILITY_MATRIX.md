@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-**Total Requirements**: 17 (16 original + 1 discovered via feedback)
+**Total Requirements**: 18 (16 original + 1 feedback + 1 release command)
 **SDLC Stage**: Design Complete, Tasks Stage Next
 
 ### Coverage by Stage
@@ -36,7 +36,7 @@
 
 ## Summary
 
-- **Total Requirements**: 17
+- **Total Requirements**: 18
 - **Current Release**: 1.0 MVP
 - **Documented in Requirements Docs**: 17 (100%)
 - **Undocumented (orphaned)**: 0
@@ -48,7 +48,7 @@
 
 | Release | Count | Status |
 |---------|-------|--------|
-| **1.0 MVP** | 17 | All current requirements |
+| **1.0 MVP** | 18 | All current requirements |
 | 1.1 | 0 | - |
 | Backlog | 0 | - |
 
@@ -71,6 +71,7 @@
 | REQ-F-PLUGIN-004 | 1.0 MVP | Plugin Versioning and Dependency Mgmt | ✅ | ✅ | ✅ Design Synthesis | ⚠️ Partial | ❌ | 🚧 Partial |
 | REQ-F-CMD-001 | 1.0 MVP | Slash Commands for Workflow | ✅ | ✅ | ✅ ADR-002 | ✅ Implemented | ❌ | 🚧 No Tests |
 | REQ-F-CMD-002 | 1.0 MVP | Persona Management (Agents) | ✅ | ✅ | ✅ ADR-003 | ✅ Implemented | ❌ | 🚧 No Tests |
+| REQ-F-CMD-003 | 1.0 MVP | Release Management Command | ✅ | ✅ | ⏳ Pending | ⏳ Planned | ❌ | ⏳ Planned |
 | REQ-F-WORKSPACE-001 | 1.0 MVP | Developer Workspace Structure | ✅ | ✅ | ✅ Design Synthesis | ✅ Implemented | ❌ | 🚧 No Tests |
 | REQ-F-WORKSPACE-002 | 1.0 MVP | Task Management Templates | ✅ | ✅ | ✅ Design Synthesis | ✅ Implemented | ❌ | 🚧 No Tests |
 | REQ-F-WORKSPACE-003 | 1.0 MVP | Session Tracking Templates | ✅ | ✅ | ✅ Design Synthesis | ✅ Implemented | ❌ | 🚧 No Tests |
@@ -236,6 +237,31 @@
 **Test Traceability**: ❌ None
 
 **Status**: 🚧 Implemented, no tests
+
+---
+
+### REQ-F-CMD-003: Release Management Command
+
+**Release**: 1.0 MVP
+**Priority**: Medium
+**Type**: Functional
+
+**Upstream Traceability**:
+- **Intent**: INT-AISDLC-001 Section 3.1 (Workflow automation)
+- **Requirements**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md:149](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
+
+**Design Traceability**:
+- ⏳ Pending design documentation
+
+**Implementation Traceability**:
+- `.claude/commands/aisdlc-release.md` (to be updated)
+- ⏳ Replaces example project deployment (examples moved to separate repo)
+
+**Test Traceability**: ❌ None
+
+**Status**: ⏳ Planned (repurposing existing command)
+
+**Notes**: Original `/aisdlc-release` deployed framework to `examples/local_projects/`. Since examples moved to separate repo (`ai_sdlc_examples`), this command will be repurposed for framework release management.
 
 ---
 

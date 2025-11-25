@@ -146,6 +146,31 @@ This document defines the requirements for building the AI SDLC Method tooling i
 
 ---
 
+### REQ-F-CMD-003: Release Management Command
+
+**Release**: 1.0 MVP
+**Priority**: Medium
+**Type**: Functional
+
+**Description**: The system shall provide a `/aisdlc-release` command that automates framework release processes including version management, changelog generation, and release tagging.
+
+**Acceptance Criteria**:
+- [ ] Validate framework readiness (all tests pass, no uncommitted changes)
+- [ ] Update version references across codebase
+- [ ] Generate changelog from git history since last tag
+- [ ] Create annotated git tag with release notes
+- [ ] Generate release summary report
+- [ ] Support semantic versioning (major.minor.patch)
+- [ ] Dry-run mode for preview
+
+**Rationale**: Standardize release process, ensure consistency, reduce manual errors during releases.
+
+**Dependencies**: REQ-F-PLUGIN-004 (versioning)
+
+**Replaces**: Previous example project deployment functionality (examples moved to separate repo).
+
+---
+
 ## 3. Developer Workspace
 
 ### REQ-F-WORKSPACE-001: Developer Workspace Structure

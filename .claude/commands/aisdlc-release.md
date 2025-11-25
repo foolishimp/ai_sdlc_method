@@ -1,385 +1,248 @@
-# /aisdlc-release - Deploy Framework to Example Projects
+# /aisdlc-release - Framework Release Management
 
-Deploy ai_sdlc_method framework updates to all example projects using the latest tagged version and template files.
+Create a new release of the ai_sdlc_method framework with version management, changelog generation, and git tagging.
 
-<!-- Implements: REQ-F-WORKSPACE-001 (Developer Workspace Structure) -->
+<!-- Implements: REQ-F-CMD-003 (Release Management Command) -->
 
 ## Command Purpose
 
-Execute controlled deployment of ai_sdlc_method framework to example projects:
-1. Validate latest git tag and template files
-2. Discover all example projects
-3. Deploy framework updates from claude-code/project-template/
-4. Preserve project-specific customizations
-5. Validate deployment and update documentation
+Execute controlled release of the ai_sdlc_method framework:
+1. Validate release readiness (clean git state, on main branch)
+2. Determine version bump (major/minor/patch)
+3. Generate changelog from git commits
+4. Create annotated git tag
+5. Generate release summary with next steps
 
 ## Implementation Steps
 
-### 1. Release Validation
+### 1. Pre-release Validation
 
 ```bash
-# Get latest version tag
-LATEST_TAG=$(git describe --tags --abbrev=0)
-echo "📦 Latest Release: $LATEST_TAG"
+# Check for uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+    echo "❌ Error: Uncommitted changes detected"
+    echo "   Please commit or stash changes before release"
+    git status --short
+    exit 1
+fi
 
-# Verify claude-code/project-template/ is up to date
-git status claude-code/project-template/
+# Check current branch
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    echo "⚠️  Warning: Not on main branch (current: $CURRENT_BRANCH)"
+    echo "   Releases should typically be from main"
+fi
 
-# Confirm deployment readiness
-echo "✅ Template files validated"
+# Get current version
+CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+echo "📦 Current Version: $CURRENT_VERSION"
 ```
 
-### 2. Project Discovery
+### 2. Version Bump Selection
 
-```bash
-# Find all example projects
-EXAMPLE_PROJECTS=$(find examples/local_projects -maxdepth 1 -mindepth 1 -type d)
+Ask user for version bump type:
 
-echo "📋 Discovered Projects:"
-for project in $EXAMPLE_PROJECTS; do
-    echo "   - $(basename $project)"
-done
+```
+Options:
+1. patch (v0.1.4 → v0.1.5) - Bug fixes, minor updates
+2. minor (v0.1.4 → v0.2.0) - New features, backwards compatible
+3. major (v0.1.4 → v1.0.0) - Breaking changes
+4. custom - Specify exact version
 ```
 
-### 3. Backup Current State
+Parse current version and calculate new version based on selection.
 
-For each project, create backup before updates:
-
-```bash
-# Create timestamped backup
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-for project in $EXAMPLE_PROJECTS; do
-    PROJECT_NAME=$(basename $project)
-    BACKUP_DIR="/tmp/aisdlc-backup-$PROJECT_NAME-$TIMESTAMP"
-    cp -r "$project/.ai-workspace" "$BACKUP_DIR/.ai-workspace" 2>/dev/null || true
-    cp -r "$project/.claude" "$BACKUP_DIR/.claude" 2>/dev/null || true
-    cp "$project/CLAUDE.md" "$BACKUP_DIR/CLAUDE.md" 2>/dev/null || true
-    echo "✅ Backup: $PROJECT_NAME → $BACKUP_DIR"
-done
-```
-
-### 4. Deploy Framework Updates
-
-Update each project with template files:
+### 3. Changelog Generation
 
 ```bash
-for project in $EXAMPLE_PROJECTS; do
-    PROJECT_NAME=$(basename $project)
-    echo ""
-    echo "📁 Updating: $PROJECT_NAME"
-
-    # Update .ai-workspace/ structure
-    rsync -av --exclude='tasks/active/*' \
-              --exclude='tasks/finished/*' \
-              --exclude='session/*' \
-              claude-code/project-template/.ai-workspace/ \
-              "$project/.ai-workspace/"
-
-    # Update .claude/ commands and agents
-    rsync -av claude-code/project-template/.claude/ "$project/.claude/"
-
-    # Update CLAUDE.md (preserve project-specific sections)
-    if [ -f "$project/CLAUDE.md" ]; then
-        # Extract project-specific config (after "Project-Specific Configuration")
-        PROJECT_CONFIG=$(sed -n '/^### Project-Specific Configuration/,$p' "$project/CLAUDE.md")
-
-        # Use template CLAUDE.md
-        cp claude-code/project-template/CLAUDE.md.template "$project/CLAUDE.md"
-
-        # Append preserved project config if it had customizations
-        if [ -n "$PROJECT_CONFIG" ] && [ "$PROJECT_CONFIG" != "### Project-Specific Configuration
-
-**[TODO: Add your project-specific guidance below]**" ]; then
-            echo "" >> "$project/CLAUDE.md"
-            echo "$PROJECT_CONFIG" >> "$project/CLAUDE.md"
-        fi
-    else
-        cp claude-code/project-template/CLAUDE.md.template "$project/CLAUDE.md"
-    fi
-
-    echo "   ✅ .ai-workspace/ updated"
-    echo "   ✅ .claude/ commands updated"
-    echo "   ✅ CLAUDE.md updated (project config preserved)"
-done
-```
-
-### 5. Post-Deployment Validation
-
-```bash
+# Get commits since last tag
 echo ""
-echo "🔍 Validating deployments..."
+echo "📝 Changes since $CURRENT_VERSION:"
+echo ""
 
-for project in $EXAMPLE_PROJECTS; do
-    PROJECT_NAME=$(basename $project)
-
-    # Check critical files exist
-    ERRORS=0
-
-    [ ! -f "$project/CLAUDE.md" ] && echo "   ❌ $PROJECT_NAME: Missing CLAUDE.md" && ERRORS=$((ERRORS+1))
-    [ ! -d "$project/.ai-workspace/tasks" ] && echo "   ❌ $PROJECT_NAME: Missing .ai-workspace/tasks" && ERRORS=$((ERRORS+1))
-    [ ! -d "$project/.claude/commands" ] && echo "   ❌ $PROJECT_NAME: Missing .claude/commands" && ERRORS=$((ERRORS+1))
-    [ ! -f "$project/.claude/commands/aisdlc-checkpoint-tasks.md" ] && echo "   ❌ $PROJECT_NAME: Missing checkpoint command" && ERRORS=$((ERRORS+1))
-
-    if [ $ERRORS -eq 0 ]; then
-        echo "   ✅ $PROJECT_NAME: All checks passed"
-    else
-        echo "   ⚠️  $PROJECT_NAME: $ERRORS validation errors"
-    fi
+git log $CURRENT_VERSION..HEAD --pretty=format:"- %s" --no-merges | while read line; do
+    echo "   $line"
 done
+
+echo ""
 ```
 
-### 6. Generate Deployment Report
+### 4. Version Update (if applicable)
+
+Update version references in:
+- `marketplace.json` (version field)
+- Plugin `plugin.json` files (if version changed)
+
+### 5. Create Git Tag
+
+```bash
+# Create annotated tag
+NEW_VERSION="v0.2.0"  # calculated from step 2
+TAG_MESSAGE="Release $NEW_VERSION
+
+Changes:
+$(git log $CURRENT_VERSION..HEAD --pretty=format:"- %s" --no-merges)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+
+git tag -a "$NEW_VERSION" -m "$TAG_MESSAGE"
+
+echo "🏷️  Created tag: $NEW_VERSION"
+```
+
+### 6. Generate Release Report
 
 ```bash
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║           AI SDLC Framework Deployment Complete             ║"
+echo "║           AI SDLC Method Release Complete                    ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
-echo "📦 Framework Version: $LATEST_TAG"
-echo "📋 Projects Updated: $(echo $EXAMPLE_PROJECTS | wc -w | tr -d ' ')"
-echo "📁 Template Source: claude-code/project-template/"
+echo "📦 Previous Version: $CURRENT_VERSION"
+echo "🆕 New Version: $NEW_VERSION"
+echo "🏷️  Tag Created: $NEW_VERSION"
 echo "⏱️  Timestamp: $(date)"
 echo ""
-echo "✅ Updated Components:"
-echo "   - .ai-workspace/ (workspace structure, templates)"
-echo "   - .claude/ (commands, agents)"
-echo "   - CLAUDE.md (framework documentation)"
+echo "📝 Included Changes:"
+git log $CURRENT_VERSION..HEAD --pretty=format:"   - %s" --no-merges
 echo ""
-echo "🔒 Preserved:"
-echo "   - Active tasks (ACTIVE_TASKS.md)"
-echo "   - Finished tasks"
-echo "   - Project-specific CLAUDE.md sections"
-echo "   - Project source code and requirements"
-echo ""
-echo "💾 Backups:"
-echo "   Location: /tmp/aisdlc-backup-*-$TIMESTAMP"
-echo "   Projects: All example projects backed up"
 echo ""
 echo "📝 Next Steps:"
-echo "   1. Review changes: git status"
-echo "   2. Test each example project"
-echo "   3. Commit updates: git add examples/ && git commit"
-echo "   4. Tag if needed: git tag v$LATEST_TAG-examples"
+echo "   1. Review tag: git show $NEW_VERSION"
+echo "   2. Push tag: git push origin $NEW_VERSION"
+echo "   3. Push commits: git push origin main"
+echo "   4. Create GitHub release (optional):"
+echo "      gh release create $NEW_VERSION --title \"$NEW_VERSION\" --notes-file -"
 echo ""
-```
-
-## Example Output
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║        AI SDLC Framework Deployment - v0.1.4                 ║
-╚══════════════════════════════════════════════════════════════╝
-
-📦 Latest Release: v0.1.4
-✅ Template files validated
-
-📋 Discovered Projects:
-   - customer_portal
-   - data_mapper.test01
-   - data_mapper.test02
-
-💾 Creating backups...
-   ✅ Backup: customer_portal → /tmp/aisdlc-backup-customer_portal-20251125_0250
-   ✅ Backup: data_mapper.test01 → /tmp/aisdlc-backup-data_mapper.test01-20251125_0250
-   ✅ Backup: data_mapper.test02 → /tmp/aisdlc-backup-data_mapper.test02-20251125_0250
-
-📁 Updating: customer_portal
-   ✅ .ai-workspace/ updated
-   ✅ .claude/ commands updated
-   ✅ CLAUDE.md updated (project config preserved)
-
-📁 Updating: data_mapper.test01
-   ✅ .ai-workspace/ updated
-   ✅ .claude/ commands updated
-   ✅ CLAUDE.md updated (project config preserved)
-
-📁 Updating: data_mapper.test02
-   ✅ .ai-workspace/ updated
-   ✅ .claude/ commands updated
-   ✅ CLAUDE.md updated (project config preserved)
-
-🔍 Validating deployments...
-   ✅ customer_portal: All checks passed
-   ✅ data_mapper.test01: All checks passed
-   ✅ data_mapper.test02: All checks passed
-
-╔══════════════════════════════════════════════════════════════╗
-║           AI SDLC Framework Deployment Complete             ║
-╚══════════════════════════════════════════════════════════════╝
-
-📦 Framework Version: v0.1.4
-📋 Projects Updated: 3
-📁 Template Source: claude-code/project-template/
-⏱️  Timestamp: 2025-11-25 02:50:00
-
-✅ Updated Components:
-   - .ai-workspace/ (workspace structure, templates)
-   - .claude/ (commands, agents)
-   - CLAUDE.md (framework documentation)
-
-🔒 Preserved:
-   - Active tasks (ACTIVE_TASKS.md)
-   - Finished tasks
-   - Project-specific CLAUDE.md sections
-   - Project source code and requirements
-
-💾 Backups:
-   Location: /tmp/aisdlc-backup-*-20251125_0250
-   Projects: All example projects backed up
-
-📝 Next Steps:
-   1. Review changes: git status
-   2. Test each example project
-   3. Commit updates: git add examples/ && git commit
-   4. Tag if needed: git tag v0.1.4-examples
 ```
 
 ## Command Options
 
 ```bash
-# Deploy to all example projects (default)
+# Standard release (prompts for version bump)
 /aisdlc-release
 
-# Deploy to specific projects only
-/aisdlc-release --projects "customer_portal,data_mapper.test02"
-
-# Dry run (show what would be updated)
+# Dry run (preview without changes)
 /aisdlc-release --dry-run
 
-# Deploy from specific tag
-/aisdlc-release --tag v0.1.3
+# Specify version explicitly
+/aisdlc-release --version v0.2.0
 
-# Skip backups (not recommended)
-/aisdlc-release --no-backup
+# Skip changelog display
+/aisdlc-release --no-changelog
 
-# Force overwrite project-specific CLAUDE.md sections
-/aisdlc-release --force-claude-md
+# Force release even with uncommitted changes (not recommended)
+/aisdlc-release --force
 ```
 
-## What Gets Updated
+## Example Session
 
-**Updated from claude-code/project-template/:**
-- ✅ `.ai-workspace/templates/` (all templates)
-- ✅ `.ai-workspace/config/` (configuration files)
-- ✅ `.ai-workspace/README.md` (workspace documentation)
-- ✅ `.claude/commands/` (all slash commands)
-- ✅ `.claude/agents/` (all agent specifications)
-- ✅ `CLAUDE.md` (framework sections, preserves project-specific)
+**User**: `/aisdlc-release`
 
-**Preserved (not touched):**
-- 🔒 `.ai-workspace/tasks/active/ACTIVE_TASKS.md` (current work)
-- 🔒 `.ai-workspace/tasks/finished/` (completed work)
-- 🔒 `.ai-workspace/session/` (session history)
-- 🔒 Project source code (`src/`, `tests/`, etc.)
-- 🔒 Project requirements (`requirements.md`, `config/`)
-- 🔒 Project README.md (project-specific documentation)
-- 🔒 Project-specific sections in CLAUDE.md (after extraction)
+**Claude**:
+```
+╔══════════════════════════════════════════════════════════════╗
+║           AI SDLC Method Release                             ║
+╚══════════════════════════════════════════════════════════════╝
 
-## Rollback Procedure
+📦 Current Version: v0.1.4
 
-If deployment fails or causes issues:
+✅ Pre-release Checks:
+   - No uncommitted changes ✅
+   - On main branch ✅
+   - Tests passing ✅
 
-```bash
-# Restore from backup
-TIMESTAMP="20251125_0250"
-PROJECT="customer_portal"
+📝 Changes since v0.1.4:
+   - feat: Add release target tracking to requirements
+   - feat: Repurpose release command for framework releases
+   - refactor: Move examples to separate repo
+   - docs: Update traceability matrix with release column
 
-# Restore framework files
-cp -r /tmp/aisdlc-backup-$PROJECT-$TIMESTAMP/.ai-workspace \
-      examples/local_projects/$PROJECT/
-cp -r /tmp/aisdlc-backup-$PROJECT-$TIMESTAMP/.claude \
-      examples/local_projects/$PROJECT/
-cp /tmp/aisdlc-backup-$PROJECT-$TIMESTAMP/CLAUDE.md \
-   examples/local_projects/$PROJECT/
+🔢 Select version bump:
+   1. patch (v0.1.4 → v0.1.5)
+   2. minor (v0.1.4 → v0.2.0)
+   3. major (v0.1.4 → v1.0.0)
+   4. custom
 
-echo "✅ Rollback complete for $PROJECT"
+> User selects: 2 (minor)
+
+🆕 New Version: v0.2.0
+
+Creating release...
+   ✅ Tag created: v0.2.0
+   ✅ Release notes generated
+
+╔══════════════════════════════════════════════════════════════╗
+║           AI SDLC Method Release Complete                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+📦 Previous Version: v0.1.4
+🆕 New Version: v0.2.0
+⏱️  Timestamp: 2025-11-25 13:45:00
+
+📝 Next Steps:
+   1. Review tag: git show v0.2.0
+   2. Push tag: git push origin v0.2.0
+   3. Push commits: git push origin main
+   4. Create GitHub release (optional)
 ```
 
-## Integration with Git Workflow
+## Version Bump Rules
 
-```bash
-# After deployment, review changes
-git status
-git diff examples/
+Follow Semantic Versioning (SemVer):
 
-# Commit framework updates
-git add examples/
-git commit -m "Deploy ai_sdlc_method v0.1.4 to example projects
-
-Updated framework components:
-- .ai-workspace/ templates and structure
-- .claude/ commands and agents
-- CLAUDE.md documentation
-
-Preserved project-specific:
-- Active tasks and finished tasks
-- Project source code
-- Custom CLAUDE.md sections"
-
-# Tag the deployment
-git tag v0.1.4-examples
-git push origin main --tags
-```
+| Change Type | Bump | Example |
+|-------------|------|---------|
+| Bug fixes, typos, minor docs | patch | v0.1.4 → v0.1.5 |
+| New features, backwards compatible | minor | v0.1.4 → v0.2.0 |
+| Breaking changes, major rewrites | major | v0.1.4 → v1.0.0 |
 
 ## Safety Features
 
-**Backup Strategy:**
-- Automatic timestamped backups before any changes
-- Backups stored in /tmp/ for quick recovery
-- All framework files backed up
+**Pre-release Checks**:
+- Uncommitted changes detection
+- Branch verification (warns if not on main)
+- Dry-run mode for preview
 
-**Validation:**
-- Pre-deployment: Verify templates exist and are valid
-- Post-deployment: Check critical files in each project
-- Report any validation errors
+**No Automatic Push**:
+- Tags are created locally only
+- User must explicitly push tag and commits
+- Allows review before publishing
 
-**Preservation:**
-- Never overwrites active work (ACTIVE_TASKS.md)
-- Never deletes finished tasks
-- Preserves project-specific CLAUDE.md content
-- Keeps all project source code untouched
+**Rollback**:
+```bash
+# If tag created in error
+git tag -d v0.2.0  # Delete local tag
+```
 
-## Error Handling
+## Integration with GitHub
 
-**Common Issues:**
+After local release, optionally create GitHub release:
 
-1. **Template files missing**
-   - Error: "claude-code/project-template/ not found"
-   - Fix: Ensure you're in the ai_sdlc_method root directory
+```bash
+# Create GitHub release with auto-generated notes
+gh release create v0.2.0 --generate-notes
 
-2. **Project directory access**
-   - Error: "Permission denied"
-   - Fix: Check file permissions on examples/
+# Or with custom notes
+gh release create v0.2.0 --title "v0.2.0 - Release Management" --notes "
+## What's New
+- Release management command
+- Release target tracking
+- Examples moved to separate repo
 
-3. **Git tag not found**
-   - Error: "No tags found"
-   - Fix: Create a tag first: `git tag v0.1.4`
+## Full Changelog
+See git log for details.
+"
+```
 
-4. **Backup creation failed**
-   - Warning: "Backup failed for project X"
-   - Action: Continues with deployment but warns user
+## Traceability
 
-## Technical Implementation
+This command implements **REQ-F-CMD-003** (Release Management Command).
 
-**Deployment Engine:**
-- Uses `rsync` for efficient file synchronization
-- Preserves file permissions and timestamps
-- Excludes active work files from updates
-- Handles both full and partial deployments
-
-**Validation Framework:**
-- Checks for required files and directories
-- Validates command files exist
-- Ensures workspace structure is intact
-- Reports errors clearly
-
-**Documentation Updates:**
-- Intelligently merges CLAUDE.md files
-- Preserves project-specific sections
-- Updates framework documentation
-- Maintains consistent formatting
+**Upstream**: INT-AISDLC-001 Section 3.1 (Workflow automation)
+**Design**: Pending design documentation
+**Tests**: Pending
 
 ---
 
-**Usage**: Run `/aisdlc-release` to deploy the latest framework to all example projects.
+**Usage**: Run `/aisdlc-release` to create a new framework release.

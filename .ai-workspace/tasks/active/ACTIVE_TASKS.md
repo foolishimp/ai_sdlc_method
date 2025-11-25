@@ -1,8 +1,112 @@
 # Active Tasks
 
-*Last Updated: 2025-11-25 12:15*
+*Last Updated: 2025-11-25 13:30*
 
 ---
+
+## Task #13: Repurpose /aisdlc-release for Framework Release Management
+
+**Priority**: Medium
+**Status**: Not Started
+**Release Target**: 1.0 MVP
+**Estimated Time**: 2-3 hours
+**Dependencies**: None
+
+**Requirements Traceability**:
+- REQ-F-CMD-003: Release Management Command
+
+**SDLC Stages**: 4 - Code
+**Agents**: Code Agent
+
+**Description**:
+Repurpose the `/aisdlc-release` command from example project deployment (no longer applicable since examples moved to `ai_sdlc_examples` repo) to framework release management.
+
+**Current State**:
+- Command deploys framework to `examples/local_projects/` (directory no longer exists)
+- Command is orphaned with no valid targets
+
+**Target State**:
+```
+/aisdlc-release command:
+├── Pre-release Validation
+│   ├── Check for uncommitted changes
+│   ├── Run tests (if any)
+│   └── Validate version format
+│
+├── Version Management
+│   ├── Display current version (from latest tag)
+│   ├── Prompt for version bump type (major/minor/patch)
+│   └── Update version references in codebase
+│
+├── Changelog Generation
+│   ├── Collect commits since last tag
+│   ├── Group by type (feat, fix, docs, etc.)
+│   └── Generate CHANGELOG entry
+│
+├── Release Creation
+│   ├── Create annotated git tag
+│   ├── Generate release summary
+│   └── Display next steps (push tag, create GH release)
+│
+└── Options
+    ├── --dry-run (preview without changes)
+    ├── --version <ver> (explicit version)
+    └── --no-changelog (skip changelog)
+```
+
+**Acceptance Criteria**:
+- [ ] Validates no uncommitted changes before release
+- [ ] Displays current version from latest git tag
+- [ ] Supports version bump: major, minor, patch
+- [ ] Updates version in marketplace.json
+- [ ] Generates changelog from git commits
+- [ ] Creates annotated git tag with release notes
+- [ ] Provides dry-run mode
+- [ ] Generates release summary report
+
+**Work Breakdown**:
+1. Remove example project deployment logic
+2. Add pre-release validation (git status check)
+3. Add version detection (git describe --tags)
+4. Add version bump logic (semver)
+5. Add changelog generation (git log parsing)
+6. Add tag creation (git tag -a)
+7. Add release summary output
+8. Add command options (--dry-run, --version)
+9. Update command documentation
+
+**Example Output**:
+```
+╔══════════════════════════════════════════════════════════════╗
+║           AI SDLC Method Release - v0.2.0                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+📦 Current Version: v0.1.4
+🆕 New Version: v0.2.0 (minor bump)
+
+✅ Pre-release Checks:
+   - No uncommitted changes ✅
+   - On main branch ✅
+
+📝 Changelog (since v0.1.4):
+   feat: Add release target tracking to requirements
+   feat: Repurpose release command for framework releases
+   fix: Update traceability matrix format
+   docs: Move examples to separate repo
+
+🏷️  Creating tag: v0.2.0
+   git tag -a v0.2.0 -m "Release v0.2.0 - Release management"
+
+📝 Next Steps:
+   1. Review changes: git show v0.2.0
+   2. Push tag: git push origin v0.2.0
+   3. Create GitHub release (optional)
+```
+
+**Notes**:
+- Examples moved to https://github.com/foolishimp/ai_sdlc_examples
+- Original command logic preserved in git history
+- Implements REQ-F-CMD-003
 
 ---
 
@@ -223,9 +327,10 @@ N/A - Documentation task
 
 ## Summary
 
-**Total Active Tasks**: 2
-- Medium Priority: 2
-- Not Started: 2
+**Total Active Tasks**: 3
+- Medium Priority: 3
+- Not Started: 3
+  - Task #13: Repurpose /aisdlc-release for Release Management (1.0 MVP)
   - Task #3: Command System Documentation (needs scope update)
   - Task #12: Ecosystem E(t) Tracking (v1.5 - planned)
 
