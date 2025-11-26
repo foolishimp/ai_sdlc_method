@@ -1,2 +1,6 @@
-# Installer tests package
-# Validates: REQ-F-TESTING-001
+"""
+Tests for Claude Code installers.
+
+Test coverage for setup_settings.py which configures .claude/settings.json
+with AISDLC plugin marketplace configuration.
+"""

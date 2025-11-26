@@ -14,13 +14,13 @@ This will be done by replicating the functionality of the `claude-code` componen
 
 | Agent | Claude-Code Status | Gemini-Code Status | Notes |
 | :--- | :--- | :--- | :--- |
-| `aisdlc-code-agent` | ✅ Done | ⬜ ToDo | |
-| `aisdlc-design-agent` | ✅ Done | ⬜ ToDo | |
-| `aisdlc-requirements-agent` | ✅ Done | ⬜ ToDo | |
-| `aisdlc-runtime-feedback-agent` | ✅ Done | ⬜ ToDo | |
-| `aisdlc-system-test-agent` | ✅ Done | ⬜ ToDo | |
-| `aisdlc-tasks-agent` | ✅ Done | ⬜ ToDo | |
-| `aisdlc-uat-agent` | ✅ Done | ⬜ ToDo | |
+| `aisdlc-code-agent` | ✅ Done | ✅ Done | |
+| `aisdlc-design-agent` | ✅ Done | ✅ Done | |
+| `aisdlc-requirements-agent` | ✅ Done | ✅ Done | |
+| `aisdlc-runtime-feedback-agent` | ✅ Done | ✅ Done | |
+| `aisdlc-system-test-agent` | ✅ Done | ✅ Done | |
+| `aisdlc-tasks-agent` | ✅ Done | ✅ Done | |
+| `aisdlc-uat-agent` | ✅ Done | ✅ Done | |
 
 ### Commands
 
@@ -37,14 +37,14 @@ This will be done by replicating the functionality of the `claude-code` componen
 
 | Installer | Claude-Code Status | Gemini-Code Status | Notes |
 | :--- | :--- | :--- | :--- |
-| `aisdlc-reset.py` | ✅ Done | ⬜ ToDo | |
-| `common.py` | ✅ Done | ⬜ ToDo | |
-| `setup_all.py` | ✅ Done | ⬜ ToDo | |
-| `setup_commands.py` | ✅ Done | ⬜ ToDo | |
-| `setup_plugins.py` | ✅ Done | ⬜ ToDo | |
-| `setup_reset.py` | ✅ Done | ⬜ ToDo | |
-| `setup_workspace.py` | ✅ Done | ⬜ ToDo | |
-| `validate_traceability.py`| ✅ Done | ⬜ ToDo | |
+| `aisdlc-reset.py` | ✅ Done | ✅ Done | |
+| `common.py` | ✅ Done | ✅ Done | |
+| `setup_all.py` | ✅ Done | ✅ Done | |
+| `setup_commands.py` | ✅ Done | ✅ Done | |
+| `setup_plugins.py` | ✅ Done | ✅ Done | |
+| `setup_reset.py` | ✅ Done | ✅ Done | |
+| `setup_workspace.py` | ✅ Done | ✅ Done | |
+| `validate_traceability.py`| ✅ Done | ✅ Done | |
 
 ### Plugins
 

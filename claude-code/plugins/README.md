@@ -24,9 +24,6 @@ Skills Layer
   ├─ testing-skills v1.0.0
   └─ runtime-skills v1.0.0
 
-Standards Layer
-  └─ python-standards v1.0.0
-
 Bundles
   ├─ startup-bundle v1.0.0
   ├─ datascience-bundle v1.0.0
@@ -219,26 +216,6 @@ Bundles
 
 ---
 
-### Standards Layer
-
-#### python-standards **v1.0.0**
-
-**Python language standards** - PEP 8, pytest, type hints, tooling
-
-**What It Provides**:
-- PEP 8 style guidelines
-- Python testing practices (pytest, coverage >80%)
-- Type hints and docstring standards
-- Tooling configuration (black, mypy, pylint, pytest)
-- Python project structure best practices
-
-**Dependencies**: `aisdlc-methodology` v2.0.0+
-**Keywords**: python, pep8, pytest, standards, best-practices
-
-👉 [Full Documentation](python-standards/README.md)
-
----
-
 ### Bundles
 
 #### startup-bundle **v1.0.0**
@@ -340,16 +317,9 @@ Sensor detects gap → Actuator fixes gap → Validate fix → Monitor for new g
 
 ## Using These Plugins
 
-### Option 1: Add This Marketplace (Recommended)
+### Option 1: GitHub Source (Recommended)
 
-Add this repository as a Claude Code marketplace:
-
-```bash
-# In Claude Code
-/plugin marketplace add foolishimp/ai_sdlc_method
-```
-
-Or in your `.claude/settings.json`:
+Add to your project's `.claude/settings.json`:
 
 ```json
 {
@@ -357,30 +327,61 @@ Or in your `.claude/settings.json`:
     "aisdlc": {
       "source": {
         "source": "github",
-        "repo": "foolishimp/ai_sdlc_method"
+        "repo": "foolishimp/ai_sdlc_method",
+        "path": "claude-code/plugins"
       }
     }
+  },
+  "enabledPlugins": {
+    "aisdlc-core@aisdlc": true,
+    "aisdlc-methodology@aisdlc": true,
+    "principles-key@aisdlc": true
   }
 }
 ```
 
-Then install plugins:
+Then restart Claude Code. Use `/plugin` to verify status.
+
+### Option 2: Local Directory (Development)
+
+Clone this repository and reference locally:
 
 ```bash
-/plugin install @aisdlc/aisdlc-methodology
-/plugin install @aisdlc/python-standards
+git clone https://github.com/foolishimp/ai_sdlc_method.git ~/ai_sdlc_method
 ```
 
-### Option 2: Local Installation
+Add to `.claude/settings.json`:
 
-Clone this repository and add as local marketplace:
-
-```bash
-git clone https://github.com/foolishimp/ai_sdlc_method.git
-cd your-project
-/plugin marketplace add ../ai_sdlc_method
-/plugin install aisdlc-methodology
+```json
+{
+  "extraKnownMarketplaces": {
+    "aisdlc": {
+      "source": {
+        "source": "directory",
+        "path": "~/ai_sdlc_method/claude-code/plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "aisdlc-core@aisdlc": true,
+    "aisdlc-methodology@aisdlc": true,
+    "principles-key@aisdlc": true
+  }
+}
 ```
+
+### Verifying Plugin Status
+
+Use the `/plugin` command to check plugin status:
+
+```
+/plugin
+```
+
+This shows:
+- Marketplace status (Installed/Failed)
+- Plugin status (Installed/Pending)
+- Any loading errors with specific validation messages
 
 ---
 
@@ -469,7 +470,7 @@ Use **multiple marketplaces** for organizational hierarchy:
   },
   "plugins": [
     "@corporate/aisdlc-methodology",
-    "@corporate/python-standards"
+    "@corporate/principles-key"
   ]
 }
 ```
@@ -493,7 +494,7 @@ Use **multiple marketplaces** for organizational hierarchy:
   },
   "plugins": [
     "@corporate/aisdlc-methodology",
-    "@corporate/python-standards",
+    "@corporate/principles-key",
     "@division/backend-standards"
   ]
 }
@@ -515,7 +516,7 @@ Use **multiple marketplaces** for organizational hierarchy:
   },
   "plugins": [
     "@corporate/aisdlc-methodology",
-    "@corporate/python-standards",
+    "@corporate/principles-key",
     "@division/backend-standards",
     "@local/my-project-context"
   ]
@@ -542,14 +543,25 @@ mkdir -p my-project-context/commands
 {
   "name": "my-project-context",
   "version": "1.0.0",
-  "displayName": "My Project Context",
   "description": "Project-specific configuration and standards",
-  "dependencies": {
-    "aisdlc-methodology": "^2.0.0",
-    "python-standards": "^1.0.0"
-  }
+  "author": {
+    "name": "Your Name"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/your-repo",
+  "keywords": ["project-context"],
+  "commands": "./commands",
+  "agents": [
+    "./agents/my-agent.md"
+  ]
 }
 ```
+
+**Important schema rules**:
+- `author` must be an object `{"name": "..."}`, NOT a string
+- `agents` must be an array of `.md` file paths, NOT a directory
+- Invalid fields (will cause errors): `displayName`, `capabilities`, `configuration`, `documentation`, `stages`
+- Valid fields: `name`, `version`, `description`, `author`, `license`, `keywords`, `homepage`, `commands`, `agents`
 
 ### 3. Create config/context.yml
 
@@ -635,7 +647,7 @@ mv my-project-context .claude-plugins/
   },
   "plugins": [
     "@aisdlc/aisdlc-methodology",
-    "@aisdlc/python-standards",
+    "@aisdlc/principles-key",
     "@local/my-project-context"
   ]
 }
@@ -645,24 +657,59 @@ mv my-project-context .claude-plugins/
 
 ## Plugin Structure
 
-Each plugin follows this structure:
+### Marketplace Structure
+
+A marketplace directory requires `.claude-plugin/marketplace.json`:
+
+```
+plugins/                          # Marketplace root (referenced in settings.json)
+├── .claude-plugin/
+│   └── marketplace.json          # Required: lists all plugins
+├── aisdlc-core/
+│   └── .claude-plugin/plugin.json
+├── aisdlc-methodology/
+│   └── .claude-plugin/plugin.json
+└── principles-key/
+    └── .claude-plugin/plugin.json
+```
+
+**marketplace.json** format:
+```json
+{
+  "name": "aisdlc",
+  "description": "AI SDLC plugins",
+  "version": "3.0.0",
+  "owner": {
+    "name": "foolishimp",
+    "email": "https://github.com/foolishimp"
+  },
+  "plugins": [
+    {
+      "name": "aisdlc-core",
+      "description": "Foundation plugin",
+      "version": "3.0.0",
+      "source": "./aisdlc-core"
+    }
+  ]
+}
+```
+
+**Important**: Plugin `source` paths must start with `./`
+
+### Individual Plugin Structure
 
 ```
 plugin-name/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin manifest
-├── config/
-│   ├── stages_config.yml   # 7-stage agent specifications (for methodology plugins)
-│   ├── config.yml          # Key Principles + Code stage config
-│   └── overrides.yml       # Optional stage overrides
-├── commands/                # Slash commands (optional)
-│   └── load-context.md
-├── docs/                    # Documentation
-│   ├── README.md
-│   ├── principles/         # Key Principles principles
-│   ├── processes/          # TDD workflow, BDD guides
-│   └── guides/             # Stage-specific guides
-└── project.json            # Project metadata
+│   └── plugin.json          # Plugin manifest (required)
+├── commands/                # Slash commands (*.md files)
+│   └── my-command.md
+├── agents/                  # Agent definitions (*.md files)
+│   └── my-agent.md
+├── config/                  # Configuration files
+│   └── config.yml
+└── docs/                    # Documentation
+    └── README.md
 ```
 
 ---

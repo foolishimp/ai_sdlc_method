@@ -4,165 +4,261 @@ This directory contains all Claude Code specific assets for the AI SDLC methodol
 
 ---
 
-## Directory Structure
+## Directory Structure (v3.0.0)
 
 ```
 claude-code/
-├── plugins/               # Marketplace plugins (distributed via marketplace)
-│   ├── aisdlc-core/
-│   ├── aisdlc-methodology/
-│   ├── code-skills/
-│   ├── design-skills/
-│   ├── principles-key/
-│   ├── python-standards/
-│   ├── requirements-skills/
-│   ├── runtime-skills/
-│   ├── testing-skills/
-│   └── bundles/           # Pre-configured plugin bundles
-│       ├── startup-bundle/
-│       ├── datascience-bundle/
-│       ├── qa-bundle/
-│       └── enterprise-bundle/
+├── plugins/                   # All plugins (including commands, agents, templates)
+│   ├── aisdlc-methodology/    # Master plugin with all features
+│   │   ├── .claude-plugin/    # Plugin manifest
+│   │   ├── commands/          # 7 slash commands
+│   │   ├── agents/            # 7 stage persona agents
+│   │   ├── templates/         # Workspace scaffolding (.ai-workspace)
+│   │   ├── config/            # Stage specifications
+│   │   └── docs/              # Principles and processes
+│   ├── aisdlc-core/           # Foundation (traceability, REQ keys)
+│   ├── code-skills/           # TDD/BDD/generation skills
+│   ├── design-skills/         # ADR and design skills
+│   ├── principles-key/        # Key Principles principles
+│   ├── python-standards/      # Python language standards
+│   ├── requirements-skills/   # Requirement extraction skills
+│   ├── runtime-skills/        # Observability skills
+│   ├── testing-skills/        # Test coverage skills
+│   └── bundles/               # Pre-configured plugin bundles
 │
-└── project-template/      # Template for user projects (copied to new projects)
-    ├── .claude/
-    │   ├── agents/        # 7 SDLC stage agents
-    │   ├── commands/      # 6 workflow commands
-    │   ├── hooks.json     # Git hooks
-    │   └── settings.local.json
-    └── .ai-workspace/
-        ├── tasks/         # Task management
-        ├── templates/     # Method reference
-        └── config/        # Workspace config
+├── installers/                # Installation utilities
+│   ├── setup_settings.py      # Configure settings.json
+│   ├── common.py              # Shared utilities
+│   └── validate_traceability.py  # Traceability validation
+│
+└── guides/                    # Getting started guides
+    └── JOURNEY.md             # Complete installation journey
 ```
 
 ---
 
-## Two Types of Assets
+## Unified Plugin Architecture (ADR-006)
 
-### 1. Plugins (Marketplace Distribution)
+**Key Insight**: Plugins are the unified container for ALL Claude Code extensibility features.
 
-**Location**: `claude-code/plugins/`
+| Feature | Location in Plugin | Role |
+|---------|-------------------|------|
+| **Commands** | `commands/` | User-invoked custom slash commands |
+| **Agents** | `agents/` | Task-specific autonomous subagents |
+| **Skills** | `skills/` | Model-driven capability extensions |
+| **Hooks** | `hooks/hooks.json` | Automated event-driven actions |
+| **MCP Servers** | `.mcp.json` | External service integration |
 
-**Purpose**: Distributed via Claude Code marketplace for installation into user projects
+The `aisdlc-methodology` plugin contains the complete framework including commands, agents, and workspace templates.
 
-**Usage**:
+---
+
+## Installation
+
+Plugins are deployed via `settings.json` configuration. Claude Code discovers plugins through:
+1. **Marketplace** - A `.claude-plugin/marketplace.json` file listing available plugins
+2. **Plugin manifests** - Each plugin has `.claude-plugin/plugin.json`
+
+### Quick Start (Manual)
+
+Create `.claude/settings.json` in your project:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "aisdlc": {
+      "source": {
+        "source": "github",
+        "repo": "foolishimp/ai_sdlc_method",
+        "path": "claude-code/plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "aisdlc-core@aisdlc": true,
+    "aisdlc-methodology@aisdlc": true,
+    "principles-key@aisdlc": true
+  }
+}
+```
+
+Then restart Claude Code and verify with `/plugin`.
+
+### Quick Start (Installer)
+
 ```bash
-# Add marketplace
-/plugin marketplace add foolishimp/ai_sdlc_method
+# Clone the repo
+git clone https://github.com/foolishimp/ai_sdlc_method.git ~/ai_sdlc_method
 
-# Install plugins
-/plugin install @aisdlc/aisdlc-methodology
-/plugin install @aisdlc/python-standards
+# Configure your project with GitHub source (recommended)
+python ~/ai_sdlc_method/claude-code/installers/setup_settings.py --target /your/project --source github
+
+# Or with local directory source (for development)
+python ~/ai_sdlc_method/claude-code/installers/setup_settings.py --target /your/project --source directory
 ```
 
-**What's Inside**:
-- **9 plugins** - Foundation, methodology, and skills layers
-- **4 bundles** - Pre-configured combinations (startup, datascience, qa, enterprise)
-- **41 skills** - Reusable capabilities across all SDLC stages
+### Verifying Installation
 
-**Documentation**: See [plugins/README.md](plugins/README.md)
+After configuration, restart Claude Code and run:
+
+```
+/plugin
+```
+
+You should see all plugins as "Installed". If there are errors, the `/plugin` output shows specific validation messages.
 
 ---
 
-### 2. Project Template (User Setup)
+### Manual Configuration
 
-**Location**: `claude-code/project-template/`
+Alternatively, manually create/edit `.claude/settings.json`:
 
-**Purpose**: Template structure that users copy to their projects
+#### GitHub Repository (Recommended)
 
-**Usage**:
-```bash
-# Copy template to new project
-cp -r claude-code/project-template/.claude /path/to/my-project/
-cp -r claude-code/project-template/.ai-workspace /path/to/my-project/
-
-# Or use installer
-python installers/setup_workspace.py /path/to/my-project
+```json
+{
+  "extraKnownMarketplaces": {
+    "aisdlc": {
+      "source": {
+        "source": "github",
+        "repo": "foolishimp/ai_sdlc_method",
+        "path": "claude-code/plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "aisdlc-core@aisdlc": true,
+    "aisdlc-methodology@aisdlc": true,
+    "principles-key@aisdlc": true
+  }
+}
 ```
 
-**What's Inside**:
-- `.claude/agents/` - 7 SDLC stage agent specifications
-- `.claude/commands/` - 6 workflow slash commands
-- `.ai-workspace/` - Task management and workspace structure
-- `CLAUDE.md.template` - Project guidance template
-- `README.md` - Setup instructions
+#### Local Directory (Development)
 
-**Documentation**: See [project-template/README.md](project-template/README.md)
+```json
+{
+  "extraKnownMarketplaces": {
+    "aisdlc-local": {
+      "source": {
+        "source": "directory",
+        "path": "/path/to/ai_sdlc_method/claude-code/plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "aisdlc-core@aisdlc-local": true,
+    "aisdlc-methodology@aisdlc-local": true,
+    "principles-key@aisdlc-local": true
+  }
+}
+```
+
+#### Git URL (Self-Hosted)
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "aisdlc-private": {
+      "source": {
+        "source": "git",
+        "url": "https://git.company.com/team/ai_sdlc_method.git",
+        "path": "claude-code/plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "aisdlc-methodology@aisdlc-private": true
+  }
+}
+```
 
 ---
 
-## Why This Structure?
+## Available Plugins
 
-### Problem (Before)
+| Plugin | Description |
+|--------|-------------|
+| **aisdlc-core** | Foundation - requirement traceability with REQ-* keys |
+| **aisdlc-methodology** | Complete 7-stage SDLC (commands, agents, templates) |
+| **principles-key** | Key Principles enforcement (TDD, Fail Fast, etc.) |
+| **code-skills** | TDD/BDD code generation skills |
+| **testing-skills** | Test coverage validation |
+| **requirements-skills** | Intent to requirements transformation |
+| **design-skills** | Architecture and ADR generation |
+| **runtime-skills** | Production feedback loop |
+| **python-standards** | Python language standards |
 
-```
-ai_sdlc_method/
-├── plugins/                    # Claude Code plugins (not obvious)
-└── templates/
-    └── claude/                 # Claude Code template (obvious)
-```
+### Plugin Bundles
 
-**Confusion**:
-- ❌ `plugins/` doesn't indicate "Claude Code plugins"
-- ❌ Relationship between plugins (source) and template (destination) unclear
-- ❌ Both are Claude Code specific but structure doesn't show this
+Use `--bundle` with setup_settings.py:
 
-### Solution (After)
-
-```
-ai_sdlc_method/
-└── claude-code/
-    ├── plugins/               # Marketplace distribution
-    └── project-template/      # User setup
-```
-
-**Clarity**:
-- ✅ All Claude Code assets grouped under `claude-code/`
-- ✅ Clear intent: `plugins/` = marketplace source, `project-template/` = user destination
-- ✅ Single top-level directory for all Claude Code specifics
-- ✅ README explains purpose at each level
+| Bundle | Plugins | Use Case |
+|--------|---------|----------|
+| **startup** | aisdlc-core, aisdlc-methodology, principles-key | Getting started |
+| **datascience** | aisdlc-core, testing-skills, python-standards, runtime-skills | Data science |
+| **qa** | testing-skills, code-skills, requirements-skills, runtime-skills | QA focus |
+| **enterprise** | All 9 plugins | Complete SDLC |
 
 ---
 
-## Key Concepts
+## What Gets Loaded
 
-### Plugins vs Template
+### From `aisdlc-methodology` Plugin
 
-| Aspect | Plugins | Project Template |
-|--------|---------|------------------|
-| **Location** | `claude-code/plugins/` | `claude-code/project-template/` |
-| **Purpose** | Distribute methodology via marketplace | Initialize user projects |
-| **Distribution** | Claude Code marketplace | Copy to user project |
-| **Updates** | Pull new versions from marketplace | One-time copy, user customizes |
-| **Examples** | aisdlc-methodology, python-standards | .claude/, .ai-workspace/ |
+**Commands** (7 slash commands):
+- `/aisdlc-checkpoint-tasks` - Save progress and update task status
+- `/aisdlc-commit-task` - Commit with proper message and REQ tags
+- `/aisdlc-finish-task` - Complete task with documentation
+- `/aisdlc-refresh-context` - Refresh methodology context
+- `/aisdlc-release` - Release framework to projects
+- `/aisdlc-status` - Show task queue status
+- `/aisdlc-update` - Update AI SDLC framework
 
-### Federated Architecture
+**Agents** (7 stage personas):
+- `aisdlc-requirements-agent` - Requirements stage persona
+- `aisdlc-design-agent` - Design stage persona
+- `aisdlc-tasks-agent` - Tasks stage persona
+- `aisdlc-code-agent` - Code stage persona (TDD)
+- `aisdlc-system-test-agent` - System test persona (BDD)
+- `aisdlc-uat-agent` - UAT stage persona
+- `aisdlc-runtime-feedback-agent` - Runtime feedback persona
 
-Plugins support organizational hierarchy:
+### From Skill Plugins
 
-```
-Corporate Marketplace → Division Marketplace → Team Marketplace → Project Config
-```
+41 skills across domains:
+- **Requirements**: extraction, disambiguation, business rules
+- **Design**: ADRs, traceability, coverage
+- **Code**: TDD, BDD, generation, tech debt
+- **Testing**: coverage, validation, reports
+- **Runtime**: telemetry, observability, tracing
 
-Later plugins override earlier ones, enabling customization while maintaining standards.
+---
+
+## Official Documentation References
+
+| Document | URL |
+|----------|-----|
+| **Plugins Overview** | https://code.claude.com/docs/en/plugins |
+| **Plugin Reference** | https://code.claude.com/docs/en/plugins-reference |
+| **Settings Reference** | https://code.claude.com/docs/en/settings |
+| **Skills Documentation** | https://code.claude.com/docs/en/skills |
 
 ---
 
 ## Documentation
 
 - **Plugin System**: [plugins/README.md](plugins/README.md)
-- **Project Template**: [project-template/README.md](project-template/README.md)
 - **Complete Methodology**: [../docs/ai_sdlc_method.md](../docs/ai_sdlc_method.md)
 - **Quick Start**: [../QUICKSTART.md](../QUICKSTART.md)
+- **Journey Guide**: [guides/JOURNEY.md](guides/JOURNEY.md)
+- **ADR-006**: [../docs/design/claude_aisdlc/adrs/ADR-006-plugin-configuration-and-discovery.md](../docs/design/claude_aisdlc/adrs/ADR-006-plugin-configuration-and-discovery.md)
 
 ---
 
 ## Related
 
-- **Marketplace Registry**: [../marketplace.json](../marketplace.json) - Plugin definitions
-- **Installers**: [../installers/](../installers/) - Installation scripts
-- **Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete example projects (separate repo)
+- **Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete example projects
 - **Design Docs**: [../docs/design/](../docs/design/) - Architecture documentation
 
 ---

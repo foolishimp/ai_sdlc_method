@@ -2,16 +2,11 @@
 """
 AI SDLC Method - Plugins Setup Script
 
-Installs AI SDLC plugins directly (alternative to Claude marketplace).
-
-# Implements: REQ-F-PLUGIN-001 (Plugin system with marketplace support)
-# Implements: REQ-F-PLUGIN-002 (Federated plugin loading)
-# Implements: REQ-F-PLUGIN-003 (Plugin bundles)
-# Implements: REQ-F-PLUGIN-004 (Plugin versioning and dependency management)
+Installs AI SDLC plugins directly.
 
 Provides two installation modes:
-1. Global: ~/.config/claude/claude-code/plugins/ (user-wide)
-2. Project: ./.claude/claude-code/plugins/ (project-specific)
+1. Global: ~/.config/gemini/plugins/ (user-wide)
+2. Project: ./.gemini/plugins/ (project-specific)
 
 Supports:
 - Individual plugins
@@ -91,13 +86,13 @@ class PluginsSetup(InstallerBase):
         self.install_all = install_all
 
         # Plugin source directory
-        self.plugins_source = self.ai_sdlc_root / "plugins"
+        self.plugins_source = self.ai_sdlc_root / "gemini-code" / "plugins"
 
         # Determine installation target
         if self.install_global:
-            self.plugins_target = Path.home() / ".config" / "claude" / "plugins"
+            self.plugins_target = Path.home() / ".config" / "gemini" / "plugins"
         else:
-            self.plugins_target = self.target / ".claude" / "plugins"
+            self.plugins_target = self.target / ".gemini" / "plugins"
 
     def run(self) -> bool:
         """Execute the plugins setup process."""
@@ -166,8 +161,8 @@ class PluginsSetup(InstallerBase):
             if plugin_dir.name == "bundles":
                 continue
 
-            # Check for .claude-plugin metadata
-            metadata_file = plugin_dir / ".claude-plugin"
+            # Check for .gemini-plugin metadata
+            metadata_file = plugin_dir / ".gemini-plugin"
             if metadata_file.exists():
                 plugins[plugin_dir.name] = plugin_dir
 
@@ -230,18 +225,10 @@ class PluginsSetup(InstallerBase):
         print("\n📚 Next Steps:")
 
         if self.install_global:
-            print("1. Restart Claude Code to load global plugins")
-            print("2. Verify plugins: /plugin list")
+            print("1. Restart your Gemini environment to load global plugins")
         else:
-            print("1. Restart Claude Code or reload project")
-            print("2. Verify plugins: /plugin list")
+            print("1. Restart your Gemini environment or reload project")
 
-        print("3. Read plugin docs: cat .claude/claude-code/plugins/aisdlc-core/README.md")
-        print("4. Apply methodology: /apply-persona (if aisdlc-methodology installed)")
-
-        print("\n💡 Plugin Locations:")
-        print(f"   Installed: {self.plugins_target}")
-        print(f"   Source: {self.plugins_source}")
 
     def list_plugins_and_bundles(self):
         """List all available plugins and bundles."""
@@ -261,7 +248,7 @@ class PluginsSetup(InstallerBase):
         other_plugins = []
 
         for name in sorted(plugins.keys()):
-            if "core" in name:
+            if "core" in name or "methodology" in name:
                 core_plugins.append(name)
             elif "skills" in name:
                 skill_plugins.append(name)
@@ -304,7 +291,7 @@ class PluginsSetup(InstallerBase):
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Setup AI SDLC plugins directly (alternative to marketplace)",
+        description="Setup AI SDLC plugins directly",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -335,7 +322,7 @@ Examples:
         "--global",
         dest="install_global",
         action="store_true",
-        help="Install to user global plugins directory (~/.config/claude/claude-code/plugins/)"
+        help="Install to user global plugins directory (~/.config/gemini/plugins/)"
     )
 
     parser.add_argument(

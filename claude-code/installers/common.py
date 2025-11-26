@@ -22,11 +22,21 @@ class InstallerBase:
         self.no_git = no_git
 
         # Get the ai_sdlc_method root directory
-        # installers/common.py -> go up one level
-        self.ai_sdlc_root = Path(__file__).parent.parent
+        # installers/common.py -> claude-code/installers/ -> go up two levels to project root
+        self.installers_dir = Path(__file__).parent
+        self.claude_code_root = self.installers_dir.parent  # claude-code/
+        self.ai_sdlc_root = self.claude_code_root.parent    # project root
 
-        # Templates are in claude-code/project-template/
-        self.templates_root = self.ai_sdlc_root / "templates" / "claude"
+        # Plugin-based structure: templates are in aisdlc-methodology plugin
+        self.plugins_root = self.claude_code_root / "plugins"
+        self.methodology_plugin = self.plugins_root / "aisdlc-methodology"
+
+        # Templates for workspace setup (inside methodology plugin)
+        self.templates_root = self.methodology_plugin / "templates"
+
+        # Commands and agents are directly in the plugin (for plugin installation)
+        self.commands_source = self.methodology_plugin / "commands"
+        self.agents_source = self.methodology_plugin / "agents"
 
     def validate_target(self) -> bool:
         """Validate that target directory exists or can be created."""

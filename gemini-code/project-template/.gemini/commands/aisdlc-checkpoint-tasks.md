@@ -1,9 +1,6 @@
 Checkpoint active tasks against current conversation context and update ACTIVE_TASKS.md.
 
-<!-- Implements: REQ-F-WORKSPACE-002 (Task Management Templates) -->
-<!-- Implements: REQ-NFR-CONTEXT-001 (Persistent Context Across Sessions) -->
-
-**Usage**: `/aisdlc-checkpoint-tasks`
+**Usage**: `aisdlc-checkpoint-tasks`
 
 **Instructions**:
 
@@ -90,18 +87,3 @@ Provide a summary in this format:
 💡 Next Steps:
    {suggestion based on remaining active tasks}
 ```
-
----
-
-**Notes**:
-- This command is particularly useful after side tasks or long work sessions
-- It helps maintain accurate task state based on actual work done
-- Use before `/aisdlc-status` to get accurate status
-- The command uses conversation context, so ensure relevant work is in current context
-- For ambiguous cases, ask the user for clarification before marking as completed
-
-**Example Use Cases**:
-- After working on a side task, checkpoint to see if any active tasks were incidentally completed
-- At end of work session to update all task statuses
-- Before context switch to ensure task state is accurate
-- After a series of commits to update task progress

@@ -17,8 +17,8 @@ What it does:
    - .ai-workspace/tasks/active/ (current tasks)
    - .ai-workspace/tasks/finished/ (task history)
 3. Removes and reinstalls framework code:
-   - .claude/commands/
-   - .claude/agents/
+   - .gemini/commands/
+   - .gemini/agents/
    - .ai-workspace/templates/
    - .ai-workspace/config/
 4. Cleans up temp directory
@@ -40,7 +40,7 @@ from typing import Optional, List, Tuple
 GITHUB_REPO_URL = "https://github.com/foolishimp/ai_sdlc_method.git"
 
 # Directories to completely remove and reinstall
-RESET_DIRECTORIES = [".claude", ".ai-workspace"]
+RESET_DIRECTORIES = [".gemini", ".ai-workspace"]
 
 # Paths to preserve (user work)
 PRESERVE_PATHS = [
@@ -58,7 +58,7 @@ def print_banner(version: str = "latest"):
 ║                    Target Version: {version:<10}              ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+")
 
 
 def print_section(title: str):
@@ -78,7 +78,7 @@ def get_latest_tag() -> Optional[str]:
             for line in result.stdout.strip().split('\n'):
                 if line and 'refs/tags/' in line:
                     tag = line.split('refs/tags/')[-1]
-                    if not tag.endswith('^{}'):
+                    if not tag.endswith('^{}')}:
                         return tag
         return None
     except Exception as e:
@@ -158,21 +158,21 @@ def remove_directories(target: Path):
 def install_fresh(templates_root: Path, target: Path) -> bool:
     """Install fresh framework files."""
 
-    # Install .claude/
-    claude_source = templates_root / ".claude"
-    claude_target = target / ".claude"
+    # Install .gemini/
+    gemini_source = templates_root / ".gemini"
+    gemini_target = target / ".gemini"
 
-    if claude_source.exists():
+    if gemini_source.exists():
         try:
-            shutil.copytree(claude_source, claude_target)
-            cmd_count = len(list((claude_target / "commands").glob("*.md"))) if (claude_target / "commands").exists() else 0
-            agent_count = len(list((claude_target / "agents").glob("*.md"))) if (claude_target / "agents").exists() else 0
-            print(f"   Installed: .claude/ ({cmd_count} commands, {agent_count} agents)")
+            shutil.copytree(gemini_source, gemini_target)
+            cmd_count = len(list((gemini_target / "commands").glob("*.md"))) if (gemini_target / "commands").exists() else 0
+            agent_count = len(list((gemini_target / "agents").glob("*.md"))) if (gemini_target / "agents").exists() else 0
+            print(f"   Installed: .gemini/ ({cmd_count} commands, {agent_count} agents)")
         except Exception as e:
-            print(f"   Error installing .claude/: {e}")
+            print(f"   Error installing .gemini/: {e}")
             return False
     else:
-        print(f"   Error: .claude/ template not found")
+        print(f"   Error: .gemini/ template not found")
         return False
 
     # Install .ai-workspace/
@@ -290,7 +290,6 @@ Examples:
 
     target = Path(args.target).resolve()
 
-    # Determine version
     version = args.version
     if not version:
         print("Fetching latest release tag...")
@@ -308,12 +307,10 @@ Examples:
     if args.dry_run:
         print(f"   Mode: DRY RUN")
 
-    # Validate target
     if not target.exists():
         print(f"\n   Error: Target directory does not exist: {target}")
         sys.exit(1)
 
-    # Dry run - just show plan
     if args.dry_run:
         print_section("Reset Plan")
         show_plan(target, version)
@@ -321,64 +318,55 @@ Examples:
         print("No changes were made. Remove --dry-run to execute.")
         sys.exit(0)
 
-    # Create temp directories
     temp_dir = Path(tempfile.mkdtemp(prefix="aisdlc_reset_"))
     temp_preserve = Path(tempfile.mkdtemp(prefix="aisdlc_preserve_"))
 
     try:
-        # Backup
         backup_dir = None
         if not args.no_backup:
             print_section("Creating Backup")
             backup_dir = create_backup(target)
 
-        # Clone repo
         print_section("Fetching Framework")
         repo_path = clone_repo(version, temp_dir)
         if not repo_path:
             sys.exit(1)
 
-        templates_root = repo_path / "claude-code" / "project-template"
+        templates_root = repo_path / "gemini-code" / "project-template"
         if not templates_root.exists():
             print(f"   Error: Templates not found at {templates_root}")
             sys.exit(1)
 
-        # Preserve user work
         print_section("Preserving User Work")
         preserved = preserve_files(target, temp_preserve)
 
-        # Remove old directories
         print_section("Removing Old Framework")
         if not remove_directories(target):
             sys.exit(1)
 
-        # Install fresh
         print_section("Installing Fresh Framework")
         if not install_fresh(templates_root, target):
             sys.exit(1)
 
-        # Restore preserved
         if preserved:
             print_section("Restoring User Work")
             restore_preserved(preserved, target)
 
-        # Summary
         print_section("Reset Complete")
         print(f"\n   Version installed: {version}")
         if backup_dir:
             print(f"   Backup location: {backup_dir}")
         print(f"\n   What was done:")
-        print(f"      - Removed old .claude/ and .ai-workspace/")
+        print(f"      - Removed old .gemini/ and .ai-workspace/")
         print(f"      - Installed fresh from GitHub tag {version}")
         print(f"      - Preserved .ai-workspace/tasks/active/")
         print(f"      - Preserved .ai-workspace/tasks/finished/")
         print(f"\n   Next steps:")
         print(f"      1. Review changes: git status")
-        print(f"      2. Verify: ls .claude/commands/")
+        print(f"      2. Verify: ls .gemini/commands/")
         print(f"      3. Commit: git add . && git commit -m 'Reset AISDLC to {version}'")
 
     finally:
-        # Cleanup temp directories
         if temp_dir.exists():
             shutil.rmtree(temp_dir, ignore_errors=True)
         if temp_preserve.exists():

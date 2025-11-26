@@ -1,6 +1,6 @@
-# AI SDLC Methodology Plugin - Multi-Stage Agent Configuration
+# AI SDLC Methodology Plugin - Complete 7-Stage Framework
 
-**Version**: 2.0.0
+**Version**: 3.0.0
 **Author**: foolishimp
 **Reference Guide**: [AI SDLC Methodology](../../docs/ai_sdlc_method.md)
 
@@ -8,7 +8,49 @@
 
 This plugin provides a complete **7-stage AI SDLC methodology** with fully specified AI agent configurations for each stage. It extends the foundational Key Principles principles with end-to-end lifecycle management from intent to runtime feedback.
 
-### What's New in 2.0
+**This is the master plugin** that contains all organizational elements for the AI SDLC framework:
+- **Commands** - Slash commands for workflow (`/aisdlc-*`)
+- **Agents** - Stage-specific personas for each SDLC stage
+- **Templates** - Workspace scaffolding (`.ai-workspace/`)
+- **Configuration** - Stage specifications and principles
+
+### Plugin Structure
+
+```
+aisdlc-methodology/
+├── .claude-plugin/
+│   └── plugin.json           # Plugin manifest
+├── commands/                  # Slash commands
+│   ├── aisdlc-checkpoint-tasks.md
+│   ├── aisdlc-commit-task.md
+│   ├── aisdlc-finish-task.md
+│   ├── aisdlc-refresh-context.md
+│   ├── aisdlc-release.md
+│   ├── aisdlc-status.md
+│   └── aisdlc-update.md
+├── agents/                    # Stage personas
+│   ├── aisdlc-requirements-agent.md
+│   ├── aisdlc-design-agent.md
+│   ├── aisdlc-tasks-agent.md
+│   ├── aisdlc-code-agent.md
+│   ├── aisdlc-system-test-agent.md
+│   ├── aisdlc-uat-agent.md
+│   └── aisdlc-runtime-feedback-agent.md
+├── templates/                 # Workspace scaffolding
+│   └── .ai-workspace/
+│       ├── tasks/
+│       ├── templates/
+│       └── config/
+├── config/                    # Stage specifications
+│   ├── stages_config.yml
+│   └── config.yml
+└── docs/                      # Documentation
+    ├── principles/
+    ├── processes/
+    └── guides/
+```
+
+### What's New in 3.0
 
 - ✨ **7 Complete Stage Configurations**: Requirements, Design, Tasks, Code, System Test, UAT, Runtime Feedback
 - 🤖 **AI Agent Specifications**: Each stage has detailed agent responsibilities and constraints
@@ -413,6 +455,14 @@ The Code Stage (Section 7.0) fully integrates the Key Principles principles:
 ✅ **Key Principles Foundation**: Code stage built on proven principles
 
 ## Version History
+
+### 3.0.0 (2025-11-26)
+- **Unified Plugin Architecture**: Consolidated all Claude Code features into this plugin
+- Added `commands/` directory with 7 slash commands
+- Added `agents/` directory with 7 stage persona agents
+- Added `templates/` directory with workspace scaffolding
+- Updated plugin.json with commands and agents paths
+- Follows ADR-006: Plugin Configuration and Discovery
 
 ### 2.0.0 (2025-01-14)
 - Added complete 7-stage agent configurations

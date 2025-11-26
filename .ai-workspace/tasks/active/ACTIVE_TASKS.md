@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-11-26 12:30*
+*Last Updated: 2025-11-27 10:00*
 
 ---
 
@@ -133,7 +133,7 @@ Deliver Codex-friendly CLI commands (`codex-sdlc-*`) plus installer scripts to s
 **Current State**:
 - No Codex command implementations or personas.
 - Installers added as safe stubs (`codex-code/installers/setup_workspace.py`, `setup_commands.py`, `setup_plugins.py`, `validate_traceability.py`).
-- First command helper added: `codex_sdlc_context.py` (non-destructive context loader).
+- Command helpers added: `codex_sdlc_context.py` (non-destructive context loader) and `codex_sdlc_workspace.py` (workspace validator/installer).
 
 **Target State**:
 ```
@@ -496,6 +496,14 @@ N/A - Documentation task
   - Task #15: Ship Codex Plugin Packaging and Marketplace Entries (1.0 MVP) - HIGH
 
 **Recently Completed**:
+- ✅ Task #19: Fix Claude Code Plugin Configuration (2025-11-27 10:00)
+  - Created `claude-code/plugins/.claude-plugin/marketplace.json` (was missing)
+  - Fixed 8 plugin.json files (invalid schema: author, agents, invalid fields)
+  - Updated 5 documentation files (QUICKSTART, README, JOURNEY, plugins README, installers README)
+  - Plugins now load correctly: `/plugin` shows all 3 core plugins as "Installed"
+  - Key learnings documented: marketplace.json required, plugin.json schema rules
+  - Implements: REQ-F-PLUGIN-001, REQ-F-PLUGIN-002
+  - See: `.ai-workspace/tasks/finished/20251127_fix_claude_code_plugin_configuration.md`
 - ✅ Task #18: Implement Roo Code Installers - Full Suite (2025-11-26 14:00)
   - Created complete installer suite mirroring Claude Code pattern (10 Python files)
   - `common.py`, `setup_modes.py`, `setup_rules.py`, `setup_memory_bank.py`, `setup_workspace.py`
