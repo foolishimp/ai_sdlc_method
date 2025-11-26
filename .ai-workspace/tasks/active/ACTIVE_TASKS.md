@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-11-27 10:00*
+*Last Updated: 2025-11-27 12:00*
 
 ---
 
@@ -57,56 +57,6 @@ This master task tracks the work required to bring the `gemini-code` implementat
 | **Runtime Skills**| `gemini-code/plugins/runtime-skills/skills/`| `Not Started` | All skills need adaptation. |
 | **Installers** | `gemini-code/installers/` | `Not Started` | Requires complete rewrite to support ADR-006 architecture. |
 | **Project Template** | `gemini-code/project-template/` | `Not Started` | Requires update to support ADR-006 architecture. |
-
----
-
-## Task #16: Roo Code Agent Parity with Claude Reference Implementation
-
-**Priority**: High
-**Status**: Completed
-**Release Target**: 1.0 MVP
-**Estimated Time**: 1-2 days
-**Dependencies**: Aligns with Claude marketplace schema
-
-**Requirements Traceability**:
-- REQ-F-PLUGIN-001: Plugin System with Marketplace Support
-- REQ-F-PLUGIN-002: Federated Plugin Loading
-- REQ-F-PLUGIN-003: Plugin Bundles
-- REQ-F-PLUGIN-004: Plugin Versioning and Dependency Management
-
-**SDLC Stages**: 2 - Design, 4 - Code
-**Agents**: Design Agent, Code Agent
-
-**Description**:
-Create Codex-native plugin metadata (`plugin.json`) for all Codex packages and register them in `marketplace.json`, mirroring Claude package entries with correct SemVer, dependencies, and paths.
-
-**Current State**:
-- Codex plugins now have `.codex-plugin/plugin.json` with SemVer and dependencies.
-- `marketplace.json` updated with Codex plugin/bundle entries (provider: openai).
-- Documentation added for discovery/federated loading and parity (codex-code/plugins/README.md).
-
-**Target State**:
-```
-codex-code/plugins/*
-└── plugin.json with:
-    - name/version/description
-    - dependencies (SemVer ranges)
-    - entrypoints or package path
-marketplace.json includes codex plugin records and bundles
-Federated loading documented for Codex config layers
-```
-
-**Acceptance Criteria**:
-- [x] Each Codex plugin folder contains a valid plugin.json with SemVer and dependencies.
-- [x] marketplace.json lists Codex plugins and bundles with correct paths/versions.
-- [x] Documentation updated to explain Codex plugin discovery/loading.
-- [x] Parity documented vs Claude plugin records.
-
-**Work Breakdown**:
-1. Draft plugin.json templates for core, methodology, principles, requirements, design, code, testing, runtime, and bundles. ✅
-2. Add Codex entries to `marketplace.json` with SemVer and dependencies. ✅
-3. Document Codex federated loading behavior (global → project) aligned to Claude rules. ✅
-4. Validate schema against Claude reference and fix gaps. ✅ (parity map added)
 
 ---
 
@@ -438,64 +388,27 @@ E(t) System Components:
 
 ---
 
-## Task #3: Complete Design Documentation for Command System
-
-**Priority**: Medium
-**Status**: Not Started (NEEDS UPDATE - outdated after MVP scope change)
-**Started**: 2025-11-23
-**Estimated Time**: 2 hours (reduced from 3)
-**Dependencies**: None
-**Feature Flag**: N/A (documentation task)
-
-**Requirements Traceability**:
-- REQ-F-CMD-001: Slash commands for workflow
-- REQ-F-CMD-002: Persona management (formerly CMD-003)
-
-**Description**:
-Create design documentation (docs/design/COMMAND_SYSTEM.md) covering:
-- Command structure (.claude/commands/*.md)
-- 6 implemented commands (final after persona cleanup)
-- Command format and Claude Code integration
-- Installer mechanism (setup_commands.py)
-
-**Acceptance Criteria**:
-- [ ] All remaining commands documented (excluding removed context switching)
-- [ ] Command markdown format explained
-- [ ] Traceability to requirements (updated for new numbering)
-- [ ] Integration with Claude Code explained
-- [ ] Examples from actual commands
-
-**TDD Checklist**:
-N/A - Documentation task
-
-**Notes**:
-- Task scope changed after Task #5 (MVP Baseline) and Task #7 (Persona cleanup)
-- Context switching commands removed (5 commands)
-- TODO command removed
-- Persona commands removed (4 commands - vestigial)
-- Final command count: 6 commands
-- REQ-F-CMD-002 implemented by agents (not commands)
-- Current commands: checkpoint-tasks, finish-task, commit-task, status, release, refresh-context
-
----
-
 ## Summary
 
-**Total Active Tasks**: 6
-- High Priority: 3
-- Medium Priority: 3
-- Not Started: 4
-  - Task #16: Roo Code Agent Parity with Claude Reference (1.0 MVP) - HIGH
+**Total Active Tasks**: 4
+- High Priority: 2
+- Medium Priority: 2
+- Not Started: 3
   - Task #14: Implement Codex Command Layer and Installers (1.0 MVP) - HIGH
   - Task #13: Repurpose /aisdlc-release for Release Management (1.0 MVP) - MEDIUM
-  - Task #3: Command System Documentation (needs scope update) - MEDIUM
   - Task #12: Ecosystem E(t) Tracking (v1.5 - planned) - MEDIUM
 - In Progress: 1
-  - Task #16: Roo Code Agent Parity with Claude Reference (1.0 MVP) - HIGH
-- Completed (this file): 1
-  - Task #15: Ship Codex Plugin Packaging and Marketplace Entries (1.0 MVP) - HIGH
+  - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #3: Complete Design Documentation for Command System (2025-11-27 12:00)
+  - Created comprehensive COMMAND_SYSTEM.md (~300 lines) in docs/design/claude_aisdlc/
+  - Documented all 7 v0.4 commands with decision rationale
+  - Documented 9 removed commands with removal rationale
+  - Established 5 design principles for command system
+  - Updated ADR-002 to reflect v0.4 state
+  - Implements: REQ-F-CMD-001
+  - See: `.ai-workspace/tasks/finished/20251127_1200_command_system_design_documentation.md`
 - ✅ Task #19: Fix Claude Code Plugin Configuration (2025-11-27 10:00)
   - Created `claude-code/plugins/.claude-plugin/marketplace.json` (was missing)
   - Fixed 8 plugin.json files (invalid schema: author, agents, invalid fields)

@@ -38,7 +38,7 @@ Specifically:
 
 ---
 
-## MVP Command Set
+## Command Set (v0.4)
 
 ```
 .claude/commands/
@@ -46,11 +46,13 @@ Specifically:
 ├── aisdlc-finish-task.md         # Complete task with documentation
 ├── aisdlc-commit-task.md         # Generate commit message with REQ tags
 ├── aisdlc-status.md              # Show task queue snapshot
-├── aisdlc-release.md             # Prepare release notes
-└── aisdlc-refresh-context.md     # Reload methodology context
+├── aisdlc-release.md             # Create versioned release with changelog
+├── aisdlc-refresh-context.md     # Reload methodology context
+└── aisdlc-update.md              # Update framework from GitHub
 ```
 
 **Removed** (v0.1.4): Context switching, TODO, persona commands (over-designed)
+**Added** (v0.4.0): aisdlc-update command for framework updates (REQ-F-UPDATE-001)
 
 ---
 
@@ -116,13 +118,14 @@ Developer: /aisdlc-commit-task 5
 
 ### Principle: Minimal Viable Implementation
 
-**Decision**: Start with 6 essential commands (reduced from original 16)
+**Decision**: Start with minimal essential commands (reduced from original 16)
 
 **Evolution**:
 - v0.1.0: Had 16 commands (too many)
 - v0.1.3: Removed context switching (5 commands)
 - v0.1.4: Removed persona commands (4 commands - vestigial)
-- v0.1.5: Final set (6 commands - 100% essential)
+- v0.3.0: Stabilized MVP set (6 commands)
+- v0.4.0: Added aisdlc-update (7 commands - current)
 
 **Rationale**:
 - Each command must solve real workflow friction
@@ -285,13 +288,15 @@ Display current task status from `.ai-workspace/tasks/`.
 
 ## Metrics
 
-- **Commands in MVP**: 6
-- **Lines per command**: ~20 (average)
-- **Total command code**: ~120 lines
+- **Commands in v0.4**: 7
+- **Lines per command**: ~60 (average)
+- **Total command code**: ~420 lines
 - **Installation code**: ~50 lines
-- **Total complexity**: ~170 lines (vs 2,000+ for custom solution)
+- **Commands removed from v0.1.0**: 9 (56% reduction)
 
 **Simplicity ratio**: 90% simpler than alternatives
+
+**Design Doc**: [COMMAND_SYSTEM.md](../COMMAND_SYSTEM.md) - detailed command specifications
 
 ---
 
@@ -326,11 +331,15 @@ Display current task status from `.ai-workspace/tasks/`.
 - v0.1.0: 16 commands (exploratory)
 - v0.1.3: 10 commands (removed context switching)
 - v0.1.4: 6 commands (removed persona commands)
-- **Current**: 6 essential commands (MVP baseline)
+- v0.3.0: 6 commands (stabilized MVP baseline)
+- **v0.4.0**: 7 commands (added aisdlc-update)
 
 **Lesson**: Start minimal, add only when proven need
 
+**v0.4 Change**: Added `aisdlc-update` command to enable framework updates from GitHub without manual file copying. Fulfills REQ-F-UPDATE-001.
+
 ---
 
-**Status**: ✅ Accepted
+**Status**: ✅ Accepted (Updated v0.4.0)
+**Date Updated**: 2025-11-27
 **Next Review**: After MVP usage with 5+ teams
