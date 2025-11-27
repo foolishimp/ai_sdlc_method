@@ -57,28 +57,28 @@ HOOKS_CONFIG = {
             "matcher": "",
             "hooks": [{
                 "type": "command",
-                "command": "# AISDLC hook\nif [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then echo ''; echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; echo '  AISDLC Context Loaded'; echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; ACTIVE=$(grep -c '^## Task #' .ai-workspace/tasks/active/ACTIVE_TASKS.md 2>/dev/null || echo 0); UPDATED=$(head -3 .ai-workspace/tasks/active/ACTIVE_TASKS.md | grep 'Last Updated' | sed 's/.*: //' || echo 'Unknown'); echo \"  Active Tasks: $ACTIVE | Updated: $UPDATED\"; echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; echo ''; fi"
+                "command": "echo ''; echo '╔══════════════════════════════════════════════════════════════╗'; echo '║            Welcome to AI SDLC Methodology                    ║'; echo '╚══════════════════════════════════════════════════════════════╝'; echo ''; echo '  The 7-Stage Lifecycle:'; echo '  Intent → Requirements → Design → Tasks → Code → Test → UAT → Runtime'; echo ''; echo '  Available Agents (just describe what you need):'; echo '    📋 Requirements  - \"Create requirements for [feature]\"'; echo '    🏗️  Design        - \"Design solution for REQ-F-XXX-001\"'; echo '    💻 Code          - \"Implement [task] using TDD\"'; echo '    🧪 Test          - \"Create BDD tests for [requirement]\"'; echo ''; echo '  Quick Start:'; echo '    • New feature    - Describe your intent in plain language'; echo '    • Continue work  - /aisdlc-status to see active tasks'; echo '    • Need help      - /aisdlc-help for full guide'; echo ''; if [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then ACTIVE=$(grep -c '^## Task #' .ai-workspace/tasks/active/ACTIVE_TASKS.md 2>/dev/null || echo 0); echo \"  📊 Project Status: $ACTIVE active task(s)\"; fi; echo ''; echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; echo ''"
             }]
         }],
         "Stop": [{
             "matcher": "",
             "hooks": [{
                 "type": "command",
-                "command": "# AISDLC hook\nif [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then MODIFIED=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); if [ \"$MODIFIED\" -gt 2 ]; then echo ''; echo \"  $MODIFIED uncommitted changes. Consider: /aisdlc-checkpoint-tasks\"; fi; fi"
+                "command": "if [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then MODIFIED=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); if [ \"$MODIFIED\" -gt 2 ]; then echo ''; echo \"  $MODIFIED uncommitted changes. Consider: /aisdlc-checkpoint-tasks\"; fi; fi"
             }]
         }],
         "PreToolUse": [{
             "matcher": "Bash",
             "hooks": [{
                 "type": "command",
-                "command": "# AISDLC hook\nif echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'git commit' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'REQ-[A-Z]+-' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'Implements:' 2>/dev/null; then echo ''; echo '  Commit may be missing REQ tag. Consider: /aisdlc-commit-task'; fi; fi; fi"
+                "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'git commit' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'REQ-[A-Z]+-' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'Implements:' 2>/dev/null; then echo ''; echo '  Commit may be missing REQ tag. Consider: /aisdlc-commit-task'; fi; fi; fi"
             }]
         }],
         "PostToolUse": [{
             "matcher": "Edit",
             "hooks": [{
                 "type": "command",
-                "command": "# AISDLC hook\nFILE=\"$CLAUDE_FILE_PATH\"; if [ -n \"$FILE\" ] && [ -f \"$FILE\" ]; then case \"$FILE\" in *.js|*.ts|*.jsx|*.tsx|*.json) command -v prettier >/dev/null 2>&1 && prettier --write \"$FILE\" 2>/dev/null || true ;; *.py) command -v black >/dev/null 2>&1 && black -q \"$FILE\" 2>/dev/null || true ;; *.go) command -v gofmt >/dev/null 2>&1 && gofmt -w \"$FILE\" 2>/dev/null || true ;; esac; fi"
+                "command": "FILE=\"$CLAUDE_FILE_PATH\"; if [ -n \"$FILE\" ] && [ -f \"$FILE\" ]; then case \"$FILE\" in *.js|*.ts|*.jsx|*.tsx|*.json) command -v prettier >/dev/null 2>&1 && prettier --write \"$FILE\" 2>/dev/null || true ;; *.py) command -v black >/dev/null 2>&1 && black -q \"$FILE\" 2>/dev/null || true ;; *.go) command -v gofmt >/dev/null 2>&1 && gofmt -w \"$FILE\" 2>/dev/null || true ;; esac; fi"
             }]
         }]
     }
