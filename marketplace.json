@@ -1,7 +1,7 @@
 {
   "name": "AI SDLC Method Marketplace",
   "description": "Complete AI-assisted software development lifecycle with requirement traceability, multi-stage agent orchestration, and homeostatic quality enforcement",
-  "version": "4.0.0",
+  "version": "4.2.0",
   "author": "foolishimp",
   "repository": "https://github.com/foolishimp/ai_sdlc_method",
   "homepage": "https://github.com/foolishimp/ai_sdlc_method",
@@ -10,8 +10,8 @@
     {
       "name": "aisdlc-methodology",
       "displayName": "AI SDLC Methodology - Complete 7-Stage Lifecycle",
-      "description": "Complete AI SDLC methodology with 7-stage lifecycle, 42 skills, 7 agents, 7 commands, and 4 hooks. Consolidates all core, requirements, design, code, testing, runtime, and principles skills with full traceability and homeostatic control.",
-      "version": "4.0.0",
+      "description": "Complete AI SDLC methodology with 7-stage lifecycle, 42 skills, 7 agents, 8 commands, and 4 hooks. Consolidates all core, requirements, design, code, testing, runtime, and principles skills with full traceability and homeostatic control.",
+      "version": "4.2.0",
       "path": "claude-code/plugins/aisdlc-methodology",
       "keywords": ["methodology", "ai-sdlc", "multi-stage", "tdd", "bdd", "requirements", "design", "testing", "runtime", "principles", "traceability", "homeostasis"],
       "dependencies": [],
