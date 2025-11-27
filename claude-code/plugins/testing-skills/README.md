@@ -107,6 +107,43 @@ Discover integration tests → Run BDD scenarios → Run API tests
 
 ---
 
+### 5. Test Case Specification (TCS)
+
+**Skill**: `create-test-specification`
+
+**Purpose**: Create TCS documents with full requirement traceability
+
+**Creates**:
+- TCS document at `docs/design/<solution>/tests/TCS-XXX-<component>.md`
+- Test registry entry in `README.md`
+- Requirement traceability matrix
+
+**TCS Pattern**:
+```
+Requirements (REQ-*)
+    ↓
+Design (ADRs)
+    ↓
+Implementation
+    ↓
+Test Specs (TCS-*) ← This skill creates these
+    ↓
+Test Implementation (pytest, etc.)
+```
+
+**Workflow**:
+```
+1. Identify requirements to test
+2. Create TCS document with scenarios
+3. Register in tests/README.md
+4. Implement tests referencing TCS IDs
+5. Update TCS status to "Implemented"
+```
+
+**Usage**: Required by System Test Agent BEFORE writing any tests.
+
+---
+
 ## Homeostasis Loop
 
 **Sensor → Actuator → Sensor**:
@@ -289,7 +326,8 @@ plugins:
 | generate-missing-tests | ✅ | Actuator | 363 |
 | run-integration-tests | ✅ | Runner | 270 |
 | create-coverage-report | ✅ | Reporter | 254 |
-| **TOTAL** | **✅ 100%** | **-** | **1,178** |
+| create-test-specification | ✅ | Traceability | 254 |
+| **TOTAL** | **✅ 100%** | **-** | **1,432** |
 
 ---
 
