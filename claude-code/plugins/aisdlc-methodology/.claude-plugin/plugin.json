@@ -24,15 +24,15 @@
   ],
   "homepage": "https://github.com/foolishimp/ai_sdlc_method",
   "hooks": "../hooks/hooks.json",
-  "commands": "./commands",
-  "skills": "./skills",
+  "commands": "../commands",
+  "skills": "../skills",
   "agents": [
-    "./agents/aisdlc-code-agent.md",
-    "./agents/aisdlc-design-agent.md",
-    "./agents/aisdlc-requirements-agent.md",
-    "./agents/aisdlc-runtime-feedback-agent.md",
-    "./agents/aisdlc-system-test-agent.md",
-    "./agents/aisdlc-tasks-agent.md",
-    "./agents/aisdlc-uat-agent.md"
+    "../agents/aisdlc-code-agent.md",
+    "../agents/aisdlc-design-agent.md",
+    "../agents/aisdlc-requirements-agent.md",
+    "../agents/aisdlc-runtime-feedback-agent.md",
+    "../agents/aisdlc-system-test-agent.md",
+    "../agents/aisdlc-tasks-agent.md",
+    "../agents/aisdlc-uat-agent.md"
   ]
 }
