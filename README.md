@@ -41,55 +41,44 @@ Each stage has:
 
 ---
 
-## Quick Start
+## Quick Start (One Command)
 
-### Option 1: Use Claude Code Plugins (Recommended)
-
-#### 1. Add This Marketplace
-
-In Claude Code:
+**From your project directory:**
 
 ```bash
-/plugin marketplace add foolishimp/ai_sdlc_method
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 ```
 
-Or add to your `.claude/settings.json`:
+**That's it!** Restart Claude Code and you're ready.
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "aisdlc": {
-      "source": {
-        "source": "github",
-        "repo": "foolishimp/ai_sdlc_method"
-      }
-    }
-  }
-}
-```
-
-#### 2. Install AI SDLC Methodology Plugin
+### Installation Options
 
 ```bash
-/plugin install @aisdlc/aisdlc-methodology
+# Basic setup (3 core plugins)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
+
+# Full setup with task workspace and lifecycle hooks
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace --hooks
+
+# All 9 plugins (enterprise)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --all
+
+# Preview changes without writing
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
 ```
 
 **What you get**:
 - Complete 7-stage AI SDLC workflow
-- Key Principles development principles
+- Key Principles development principles (TDD, Fail Fast, Modular, etc.)
 - TDD workflow (RED → GREEN → REFACTOR)
 - BDD testing guidelines
-- Requirement traceability framework
+- Requirement traceability framework (REQ-F-*, REQ-NFR-*, REQ-DATA-*)
+- Lifecycle hooks for methodology automation (with `--hooks`)
+- Task management workspace (with `--workspace`)
 
-#### 3. Optional: Install Language Standards
+### Verify Installation
 
-```bash
-/plugin install @aisdlc/python-standards
-```
-
-#### 4. Start Using the Methodology!
-
-Claude will now follow the 7-stage AI SDLC methodology automatically.
+After restarting Claude Code, run `/plugin` to see installed plugins.
 
 ### Option 2: Explore the Methodology First
 
