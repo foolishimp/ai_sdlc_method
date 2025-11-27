@@ -10,8 +10,8 @@ Usage:
     # From GitHub (recommended)
     curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 
-    # With workspace and hooks
-    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace --hooks
+    # With workspace structure
+    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace
 
     # Preview changes
     curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
@@ -22,15 +22,14 @@ Usage:
 Options:
     --target PATH       Target directory (default: current)
     --workspace         Also create .ai-workspace/ structure
-    --hooks             Also install lifecycle hooks
     --dry-run           Preview changes without writing
     --help              Show this help
 
 What it does:
     1. Creates .claude/settings.json with AISDLC marketplace configuration
     2. Enables the aisdlc-methodology plugin (loads from GitHub, always up to date)
-    3. Optionally creates .ai-workspace/ for task tracking
-    4. Optionally installs lifecycle hooks
+    3. Plugin includes hooks that load automatically (welcome message, etc.)
+    4. Optionally creates .ai-workspace/ for task tracking
 """
 
 import sys
@@ -47,42 +46,8 @@ from datetime import datetime
 GITHUB_REPO = "foolishimp/ai_sdlc_method"
 PLUGINS_PATH = "claude-code/plugins"
 
-# The consolidated plugin (contains all 42 skills, 7 agents, 7 commands)
+# The consolidated plugin (contains all skills, agents, commands, and hooks)
 PLUGIN_NAME = "aisdlc-methodology"
-
-# Lifecycle hooks (optional)
-HOOKS_CONFIG = {
-    "hooks": {
-        "SessionStart": [{
-            "matcher": "",
-            "hooks": [{
-                "type": "command",
-                "command": "echo ''; echo '╔══════════════════════════════════════════════════════════════╗'; echo '║            Welcome to AI SDLC Methodology                    ║'; echo '╚══════════════════════════════════════════════════════════════╝'; echo ''; echo '  The 7-Stage Lifecycle:'; echo '  Intent → Requirements → Design → Tasks → Code → Test → UAT → Runtime'; echo ''; echo '  Available Agents (just describe what you need):'; echo '    📋 Requirements  - \"Create requirements for [feature]\"'; echo '    🏗️  Design        - \"Design solution for REQ-F-XXX-001\"'; echo '    💻 Code          - \"Implement [task] using TDD\"'; echo '    🧪 Test          - \"Create BDD tests for [requirement]\"'; echo ''; echo '  Quick Start:'; echo '    • New feature    - Describe your intent in plain language'; echo '    • Continue work  - /aisdlc-status to see active tasks'; echo '    • Need help      - /aisdlc-help for full guide'; echo ''; if [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then ACTIVE=$(grep -c '^## Task #' .ai-workspace/tasks/active/ACTIVE_TASKS.md 2>/dev/null || echo 0); echo \"  📊 Project Status: $ACTIVE active task(s)\"; fi; echo ''; echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'; echo ''"
-            }]
-        }],
-        "Stop": [{
-            "matcher": "",
-            "hooks": [{
-                "type": "command",
-                "command": "if [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then MODIFIED=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); if [ \"$MODIFIED\" -gt 2 ]; then echo ''; echo \"  $MODIFIED uncommitted changes. Consider: /aisdlc-checkpoint-tasks\"; fi; fi"
-            }]
-        }],
-        "PreToolUse": [{
-            "matcher": "Bash",
-            "hooks": [{
-                "type": "command",
-                "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'git commit' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'REQ-[A-Z]+-' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'Implements:' 2>/dev/null; then echo ''; echo '  Commit may be missing REQ tag. Consider: /aisdlc-commit-task'; fi; fi; fi"
-            }]
-        }],
-        "PostToolUse": [{
-            "matcher": "Edit",
-            "hooks": [{
-                "type": "command",
-                "command": "FILE=\"$CLAUDE_FILE_PATH\"; if [ -n \"$FILE\" ] && [ -f \"$FILE\" ]; then case \"$FILE\" in *.js|*.ts|*.jsx|*.tsx|*.json) command -v prettier >/dev/null 2>&1 && prettier --write \"$FILE\" 2>/dev/null || true ;; *.py) command -v black >/dev/null 2>&1 && black -q \"$FILE\" 2>/dev/null || true ;; *.go) command -v gofmt >/dev/null 2>&1 && gofmt -w \"$FILE\" 2>/dev/null || true ;; esac; fi"
-            }]
-        }]
-    }
-}
 
 # Workspace structure (optional)
 WORKSPACE_STRUCTURE = {
@@ -143,10 +108,6 @@ def print_warning(msg):
     print(f"  [WARN] {msg}")
 
 
-def print_error(msg):
-    print(f"  [ERROR] {msg}")
-
-
 def setup_settings(target: Path, dry_run: bool) -> bool:
     """Create or update .claude/settings.json with plugin configuration."""
     settings_file = target / ".claude" / "settings.json"
@@ -191,48 +152,6 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
     return True
 
 
-def setup_hooks(target: Path, dry_run: bool) -> bool:
-    """Add AISDLC hooks to settings.json."""
-    settings_file = target / ".claude" / "settings.json"
-
-    # Load existing settings
-    existing = {}
-    if settings_file.exists():
-        try:
-            with open(settings_file, 'r') as f:
-                existing = json.load(f)
-        except json.JSONDecodeError:
-            pass
-
-    # Merge hooks
-    if "hooks" not in existing:
-        existing["hooks"] = {}
-
-    for hook_type, hook_configs in HOOKS_CONFIG["hooks"].items():
-        if hook_type not in existing["hooks"]:
-            existing["hooks"][hook_type] = []
-
-        # Check if AISDLC hooks already exist
-        has_aisdlc = any(
-            "AISDLC" in str(h.get("hooks", [{}])[0].get("command", ""))
-            for h in existing["hooks"][hook_type]
-        )
-
-        if not has_aisdlc:
-            existing["hooks"][hook_type].extend(hook_configs)
-
-    if dry_run:
-        print_info("Would add hooks to settings.json")
-        return True
-
-    # Write settings
-    with open(settings_file, 'w') as f:
-        json.dump(existing, f, indent=2)
-
-    print_success("Added lifecycle hooks to settings.json")
-    return True
-
-
 def setup_workspace(target: Path, dry_run: bool) -> bool:
     """Create .ai-workspace/ structure."""
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -267,8 +186,8 @@ Examples:
   # Basic setup (marketplace + plugin)
   curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 
-  # With workspace and hooks
-  curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace --hooks
+  # With workspace structure
+  curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace
 
   # Preview changes
   curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
@@ -288,12 +207,6 @@ Examples:
     )
 
     parser.add_argument(
-        "--hooks",
-        action="store_true",
-        help="Also install lifecycle hooks"
-    )
-
-    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Preview changes without writing"
@@ -308,11 +221,9 @@ Examples:
     print_banner()
 
     print_info(f"Target: {target}")
-    print_info(f"Plugin: {PLUGIN_NAME}")
+    print_info(f"Plugin: {PLUGIN_NAME} (includes hooks)")
     if args.workspace:
         print_info("Workspace: Yes")
-    if args.hooks:
-        print_info("Hooks: Yes")
     if args.dry_run:
         print_warning("DRY RUN - no changes will be made")
     print()
@@ -326,14 +237,7 @@ Examples:
         success = False
     print()
 
-    # 2. Hooks (optional)
-    if args.hooks:
-        print("--- Lifecycle Hooks ---")
-        if not setup_hooks(target, args.dry_run):
-            success = False
-        print()
-
-    # 3. Workspace (optional)
+    # 2. Workspace (optional)
     if args.workspace:
         print("--- Workspace Structure ---")
         if not setup_workspace(target, args.dry_run):
@@ -349,13 +253,12 @@ Examples:
         print()
         print("  Next steps:")
         print("    1. Restart Claude Code to load plugin")
-        print("    2. Run /plugin to verify installation")
+        print("    2. You'll see the welcome message on startup")
+        print("    3. Run /aisdlc-help for full guide")
         print()
-        print("  Expected output:")
-        print("    Marketplaces:")
-        print("      - aisdlc (Installed)")
-        print("    Plugins:")
-        print("      - aisdlc-methodology (Installed)")
+        print("  Plugin includes:")
+        print("    - 42 skills, 7 agents, 8 commands")
+        print("    - Lifecycle hooks (welcome, reminders, formatting)")
     else:
         print("  Setup completed with errors")
     print()

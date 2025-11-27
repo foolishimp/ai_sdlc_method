@@ -1,4 +1,5 @@
 {
+  "description": "AI SDLC Methodology lifecycle hooks: welcome message, session reminders, commit traceability checks, and code formatting",
   "hooks": {
     "SessionStart": [
       {
