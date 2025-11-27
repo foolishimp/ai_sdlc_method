@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-11-27 12:00*
+*Last Updated: 2025-11-27 14:00*
 
 ---
 
@@ -401,6 +401,14 @@ E(t) System Components:
   - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #20: Design and Implement Hooks System for Methodology Automation (2025-11-27 14:00)
+  - Created HOOKS_SYSTEM.md design document (~370 lines) with 5 design principles
+  - Created 4 lifecycle hooks in `claude-code/plugins/aisdlc-methodology/hooks/settings.json`
+  - Created ADR-007 (Hooks for Methodology Automation)
+  - Created setup_hooks.py installer (400 lines) following InstallerBase pattern
+  - Deleted orphaned `.claude/settings.json` from v0.1.0
+  - Implements: REQ-F-HOOKS-001 (NEW), REQ-NFR-CONTEXT-001
+  - See: `.ai-workspace/tasks/finished/20251127_1400_hooks_system_design_implementation.md`
 - ✅ Task #3: Complete Design Documentation for Command System (2025-11-27 12:00)
   - Created comprehensive COMMAND_SYSTEM.md (~300 lines) in docs/design/claude_aisdlc/
   - Documented all 7 v0.4 commands with decision rationale

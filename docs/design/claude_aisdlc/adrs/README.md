@@ -36,38 +36,69 @@
 - **Rationale**: DRY principle, composability, cross-stage availability
 - **Requirements**: Implicit in all stage requirements
 
+**ADR-005**: [Iterative Refinement via Feedback Loops](ADR-005-iterative-refinement-feedback-loops.md)
+- **Status**: ✅ Accepted
+- **Date**: 2025-11-25
+- **Decision**: All agents implement feedback protocols for iterative refinement
+- **Rationale**: Quality through iteration, explicit feedback mechanisms
+- **Requirements**: REQ-NFR-REFINE-001
+
+**ADR-006**: [Plugin Configuration and Discovery](ADR-006-plugin-configuration-and-discovery.md)
+- **Status**: ✅ Accepted
+- **Date**: 2025-11-27
+- **Decision**: Plugin discovery via marketplace.json with .claude-plugin/plugin.json metadata
+- **Rationale**: Standard Claude Code patterns, federated loading support
+- **Requirements**: REQ-F-PLUGIN-001, REQ-F-PLUGIN-002
+
+**ADR-007**: [Hooks for Methodology Automation](ADR-007-hooks-for-methodology-automation.md)
+- **Status**: 📋 Proposed
+- **Date**: 2025-11-27
+- **Decision**: Use lifecycle hooks to automate methodology compliance
+- **Rationale**: Implicit automation complements explicit commands
+- **Requirements**: REQ-F-HOOKS-001 (NEW), REQ-NFR-CONTEXT-001
+
 ---
 
 ## ADR Summary
 
-**Total ADRs**: 4
-**Status**: All Accepted ✅
+**Total ADRs**: 7
+**Status**: 6 Accepted ✅, 1 Proposed 📋
 **Coverage**: Core architectural decisions for MVP
 
 ### Decision Themes
 
 1. **Platform Choice** - Claude Code native (ADR-001)
 2. **Integration Mechanisms**:
-   - Commands for actions (ADR-002)
-   - Agents for personas (ADR-003)
-   - Skills for capabilities (ADR-004)
+   - Commands for explicit actions (ADR-002)
+   - Agents for stage personas (ADR-003)
+   - Skills for reusable capabilities (ADR-004)
+   - Hooks for implicit automation (ADR-007)
+3. **Quality Mechanisms**:
+   - Feedback loops for refinement (ADR-005)
+   - Plugin discovery patterns (ADR-006)
 
 ### Architecture Pattern
 
 ```
 PLATFORM: Claude Code (ADR-001)
     │
-    ├─ COMMANDS (ADR-002) ─────► Actions within conversation
+    ├─ COMMANDS (ADR-002) ─────► Explicit actions
     │                            /aisdlc-checkpoint-tasks
+    │
+    ├─ HOOKS (ADR-007) ────────► Implicit automation
+    │                            SessionStart, Stop, PreToolUse
     │
     ├─ AGENTS (ADR-003) ───────► Stage-specific personas
     │                            aisdlc-requirements-agent.md
     │
-    └─ SKILLS (ADR-004) ───────► Reusable capabilities
-                                 requirement-extraction
+    ├─ SKILLS (ADR-004) ───────► Reusable capabilities
+    │                            requirement-extraction
+    │
+    └─ PLUGINS (ADR-006) ──────► Discovery & configuration
+                                 marketplace.json, plugin.json
 ```
 
-**Result**: Coherent architecture where all pieces work together
+**Result**: Coherent architecture with explicit + implicit interaction patterns
 
 ---
 
@@ -81,8 +112,11 @@ All ADRs trace to requirements:
 | ADR-002 | REQ-F-CMD-001 |
 | ADR-003 | REQ-F-CMD-002 |
 | ADR-004 | REQ-F-PLUGIN-001 + all stage requirements |
+| ADR-005 | REQ-NFR-REFINE-001 |
+| ADR-006 | REQ-F-PLUGIN-001, REQ-F-PLUGIN-002 |
+| ADR-007 | REQ-F-HOOKS-001 (NEW), REQ-NFR-CONTEXT-001 |
 
-**Coverage**: 10+ requirements directly justified by these 4 ADRs
+**Coverage**: 15+ requirements directly justified by these 7 ADRs
 
 ---
 
@@ -117,5 +151,5 @@ All ADRs trace to requirements:
 
 ---
 
-**Last Updated**: 2025-11-25
+**Last Updated**: 2025-11-27
 **Next Review**: 2026-03-01 (post-MVP validation)
