@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-11-27 16:40*
+*Last Updated: 2025-11-27 17:20*
 
 ---
 
@@ -401,6 +401,14 @@ E(t) System Components:
   - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #22: Simplify Installer to Single-Plugin Model (2025-11-27 17:15)
+  - Simplified `aisdlc-setup.py`: removed bundles, 9-plugin selection → single `aisdlc-methodology`
+  - Removed redundant files: `setup_settings.py`, `setup_hooks.py`, `common.py`, `tests/`
+  - Updated `plugins/.claude-plugin/marketplace.json`: 8 entries → 1 entry
+  - Updated `installers/README.md` and `QUICKSTART.md`
+  - Dogfooded: added `.claude/settings.json` to this project
+  - Released v0.4.2 and pushed to GitHub
+  - Implements: REQ-F-PLUGIN-001
 - ✅ Task #21: Consolidate All Skills into aisdlc-methodology Plugin (2025-11-27 16:40)
   - Consolidated 7 separate plugins + 4 bundles into single aisdlc-methodology (v4.0.0)
   - Moved 42 skills into `skills/` directory (core, principles, requirements, design, code, testing, runtime)
