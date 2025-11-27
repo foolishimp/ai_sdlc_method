@@ -47,6 +47,45 @@ Display the full AI SDLC help guide:
   ### Release
   /aisdlc-release          Create a new release (tag + changelog)
 
+## Skills (42 total - Claude uses automatically)
+
+  Skills are invoked automatically when your task matches. Just describe what you need.
+
+  ### Core (3)
+  check-requirement-coverage, propagate-req-keys, requirement-traceability
+
+  ### Principles (2)
+  apply-key-principles, seven-questions-checklist
+
+  ### Requirements (8)
+  create-traceability-matrix, disambiguate-requirements, extract-business-rules,
+  extract-constraints, extract-formulas, refine-requirements, requirement-extraction,
+  validate-requirements
+
+  ### Design (3)
+  create-adrs, design-with-traceability, validate-design-coverage
+
+  ### Code - TDD (5)
+  red-phase, green-phase, refactor-phase, tdd-workflow, commit-with-req-tag
+
+  ### Code - BDD (5)
+  bdd-workflow, write-scenario, implement-feature, implement-step-definitions,
+  refactor-bdd
+
+  ### Code - Generation (4)
+  autogenerate-constraints, autogenerate-formulas, autogenerate-from-business-rules,
+  autogenerate-validators
+
+  ### Code - Tech Debt (4)
+  detect-complexity, detect-unused-code, prune-unused-code, simplify-complex-code
+
+  ### Testing (5)
+  create-coverage-report, create-test-specification, generate-missing-tests,
+  run-integration-tests, validate-test-coverage
+
+  ### Runtime (3)
+  create-observability-config, telemetry-tagging, trace-production-issue
+
 ## Quick Start Workflows
 
   ### Starting Fresh
