@@ -23,6 +23,7 @@
     "homeostasis"
   ],
   "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "hooks": "./hooks/hooks.json",
   "commands": [
     "./commands/aisdlc-checkpoint-tasks.md",
     "./commands/aisdlc-commit-task.md",
