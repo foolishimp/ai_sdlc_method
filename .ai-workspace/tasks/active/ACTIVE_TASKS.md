@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-11-27 14:00*
+*Last Updated: 2025-11-27 16:40*
 
 ---
 
@@ -401,6 +401,13 @@ E(t) System Components:
   - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #21: Consolidate All Skills into aisdlc-methodology Plugin (2025-11-27 16:40)
+  - Consolidated 7 separate plugins + 4 bundles into single aisdlc-methodology (v4.0.0)
+  - Moved 42 skills into `skills/` directory (core, principles, requirements, design, code, testing, runtime)
+  - Removed aisdlc-core, principles-key, all *-skills plugins, and bundles/
+  - Updated marketplace.json: 11 entries → 1 entry, no dependencies
+  - Implements: REQ-F-PLUGIN-001, REQ-F-PLUGIN-002
+  - See: `.ai-workspace/tasks/finished/20251127_1640_consolidate_skills_into_aisdlc_methodology.md`
 - ✅ Task #20: Design and Implement Hooks System for Methodology Automation (2025-11-27 14:00)
   - Created HOOKS_SYSTEM.md design document (~370 lines) with 5 design principles
   - Created 4 lifecycle hooks in `claude-code/plugins/aisdlc-methodology/hooks/settings.json`

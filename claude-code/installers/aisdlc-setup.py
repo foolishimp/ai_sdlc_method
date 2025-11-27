@@ -4,16 +4,16 @@ AI SDLC Method - One-Line Project Setup
 
 Self-contained installer that can be run directly from GitHub.
 
-# Implements: REQ-F-WORKSPACE-001 (Developer Workspace Templates)
 # Implements: REQ-F-PLUGIN-001 (Plugin System)
 
 Usage:
     # From GitHub (recommended)
     curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 
-    # With options
-    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --all
-    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --bundle enterprise
+    # With workspace and hooks
+    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace --hooks
+
+    # Preview changes
     curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
 
     # Local usage
@@ -21,22 +21,19 @@ Usage:
 
 Options:
     --target PATH       Target directory (default: current)
-    --bundle NAME       Plugin bundle: startup, enterprise, qa, datascience
-    --all               Install all plugins
     --workspace         Also create .ai-workspace/ structure
     --hooks             Also install lifecycle hooks
     --dry-run           Preview changes without writing
     --help              Show this help
 
 What it does:
-    1. Creates .claude/settings.json with AISDLC plugin configuration
-    2. Plugins load from GitHub (always up to date)
+    1. Creates .claude/settings.json with AISDLC marketplace configuration
+    2. Enables the aisdlc-methodology plugin (loads from GitHub, always up to date)
     3. Optionally creates .ai-workspace/ for task tracking
     4. Optionally installs lifecycle hooks
 """
 
 import sys
-import os
 import json
 import argparse
 from pathlib import Path
@@ -50,28 +47,10 @@ from datetime import datetime
 GITHUB_REPO = "foolishimp/ai_sdlc_method"
 PLUGINS_PATH = "claude-code/plugins"
 
-# Available plugins
-PLUGINS = {
-    "aisdlc-core": "Foundation - requirement traceability with REQ-* keys",
-    "aisdlc-methodology": "Complete 7-stage SDLC (commands, agents, templates)",
-    "principles-key": "Key Principles enforcement (TDD, Fail Fast, etc.)",
-    "code-skills": "TDD/BDD code generation skills",
-    "testing-skills": "Test coverage validation",
-    "requirements-skills": "Intent to requirements transformation",
-    "design-skills": "Architecture and ADR generation",
-    "runtime-skills": "Production feedback loop",
-    "python-standards": "Python language standards",
-}
+# The consolidated plugin (contains all 42 skills, 7 agents, 7 commands)
+PLUGIN_NAME = "aisdlc-methodology"
 
-# Plugin bundles
-BUNDLES = {
-    "startup": ["aisdlc-core", "aisdlc-methodology", "principles-key"],
-    "datascience": ["aisdlc-core", "testing-skills", "python-standards", "runtime-skills"],
-    "qa": ["testing-skills", "code-skills", "requirements-skills", "runtime-skills"],
-    "enterprise": list(PLUGINS.keys()),
-}
-
-# Lifecycle hooks
+# Lifecycle hooks (optional)
 HOOKS_CONFIG = {
     "hooks": {
         "SessionStart": [{
@@ -85,14 +64,14 @@ HOOKS_CONFIG = {
             "matcher": "",
             "hooks": [{
                 "type": "command",
-                "command": "# AISDLC hook\nif [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then MODIFIED=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); if [ \"$MODIFIED\" -gt 2 ]; then echo ''; echo \"💡 $MODIFIED uncommitted changes. Consider: /aisdlc-checkpoint-tasks\"; fi; fi"
+                "command": "# AISDLC hook\nif [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then MODIFIED=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); if [ \"$MODIFIED\" -gt 2 ]; then echo ''; echo \"  $MODIFIED uncommitted changes. Consider: /aisdlc-checkpoint-tasks\"; fi; fi"
             }]
         }],
         "PreToolUse": [{
             "matcher": "Bash",
             "hooks": [{
                 "type": "command",
-                "command": "# AISDLC hook\nif echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'git commit' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'REQ-[A-Z]+-' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'Implements:' 2>/dev/null; then echo ''; echo '⚠️  Commit may be missing REQ tag. Consider: /aisdlc-commit-task'; fi; fi; fi"
+                "command": "# AISDLC hook\nif echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'git commit' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'REQ-[A-Z]+-' 2>/dev/null; then if ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'Implements:' 2>/dev/null; then echo ''; echo '  Commit may be missing REQ tag. Consider: /aisdlc-commit-task'; fi; fi; fi"
             }]
         }],
         "PostToolUse": [{
@@ -105,7 +84,7 @@ HOOKS_CONFIG = {
     }
 }
 
-# Workspace structure
+# Workspace structure (optional)
 WORKSPACE_STRUCTURE = {
     ".ai-workspace/tasks/active/ACTIVE_TASKS.md": """# Active Tasks
 
@@ -146,29 +125,29 @@ git log --oneline -5                            # Recent commits
 def print_banner():
     """Print setup banner."""
     print()
-    print("╔══════════════════════════════════════════════════════════════╗")
-    print("║              AI SDLC Method - Project Setup                  ║")
-    print("╚══════════════════════════════════════════════════════════════╝")
+    print("+" + "=" * 62 + "+")
+    print("|" + " " * 14 + "AI SDLC Method - Project Setup" + " " * 17 + "|")
+    print("+" + "=" * 62 + "+")
     print()
 
 
 def print_success(msg):
-    print(f"✅ {msg}")
+    print(f"  [OK] {msg}")
 
 
 def print_info(msg):
-    print(f"📁 {msg}")
+    print(f"  {msg}")
 
 
 def print_warning(msg):
-    print(f"⚠️  {msg}")
+    print(f"  [WARN] {msg}")
 
 
 def print_error(msg):
-    print(f"❌ {msg}")
+    print(f"  [ERROR] {msg}")
 
 
-def setup_settings(target: Path, plugins: list, dry_run: bool) -> bool:
+def setup_settings(target: Path, dry_run: bool) -> bool:
     """Create or update .claude/settings.json with plugin configuration."""
     settings_file = target / ".claude" / "settings.json"
 
@@ -188,17 +167,15 @@ def setup_settings(target: Path, plugins: list, dry_run: bool) -> bool:
         "path": PLUGINS_PATH
     }
 
-    # Build enabled plugins
-    enabled_plugins = {f"{p}@aisdlc": True for p in plugins}
-
-    # Merge with existing
+    # Merge marketplace
     if "extraKnownMarketplaces" not in existing:
         existing["extraKnownMarketplaces"] = {}
     existing["extraKnownMarketplaces"]["aisdlc"] = {"source": marketplace_config}
 
+    # Enable plugin
     if "enabledPlugins" not in existing:
         existing["enabledPlugins"] = {}
-    existing["enabledPlugins"].update(enabled_plugins)
+    existing["enabledPlugins"][f"{PLUGIN_NAME}@aisdlc"] = True
 
     if dry_run:
         print_info(f"Would create: {settings_file}")
@@ -283,21 +260,18 @@ def setup_workspace(target: Path, dry_run: bool) -> bool:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Set up a project with AI SDLC Method plugins",
+        description="Set up a project with AI SDLC Method",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic setup (startup bundle)
-  curl -sL https://raw.githubusercontent.com/.../aisdlc-setup.py | python3 -
+  # Basic setup (marketplace + plugin)
+  curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 
-  # All plugins
-  curl -sL https://raw.githubusercontent.com/.../aisdlc-setup.py | python3 - --all
-
-  # Enterprise bundle with workspace and hooks
-  curl -sL https://raw.githubusercontent.com/.../aisdlc-setup.py | python3 - --bundle enterprise --workspace --hooks
+  # With workspace and hooks
+  curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace --hooks
 
   # Preview changes
-  curl -sL https://raw.githubusercontent.com/.../aisdlc-setup.py | python3 - --dry-run
+  curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
         """
     )
 
@@ -305,19 +279,6 @@ Examples:
         "--target",
         default=".",
         help="Target directory (default: current)"
-    )
-
-    parser.add_argument(
-        "--bundle",
-        choices=list(BUNDLES.keys()),
-        default="startup",
-        help="Plugin bundle to install (default: startup)"
-    )
-
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Install all plugins"
     )
 
     parser.add_argument(
@@ -343,17 +304,11 @@ Examples:
     # Resolve target
     target = Path(args.target).resolve()
 
-    # Determine plugins
-    if args.all:
-        plugins = list(PLUGINS.keys())
-    else:
-        plugins = BUNDLES[args.bundle]
-
     # Print banner
     print_banner()
 
     print_info(f"Target: {target}")
-    print_info(f"Plugins: {', '.join(plugins)}")
+    print_info(f"Plugin: {PLUGIN_NAME}")
     if args.workspace:
         print_info("Workspace: Yes")
     if args.hooks:
@@ -365,39 +320,44 @@ Examples:
     # Run setup
     success = True
 
-    # 1. Settings (plugins)
-    print("━━━ Plugin Configuration ━━━")
-    if not setup_settings(target, plugins, args.dry_run):
+    # 1. Settings (marketplace + plugin)
+    print("--- Plugin Configuration ---")
+    if not setup_settings(target, args.dry_run):
         success = False
     print()
 
     # 2. Hooks (optional)
     if args.hooks:
-        print("━━━ Lifecycle Hooks ━━━")
+        print("--- Lifecycle Hooks ---")
         if not setup_hooks(target, args.dry_run):
             success = False
         print()
 
     # 3. Workspace (optional)
     if args.workspace:
-        print("━━━ Workspace Structure ━━━")
+        print("--- Workspace Structure ---")
         if not setup_workspace(target, args.dry_run):
             success = False
         print()
 
     # Summary
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print("=" * 64)
     if args.dry_run:
-        print("🔍 Dry run complete - no changes made")
+        print("  Dry run complete - no changes made")
     elif success:
-        print("✅ Setup complete!")
+        print("  Setup complete!")
         print()
-        print("📝 Next steps:")
-        print("   1. Restart Claude Code to load plugins")
-        print("   2. Run /plugin to verify installation")
-        print("   3. Run /aisdlc-status to see task status")
+        print("  Next steps:")
+        print("    1. Restart Claude Code to load plugin")
+        print("    2. Run /plugin to verify installation")
+        print()
+        print("  Expected output:")
+        print("    Marketplaces:")
+        print("      - aisdlc (Installed)")
+        print("    Plugins:")
+        print("      - aisdlc-methodology (Installed)")
     else:
-        print("❌ Setup completed with errors")
+        print("  Setup completed with errors")
     print()
 
     return 0 if success else 1

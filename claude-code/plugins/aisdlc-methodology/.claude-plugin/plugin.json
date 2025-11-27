@@ -1,7 +1,7 @@
 {
   "name": "aisdlc-methodology",
-  "version": "3.0.0",
-  "description": "Complete AI SDLC methodology with 7-stage lifecycle: Requirements, Design, Tasks, Code (TDD), System Test (BDD), UAT (BDD), Runtime Feedback. Includes slash commands, stage agents, and full lifecycle traceability.",
+  "version": "4.0.0",
+  "description": "Complete AI SDLC methodology with 7-stage lifecycle, 42 skills, 7 agents, 7 commands, and 4 hooks. Single consolidated plugin for Claude Code with full traceability and homeostatic control.",
   "author": {
     "name": "foolishimp"
   },
@@ -14,13 +14,17 @@
     "bdd",
     "key-principles",
     "requirements",
+    "design",
+    "testing",
+    "runtime",
     "traceability",
     "agent-orchestration",
-    "commands",
-    "agents"
+    "skills",
+    "homeostasis"
   ],
   "homepage": "https://github.com/foolishimp/ai_sdlc_method",
   "commands": "./commands",
+  "skills": "./skills",
   "agents": [
     "./agents/aisdlc-code-agent.md",
     "./agents/aisdlc-design-agent.md",

@@ -1,59 +1,17 @@
 {
   "name": "aisdlc",
-  "description": "AI SDLC Method - Complete lifecycle with requirement traceability",
-  "version": "3.0.0",
+  "description": "AI SDLC Method - Complete 7-stage lifecycle with requirement traceability",
+  "version": "4.0.0",
   "owner": {
     "name": "foolishimp",
     "email": "https://github.com/foolishimp"
   },
   "plugins": [
     {
-      "name": "aisdlc-core",
-      "description": "Foundation plugin providing requirement traceability with REQ-* key patterns",
-      "version": "3.0.0",
-      "source": "./aisdlc-core"
-    },
-    {
       "name": "aisdlc-methodology",
-      "description": "Complete 7-stage AI SDLC methodology with commands, agents, and templates",
-      "version": "3.0.0",
+      "description": "Complete 7-stage AI SDLC methodology with 42 skills, 7 agents, 7 commands, and 4 hooks. Full traceability from intent to runtime.",
+      "version": "4.0.0",
       "source": "./aisdlc-methodology"
-    },
-    {
-      "name": "principles-key",
-      "description": "Key Principles enforcement (TDD, Fail Fast, Modular, etc.)",
-      "version": "1.0.0",
-      "source": "./principles-key"
-    },
-    {
-      "name": "requirements-skills",
-      "description": "Transform intent into structured requirements with REQ-* keys",
-      "version": "1.0.0",
-      "source": "./requirements-skills"
-    },
-    {
-      "name": "design-skills",
-      "description": "Architecture and ADR generation with traceability",
-      "version": "1.0.0",
-      "source": "./design-skills"
-    },
-    {
-      "name": "code-skills",
-      "description": "TDD/BDD code generation skills",
-      "version": "1.0.0",
-      "source": "./code-skills"
-    },
-    {
-      "name": "testing-skills",
-      "description": "Test coverage validation and generation",
-      "version": "1.0.0",
-      "source": "./testing-skills"
-    },
-    {
-      "name": "runtime-skills",
-      "description": "Production feedback loop and observability",
-      "version": "1.0.0",
-      "source": "./runtime-skills"
     }
   ]
 }

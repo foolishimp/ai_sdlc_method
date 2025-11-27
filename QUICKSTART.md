@@ -1,59 +1,16 @@
-# AI SDLC Method Quick Start Guide
+# AI SDLC Method - Quick Start
 
-Get started with the **7-Stage AI SDLC Methodology** in 5 minutes.
+Get the **7-Stage AI SDLC Methodology** running in under a minute.
 
-**Platform**: Claude Code (CLI and VS Code Extension)
-
----
-
-## What is ai_sdlc_method?
-
-An **Intent-Driven AI SDLC Methodology** providing:
-
-```
-Intent → Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
-           ↑                                                                    ↓
-           └────────────────────── Feedback Loop ──────────────────────────────┘
-```
-
-**Key Features**:
-- 7-stage lifecycle with AI agent configurations
-- Requirement traceability (REQ-F-*, REQ-NFR-*, REQ-DATA-*)
-- TDD workflow (RED → GREEN → REFACTOR)
-- BDD testing (Given/When/Then)
-- Bidirectional feedback loop
-
----
-
-## Quick Install (One Command)
-
-**From your project directory:**
+## Install
 
 ```bash
 curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 ```
 
-**That's it!** Restart Claude Code and you're ready.
+Restart Claude Code. Done.
 
-### Installation Options
-
-```bash
-# Basic setup (3 core plugins)
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
-
-# Full setup with task workspace and lifecycle hooks
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace --hooks
-
-# All 9 plugins (enterprise)
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --all
-
-# Preview changes without writing
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
-```
-
-### Verify Installation
-
-After restarting Claude Code:
+## Verify
 
 ```
 /plugin
@@ -62,28 +19,73 @@ After restarting Claude Code:
 You should see:
 ```
 Marketplaces:
-  ✔ aisdlc · Installed
+  - aisdlc (Installed)
 
 Plugins:
-  ✔ aisdlc-core · Installed
-  ✔ aisdlc-methodology · Installed
-  ✔ principles-key · Installed
+  - aisdlc-methodology (Installed)
 ```
 
-### Try It Out
+## Try It
 
 Ask Claude:
 ```
 "Help me implement user authentication following the AI SDLC methodology"
 ```
 
-Claude will guide you through all 7 stages with requirement traceability.
+Claude will guide you through the 7-stage lifecycle with requirement traceability.
 
 ---
 
-## Alternative: Manual Configuration
+## What You Get
 
-If you prefer manual setup, create `.claude/settings.json`:
+**aisdlc-methodology** - The complete AI SDLC plugin:
+- **42 skills** (requirements, design, code, testing, runtime, principles)
+- **7 agents** (one per SDLC stage)
+- **7 commands** (`/aisdlc-*`)
+- **Requirement traceability** (REQ-F-*, REQ-NFR-*, REQ-DATA-*)
+
+## The 7 Stages
+
+```
+Intent -> Requirements -> Design -> Tasks -> Code -> System Test -> UAT -> Runtime
+           ^                                                                  |
+           +--------------------------- Feedback Loop ------------------------+
+```
+
+| Stage | Purpose | Output |
+|-------|---------|--------|
+| **Requirements** | Transform intent | REQ-F-AUTH-001, REQ-NFR-PERF-001 |
+| **Design** | Technical solution | Components, APIs, data models |
+| **Tasks** | Work breakdown | Jira tickets with REQ tags |
+| **Code** | TDD implementation | Code with `# Implements: REQ-*` |
+| **System Test** | BDD integration | Given/When/Then scenarios |
+| **UAT** | Business validation | Sign-off documents |
+| **Runtime** | Production feedback | Alerts -> New intents |
+
+---
+
+## Installation Options
+
+```bash
+# Basic (marketplace + plugin)
+curl -sL .../aisdlc-setup.py | python3 -
+
+# With task workspace
+curl -sL .../aisdlc-setup.py | python3 - --workspace
+
+# With lifecycle hooks
+curl -sL .../aisdlc-setup.py | python3 - --hooks
+
+# Full setup
+curl -sL .../aisdlc-setup.py | python3 - --workspace --hooks
+
+# Preview changes
+curl -sL .../aisdlc-setup.py | python3 - --dry-run
+```
+
+## Manual Installation
+
+Create `.claude/settings.json`:
 
 ```json
 {
@@ -97,84 +99,15 @@ If you prefer manual setup, create `.claude/settings.json`:
     }
   },
   "enabledPlugins": {
-    "aisdlc-core@aisdlc": true,
-    "aisdlc-methodology@aisdlc": true,
-    "principles-key@aisdlc": true
+    "aisdlc-methodology@aisdlc": true
   }
 }
 ```
 
 ---
 
-## Available Plugins
-
-| Plugin | Description |
-|--------|-------------|
-| **aisdlc-core** | Foundation - requirement traceability with REQ-* keys |
-| **aisdlc-methodology** | Complete 7-stage SDLC (commands, agents, templates) |
-| **principles-key** | Key Principles enforcement (TDD, Fail Fast, etc.) |
-| **code-skills** | TDD/BDD code generation skills |
-| **testing-skills** | Test coverage validation |
-| **requirements-skills** | Intent to requirements transformation |
-| **design-skills** | Architecture and ADR generation |
-| **runtime-skills** | Production feedback loop |
-
-### Plugin Bundles
-
-Configure in `enabledPlugins`:
-
-| Bundle | Plugins |
-|--------|---------|
-| **startup** | aisdlc-core, aisdlc-methodology, principles-key |
-| **enterprise** | All 8 plugins |
-
----
-
-## The 7 Stages
-
-| Stage | Purpose | Output |
-|-------|---------|--------|
-| **1. Requirements** | Transform intent → structured requirements | REQ-F-AUTH-001, REQ-NFR-PERF-001 |
-| **2. Design** | Requirements → technical solution | Components, APIs, data models |
-| **3. Tasks** | Design → work units | Jira tickets with REQ tags |
-| **4. Code** | TDD implementation | Code with `# Implements: REQ-*` |
-| **5. System Test** | BDD integration testing | Feature files with Given/When/Then |
-| **6. UAT** | Business validation | Sign-off documents |
-| **7. Runtime Feedback** | Production telemetry | Alerts → New intents |
-
----
-
-## Updating
-
-**GitHub source**: Plugins update automatically when you restart Claude Code.
-
-**Local directory source**:
-```bash
-cd ~/ai_sdlc_method
-git pull origin main
-# Restart Claude Code
-```
-
----
-
 ## Next Steps
 
-- **[Complete Journey](claude-code/guides/JOURNEY.md)** - Full 7-stage walkthrough (2-3 hours)
-- **[Plugin Documentation](claude-code/README.md)** - All installation options
-- **[Methodology Overview](docs/requirements/AI_SDLC_OVERVIEW.md)** - High-level methodology introduction
+- **[Journey Guide](claude-code/guides/JOURNEY.md)** - Full 7-stage walkthrough
+- **[Methodology Overview](docs/requirements/AI_SDLC_OVERVIEW.md)** - High-level introduction
 - **[Example Projects](https://github.com/foolishimp/ai_sdlc_examples)** - Working examples
-
----
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [claude-code/README.md](claude-code/README.md) | Plugin system and installation |
-| [claude-code/guides/JOURNEY.md](claude-code/guides/JOURNEY.md) | Complete setup to UAT walkthrough |
-| [docs/requirements/AI_SDLC_OVERVIEW.md](docs/requirements/AI_SDLC_OVERVIEW.md) | Methodology overview (~30 min read) |
-| [docs/README.md](docs/README.md) | Documentation index |
-
----
-
-**"Excellence or nothing"** 🔥
