@@ -67,20 +67,14 @@ Intent -> Requirements -> Design -> Tasks -> Code -> System Test -> UAT -> Runti
 ## Installation Options
 
 ```bash
-# Basic (marketplace + plugin)
-curl -sL .../aisdlc-setup.py | python3 -
+# Basic (marketplace + plugin, hooks included automatically)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 
-# With task workspace
-curl -sL .../aisdlc-setup.py | python3 - --workspace
+# With task workspace (.ai-workspace/ structure)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace
 
-# With lifecycle hooks
-curl -sL .../aisdlc-setup.py | python3 - --hooks
-
-# Full setup
-curl -sL .../aisdlc-setup.py | python3 - --workspace --hooks
-
-# Preview changes
-curl -sL .../aisdlc-setup.py | python3 - --dry-run
+# Preview changes without writing
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
 ```
 
 ## Manual Installation
@@ -93,8 +87,7 @@ Create `.claude/settings.json`:
     "aisdlc": {
       "source": {
         "source": "github",
-        "repo": "foolishimp/ai_sdlc_method",
-        "path": "claude-code/plugins"
+        "repo": "foolishimp/ai_sdlc_method"
       }
     }
   },
