@@ -5,7 +5,7 @@ Get the **7-Stage AI SDLC Methodology** running in under a minute.
 ## Install
 
 ```bash
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/.claude-plugin/installers/aisdlc-setup.py | python3 -
 ```
 
 Restart Claude Code. Done.
@@ -68,13 +68,13 @@ Intent -> Requirements -> Design -> Tasks -> Code -> System Test -> UAT -> Runti
 
 ```bash
 # Basic (marketplace + plugin, hooks included automatically)
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/.claude-plugin/installers/aisdlc-setup.py | python3 -
 
 # With task workspace (.ai-workspace/ structure)
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/.claude-plugin/installers/aisdlc-setup.py | python3 - --workspace
 
 # Preview changes without writing
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/.claude-plugin/installers/aisdlc-setup.py | python3 - --dry-run
 ```
 
 ## Manual Installation
@@ -101,6 +101,6 @@ Create `.claude/settings.json`:
 
 ## Next Steps
 
-- **[Journey Guide](claude-code/guides/JOURNEY.md)** - Full 7-stage walkthrough
+- **[Journey Guide](.claude-plugin/guides/JOURNEY.md)** - Full 7-stage walkthrough
 - **[Methodology Overview](docs/requirements/AI_SDLC_OVERVIEW.md)** - High-level introduction
 - **[Example Projects](https://github.com/foolishimp/ai_sdlc_examples)** - Working examples
