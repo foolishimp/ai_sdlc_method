@@ -44,7 +44,6 @@ from datetime import datetime
 # =============================================================================
 
 GITHUB_REPO = "foolishimp/ai_sdlc_method"
-PLUGINS_PATH = "claude-code/plugins"
 
 # The consolidated plugin (contains all skills, agents, commands, and hooks)
 PLUGIN_NAME = "aisdlc-methodology"
@@ -122,10 +121,11 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
             print_warning("Existing settings.json has invalid JSON, will overwrite")
 
     # Build marketplace configuration
+    # Note: Only "source" and "repo" are valid fields per Claude Code docs
+    # The marketplace.json must be at .claude-plugin/marketplace.json in the repo
     marketplace_config = {
         "source": "github",
-        "repo": GITHUB_REPO,
-        "path": PLUGINS_PATH
+        "repo": GITHUB_REPO
     }
 
     # Merge marketplace
