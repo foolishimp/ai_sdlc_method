@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-11-27 17:20*
+*Last Updated: 2025-12-02 12:00*
 
 ---
 
@@ -401,6 +401,14 @@ E(t) System Components:
   - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #23: Fix GitHub Marketplace Plugin Loading (2025-12-02 12:00)
+  - Fixed plugin source path resolution (paths relative to repo root, not .claude-plugin/)
+  - Created test plugin (`testmkt/plugins/hello-world/`) to validate structure
+  - Both `hello-world@aisdlc` and `aisdlc-methodology@aisdlc` now load from GitHub
+  - Documented cache clearing procedure (`~/.claude/plugins/marketplaces/`)
+  - Verified `aisdlc-setup.py` generates correct bootstrap settings.json
+  - Implements: REQ-F-PLUGIN-001
+  - See: `.ai-workspace/tasks/finished/20251202_fix_github_marketplace_plugin_loading.md`
 - ✅ Task #22: Simplify Installer to Single-Plugin Model (2025-11-27 17:15)
   - Simplified `aisdlc-setup.py`: removed bundles, 9-plugin selection → single `aisdlc-methodology`
   - Removed redundant files: `setup_settings.py`, `setup_hooks.py`, `common.py`, `tests/`
