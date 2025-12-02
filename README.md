@@ -4,7 +4,10 @@
 
 **Mantra**: **"Excellence or nothing"** 🔥
 
-**Version**: 3.0.0
+**Version**: 0.5.0
+
+Please credit the work done here if you find it useful!
+Would love to hear your feedback, improvements, and contributions.
 
 ---
 
