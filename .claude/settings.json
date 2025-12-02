@@ -7,5 +7,7 @@
       }
     }
   },
-  "enabledPlugins": {}
+  "enabledPlugins": {
+    "aisdlc-methodology@aisdlc": true
+  }
 }
