@@ -1,3 +1,14 @@
 {
-  "enabledPlugins": {}
+  "extraKnownMarketplaces": {
+    "test-mkt": {
+      "source": {
+        "source": "github",
+        "repo": "foolishimp/ai_sdlc_method",
+        "path": "claude-code/tests/sdk/test-marketplace/.claude-plugin/marketplace.json"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "hello-world@test-mkt": true
+  }
 }
