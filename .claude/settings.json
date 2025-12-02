@@ -3,8 +3,7 @@
     "test-mkt": {
       "source": {
         "source": "github",
-        "repo": "foolishimp/ai_sdlc_method",
-        "path": "claude-code/tests/sdk/test-marketplace/.claude-plugin/marketplace.json"
+        "repo": "foolishimp/ai_sdlc_method"
       }
     }
   },

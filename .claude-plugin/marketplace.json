@@ -1,0 +1,12 @@
+{
+  "name": "test-mkt",
+  "owner": {
+    "name": "test"
+  },
+  "plugins": [
+    {
+      "name": "hello-world",
+      "source": "./claude-code/tests/sdk/test-marketplace/.claude-plugin/plugins/hello-world"
+    }
+  ]
+}
