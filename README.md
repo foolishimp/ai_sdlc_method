@@ -4,7 +4,7 @@
 
 **Mantra**: **"Excellence or nothing"** 🔥
 
-**Version**: 0.5.0
+**Version**: 0.4.8
 
 Please credit the work done here if you find it useful!
 Would love to hear your feedback, improvements, and contributions.
@@ -19,7 +19,7 @@ A complete **AI-Augmented Software Development Lifecycle (AI SDLC)** framework p
 - **🔗 Requirement Traceability**: Track requirement keys (REQ-F-*, REQ-NFR-*, REQ-DATA-*) from intent to runtime
 - **🤖 AI Agent Configurations**: Detailed specifications for AI agents at each SDLC stage
 - **⚖️ Homeostatic Control**: Sensors detect quality gaps, actuators automatically fix them
-- **📦 Claude Code Plugins**: Installable methodology and standards as plugins (9 plugins + 4 bundles)
+- **📦 Claude Code Plugin**: Single consolidated `aisdlc-methodology` plugin with 42 skills, 7 agents, 8 commands
 - **🏢 Federated Architecture**: Compose contexts across corporate → division → team → project
 - **🔄 Bidirectional Feedback**: Production issues flow back to requirements and generate new intents
 
@@ -54,21 +54,32 @@ curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude
 
 **That's it!** Restart Claude Code and you're ready.
 
+### What Gets Installed
+
+```
+your-project/
+├── .claude/settings.json          # Plugin from GitHub marketplace
+└── .ai-workspace/                  # Task tracking (created by default)
+    ├── tasks/active/ACTIVE_TASKS.md
+    ├── tasks/finished/
+    ├── templates/                  # TASK_TEMPLATE.md, FINISHED_TASK_TEMPLATE.md
+    └── config/workspace_config.yml
+```
+
 ### Installation Options
 
 ```bash
-# Basic setup (3 core plugins)
+# Full setup (plugin + workspace) - DEFAULT
 curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 
-# Full setup with task workspace and lifecycle hooks
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace --hooks
-
-# All 9 plugins (enterprise)
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --all
+# Plugin only (no workspace)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --no-workspace
 
 # Preview changes without writing
 curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
 ```
+
+**Safe to re-run**: Existing files (tasks, finished work) are preserved.
 
 **What you get**:
 - Complete 7-stage AI SDLC workflow
@@ -76,8 +87,7 @@ curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude
 - TDD workflow (RED → GREEN → REFACTOR)
 - BDD testing guidelines
 - Requirement traceability framework (REQ-F-*, REQ-NFR-*, REQ-DATA-*)
-- Lifecycle hooks for methodology automation (with `--hooks`)
-- Task management workspace (with `--workspace`)
+- Task management workspace with templates
 
 ### Verify Installation
 
@@ -247,205 +257,42 @@ The Code Stage (Section 7.0) is built on these principles:
 
 ---
 
-## Available Plugins
-
-### Foundation Layer
-
-#### aisdlc-core v3.0.0 ⭐
-
-**Requirement traceability foundation** with homeostatic control
-
-**Provides**:
-- REQ-* key pattern recognition and tracking
-- Coverage detection (sensor)
-- Key propagation (actuator)
-- Foundation for all AI SDLC plugins
-
-**Dependencies**: None (foundation)
-**Keywords**: traceability, requirements, homeostasis, sensor, actuator
-
-👉 [Full Documentation](claude-code/plugins/aisdlc-core/README.md)
-
----
-
-### Methodology Layer
-
-#### aisdlc-methodology v2.0.0
-
-**Core AI SDLC methodology** - Complete 7-stage workflow
-
-**Provides**:
-- ✅ Complete 7-stage AI SDLC agent configurations (1,273 lines)
-- ✅ Key Principles development principles
-- ✅ TDD workflow (RED → GREEN → REFACTOR)
-- ✅ BDD testing guidelines (Given/When/Then)
-- ✅ Requirement traceability framework
-- ✅ Quality gates for each stage
-- ✅ Persona specifications (human roles + AI agents)
-
-**Dependencies**: `aisdlc-core`
-**Keywords**: methodology, multi-stage, tdd, bdd, traceability, agent-orchestration
-
-👉 [Full Documentation](claude-code/plugins/aisdlc-methodology/README.md)
-
-#### principles-key v1.0.0
-
-**Seven Key Principles enforcement** with quality gates
-
-**Provides**:
-- The 7 Key Principles for development excellence
-- Seven Questions Checklist (sensor)
-- Principle validation and enforcement
-- Code quality gates
-
-**Dependencies**: `aisdlc-core`
-**Keywords**: principles, key-principles, tdd, code-quality, excellence, sensor
-
-👉 [Full Documentation](claude-code/plugins/principles-key/README.md)
-
----
-
-### Skills Layer
-
-#### requirements-skills v1.0.0
-
-**Transform intent into structured requirements**
-
-**Provides**:
-- Intent to REQ-* key transformation
-- Requirement disambiguation (business rules, constraints, formulas)
-- Requirements refinement loop
-- Requirement extraction and validation
-
-**Dependencies**: `aisdlc-core`
-**Keywords**: requirements, requirement-extraction, disambiguation, intent, refinement-loop
-
-👉 [Full Documentation](claude-code/plugins/requirements-skills/README.md)
-
-#### design-skills v1.0.0
-
-**Architecture and ADRs with traceability**
-
-**Provides**:
-- Requirements to solution architecture transformation
-- Architecture Decision Records (ADRs)
-- Design coverage validation
-- Ecosystem acknowledgment E(t)
-
-**Dependencies**: `aisdlc-core`, `requirements-skills`
-**Keywords**: design, architecture, adr, solution-design, traceability, ecosystem
-
-👉 [Full Documentation](claude-code/plugins/design-skills/README.md)
-
-#### code-skills v1.0.0
-
-**TDD, BDD, and code generation**
-
-**Provides**:
-- TDD workflow (RED→GREEN→REFACTOR)
-- BDD (Given/When/Then)
-- Code generation from business rules
-- Tech debt management (Principle #6 enforcement - actuator)
-
-**Dependencies**: `aisdlc-core`
-**Keywords**: tdd, bdd, code-generation, tech-debt, refactoring, homeostasis, actuator
-
-👉 [Full Documentation](claude-code/plugins/code-skills/README.md)
-
-#### testing-skills v1.0.0
-
-**Coverage validation and test generation**
-
-**Provides**:
-- Test coverage validation
-- Missing test detection (sensor)
-- Automatic test generation (actuator)
-- Integration testing
-- Coverage reporting with requirement traceability
-
-**Dependencies**: `aisdlc-core`
-**Keywords**: testing, test-coverage, coverage-validation, test-generation, homeostasis, sensor, actuator
-
-👉 [Full Documentation](claude-code/plugins/testing-skills/README.md)
-
-#### runtime-skills v1.0.0
-
-**Production feedback loop**
-
-**Provides**:
-- Telemetry tagging with REQ-* keys
-- Observability setup (Datadog, Prometheus)
-- Production issue tracing back to intent
-- Homeostatic production monitoring
-
-**Dependencies**: `aisdlc-core`
-**Keywords**: runtime, telemetry, observability, production, feedback-loop, monitoring, homeostasis
-
-👉 [Full Documentation](claude-code/plugins/runtime-skills/README.md)
-
----
-
-### Standards Layer
-
-#### python-standards v1.0.0
-
-**Python language standards** - PEP 8, pytest, type hints, tooling
-
-**Provides**:
-- PEP 8 style guidelines
-- Python testing practices (pytest, coverage >80%)
-- Type hints and docstring standards
-- Tooling configuration (black, mypy, pylint, pytest)
-- Python project structure best practices
-
-**Dependencies**: `aisdlc-methodology`
-**Keywords**: python, pep8, pytest, standards, best-practices
-
-👉 [Full Documentation](claude-code/plugins/python-standards/README.md)
-
----
-
-### Bundles
-
-#### startup-bundle v1.0.0
-
-**Quick-start for startups and solo developers**
-
-**Includes**: `aisdlc-core`, `code-skills`, `principles-key`
-**Best For**: Solo developers, startups, quick projects
-**Focus**: Minimal overhead, maximum quality, TDD workflow
-
-👉 [Full Documentation](claude-code/plugins/bundles/startup-bundle/README.md)
-
-#### datascience-bundle v1.0.0
-
-**AI SDLC for data science and ML workflows**
-
-**Includes**: `aisdlc-core`, `code-skills`, `testing-skills`
-**Best For**: Data science teams, ML projects
-**Focus**: REPL-driven development (planned), notebook-to-module extraction (planned)
-
-👉 [Full Documentation](claude-code/plugins/bundles/datascience-bundle/README.md)
-
-#### qa-bundle v1.0.0
-
-**Testing-focused for QA teams**
-
-**Includes**: `aisdlc-core`, `requirements-skills`, `code-skills`, `testing-skills`
-**Best For**: QA teams, test-first development
-**Focus**: BDD scenarios, coverage validation, requirements-to-tests traceability
-
-👉 [Full Documentation](claude-code/plugins/bundles/qa-bundle/README.md)
-
-#### enterprise-bundle v1.0.0
-
-**Complete 7-stage AI SDLC for enterprise**
-
-**Includes**: All plugins (aisdlc-core, requirements-skills, design-skills, code-skills, testing-skills, runtime-skills, principles-key)
-**Best For**: Enterprise teams, full governance
-**Focus**: Complete lifecycle, traceability, compliance, feedback loop
-
-👉 [Full Documentation](claude-code/plugins/bundles/enterprise-bundle/README.md)
+## The Plugin: aisdlc-methodology
+
+A single consolidated plugin containing everything:
+
+### What's Included
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| **Skills** | 42 | Requirements, design, code, testing, runtime, principles |
+| **Agents** | 7 | One per SDLC stage |
+| **Commands** | 8 | `/aisdlc-*` slash commands |
+| **Hooks** | 4 | Welcome, reminders, formatting |
+
+### Skills by Category
+
+- **Core Skills**: Requirement traceability, key propagation, coverage detection
+- **Requirements Skills**: Intent transformation, disambiguation, refinement
+- **Design Skills**: Architecture, ADRs, solution design
+- **Code Skills**: TDD workflow (RED→GREEN→REFACTOR), BDD, tech debt management
+- **Testing Skills**: Coverage validation, test generation, integration testing
+- **Runtime Skills**: Telemetry, observability, feedback loop
+- **Principles Skills**: 7 Key Principles enforcement, quality gates
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/aisdlc-help` | Full methodology guide |
+| `/aisdlc-status` | Task queue status |
+| `/aisdlc-checkpoint-tasks` | Save progress, create finished task docs |
+| `/aisdlc-finish-task <id>` | Complete a specific task |
+| `/aisdlc-commit-task <id>` | Generate commit message with REQ tags |
+| `/aisdlc-release` | Create new project release |
+| `/aisdlc-refresh-context` | Reload methodology context |
+
+👉 [Full Plugin Documentation](.claude-plugin/plugins/aisdlc-methodology/README.md)
 
 ---
 
@@ -624,27 +471,24 @@ ai_sdlc_method/
 │   ├── guides/                      # Role-specific guides
 │   └── README.md                    # Documentation index
 │
-├── claude-code/plugins/                         # Claude Code plugins and skills
-│   ├── aisdlc-methodology/          # 7-stage AI SDLC v2.0.0
-│   │   ├── .claude-plugin/
-│   │   │   └── plugin.json          # Plugin metadata (7 stages)
-│   │   ├── config/
-│   │   │   ├── stages_config.yml    # Complete 7-stage agent specs (1,273 lines)
-│   │   │   └── config.yml           # Key Principles + TDD workflow
-│   │   ├── docs/                    # Methodology documentation
-│   │   └── README.md                # Plugin overview
-│   │
-│   ├── code-skills/                 # Code generation skills plugin
-│   ├── python-standards/            # Python standards plugin
-│   └── README.md                    # Plugin creation guide
+├── .claude-plugin/                  # Marketplace root (GitHub discovery)
+│   ├── marketplace.json             # Plugin registry
+│   └── plugins/
+│       └── aisdlc-methodology/      # The consolidated plugin
+│           ├── .claude-plugin/plugin.json
+│           ├── skills/              # 42 skills (7 categories)
+│           ├── agents/              # 7 SDLC stage agents
+│           ├── commands/            # 8 slash commands
+│           ├── hooks/               # 4 lifecycle hooks
+│           ├── config/              # stages_config.yml, config.yml
+│           └── docs/                # Principles, TDD workflow
 │
-├── installers/                      # Python installation scripts
-│   └── README.md                    # Installation scripts documentation
+├── claude-code/installers/          # Installation scripts
+│   ├── aisdlc-setup.py              # One-liner installer
+│   └── tests/                       # 23 unit tests
 │
-├── .claude-plugin/                  # Root plugin metadata
-│   └── plugin.json                  # Repository as plugin
+├── testmkt/plugins/hello-world/     # Test plugin for validation
 │
-├── marketplace.json                 # Claude Code marketplace registry
 ├── CLAUDE.md                        # Claude Code guidance
 ├── QUICKSTART.md                    # Quick start guide
 └── README.md                        # This file
@@ -703,27 +547,23 @@ ai_sdlc_method/
 
 ## Updating Your Installation
 
-### Reset Installation (Recommended)
-
-The reset installer cleanly updates to a specific version, removing stale files while preserving your work:
+Simply re-run the installer. It's safe and preserves your work:
 
 ```bash
-cd /path/to/your/project
-
-# One-liner via curl (no clone needed)
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 -
-
-# Specific version
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --version v0.2.0
-
-# Preview first
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --dry-run
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 ```
 
-**Preserves**: `.ai-workspace/tasks/active/`, `.ai-workspace/tasks/finished/` (your work)
-**Replaces**: `.claude/commands/`, `.claude/agents/`, `.ai-workspace/templates/`, `.ai-workspace/config/` (framework code)
+**Preserved**:
+- `.ai-workspace/tasks/active/ACTIVE_TASKS.md` (your tasks)
+- `.ai-workspace/tasks/finished/*` (completed work)
+- Any customized templates
 
-See [installers/README.md](installers/README.md) for complete documentation.
+**Created if missing**:
+- `.claude/settings.json`
+- `.ai-workspace/templates/*`
+- `.ai-workspace/config/*`
+
+The plugin itself always loads fresh from GitHub, so you automatically get the latest version.
 
 ---
 
@@ -770,31 +610,33 @@ MIT
 
 ## Version History
 
-### v3.0.0 (2025-11-24) - Homeostatic Control Architecture ⭐
-- ✨ Added homeostatic control system (sensors + actuators)
-- ✨ Promoted `aisdlc-core` to v3.0.0 as foundation plugin
-- ✨ Added 5 skills plugins (requirements, design, code, testing, runtime)
-- ✨ Added `principles-key` plugin (Seven Principles enforcement)
-- ✨ Added 4 bundles (startup, datascience, qa, enterprise)
-- ✨ Sensors: Coverage detection, missing test detection, Seven Questions Checklist
-- ✨ Actuators: Key propagation, test generation, tech debt pruning
-- ✨ Complete marketplace registry with 9 plugins + 4 bundles
-- ✨ Enhanced plugin architecture with clear layer separation
-- 🔄 Refactored to modular, composable plugin system
+### v0.4.8 (2025-12-02) - Installer Tests & Documentation ⭐
+- ✨ Full workspace created by default (includes templates)
+- ✨ 23 unit tests for installer
+- ✨ Updated QUICKSTART.md and README.md
+- ✨ Safe re-run (preserves existing work)
+- 🔧 Fixed installer URL paths
 
-### v2.0.0 (2025-11-14) - 7-Stage AI SDLC
-- ✨ Added complete 7-stage AI SDLC methodology
-- ✨ Added requirement traceability framework (REQ-* keys)
-- ✨ Added AI agent specifications for each stage
-- ✨ Added BDD testing guidelines (System Test & UAT stages)
-- ✨ Added Runtime Feedback stage with observability integration
-- ✨ Added complete example project (customer_portal)
-- ✨ Added comprehensive methodology guide (3,300+ lines)
+### v0.4.7 (2025-12-02) - Full Workspace Setup
+- ✨ Embedded all templates in installer (TASK_TEMPLATE, FINISHED_TASK_TEMPLATE, etc.)
+- ✨ Workspace created by default (use `--no-workspace` to skip)
+- ✨ Proper dogfooding (project loads its own plugin from GitHub)
 
-### v1.0.0 (2025-10-17) - Initial Release
-- Initial release with Key Principles principles
-- TDD workflow for Code stage
-- Claude Code plugin marketplace
+### v0.4.6 (2025-12-02) - GitHub Marketplace Fix
+- 🐛 Fixed plugin source path resolution (relative to repo root)
+- ✨ Added test plugin for marketplace validation
+- ✨ Both hello-world and aisdlc-methodology load from GitHub
+
+### v0.4.0-0.4.5 (2025-11-27) - Plugin Consolidation
+- 🔄 Consolidated 9 plugins + 4 bundles into single `aisdlc-methodology`
+- 🔄 Simplified installer to single-plugin model
+- ✨ Added lifecycle hooks (welcome, reminders, formatting)
+- ✨ 42 skills, 7 agents, 8 commands in one plugin
+
+### v0.1.0-v0.3.0 (2025-11) - Foundation
+- Initial 7-stage AI SDLC methodology
+- Multi-plugin architecture (later consolidated)
+- Key Principles + TDD workflow
 
 ---
 
