@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "hello-world",
-      "source": "./claude-code/tests/sdk/test-marketplace/.claude-plugin/plugins/hello-world"
+      "source": "./plugins/hello-world"
     }
   ]
 }
