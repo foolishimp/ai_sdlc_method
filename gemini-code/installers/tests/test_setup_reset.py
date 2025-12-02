@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 # Add installers to path
-# claude-code/installers/tests/test_*.py -> parent is installers directory
+# gemini-code/installers/tests/test_*.py -> parent is installers directory
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from setup_reset import ResetInstaller, RESET_DIRECTORIES, PRESERVE_PATHS
@@ -72,7 +72,7 @@ class TestDryRunMode:
         """
         # Record original state
         original_active_content = (existing_installation / ".ai-workspace" / "tasks" / "active" / "ACTIVE_TASKS.md").read_text()
-        original_commands = list((existing_installation / ".claude" / "commands").iterdir())
+        original_commands = list((existing_installation / ".gemini" / "commands").iterdir())
 
         installer = ResetInstaller(
             target=str(existing_installation),
@@ -86,7 +86,7 @@ class TestDryRunMode:
 
         # Verify no changes were made
         assert (existing_installation / ".ai-workspace" / "tasks" / "active" / "ACTIVE_TASKS.md").read_text() == original_active_content
-        assert list((existing_installation / ".claude" / "commands").iterdir()) == original_commands
+        assert list((existing_installation / ".gemini" / "commands").iterdir()) == original_commands
 
         # Verify plan was shown
         captured = capsys.readouterr()
@@ -183,7 +183,7 @@ class TestRemoveOldFiles:
         Validates: REQ-F-RESET-001
         """
         # Verify old command exists
-        old_command = existing_installation / ".claude" / "commands" / "old-command.md"
+        old_command = existing_installation / ".gemini" / "commands" / "old-command.md"
         assert old_command.exists()
 
         installer = ResetInstaller(
@@ -200,7 +200,7 @@ class TestRemoveOldFiles:
         assert not old_command.exists()
 
         # New command from template should exist
-        new_command = existing_installation / ".claude" / "commands" / "test-command.md"
+        new_command = existing_installation / ".gemini" / "commands" / "test-command.md"
         assert new_command.exists()
 
     # TC-RST-005: Remove Old Agents
@@ -209,7 +209,7 @@ class TestRemoveOldFiles:
         TC-RST-005: Old agents are removed and fresh ones installed
         Validates: REQ-F-RESET-001
         """
-        old_agent = existing_installation / ".claude" / "agents" / "old-agent.md"
+        old_agent = existing_installation / ".gemini" / "agents" / "old-agent.md"
         assert old_agent.exists()
 
         installer = ResetInstaller(
@@ -226,7 +226,7 @@ class TestRemoveOldFiles:
         assert not old_agent.exists()
 
         # New agent from template should exist
-        new_agent = existing_installation / ".claude" / "agents" / "test-agent.md"
+        new_agent = existing_installation / ".gemini" / "agents" / "test-agent.md"
         assert new_agent.exists()
 
     def test_reset_directories_match_constants(self):
@@ -234,7 +234,7 @@ class TestRemoveOldFiles:
         RESET_DIRECTORIES constant includes expected directories
         Validates: REQ-F-RESET-001
         """
-        assert ".claude" in RESET_DIRECTORIES
+        assert ".gemini" in RESET_DIRECTORIES
         assert ".ai-workspace" in RESET_DIRECTORIES
 
 
@@ -258,8 +258,8 @@ class TestBackupCreation:
         assert installer.backup_dir is not None
         assert installer.backup_dir.exists()
 
-        # Backup should contain .claude and .ai-workspace
-        assert (installer.backup_dir / ".claude").exists()
+        # Backup should contain .gemini and .ai-workspace
+        assert (installer.backup_dir / ".gemini").exists()
         assert (installer.backup_dir / ".ai-workspace").exists()
 
         captured = capsys.readouterr()
@@ -303,7 +303,7 @@ class TestVersionManagement:
         assert result is True
 
         # Files from temp_source should be installed
-        assert (existing_installation / ".claude" / "commands" / "test-command.md").exists()
+        assert (existing_installation / ".gemini" / "commands" / "test-command.md").exists()
 
     # TC-RST-008: Reset from Local Source
     def test_reset_from_local_source(self, existing_installation, temp_source):
@@ -322,7 +322,7 @@ class TestVersionManagement:
 
         assert result is True
         # Use resolve() to handle macOS symlinks
-        assert installer.templates_root.resolve() == (temp_source / "claude-code" / "project-template").resolve()
+        assert installer.templates_root.resolve() == (temp_source / "gemini-code" / "project-template").resolve()
 
 
 class TestErrorHandling:
@@ -398,7 +398,7 @@ class TestResolveSource:
 
         assert result is True
         # Use resolve() to handle macOS symlinks
-        assert installer.templates_root.resolve() == (temp_source / "claude-code" / "project-template").resolve()
+        assert installer.templates_root.resolve() == (temp_source / "gemini-code" / "project-template").resolve()
 
     def test_resolve_github_dry_run(self, temp_target):
         """
@@ -475,12 +475,12 @@ class TestShowPlan:
             target=str(existing_installation),
             source=str(temp_source)
         )
-        installer.templates_root = temp_source / "claude-code" / "project-template"
+        installer.templates_root = temp_source / "gemini-code" / "project-template"
 
         installer._show_plan()
 
         captured = capsys.readouterr()
-        assert ".claude" in captured.out
+        assert ".gemini" in captured.out
         assert ".ai-workspace" in captured.out
 
     def test_show_plan_lists_preserve_paths(self, existing_installation, temp_source, capsys):
@@ -492,7 +492,7 @@ class TestShowPlan:
             target=str(existing_installation),
             source=str(temp_source)
         )
-        installer.templates_root = temp_source / "claude-code" / "project-template"
+        installer.templates_root = temp_source / "gemini-code" / "project-template"
 
         installer._show_plan()
 
@@ -506,18 +506,18 @@ class TestInstallFresh:
 
     def test_install_fresh_creates_claude_dir(self, temp_target, temp_source):
         """
-        _install_fresh creates .claude directory
+        _install_fresh creates .gemini directory
         Validates: REQ-F-RESET-001
         """
         installer = ResetInstaller(target=str(temp_target))
-        installer.templates_root = temp_source / "claude-code" / "project-template"
+        installer.templates_root = temp_source / "gemini-code" / "project-template"
 
         result = installer._install_fresh()
 
         assert result is True
-        assert (temp_target / ".claude").exists()
-        assert (temp_target / ".claude" / "commands").exists()
-        assert (temp_target / ".claude" / "agents").exists()
+        assert (temp_target / ".gemini").exists()
+        assert (temp_target / ".gemini" / "commands").exists()
+        assert (temp_target / ".gemini" / "agents").exists()
 
     def test_install_fresh_creates_workspace(self, temp_target, temp_source):
         """
@@ -525,7 +525,7 @@ class TestInstallFresh:
         Validates: REQ-F-RESET-001
         """
         installer = ResetInstaller(target=str(temp_target))
-        installer.templates_root = temp_source / "claude-code" / "project-template"
+        installer.templates_root = temp_source / "gemini-code" / "project-template"
 
         result = installer._install_fresh()
 
@@ -666,8 +666,8 @@ class TestFullResetWorkflow:
         assert len(list((existing_installation / ".ai-workspace" / "tasks" / "finished").glob("*.md"))) == len(finished_files)
 
         # Framework updated
-        assert (existing_installation / ".claude" / "commands" / "test-command.md").exists()
-        assert not (existing_installation / ".claude" / "commands" / "old-command.md").exists()
+        assert (existing_installation / ".gemini" / "commands" / "test-command.md").exists()
+        assert not (existing_installation / ".gemini" / "commands" / "old-command.md").exists()
 
     def test_reset_is_idempotent(self, existing_installation, temp_source):
         """
@@ -683,7 +683,7 @@ class TestFullResetWorkflow:
         result1 = installer1.run()
 
         # Record state after first reset
-        commands_after_1 = set(f.name for f in (existing_installation / ".claude" / "commands").glob("*.md"))
+        commands_after_1 = set(f.name for f in (existing_installation / ".gemini" / "commands").glob("*.md"))
 
         # Second reset
         installer2 = ResetInstaller(
@@ -694,7 +694,7 @@ class TestFullResetWorkflow:
         result2 = installer2.run()
 
         # Record state after second reset
-        commands_after_2 = set(f.name for f in (existing_installation / ".claude" / "commands").glob("*.md"))
+        commands_after_2 = set(f.name for f in (existing_installation / ".gemini" / "commands").glob("*.md"))
 
         assert result1 is True
         assert result2 is True

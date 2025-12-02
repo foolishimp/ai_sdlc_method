@@ -21,23 +21,34 @@
 
 ## Step-by-Step Setup
 
-### Step 1: Install AI SDLC Plugin (One-Time)
+### Step 1: Install AI SDLC Plugin
 
-**Do this ONCE** - the plugin will be available to all your future projects.
+The AI SDLC methodology plugin can be installed using the Python installer:
 
 ```bash
-# In Claude Code
-/plugin marketplace add foolishimp/ai_sdlc_method
-/plugin install @aisdlc/aisdlc-methodology
+# Navigate to your project
+cd /path/to/your-project
+
+# Run the installer from the ai_sdlc_method repository
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
+
+# This creates:
+# .claude-plugin/plugins/aisdlc-methodology/
+#   ├── agents/        (7 stage personas)
+#   ├── commands/      (8 slash commands)
+#   ├── skills/        (42 skills)
+#   ├── config/        (stage configurations)
+#   ├── templates/     (workspace scaffolding)
+#   └── hooks/         (lifecycle hooks)
 ```
 
 **Verify installation**:
 ```bash
-/plugin list
-# Should see: @aisdlc/aisdlc-methodology v2.0.0
+ls .claude-plugin/plugins/aisdlc-methodology/
+# Should show: agents/, commands/, skills/, config/, templates/, hooks/
 ```
 
-✅ **You only need to do this once!** The methodology is now available to all projects.
+✅ The plugin is now installed in your project!
 
 ---
 
@@ -54,35 +65,24 @@ git init
 
 ---
 
-### Step 3: Optional - Install Development Tools
+### Step 3: Optional - Install Workspace Templates
 
-For advanced features like workspace management and custom commands, you can install additional tools from the ai_sdlc_method repository:
+The installer can also set up workspace templates for task tracking:
 
 ```bash
-# Clone the repository (if you haven't already)
-git clone https://github.com/foolishimp/ai_sdlc_method.git
-
-# Run installer from the repository
-cd my-new-project
-python ../ai_sdlc_method/installers/setup_all.py
-
-# This installs:
-# - .ai-workspace/ (task tracking, session management)
-# - .claude/commands/ (slash commands)
-# - .claude/agents/ (7-stage agent definitions)
-# - CLAUDE.md (project guidance)
+# The installer creates workspace structure
+# .ai-workspace/
+#   ├── tasks/
+#   │   ├── active/ACTIVE_TASKS.md
+#   │   ├── finished/
+#   │   └── archive/
+#   ├── templates/
+#   │   └── AISDLC_METHOD_REFERENCE.md
+#   └── config/
+#       └── workspace_config.yml
 ```
 
-**Output**:
-```
-✅ Developer Workspace (.ai-workspace/)
-✅ Claude Commands (.claude/commands/)
-✅ Agent Definitions (.claude/agents/)
-✅ CLAUDE.md
-✅ .gitignore
-```
-
-**Note**: This step is optional. The plugin alone provides the complete 7-stage methodology.
+**Note**: The aisdlc-methodology plugin includes templates. You can use the installer's `--templates` flag if you want to install them separately.
 
 ---
 
@@ -192,9 +192,7 @@ project:
 # ============================================================================
 
 ai_sdlc:
-  # Load 7-stage methodology from global plugins
-  methodology_plugin: "~/.config/claude/claude-code/plugins/aisdlc-methodology/config/stages_config.yml"
-  principles_key: "~/.config/claude/claude-code/plugins/principles-key/config/config.yml"
+  # Plugin is loaded from .claude-plugin/plugins/aisdlc-methodology/
 
   # Enable stages you want to use
   enabled_stages:
@@ -221,23 +219,19 @@ ai_sdlc:
         - type: data_quality
           prefix: REQ-DATA
 
-      quality_gates:
-        - all_requirements_have_unique_keys: true
-        - all_requirements_have_acceptance_criteria: true
-
     code:
       testing:
         coverage_minimum: 80
         tdd_required: true
 
-      principles_key:
+      key_principles:
         enabled: true
         enforce_tdd: true
 
     system_test:
       bdd:
         enabled: true
-        framework: cucumber  # or: behave, jest-cucumber
+        framework: behave  # or: cucumber, pytest-bdd
 
       coverage_minimum: 90
 EOF
@@ -269,18 +263,26 @@ git commit -m "Initial project setup with AI SDLC Method
 
 ---
 
-### Step 7: Start Your First AI SDLC Session
+### Step 7: Start Using the Methodology
+
+You can now use Claude with the AI SDLC methodology. The plugin provides slash commands:
 
 ```bash
-# Start development session
-# (This command works because you installed .claude/commands/)
-/start-session
+# Check methodology status
+/aisdlc-status
+
+# View available commands
+/aisdlc-help
+
+# Checkpoint your work
+/aisdlc-checkpoint-tasks
 ```
 
-**Claude will prompt you for**:
-- Primary goal (e.g., "Generate requirements from INTENT.md")
-- Secondary goal
-- Working mode (TDD / Exploration / etc.)
+Ask Claude to help with any SDLC stage:
+```
+"Generate requirements from INTENT.md using the Requirements Agent"
+"Design the authentication service following the Design Agent specifications"
+```
 
 ---
 
@@ -290,30 +292,29 @@ After setup, your project should look like this:
 
 ```
 my-new-project/
-├── .ai-workspace/               # Developer Workspace
-│   ├── README.md
-│   ├── config/
-│   │   └── workspace_config.yml
-│   ├── tasks/
-│   │   ├── todo/TODO_LIST.md
-│   │   ├── active/ACTIVE_TASKS.md
-│   │   ├── finished/
-│   │   └── archive/
-│   └── templates/
+├── .claude-plugin/              # Claude Code plugins
+│   └── plugins/
+│       └── aisdlc-methodology/  # AI SDLC methodology plugin
+│           ├── agents/          # 7 stage personas
+│           ├── commands/        # 8 slash commands
+│           ├── skills/          # 42 skills
+│           ├── config/          # Stage configurations
+│           ├── templates/       # Workspace scaffolding
+│           └── hooks/           # Lifecycle hooks
 │
-├── .claude/                     # Claude Code integration
-│   ├── commands/                # Slash commands
-│   │   ├── todo.md
-│   │   ├── start-session.md
-│   │   ├── finish-task.md
-│   │   └── ... (10+ more)
-│   └── hooks.json
+├── .ai-workspace/               # Optional: Developer workspace
+│   ├── tasks/
+│   │   ├── active/ACTIVE_TASKS.md
+│   │   └── finished/
+│   ├── templates/
+│   │   └── AISDLC_METHOD_REFERENCE.md
+│   └── config/
+│       └── workspace_config.yml
 │
 ├── config/
 │   └── config.yml               # AI SDLC configuration
 │
 ├── INTENT.md                    # Your project intent (INT-001)
-├── CLAUDE.md                    # Project guidance
 ├── .gitignore                   # Git configuration
 └── README.md                    # (Create this next)
 ```
@@ -429,15 +430,17 @@ Ask Claude:
 
 ## Available Slash Commands
 
-Once installed, you can use:
+The aisdlc-methodology plugin provides 8 commands:
 
 ```bash
-/todo "description"          # Quick capture a todo
-/start-session               # Begin development session
-/finish-task <id>            # Complete task with documentation
-/commit-task <id>            # Generate commit message
-/current-context             # Show current stage context
-/load-context                # Load project configuration
+/aisdlc-status               # Show methodology status
+/aisdlc-help                 # View available commands and agents
+/aisdlc-checkpoint-tasks     # Save current task state
+/aisdlc-commit-task          # Generate commit message for task
+/aisdlc-finish-task          # Complete task with documentation
+/aisdlc-refresh-context      # Reload methodology configuration
+/aisdlc-release              # Generate release manifest
+/aisdlc-update               # Update methodology to latest version
 ```
 
 ---
@@ -449,18 +452,19 @@ Once installed, you can use:
 ```bash
 # Morning routine
 cd /path/to/my-new-project
-/start-session
 
-# Capture thoughts during coding
-/todo "add error handling to payment flow"
-/todo "investigate slow query"
+# Check methodology status
+/aisdlc-status
+
+# Work on features
+# (Use Claude to help with TDD, design, requirements, etc.)
+
+# Checkpoint your work
+/aisdlc-checkpoint-tasks
 
 # Complete a task
-/finish-task 5
-/commit-task 5
-
-# End of day
-cat .ai-workspace/session/current_session.md  # Review progress
+/aisdlc-finish-task
+/aisdlc-commit-task
 ```
 
 ### Adding Features
@@ -472,12 +476,10 @@ cat > INTENT_002.md <<EOF
 ...
 EOF
 
-# 2. Start session
-/start-session
-
-# 3. Ask Claude to run through 7 stages
-# Stage 1: Requirements
-# Stage 2: Design
+# 2. Ask Claude to guide you through the 7 stages
+# "Generate requirements from INTENT_002.md"
+# "Create design for the new feature"
+# "Implement using TDD workflow"
 # ... etc
 ```
 
@@ -547,21 +549,24 @@ Update `.ai-workspace/session/current_session.md` regularly.
 
 ```bash
 # Check if commands installed
-ls .claude/commands/
+ls .claude-plugin/plugins/aisdlc-methodology/commands/
+
+# Should show 8 commands (aisdlc-*.md)
 
 # Reinstall if needed
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_commands.py --force
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
 ```
 
-### Issue: Plugins not loading
+### Issue: Plugin not loading
 
 ```bash
-# Check global plugins
-ls ~/.config/claude/claude-code/plugins/
+# Check plugin structure
+ls .claude-plugin/plugins/aisdlc-methodology/
+
+# Should show: agents/, commands/, skills/, config/, templates/, hooks/
 
 # Reinstall if needed
-cd /Users/jim/src/apps/ai_sdlc_method
-python installers/setup_plugins.py --global --bundle startup --force
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
 ```
 
 ### Issue: Configuration not found
@@ -570,19 +575,14 @@ python installers/setup_plugins.py --global --bundle startup --force
 # Check config file exists
 cat config/config.yml
 
-# Verify plugin paths
-ls ~/.config/claude/claude-code/plugins/aisdlc-methodology/config/stages_config.yml
+# Verify plugin config files
+ls .claude-plugin/plugins/aisdlc-methodology/config/stages_config.yml
+ls .claude-plugin/plugins/aisdlc-methodology/config/config.yml
 ```
 
 ---
 
 ## Quick Reference Card
-
-### One-Time Global Setup
-```bash
-cd /Users/jim/src/apps/ai_sdlc_method
-python installers/setup_plugins.py --global --bundle startup
-```
 
 ### For Each New Project
 ```bash
@@ -590,15 +590,16 @@ python installers/setup_plugins.py --global --bundle startup
 mkdir my-new-project && cd my-new-project
 git init
 
-# 2. Install tools
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_all.py
+# 2. Install AI SDLC plugin
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
 
 # 3. Create intent and config
 touch INTENT.md
 mkdir config && touch config/config.yml
 
-# 4. Start coding
-/start-session
+# 4. Start using the methodology
+/aisdlc-status
+/aisdlc-help
 ```
 
 ---
@@ -616,125 +617,64 @@ mkdir config && touch config/config.yml
 
 **Scenario:** You already have AI SDLC Method installed and want to update to the latest version.
 
-### Strategy 1: Reset Installation (Recommended)
+### Strategy 1: Reinstall Plugin (Recommended)
 
-**Use Case:** Clean update to a specific version, removes stale files, preserves your work
-
-```bash
-cd /path/to/your/project
-
-# One-liner via curl (no clone needed) - updates to latest
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 -
-
-# Or update to specific version
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --version v0.2.0
-
-# Preview changes first (recommended)
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/installers/aisdlc-reset.py | python3 - --dry-run
-```
-
-**What gets PRESERVED** (your work):
-- `.ai-workspace/tasks/active/` - Your current tasks
-- `.ai-workspace/tasks/finished/` - Your task history
-
-**What gets REPLACED** (framework code):
-- `.claude/commands/` - All slash commands (clean, removes obsolete)
-- `.claude/agents/` - All agent definitions (fresh from version)
-- `.ai-workspace/templates/` - All templates (updated)
-- `.ai-workspace/config/` - Configuration files
-
-This is the recommended approach because it cleans up stale files (e.g., removed commands, renamed folders) that `--force` doesn't handle.
-
-### Strategy 2: Force Overwrite (Quick but Leaves Stale Files)
-
-**Use Case:** Quick update, but doesn't remove obsolete files
+**Use Case:** Clean update, ensures you have the latest plugin structure
 
 ```bash
 cd /path/to/your/project
 
-# Backup current state
-git commit -am "Checkpoint before AI SDLC refresh"
+# Backup current state first
+git commit -am "Checkpoint before AI SDLC update"
 
-# Full refresh from latest
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_all.py \
-  --force \
-  --with-plugins \
-  --bundle startup
+# Run the installer (it will update existing installation)
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
 
 # Review changes
 git diff
 
-# If satisfied, commit
+# Commit if satisfied
 git add .
-git commit -m "Update AI SDLC Method to latest version"
+git commit -m "Update AI SDLC methodology plugin to latest version"
 ```
 
-**Note**: This overwrites files but doesn't remove obsolete ones. Use reset installation for clean updates.
+**What gets UPDATED**:
+- `.claude-plugin/plugins/aisdlc-methodology/` - Complete plugin structure
+  - agents/ (7 stage personas)
+  - commands/ (8 slash commands)
+  - skills/ (42 skills)
+  - config/ (stage configurations)
+  - templates/ (workspace scaffolding)
+  - hooks/ (lifecycle hooks)
 
-### Strategy 2: Selective Refresh
+**What gets PRESERVED** (your work):
+- `.ai-workspace/tasks/` - Your current and finished tasks
+- `config/` - Your project configuration
+- All your source code and project files
 
-**Use Case:** Update specific components only
+### Strategy 2: Use the Update Command
+
+The plugin provides an update command:
 
 ```bash
-# Update only commands (useful after command changes)
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_commands.py --force
+# Check for updates
+/aisdlc-update
 
-# Update workspace templates
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_workspace.py --force
-
-# Update plugins
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_plugins.py \
-  --force \
-  --bundle startup
+# This will guide you through updating the methodology
 ```
 
-### Strategy 3: Marketplace Updates (Plugins Only)
+### Strategy 3: Manual Pull from Repository
 
-**Use Case:** Automatic plugin updates, but manual templates/commands
-
-```bash
-# Update plugins via marketplace
-/plugin update @aisdlc/aisdlc-methodology
-/plugin update @aisdlc/python-standards
-
-# Manually refresh templates/commands when needed
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_commands.py --force
-```
-
-### Strategy 4: Create Update Script
-
-Create a project-specific refresh script:
+If you have the ai_sdlc_method repository cloned:
 
 ```bash
-# Create script
-cat > .ai-workspace/scripts/refresh_aisdlc.sh <<'EOF'
-#!/bin/bash
-# Refresh AI SDLC Method from parent repository
+# Update the repository
+cd /path/to/ai_sdlc_method
+git pull
 
-AISDLC_ROOT="/Users/jim/src/apps/ai_sdlc_method"
-PROJECT_ROOT="$(pwd)"
-
-echo "🔄 Refreshing AI SDLC Method from: $AISDLC_ROOT"
-
-# Backup
-git commit -am "Checkpoint before AISDLC refresh" || true
-
-# Refresh
-python "$AISDLC_ROOT/installers/setup_all.py" \
-  --target "$PROJECT_ROOT" \
-  --force \
-  --with-plugins \
-  --bundle startup
-
-echo "✅ Refresh complete! Review changes with: git diff"
-EOF
-
-chmod +x .ai-workspace/scripts/refresh_aisdlc.sh
-```
-
-**Usage:**
-```bash
-bash .ai-workspace/scripts/refresh_aisdlc.sh
+# Reinstall in your project
+cd /path/to/your/project
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
 ```
 
 ---
@@ -804,97 +744,37 @@ python /Users/jim/src/apps/ai_sdlc_method/installers/validate_traceability.py
 
 ## Keeping AI SDLC Method Up to Date
 
-### Option 1: Manual Tracking
+### Use the Update Command
 
-Check for updates periodically:
+The simplest way to check for and apply updates:
 
 ```bash
-# Navigate to AI SDLC Method repo
-cd /Users/jim/src/apps/ai_sdlc_method
+# In your project directory
+/aisdlc-update
+```
 
-# Pull latest changes
+This command will check if there are newer versions available and guide you through the update process.
+
+### Manual Update
+
+If you have the ai_sdlc_method repository cloned locally:
+
+```bash
+# 1. Update the repository
+cd /path/to/ai_sdlc_method
 git pull
 
-# Review changes
+# 2. Review changes
 git log --oneline -10
 
-# If significant updates, refresh your projects
+# 3. Reinstall in your project
 cd /path/to/your/project
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_all.py --force
-```
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
 
-### Option 2: Automated Check (Cron Job)
-
-Create a weekly check:
-
-```bash
-# Add to crontab
-crontab -e
-
-# Add line (runs every Monday at 9 AM):
-0 9 * * 1 cd /Users/jim/src/apps/ai_sdlc_method && git pull && echo "AI SDLC updated" | mail -s "AI SDLC Update" your-email@example.com
-```
-
-### Option 3: CI/CD Integration
-
-For team projects, add to CI/CD:
-
-```bash
-# .github/workflows/update-aisdlc.yml
-name: Update AI SDLC Method
-on:
-  schedule:
-    - cron: '0 9 * * 1'  # Every Monday at 9 AM
-jobs:
-  update:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Refresh AI SDLC
-        run: |
-          python /path/to/ai_sdlc_method/installers/setup_all.py --force
-          git diff > aisdlc_changes.txt
-      - name: Create PR if changes
-        run: gh pr create --title "Update AI SDLC Method"
-```
-
----
-
-## Migration Guide
-
-### From v1.0.0 to v2.0.0
-
-**Breaking Changes:**
-1. Slash commands renamed with `aisdlc-` prefix
-2. Added 7-stage SDLC agent definitions
-3. Updated config.yml schema
-
-**Migration Steps:**
-
-```bash
-# 1. Backup your project
-git commit -am "Pre-migration checkpoint"
-
-# 2. Run installer with force flag
-python /Users/jim/src/apps/ai_sdlc_method/installers/setup_all.py \
-  --force \
-  --with-plugins \
-  --bundle startup
-
-# 3. Update config.yml to use new schema
-# (See ai_sdlc_examples repo for config.yml examples)
-
-# 4. Update slash command references in documentation
-# Old: /todo "task"
-# New: /aisdlc-todo "task"
-
-# 5. Test all commands
-/aisdlc-status
-/aisdlc-start-session
-
-# 6. Commit migration
-git add .
-git commit -m "Migrate to AI SDLC Method v2.0.0"
+# 4. Review and commit
+git diff
+git add .claude-plugin/
+git commit -m "Update AI SDLC methodology plugin"
 ```
 
 ---

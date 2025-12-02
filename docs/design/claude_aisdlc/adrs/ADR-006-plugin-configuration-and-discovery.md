@@ -3,7 +3,7 @@
 **Status**: Accepted
 **Date**: 2025-11-26
 **Deciders**: Development Tools Team
-**Requirements**: REQ-F-PLUGIN-001 (Plugin System), REQ-F-PLUGIN-002 (Federated Loading)
+**Requirements**: REQ-TOOL-001 (Plugin Architecture), REQ-TOOL-004 (Configuration Hierarchy)
 **Depends On**: ADR-001 (Claude Code as Platform), ADR-004 (Skills for Reusable Capabilities)
 
 ---

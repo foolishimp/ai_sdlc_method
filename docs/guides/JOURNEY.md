@@ -2,8 +2,8 @@
 
 **A Complete Happy Path Through the 7-Stage Methodology**
 
-**Version**: 1.0.0 (v0.1.1)
-**Date**: 2025-11-24
+**Version**: 1.1.0
+**Last Updated**: 2025-12-02
 **Purpose**: Show the complete steel thread from setup through UAT testing stage
 
 ---
@@ -64,28 +64,35 @@ Before starting this journey:
 ### Step 1: Install ai_sdlc_method Plugin
 
 ```bash
-# Open Claude Code
-claude
-
-# Add marketplace
-/plugin marketplace add foolishimp/ai_sdlc_method
-
-# Install core methodology plugin
-/plugin install @aisdlc/aisdlc-methodology
+# One-liner installation (run from your project directory)
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 ```
 
-**Expected output**:
+Restart Claude Code.
+
+**Verify installation**:
 ```
-✓ @aisdlc/aisdlc-methodology v2.0.0 installed
+/plugin
+```
+
+You should see:
+```
+Marketplaces:
+  - aisdlc (Installed)
+
+Plugins:
+  - aisdlc-methodology (Installed)
+```
 
 Claude now has access to:
 - 7-stage AI SDLC methodology
-- AI agent configurations
+- 7 AI agents (Requirements, Design, Tasks, Code, System Test, UAT, Runtime)
+- 42 skills across 7 categories
+- 8 slash commands (/aisdlc-*)
 - Key Principles (TDD, Fail Fast, Modular, etc.)
 - TDD workflow (RED → GREEN → REFACTOR)
 - BDD testing guides
 - Requirement traceability system
-```
 
 ### Step 2: Create Your Project
 
@@ -101,17 +108,17 @@ git init
 mkdir -p src tests docs
 ```
 
-### Step 3: Optional - Install Python Tools
+### Step 3: Optional - Traceability Tools
 
 ```bash
-# Clone ai_sdlc_method for traceability tools
-cd ..
+# Clone repo to access traceability validation tools
 git clone https://github.com/foolishimp/ai_sdlc_method.git
 
 # Test traceability tool
-cd ai_sdlc_method
-python installers/validate_traceability.py --help
+python ai_sdlc_method/claude-code/installers/validate_traceability.py --help
 ```
+
+> **See [QUICKSTART.md](../../QUICKSTART.md)** for installation options (plugin-only, dry-run, etc.)
 
 **You're ready!** Time to start the journey through all 7 stages.
 
@@ -239,7 +246,7 @@ Claude (Requirements Agent): Perfect! I'll create structured requirements.
 Claude: I'll create the initial traceability matrix for these requirements.
 
 # Tool invocation (automatic)
-python installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
+python claude-code/installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
 ```
 
 **Traceability Matrix Created**:
@@ -1625,12 +1632,12 @@ Intent
 - 🏗️ [New Project Setup](NEW_PROJECT_SETUP.md) - Detailed setup for your project (30 min)
 
 **Complete Methodology**:
-- [AI SDLC Requirements](../requirements/AI_SDLC_REQUIREMENTS.md) - Complete 7-stage specifications (3,300+ lines)
-- [Stage Configurations](../../claude-code/plugins/aisdlc-methodology/config/stages_config.yml) - Agent configurations (1,273 lines)
+- [AI SDLC Requirements](../requirements/AI_SDLC_REQUIREMENTS.md) - Complete 7-stage specifications
+- [Stage Configurations](../../claude-code/.claude-plugin/plugins/aisdlc-methodology/config/stages_config.yml) - Agent configurations
 
 **Key Principles**:
-- [Key Principles](../../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - The 7 core development principles
-- [TDD Workflow](../../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - Complete TDD cycle
+- [Key Principles](../../claude-code/.claude-plugin/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - The 7 core development principles
+- [TDD Workflow](../../claude-code/.claude-plugin/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - Complete TDD cycle
 
 **Examples**:
 - [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete 7-stage walkthrough examples (separate repo)
@@ -1710,30 +1717,27 @@ You've just completed the **golden path** through the AI SDLC methodology:
 
 ```bash
 # Generate traceability matrix
-python installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
+python claude-code/installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md
 
 # Generate component inventory
-python installers/validate_traceability.py --inventory > INVENTORY.md
+python claude-code/installers/validate_traceability.py --inventory > INVENTORY.md
 
 # Validate traceability (find gaps)
-python installers/validate_traceability.py --check-all
+python claude-code/installers/validate_traceability.py --check-all
 ```
 
-### Claude Code Commands
+### Claude Code Slash Commands
 
 ```bash
-# Plugin management
-/plugin marketplace add foolishimp/ai_sdlc_method
-/plugin install @aisdlc/aisdlc-methodology
-/plugin list
-/plugin update @aisdlc/aisdlc-methodology
-
-# Task management (if workspace installed)
-/aisdlc-start-session
-/aisdlc-status
-/aisdlc-todo "description"
-/aisdlc-finish-task <id>
-/aisdlc-checkpoint-tasks
+# Available aisdlc-* commands (8 total)
+/aisdlc-status              # Show methodology status
+/aisdlc-help                # View available commands and agents
+/aisdlc-checkpoint-tasks    # Save current task state
+/aisdlc-commit-task         # Generate commit message for task
+/aisdlc-finish-task         # Complete task with documentation
+/aisdlc-refresh-context     # Reload methodology configuration
+/aisdlc-release             # Generate release manifest
+/aisdlc-update              # Update methodology to latest version
 ```
 
 ### Testing Commands
@@ -1752,6 +1756,6 @@ open htmlcov/index.html
 
 ---
 
-**Document Version**: 1.0.0
-**Last Updated**: 2025-11-24
+**Document Version**: 1.1.0
+**Last Updated**: 2025-12-02
 **Maintained By**: AI SDLC Method Team

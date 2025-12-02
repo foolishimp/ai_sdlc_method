@@ -3,7 +3,7 @@
 **Status**: Proposed
 **Date**: 2025-11-27
 **Deciders**: Development Tools Team
-**Requirements**: REQ-F-HOOKS-001 (NEW), REQ-NFR-CONTEXT-001
+**Requirements**: REQ-TOOL-008 (Methodology Hooks - NEW), REQ-TOOL-002 (Developer Workspace)
 **Depends On**: ADR-002 (Commands for Workflow Integration)
 
 ---
@@ -228,9 +228,9 @@ command -v prettier >/dev/null 2>&1 && prettier ...
 ## Validation
 
 **Requirements coverage**:
-- REQ-NFR-CONTEXT-001: ✅ SessionStart provides automatic context
-- REQ-NFR-TRACE-001: ✅ PreToolUse validates REQ tags
-- REQ-F-HOOKS-001: ✅ Lifecycle automation implemented (NEW)
+- REQ-TOOL-002: ✅ SessionStart provides automatic workspace context
+- REQ-TRACE-002: ✅ PreToolUse validates REQ key propagation
+- REQ-TOOL-008: ✅ Lifecycle automation implemented (NEW - needs formalization)
 
 ---
 

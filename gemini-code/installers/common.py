@@ -237,7 +237,7 @@ def get_latest_release_tag(repo_url: str = None) -> Optional[str]:
                     if line and 'refs/tags/' in line:
                         tag = line.split('refs/tags/')[-1]
                         # Skip ^{} dereferenced tags
-                        if not tag.endswith('^{}')}:
+                        if not tag.endswith('^{}'):
                             return tag
         else:
             # Use local repository
@@ -268,4 +268,4 @@ def print_banner():
 ║                    Version {version}                           ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
-")
+""")

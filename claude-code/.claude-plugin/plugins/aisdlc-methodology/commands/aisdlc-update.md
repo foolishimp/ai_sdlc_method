@@ -2,6 +2,7 @@
 
 Pull the latest tagged version of ai_sdlc_method from GitHub and update local project with the latest framework files.
 
+<!-- Implements: REQ-F-CMD-001 (Slash Commands for Workflow) -->
 <!-- Implements: REQ-F-UPDATE-001 (Framework Updates from GitHub) -->
 
 **Usage**: `/aisdlc-update [--tag <version>] [--dry-run]`

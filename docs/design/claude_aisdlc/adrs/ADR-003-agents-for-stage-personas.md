@@ -3,7 +3,7 @@
 **Status**: Accepted
 **Date**: 2025-11-25
 **Deciders**: Development Tools Team
-**Requirements**: REQ-F-CMD-002 (Persona Management)
+**Requirements**: REQ-AI-003 (Stage-Specific Agent Personas)
 **Depends On**: ADR-001 (Claude Code as Platform)
 
 ---
@@ -327,13 +327,13 @@ You: "I'm in the Code stage, let's implement REQ-F-AUTH-001"
 ## Traceability
 
 **Requirements Satisfied**:
-- REQ-F-CMD-002: Persona Management ✅
+- REQ-AI-003: Stage-Specific Agent Personas ✅
   - 7 agents created
   - Role-based personas for development stages
   - Support 7-stage SDLC workflow
 
 **Design Coverage**:
-- 100% of REQ-F-CMD-002 acceptance criteria met
+- 100% of REQ-AI-003 acceptance criteria met
 
 ---
 

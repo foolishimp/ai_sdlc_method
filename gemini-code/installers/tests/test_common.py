@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 # Add installers to path
-# claude-code/installers/tests/test_*.py -> parent is installers directory
+# gemini-code/installers/tests/test_*.py -> parent is installers directory
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from common import InstallerBase, get_ai_sdlc_version, get_latest_release_tag, print_banner
@@ -71,7 +71,7 @@ class TestInstallerBase:
         """
         installer = InstallerBase()
         # Point to actual templates
-        installer.templates_root = project_root / "claude-code" / "project-template"
+        installer.templates_root = project_root / "gemini-code" / "project-template"
         result = installer.validate_templates()
 
         assert result is True
@@ -535,5 +535,5 @@ class TestInstallerBaseInitialization:
         installer = InstallerBase()
 
         # ai_sdlc_root should be parent of installers directory
-        # Since installers are now in claude-code/installers/, ai_sdlc_root is claude-code
-        assert installer.ai_sdlc_root.name == "claude-code"
+        # Since installers are now in gemini-code/installers/, ai_sdlc_root is gemini-code
+        assert installer.ai_sdlc_root.name == "gemini-code"

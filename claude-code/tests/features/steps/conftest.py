@@ -20,7 +20,7 @@ import pytest
 # =============================================================================
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
-PLUGINS_DIR = PROJECT_ROOT / "claude-code" / "plugins"
+PLUGINS_DIR = PROJECT_ROOT / "claude-code" / ".claude-plugin" / "plugins"
 METHODOLOGY_PLUGIN = PLUGINS_DIR / "aisdlc-methodology"
 
 

@@ -1,5 +1,7 @@
 # How Claude Agents Work in the AI SDLC
 
+**Requirements Traceability**: REQ-AI-003 (Stage-Specific Agent Personas)
+
 **Purpose**: Explain the role and operation of AI agents (Claude) throughout the 7-stage AI SDLC methodology.
 
 **Audience**: Developers, architects, and teams implementing AI-augmented development.

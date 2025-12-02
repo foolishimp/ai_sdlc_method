@@ -11,12 +11,12 @@ from pathlib import Path
 
 
 # Get the project root directory
-# claude-code/installers/tests/conftest.py -> go up 3 levels to project root
+# gemini-code/installers/tests/conftest.py -> go up 3 levels to project root
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-# Installers are in the parent directory (claude-code/installers/)
+# Installers are in the parent directory (gemini-code/installers/)
 INSTALLERS_DIR = Path(__file__).parent.parent
-TEMPLATES_DIR = PROJECT_ROOT / "claude-code" / "project-template"
-PLUGINS_DIR = PROJECT_ROOT / "claude-code" / "plugins"
+TEMPLATES_DIR = PROJECT_ROOT / "gemini-code" / "project-template"
+PLUGINS_DIR = PROJECT_ROOT / "gemini-code" / "plugins"
 
 
 @pytest.fixture
@@ -68,15 +68,15 @@ def temp_source(temp_dir):
     source.mkdir(parents=True, exist_ok=True)
 
     # Create minimal template structure
-    template_root = source / "claude-code" / "project-template"
+    template_root = source / "gemini-code" / "project-template"
 
-    # .claude/commands
-    commands_dir = template_root / ".claude" / "commands"
+    # .gemini/commands
+    commands_dir = template_root / ".gemini" / "commands"
     commands_dir.mkdir(parents=True, exist_ok=True)
     (commands_dir / "test-command.md").write_text("# Test Command\nTest content")
 
-    # .claude/agents
-    agents_dir = template_root / ".claude" / "agents"
+    # .gemini/agents
+    agents_dir = template_root / ".gemini" / "agents"
     agents_dir.mkdir(parents=True, exist_ok=True)
     (agents_dir / "test-agent.md").write_text("# Test Agent\nTest content")
 
@@ -100,13 +100,13 @@ def temp_source(temp_dir):
 @pytest.fixture
 def existing_installation(temp_target):
     """Create a target directory with an existing installation."""
-    # Create .claude structure
-    commands_dir = temp_target / ".claude" / "commands"
+    # Create .gemini structure
+    commands_dir = temp_target / ".gemini" / "commands"
     commands_dir.mkdir(parents=True, exist_ok=True)
     (commands_dir / "old-command.md").write_text("# Old Command\n")
     (commands_dir / "another-old.md").write_text("# Another Old\n")
 
-    agents_dir = temp_target / ".claude" / "agents"
+    agents_dir = temp_target / ".gemini" / "agents"
     agents_dir.mkdir(parents=True, exist_ok=True)
     (agents_dir / "old-agent.md").write_text("# Old Agent\n")
 

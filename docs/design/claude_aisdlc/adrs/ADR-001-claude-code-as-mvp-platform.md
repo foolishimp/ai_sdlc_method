@@ -3,7 +3,7 @@
 **Status**: Accepted
 **Date**: 2025-11-25
 **Deciders**: Development Tools Team
-**Requirements**: REQ-F-PLUGIN-001, REQ-F-CMD-001, REQ-F-CMD-002
+**Requirements**: REQ-TOOL-001 (Plugin Architecture), REQ-TOOL-003 (Workflow Commands), REQ-AI-003 (Stage-Specific Agent Personas)
 
 ---
 
@@ -230,17 +230,16 @@ Claude Code Plugin:
 
 | Requirement | Satisfied? | How |
 |-------------|------------|-----|
-| REQ-F-PLUGIN-001 | ✅ | Claude Code has native plugin system |
-| REQ-F-PLUGIN-002 | ✅ | Marketplace supports federated loading |
-| REQ-F-PLUGIN-003 | ✅ | Plugin bundles supported |
-| REQ-F-PLUGIN-004 | ✅ | SemVer versioning in plugin.json |
-| REQ-F-CMD-001 | ✅ | Slash commands via `.claude/commands/` |
-| REQ-F-CMD-002 | ✅ | Agents via `.claude/agents/` |
-| REQ-F-WORKSPACE-001 | ✅ | File-based workspace compatible |
-| REQ-NFR-CONTEXT-001 | ✅ | Files persist in git |
-| REQ-NFR-FEDERATE-001 | ✅ | Plugin loading order = composition |
+| REQ-TOOL-001 | ✅ | Claude Code has native plugin system |
+| REQ-TOOL-004 | ✅ | Marketplace supports configuration hierarchy |
+| REQ-TOOL-005 | ✅ | SemVer versioning in plugin.json |
+| REQ-TOOL-003 | ✅ | Slash commands via `.claude/commands/` |
+| REQ-AI-003 | ✅ | Agents via `.claude/agents/` |
+| REQ-TOOL-002 | ✅ | File-based workspace compatible |
+| REQ-TOOL-002 | ✅ | Files persist in git |
+| REQ-TOOL-004 | ✅ | Plugin loading order = composition |
 
-**All 9 requirements satisfied by this decision.** ✅
+**All core tool requirements satisfied by this decision.** ✅
 
 ---
 

@@ -3,7 +3,7 @@
 **Status**: Accepted
 **Date**: 2025-11-25
 **Deciders**: Development Tools Team
-**Requirements**: **MISSING** - REQ-NFR-REFINE-001 (needs to be created)
+**Requirements**: REQ-STAGE-004 (Bidirectional Feedback)
 **Depends On**: ADR-003 (Agents for Stage Personas)
 
 ---
@@ -420,27 +420,19 @@ Requirements Agent decides (with Product Owner input).
 
 ---
 
-## Missing Requirement Detected!
+## Requirement Traceability
 
-**🚨 Design Agent Feedback to Requirements Agent:**
-
-We need a requirement that specifies this feedback loop behavior:
-
-```markdown
-### REQ-NFR-REFINE-001: Iterative Refinement via Stage Feedback
-
-**Priority**: Critical
-**Type**: Non-Functional (Process)
+This ADR implements **REQ-STAGE-004: Bidirectional Feedback**:
 
 **Description**: The system shall support bidirectional feedback where downstream stages can provide feedback to upstream stages for iterative refinement.
 
 **Acceptance Criteria**:
-- [ ] Every agent specifies "Process Feedback" in core responsibilities
-- [ ] Feedback format standardized (gap, ambiguity, clarification, error)
-- [ ] Requirements Agent accepts feedback from all 6 downstream stages
-- [ ] Design Agent accepts feedback from 5 downstream stages
-- [ ] Feedback results in requirement/design updates (versioned)
-- [ ] Traceability maintained through feedback cycles
+- ✅ Every agent specifies "Process Feedback" in core responsibilities
+- ✅ Feedback format standardized (gap, ambiguity, clarification, error)
+- ✅ Requirements Agent accepts feedback from all 6 downstream stages
+- ✅ Design Agent accepts feedback from 5 downstream stages
+- ✅ Feedback results in requirement/design updates (versioned)
+- ✅ Traceability maintained through feedback cycles
 
 **Rationale**: Feedback loops enable discovery-driven completeness. Cannot achieve complete requirements upfront - must refine based on downstream learning.
 
@@ -448,11 +440,8 @@ We need a requirement that specifies this feedback loop behavior:
 - Code Agent discovers requirement ambiguity → Requirements Agent clarifies
 - Test Agent finds untestable criteria → Requirements Agent refines
 - Design Agent finds requirement gap → Requirements Agent creates new REQ-*
-```
-
-**Should this requirement be added to AISDLC_IMPLEMENTATION_REQUIREMENTS.md?**
 
 ---
 
 **Status**: ✅ Accepted as design pattern
-**Next**: Formalize as requirement (Requirements Agent work)
+**Requirement**: REQ-STAGE-004 (now formalized)

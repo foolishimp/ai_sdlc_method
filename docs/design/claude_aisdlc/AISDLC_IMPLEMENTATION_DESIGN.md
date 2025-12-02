@@ -2,17 +2,24 @@
 
 **Document Type**: Design Synthesis Document
 **Project**: ai_sdlc_method (self-implementation)
-**Version**: 1.0
-**Date**: 2025-11-25
+**Version**: 2.0
+**Date**: 2025-12-02
 **Status**: Draft
 
 ---
 
 ## Purpose
 
-This document synthesizes all design artifacts into a **coherent technical solution** that implements the 17 requirements defined in [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md).
+This document synthesizes all design artifacts into a **coherent technical solution** that implements the 42 platform-agnostic requirements defined in [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md).
 
 **Meta Note**: We are **dogfooding** - using the AI SDLC methodology to build the AI SDLC methodology tooling.
+
+**Version 2.0 Changes**:
+- Updated to align with NEW 42-requirement structure (was 17 tooling-focused requirements)
+- Expanded to cover all 7 SDLC stages with platform-agnostic requirements
+- Added Intent Management, Requirements, Design, Tasks, Code, System Test, UAT, Runtime Feedback categories
+- Updated traceability matrix to use new REQ-* key format
+- Identified design gaps for newly added requirement categories
 
 ---
 
@@ -91,12 +98,22 @@ The AI SDLC Method is implemented as a **Claude Code plugin ecosystem** with thr
 
 | Component | Purpose | Requirements Implemented |
 |-----------|---------|-------------------------|
-| Plugin System | Modular context delivery | REQ-F-PLUGIN-001, 002, 003, 004, REQ-NFR-FEDERATE-001 |
-| Agent System | Stage-specific AI personas | REQ-F-CMD-002, REQ-NFR-REFINE-001 |
-| Command System | Workflow integration | REQ-F-CMD-001 |
-| Workspace System | Task & session management | REQ-F-WORKSPACE-001, 002, 003, REQ-NFR-CONTEXT-001 |
-| Traceability | REQ-* key propagation | REQ-NFR-TRACE-001, 002 |
-| Testing | Coverage validation | REQ-F-TESTING-001, 002, REQ-NFR-COVERAGE-001 |
+| Intent Management | Capture and classify intents | REQ-INTENT-001, 002, 003 |
+| Plugin System | Modular context delivery | REQ-TOOL-001, 004 |
+| Agent System | 7-stage SDLC personas | REQ-STAGE-001, 002, 003, 004, REQ-AI-003 |
+| Command System | Workflow integration | REQ-TOOL-003 |
+| Workspace System | Task & session management | REQ-TOOL-002 |
+| Requirements Stage | Intent → structured requirements | REQ-REQ-001, 002, 003, 004 |
+| Design Stage | Requirements → technical solution | REQ-DES-001, 002, 003 |
+| Tasks Stage | Design → work breakdown | REQ-TASK-001, 002, 003 |
+| Code Stage | TDD implementation | REQ-CODE-001, 002, 003, 004 |
+| System Test Stage | BDD integration testing | REQ-SYSTEST-001, 002, 003 |
+| UAT Stage | Business validation | REQ-UAT-001, 002 |
+| Runtime Feedback | Production monitoring | REQ-RUNTIME-001, 002, 003 |
+| Traceability | Full lifecycle tracking | REQ-TRACE-001, 002, 003 |
+| AI Augmentation | AI assistance patterns | REQ-AI-001, 002, 003 |
+| Testing Infrastructure | Coverage & test generation | REQ-TOOL-007, REQ-CODE-004 |
+| Release Management | Versioning & distribution | REQ-TOOL-005, 006 |
 
 ---
 
@@ -158,11 +175,9 @@ Corporate Marketplace → Division → Team → Project
 ```
 
 **Traceability**:
-- REQ-F-PLUGIN-001 → `claude-code/plugins/`, `marketplace.json`
-- REQ-F-PLUGIN-002 → Federated loading (project overrides global)
-- REQ-F-PLUGIN-003 → `*-bundle/` plugins
-- REQ-F-PLUGIN-004 → SemVer in plugin.json, dependencies declared
-- REQ-NFR-FEDERATE-001 → Configuration merge strategy
+- REQ-TOOL-001 → `claude-code/plugins/`, `marketplace.json`
+- REQ-TOOL-004 → SemVer in plugin.json, dependencies declared
+- Configuration merge strategy (hierarchical composition)
 
 ---
 
@@ -241,8 +256,10 @@ Each agent has bidirectional feedback capability:
 ```
 
 **Traceability**:
-- REQ-F-CMD-002 → 7 agent files in `.claude/agents/`
-- REQ-NFR-REFINE-001 → Feedback Protocol in each agent file
+- REQ-AI-003 → 7 agent files in `.claude/agents/` (stage-specific personas)
+- REQ-STAGE-001 → 7 distinct SDLC stages defined
+- REQ-STAGE-002 → Stage transitions enforced in agent handoffs
+- REQ-STAGE-004 → Bidirectional feedback protocol in each agent file
 
 ---
 
@@ -322,7 +339,7 @@ Output (requirement-traceable artifacts)
 ```
 
 **Traceability**:
-- REQ-F-CMD-001 → `.claude/commands/*.md`
+- REQ-TOOL-003 → `.claude/commands/*.md` (workflow commands)
 
 ---
 
@@ -357,10 +374,10 @@ Output (requirement-traceable artifacts)
 - **ADR-004**: Markdown templates (not code generation)
 
 **Traceability**:
-- REQ-F-WORKSPACE-001 → `.ai-workspace/` structure
-- REQ-F-WORKSPACE-002 → Task templates and ACTIVE_TASKS.md
-- REQ-F-WORKSPACE-003 → Session templates
-- REQ-NFR-CONTEXT-001 → Persistent task/session files
+- REQ-TOOL-002 → `.ai-workspace/` structure (developer workspace)
+- Task templates and ACTIVE_TASKS.md for task tracking
+- Session templates for context preservation
+- Persistent task/session files (version-controlled)
 
 ---
 
@@ -429,8 +446,9 @@ asset_types:
 ```
 
 **Traceability**:
-- REQ-NFR-TRACE-001 → Requirement key format, traceability tags
-- REQ-NFR-TRACE-002 → REQ-* propagation through all stages
+- REQ-TRACE-001 → Full lifecycle traceability (Intent → Runtime)
+- REQ-TRACE-002 → REQ-* key propagation through all stages
+- REQ-TRACE-003 → Traceability validation (gap detection)
 
 ---
 
@@ -462,64 +480,248 @@ COMMIT Phase:
 ```
 
 **Traceability**:
-- REQ-F-TESTING-001 → pytest-cov, coverage validation in testing-skills
-- REQ-F-TESTING-002 → test-generation skill
-- REQ-NFR-COVERAGE-001 → 80% minimum coverage, gates in CI/CD
+- REQ-CODE-001 → TDD workflow (RED → GREEN → REFACTOR → COMMIT)
+- REQ-CODE-004 → Test coverage (minimum threshold, coverage gates)
+- REQ-TOOL-007 → Test gap analysis and test generation
+- Code-skills/tdd/ for TDD implementation
+- Testing-skills/ for coverage validation
 
 ---
 
 ## 3. Requirements Traceability Matrix
 
-### 3.1 Functional Requirements
+### 3.1 Intent Management (3 requirements)
 
 | Requirement | Design Component | Implementation Artifacts | Status |
 |-------------|-----------------|-------------------------|--------|
-| REQ-F-PLUGIN-001 | Plugin System | `claude-code/plugins/`, `marketplace.json` | ✅ Implemented |
-| REQ-F-PLUGIN-002 | Federated Loading | Project overrides global in plugin loader | ✅ Implemented |
-| REQ-F-PLUGIN-003 | Plugin Bundles | `*-bundle/` plugins (startup, qa, enterprise) | ✅ Implemented |
-| REQ-F-PLUGIN-004 | Versioning | SemVer in plugin.json | ⚠️ Partial (not enforced) |
-| REQ-F-CMD-001 | Command System | `.claude/commands/*.md` (6 commands) | ✅ Implemented |
-| REQ-F-CMD-002 | Agent System | `.claude/agents/*.md` (7 agents) | ✅ Implemented |
-| REQ-F-WORKSPACE-001 | Workspace Structure | `.ai-workspace/` directory | ✅ Implemented |
-| REQ-F-WORKSPACE-002 | Task Templates | `TASK_TEMPLATE.md`, `ACTIVE_TASKS.md` | ✅ Implemented |
-| REQ-F-WORKSPACE-003 | Session Templates | `SESSION_TEMPLATE.md` | ✅ Implemented |
-| REQ-F-TESTING-001 | Coverage Validation | `testing-skills/`, pytest-cov | ⚠️ Partial |
-| REQ-F-TESTING-002 | Test Generation | `testing-skills/test-generation` | ⏳ Planned |
+| REQ-INTENT-001 | Intent Capture | `.ai-workspace/intents/` structure, INT-* identifiers | ⏳ Gap |
+| REQ-INTENT-002 | Intent Classification | Work type metadata (Create/Update/Remediate/Read/Delete) | ⏳ Gap |
+| REQ-INTENT-003 | Eco-Intent Generation | Ecosystem monitoring, INT-ECO-* auto-generation | ⏳ Gap |
 
-### 3.2 Non-Functional Requirements
+### 3.2 7-Stage Workflow (4 requirements)
 
 | Requirement | Design Component | Implementation Artifacts | Status |
 |-------------|-----------------|-------------------------|--------|
-| REQ-NFR-TRACE-001 | Traceability System | REQ-* format, traceability tags | ✅ Implemented |
-| REQ-NFR-TRACE-002 | Key Propagation | Tags in code/tests/logs | ⚠️ Partial |
-| REQ-NFR-CONTEXT-001 | Persistent Context | `.ai-workspace/tasks/`, ACTIVE_TASKS.md | ✅ Implemented |
-| REQ-NFR-FEDERATE-001 | Config Composition | Plugin merge strategy | ✅ Implemented |
-| REQ-NFR-COVERAGE-001 | Coverage Minimum | 80% target in testing config | ⚠️ Partial |
-| REQ-NFR-REFINE-001 | Feedback Loops | Feedback Protocol in agents | ✅ Implemented |
+| REQ-STAGE-001 | Stage Definitions | 7 agent files in `.claude/agents/` | ✅ Implemented |
+| REQ-STAGE-002 | Stage Transitions | Agent handoff protocols, transition logging | ⚠️ Partial |
+| REQ-STAGE-003 | Signal Transformation | Stage-specific constraint addition | ⚠️ Partial |
+| REQ-STAGE-004 | Bidirectional Feedback | Feedback Protocol in each agent | ✅ Implemented |
 
-### 3.3 Coverage Summary
+### 3.3 Requirements Stage (4 requirements)
 
-| Category | Total | Implemented | Partial | Planned |
-|----------|-------|-------------|---------|---------|
-| Functional | 11 | 8 | 2 | 1 |
-| Non-Functional | 6 | 4 | 2 | 0 |
-| **Total** | **17** | **12 (71%)** | **4 (24%)** | **1 (6%)** |
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-REQ-001 | Requirement Key Generation | REQ-{TYPE}-{DOMAIN}-{SEQ} format | ✅ Implemented |
+| REQ-REQ-002 | Requirement Types | F, NFR, DATA, BR support | ✅ Implemented |
+| REQ-REQ-003 | Requirement Refinement | Versioning (v1, v2...), feedback handling | ⚠️ Partial |
+| REQ-REQ-004 | Homeostasis Model Definition | Measurable acceptance criteria, thresholds | ⚠️ Partial |
+
+### 3.4 Design Stage (3 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-DES-001 | Component Design | Design docs in `docs/design/`, component diagrams | ✅ Implemented |
+| REQ-DES-002 | Architecture Decision Records | ADRs in `docs/design/*/adrs/` | ✅ Implemented |
+| REQ-DES-003 | Design-to-Requirement Traceability | Traceability matrix, coverage reports | ⚠️ Partial |
+
+### 3.5 Tasks Stage (3 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-TASK-001 | Work Breakdown | ACTIVE_TASKS.md, task templates | ✅ Implemented |
+| REQ-TASK-002 | Dependency Tracking | Task dependency graphs | ⏳ Gap |
+| REQ-TASK-003 | Task-to-Requirement Traceability | REQ-* references in tasks | ⚠️ Partial |
+
+### 3.6 Code Stage (4 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-CODE-001 | TDD Workflow | `code-skills/tdd/`, RED→GREEN→REFACTOR→COMMIT | ✅ Implemented |
+| REQ-CODE-002 | Key Principles Enforcement | Key Principles docs, 7 Questions checklist | ✅ Implemented |
+| REQ-CODE-003 | Code-to-Requirement Tagging | `# Implements: REQ-*` in code | ⚠️ Partial |
+| REQ-CODE-004 | Test Coverage | pytest-cov, coverage gates | ⚠️ Partial |
+
+### 3.7 System Test Stage (3 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-SYSTEST-001 | BDD Scenario Creation | Gherkin/Given-When-Then in `tests/features/` | ✅ Implemented |
+| REQ-SYSTEST-002 | Integration Test Execution | pytest-bdd, automated execution | ✅ Implemented |
+| REQ-SYSTEST-003 | Test-to-Requirement Traceability | `# Validates: REQ-*` in tests | ⚠️ Partial |
+
+### 3.8 UAT Stage (2 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-UAT-001 | Business Validation Tests | UAT test cases in business language | ⏳ Gap |
+| REQ-UAT-002 | Sign-off Workflow | Approval tracking, sign-off records | ⏳ Gap |
+
+### 3.9 Runtime Feedback Stage (3 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-RUNTIME-001 | Telemetry Tagging | Log/metric tagging with REQ-* keys | ⏳ Gap |
+| REQ-RUNTIME-002 | Deviation Detection | Threshold monitoring, alert generation | ⏳ Gap |
+| REQ-RUNTIME-003 | Feedback Loop Closure | Runtime → Intent flow, INT-* generation | ⏳ Gap |
+
+### 3.10 Traceability (3 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-TRACE-001 | Full Lifecycle Traceability | Intent→Req→Design→Task→Code→Test→Runtime | ⚠️ Partial |
+| REQ-TRACE-002 | Requirement Key Propagation | REQ-* keys in all stages | ⚠️ Partial |
+| REQ-TRACE-003 | Traceability Validation | Gap detection, orphan identification | ⏳ Gap |
+
+### 3.11 AI Augmentation (3 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-AI-001 | AI Assistance Per Stage | Stage-specific skills in `*-skills/` plugins | ⚠️ Partial |
+| REQ-AI-002 | Human Accountability | Review/approval workflows, attribution | ⚠️ Partial |
+| REQ-AI-003 | Stage-Specific Agent Personas | 7 agents in `.claude/agents/` | ✅ Implemented |
+
+### 3.12 Tooling Infrastructure (7 requirements)
+
+| Requirement | Design Component | Implementation Artifacts | Status |
+|-------------|-----------------|-------------------------|--------|
+| REQ-TOOL-001 | Plugin Architecture | `claude-code/plugins/`, `marketplace.json` | ✅ Implemented |
+| REQ-TOOL-002 | Developer Workspace | `.ai-workspace/` structure | ✅ Implemented |
+| REQ-TOOL-003 | Workflow Commands | `.claude/commands/*.md` (6 commands) | ✅ Implemented |
+| REQ-TOOL-004 | Configuration Hierarchy | Plugin composition, deep merge | ✅ Implemented |
+| REQ-TOOL-005 | Release Management | SemVer, changelog generation, tagging | ⚠️ Partial |
+| REQ-TOOL-006 | Framework Updates | Update checking, download, rollback | ⏳ Gap |
+| REQ-TOOL-007 | Test Gap Analysis | Coverage gap detection, test suggestions | ⏳ Gap |
+
+### 3.13 Coverage Summary by Category
+
+| Category | Total | Implemented | Partial | Gap |
+|----------|-------|-------------|---------|-----|
+| Intent Management | 3 | 0 | 0 | 3 |
+| 7-Stage Workflow | 4 | 2 | 2 | 0 |
+| Requirements Stage | 4 | 2 | 2 | 0 |
+| Design Stage | 3 | 2 | 1 | 0 |
+| Tasks Stage | 3 | 1 | 1 | 1 |
+| Code Stage | 4 | 2 | 2 | 0 |
+| System Test Stage | 3 | 2 | 1 | 0 |
+| UAT Stage | 2 | 0 | 0 | 2 |
+| Runtime Feedback | 3 | 0 | 0 | 3 |
+| Traceability | 3 | 0 | 2 | 1 |
+| AI Augmentation | 3 | 1 | 2 | 0 |
+| Tooling Infrastructure | 7 | 4 | 1 | 2 |
+| **Total** | **42** | **16 (38%)** | **14 (33%)** | **12 (29%)** |
+
+### 3.14 Priority Coverage
+
+| Priority | Total | Implemented | Partial | Gap |
+|----------|-------|-------------|---------|-----|
+| Critical | 10 | 4 | 4 | 2 |
+| High | 27 | 10 | 9 | 8 |
+| Medium | 5 | 2 | 1 | 2 |
 
 ---
 
-## 4. Architecture Decision Records
+## 4. Design Gaps Analysis
 
-### 4.1 ADR Summary
+### 4.1 Critical Gaps (Priority: Critical)
+
+The following Critical priority requirements lack design coverage:
+
+1. **REQ-RUNTIME-003: Feedback Loop Closure** (Gap)
+   - Missing: Design for Runtime → Intent generation
+   - Impact: Cannot close the homeostatic loop from production to requirements
+   - Suggested Design: Runtime Feedback Agent generates INT-* intents from deviations
+
+2. **REQ-TRACE-001: Full Lifecycle Traceability** (Partial)
+   - Missing: Complete end-to-end traceability implementation
+   - Impact: Cannot track requirements from intent through runtime
+   - Suggested Design: Traceability validation service, traceability matrix auto-generation
+
+### 4.2 High Priority Gaps
+
+**Intent Management** (3 gaps):
+- REQ-INTENT-001: No intent capture mechanism designed
+- REQ-INTENT-002: No intent classification workflow
+- REQ-INTENT-003: No ecosystem monitoring integration
+
+**UAT Stage** (2 gaps):
+- REQ-UAT-001: No business-language test case design
+- REQ-UAT-002: No sign-off workflow mechanism
+
+**Runtime Feedback** (3 gaps):
+- REQ-RUNTIME-001: No telemetry tagging design
+- REQ-RUNTIME-002: No deviation detection system
+- REQ-RUNTIME-003: No feedback loop closure (also Critical)
+
+**Tooling Infrastructure** (2 gaps):
+- REQ-TOOL-006: No framework update mechanism
+- REQ-TOOL-007: No test gap analysis design
+
+### 4.3 Partial Implementations Needing Completion
+
+**7-Stage Workflow**:
+- REQ-STAGE-002: Stage transitions defined in agents but not enforced/logged
+- REQ-STAGE-003: Signal transformation conceptual but not validated
+
+**Requirements Stage**:
+- REQ-REQ-003: Requirement versioning format exists but not automated
+- REQ-REQ-004: Homeostasis model defined but not validated against runtime
+
+**Design Stage**:
+- REQ-DES-003: Traceability matrix exists but not automated/validated
+
+**Tasks Stage**:
+- REQ-TASK-003: Task templates support REQ-* but not enforced/validated
+
+**Code Stage**:
+- REQ-CODE-003: Code tagging format exists but not validated
+- REQ-CODE-004: Coverage measured but gates not enforced
+
+**System Test Stage**:
+- REQ-SYSTEST-003: Test tagging format exists but not validated
+
+**Traceability**:
+- REQ-TRACE-001: Format defined but full lifecycle not implemented
+- REQ-TRACE-002: Key format exists but propagation not enforced
+
+**AI Augmentation**:
+- REQ-AI-001: Some skills exist but not complete for all stages
+- REQ-AI-002: Human accountability conceptual but not enforced
+
+**Tooling Infrastructure**:
+- REQ-TOOL-005: Release commands exist but not complete
+
+### 4.4 Recommended Design Priorities
+
+**Phase 1: Complete Foundation** (v0.2.0)
+1. Intent Management System design (REQ-INTENT-001, 002, 003)
+2. Traceability Validation Service (REQ-TRACE-003)
+3. Stage Transition Enforcement (REQ-STAGE-002)
+
+**Phase 2: Close the Loop** (v0.3.0)
+1. Runtime Feedback System design (REQ-RUNTIME-001, 002, 003)
+2. UAT Stage design (REQ-UAT-001, 002)
+3. Feedback Loop Closure (Runtime → Intent)
+
+**Phase 3: Tooling Maturity** (v0.4.0)
+1. Test Gap Analysis (REQ-TOOL-007)
+2. Framework Updates (REQ-TOOL-006)
+3. Release Management completion (REQ-TOOL-005)
+
+---
+
+## 5. Architecture Decision Records
+
+### 5.1 ADR Summary
 
 | ADR | Decision | Requirements |
 |-----|----------|--------------|
-| [ADR-001](adrs/ADR-001-claude-code-as-mvp-platform.md) | Claude Code as MVP Platform | REQ-F-PLUGIN-001 |
-| [ADR-002](adrs/ADR-002-commands-for-workflow-integration.md) | Commands for Workflow Integration | REQ-F-CMD-001 |
-| [ADR-003](adrs/ADR-003-agents-for-stage-personas.md) | Agents for Stage Personas | REQ-F-CMD-002 |
-| [ADR-004](adrs/ADR-004-skills-for-reusable-capabilities.md) | Skills for Reusable Capabilities | REQ-F-PLUGIN-001 |
-| [ADR-005](adrs/ADR-005-iterative-refinement-feedback-loops.md) | Iterative Refinement Feedback Loops | REQ-NFR-REFINE-001 |
+| [ADR-001](adrs/ADR-001-claude-code-as-mvp-platform.md) | Claude Code as MVP Platform | REQ-TOOL-001 |
+| [ADR-002](adrs/ADR-002-commands-for-workflow-integration.md) | Commands for Workflow Integration | REQ-TOOL-003 |
+| [ADR-003](adrs/ADR-003-agents-for-stage-personas.md) | Agents for Stage Personas | REQ-AI-003, REQ-STAGE-001 |
+| [ADR-004](adrs/ADR-004-skills-for-reusable-capabilities.md) | Skills for Reusable Capabilities | REQ-AI-001 |
+| [ADR-005](adrs/ADR-005-iterative-refinement-feedback-loops.md) | Iterative Refinement Feedback Loops | REQ-STAGE-004 |
 
-### 4.2 Key Decisions Summary
+### 5.2 Key Decisions Summary
 
 1. **Platform Choice** (ADR-001): Claude Code as MVP platform
    - Native plugin support
@@ -581,9 +783,49 @@ COMMIT Phase:
 
 ---
 
-## 6. Integration Points
+## 6. Requirement Mapping (Old to New)
 
-### 6.1 Plugin-Agent Integration
+This section maps the old 17 tooling-focused requirements to the new 42 platform-agnostic requirements for reference:
+
+| Old Requirement (v1.0) | New Requirement (v2.0) | Notes |
+|------------------------|------------------------|-------|
+| REQ-F-PLUGIN-001 | REQ-TOOL-001 | Plugin Architecture |
+| REQ-F-PLUGIN-002 | REQ-TOOL-004 | Configuration Hierarchy (partial) |
+| REQ-F-PLUGIN-003 | REQ-TOOL-001 | Plugin Architecture (bundles) |
+| REQ-F-PLUGIN-004 | REQ-TOOL-004 | Versioning |
+| REQ-F-CMD-001 | REQ-TOOL-003 | Workflow Commands |
+| REQ-F-CMD-002 | REQ-AI-003 | Stage-Specific Agent Personas |
+| REQ-F-WORKSPACE-001 | REQ-TOOL-002 | Developer Workspace |
+| REQ-F-WORKSPACE-002 | REQ-TOOL-002 | Task Management (part of workspace) |
+| REQ-F-WORKSPACE-003 | REQ-TOOL-002 | Session Management (part of workspace) |
+| REQ-F-TESTING-001 | REQ-CODE-004 | Test Coverage |
+| REQ-F-TESTING-002 | REQ-TOOL-007 | Test Gap Analysis |
+| REQ-NFR-TRACE-001 | REQ-TRACE-001 | Full Lifecycle Traceability |
+| REQ-NFR-TRACE-002 | REQ-TRACE-002 | Requirement Key Propagation |
+| REQ-NFR-CONTEXT-001 | REQ-TOOL-002 | Persistent Context (workspace) |
+| REQ-NFR-FEDERATE-001 | REQ-TOOL-004 | Configuration Hierarchy |
+| REQ-NFR-COVERAGE-001 | REQ-CODE-004 | Test Coverage Minimum |
+| REQ-NFR-REFINE-001 | REQ-STAGE-004 | Bidirectional Feedback |
+
+**New Categories Not in v1.0**:
+- **Intent Management** (REQ-INTENT-*) - NEW category for intent capture and classification
+- **7-Stage Workflow** (REQ-STAGE-*) - NEW category for stage definitions and transitions
+- **Requirements Stage** (REQ-REQ-*) - NEW category for requirement generation and refinement
+- **Design Stage** (REQ-DES-*) - NEW category for design artifacts
+- **Tasks Stage** (REQ-TASK-*) - NEW category for work breakdown
+- **Code Stage** (REQ-CODE-*) - Expanded from partial coverage to full TDD workflow
+- **System Test Stage** (REQ-SYSTEST-*) - NEW category for BDD testing
+- **UAT Stage** (REQ-UAT-*) - NEW category for business validation
+- **Runtime Feedback** (REQ-RUNTIME-*) - NEW category for production monitoring
+- **AI Augmentation** (REQ-AI-*) - Expanded from single requirement to category
+- **Traceability** (REQ-TRACE-*) - Expanded with validation requirements
+- **Release Management** (REQ-TOOL-005, 006) - NEW requirements in tooling
+
+---
+
+## 7. Integration Points
+
+### 7.1 Plugin-Agent Integration
 
 Plugins provide configuration, agents use it:
 
@@ -608,7 +850,7 @@ TDD-Driven Implementation
 2. Tag code with requirement keys (# Implements: REQ-*)
 ```
 
-### 6.2 Agent-Skill Integration
+### 7.2 Agent-Skill Integration
 
 Agents invoke skills for execution:
 
@@ -625,7 +867,7 @@ Invokes: tdd-workflow skill
 └─ commit-with-req-tag skill → Commit with REQ-*
 ```
 
-### 6.3 Command-Workspace Integration
+### 7.3 Command-Workspace Integration
 
 Commands operate on workspace files:
 
@@ -637,9 +879,9 @@ Commands operate on workspace files:
 
 ---
 
-## 7. Implementation Status
+## 8. Implementation Status
 
-### 7.1 Current State
+### 8.1 Current State
 
 | Component | Status | Artifacts |
 |-----------|--------|-----------|
@@ -650,43 +892,102 @@ Commands operate on workspace files:
 | Traceability | ⚠️ Partial | Format defined, tags not enforced |
 | Testing | ⚠️ Partial | 156 tests, coverage not gated |
 
-### 7.2 Metrics
+### 8.2 Metrics
 
+- **Total Requirements**: 42 (was 17 in v1.0)
 - **Total Plugins**: 13
 - **Total Agents**: 7 (+ 7 templates)
 - **Total Commands**: 6 (+ 6 templates)
 - **Total Design Docs**: 6 (5,744 lines)
 - **Total ADRs**: 5
-- **Requirements Coverage**: 71% implemented, 24% partial
+- **Requirements Coverage**: 38% implemented, 33% partial, 29% gap
 
 ---
 
-## 8. Next Steps
+## 9. Next Steps
 
-### 8.1 Immediate (v0.1.5)
+### 9.1 Immediate (v0.2.0 - Foundation Completion)
 
-1. **Enforce traceability** - Validate REQ-* tags in code/tests
-2. **Coverage gates** - Block merges below 80%
-3. **Dependency enforcement** - Validate plugin dependencies on install
+**Priority: Complete Foundation for Traceability**
 
-### 8.2 Short-term (v0.2.0)
+1. **Intent Management System** (REQ-INTENT-001, 002, 003)
+   - Design intent capture mechanism (`.ai-workspace/intents/`)
+   - Implement intent classification workflow
+   - Add ecosystem monitoring integration
 
-1. **Test generation skill** - Auto-generate tests for coverage gaps
-2. **Command improvements** - Better error handling, progress feedback
-3. **Documentation** - Complete COMMAND_SYSTEM.md design doc
+2. **Traceability Validation** (REQ-TRACE-003)
+   - Implement traceability validation service
+   - Add gap detection (requirements without code/tests)
+   - Add orphan detection (code/tests without requirements)
 
-### 8.3 Long-term (v1.0.0)
+3. **Stage Transition Enforcement** (REQ-STAGE-002)
+   - Add transition logging
+   - Enforce quality gates before transitions
+   - Track artifact handoff between stages
 
-1. **Cross-tool adapters** - GitHub Copilot, Cursor support
-2. **Web UI** - Visual task/session management
-3. **Analytics** - Usage tracking, team insights
+### 9.2 Short-term (v0.3.0 - Close the Loop)
+
+**Priority: Implement Homeostatic Feedback**
+
+1. **Runtime Feedback System** (REQ-RUNTIME-001, 002, 003)
+   - Design telemetry tagging with REQ-* keys
+   - Implement deviation detection against homeostasis model
+   - Implement feedback loop closure (Runtime → Intent)
+
+2. **UAT Stage** (REQ-UAT-001, 002)
+   - Design business-language test cases
+   - Implement sign-off workflow
+   - Add UAT traceability
+
+3. **Enforcement Mechanisms**
+   - Code tagging validation (REQ-CODE-003)
+   - Test tagging validation (REQ-SYSTEST-003)
+   - Coverage gates in CI/CD (REQ-CODE-004)
+
+### 9.3 Medium-term (v0.4.0 - Tooling Maturity)
+
+**Priority: Complete Tooling Infrastructure**
+
+1. **Test Gap Analysis** (REQ-TOOL-007)
+   - Implement coverage gap detection
+   - Add test case suggestions
+   - Generate test stubs/templates
+
+2. **Framework Updates** (REQ-TOOL-006)
+   - Implement update checking mechanism
+   - Add download and apply updates
+   - Add rollback capability
+
+3. **Release Management** (REQ-TOOL-005)
+   - Complete changelog generation
+   - Add release notes with requirement coverage
+   - Implement distribution packaging
+
+### 9.4 Long-term (v1.0.0 - Platform Expansion)
+
+**Priority: Multi-Platform Support**
+
+1. **Platform Adapters**
+   - GitHub Copilot adapter
+   - Cursor adapter
+   - Gemini Code Assist adapter
+
+2. **Complete AI Augmentation** (REQ-AI-001, 002)
+   - Stage-specific skills for all 7 stages
+   - Human accountability enforcement
+   - AI suggestion review workflows
+
+3. **Analytics & Insights**
+   - Usage tracking
+   - Team collaboration metrics
+   - Requirement coverage dashboards
 
 ---
 
-## References
+## 10. References
 
 ### Requirements
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) - 17 requirements
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) - 42 platform-agnostic requirements (v2.0)
 
 ### Design Documents
 - [AI_SDLC_UX_DESIGN.md](AI_SDLC_UX_DESIGN.md) - UX design
@@ -711,9 +1012,14 @@ Commands operate on workspace files:
 
 ---
 
-**Document Status**: Draft
-**Next Review**: After v0.1.5 release
+**Document Status**: Draft (v2.0)
+**Last Updated**: 2025-12-02
+**Next Review**: After v0.2.0 release (foundation completion)
+
+**Version History**:
+- v1.0 (2025-11-25): Initial design synthesis for 17 tooling-focused requirements
+- v2.0 (2025-12-02): Updated for 42 platform-agnostic requirements, added gap analysis
 
 ---
 
-**"Excellence or nothing"** 🔥
+**"Excellence or nothing"**

@@ -3,7 +3,7 @@
 **Status**: Accepted
 **Date**: 2025-11-25
 **Deciders**: Development Tools Team
-**Requirements**: REQ-F-CMD-001 (Slash Commands for Workflow)
+**Requirements**: REQ-TOOL-003 (Workflow Commands)
 **Depends On**: ADR-001 (Claude Code as Platform)
 
 ---
@@ -303,7 +303,7 @@ Display current task status from `.ai-workspace/tasks/`.
 ## Validation
 
 **Requirement coverage**:
-- REQ-F-CMD-001: Slash Commands for Workflow ✅
+- REQ-TOOL-003: Workflow Commands ✅
   - ✅ Commands in `.claude/commands/*.md` format
   - ✅ Minimum commands present (checkpoint, finish, commit, status)
   - ✅ Commands integrate with .ai-workspace/
@@ -336,7 +336,7 @@ Display current task status from `.ai-workspace/tasks/`.
 
 **Lesson**: Start minimal, add only when proven need
 
-**v0.4 Change**: Added `aisdlc-update` command to enable framework updates from GitHub without manual file copying. Fulfills REQ-F-UPDATE-001.
+**v0.4 Change**: Added `aisdlc-update` command to enable framework updates from GitHub without manual file copying. Fulfills REQ-TOOL-006 (Framework Updates).
 
 ---
 

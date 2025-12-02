@@ -20,28 +20,45 @@ ai_sdlc_method provides the **complete 7-Stage AI SDLC methodology** as installa
 
 ## Installation
 
-### Quick Install
+### Current Installation Method
+
+The AI SDLC methodology is embedded in this project repository. When you use Claude Code in a project with the ai_sdlc_method plugin:
 
 ```bash
-# Add marketplace
-/plugin marketplace add foolishimp/ai_sdlc_method
+# The plugin is located at:
+# /path/to/project/.claude-plugin/plugins/aisdlc-methodology/
 
-# Install methodology plugin
-/plugin install @aisdlc/aisdlc-methodology
-
-# Optional: Install language-specific standards
-/plugin install @aisdlc/python-standards
+# To install in your own project using Python installers:
+cd /path/to/your-project
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
 ```
 
 ### Verify Installation
 
+Check that the plugin is available:
+
 ```bash
-# Check installed plugins
-/plugin list
+# Check plugin structure
+ls .claude-plugin/plugins/aisdlc-methodology/
 
 # Should show:
-# - aisdlc-methodology (v2.0.0)
-# - python-standards (v1.0.0)  [if installed]
+# - agents/        (7 stage agents)
+# - commands/      (8 slash commands)
+# - skills/        (42 skills in 7 categories)
+# - config/        (stages_config.yml, config.yml)
+# - templates/     (workspace scaffolding)
+```
+
+### Alternative: Marketplace Installation (Future)
+
+Once published to GitHub marketplace:
+
+```bash
+# Add marketplace (future)
+/plugin marketplace add foolishimp/ai_sdlc_method
+
+# Install methodology plugin (future)
+/plugin install @foolishimp/aisdlc-methodology
 ```
 
 ---
@@ -108,74 +125,102 @@ ai_sdlc:
 ### aisdlc-methodology Plugin Structure
 
 ```
-claude-code/plugins/aisdlc-methodology/
+.claude-plugin/plugins/aisdlc-methodology/
 ├── .claude-plugin/
-│   └── plugin.json                 # Plugin metadata (v2.0.0)
+│   └── plugin.json                 # Plugin metadata (v4.4.0)
+├── agents/                         # 7 stage-specific personas
+│   ├── aisdlc-requirements-agent.md
+│   ├── aisdlc-design-agent.md
+│   ├── aisdlc-tasks-agent.md
+│   ├── aisdlc-code-agent.md
+│   ├── aisdlc-system-test-agent.md
+│   ├── aisdlc-uat-agent.md
+│   └── aisdlc-runtime-feedback-agent.md
+├── commands/                       # 8 slash commands
+│   ├── aisdlc-checkpoint-tasks.md
+│   ├── aisdlc-commit-task.md
+│   ├── aisdlc-finish-task.md
+│   ├── aisdlc-help.md
+│   ├── aisdlc-refresh-context.md
+│   ├── aisdlc-release.md
+│   ├── aisdlc-status.md
+│   └── aisdlc-update.md
+├── skills/                         # 42 skills in 7 categories
+│   ├── code/                       # Code generation skills
+│   ├── core/                       # Core methodology skills
+│   ├── design/                     # Design and architecture skills
+│   ├── principles/                 # Key Principles skills
+│   ├── requirements/               # Requirements management skills
+│   ├── runtime/                    # Runtime monitoring skills
+│   └── testing/                    # Testing and validation skills
 ├── config/
-│   ├── stages_config.yml          # 7-stage agent specifications (1,273 lines)
-│   └── config.yml                 # Key Principles + Code stage config
-├── docs/
-│   ├── README.md                  # Plugin overview
+│   ├── stages_config.yml           # 7-stage specifications (790 lines)
+│   └── config.yml                  # Key Principles configuration
+├── templates/                      # Workspace scaffolding
+│   └── .ai-workspace/
+│       ├── tasks/
+│       ├── templates/
+│       └── config/
+├── hooks/                          # 4 lifecycle hooks
+│   └── hooks.json
+├── docs/                           # Documentation
+│   ├── README.md
 │   ├── principles/
-│   │   └── KEY_PRINCIPLES.md       # The seven core principles
-│   ├── processes/
-│   │   └── TDD_WORKFLOW.md       # Complete TDD cycle documentation
-│   └── guides/                    # Stage-specific guides
-└── project.json                   # Legacy: for MCP service compatibility
+│   └── processes/
+└── README.md                       # Plugin overview
 ```
 
 ### Key Configuration Files
 
-#### 1. stages_config.yml (1,273 lines)
+#### 1. stages_config.yml (790 lines)
 
 Complete 7-stage agent specifications:
 
 ```yaml
-ai_sdlc:
-  version: "2.0.0"
-  description: "Complete AI SDLC methodology with 7-stage agent configurations"
+ai_sdlc_stages:
+  version: "1.0"
+  description: "Complete AI SDLC stage configurations with AI agent specifications"
 
-  stages:
-    requirements:
-      agent:
-        name: "Requirements Agent"
-        role: "Intent Store & Traceability Hub"
-        purpose: "Transform raw intent into structured requirements"
-        responsibilities: [...]
-        inputs: [...]
-        outputs: [...]
-        quality_gates: [...]
-        context: [...]
+  requirements_stage:
+    agent:
+      name: "AISDLC Requirements Agent"
+      role: "Intent Store & Traceability Hub"
+      purpose: "Transform intent into formally documented, uniquely-keyed requirements"
+      responsibilities: [...]
+      inputs: [...]
+      outputs: [...]
+      quality_gates: [...]
 
-    design:
-      agent:
-        name: "Design Agent / Solution Designer"
-        # ... complete specification
+  design_stage:
+    agent:
+      name: "AISDLC Design Agent"
+      role: "Solution Designer"
+      # ... complete specification
 
-    tasks:
-      agent:
-        name: "Tasks Stage Orchestrator"
-        # ... complete specification
+  tasks_stage:
+    agent:
+      name: "AISDLC Tasks Stage Orchestrator"
+      # ... complete specification
 
-    code:
-      agent:
-        name: "Code Agent / Developer Agent"
-        # ... complete specification + Key Principles
+  code_stage:
+    agent:
+      name: "AISDLC Code Agent"
+      # ... complete specification + Key Principles + TDD
 
-    system_test:
-      agent:
-        name: "System Test Agent / QA Agent"
-        # ... complete specification + BDD
+  system_test_stage:
+    agent:
+      name: "AISDLC System Test Agent"
+      # ... complete specification + BDD
 
-    uat:
-      agent:
-        name: "UAT Agent"
-        # ... complete specification
+  uat_stage:
+    agent:
+      name: "AISDLC UAT Agent"
+      # ... complete specification
 
-    runtime_feedback:
-      agent:
-        name: "Runtime Feedback Agent"
-        # ... complete specification
+  runtime_feedback_stage:
+    agent:
+      name: "AISDLC Runtime Feedback Agent"
+      # ... complete specification
 ```
 
 #### 2. config.yml
@@ -210,8 +255,8 @@ methodology:
 ### Step 1: Create Plugin Structure
 
 ```bash
-mkdir -p .claude-claude-code/plugins/my-project-context/.claude-plugin
-mkdir -p .claude-claude-code/plugins/my-project-context/config
+mkdir -p .claude-plugin/plugins/my-project-context/.claude-plugin
+mkdir -p .claude-plugin/plugins/my-project-context/config
 ```
 
 ### Step 2: Create plugin.json
@@ -240,8 +285,8 @@ project:
   risk_level: "high"
 
 ai_sdlc:
-  # Load 7-stage methodology plugin
-  methodology_plugin: "file://../aisdlc-methodology/config/stages_config.yml"
+  # Reference to methodology plugin (loaded automatically)
+  # Plugin location: .claude-plugin/plugins/aisdlc-methodology/
 
   # Enable stages you need
   enabled_stages:
@@ -296,26 +341,21 @@ security:
   pci_compliance: true
 ```
 
-### Step 4: Install Your Plugin
+### Step 4: Use Your Plugin
+
+Your project plugin extends the base aisdlc-methodology plugin. Place it in:
 
 ```bash
-# In .claude/settings.json
-{
-  "extraKnownMarketplaces": {
-    "local": {
-      "source": {
-        "source": "local",
-        "path": "./.claude-plugins"
-      }
-    }
-  },
-  "plugins": [
-    "@aisdlc/aisdlc-methodology",
-    "@aisdlc/python-standards",
-    "@local/my-project-context"
-  ]
-}
+.claude-plugin/plugins/my-project-context/
+
+# Claude Code will automatically discover plugins in .claude-plugin/plugins/
 ```
+
+The plugin loading order:
+1. Base plugins (aisdlc-methodology)
+2. Project-specific plugins (your overrides)
+
+Later plugins can override earlier ones.
 
 ---
 
@@ -361,20 +401,20 @@ Use multiple marketplaces for organizational hierarchy:
 
 ### Project Plugin (Extends Division)
 
-**Local**: `./.claude-claude-code/plugins/`
+**Local**: `./.claude-plugin/plugins/`
 
-```json
-{
-  "plugins": [
-    "@corporate/aisdlc-methodology",
-    "@corporate/python-standards",
-    "@division/backend-standards",
-    "@local/payment-gateway-context"
-  ]
-}
+```bash
+# Project-specific plugin
+.claude-plugin/plugins/payment-gateway-context/
+
+# Inherits from:
+# - Corporate standards (aisdlc-methodology, python-standards)
+# - Division standards (backend-standards)
 ```
 
 **Plugin loading order determines priority** - later plugins override earlier ones.
+
+Note: Currently plugins are installed via Python installers. Future versions will support marketplace-based installation.
 
 ---
 
@@ -541,21 +581,23 @@ New cycle begins at Requirements stage to address INT-042
 ## Documentation
 
 ### Core Methodology
-- [docs/ai_sdlc_overview.md](docs/ai_sdlc_overview.md) - High-level overview (~30 min read)
-- [docs/ai_sdlc_method.md](docs/ai_sdlc_method.md) - Complete 7-stage methodology (3,300+ lines) ⭐
-- [docs/ai_sdlc_appendices.md](docs/ai_sdlc_appendices.md) - Technical deep-dives
-- [docs/README.md](docs/README.md) - Documentation index with role-based learning paths
+- [../requirements/AI_SDLC_OVERVIEW.md](../requirements/AI_SDLC_OVERVIEW.md) - High-level overview
+- [../requirements/AI_SDLC_REQUIREMENTS.md](../requirements/AI_SDLC_REQUIREMENTS.md) - Complete methodology specification
+- [../requirements/AI_SDLC_CONCEPTS.md](../requirements/AI_SDLC_CONCEPTS.md) - Key concepts and theory
+- [../requirements/AI_SDLC_APPENDICES.md](../requirements/AI_SDLC_APPENDICES.md) - Category theory deep-dives
+- [../README.md](../README.md) - Documentation index
 
 ### Plugin Documentation
-- [claude-code/plugins/README.md](claude-code/plugins/README.md) - Plugin creation and usage guide
-- [claude-code/plugins/aisdlc-methodology/README.md](claude-code/plugins/aisdlc-methodology/README.md) - Methodology plugin docs
+- [../../claude-code/.claude-plugin/plugins/aisdlc-methodology/README.md](../../claude-code/.claude-plugin/plugins/aisdlc-methodology/README.md) - Plugin overview
+- [../../claude-code/.claude-plugin/plugins/README.md](../../claude-code/.claude-plugin/plugins/README.md) - Plugin system (if exists)
 
-### Examples
-- [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete example projects (separate repo)
+### Implementation Design
+- [../design/claude_aisdlc/](../design/claude_aisdlc/) - Claude Code implementation design
+- [../design/claude_aisdlc/adrs/](../design/claude_aisdlc/adrs/) - Architecture decision records
 
 ### Quick Start
-- [QUICKSTART.md](QUICKSTART.md) - Quick start guide
-- [README.md](README.md) - Project overview
+- [../../QUICKSTART.md](../../QUICKSTART.md) - Quick start guide
+- [../../README.md](../../README.md) - Project overview
 
 ---
 
@@ -564,43 +606,45 @@ New cycle begins at Requirements stage to address INT-042
 ### Plugin Not Loading
 
 ```bash
-# Check plugin list
-/plugin list
+# Check plugin structure
+ls .claude-plugin/plugins/aisdlc-methodology/
 
-# Reinstall if needed
-/plugin uninstall @aisdlc/aisdlc-methodology
-/plugin install @aisdlc/aisdlc-methodology
+# Verify agents, commands, and skills are present
+ls .claude-plugin/plugins/aisdlc-methodology/agents/
+ls .claude-plugin/plugins/aisdlc-methodology/commands/
+ls .claude-plugin/plugins/aisdlc-methodology/skills/
+
+# Reinstall if needed using Python installer
+python /path/to/ai_sdlc_method/claude-code/installers/aisdlc-setup.py
 ```
 
 ### Configuration Not Working
 
-Check your project's config.yml:
-```yaml
-ai_sdlc:
-  # Must reference the methodology plugin
-  methodology_plugin: "file://claude-code/plugins/aisdlc-methodology/config/stages_config.yml"
+Check that the plugin structure is complete:
+```bash
+# Verify config files exist
+cat .claude-plugin/plugins/aisdlc-methodology/config/stages_config.yml
+cat .claude-plugin/plugins/aisdlc-methodology/config/config.yml
 
-  # Ensure stages are enabled
-  enabled_stages:
-    - requirements
-    - design
-    - tasks
-    - code
-    - system_test
-    - uat
-    - runtime_feedback
+# Check plugin metadata
+cat .claude-plugin/plugins/aisdlc-methodology/.claude-plugin/plugin.json
 ```
 
-### Version Mismatch
+### Commands Not Available
 
-Ensure your project dependencies match available versions:
-```json
-{
-  "dependencies": {
-    "aisdlc-methodology": "^2.0.0",  // Use v2.0.0+
-    "python-standards": "^1.0.0"
-  }
-}
+```bash
+# Verify commands are installed
+ls .claude-plugin/plugins/aisdlc-methodology/commands/
+
+# Should show 8 commands:
+# - aisdlc-checkpoint-tasks.md
+# - aisdlc-commit-task.md
+# - aisdlc-finish-task.md
+# - aisdlc-help.md
+# - aisdlc-refresh-context.md
+# - aisdlc-release.md
+# - aisdlc-status.md
+# - aisdlc-update.md
 ```
 
 ---

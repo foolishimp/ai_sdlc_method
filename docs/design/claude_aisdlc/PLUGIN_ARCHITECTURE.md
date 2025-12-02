@@ -11,12 +11,10 @@
 
 This design implements the following requirements:
 
-- **REQ-F-PLUGIN-001**: Plugin system with marketplace support
-- **REQ-F-PLUGIN-002**: Federated plugin loading (corporate → division → team → project)
-- **REQ-F-PLUGIN-003**: Plugin bundles (startup, datascience, qa, enterprise)
-- **REQ-F-PLUGIN-004**: Plugin versioning and dependency management
-- **REQ-NFR-CONTEXT-001**: Persistent context across sessions
-- **REQ-NFR-FEDERATE-001**: Hierarchical configuration composition
+- **REQ-TOOL-001**: Plugin system with marketplace support and plugin bundles
+- **REQ-TOOL-004**: Configuration hierarchy (federated plugin loading)
+- **REQ-TOOL-005**: Release management and versioning
+- **REQ-TOOL-002**: Developer workspace (persistent context)
 
 **Related Design Documents**:
 - [AI SDLC UX Design](AI_SDLC_UX_DESIGN.md) - Overall user experience
@@ -82,7 +80,7 @@ The plugin architecture enables **modular, composable context delivery** to AI a
 ### ADR-001: Plugin Format - JSON Metadata + YAML Configuration
 
 **Context**:
-- **Requirements**: REQ-F-PLUGIN-001 (marketplace support), REQ-NFR-FEDERATE-001 (composition)
+- **Requirements**: REQ-TOOL-001 (plugin system), REQ-TOOL-004 (configuration hierarchy)
 - **Ecosystem Constraints**:
   - Claude Code expects JSON for plugin metadata
   - YAML is more human-readable for configuration
@@ -116,7 +114,7 @@ The plugin architecture enables **modular, composable context delivery** to AI a
 ### ADR-002: Plugin Categories - Methodology, Skills, Standards, Bundles
 
 **Context**:
-- **Requirements**: REQ-F-PLUGIN-003 (plugin bundles)
+- **Requirements**: REQ-TOOL-001 (plugin bundles)
 - **Ecosystem Constraints**:
   - Different users need different capabilities
   - Some want full methodology, others just coding standards
@@ -162,7 +160,7 @@ Bundles:
 ### ADR-003: Dependency Management - NPM-Style SemVer
 
 **Context**:
-- **Requirements**: REQ-F-PLUGIN-004 (versioning and dependencies)
+- **Requirements**: REQ-TOOL-005 (versioning and release management)
 - **Ecosystem Constraints**:
   - Claude Code uses npm-style package management
   - Developers familiar with SemVer (^1.0.0)
@@ -771,10 +769,9 @@ python installers/setup_plugins.py --plugin aisdlc-methodology --non-interactive
 - No automated tests yet (manual validation only)
 
 **Traceability**:
-- REQ-F-PLUGIN-001 → claude-code/plugins/, marketplace.json ✅
-- REQ-F-PLUGIN-002 → Federated loading (project overrides) ✅
-- REQ-F-PLUGIN-003 → Plugin bundles (startup, qa, enterprise) ✅
-- REQ-F-PLUGIN-004 → SemVer in plugin.json, dependencies declared ⚠️ (not enforced)
+- REQ-TOOL-001 → claude-code/plugins/, marketplace.json, plugin bundles ✅
+- REQ-TOOL-004 → Federated loading (project overrides) ✅
+- REQ-TOOL-005 → SemVer in plugin.json, dependencies declared ⚠️ (not enforced)
 
 ---
 

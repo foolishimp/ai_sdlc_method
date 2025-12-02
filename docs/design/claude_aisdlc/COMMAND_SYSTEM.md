@@ -55,7 +55,7 @@ claude-code/plugins/aisdlc-methodology/commands/
 - Traditional: `git status`, open Jira, check TODO app = 3 context switches
 - With command: Single query, full picture in conversation
 
-**Implements**: REQ-F-TODO-003, REQ-F-CMD-001
+**Implements**: REQ-TOOL-003 (Workflow Commands)
 
 **Behavior**:
 1. Read `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
@@ -77,7 +77,7 @@ claude-code/plugins/aisdlc-methodology/commands/
 - Manual status updates = forgotten or inconsistent
 - Checkpoint analyzes conversation → updates tasks automatically
 
-**Implements**: REQ-F-WORKSPACE-002, REQ-NFR-CONTEXT-001
+**Implements**: REQ-TOOL-002 (Developer Workspace), REQ-TOOL-003 (Workflow Commands)
 
 **Behavior**:
 1. Analyze conversation history for completed work
@@ -100,7 +100,7 @@ claude-code/plugins/aisdlc-methodology/commands/
 - Alternative: Tasks disappear with no record → lost institutional knowledge
 - Finish creates permanent artifact in `tasks/finished/`
 
-**Implements**: REQ-F-CMD-001
+**Implements**: REQ-TOOL-003 (Workflow Commands)
 
 **Behavior**:
 1. Find task in `ACTIVE_TASKS.md`
@@ -123,7 +123,7 @@ claude-code/plugins/aisdlc-methodology/commands/
 - Command reads finished task → generates structured message
 - Enforces: TDD notation, requirement keys, Claude co-authorship
 
-**Implements**: REQ-F-CMD-001, REQ-NFR-TRACE-001
+**Implements**: REQ-TOOL-003 (Workflow Commands), REQ-TRACE-001 (Full Lifecycle Traceability)
 
 **Behavior**:
 1. Find finished task document in `.ai-workspace/tasks/finished/`
@@ -160,7 +160,7 @@ claude-code/plugins/aisdlc-methodology/commands/
 - Alternative: Repeat methodology in every message → wasteful
 - Refresh loads method reference + validates workspace
 
-**Implements**: REQ-F-CMD-001
+**Implements**: REQ-TOOL-003 (Workflow Commands)
 
 **Behavior**:
 1. Read `.ai-workspace/templates/AISDLC_METHOD_REFERENCE.md`
@@ -183,7 +183,7 @@ claude-code/plugins/aisdlc-methodology/commands/
 - Command automates: version bump, changelog from commits, git tag
 - Follows SemVer (major.minor.patch)
 
-**Implements**: REQ-F-CMD-003
+**Implements**: REQ-TOOL-005 (Release Management)
 
 **Behavior**:
 1. Validate: no uncommitted changes, on main branch
@@ -254,7 +254,7 @@ aisdlc-switch-persona.md     # Switch to different persona
 **Removal Rationale**:
 - Vestigial from earlier design
 - Personas implemented via agents (`.claude/agents/*.md`), not commands
-- REQ-F-CMD-002 (persona management) fulfilled by agent system
+- Stage-specific agent personas (REQ-AI-003) fulfilled by agent system
 - Commands were duplicating agent functionality
 
 ### TODO Command (removed v0.1.4)
@@ -370,13 +370,13 @@ Commands are installed via `installers/setup_commands.py`:
 
 | Command | Requirements |
 |---------|-------------|
-| aisdlc-status | REQ-F-TODO-003, REQ-F-CMD-001 |
-| aisdlc-checkpoint-tasks | REQ-F-WORKSPACE-002, REQ-NFR-CONTEXT-001 |
-| aisdlc-finish-task | REQ-F-CMD-001 |
-| aisdlc-commit-task | REQ-F-CMD-001, REQ-NFR-TRACE-001 |
-| aisdlc-refresh-context | REQ-F-CMD-001 |
-| aisdlc-release | REQ-F-CMD-003 |
-| aisdlc-update | REQ-F-UPDATE-001 |
+| aisdlc-status | REQ-TOOL-003 |
+| aisdlc-checkpoint-tasks | REQ-TOOL-002, REQ-TOOL-003 |
+| aisdlc-finish-task | REQ-TOOL-003 |
+| aisdlc-commit-task | REQ-TOOL-003, REQ-TRACE-001 |
+| aisdlc-refresh-context | REQ-TOOL-003 |
+| aisdlc-release | REQ-TOOL-005 |
+| aisdlc-update | REQ-TOOL-005 |
 
 ---
 
@@ -413,5 +413,5 @@ The v0.4 command set is **stable for MVP**. Changes require:
 
 - [ADR-002: Commands for Workflow Integration](adrs/ADR-002-commands-for-workflow-integration.md)
 - [ADR-001: Claude Code as MVP Platform](adrs/ADR-001-claude-code-as-mvp-platform.md)
-- [REQ-F-CMD-001: Slash Commands for Workflow](../../requirements/AI_SDLC_REQUIREMENTS.md)
+- [REQ-TOOL-003: Workflow Commands](../../requirements/AI_SDLC_REQUIREMENTS.md)
 - [Claude Code Slash Commands](https://docs.anthropic.com/claude-code/commands)

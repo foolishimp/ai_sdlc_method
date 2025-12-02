@@ -13,49 +13,49 @@
 - **Date**: 2025-11-25
 - **Decision**: Use Claude Code native plugin system vs custom MCP server
 - **Rationale**: 90% simpler, leverages existing platform, faster MVP
-- **Requirements**: REQ-F-PLUGIN-001, REQ-F-CMD-001, REQ-F-CMD-002
+- **Requirements**: REQ-TOOL-001, REQ-TOOL-003, REQ-AI-003
 
 **ADR-002**: [Commands for Workflow Integration](ADR-002-commands-for-workflow-integration.md)
 - **Status**: ✅ Accepted
 - **Date**: 2025-11-25
 - **Decision**: Use slash commands (`.claude/commands/`) for workflow actions
 - **Rationale**: Zero context-switching, seamless integration, minimal implementation
-- **Requirements**: REQ-F-CMD-001
+- **Requirements**: REQ-TOOL-003
 
 **ADR-003**: [Agents for Stage-Specific Personas](ADR-003-agents-for-stage-personas.md)
 - **Status**: ✅ Accepted
 - **Date**: 2025-11-25
 - **Decision**: Use 7 agent files for stage-specific personas/mindsets
 - **Rationale**: Stage-appropriate thinking, quality gates, role-based expertise
-- **Requirements**: REQ-F-CMD-002
+- **Requirements**: REQ-AI-003
 
 **ADR-004**: [Skills for Reusable Capabilities](ADR-004-skills-for-reusable-capabilities.md)
 - **Status**: ✅ Accepted
 - **Date**: 2025-11-25
 - **Decision**: Package reusable capabilities as skills within plugins
 - **Rationale**: DRY principle, composability, cross-stage availability
-- **Requirements**: Implicit in all stage requirements
+- **Requirements**: REQ-TOOL-001, REQ-AI-002, plus implicit in all stage requirements
 
 **ADR-005**: [Iterative Refinement via Feedback Loops](ADR-005-iterative-refinement-feedback-loops.md)
 - **Status**: ✅ Accepted
 - **Date**: 2025-11-25
 - **Decision**: All agents implement feedback protocols for iterative refinement
 - **Rationale**: Quality through iteration, explicit feedback mechanisms
-- **Requirements**: REQ-NFR-REFINE-001
+- **Requirements**: REQ-STAGE-004
 
 **ADR-006**: [Plugin Configuration and Discovery](ADR-006-plugin-configuration-and-discovery.md)
 - **Status**: ✅ Accepted
 - **Date**: 2025-11-27
 - **Decision**: Plugin discovery via marketplace.json with .claude-plugin/plugin.json metadata
 - **Rationale**: Standard Claude Code patterns, federated loading support
-- **Requirements**: REQ-F-PLUGIN-001, REQ-F-PLUGIN-002
+- **Requirements**: REQ-TOOL-001, REQ-TOOL-004
 
 **ADR-007**: [Hooks for Methodology Automation](ADR-007-hooks-for-methodology-automation.md)
 - **Status**: 📋 Proposed
 - **Date**: 2025-11-27
 - **Decision**: Use lifecycle hooks to automate methodology compliance
 - **Rationale**: Implicit automation complements explicit commands
-- **Requirements**: REQ-F-HOOKS-001 (NEW), REQ-NFR-CONTEXT-001
+- **Requirements**: REQ-TOOL-008 (NEW - needs formalization), REQ-TOOL-002
 
 ---
 
@@ -108,15 +108,30 @@ All ADRs trace to requirements:
 
 | ADR | Requirements Satisfied |
 |-----|----------------------|
-| ADR-001 | REQ-F-PLUGIN-001, REQ-F-CMD-001, REQ-F-CMD-002, REQ-F-WORKSPACE-001 |
-| ADR-002 | REQ-F-CMD-001 |
-| ADR-003 | REQ-F-CMD-002 |
-| ADR-004 | REQ-F-PLUGIN-001 + all stage requirements |
-| ADR-005 | REQ-NFR-REFINE-001 |
-| ADR-006 | REQ-F-PLUGIN-001, REQ-F-PLUGIN-002 |
-| ADR-007 | REQ-F-HOOKS-001 (NEW), REQ-NFR-CONTEXT-001 |
+| ADR-001 | REQ-TOOL-001, REQ-TOOL-003, REQ-AI-003, REQ-TOOL-002, REQ-TOOL-004 |
+| ADR-002 | REQ-TOOL-003, REQ-TOOL-006 |
+| ADR-003 | REQ-AI-003 |
+| ADR-004 | REQ-TOOL-001, REQ-AI-002, REQ-TRACE-001, REQ-CODE-004 |
+| ADR-005 | REQ-STAGE-004 |
+| ADR-006 | REQ-TOOL-001, REQ-TOOL-004 |
+| ADR-007 | REQ-TOOL-008 (NEW - needs formalization), REQ-TOOL-002, REQ-TRACE-002 |
 
-**Coverage**: 15+ requirements directly justified by these 7 ADRs
+**Coverage**: 12 unique requirements directly justified by these 7 ADRs
+
+**Requirement Mapping**:
+- REQ-TOOL-001: Plugin Architecture (ADR-001, ADR-004, ADR-006)
+- REQ-TOOL-002: Developer Workspace (ADR-001, ADR-007)
+- REQ-TOOL-003: Workflow Commands (ADR-001, ADR-002)
+- REQ-TOOL-004: Configuration Hierarchy (ADR-001, ADR-006)
+- REQ-TOOL-005: Release Management (referenced in ADR-001)
+- REQ-TOOL-006: Framework Updates (ADR-002)
+- REQ-TOOL-008: Methodology Hooks (ADR-007 - NEW, needs formalization)
+- REQ-AI-002: Agent-Based Processing (ADR-004)
+- REQ-AI-003: Stage-Specific Agent Personas (ADR-001, ADR-003)
+- REQ-STAGE-004: Bidirectional Feedback (ADR-005)
+- REQ-TRACE-001: Full Lifecycle Traceability (ADR-004)
+- REQ-TRACE-002: Requirement Key Propagation (ADR-007)
+- REQ-CODE-004: Test Coverage (ADR-004)
 
 ---
 

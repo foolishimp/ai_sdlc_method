@@ -338,13 +338,11 @@ Per Claude Code documentation:
 
 | Hook | Requirement |
 |------|-------------|
-| SessionStart | REQ-NFR-CONTEXT-001 (Persistent Context) |
-| Stop | REQ-F-WORKSPACE-002 (Task Management) |
-| PreToolUse | REQ-NFR-TRACE-001 (Requirement Tagging) |
-| PostToolUse | REQ-NFR-QUALITY-001 (Code Quality) - NEW |
-| UserPromptSubmit | REQ-NFR-CONTEXT-001 (Persistent Context) |
-
-**New Requirement**: REQ-F-HOOKS-001 (Lifecycle Hooks for Methodology Automation)
+| SessionStart | REQ-TOOL-002 (Developer Workspace - Persistent Context) |
+| Stop | REQ-TOOL-002 (Developer Workspace - Task Management) |
+| PreToolUse | REQ-TRACE-001 (Full Lifecycle Traceability) |
+| PostToolUse | REQ-QUALITY-001 (Quality Assurance) |
+| UserPromptSubmit | REQ-TOOL-002 (Developer Workspace - Persistent Context) |
 
 ---
 

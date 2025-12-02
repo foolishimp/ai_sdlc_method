@@ -27,7 +27,7 @@ class TestTCSCreation:
     @pytest.fixture
     def skill_file(self) -> Path:
         """Get the TCS skill specification file."""
-        return Path(__file__).parent.parent.parent / "plugins" / "testing-skills" / "skills" / "create-test-specification" / "SKILL.md"
+        return Path(__file__).parent.parent.parent / ".claude-plugin" / "plugins" / "aisdlc-methodology" / "skills" / "testing" / "create-test-specification" / "SKILL.md"
 
     @pytest.fixture
     def tcs_010_file(self, tcs_dir) -> Path:

@@ -3,7 +3,7 @@
 **Status**: Accepted
 **Date**: 2025-11-25
 **Deciders**: Development Tools Team
-**Requirements**: REQ-F-PLUGIN-001 (Plugin System), Implicit in all stage requirements
+**Requirements**: REQ-TOOL-001 (Plugin Architecture), REQ-AI-002 (Agent-Based Processing), Implicit in all stage requirements
 **Depends On**: ADR-001 (Claude Code as Platform), ADR-003 (Agents for Personas)
 
 ---
@@ -418,10 +418,10 @@ From aisdlc-core plugin:
 **Does this satisfy requirements?**
 
 All requirements implicitly rely on skills:
-- REQ-F-CMD-002: Agents USE skills to perform their roles ✅
-- REQ-F-PLUGIN-001: Skills distributed via plugins ✅
-- REQ-NFR-TRACE-001: Traceability skills enable requirement tracking ✅
-- REQ-F-TESTING-001: Testing skills validate coverage ✅
+- REQ-AI-003: Agents USE skills to perform their roles ✅
+- REQ-TOOL-001: Skills distributed via plugins ✅
+- REQ-TRACE-001: Traceability skills enable requirement tracking ✅
+- REQ-CODE-004: Testing skills validate coverage ✅
 
 **Architecture alignment**:
 - ✅ Agents = WHO (persona)

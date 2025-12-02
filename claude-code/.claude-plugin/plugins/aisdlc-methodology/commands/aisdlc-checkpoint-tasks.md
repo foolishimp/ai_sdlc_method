@@ -1,5 +1,6 @@
 Checkpoint active tasks against current conversation context and update ACTIVE_TASKS.md.
 
+<!-- Implements: REQ-F-CMD-001 (Slash Commands for Workflow) -->
 <!-- Implements: REQ-F-WORKSPACE-002 (Task Management Templates) -->
 <!-- Implements: REQ-NFR-CONTEXT-001 (Persistent Context Across Sessions) -->
 

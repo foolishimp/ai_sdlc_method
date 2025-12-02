@@ -1,5 +1,7 @@
 # Folder-Based Asset Discovery
 
+**Requirements Traceability**: REQ-TOOL-002 (Developer Workspace), REQ-TRACE-001 (Full Lifecycle Traceability)
+
 **Unified folder-based approach for all SDLC assets with type tagging**
 
 ---

@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-12-02 12:00*
+*Last Updated: 2025-12-02 15:00*
 
 ---
 
@@ -401,6 +401,12 @@ E(t) System Components:
   - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #24: Update docs/guides to Match Current Reality (2025-12-02 15:00)
+  - Updated README.md, PLUGIN_GUIDE.md, NEW_PROJECT_SETUP.md, JOURNEY.md
+  - Fixed plugin paths, installation method (curl one-liner), commands
+  - Removed hardcoded line counts (maintenance burden)
+  - Implements: REQ-F-WORKSPACE-002, REQ-NFR-CONTEXT-001
+  - See: `.ai-workspace/tasks/finished/20251202_1500_update_docs_guides_to_match_reality.md`
 - ✅ Task #23: Fix GitHub Marketplace Plugin Loading (2025-12-02 12:00)
   - Fixed plugin source path resolution (paths relative to repo root, not .claude-plugin/)
   - Created test plugin (`testmkt/plugins/hello-world/`) to validate structure

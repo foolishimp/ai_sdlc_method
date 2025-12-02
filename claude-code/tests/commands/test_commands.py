@@ -4,6 +4,7 @@ AISDLC Command Tests
 
 Integration tests validating the 7 AISDLC slash commands work correctly.
 
+# Validates: REQ-F-CMD-001 (Slash Commands for Workflow)
 # Implements: REQ-NFR-QUALITY-001 (Code Quality Standards)
 
 Usage:
@@ -81,9 +82,9 @@ def empty_workspace(temp_project):
 def workspace_with_tasks(temp_project):
     """Create .ai-workspace with sample tasks."""
     workspace = temp_project / ".ai-workspace"
-    (workspace / "tasks" / "active").mkdir(parents=True)
-    (workspace / "tasks" / "finished").mkdir(parents=True)
-    (workspace / "templates").mkdir(parents=True)
+    (workspace / "tasks" / "active").mkdir(parents=True, exist_ok=True)
+    (workspace / "tasks" / "finished").mkdir(parents=True, exist_ok=True)
+    (workspace / "templates").mkdir(parents=True, exist_ok=True)
 
     # ACTIVE_TASKS.md with tasks
     active_tasks = workspace / "tasks" / "active" / "ACTIVE_TASKS.md"
@@ -214,12 +215,13 @@ Sample solution description.
 class TestCommandFiles:
     """Test that command files exist and are well-formed."""
 
-    COMMANDS_DIR = Path(__file__).parent.parent.parent / "plugins" / "aisdlc-methodology" / "commands"
+    COMMANDS_DIR = Path(__file__).parent.parent.parent / ".claude-plugin" / "plugins" / "aisdlc-methodology" / "commands"
 
     EXPECTED_COMMANDS = [
         "aisdlc-checkpoint-tasks.md",
         "aisdlc-commit-task.md",
         "aisdlc-finish-task.md",
+        "aisdlc-help.md",
         "aisdlc-refresh-context.md",
         "aisdlc-release.md",
         "aisdlc-status.md",

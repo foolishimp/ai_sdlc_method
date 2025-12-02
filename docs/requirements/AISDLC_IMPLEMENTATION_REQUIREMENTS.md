@@ -1,495 +1,1028 @@
-# AI SDLC Method Implementation Requirements
+# AI SDLC Method - Implementation Requirements
 
 **Document Type**: Requirements Specification
-**Project**: ai_sdlc_method (self-implementation)
-**Version**: 1.0
-**Date**: 2025-11-23
-**Status**: Bootstrap
+**Project**: ai_sdlc_method
+**Version**: 2.0
+**Date**: 2025-12-02
+**Status**: Draft
+**Derived From**: [AI_SDLC_REQUIREMENTS.md](AI_SDLC_REQUIREMENTS.md) (Methodology v1.2)
 
 ---
 
 ## Purpose
 
-This document defines the requirements for building the AI SDLC Method tooling itself. These are **implementation requirements** for the system that delivers the methodology defined in [AI_SDLC_REQUIREMENTS.md](AI_SDLC_REQUIREMENTS.md).
+This document defines **platform-agnostic implementation requirements** for building tooling that delivers the AI SDLC methodology. These requirements are derived from the canonical methodology specification and define WHAT the system must do, not HOW (implementation details belong in design documents).
 
-**Meta Note**: We are **dogfooding** - using the AI SDLC methodology to build the AI SDLC methodology tooling.
-
----
-
-## 1. Plugin System
-
-### REQ-F-PLUGIN-001: Plugin System with Marketplace Support
-
-**Priority**: High
-**Type**: Functional
-
-**Description**: The system shall provide a plugin architecture that allows methodology, standards, and skills to be packaged and distributed via marketplace.
-
-**Acceptance Criteria**:
-- [ ] Plugins can be installed from GitHub marketplace
-- [ ] Plugins can be installed from local filesystem
-- [ ] Plugin metadata in JSON format (`.claude-plugin/plugin.json`)
-- [ ] Plugin discovery via `/plugin` commands
-- [ ] Marketplace registry in `marketplace.json`
-
-**Rationale**: Modular, composable context delivery to AI assistants.
-
-**Dependencies**: None (foundation)
+**Audience**: Implementers building AI SDLC tooling for any platform (Claude Code, Roo Code, Gemini, Codex, etc.)
 
 ---
 
-### REQ-F-PLUGIN-002: Federated Plugin Loading
+## Document Structure
 
-**Priority**: High
-**Type**: Functional
-
-**Description**: The system shall support hierarchical plugin composition where plugins load in order (corporate → division → team → project) with later plugins overriding earlier ones.
-
-**Acceptance Criteria**:
-- [ ] Global plugins load from `~/.claude/claude-code/plugins/`
-- [ ] Project plugins load from `./.claude-claude-code/plugins/`
-- [ ] Project plugins override global plugins
-- [ ] Configuration deep-merges (primitives replace, objects merge, arrays concatenate)
-- [ ] Override priority documented
-
-**Rationale**: Enables corporate standards + division customization + team preferences + project specifics.
-
-**Dependencies**: REQ-F-PLUGIN-001
-
-**Related**: REQ-NFR-FEDERATE-001 (hierarchical composition)
+1. [Intent Management](#1-intent-management) - Capture, classify, and store intents
+2. [7-Stage Workflow](#2-7-stage-workflow) - Stage definitions and transitions
+3. [Requirements Stage](#3-requirements-stage) - Intent → structured requirements
+4. [Design Stage](#4-design-stage) - Requirements → technical solution
+5. [Tasks Stage](#5-tasks-stage) - Design → work breakdown
+6. [Code Stage](#6-code-stage) - TDD implementation
+7. [System Test Stage](#7-system-test-stage) - BDD integration testing
+8. [UAT Stage](#8-uat-stage) - Business validation
+9. [Runtime Feedback Stage](#9-runtime-feedback-stage) - Production monitoring and feedback
+10. [Traceability](#10-traceability) - Full lifecycle tracking
+11. [AI Augmentation](#11-ai-augmentation) - AI assistance patterns
+12. [Tooling Infrastructure](#12-tooling-infrastructure) - Plugins, commands, workspace
 
 ---
 
-### REQ-F-PLUGIN-003: Plugin Bundles
+## 1. Intent Management
 
-**Priority**: Medium
-**Type**: Functional
+### Rationale (from Methodology Section 1.2.1, 2.3)
 
-**Description**: The system shall support plugin bundles that group multiple plugins for common use cases.
+> "Intent is the desire for change—something that should be built, fixed, or improved. A person observes a problem, opportunity, or risk in the real world. They compare what they see with what they expect or desire (their mental model). When these don't match, they form an intent to change the system."
 
-**Acceptance Criteria**:
-- [ ] Bundle declares dependencies on other plugins
-- [ ] Installing bundle installs all dependencies
-- [ ] Bundles available: startup, datascience, qa, enterprise
-- [ ] Bundle metadata in marketplace.json
-
-**Rationale**: Reduce installation complexity for common scenarios.
-
-**Dependencies**: REQ-F-PLUGIN-001, REQ-F-PLUGIN-004
+Intent management is the **entry point** to the AI SDLC. Without explicit intent capture, work lacks traceability to business value.
 
 ---
 
-### REQ-F-PLUGIN-004: Plugin Versioning and Dependency Management
-
-**Priority**: High
-**Type**: Functional
-
-**Description**: The system shall use semantic versioning (SemVer) for plugins and support dependency declarations with version ranges.
-
-**Acceptance Criteria**:
-- [ ] Plugin versions in format: major.minor.patch
-- [ ] Dependencies declared in plugin.json
-- [ ] Version ranges supported (^1.0.0, >=2.0.0 <3.0.0)
-- [ ] Breaking changes → major version bump
-- [ ] New features → minor version bump
-- [ ] Bug fixes → patch version bump
-
-**Rationale**: Prevents version conflicts, enables safe upgrades.
-
-**Dependencies**: REQ-F-PLUGIN-001
-
----
-
-## 2. Command System
-
-### REQ-F-CMD-001: Slash Commands for Workflow
-
-**Priority**: High
-**Type**: Functional
-
-**Description**: The system shall provide slash commands that integrate with Claude Code to support development workflows.
-
-**Acceptance Criteria**:
-- [ ] Commands in `.claude/commands/*.md` format
-- [ ] Minimum commands: /start-session, /todo, /finish-task, /commit-task
-- [ ] Commands integrate with .ai-workspace/
-- [ ] Command installer (setup_commands.py)
-
-**Rationale**: Streamline common development actions.
-
-**Dependencies**: REQ-F-WORKSPACE-001
-
----
-
-### REQ-F-CMD-002: Persona Management
-
-**Priority**: Low
-**Type**: Functional
-**Status**: ✅ **Implemented by 7-Stage SDLC Agents** (not commands)
-
-**Description**: The system shall provide role-based personas for different development stages and roles.
-
-**Acceptance Criteria**:
-- [x] Requirements agent (.claude/agents/aisdlc-requirements-agent.md)
-- [x] Design agent (.claude/agents/aisdlc-design-agent.md)
-- [x] Tasks agent (.claude/agents/aisdlc-tasks-agent.md)
-- [x] Code agent (.claude/agents/aisdlc-code-agent.md)
-- [x] System Test agent (.claude/agents/aisdlc-system-test-agent.md)
-- [x] UAT agent (.claude/agents/aisdlc-uat-agent.md)
-- [x] Runtime Feedback agent (.claude/agents/aisdlc-runtime-feedback-agent.md)
-
-**Rationale**: Support role-based development workflows through 7-stage SDLC agent system. Agents provide stage-specific focus and perspective.
-
-**Implementation**: 7 agent files in `.claude/agents/` (not slash commands). Vestigial persona commands removed in v0.1.4+.
-
-**Dependencies**: None (agents are part of core methodology)
-
----
-
-### REQ-F-CMD-003: Release Management Command
-
-**Release**: 1.0 MVP
-**Priority**: Medium
-**Type**: Functional
-
-**Description**: The system shall provide a `/aisdlc-release` command that automates framework release processes including version management, changelog generation, and release tagging.
-
-**Acceptance Criteria**:
-- [ ] Validate framework readiness (all tests pass, no uncommitted changes)
-- [ ] Update version references across codebase
-- [ ] Generate changelog from git history since last tag
-- [ ] Create annotated git tag with release notes
-- [ ] Generate release summary report
-- [ ] Support semantic versioning (major.minor.patch)
-- [ ] Dry-run mode for preview
-
-**Rationale**: Standardize release process, ensure consistency, reduce manual errors during releases.
-
-**Dependencies**: REQ-F-PLUGIN-004 (versioning)
-
-**Replaces**: Previous example project deployment functionality (examples moved to separate repo).
-
----
-
-## 3. Developer Workspace
-
-### REQ-F-WORKSPACE-001: Developer Workspace Structure
-
-**Priority**: High
-**Type**: Functional
-
-**Description**: The system shall provide a .ai-workspace/ directory structure for task management, session tracking, and templates.
-
-**Acceptance Criteria**:
-- [ ] Directory structure: tasks/, session/, templates/, config/
-- [ ] Task subdirectories: todo/, active/, finished/, archive/
-- [ ] Workspace installer (setup_workspace.py)
-- [ ] Git-ignored session/ directory
-- [ ] Version-controlled tasks/ and templates/
-
-**Rationale**: Persistent task and session management.
-
-**Dependencies**: None (foundation)
-
----
-
-### REQ-F-WORKSPACE-002: Task Management Templates
-
-**Priority**: High
-**Type**: Functional
-
-**Description**: The system shall provide templates for task management following TDD workflow.
-
-**Acceptance Criteria**:
-- [ ] TASK_TEMPLATE.md with acceptance criteria
-- [ ] FINISHED_TASK_TEMPLATE.md with problem/solution/lessons
-- [ ] ACTIVE_TASKS.md for task tracking
-
-**Rationale**: Structured task documentation.
-
-**Dependencies**: REQ-F-WORKSPACE-001
-
----
-
-### REQ-F-WORKSPACE-003: Session Tracking Templates
-
-**Priority**: Medium
-**Type**: Functional
-
-**Description**: The system shall provide templates for session tracking.
-
-**Acceptance Criteria**:
-- [ ] SESSION_TEMPLATE.md with goals/notes/decisions
-- [ ] PAIR_PROGRAMMING_GUIDE.md for AI collaboration
-- [ ] current_session.md (git-ignored, active session)
-
-**Rationale**: Context preservation across sessions.
-
-**Dependencies**: REQ-F-WORKSPACE-001
-
----
-
-### REQ-F-UPDATE-001: Framework Updates from GitHub
-
-**Release**: 1.0 MVP
-**Priority**: Medium
-**Type**: Functional
-
-**Description**: Projects using the AI SDLC framework shall have a command to pull and apply framework updates from the official GitHub repository while preserving project-specific customizations.
-
-**Acceptance Criteria**:
-- [ ] Fetch latest release tag from GitHub (or specified tag)
-- [ ] Download framework template files via git clone
-- [ ] Update .ai-workspace/ templates and config
-- [ ] Update .claude/ commands and agents
-- [ ] Preserve ACTIVE_TASKS.md and finished tasks
-- [ ] Preserve project-specific CLAUDE.md sections
-- [ ] Create backup before updates
-- [ ] Provide dry-run mode
-- [ ] Validate update and report results
-
-**Rationale**: Enable projects to stay current with framework improvements without manual file management.
-
-**Dependencies**: REQ-F-WORKSPACE-001
-
-**Implementation**: `/aisdlc-update` command in project template
-
----
-
-## 4. Testing Requirements
-
-### REQ-F-TESTING-001: Test Coverage Validation
-
-**Priority**: High
-**Type**: Functional
-
-**Description**: The system shall validate that all code has corresponding tests with minimum coverage threshold.
-
-**Acceptance Criteria**:
-- [ ] Coverage measurement via pytest-cov
-- [ ] Minimum coverage: 80%
-- [ ] Coverage reports include requirement traceability
-- [ ] Coverage validation in CI/CD
-
-**Rationale**: Ensure code quality via TDD.
-
-**Dependencies**: None
-
-**Related**: Implements Sacred Seven Principle #1 (Test Driven Development)
-
----
-
-### REQ-F-TESTING-002: Test Generation
-
-**Priority**: Medium
-**Type**: Functional
-
-**Description**: The system shall provide skills for automatic test generation when coverage gaps detected.
-
-**Acceptance Criteria**:
-- [ ] Detect missing tests (sensor)
-- [ ] Generate test templates (actuator)
-- [ ] Tests include requirement tags (# Validates: REQ-*)
-- [ ] Integration with testing-skills plugin
-
-**Rationale**: Homeostatic test coverage maintenance.
-
-**Dependencies**: REQ-F-TESTING-001
-
----
-
-## 6. Non-Functional Requirements
-
-### REQ-NFR-TRACE-001: Full Lifecycle Traceability
+### REQ-INTENT-001: Intent Capture
 
 **Priority**: Critical
-**Type**: Non-Functional (Traceability)
+**Type**: Functional
 
-**Description**: The system shall maintain traceability from requirements through design, code, tests, and runtime.
+**Description**: The system shall provide a mechanism to capture intents (desires for change) in a structured format that can flow through the SDLC.
 
 **Acceptance Criteria**:
-- [ ] All requirement keys follow format: REQ-{TYPE}-{AREA}-{NUMBER}
-- [ ] Design documents reference requirements (→ REQ-*)
-- [ ] Code includes traceability tags (# Implements: REQ-*)
-- [ ] Tests include traceability tags (# Validates: REQ-*)
-- [ ] Traceability validation tool (validate_traceability.py)
-- [ ] Traceability matrix generated automatically
+- Intents can be captured from multiple sources (human input, runtime feedback, ecosystem changes)
+- Each intent has a unique identifier (INT-*)
+- Intents include: description, source, timestamp, priority
+- Intents are persisted and version-controlled
 
-**Rationale**: Enable requirement tracking for governance and compliance.
+**Rationale**: Establishes clear origin for all change. Anchors the system in reality, not tooling. (Methodology 2.3.2)
 
-**Dependencies**: None (foundation)
+**Traces To**: Methodology Section 2.3 (Bootstrap: Real World → Intent)
 
 ---
 
-### REQ-NFR-TRACE-002: Requirement Key Propagation
+### REQ-INTENT-002: Intent Classification
 
 **Priority**: High
-**Type**: Non-Functional (Traceability)
+**Type**: Functional
 
-**Description**: The system shall ensure requirement keys propagate through all SDLC stages.
+**Description**: The system shall classify intents into work types to enable appropriate handling.
 
 **Acceptance Criteria**:
-- [ ] Requirements → unique immutable keys (REQ-*)
-- [ ] Design → maps REQ-* to components
-- [ ] Tasks → maps REQ-* to Jira tickets
-- [ ] Code → tagged with REQ-* in comments
-- [ ] Tests → tagged with REQ-* in comments
-- [ ] Runtime → logs/metrics tagged with REQ-*
+- Support work types: Create (new capability), Update (change behavior), Remediate (fix incident), Read (analyze), Delete (retire)
+- Classification drives downstream control regimes (e.g., remediation = higher scrutiny)
+- Classification is metadata on the intent, not a separate workflow
 
-**Rationale**: End-to-end traceability for impact analysis.
+**Rationale**: Different work types require different control regimes. Remediation needs risk-driven constraints and regression focus. (Methodology 2.4.2)
 
-**Dependencies**: REQ-NFR-TRACE-001
+**Traces To**: Methodology Section 2.4 (Intent Classification into CRUD Work Types)
 
 ---
 
-### REQ-NFR-CONTEXT-001: Persistent Context Across Sessions
+### REQ-INTENT-003: Eco-Intent Generation
 
-**Priority**: High
-**Type**: Non-Functional (Usability)
+**Priority**: Medium
+**Type**: Functional
 
-**Description**: The system shall preserve context (tasks, decisions, progress) across development sessions.
+**Description**: The system shall automatically generate intents when ecosystem changes are detected.
 
 **Acceptance Criteria**:
-- [ ] Session state in .ai-workspace/session/
-- [ ] Active tasks persist in ACTIVE_TASKS.md
-- [ ] Finished tasks archived in finished/
-- [ ] Context loadable via /load-context
+- Monitor for: security vulnerabilities, deprecations, API changes, compliance updates
+- Generate INT-ECO-* intents with ecosystem context
+- Priority based on impact (security=critical, version=low)
+- Feed into normal SDLC flow via Intent Manager
 
-**Rationale**: Reduce context-switching overhead.
+**Rationale**: Ecosystem E(t) changes over time. Proactive detection prevents reactive firefighting. (Methodology 1.2.6, 10.2.2)
 
-**Dependencies**: REQ-F-WORKSPACE-001
+**Traces To**: Methodology Section 1.2.6 (Ecosystem-Aware Development), 10.2.2 (Eco-Intents)
 
 ---
 
-### REQ-NFR-FEDERATE-001: Hierarchical Configuration Composition
+## 2. 7-Stage Workflow
 
-**Priority**: High
-**Type**: Non-Functional (Architecture)
+### Rationale (from Methodology Section 3.0)
 
-**Description**: The system shall support hierarchical configuration where configurations merge from corporate → division → team → project levels.
+> "Each stage transforms the requirement 'signal' by adding stage-specific constraints... The Builder.CRUD uses AI + humans to execute the internal SDLC stages: Requirements → Design → Tasks → Code → System Test → UAT."
 
-**Acceptance Criteria**:
-- [ ] Configurations load in priority order
-- [ ] Later configs override earlier configs
-- [ ] Deep merge for objects (recursive)
-- [ ] Array concatenation (deduplicated)
-- [ ] Primitive replacement
-
-**Rationale**: Balance standardization and customization.
-
-**Dependencies**: REQ-F-PLUGIN-002
+The 7-stage workflow is the core execution engine. Each stage has defined inputs, outputs, personas, and quality gates.
 
 ---
 
-### REQ-NFR-COVERAGE-001: Test Coverage Minimum
-
-**Priority**: High
-**Type**: Non-Functional (Quality)
-
-**Description**: The system shall maintain minimum test coverage of 80% for all production code.
-
-**Acceptance Criteria**:
-- [ ] Coverage measured via pytest-cov
-- [ ] Coverage reported in CI/CD
-- [ ] Coverage gates prevent merging <80%
-- [ ] Exclude patterns: migrations/, generated/
-
-**Rationale**: Ensure code quality.
-
-**Dependencies**: REQ-F-TESTING-001
-
----
-
-### REQ-NFR-REFINE-001: Iterative Refinement via Stage Feedback Loops
+### REQ-STAGE-001: Stage Definitions
 
 **Priority**: Critical
-**Type**: Non-Functional (Process)
+**Type**: Functional
 
-**Description**: The system shall support bidirectional feedback where downstream stages can provide feedback to upstream stages for iterative refinement of requirements, design, and implementation.
+**Description**: The system shall define seven distinct SDLC stages with clear boundaries.
 
 **Acceptance Criteria**:
-- [ ] Every agent specifies "Process Feedback" in core responsibilities
-- [ ] Requirements Agent accepts feedback from all 6 downstream stages (Design, Tasks, Code, System Test, UAT, Runtime)
-- [ ] Design Agent accepts feedback from 5 downstream stages
-- [ ] Feedback types supported: gap, ambiguity, clarification, error
-- [ ] Feedback results in versioned updates (REQ-F-AUTH-001 v2)
-- [ ] Traceability maintained through feedback cycles
-- [ ] Feedback loop prevents infinite iterations (max 3 suggested)
+- Stages: Requirements, Design, Tasks, Code, System Test, UAT, Runtime Feedback
+- Each stage has: input artifacts, output artifacts, responsible personas, quality gates
+- Stages execute sequentially with defined handoff criteria
+- Stage completion requires quality gate approval
 
-**Rationale**: Bidirectional feedback enables discovery-driven completeness. Requirements cannot be 100% complete upfront - they must refine based on downstream learning during design, code, test, and production stages. This is core to achieving true completeness of intent.
+**Rationale**: Clear stage boundaries enable governance, accountability, and reproducibility. (Methodology 3.0)
 
-**Examples**:
-- Design Agent discovers: "REQ-F-AUTH-001 doesn't specify error handling" → Requirements Agent creates REQ-F-AUTH-002
-- Code Agent discovers: "Requirement ambiguous" → Requirements Agent refines with specific criteria
-- Test Agent discovers: "Acceptance criteria not testable" → Requirements Agent adds measurable criteria
-- Runtime Agent discovers: "Performance requirement violated" → Requirements Agent creates new requirement
-
-**Dependencies**: REQ-F-CMD-002 (agents must exist to provide/receive feedback)
-
-**Design**: [ADR-005](../design/adrs/ADR-005-iterative-refinement-feedback-loops.md) - Iterative Refinement Architecture
+**Traces To**: Methodology Section 3.0 (AI SDLC Builder Pipeline)
 
 ---
 
-## 7. Requirement Summary
+### REQ-STAGE-002: Stage Transitions
 
-**Total Implementation Requirements**: 17 (was 16 + 1 new from feedback)
-- Functional (F): 13
-- Non-Functional (NFR): 8 (was 7)
+**Priority**: High
+**Type**: Functional
 
-**By Category**:
-- Plugin System: 4
-- Command System: 3
-- Workspace: 3
-- TODO System: 3
-- Testing: 2
-- Traceability: 2
-- Process/Refinement: 1 (NEW)
-- Other NFR: 2
+**Description**: The system shall enforce valid transitions between stages.
 
-**By Priority**:
-- Critical: 2 (REQ-NFR-TRACE-001, REQ-NFR-REFINE-001)
-- High: 12
-- Medium: 5
-- Low: 2
+**Acceptance Criteria**:
+- Forward transitions require prior stage completion
+- Backward transitions (feedback) are allowed to any upstream stage
+- Transition includes artifact handoff and context preservation
+- Transitions are logged for audit trail
 
-**Status**:
-- ✅ Implemented but untagged: 16 (design exists, code exists, no traceability tags)
-- ⚠️ Partially implemented: 3 (REQ-F-PLUGIN-004, REQ-F-CMD-002, REQ-F-TESTING-002)
-- ❌ Not implemented: 0
+**Rationale**: Prevents skipping stages, ensures quality gates are respected, enables feedback loops. (Methodology 3.1)
+
+**Traces To**: Methodology Section 3.1 (Builder Pipeline Overview)
 
 ---
 
-## Traceability to Design
+### REQ-STAGE-003: Signal Transformation
 
-- REQ-F-PLUGIN-* → [PLUGIN_ARCHITECTURE.md](../design/PLUGIN_ARCHITECTURE.md)
-- REQ-F-CMD-* → [COMMAND_SYSTEM.md](../design/COMMAND_SYSTEM.md) (to be created)
-- REQ-F-WORKSPACE-* → [TEMPLATE_SYSTEM.md](../design/TEMPLATE_SYSTEM.md)
-- REQ-F-TESTING-* → testing-skills plugin
-- REQ-NFR-TRACE-* → validate_traceability.py
-- REQ-NFR-CONTEXT-* → .ai-workspace/ structure
-- REQ-NFR-FEDERATE-* → Plugin loading mechanism
-- REQ-NFR-REFINE-001 → [ADR-005](../design/adrs/ADR-005-iterative-refinement-feedback-loops.md) ✅ NEW
+**Priority**: High
+**Type**: Functional
+
+**Description**: Each stage shall transform the requirement signal by adding stage-specific constraints.
+
+**Acceptance Criteria**:
+- Requirements: Pure intent (what + why)
+- Design: Intent + Architecture (technical approach)
+- Tasks: Intent + Workload (breakdown)
+- Code: Intent + Standards (style, security)
+- System Test: Intent + Quality (coverage)
+- UAT: Intent + Business (validation)
+- Runtime: Intent + Operations (monitoring)
+
+**Rationale**: Signal transformation ensures each stage adds value while preserving traceability to original intent. (Methodology 1.2.2)
+
+**Traces To**: Methodology Section 1.2.2 (Requirements as the Control System)
 
 ---
 
-## Example Requirements
+### REQ-STAGE-004: Bidirectional Feedback
 
-Example projects demonstrating the methodology are maintained in a separate repository:
-- [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete example projects
+**Priority**: Critical
+**Type**: Functional
 
-These demonstrate HOW to use the methodology, not how to BUILD ai_sdlc_method itself.
+**Description**: The system shall support feedback from any stage back to upstream stages.
+
+**Acceptance Criteria**:
+- Any stage can raise: gaps, ambiguities, clarifications, errors
+- Feedback triggers upstream stage revision
+- Feedback is tagged with source stage and target stage
+- Feedback results in versioned updates (e.g., REQ-F-AUTH-001 v2)
+- Maximum 3 feedback iterations suggested per item
+
+**Rationale**: Requirements cannot be 100% complete upfront—they refine based on downstream learning. (Methodology REQ-NFR-REFINE-001)
+
+**Traces To**: Methodology Section 2.7 (Governance Loop), ADR-005
+
+---
+
+## 3. Requirements Stage
+
+### Rationale (from Methodology Section 4.0)
+
+> "Requirements serve two critical roles: (1) Intent Store: capture and document all intents in a structured, traceable format. (2) Control System: define the target state the system should maintain."
+
+The Requirements Stage transforms raw intent into structured, traceable requirements that serve as the homeostasis model.
+
+---
+
+### REQ-REQ-001: Requirement Key Generation
+
+**Priority**: Critical
+**Type**: Functional
+
+**Description**: The system shall generate unique, immutable requirement keys.
+
+**Acceptance Criteria**:
+- Keys follow format: REQ-{TYPE}-{DOMAIN}-{SEQ}
+- Types: F (functional), NFR (non-functional), DATA (data quality), BR (business rule)
+- Keys are immutable once assigned
+- Keys propagate through all downstream stages
+
+**Rationale**: Unique keys enable traceability from intent to runtime. Immutability ensures audit integrity. (Methodology 11.0)
+
+**Traces To**: Methodology Section 11.0 (End-to-End Requirement Traceability)
+
+---
+
+### REQ-REQ-002: Requirement Types
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support multiple requirement types.
+
+**Acceptance Criteria**:
+- Functional Requirements: Define desired system behavior
+- Non-Functional Requirements: Define quality attributes (performance, security, scalability)
+- Data Requirements: Define data quality, governance, lineage expectations
+- Business Rules: Define domain logic constraints
+
+**Rationale**: Different requirement types form different aspects of the homeostasis model. (Methodology 2.7.3)
+
+**Traces To**: Methodology Section 2.7.3 (Requirements Define the Homeostasis Model)
+
+---
+
+### REQ-REQ-003: Requirement Refinement
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support iterative requirement refinement based on downstream feedback.
+
+**Acceptance Criteria**:
+- Requirements can be versioned (v1, v2, v3...)
+- Version history preserved with rationale
+- Downstream stages can request clarification, report gaps, flag ambiguities
+- Refinement maintains traceability chain
+
+**Rationale**: Requirements evolve as understanding deepens. Static requirements lead to incomplete systems. (Methodology 2.7.3)
+
+**Traces To**: Methodology Section 2.7.3 (Homeostasis Model as Living Requirements)
+
+---
+
+### REQ-REQ-004: Homeostasis Model Definition
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: Requirements shall define the target state (homeostasis model) against which runtime behavior is compared.
+
+**Acceptance Criteria**:
+- Each requirement specifies measurable acceptance criteria
+- NFRs include thresholds (e.g., "response time < 500ms p95")
+- Data requirements include quality targets (e.g., "95% valid")
+- Target state can be compared against observed behavior
+
+**Rationale**: Requirements become the control system for maintaining desired system behavior, not just a static blueprint. (Methodology 2.7.3)
+
+**Traces To**: Methodology Section 2.7.3 (How the Homeostasis Loop Works)
+
+---
+
+## 4. Design Stage
+
+### Rationale (from Methodology Section 5.0)
+
+> "Design transforms requirements into technical solution architecture. The Tech Lead persona uses architecture context (part of E(t)) to make design decisions documented in ADRs."
+
+Design bridges the gap between business intent and technical implementation.
+
+---
+
+### REQ-DES-001: Component Design
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support designing components that implement requirements.
+
+**Acceptance Criteria**:
+- Components map to one or more requirements
+- Component design includes: responsibilities, interfaces, dependencies
+- Design artifacts reference requirement keys
+- Component diagrams/documentation generated
+
+**Rationale**: Clear component design enables parallel development and integration planning. (Methodology 5.0)
+
+**Traces To**: Methodology Section 5.0 (Design Stage)
+
+---
+
+### REQ-DES-002: Architecture Decision Records
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support capturing architecture decisions with context.
+
+**Acceptance Criteria**:
+- ADRs document: decision, context, consequences, alternatives considered
+- ADRs acknowledge ecosystem constraints E(t)
+- ADRs reference requirements being addressed
+- ADRs are versioned and immutable once approved
+
+**Rationale**: ADRs capture the "why" behind architectural choices, enabling future understanding and evolution. (Methodology 5.2.1)
+
+**Traces To**: Methodology Section 5.0 (Design Stage - ADRs)
+
+---
+
+### REQ-DES-003: Design-to-Requirement Traceability
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: Design artifacts shall maintain traceability to requirements.
+
+**Acceptance Criteria**:
+- Every design element references at least one REQ-* key
+- Traceability matrix shows: Requirement → Component(s)
+- Orphan detection: components without requirements, requirements without design
+- Coverage report generated
+
+**Rationale**: Design traceability ensures all requirements are addressed and no unnecessary work is done. (Methodology 11.0)
+
+**Traces To**: Methodology Section 11.0 (Traceability)
+
+---
+
+## 5. Tasks Stage
+
+### Rationale (from Methodology Section 6.0)
+
+> "Tasks stage breaks design into work units. Each work unit is small enough to complete in a reasonable timeframe, has clear acceptance criteria, and traces back to requirements."
+
+Tasks enable parallel work, estimation, and progress tracking.
+
+---
+
+### REQ-TASK-001: Work Breakdown
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support breaking design into discrete work units.
+
+**Acceptance Criteria**:
+- Work units map to design components
+- Work units have: description, acceptance criteria, dependencies
+- Work units reference requirement keys
+- Work units are estimable
+
+**Rationale**: Work breakdown enables capacity planning, parallel development, and progress tracking. (Methodology 6.0)
+
+**Traces To**: Methodology Section 6.0 (Tasks Stage)
+
+---
+
+### REQ-TASK-002: Dependency Tracking
+
+**Priority**: Medium
+**Type**: Functional
+
+**Description**: The system shall track dependencies between work units.
+
+**Acceptance Criteria**:
+- Dependencies can be: blocks, is-blocked-by, relates-to
+- Dependency graph can be visualized
+- Circular dependencies detected and flagged
+- Critical path identified
+
+**Rationale**: Dependency tracking prevents blocked work and enables efficient scheduling. (Methodology 6.0)
+
+**Traces To**: Methodology Section 6.0 (Tasks Stage)
+
+---
+
+### REQ-TASK-003: Task-to-Requirement Traceability
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: Tasks shall maintain traceability to requirements.
+
+**Acceptance Criteria**:
+- Every task references at least one REQ-* key
+- Task completion updates requirement status
+- Coverage: requirements without tasks identified
+
+**Rationale**: Task traceability ensures all requirements are being worked on. (Methodology 11.0)
+
+**Traces To**: Methodology Section 11.0 (Traceability)
+
+---
+
+## 6. Code Stage
+
+### Rationale (from Methodology Section 7.0)
+
+> "Code stage implements work units using Test-Driven Development (TDD). The workflow is RED → GREEN → REFACTOR → COMMIT. Tests are written first, then minimal code to pass, then refactored for quality."
+
+Code stage transforms tasks into working software using disciplined engineering practices.
+
+---
+
+### REQ-CODE-001: TDD Workflow
+
+**Priority**: Critical
+**Type**: Functional
+
+**Description**: The system shall enforce Test-Driven Development workflow.
+
+**Acceptance Criteria**:
+- RED phase: Write failing tests before implementation
+- GREEN phase: Write minimal code to make tests pass
+- REFACTOR phase: Improve code quality without changing behavior
+- COMMIT phase: Save with clear message including REQ-* key
+- Workflow is documented and repeatable
+
+**Rationale**: TDD ensures code quality, prevents regressions, and creates executable specifications. "No code without tests. Ever." (Methodology 7.0, Key Principles #1)
+
+**Traces To**: Methodology Section 7.0 (Code Stage - TDD)
+
+---
+
+### REQ-CODE-002: Key Principles Enforcement
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall promote adherence to Key Principles.
+
+**Acceptance Criteria**:
+- Principle 1: Test Driven Development - "No code without tests"
+- Principle 2: Fail Fast & Root Cause - "Break loudly, fix completely"
+- Principle 3: Modular & Maintainable - "Single responsibility, loose coupling"
+- Principle 4: Reuse Before Build - "Check first, create second"
+- Principle 5: Open Source First - "Suggest alternatives, human decides"
+- Principle 6: No Legacy Baggage - "Clean slate, no debt"
+- Principle 7: Perfectionist Excellence - "Best of breed only"
+- Seven Questions checklist available before coding
+
+**Rationale**: Key Principles ensure engineering excellence and prevent technical debt. (Methodology 7.0)
+
+**Traces To**: Methodology Section 7.0 (Key Principles)
+
+---
+
+### REQ-CODE-003: Code-to-Requirement Tagging
+
+**Priority**: Critical
+**Type**: Functional
+
+**Description**: Code shall include traceability tags to requirements.
+
+**Acceptance Criteria**:
+- Code comments include: `# Implements: REQ-*`
+- Functions/classes document which requirements they implement
+- Commit messages include requirement keys
+- Tagging is validated (not just documentation)
+
+**Rationale**: Code tagging enables impact analysis and ensures all code serves a purpose. (Methodology 11.0)
+
+**Traces To**: Methodology Section 11.0 (Traceability)
+
+---
+
+### REQ-CODE-004: Test Coverage
+
+**Priority**: High
+**Type**: Non-Functional
+
+**Description**: The system shall maintain minimum test coverage.
+
+**Acceptance Criteria**:
+- Minimum coverage threshold configurable (default: 80%)
+- Coverage measured and reported
+- Coverage gates prevent merging below threshold
+- Tests include: `# Validates: REQ-*` tags
+
+**Rationale**: Test coverage ensures code quality and provides regression protection. (Methodology 7.0)
+
+**Traces To**: Methodology Section 7.0 (Code Stage)
+
+---
+
+## 7. System Test Stage
+
+### Rationale (from Methodology Section 8.0)
+
+> "System Test stage creates BDD integration tests that validate requirements. Given/When/Then scenarios ensure business behavior is correctly implemented."
+
+System Test validates that components work together correctly.
+
+---
+
+### REQ-SYSTEST-001: BDD Scenario Creation
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support Behavior-Driven Development scenarios.
+
+**Acceptance Criteria**:
+- Scenarios use Given/When/Then format (Gherkin)
+- Scenarios map to requirements
+- Scenarios cover: happy path, error cases, edge cases
+- Scenarios are executable (not just documentation)
+
+**Rationale**: BDD scenarios are executable specifications in business language. (Methodology 8.0)
+
+**Traces To**: Methodology Section 8.0 (System Test Stage)
+
+---
+
+### REQ-SYSTEST-002: Integration Test Execution
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support executing integration tests.
+
+**Acceptance Criteria**:
+- BDD scenarios can be executed against deployed system
+- Test results include: pass/fail, timing, errors
+- Failed tests are linked to requirements
+- Test execution is automated
+
+**Rationale**: Automated integration testing catches issues before UAT. (Methodology 8.0)
+
+**Traces To**: Methodology Section 8.0 (System Test Stage)
+
+---
+
+### REQ-SYSTEST-003: Test-to-Requirement Traceability
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: System tests shall maintain traceability to requirements.
+
+**Acceptance Criteria**:
+- Every scenario references at least one REQ-* key
+- Coverage matrix: requirements vs test scenarios
+- Requirements without tests identified as gaps
+
+**Rationale**: Test traceability ensures all requirements are validated. (Methodology 11.0)
+
+**Traces To**: Methodology Section 11.0 (Traceability)
+
+---
+
+## 8. UAT Stage
+
+### Rationale (from Methodology Section 9.0)
+
+> "UAT stage validates that the system meets business needs. Product Owner and business stakeholders execute acceptance tests and provide sign-off."
+
+UAT ensures business value is delivered.
+
+---
+
+### REQ-UAT-001: Business Validation Tests
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support UAT test case creation in business language.
+
+**Acceptance Criteria**:
+- UAT tests written in non-technical language
+- UAT tests map to requirements
+- UAT tests include: test steps, expected results, validation criteria
+- UAT tests executable by business users
+
+**Rationale**: Business stakeholders must validate in their own language. (Methodology 9.0)
+
+**Traces To**: Methodology Section 9.0 (UAT Stage)
+
+---
+
+### REQ-UAT-002: Sign-off Workflow
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall support formal UAT sign-off.
+
+**Acceptance Criteria**:
+- UAT results captured with pass/fail per test
+- Sign-off requires designated approver(s)
+- Sign-off records: who, when, what was approved
+- Sign-off gates release to production
+
+**Rationale**: Formal sign-off ensures business accountability and approval. (Methodology 9.0)
+
+**Traces To**: Methodology Section 9.0 (UAT Stage)
+
+---
+
+## 9. Runtime Feedback Stage
+
+### Rationale (from Methodology Section 10.0)
+
+> "Runtime Feedback closes the loop. Observability data is tagged with requirement keys. Deviations from the homeostasis model generate new intents."
+
+Runtime Feedback makes the system self-regulating.
+
+---
+
+### REQ-RUNTIME-001: Telemetry Tagging
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: Runtime telemetry shall be tagged with requirement keys.
+
+**Acceptance Criteria**:
+- Logs include requirement context (`requirement: REQ-*`)
+- Metrics tagged with requirement keys
+- Alerts trace back to requirements
+- Telemetry enables requirement-level analysis
+
+**Rationale**: Tagged telemetry enables tracing production issues to requirements. (Methodology 10.0)
+
+**Traces To**: Methodology Section 10.0 (Runtime Feedback)
+
+---
+
+### REQ-RUNTIME-002: Deviation Detection
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall detect deviations from the homeostasis model.
+
+**Acceptance Criteria**:
+- Compare observed metrics against requirement thresholds
+- Detect: performance degradation, error rate increase, SLA breach
+- Deviation severity classification
+- Automatic alert generation
+
+**Rationale**: Deviation detection enables proactive correction before user impact. (Methodology 2.7)
+
+**Traces To**: Methodology Section 2.7 (Governance Loop)
+
+---
+
+### REQ-RUNTIME-003: Feedback Loop Closure
+
+**Priority**: Critical
+**Type**: Functional
+
+**Description**: Runtime deviations shall generate new intents that flow back to Requirements stage.
+
+**Acceptance Criteria**:
+- Deviations generate INT-* intents automatically or via review
+- Intents include: source (runtime), deviation details, impacted requirements
+- Intents enter normal SDLC flow
+- Feedback loop is explicit and traceable
+
+**Rationale**: Closing the loop creates a homeostatic system that self-corrects toward desired state. (Methodology 2.7.2)
+
+**Traces To**: Methodology Section 2.7.2 (Why Governance Loop Matters)
+
+---
+
+## 10. Traceability
+
+### Rationale (from Methodology Section 11.0)
+
+> "Traceability tracks every asset from initial business need through to live system behavior. Requirement keys flow through all stages, enabling impact analysis and governance."
+
+Traceability is the backbone of the methodology.
+
+---
+
+### REQ-TRACE-001: Full Lifecycle Traceability
+
+**Priority**: Critical
+**Type**: Non-Functional
+
+**Description**: The system shall maintain traceability from intent through runtime.
+
+**Acceptance Criteria**:
+- Intent → Requirement → Design → Task → Code → Test → Runtime
+- Bidirectional navigation (forward and backward)
+- Traceability matrix auto-generated
+- Gap detection: orphan artifacts, missing links
+
+**Rationale**: Full traceability enables impact analysis, audit, and governance. (Methodology 11.0)
+
+**Traces To**: Methodology Section 11.0 (End-to-End Requirement Traceability)
+
+---
+
+### REQ-TRACE-002: Requirement Key Propagation
+
+**Priority**: Critical
+**Type**: Non-Functional
+
+**Description**: Requirement keys shall propagate through all stages.
+
+**Acceptance Criteria**:
+- Keys created at Requirements stage
+- Keys referenced in: Design, Tasks, Code, Tests, Runtime
+- Key format consistent and validated
+- Propagation enforced (not optional)
+
+**Rationale**: Key propagation is the mechanism that enables traceability. (Methodology 11.0)
+
+**Traces To**: Methodology Section 11.0 (Traceability)
+
+---
+
+### REQ-TRACE-003: Traceability Validation
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall validate traceability completeness.
+
+**Acceptance Criteria**:
+- Detect: requirements without design/code/tests
+- Detect: code/tests without requirement references
+- Validation runnable on-demand and in CI/CD
+- Report includes gaps with suggested actions
+
+**Rationale**: Validation ensures traceability is maintained, not just documented. (Methodology 11.0)
+
+**Traces To**: Methodology Section 11.0 (Traceability)
+
+---
+
+## 11. AI Augmentation
+
+### Rationale (from Methodology Section 1.2.4)
+
+> "AI assistants help humans by suggesting code implementations, generating test cases, drafting documentation, analyzing data quality, identifying patterns and issues. Humans remain in control: make final decisions, review and approve AI suggestions, take accountability."
+
+AI augments every stage while humans remain accountable.
+
+---
+
+### REQ-AI-001: AI Assistance Per Stage
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall provide AI assistance appropriate to each stage.
+
+**Acceptance Criteria**:
+- Requirements: Extract, clarify, validate requirements from intent
+- Design: Suggest architectures, create ADRs, identify patterns
+- Tasks: Break down work, estimate, identify dependencies
+- Code: Generate code, write tests, refactor
+- System Test: Generate BDD scenarios, create step definitions
+- UAT: Draft test cases in business language
+- Runtime: Analyze telemetry, suggest fixes, detect patterns
+
+**Rationale**: AI accelerates work at every stage while humans decide and approve. (Methodology 1.2.4)
+
+**Traces To**: Methodology Section 1.2.4 (AI as an Augmenter)
+
+---
+
+### REQ-AI-002: Human Accountability
+
+**Priority**: Critical
+**Type**: Non-Functional
+
+**Description**: Humans shall remain accountable for all decisions regardless of AI assistance.
+
+**Acceptance Criteria**:
+- AI suggestions require human review before acceptance
+- Decisions are attributed to humans, not AI
+- AI rationale is transparent and reviewable
+- Override capability always available
+
+**Rationale**: AI does not replace human responsibility. Accountability cannot be delegated to AI. (Methodology 1.2.4)
+
+**Traces To**: Methodology Section 1.2.4 (Human Role)
+
+---
+
+### REQ-AI-003: Stage-Specific Agent Personas
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall provide AI agent personas specialized for each stage.
+
+**Acceptance Criteria**:
+- 7 agent personas (one per stage)
+- Each agent has: role definition, responsibilities, allowed tools, output format
+- Agents provide stage-appropriate guidance
+- Agents can be customized per organization
+
+**Rationale**: Specialized personas ensure AI assistance is contextually appropriate. (Methodology 1.2.3)
+
+**Traces To**: Methodology Section 1.2.3 (Persona-Centric Stages)
+
+---
+
+## 12. Tooling Infrastructure
+
+### Rationale
+
+Tooling infrastructure enables the methodology to be delivered via AI coding assistants. This section covers platform-agnostic tooling requirements.
+
+---
+
+### REQ-TOOL-001: Plugin Architecture
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall provide a plugin architecture for delivering methodology components.
+
+**Acceptance Criteria**:
+- Methodology packaged as installable plugin(s)
+- Plugins include: agents, skills/instructions, commands, templates
+- Plugins discoverable and installable
+- Plugins versioned with semantic versioning
+
+**Rationale**: Plugin architecture enables distribution, updates, and customization.
+
+**Traces To**: Tooling requirement (not directly from methodology)
+
+---
+
+### REQ-TOOL-002: Developer Workspace
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall provide a workspace structure for task and context management.
+
+**Acceptance Criteria**:
+- Task tracking: active, completed, archived
+- Context preservation across sessions
+- Templates for tasks, finished work
+- Version-controlled (tracked in git)
+
+**Rationale**: Workspace enables persistent context and task management across sessions.
+
+**Traces To**: Tooling requirement (not directly from methodology)
+
+---
+
+### REQ-TOOL-003: Workflow Commands
+
+**Priority**: Medium
+**Type**: Functional
+
+**Description**: The system shall provide commands to execute common workflow operations.
+
+**Acceptance Criteria**:
+- Task management: create, update, complete tasks
+- Context: checkpoint, restore, refresh
+- Release: version, changelog, tag
+- Status: show progress, coverage, gaps
+
+**Rationale**: Commands reduce friction in common workflow operations.
+
+**Traces To**: Tooling requirement (not directly from methodology)
+
+---
+
+### REQ-TOOL-004: Configuration Hierarchy
+
+**Priority**: Medium
+**Type**: Functional
+
+**Description**: The system shall support hierarchical configuration composition.
+
+**Acceptance Criteria**:
+- Levels: global → organization → team → project
+- Later configs override earlier configs
+- Deep merge for objects, concatenation for arrays
+- Customization without forking
+
+**Rationale**: Hierarchical configuration balances standardization and customization.
+
+**Traces To**: Tooling requirement (not directly from methodology)
+
+---
+
+### REQ-TOOL-005: Release Management
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall provide release management capabilities for versioning and distribution.
+
+**Acceptance Criteria**:
+- Semantic versioning (MAJOR.MINOR.PATCH)
+- Changelog generation from commits/tasks
+- Release tagging in version control
+- Release notes with requirement coverage summary
+- Distribution packaging for target platforms
+
+**Rationale**: Release management enables controlled distribution, rollback capability, and clear versioning for users.
+
+**Traces To**: Tooling requirement (not directly from methodology)
+
+---
+
+### REQ-TOOL-006: Framework Updates
+
+**Priority**: Medium
+**Type**: Functional
+
+**Description**: The system shall support updating its own components from authoritative sources.
+
+**Acceptance Criteria**:
+- Check for updates from distribution repository
+- Compare current vs available version
+- Download and apply updates
+- Preserve local customizations during update
+- Rollback capability if update fails
+
+**Rationale**: Framework updates ensure users have access to latest methodology improvements and bug fixes.
+
+**Traces To**: Tooling requirement (not directly from methodology)
+
+---
+
+### REQ-TOOL-007: Test Gap Analysis
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system shall identify test coverage gaps and suggest tests.
+
+**Acceptance Criteria**:
+- Analyze requirements vs existing tests
+- Identify requirements without test coverage
+- Suggest test cases for uncovered requirements
+- Generate test stubs/templates when requested
+- Coverage report with gap recommendations
+
+**Rationale**: Test gap analysis ensures requirements are validated and accelerates test creation with AI assistance.
+
+**Traces To**: Tooling requirement (not directly from methodology)
+
+---
+
+### REQ-TOOL-008: Methodology Hooks
+
+**Priority**: Medium
+**Type**: Functional
+
+**Description**: The system shall provide lifecycle hooks that automate methodology compliance checks.
+
+**Acceptance Criteria**:
+- Hooks trigger on key events (session start, commit, stage transition)
+- Hooks validate methodology compliance (e.g., REQ-* tags present)
+- Hooks can block operations that violate methodology rules
+- Hook configuration is customizable per project
+- Hook failures provide actionable feedback
+
+**Rationale**: Methodology hooks automate compliance enforcement, reducing manual oversight and ensuring consistent adherence to SDLC practices.
+
+**Traces To**: ADR-007 (Hooks for Methodology Automation)
+
+---
+
+## Requirement Summary
+
+### By Category
+
+| Category | Count | Critical | High | Medium |
+|----------|-------|----------|------|--------|
+| Intent Management | 3 | 1 | 1 | 1 |
+| 7-Stage Workflow | 4 | 2 | 2 | 0 |
+| Requirements Stage | 4 | 1 | 3 | 0 |
+| Design Stage | 3 | 0 | 3 | 0 |
+| Tasks Stage | 3 | 0 | 2 | 1 |
+| Code Stage | 4 | 2 | 2 | 0 |
+| System Test Stage | 3 | 0 | 3 | 0 |
+| UAT Stage | 2 | 0 | 2 | 0 |
+| Runtime Feedback | 3 | 1 | 2 | 0 |
+| Traceability | 3 | 2 | 1 | 0 |
+| AI Augmentation | 3 | 1 | 2 | 0 |
+| Tooling Infrastructure | 8 | 0 | 4 | 4 |
+| **Total** | **43** | **10** | **27** | **6** |
+
+### By Priority
+
+- **Critical**: 10 requirements
+- **High**: 27 requirements
+- **Medium**: 6 requirements
+
+### Traceability to Methodology
+
+Every requirement traces to a specific section in [AI_SDLC_REQUIREMENTS.md](AI_SDLC_REQUIREMENTS.md) via the "Traces To" field, except for Tooling Infrastructure which are implementation necessities not directly specified in the methodology.
 
 ---
 
 ## Next Steps
 
-1. **Add traceability tags to code** - Tag all implementations with `# Implements: REQ-*`
-2. **Add traceability tags to tests** - Tag all tests with `# Validates: REQ-*`
-3. **Validate traceability** - Run `python installers/validate_traceability.py --check-all`
-4. **Generate matrix** - Run `python installers/validate_traceability.py --matrix > docs/TRACEABILITY_MATRIX.md`
-5. **Complete missing design docs** - COMMAND_SYSTEM.md, TEMPLATE_SYSTEM.md
+1. Review and approve requirements
+2. Create design documents for each category
+3. Implement with platform-specific adaptations
+4. Validate traceability: Requirement → Design → Code → Test
 
 ---
 
-**Document Status**: Bootstrap - Requirements extracted from existing design and code
-**Next Review**: After traceability tags added to code
+**Document Status**: Draft - Pending Review
+**Author**: AI SDLC Method Team
+**Last Updated**: 2025-12-02

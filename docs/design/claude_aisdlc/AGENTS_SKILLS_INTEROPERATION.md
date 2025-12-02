@@ -1,5 +1,7 @@
 # Agents and Skills Interoperation
 
+**Requirements Traceability**: REQ-AI-003 (Stage-Specific Agent Personas), REQ-AI-001 (7-Stage AI-Augmented SDLC)
+
 **How AI SDLC agents and skills work together to execute the 7-stage methodology**
 
 ---

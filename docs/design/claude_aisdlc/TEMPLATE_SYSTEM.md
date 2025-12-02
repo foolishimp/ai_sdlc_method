@@ -11,10 +11,8 @@
 
 This design implements the following requirements:
 
-- **REQ-F-WORKSPACE-001**: Developer workspace structure (.ai-workspace/)
-- **REQ-F-WORKSPACE-002**: Task management templates
-- **REQ-F-WORKSPACE-003**: Session tracking templates
-- **REQ-NFR-CONTEXT-001**: Persistent context across sessions
+- **REQ-TOOL-002**: Developer workspace structure (.ai-workspace/) with task management and session tracking templates
+- **REQ-TASK-001**: Work breakdown structure (task templates)
 
 **Related Design Documents**:
 - [Plugin Architecture](PLUGIN_ARCHITECTURE.md) - Plugin system
@@ -90,7 +88,7 @@ The Template System provides **structured, file-based task and session managemen
 ### ADR-001: File-Based vs Database
 
 **Context**:
-- **Requirements**: REQ-F-WORKSPACE-001 (workspace structure), REQ-NFR-CONTEXT-001 (persistent context)
+- **Requirements**: REQ-TOOL-002 (developer workspace with persistent context)
 - **Ecosystem Constraints**:
   - Developers already use Git for version control
   - Adding database requires setup/maintenance overhead
@@ -128,7 +126,7 @@ The Template System provides **structured, file-based task and session managemen
 ### ADR-002: Two-Tier Task System
 
 **Context**:
-- **Requirements**: REQ-F-WORKSPACE-002 (task management)
+- **Requirements**: REQ-TOOL-002 (task management within workspace), REQ-TASK-001 (work breakdown)
 - **Ecosystem Constraints**:
   - Developers need quick idea capture (don't break flow)
   - Formal tasks require TDD discipline
@@ -175,7 +173,7 @@ Formal Task (5 minutes):
 ### ADR-003: Session Tracking (Git-Ignored)
 
 **Context**:
-- **Requirements**: REQ-F-WORKSPACE-003 (session tracking), REQ-NFR-CONTEXT-001 (persistent context)
+- **Requirements**: REQ-TOOL-002 (session tracking with persistent context)
 - **Ecosystem Constraints**:
   - Sessions are personal/temporary (not shared)
   - Session history can get large (100s of sessions)
@@ -201,7 +199,7 @@ Formal Task (5 minutes):
 ### ADR-004: Markdown Templates (Not Code Generation)
 
 **Context**:
-- **Requirements**: REQ-F-WORKSPACE-002 (templates)
+- **Requirements**: REQ-TOOL-002 (workspace templates), REQ-TASK-001 (task templates)
 - **Ecosystem Constraints**:
   - Developers use various editors (VSCode, Vim, Emacs)
   - Templates should work without special tools
@@ -573,10 +571,8 @@ python installers/setup_workspace.py --no-git
 ### 7.2 Traceability
 
 **Templates → Requirements**:
-- REQ-F-WORKSPACE-001 → .ai-workspace/ directory structure
-- REQ-F-WORKSPACE-002 → TASK_TEMPLATE.md, FINISHED_TASK_TEMPLATE.md
-- REQ-F-WORKSPACE-003 → SESSION_TEMPLATE.md, SESSION_STARTER.md
-- REQ-NFR-CONTEXT-001 → Session persistence, task documentation
+- REQ-TOOL-002 → .ai-workspace/ directory structure, session persistence, task documentation
+- REQ-TASK-001 → TASK_TEMPLATE.md, FINISHED_TASK_TEMPLATE.md
 
 **Templates → Code**:
 - TASK_TEMPLATE.md → tasks/active/ACTIVE_TASKS.md (in-use)
@@ -618,10 +614,8 @@ python installers/setup_workspace.py --no-git
 - No automated tests (manual validation only)
 
 **Traceability**:
-- REQ-F-WORKSPACE-001 → .ai-workspace/ structure ✅
-- REQ-F-WORKSPACE-002 → TASK_TEMPLATE.md, FINISHED_TASK_TEMPLATE.md ✅
-- REQ-F-WORKSPACE-003 → SESSION_TEMPLATE.md, SESSION_STARTER.md ✅
-- REQ-NFR-CONTEXT-001 → Session persistence ✅
+- REQ-TOOL-002 → .ai-workspace/ structure, session persistence ✅
+- REQ-TASK-001 → TASK_TEMPLATE.md, FINISHED_TASK_TEMPLATE.md ✅
 
 ---
 
