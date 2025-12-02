@@ -131,6 +131,59 @@ class TestHeadlessBasic:
         assert "session_id" in result
 
 
+class TestPluginLoaded:
+    """Test that AISDLC plugin is actually loaded."""
+
+    def test_plugin_cached(self):
+        """Verify plugin is in Claude's marketplace cache."""
+        from pathlib import Path
+
+        plugin_cache = Path.home() / ".claude/plugins/marketplaces/aisdlc/.claude-plugin/plugins/aisdlc-methodology/.claude-plugin"
+
+        assert plugin_cache.exists(), "Plugin not cached - run installer first"
+        assert (plugin_cache / "plugin.json").exists(), "plugin.json missing"
+        assert (plugin_cache / "commands").is_dir(), "commands/ missing"
+        assert (plugin_cache / "agents").is_dir(), "agents/ missing"
+        assert (plugin_cache / "skills").is_dir(), "skills/ missing"
+
+    def test_plugin_json_valid(self):
+        """Verify plugin.json has correct structure."""
+        from pathlib import Path
+
+        plugin_json = Path.home() / ".claude/plugins/marketplaces/aisdlc/.claude-plugin/plugins/aisdlc-methodology/.claude-plugin/plugin.json"
+
+        if not plugin_json.exists():
+            pytest.skip("Plugin not cached")
+
+        data = json.loads(plugin_json.read_text())
+
+        assert data.get("name") == "aisdlc-methodology"
+        assert "version" in data
+        assert "commands" in data
+        assert "agents" in data
+        assert len(data["commands"]) >= 7, "Expected 7+ commands"
+        assert len(data["agents"]) >= 7, "Expected 7 agents"
+
+    def test_marketplace_json_valid(self):
+        """Verify marketplace.json points to plugin correctly."""
+        from pathlib import Path
+
+        marketplace_json = Path.home() / ".claude/plugins/marketplaces/aisdlc/.claude-plugin/marketplace.json"
+
+        if not marketplace_json.exists():
+            pytest.skip("Marketplace not cached")
+
+        data = json.loads(marketplace_json.read_text())
+
+        assert data.get("name") == "aisdlc"
+        assert "plugins" in data
+        assert len(data["plugins"]) >= 1
+
+        plugin = data["plugins"][0]
+        assert plugin.get("name") == "aisdlc-methodology"
+        assert plugin.get("source") == "./plugins/aisdlc-methodology"
+
+
 # =============================================================================
 # Requirements Tests
 # =============================================================================
