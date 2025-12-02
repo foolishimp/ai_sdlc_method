@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "hello-world",
-      "source": "./plugins/hello-world"
+      "source": "./testmkt/plugins/hello-world"
     }
   ]
 }
