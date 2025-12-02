@@ -1,13 +1,11 @@
 {
   "extraKnownMarketplaces": {
-    "test-mkt": {
+    "aisdlc": {
       "source": {
         "source": "github",
         "repo": "foolishimp/ai_sdlc_method"
       }
     }
   },
-  "enabledPlugins": {
-    "hello-world@test-mkt": true
-  }
+  "enabledPlugins": {}
 }
