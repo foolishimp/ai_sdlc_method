@@ -8,13 +8,13 @@ Self-contained installer that can be run directly from GitHub.
 
 Usage:
     # From GitHub (recommended)
-    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/.claude-plugin/installers/aisdlc-setup.py | python3 -
+    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 -
 
     # With workspace structure
-    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/.claude-plugin/installers/aisdlc-setup.py | python3 - --workspace
+    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --workspace
 
     # Preview changes
-    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/.claude-plugin/installers/aisdlc-setup.py | python3 - --dry-run
+    curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/claude-code/installers/aisdlc-setup.py | python3 - --dry-run
 
     # Local usage
     python aisdlc-setup.py [options]
