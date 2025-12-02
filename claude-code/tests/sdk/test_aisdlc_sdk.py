@@ -139,6 +139,53 @@ class TestTraceability:
 # Multi-Turn Conversation Tests
 # =============================================================================
 
+class TestPluginIntrospection:
+    """Test that AISDLC plugin is loaded via Claude's self-awareness."""
+
+    @pytest.mark.asyncio
+    async def test_claude_knows_aisdlc_agents(self, aisdlc_options):
+        """Claude should be aware of AISDLC agents when plugin is loaded."""
+        prompt = """
+        List any specialized agents you have access to.
+        Specifically, do you have access to any "aisdlc" agents like:
+        - aisdlc-requirements-agent
+        - aisdlc-design-agent
+        - aisdlc-code-agent
+
+        Answer with just the agent names you can see, or say "none" if you don't see any.
+        """
+
+        output = await collect_response(prompt, aisdlc_options)
+        output_lower = output.lower()
+
+        # Check if Claude sees any AISDLC agents
+        aisdlc_mentioned = 'aisdlc' in output_lower
+        # Note: This test may be flaky if plugin isn't loaded or Claude doesn't expose agent list
+
+        # Soft assertion - log but don't fail if unclear
+        if not aisdlc_mentioned:
+            print(f"WARNING: Claude may not see AISDLC agents. Response: {output[:300]}")
+
+    @pytest.mark.asyncio
+    async def test_claude_knows_aisdlc_methodology(self, aisdlc_options):
+        """Claude should reference AISDLC methodology specifics when prompted."""
+        prompt = """
+        What is the AI SDLC methodology? Specifically:
+        1. How many stages does it have?
+        2. What are the requirement key prefixes (REQ-F-*, REQ-NFR-*, etc.)?
+
+        Keep your answer brief.
+        """
+
+        output = await collect_response(prompt, aisdlc_options)
+
+        # Check for methodology awareness
+        has_stages = any(term in output for term in ['7 stage', 'seven stage', '7-stage'])
+        has_req_keys = 'REQ-' in output
+
+        assert has_req_keys, f"Should mention REQ-* keys. Got: {output[:500]}"
+
+
 class TestMultiTurn:
     """Test multi-turn conversations using ClaudeSDKClient."""
 

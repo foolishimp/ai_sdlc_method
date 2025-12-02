@@ -1,13 +1,3 @@
 {
-  "extraKnownMarketplaces": {
-    "aisdlc": {
-      "source": {
-        "source": "github",
-        "repo": "foolishimp/ai_sdlc_method"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "aisdlc-methodology@aisdlc": true
-  }
+  "enabledPlugins": {}
 }
