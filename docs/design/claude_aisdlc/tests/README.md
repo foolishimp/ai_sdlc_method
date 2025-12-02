@@ -89,21 +89,34 @@ Test Cases (TCS-*) ← This directory
 
 ### Run All Command Tests
 ```bash
-pytest claude-code/tests/commands/test_commands.py -v
+pytest .claude-plugin/tests/commands/test_commands.py -v
 ```
 
 ### Run Specific Test Case
 ```bash
 # TCS-001: Status command
-pytest claude-code/tests/commands/test_commands.py -k "TestStatusCommand" -v
+pytest .claude-plugin/tests/commands/test_commands.py -k "TestStatusCommand" -v
 
 # TCS-006: Release command
-pytest claude-code/tests/commands/test_commands.py -k "TestReleaseCommand" -v
+pytest .claude-plugin/tests/commands/test_commands.py -k "TestReleaseCommand" -v
 ```
 
 ### Run Integration Tests
 ```bash
-pytest claude-code/tests/commands/test_commands.py -k "TestIntegration" -v
+pytest .claude-plugin/tests/commands/test_commands.py -k "TestIntegration" -v
+```
+
+### Run SDK/Headless Tests
+```bash
+# Quick shell script tests (no dependencies)
+.claude-plugin/tests/sdk/test_headless.sh
+
+# Python SDK tests
+pip install claude-agent-sdk pytest pytest-asyncio
+pytest .claude-plugin/tests/sdk/test_aisdlc_sdk.py -v
+
+# Headless CLI tests
+pytest .claude-plugin/tests/sdk/test_headless_cli.py -v
 ```
 
 ---
@@ -150,7 +163,7 @@ Link to actual test code.
 1. Create `TCS-XXX-{slug}.md` in this directory
 2. Add entry to Test Case Index above
 3. Update Traceability Matrix
-4. Implement tests in `claude-code/tests/`
+4. Implement tests in `.claude-plugin/tests/`
 5. Update status when implemented
 
 ---
