@@ -1,9 +1,9 @@
 # AI SDLC Multi-Stage Agent Configuration
 # Reference: /Users/jim/src/apps/ai_sdlc_method/docs/ai_sdlc_method.md
-# Version: 1.0.0
+# Version: 0.4.8
 
 ai_sdlc_stages:
-  version: "1.0"
+  version: "0.4.8"
   description: "Complete AI SDLC stage configurations with AI agent specifications"
   reference_doc: "file://../../docs/ai_sdlc_method.md"
 
@@ -782,7 +782,7 @@ integration:
 # ============================================================================
 metadata:
   created: "2025-01-14"
-  version: "1.0.0"
+  version: "0.4.8"
   reference_document: "/Users/jim/src/apps/ai_sdlc_method/docs/ai_sdlc_method.md"
   key_principles_integration: "file://config.yml (Key Principles for Code Stage)"
   methodology_origin: "https://github.com/foolishimp/ai_init"

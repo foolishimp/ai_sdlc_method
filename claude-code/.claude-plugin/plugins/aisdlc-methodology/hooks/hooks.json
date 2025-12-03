@@ -1,16 +1,6 @@
 {
   "description": "AI SDLC Methodology lifecycle hooks",
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo 'AI SDLC Session Context:' && if [ -f .ai-workspace/tasks/active/ACTIVE_TASKS.md ]; then echo 'Active Tasks:' && cat .ai-workspace/tasks/active/ACTIVE_TASKS.md | head -100; else echo 'No active tasks file'; fi"
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [

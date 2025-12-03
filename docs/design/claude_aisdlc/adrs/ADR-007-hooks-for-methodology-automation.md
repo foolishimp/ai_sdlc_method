@@ -28,7 +28,7 @@ The AISDLC command system (ADR-002) provides 7 explicit commands for workflow in
 **We will use Claude Code's lifecycle hooks to automate methodology compliance, complementing the explicit command system.**
 
 Specifically:
-- **5 lifecycle hooks** for key automation points
+- **2 lifecycle hooks** for key automation points
 - **Guardrails not gates** - warn, don't block
 - **Silent success** - only notify on issues
 - **Complement commands** - hooks suggest, commands execute
@@ -37,19 +37,19 @@ Specifically:
 
 ## Hook Implementation
 
-### Selected Hooks (5 of 10 available)
+### Selected Hooks (2 of 10 available)
 
 | Hook Event | Purpose | Behavior |
 |------------|---------|----------|
-| **SessionStart** | Context loading | Show active tasks, last updated |
 | **Stop** | Checkpoint reminder | Suggest `/aisdlc-checkpoint-tasks` if uncommitted changes |
 | **PreToolUse** | REQ validation | Warn on commits without REQ-* tags |
-| **PostToolUse** | Auto-formatting | Run formatters on edited files |
 
 ### Rejected Hooks (and Why)
 
 | Hook Event | Rejection Reason |
 |------------|------------------|
+| SessionStart | Context loading unreliable in practice |
+| PostToolUse | Auto-formatting adds complexity without clear benefit |
 | PermissionRequest | Too intrusive for methodology |
 | Notification | Not relevant to SDLC workflow |
 | SubagentStop | Internal agent handling |
@@ -181,7 +181,7 @@ python installers/setup_hooks.py
 ⚠️ **Potential noise**
 - Too many hooks could be annoying
 
-**Mitigation**: Only 5 hooks, most are silent
+**Mitigation**: Only 2 hooks, both focused on commit traceability
 
 ---
 
@@ -217,11 +217,11 @@ command -v prettier >/dev/null 2>&1 && prettier ...
 
 ## Metrics
 
-- **Hooks implemented**: 5
-- **Hook code lines**: ~50
-- **Commands complemented**: 4 (status, checkpoint, commit, refresh)
+- **Hooks implemented**: 2
+- **Hook code lines**: ~30
+- **Commands complemented**: 2 (checkpoint, commit)
 
-**UX improvement**: Estimate 3-4 fewer manual commands per session
+**UX improvement**: REQ-* tag validation at commit time
 
 ---
 

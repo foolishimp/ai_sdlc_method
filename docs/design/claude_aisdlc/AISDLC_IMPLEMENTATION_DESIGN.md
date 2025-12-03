@@ -52,7 +52,7 @@ The AI SDLC Method is implemented as a **Claude Code plugin ecosystem** with thr
 │  ┌──────────────────────────────────────────────────────────────────┐   │
 │  │                    PLUGIN SYSTEM                                   │   │
 │  │  ┌─────────────────────────────────────────────────────────────┐  │   │
-│  │  │              aisdlc-methodology (v4.4.0)                     │  │   │
+│  │  │              aisdlc-methodology (v0.4.8)                     │  │   │
 │  │  │  ├─ 7 agents    ├─ 11 consolidated skills    ├─ 8 commands  │  │   │
 │  │  └─────────────────────────────────────────────────────────────┘  │   │
 │  └──────────────────────────────────────────────────────────────────┘   │
@@ -231,7 +231,7 @@ claude-code/.claude-plugin/plugins/
 | `/aisdlc-release` | Create release notes |
 | `/aisdlc-refresh-context` | Reload methodology context |
 | `/aisdlc-update` | Check for framework updates |
-| `/aisdlc-switch-persona` | Switch SDLC stage agent |
+| `/aisdlc-help` | Show available commands and usage |
 
 **Location**: `.claude/commands/*.md`
 
