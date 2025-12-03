@@ -1,11 +1,399 @@
 # AI SDLC Multi-Stage Agent Configuration
 # Reference: /Users/jim/src/apps/ai_sdlc_method/docs/ai_sdlc_method.md
-# Version: 0.4.8
+# Version: 0.4.9
 
 ai_sdlc_stages:
-  version: "0.4.8"
+  version: "0.4.9"
   description: "Complete AI SDLC stage configurations with AI agent specifications"
   reference_doc: "file://../../docs/ai_sdlc_method.md"
+
+# ============================================================================
+# MANDATORY ARTIFACTS - Required for Traceability
+# ============================================================================
+# These artifacts are REQUIRED for the methodology to function correctly.
+# Traceability depends on these artifacts existing in predictable locations
+# with consistent structure. Without them, intent-to-runtime traceability
+# cannot be maintained.
+#
+# Rationale: The AI SDLC methodology is opinionated about artifacts because:
+# 1. Traceability requires predictable artifact locations and formats
+# 2. Each stage must produce specific outputs for downstream stages
+# 3. Bidirectional feedback loops depend on consistent artifact structure
+# 4. Audit and compliance require documented, versioned artifacts
+# ============================================================================
+
+mandatory_artifacts:
+  description: "Opinionated artifacts required per stage for full traceability"
+  enforcement: "Quality gates MUST validate artifact existence and format"
+
+  # ---------------------------------------------------------------------------
+  # Requirements Stage Artifacts
+  # ---------------------------------------------------------------------------
+  requirements:
+    artifacts:
+      - name: "Implementation Requirements Document"
+        path: "docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        format: "Markdown with REQ-* tagged sections"
+        purpose: "Canonical itemized list of all requirements with unique keys"
+        required_elements:
+          - "REQ-{TYPE}-{DOMAIN}-{SEQ} format keys"
+          - "Priority (Critical/High/Medium)"
+          - "Type (Functional/Non-Functional/Data)"
+          - "Acceptance criteria"
+          - "Traces To reference"
+        example: "REQ-F-AUTH-001: User login with email/password"
+
+      - name: "Intent Document"
+        path: "docs/requirements/INTENT.md"
+        format: "Markdown"
+        purpose: "Capture raw business intent before decomposition"
+        required_elements:
+          - "INT-* unique identifiers"
+          - "Problem/opportunity description"
+          - "Expected outcomes"
+          - "Stakeholders"
+
+    validation:
+      - "All requirements have unique REQ-* keys"
+      - "All requirements have acceptance criteria"
+      - "All requirements trace to intent (INT-*)"
+      - "Document is version-controlled"
+
+  # ---------------------------------------------------------------------------
+  # Design Stage Artifacts
+  # ---------------------------------------------------------------------------
+  design:
+    artifacts:
+      - name: "Implementation Design Document"
+        path: "docs/design/{project}/AISDLC_IMPLEMENTATION_DESIGN.md"
+        format: "Markdown with component diagrams"
+        purpose: "Full technical design showing complete solution architecture"
+        required_elements:
+          - "System architecture overview"
+          - "Component design with REQ-* traceability"
+          - "Integration points"
+          - "References to ADRs"
+          - "References to requirements document"
+        traces_to: "docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+
+      - name: "Architecture Decision Records"
+        path: "docs/design/{project}/adrs/ADR-*.md"
+        format: "Markdown ADR format"
+        purpose: "Document all architectural decisions with context and rationale"
+        required_elements:
+          - "Title (ADR-NNN: Decision Name)"
+          - "Status (Proposed/Accepted/Deprecated/Superseded)"
+          - "Context (forces that led to decision)"
+          - "Decision (the change being made)"
+          - "Consequences (positive, negative, neutral)"
+          - "Requirements addressed (REQ-* keys)"
+        example: "ADR-001: Claude Code as MVP Platform"
+
+      - name: "Traceability Matrix"
+        path: "docs/TRACEABILITY_MATRIX.md"
+        format: "Markdown table or YAML"
+        purpose: "Map requirements to design, code, tests, runtime"
+        required_elements:
+          - "REQ-* → Design component mapping"
+          - "REQ-* → Code file/function mapping"
+          - "REQ-* → Test mapping"
+          - "Coverage percentage"
+          - "Gap identification"
+        update_frequency: "Every stage transition"
+
+    validation:
+      - "Every design component maps to ≥1 REQ-* key"
+      - "All ADRs reference requirements addressed"
+      - "Traceability matrix is current"
+      - "No orphan components (components without requirements)"
+
+  # ---------------------------------------------------------------------------
+  # Tasks Stage Artifacts
+  # ---------------------------------------------------------------------------
+  tasks:
+    artifacts:
+      - name: "Work Breakdown"
+        path: ".ai-workspace/tasks/active/ACTIVE_TASKS.md"
+        format: "Markdown task list"
+        purpose: "Track all work items with requirement traceability"
+        required_elements:
+          - "Task ID"
+          - "REQ-* keys (implements which requirements)"
+          - "Status (pending/in_progress/completed)"
+          - "Acceptance criteria"
+          - "Dependencies"
+        alternative_systems:
+          - "Jira with REQ-* custom field"
+          - "Azure DevOps with REQ-* tags"
+          - "GitHub Issues with REQ-* labels"
+
+    validation:
+      - "Every task references ≥1 REQ-* key"
+      - "All requirements have ≥1 task"
+      - "Tasks have clear acceptance criteria"
+      - "Dependencies are identified"
+
+  # ---------------------------------------------------------------------------
+  # Code Stage Artifacts
+  # ---------------------------------------------------------------------------
+  code:
+    artifacts:
+      - name: "Production Code"
+        path: "src/**/*.{py,ts,js,java,go}"
+        format: "Source code with REQ-* tags in comments/docstrings"
+        purpose: "Implementation with requirement traceability"
+        required_elements:
+          - "# Implements: REQ-* in docstrings/comments"
+          - "Function/class-level requirement attribution"
+        example: |
+          # Implements: REQ-F-AUTH-001
+          def login(email: str, password: str) -> LoginResult:
+              """Authenticate user with email and password."""
+              ...
+
+      - name: "Unit Tests"
+        path: "tests/**/*.{py,ts,js,java,go}"
+        format: "Test code with REQ-* tags"
+        purpose: "Test-to-requirement traceability"
+        required_elements:
+          - "# Validates: REQ-* in test docstrings/comments"
+          - "AAA structure (Arrange-Act-Assert)"
+        coverage_minimum: "80%"
+        coverage_critical_paths: "100%"
+        example: |
+          # Validates: REQ-F-AUTH-001
+          def test_login_with_valid_credentials():
+              # Arrange
+              user = create_test_user()
+              # Act
+              result = login(user.email, "password123")
+              # Assert
+              assert result.success == True
+
+      - name: "Commit Messages"
+        format: "Git commit with REQ-* reference"
+        purpose: "Track which requirements each commit implements"
+        required_elements:
+          - "Implements: REQ-* in commit body"
+          - "Co-Authored-By: Claude <noreply@anthropic.com> (if AI-assisted)"
+        example: |
+          feat: Add user authentication
+
+          Implement email/password login with JWT tokens.
+
+          Implements: REQ-F-AUTH-001
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+          Co-Authored-By: Claude <noreply@anthropic.com>
+
+    validation:
+      - "All code files have REQ-* tags"
+      - "All tests have REQ-* tags"
+      - "Test coverage ≥80%"
+      - "Commits include requirement references"
+
+  # ---------------------------------------------------------------------------
+  # System Test Stage Artifacts
+  # ---------------------------------------------------------------------------
+  system_test:
+    artifacts:
+      - name: "BDD Feature Files"
+        path: "tests/features/**/*.feature"
+        format: "Gherkin (Given/When/Then)"
+        purpose: "Executable specifications with requirement traceability"
+        required_elements:
+          - "@REQ-* tags on scenarios"
+          - "Given/When/Then structure"
+          - "Happy path, error cases, edge cases"
+        example: |
+          @REQ-F-AUTH-001
+          Feature: User Authentication
+
+            Scenario: Successful login
+              Given I am on the login page
+              When I enter valid email "user@example.com"
+              And I enter valid password "password123"
+              And I click "Login"
+              Then I should see "Welcome back"
+
+      - name: "Step Definitions"
+        path: "tests/features/steps/**/*.{py,ts,js}"
+        format: "BDD step implementation"
+        purpose: "Automated test implementation"
+        required_elements:
+          - "Step functions for Given/When/Then"
+          - "# Validates: REQ-* tags"
+
+      - name: "Test Coverage Report"
+        path: "docs/test/COVERAGE_REPORT.md"
+        format: "Markdown or HTML"
+        purpose: "Track requirement-to-test coverage"
+        required_elements:
+          - "REQ-* → Scenario mapping"
+          - "Coverage percentage"
+          - "Untested requirements (gaps)"
+
+    validation:
+      - "All requirements have ≥1 BDD scenario"
+      - "All scenarios pass (or failures documented)"
+      - "Requirement coverage ≥95%"
+      - "No critical defects open"
+
+  # ---------------------------------------------------------------------------
+  # UAT Stage Artifacts
+  # ---------------------------------------------------------------------------
+  uat:
+    artifacts:
+      - name: "UAT Test Cases"
+        path: "docs/uat/UAT_TEST_CASES.md"
+        format: "Markdown with Given/When/Then in business language"
+        purpose: "Business validation test cases"
+        required_elements:
+          - "UAT-* unique identifiers"
+          - "REQ-* traceability"
+          - "Pure business language (no technical jargon)"
+          - "Expected results"
+        example: |
+          ## UAT-001: Customer Login
+          **Requirement**: REQ-F-AUTH-001
+
+          **Given** I am a registered customer
+          **When** I enter my email and password on the login page
+          **Then** I should see my personal dashboard
+
+      - name: "UAT Sign-off Document"
+        path: "docs/uat/UAT_SIGNOFF.md"
+        format: "Markdown with approval signatures"
+        purpose: "Formal business approval of requirements"
+        required_elements:
+          - "Per-requirement status (✅ Accepted / ❌ Rejected)"
+          - "Sign-off authority (name, role, date)"
+          - "REQ-* coverage summary"
+          - "Open issues (if any)"
+        sign_off_authorities:
+          - "Business SME (functional behavior)"
+          - "Business Data Steward (data quality)"
+          - "UAT Lead (UAT activities)"
+          - "Compliance Officer (regulatory, if applicable)"
+
+    validation:
+      - "All requirements have UAT test cases"
+      - "Business sign-off obtained"
+      - "No critical/high defects open"
+      - "Data validation complete"
+
+  # ---------------------------------------------------------------------------
+  # Runtime Feedback Stage Artifacts
+  # ---------------------------------------------------------------------------
+  runtime:
+    artifacts:
+      - name: "Release Manifest"
+        path: "docs/releases/RELEASE_*.md"
+        format: "Markdown with version and REQ-* list"
+        purpose: "Track which requirements are deployed in each release"
+        required_elements:
+          - "Version number (SemVer)"
+          - "REQ-* keys included in release"
+          - "Changelog summary"
+          - "Deployment date"
+        example: |
+          # Release v2.5.0
+          **Date**: 2025-12-03
+
+          ## Requirements Included
+          - REQ-F-AUTH-001 (v1) - User authentication
+          - REQ-NFR-PERF-001 (v2) - Performance optimization
+
+          ## Changelog
+          - Added email/password login
+          - Improved login response time by 40%
+
+      - name: "Telemetry Configuration"
+        path: "config/telemetry.yml"
+        format: "YAML"
+        purpose: "Configure REQ-* tagged observability"
+        required_elements:
+          - "Requirement key tagging rules"
+          - "Alert routing configuration"
+          - "Metric definitions"
+        example: |
+          telemetry:
+            tagging:
+              format: "requirement: REQ-*"
+              propagate_to:
+                - logs
+                - metrics
+                - traces
+                - alerts
+
+      - name: "Feedback Log"
+        path: "docs/runtime/FEEDBACK_LOG.md"
+        format: "Markdown"
+        purpose: "Track runtime issues and generated intents"
+        required_elements:
+          - "Issue description"
+          - "REQ-* affected"
+          - "Root cause (if known)"
+          - "New intent generated (INT-*)"
+
+    validation:
+      - "All deployed code has REQ-* tags"
+      - "Telemetry captures requirement keys"
+      - "Alerts route to Intent Manager"
+      - "Release manifest includes requirement traceability"
+
+# ============================================================================
+# ARTIFACT TRACEABILITY CHAIN
+# ============================================================================
+# This shows how artifacts connect across stages to enable full traceability
+# ============================================================================
+
+artifact_traceability_chain:
+  description: "How artifacts chain together for end-to-end traceability"
+
+  flow: |
+    INTENT.md (INT-001)
+        ↓
+    AISDLC_IMPLEMENTATION_REQUIREMENTS.md (REQ-F-AUTH-001)
+        ↓
+    AISDLC_IMPLEMENTATION_DESIGN.md + ADR-*.md (Component → REQ-F-AUTH-001)
+        ↓
+    TRACEABILITY_MATRIX.md (REQ → Design → Code → Test)
+        ↓
+    ACTIVE_TASKS.md / Jira (Task-123 → REQ-F-AUTH-001)
+        ↓
+    src/auth.py (# Implements: REQ-F-AUTH-001)
+        ↓
+    tests/test_auth.py (# Validates: REQ-F-AUTH-001)
+        ↓
+    tests/features/auth.feature (@REQ-F-AUTH-001)
+        ↓
+    UAT_SIGNOFF.md (REQ-F-AUTH-001 ✅ Accepted)
+        ↓
+    RELEASE_v2.5.0.md (REQ-F-AUTH-001 deployed)
+        ↓
+    Telemetry (requirement: REQ-F-AUTH-001)
+        ↓
+    FEEDBACK_LOG.md (Alert → REQ-F-AUTH-001 → New INT-042)
+        ↓
+    [Cycle repeats at INTENT.md]
+
+  validation_points:
+    - stage: "Requirements → Design"
+      check: "Every REQ-* appears in design components or ADRs"
+    - stage: "Design → Tasks"
+      check: "Every design component has ≥1 task"
+    - stage: "Tasks → Code"
+      check: "Every task has code with matching REQ-* tag"
+    - stage: "Code → Tests"
+      check: "Every # Implements: REQ-* has matching # Validates: REQ-*"
+    - stage: "Tests → UAT"
+      check: "Every tested REQ-* has UAT sign-off"
+    - stage: "UAT → Runtime"
+      check: "Every signed-off REQ-* appears in release manifest"
+    - stage: "Runtime → Requirements"
+      check: "Alerts with REQ-* tags generate new intents"
 
   # ============================================================================
   # STAGE 1: REQUIREMENTS
@@ -782,9 +1170,11 @@ integration:
 # ============================================================================
 metadata:
   created: "2025-01-14"
-  version: "0.4.8"
+  version: "0.4.9"
   reference_document: "/Users/jim/src/apps/ai_sdlc_method/docs/ai_sdlc_method.md"
   key_principles_integration: "file://config.yml (Key Principles for Code Stage)"
   methodology_origin: "https://github.com/foolishimp/ai_init"
   ultimate_mantra: "Excellence or nothing"
   note: "Key Principles can evolve per project context - see docs/principles/KEY_PRINCIPLES.md"
+  changelog:
+    v0.4.9: "Added mandatory_artifacts section - opinionated artifacts required per stage for traceability"
