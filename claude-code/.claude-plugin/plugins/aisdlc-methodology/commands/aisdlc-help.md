@@ -6,11 +6,14 @@ Display comprehensive help for the AI SDLC methodology, including available comm
 
 ## Instructions
 
-Display the full AI SDLC help guide:
+First, read the plugin version from `claude-code/.claude-plugin/plugins/aisdlc-methodology/.claude-plugin/plugin.json` and `claude-code/.claude-plugin/plugins/aisdlc-methodology/config/stages_config.yml` to display current version.
+
+Then display the full AI SDLC help guide:
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║               AI SDLC Method - Help Guide                    ║
+║                      Version: v0.4.9                         ║
 ╚══════════════════════════════════════════════════════════════╝
 
 ## The 7-Stage Lifecycle
@@ -34,6 +37,7 @@ Display the full AI SDLC help guide:
   ### Status & Navigation
   /aisdlc-status           Show current project status and active tasks
   /aisdlc-help             This help guide
+  /aisdlc-version          Show plugin version information
 
   ### Task Management
   /aisdlc-add-task         Add a new task to the backlog
