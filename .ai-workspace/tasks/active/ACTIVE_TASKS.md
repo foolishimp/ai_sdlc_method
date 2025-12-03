@@ -388,12 +388,142 @@ E(t) System Components:
 
 ---
 
+## Task #26: Claude-AISDLC Code Implementation (Complete Design → Code)
+
+**Priority**: High
+**Status**: Not Started
+**Release Target**: 1.0 MVP
+**Estimated Time**: 5-10 days
+**Dependencies**: Task #25 (Design Coverage - COMPLETE)
+
+**Requirements Traceability**:
+- All 43 requirements in AISDLC_IMPLEMENTATION_REQUIREMENTS.md
+- See: [TRACEABILITY_MATRIX.md](../../../docs/TRACEABILITY_MATRIX.md)
+
+**SDLC Stages**: 3 - Tasks, 4 - Code
+**Agent**: Tasks Agent → Code Agent
+
+**Description**:
+This task tracks all code development required to implement the claude-aisdlc design. The design stage is 100% complete (43/43 requirements). This task creates the formal work breakdown to move from Design → Code → System Test.
+
+**Current State**:
+- Requirements: 43/43 (100%) ✅
+- Design: 43/43 (100%) ✅
+- Tasks: 0/43 (0%) ❌ ← THIS TASK
+- Code: 15/43 (35%) 🚧
+- System Test: 5/43 (12%) 🚧
+
+**Target State**:
+- Tasks: 43/43 (100%) ✅
+- Code: 43/43 (100%) ✅
+- System Test: 43/43 (100%) ✅
+
+---
+
+### Work Breakdown Table
+
+| ID | Requirement | Description | Design Doc | Priority | Status | Code Artifact |
+|----|-------------|-------------|------------|----------|--------|---------------|
+| **Intent Management** |
+| WU-001 | REQ-INTENT-001 | Intent Capture (INTENT.md format) | INTENT_MANAGEMENT_DESIGN.md | Medium | Not Started | `skills/intent-capture/` |
+| WU-002 | REQ-INTENT-002 | Intent Classification (INT-* types) | INTENT_MANAGEMENT_DESIGN.md | Medium | Not Started | `skills/intent-classification/` |
+| WU-003 | REQ-INTENT-003 | Eco-Intent Generation (E(t) → INT-ECO-*) | INTENT_MANAGEMENT_DESIGN.md | Low | Not Started | `skills/eco-intent/` |
+| **7-Stage Workflow** |
+| WU-004 | REQ-STAGE-001 | Stage Definitions (7 stages) | WORKFLOW_STAGE_DESIGN.md | Critical | ✅ Complete | `config/stages_config.yml` |
+| WU-005 | REQ-STAGE-002 | Stage Transitions (gate validation) | WORKFLOW_STAGE_DESIGN.md | High | Partial | `commands/aisdlc-status.md` |
+| WU-006 | REQ-STAGE-003 | Signal Transformation (I/O mappings) | WORKFLOW_STAGE_DESIGN.md | Medium | Not Started | `skills/signal-transform/` |
+| WU-007 | REQ-STAGE-004 | Bidirectional Feedback (loops) | WORKFLOW_STAGE_DESIGN.md | Critical | Partial | `agents/*/feedback_protocol` |
+| **Requirements Stage** |
+| WU-008 | REQ-REQ-001 | Requirement Key Generation (REQ-*) | REQUIREMENTS_STAGE_DESIGN.md | Critical | ✅ Complete | `skills/requirements/` |
+| WU-009 | REQ-REQ-002 | Requirement Types (F/NFR/DATA/BR) | REQUIREMENTS_STAGE_DESIGN.md | High | ✅ Complete | `skills/requirement-extraction/` |
+| WU-010 | REQ-REQ-003 | Requirement Refinement (versioning) | REQUIREMENTS_STAGE_DESIGN.md | Medium | Not Started | `skills/refine-requirements/` |
+| WU-011 | REQ-REQ-004 | Homeostasis Model Definition | REQUIREMENTS_STAGE_DESIGN.md | Low | Not Started | `docs/HOMEOSTASIS_MODEL.md` |
+| **Design Stage** |
+| WU-012 | REQ-DES-001 | Component Design (diagrams) | DESIGN_STAGE_DESIGN.md | High | ✅ Complete | 11 design docs |
+| WU-013 | REQ-DES-002 | ADR Creation (decisions) | DESIGN_STAGE_DESIGN.md | High | ✅ Complete | 7 ADRs |
+| WU-014 | REQ-DES-003 | Design-Requirement Traceability | DESIGN_STAGE_DESIGN.md | High | Partial | `skills/design-with-traceability/` |
+| **Tasks Stage** |
+| WU-015 | REQ-TASK-001 | Work Breakdown (WU-* items) | TASKS_STAGE_DESIGN.md | High | Partial | This table |
+| WU-016 | REQ-TASK-002 | Dependency Tracking (DAG) | TASKS_STAGE_DESIGN.md | Medium | Not Started | `docs/DEPENDENCY_GRAPH.md` |
+| WU-017 | REQ-TASK-003 | Task-Requirement Traceability | TASKS_STAGE_DESIGN.md | High | Partial | TRACEABILITY_MATRIX.md |
+| **Code Stage** |
+| WU-018 | REQ-CODE-001 | TDD Workflow (RED→GREEN→REFACTOR) | CODE_STAGE_DESIGN.md | Critical | ✅ Complete | `skills-consolidated/tdd-complete-workflow.md` |
+| WU-019 | REQ-CODE-002 | Key Principles Enforcement | CODE_STAGE_DESIGN.md | High | ✅ Complete | `skills-consolidated/key-principles.md` |
+| WU-020 | REQ-CODE-003 | Code-Requirement Tagging | CODE_STAGE_DESIGN.md | Critical | Partial | `hooks/hooks.json` (PreToolUse) |
+| WU-021 | REQ-CODE-004 | Test Coverage (≥80%) | CODE_STAGE_DESIGN.md | High | Partial | `skills-consolidated/test-coverage-management.md` |
+| **System Test Stage** |
+| WU-022 | REQ-SYSTEST-001 | BDD Scenario Creation | SYSTEM_TEST_STAGE_DESIGN.md | High | Partial | `tests/features/*.feature` |
+| WU-023 | REQ-SYSTEST-002 | Integration Test Execution | SYSTEM_TEST_STAGE_DESIGN.md | High | Partial | `tests/features/steps/` |
+| WU-024 | REQ-SYSTEST-003 | Test-Requirement Traceability | SYSTEM_TEST_STAGE_DESIGN.md | High | Not Started | `tests/specs/TCS-*.md` |
+| **UAT Stage** |
+| WU-025 | REQ-UAT-001 | Business Validation Tests | UAT_STAGE_DESIGN.md | Medium | Not Started | `tests/uat/` |
+| WU-026 | REQ-UAT-002 | Sign-off Workflow | UAT_STAGE_DESIGN.md | Medium | Not Started | `commands/aisdlc-signoff.md` |
+| **Runtime Feedback** |
+| WU-027 | REQ-RUNTIME-001 | Telemetry Tagging | RUNTIME_FEEDBACK_DESIGN.md | Low | Not Started | `skills-consolidated/runtime-observability.md` |
+| WU-028 | REQ-RUNTIME-002 | Deviation Detection | RUNTIME_FEEDBACK_DESIGN.md | Low | Not Started | `skills/trace-production-issue/` |
+| WU-029 | REQ-RUNTIME-003 | Feedback Loop Closure | RUNTIME_FEEDBACK_DESIGN.md | Critical | Not Started | `agents/aisdlc-runtime-feedback-agent.md` |
+| **Traceability** |
+| WU-030 | REQ-TRACE-001 | Full Lifecycle Traceability | TRACEABILITY_DESIGN.md | Critical | Partial | TRACEABILITY_MATRIX.md |
+| WU-031 | REQ-TRACE-002 | Requirement Key Propagation | TRACEABILITY_DESIGN.md | Critical | Partial | `installers/validate_traceability.py` |
+| WU-032 | REQ-TRACE-003 | Traceability Validation (automated) | TRACEABILITY_DESIGN.md | High | Not Started | `installers/validate_traceability.py` |
+| **AI Augmentation** |
+| WU-033 | REQ-AI-001 | AI Assistance Per Stage | AI_AUGMENTATION_DESIGN.md | High | ✅ Complete | 42 skills |
+| WU-034 | REQ-AI-002 | Human Accountability | AI_AUGMENTATION_DESIGN.md | Critical | ✅ Complete | Agent design |
+| WU-035 | REQ-AI-003 | Stage-Specific Agent Personas | AI_AUGMENTATION_DESIGN.md | Critical | ✅ Complete | 7 agents |
+| **Tooling Infrastructure** |
+| WU-036 | REQ-TOOL-001 | Plugin Architecture | ADR-006 | Critical | ✅ Complete | `aisdlc-methodology/` |
+| WU-037 | REQ-TOOL-002 | Developer Workspace | ADR-002 | Critical | ✅ Complete | `.ai-workspace/` |
+| WU-038 | REQ-TOOL-003 | Workflow Commands | ADR-002 | Critical | ✅ Complete | 8 commands |
+| WU-039 | REQ-TOOL-004 | Configuration Hierarchy | ADR-006 | High | Partial | `config/config.yml` |
+| WU-040 | REQ-TOOL-005 | Release Management | AISDLC_IMPL_DESIGN.md | Medium | Partial | `commands/aisdlc-release.md` |
+| WU-041 | REQ-TOOL-006 | Framework Updates | AISDLC_IMPL_DESIGN.md | Medium | ✅ Complete | `commands/aisdlc-update.md` |
+| WU-042 | REQ-TOOL-007 | Test Gap Analysis | SYSTEM_TEST_STAGE_DESIGN.md | High | Not Started | `installers/validate_traceability.py` |
+| WU-043 | REQ-TOOL-008 | Methodology Hooks | ADR-007 | Medium | Partial | `hooks/hooks.json` |
+
+---
+
+### Work Unit Summary
+
+| Status | Count | Percentage |
+|--------|-------|------------|
+| ✅ Complete | 14 | 33% |
+| 🚧 Partial | 15 | 35% |
+| ❌ Not Started | 14 | 33% |
+| **Total** | **43** | 100% |
+
+### Priority Breakdown
+
+| Priority | Complete | Partial | Not Started | Total |
+|----------|----------|---------|-------------|-------|
+| Critical | 7 | 4 | 1 | 12 |
+| High | 5 | 7 | 4 | 16 |
+| Medium | 2 | 4 | 5 | 11 |
+| Low | 0 | 0 | 4 | 4 |
+
+### Next Actions (Priority Order)
+
+1. **REQ-RUNTIME-003** (Critical, Not Started) - Implement feedback loop closure
+2. **REQ-TRACE-003** (High, Not Started) - Automated traceability validation
+3. **REQ-SYSTEST-003** (High, Not Started) - Test-requirement traceability
+4. **REQ-TOOL-007** (High, Not Started) - Test gap analysis
+5. **REQ-TASK-002** (Medium, Not Started) - Dependency tracking
+
+**Acceptance Criteria**:
+- [ ] All 43 work units have status tracked
+- [ ] Tasks column in TRACEABILITY_MATRIX.md updated to ✅
+- [ ] Code coverage moves from 35% → 80%+
+- [ ] System Test coverage moves from 12% → 80%+
+- [ ] All Critical requirements complete
+
+---
+
 ## Summary
 
-**Total Active Tasks**: 4
-- High Priority: 2
+**Total Active Tasks**: 5
+- High Priority: 3
 - Medium Priority: 2
-- Not Started: 3
+- Not Started: 4
+  - Task #26: Claude-AISDLC Code Implementation (1.0 MVP) - HIGH ← NEW
   - Task #14: Implement Codex Command Layer and Installers (1.0 MVP) - HIGH
   - Task #13: Repurpose /aisdlc-release for Release Management (1.0 MVP) - MEDIUM
   - Task #12: Ecosystem E(t) Tracking (v1.5 - planned) - MEDIUM
