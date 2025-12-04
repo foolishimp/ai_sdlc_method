@@ -37,7 +37,7 @@ Display output in this format:
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Run /aisdlc-update to check for updates
+  Run /aisdlc-init --force to update framework files
   Run /aisdlc-help for full command reference
 ```
 

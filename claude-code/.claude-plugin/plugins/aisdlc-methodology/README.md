@@ -24,10 +24,12 @@ aisdlc-methodology/
 │   ├── aisdlc-checkpoint-tasks.md
 │   ├── aisdlc-commit-task.md
 │   ├── aisdlc-finish-task.md
+│   ├── aisdlc-help.md
+│   ├── aisdlc-init.md
 │   ├── aisdlc-refresh-context.md
 │   ├── aisdlc-release.md
 │   ├── aisdlc-status.md
-│   └── aisdlc-update.md
+│   └── aisdlc-version.md
 ├── agents/                    # Stage personas
 │   ├── aisdlc-requirements-agent.md
 │   ├── aisdlc-design-agent.md

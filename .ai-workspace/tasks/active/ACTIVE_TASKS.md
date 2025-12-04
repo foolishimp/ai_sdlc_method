@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-12-03 03:05*
+*Last Updated: 2025-12-04 17:30*
 
 ---
 
@@ -473,7 +473,7 @@ This task tracks all code development required to implement the claude-aisdlc de
 | **Tooling Infrastructure** |
 | WU-036 | REQ-TOOL-001 | Plugin Architecture | ADR-006 | Critical | ✅ Complete | `aisdlc-methodology/` |
 | WU-037 | REQ-TOOL-002 | Developer Workspace | ADR-002 | Critical | ✅ Complete | `.ai-workspace/` |
-| WU-038 | REQ-TOOL-003 | Workflow Commands | ADR-002 | Critical | ✅ Complete | 8 commands |
+| WU-038 | REQ-TOOL-003 | Workflow Commands | ADR-002 | Critical | ✅ Complete | 10 commands |
 | WU-039 | REQ-TOOL-004 | Configuration Hierarchy | ADR-006 | High | Partial | `config/config.yml` |
 | WU-040 | REQ-TOOL-005 | Release Management | AISDLC_IMPL_DESIGN.md | Medium | Partial | `commands/aisdlc-release.md` |
 | WU-041 | REQ-TOOL-006 | Framework Updates | AISDLC_IMPL_DESIGN.md | Medium | ✅ Complete | `commands/aisdlc-update.md` |
@@ -531,6 +531,18 @@ This task tracks all code development required to implement the claude-aisdlc de
   - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #27: Mandatory Artifacts + Init Command + Status/Help Improvements (2025-12-04 17:30)
+  - Added `mandatory_artifacts` section to stages_config.yml (v0.4.9)
+  - Added `artifact_traceability_chain` showing full INT→REQ→Design→Code→Test→UAT→Runtime flow
+  - Created `/aisdlc-version` command to display plugin version
+  - Created `/aisdlc-init` command for corporate/manual workspace setup
+  - Updated QUICKSTART.md with manual installation options (3 methods)
+  - Updated `/aisdlc-status` with intelligent next-step suggestions
+  - Updated `/aisdlc-help` with Getting Started flowchart
+  - Updated TRACEABILITY_MATRIX.md - Tasks stage now 100% complete
+  - Commands: 8 → 10 (added /aisdlc-version, /aisdlc-init)
+  - Implements: REQ-TRACE-001, REQ-TRACE-002, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-005
+  - Commits: 4257e03, 0ad77c8, c5266cc, fafe220, 46456a9
 - ✅ Task #25: Complete Design Coverage + Skills Consolidation (2025-12-03 03:00)
   - Rewrote AISDLC_IMPLEMENTATION_REQUIREMENTS.md (19 → 43 requirements)
   - Created 11 new design documents (100% design coverage)

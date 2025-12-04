@@ -1,17 +1,48 @@
-# /aisdlc-init - Initialize AI SDLC Workspace and Artifacts
+# /aisdlc-init - Initialize or Update AI SDLC Workspace
 
-Initialize the AI SDLC workspace structure and create placeholder files for all mandatory artifacts required for traceability.
+Initialize the AI SDLC workspace structure, create mandatory artifact placeholders, or update framework files to latest version.
 
 <!-- Implements: REQ-TOOL-002 (Developer Workspace), REQ-TRACE-001 (Full Lifecycle Traceability) -->
 
+## Usage
+
+```
+/aisdlc-init [--force] [--backup]
+```
+
+| Option | Description |
+|--------|-------------|
+| (none) | Create missing files only (safe, default) |
+| `--force` | Overwrite framework files (preserves active tasks) |
+| `--backup` | Create backup before making changes |
+
 ## Instructions
 
-This command bootstraps a new project with the AI SDLC methodology. It creates:
+This command bootstraps or updates a project with the AI SDLC methodology:
 1. The `.ai-workspace/` task management structure
 2. Placeholder files for all mandatory artifacts per stage
 3. Templates for requirements, design, and traceability
 
-**IMPORTANT**: This command is safe to re-run. It will NOT overwrite existing files - only create missing ones.
+### Behavior Modes
+
+**Default (no flags)**: Safe mode
+- Only creates files that don't exist
+- Never overwrites existing content
+- Safe to re-run anytime
+
+**With `--force`**: Update mode
+- Overwrites framework files (templates, config structure)
+- **Always preserves**:
+  - `.ai-workspace/tasks/active/ACTIVE_TASKS.md` (your work)
+  - `.ai-workspace/tasks/finished/*` (completed work)
+  - `docs/requirements/*.md` (your requirements)
+  - `docs/design/**/*.md` (your designs)
+  - `docs/TRACEABILITY_MATRIX.md` (your traceability)
+- Use when: updating to new framework version
+
+**With `--backup`**: Creates backup first
+- Backup location: `/tmp/aisdlc-backup-{project}-{timestamp}/`
+- Includes: `.ai-workspace/`, `docs/`, `CLAUDE.md`
 
 ### Step 1: Determine Project Name
 
@@ -474,8 +505,56 @@ Display a summary of what was created:
      Start with INTENT.md → Requirements → Design → Code
 ```
 
+### Step 6: Show Version Info
+
+Display the current plugin version at the end:
+
+```
+  Plugin Version: v0.4.9 (aisdlc-methodology)
+  Docs: https://github.com/foolishimp/ai_sdlc_method
+```
+
 ---
 
-**Usage**: Run `/aisdlc-init` to initialize the workspace.
+## Examples
 
-**Safe to re-run**: Existing files are preserved.
+```bash
+# First-time setup (creates missing files only)
+/aisdlc-init
+
+# Update framework files to latest (preserves your work)
+/aisdlc-init --force
+
+# Create backup before updating
+/aisdlc-init --force --backup
+```
+
+## What Gets Created vs Preserved
+
+| File/Directory | Default | --force |
+|----------------|---------|---------|
+| `.ai-workspace/templates/` | Create if missing | Overwrite |
+| `.ai-workspace/config/` | Create if missing | Overwrite |
+| `.ai-workspace/tasks/active/ACTIVE_TASKS.md` | Create if missing | **Preserve** |
+| `.ai-workspace/tasks/finished/*` | Create if missing | **Preserve** |
+| `docs/requirements/INTENT.md` | Create if missing | **Preserve** |
+| `docs/requirements/*_REQUIREMENTS.md` | Create if missing | **Preserve** |
+| `docs/design/**/DESIGN.md` | Create if missing | **Preserve** |
+| `docs/design/**/adrs/ADR-000-template.md` | Create if missing | Overwrite |
+| `docs/TRACEABILITY_MATRIX.md` | Create if missing | **Preserve** |
+
+## Rollback (if --backup was used)
+
+```bash
+# Find your backup
+ls -la /tmp/aisdlc-backup-*/
+
+# Restore from backup
+BACKUP="/tmp/aisdlc-backup-{project}-{timestamp}"
+cp -r "$BACKUP/.ai-workspace" .
+cp -r "$BACKUP/docs" .
+```
+
+---
+
+**Safe to re-run**: Without `--force`, existing files are never overwritten.
