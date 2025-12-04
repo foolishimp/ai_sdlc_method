@@ -1,6 +1,9 @@
+# /aisdlc-refresh-context - Reload AI SDLC Context
+
 Refresh Claude's context with AI SDLC methodology and workspace structure.
 
-<!-- Implements: REQ-F-CMD-001 (Slash commands for workflow) -->
+<!-- Implements: REQ-TOOL-003 (Workflow Commands) -->
+<!-- Implements: REQ-TOOL-002 (Developer Workspace) -->
 
 **Usage**: `/aisdlc-refresh-context`
 
@@ -21,7 +24,7 @@ Refresh Claude's context with AI SDLC methodology and workspace structure.
 2. **Check** workspace structure exists
    ```bash
    ls .ai-workspace/tasks/
-   # Should show: todo/, active/, finished/
+   # Should show: active/, finished/
    ```
 
 3. **Check** active tasks
@@ -39,20 +42,20 @@ Refresh Claude's context with AI SDLC methodology and workspace structure.
 ╚══════════════════════════════════════════════════════════════╝
 
 ✅ Workspace Structure Loaded
-   - Todos: .ai-workspace/tasks/todo/
    - Active: .ai-workspace/tasks/active/
    - Finished: .ai-workspace/tasks/finished/
 
 ✅ Workflow Loaded
-   1. /aisdlc-start-session (begin)
+   1. /aisdlc-status (check where you are)
    2. Use TodoWrite tool (track progress)
    3. /aisdlc-checkpoint-tasks (after work)
-   4. /aisdlc-commit-task (commit)
+   4. /aisdlc-commit-task (commit with REQ-* tags)
 
 ✅ Critical Rules Loaded
    - NEVER put finished tasks outside .ai-workspace/
    - ALWAYS use TodoWrite tool during work
    - ALWAYS checkpoint after completing work
+   - ALWAYS tag code with # Implements: REQ-*
    - ASK if unsure about anything
 
 ✅ 7-Stage SDLC Loaded
@@ -74,8 +77,8 @@ If `ACTIVE_TASKS.md` has tasks:
 - List them with status
 - Ask which task to work on
 
-If `ACTIVE_TASKS.md` is empty:
-- Suggest running `/aisdlc-start-session`
+If `ACTIVE_TASKS.md` is empty or no workspace:
+- Suggest running `/aisdlc-init` to initialize
 - Or ask what user wants to accomplish
 
 ---
@@ -94,5 +97,4 @@ If `ACTIVE_TASKS.md` is empty:
 - Shows current active tasks
 - Prepares Claude to work correctly
 
-**Note:** This is a "context refresh" command, not a "session start" command.
-Use `/aisdlc-start-session` to actually begin a work session with goals and planning.
+**Note:** This is a "context refresh" command. Use `/aisdlc-init` to create a new workspace.

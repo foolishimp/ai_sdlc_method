@@ -1,8 +1,11 @@
+# /aisdlc-finish-task - Complete Task and Archive
+
 Complete the specified task and create a finished task document.
 
-<!-- Implements: REQ-F-CMD-001 (Slash commands for workflow) -->
+<!-- Implements: REQ-TOOL-003 (Workflow Commands) -->
+<!-- Implements: REQ-TASK-001 (Work Breakdown) -->
 
-**Usage**: `/finish-task {task_id}`
+**Usage**: `/aisdlc-finish-task {task_id}`
 
 **Instructions**:
 
@@ -31,7 +34,7 @@ Complete the specified task and create a finished task document.
      - Traceability: Requirements coverage
      - Metrics: Lines, tests, coverage, complexity
 4. **Remove task from ACTIVE_TASKS.md**
-5. **Update TODO_LIST.md** if this task was promoted from a todo
+5. **Add to "Recently Completed" section** in ACTIVE_TASKS.md
 6. **Confirm**: "✅ Task #{id} finished. Document created at: {path}"
 
 **Important**: The finished task document is valuable documentation. Fill it out thoroughly.

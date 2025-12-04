@@ -1,8 +1,11 @@
+# /aisdlc-commit-task - Commit Task with REQ-* Traceability
+
 Commit a completed task using information from the finished task document.
 
-<!-- Implements: REQ-F-CMD-001 (Slash commands for workflow) -->
+<!-- Implements: REQ-TOOL-003 (Workflow Commands) -->
+<!-- Implements: REQ-CODE-003 (Code-to-Requirement Tagging) -->
 
-**Usage**: `/commit-task {task_id}`
+**Usage**: `/aisdlc-commit-task {task_id}`
 
 **Instructions**:
 
@@ -22,7 +25,7 @@ Commit a completed task using information from the finished task document.
 
    Implements: {REQ keys if present}
 
-   🤖 Generated with [Claude Code](https://claude.ai/code)
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
    Co-Authored-By: Claude <noreply@anthropic.com>
    ```
 4. **Show the commit message** to the user and ask for approval
