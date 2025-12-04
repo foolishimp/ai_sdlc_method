@@ -1,7 +1,7 @@
 # Requirements Traceability Matrix
 
 **Project**: ai_sdlc_method
-**Generated**: 2025-12-02
+**Generated**: 2025-12-04
 **Requirements Document**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md)
 
 ---
@@ -18,7 +18,7 @@
 | **1. Requirements** | 43/43 (100%) | ✅ Complete |
 | **2. Design** | 43/43 (100%) | ✅ Complete |
 | **3. Tasks** | 43/43 (100%) | ✅ Complete |
-| **4. Code** | 15/43 (35%) | 🚧 Partial |
+| **4. Code** | 17/43 (40%) | 🚧 Partial |
 | **5. System Test** | 5/43 (12%) | 🚧 Partial |
 | **6. UAT** | 0/43 (0%) | ⏳ Not Started |
 | **7. Runtime** | 0/43 (0%) | ⏳ Not Started |
@@ -27,8 +27,8 @@
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| Complete | 14 | 33% |
-| Partial | 19 | 44% |
+| Complete | 15 | 35% |
+| Partial | 18 | 42% |
 | Not Started | 10 | 23% |
 | **Total** | **43** | 100% |
 
@@ -90,7 +90,7 @@
 | REQ-TOOL-003 | Workflow Commands | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ Complete |
 | REQ-TOOL-004 | Configuration Hierarchy | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | 🚧 Partial |
 | REQ-TOOL-005 | Release Management | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | 🚧 Partial |
-| REQ-TOOL-006 | Framework Updates | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ Complete |
+| REQ-TOOL-006 | Framework Updates | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ Complete (merged into /aisdlc-init) |
 | REQ-TOOL-007 | Test Gap Analysis | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | 🚧 Partial |
 | REQ-TOOL-008 | Methodology Hooks | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | 🚧 Partial |
 
@@ -140,15 +140,25 @@ All 43 requirements are documented in [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](re
 | 🚧 Partial | 15 |
 | ❌ Not Started | 14 |
 
-### Stage 4: Code 🚧 15/43 (35%)
+### Stage 4: Code 🚧 17/43 (40%)
 
 **Implemented**:
 - 7 agents in plugin
-- 8 slash commands
+- 9 slash commands (/aisdlc-init, -status, -help, -version, -checkpoint-tasks, -finish-task, -commit-task, -release, -refresh-context)
 - Plugin architecture
 - Workspace structure
 - TDD workflow documentation
 - Key Principles documentation
+- Mandatory artifacts per stage (stages_config.yml)
+- Artifact traceability chain
+
+**Recent Changes (2025-12-04)**:
+- Added `/aisdlc-init` command (merged /aisdlc-update functionality)
+- Added `/aisdlc-version` command
+- Added `mandatory_artifacts` section to stages_config.yml
+- Added `artifact_traceability_chain` showing INT→REQ→Design→Code→Test→UAT→Runtime flow
+- Enhanced `/aisdlc-status` with intelligent next-step suggestions
+- Enhanced `/aisdlc-help` with Getting Started flowchart
 
 **Location**: `claude-code/.claude-plugin/plugins/aisdlc-methodology/`
 
@@ -237,12 +247,12 @@ The requirements document was rewritten from 19 tooling-focused requirements to 
 ## Next Steps
 
 1. **Complete Critical Requirements** - Focus on REQ-RUNTIME-003 (only Not Started critical)
-2. **Tasks Stage** - Create formal work breakdown for all 43 requirements
-3. **Add Test Coverage** - 38 requirements need tests (88% gap)
-4. **Automate Validation** - Implement REQ-TRACE-003
-5. **Consolidate Skills** - Reduce 42 skill docs to ~15-18 workflow-focused documents
+2. **Add Test Coverage** - 38 requirements need tests (88% gap)
+3. **Automate Validation** - Implement REQ-TRACE-003
+4. **UAT Stage** - Create business validation test cases
+5. **Runtime Stage** - Implement telemetry tagging
 
 ---
 
-**Last Updated**: 2025-12-03 (Tasks stage complete via Task #26)
+**Last Updated**: 2025-12-04 (Commands consolidated: 10→9, /aisdlc-update merged into /aisdlc-init)
 **Owned By**: Requirements Agent (Traceability Hub)
