@@ -2,8 +2,8 @@
 
 Create a new release of your project by bumping the build number, generating changelog, and creating a git tag.
 
-<!-- Implements: REQ-F-CMD-001 (Slash Commands for Workflow) -->
-<!-- Implements: REQ-F-CMD-003 (Release Management Command) -->
+<!-- Implements: REQ-TOOL-003 (Workflow Commands) -->
+<!-- Implements: REQ-TOOL-005 (Release Management) -->
 
 ## Command Purpose
 

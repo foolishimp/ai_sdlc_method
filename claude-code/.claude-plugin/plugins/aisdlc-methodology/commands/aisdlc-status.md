@@ -2,7 +2,7 @@
 
 Display current task status and suggest the next action based on project state.
 
-<!-- Implements: REQ-F-CMD-001 (Slash commands for workflow) -->
+<!-- Implements: REQ-TOOL-003 (Workflow Commands) -->
 
 ## Instructions
 
