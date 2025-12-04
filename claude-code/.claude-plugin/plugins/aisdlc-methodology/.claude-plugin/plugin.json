@@ -1,7 +1,7 @@
 {
   "name": "aisdlc-methodology",
   "version": "0.4.9",
-  "description": "Complete AI SDLC methodology with 7-stage lifecycle, 11 consolidated skills, 7 agents, 9 commands, and 2 hooks. Single consolidated plugin for Claude Code with full traceability and homeostatic control.",
+  "description": "Complete AI SDLC methodology with 7-stage lifecycle, 11 consolidated skills, 7 agents, 10 commands, and 2 hooks. Single consolidated plugin for Claude Code with full traceability and homeostatic control.",
   "author": {
     "name": "foolishimp"
   },
@@ -28,6 +28,7 @@
     "./commands/aisdlc-commit-task.md",
     "./commands/aisdlc-finish-task.md",
     "./commands/aisdlc-help.md",
+    "./commands/aisdlc-init.md",
     "./commands/aisdlc-refresh-context.md",
     "./commands/aisdlc-release.md",
     "./commands/aisdlc-status.md",

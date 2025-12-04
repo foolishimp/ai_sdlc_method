@@ -34,7 +34,8 @@ Then display the full AI SDLC help guide:
 
 ## Commands
 
-  ### Status & Navigation
+  ### Setup & Status
+  /aisdlc-init             Initialize workspace and mandatory artifact placeholders
   /aisdlc-status           Show current project status and active tasks
   /aisdlc-help             This help guide
   /aisdlc-version          Show plugin version information
