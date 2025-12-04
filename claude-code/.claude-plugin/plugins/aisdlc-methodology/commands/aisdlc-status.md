@@ -1,41 +1,85 @@
-Display current task status from `.ai-workspace/tasks/`.
+# /aisdlc-status - Show Project Status and Next Steps
+
+Display current task status and suggest the next action based on project state.
 
 <!-- Implements: REQ-F-CMD-001 (Slash commands for workflow) -->
 
 ## Instructions
 
-Show a quick snapshot of the task queue:
+Show a snapshot of project status and intelligently suggest next steps.
 
-1. **Read** `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
-   - Count active tasks (look for "## Task #" headers, exclude examples)
-   - List active task titles with priority and status
+### Step 1: Check Workspace Exists
 
-2. **List** recently finished tasks from `.ai-workspace/tasks/finished/`
-   - Show last 5 finished task files (most recent first)
+First, check if `.ai-workspace/` exists:
+- If NOT: suggest running `/aisdlc-init`
 
-3. **Display** in this simple format:
+### Step 2: Check Mandatory Artifacts
+
+Check for these mandatory artifacts:
+- `docs/requirements/INTENT.md`
+- `docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md`
+- `docs/design/*/AISDLC_IMPLEMENTATION_DESIGN.md`
+- `docs/TRACEABILITY_MATRIX.md`
+
+### Step 3: Read Task Status
+
+Read `.ai-workspace/tasks/active/ACTIVE_TASKS.md`:
+- Count tasks by status (in_progress, pending, blocked, completed)
+- List active task titles with REQ-* tags
+
+List recently finished tasks from `.ai-workspace/tasks/finished/` (last 5).
+
+### Step 4: Determine Next Step
+
+Based on state, suggest the most logical next action:
+
+| State | Suggested Next Step |
+|-------|---------------------|
+| No workspace | `/aisdlc-init` - Initialize workspace and artifacts |
+| No INTENT.md content | Edit `docs/requirements/INTENT.md` with your project intent |
+| INTENT exists, no REQ-* | "Help me create requirements from INTENT.md" (Requirements Agent) |
+| REQ-* exists, no design | "Design a solution for REQ-F-XXX-001" (Design Agent) |
+| Design exists, no tasks | "Break down the design into tasks" (Tasks Agent) |
+| Tasks exist, none in progress | Pick a task: "Work on Task #X" |
+| Task in progress | Continue current task, or `/aisdlc-checkpoint-tasks` to save |
+| All tasks complete | `/aisdlc-release` to create a release |
+
+### Step 5: Display Output
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║                    AI SDLC Task Status                       ║
+║                    AI SDLC Project Status                    ║
 ╚══════════════════════════════════════════════════════════════╝
 
-📋 Active Tasks: {count}
-   {list task titles with priority/status or "(No tasks in progress)"}
+📁 Workspace: {✅ Initialized | ❌ Not found - run /aisdlc-init}
 
-✅ Recently Finished: {count}
-   {list last 5 finished tasks or "(No finished tasks yet)"}
+📄 Artifacts:
+   {✅ | ❌} INTENT.md           {status: Empty | Has content}
+   {✅ | ❌} Requirements        {count} REQ-* keys defined
+   {✅ | ❌} Design              {count} components defined
+   {✅ | ❌} Traceability Matrix {coverage %}
+
+📋 Tasks:
+   In Progress: {count}
+   Pending:     {count}
+   Blocked:     {count}
+   Completed:   {count}
+
+   Active Tasks:
+   {list task titles with REQ-* tags, or "(No active tasks)"}
+
+✅ Recently Finished:
+   {list last 5 finished tasks or "(None yet)"}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💡 Next: {suggestion based on state}
-```
+🎯 NEXT STEP: {intelligent suggestion based on state}
 
-**Suggestions**:
-- If no active tasks: "Use /start-session to begin new work"
-- If active tasks exist: "Continue working on active tasks"
-- If tasks are blocked: "Review dependencies and unblock tasks"
+   {explanation of why this is the next step}
+
+   Example: "{specific command or prompt to use}"
+```
 
 ---
 
-**Note**: This command is read-only and just shows task queue status.
+**Note**: This command is read-only. Run the suggested action to proceed.

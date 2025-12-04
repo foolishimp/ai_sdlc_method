@@ -145,10 +145,39 @@ Then display the full AI SDLC help guide:
   6. No Legacy Baggage       - "Clean slate, no debt"
   7. Perfectionist Excellence - "Best of breed only"
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## Getting Started (Step by Step)
 
-💡 Tip: Just describe what you want to do in natural language.
-   Claude will invoke the appropriate agent and guide you.
+  New to AI SDLC? Follow this path:
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │  Step 1: /aisdlc-init                                       │
+  │          Initialize workspace and artifact templates        │
+  │                          ↓                                  │
+  │  Step 2: Edit docs/requirements/INTENT.md                   │
+  │          Describe what you want to build                    │
+  │                          ↓                                  │
+  │  Step 3: "Help me create requirements from INTENT.md"       │
+  │          → Generates REQ-F-*, REQ-NFR-*, etc.               │
+  │                          ↓                                  │
+  │  Step 4: "Design a solution for REQ-F-XXX-001"              │
+  │          → Creates components, ADRs, traceability           │
+  │                          ↓                                  │
+  │  Step 5: "Break down the design into tasks"                 │
+  │          → Creates work items in ACTIVE_TASKS.md            │
+  │                          ↓                                  │
+  │  Step 6: "Work on Task #1 using TDD"                        │
+  │          → RED → GREEN → REFACTOR → COMMIT                  │
+  │                          ↓                                  │
+  │  Step 7: /aisdlc-checkpoint-tasks                           │
+  │          → Save progress                                    │
+  │                          ↓                                  │
+  │  Step 8: /aisdlc-release                                    │
+  │          → Create release with changelog                    │
+  └─────────────────────────────────────────────────────────────┘
+
+  💡 Not sure where you are? Run /aisdlc-status for next step.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📚 Full docs: https://github.com/foolishimp/ai_sdlc_method
 ```
