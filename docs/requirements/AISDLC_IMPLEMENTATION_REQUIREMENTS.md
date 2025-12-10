@@ -17,6 +17,34 @@ This document defines **platform-agnostic implementation requirements** for buil
 
 ---
 
+## Requirement Versioning Convention
+
+Requirements use semantic versioning suffix: `REQ-{TYPE}-{DOMAIN}-{SEQ}.{MAJOR}.{MINOR}.{PATCH}`
+
+**Format**: `REQ-CODE-001.0.1.0` = Requirement `REQ-CODE-001` at version `0.1.0`
+
+**Version Semantics**:
+- **PATCH** (0.1.0 → 0.1.1): Clarification, typo fix - no behavior change
+- **MINOR** (0.1.0 → 0.2.0): Acceptance criteria added/modified
+- **MAJOR** (0.1.0 → 1.0.0): Breaking change to requirement definition
+
+**Usage Rules**:
+1. **No version = current** - When referencing without version suffix, assume latest version
+2. **Baseline**: All existing requirements start at `.0.1.0`
+3. **Fork via ADR**: When design diverges, create ADR linked to original requirement, then new version
+4. **Git tag alignment**: Version suffix aligns with release tags (e.g., `v0.1.0` ↔ `.0.1.0`)
+
+**Example Evolution**:
+```
+REQ-CODE-001.0.1.0  →  Initial: "TDD workflow required"
+REQ-CODE-001.0.2.0  →  Added: "Coverage gates in CI/CD"
+REQ-CODE-001.1.0.0  →  Breaking: "Changed from 80% to 90% coverage minimum"
+```
+
+**Traceability**: Version-aware references enable stringent tracking when required (regulated environments, audits).
+
+---
+
 ## Document Structure
 
 1. [Intent Management](#1-intent-management) - Capture, classify, and store intents
@@ -44,7 +72,7 @@ Intent management is the **entry point** to the AI SDLC. Without explicit intent
 
 ---
 
-### REQ-INTENT-001: Intent Capture
+### REQ-INTENT-001.0.1.0: Intent Capture
 
 **Priority**: Critical
 **Type**: Functional
@@ -63,7 +91,7 @@ Intent management is the **entry point** to the AI SDLC. Without explicit intent
 
 ---
 
-### REQ-INTENT-002: Intent Classification
+### REQ-INTENT-002.0.1.0: Intent Classification
 
 **Priority**: High
 **Type**: Functional
@@ -81,7 +109,7 @@ Intent management is the **entry point** to the AI SDLC. Without explicit intent
 
 ---
 
-### REQ-INTENT-003: Eco-Intent Generation
+### REQ-INTENT-003.0.1.0: Eco-Intent Generation
 
 **Priority**: Medium
 **Type**: Functional
@@ -110,7 +138,7 @@ The 7-stage workflow is the core execution engine. Each stage has defined inputs
 
 ---
 
-### REQ-STAGE-001: Stage Definitions
+### REQ-STAGE-001.0.1.0: Stage Definitions
 
 **Priority**: Critical
 **Type**: Functional
@@ -129,7 +157,7 @@ The 7-stage workflow is the core execution engine. Each stage has defined inputs
 
 ---
 
-### REQ-STAGE-002: Stage Transitions
+### REQ-STAGE-002.0.1.0: Stage Transitions
 
 **Priority**: High
 **Type**: Functional
@@ -148,7 +176,7 @@ The 7-stage workflow is the core execution engine. Each stage has defined inputs
 
 ---
 
-### REQ-STAGE-003: Signal Transformation
+### REQ-STAGE-003.0.1.0: Signal Transformation
 
 **Priority**: High
 **Type**: Functional
@@ -170,7 +198,7 @@ The 7-stage workflow is the core execution engine. Each stage has defined inputs
 
 ---
 
-### REQ-STAGE-004: Bidirectional Feedback
+### REQ-STAGE-004.0.1.0: Bidirectional Feedback
 
 **Priority**: Critical
 **Type**: Functional
@@ -181,7 +209,7 @@ The 7-stage workflow is the core execution engine. Each stage has defined inputs
 - Any stage can raise: gaps, ambiguities, clarifications, errors
 - Feedback triggers upstream stage revision
 - Feedback is tagged with source stage and target stage
-- Feedback results in versioned updates (e.g., REQ-F-AUTH-001 v2)
+- Feedback results in versioned updates (e.g., REQ-F-AUTH-001.0.1.0 → REQ-F-AUTH-001.0.2.0)
 - Maximum 3 feedback iterations suggested per item
 
 **Rationale**: Requirements cannot be 100% complete upfront—they refine based on downstream learning. (Methodology REQ-NFR-REFINE-001)
@@ -200,26 +228,33 @@ The Requirements Stage transforms raw intent into structured, traceable requirem
 
 ---
 
-### REQ-REQ-001: Requirement Key Generation
+### REQ-REQ-001.0.2.0: Requirement Key Generation
 
 **Priority**: Critical
 **Type**: Functional
 
-**Description**: The system shall generate unique, immutable requirement keys.
+**Description**: The system shall generate unique, immutable requirement keys with optional version tracking.
 
 **Acceptance Criteria**:
-- Keys follow format: REQ-{TYPE}-{DOMAIN}-{SEQ}
+- Keys follow format: `REQ-{TYPE}-{DOMAIN}-{SEQ}[.MAJOR.MINOR.PATCH]`
 - Types: F (functional), NFR (non-functional), DATA (data quality), BR (business rule)
-- Keys are immutable once assigned
+- Keys are immutable once assigned (base key never changes)
 - Keys propagate through all downstream stages
+- Version suffix optional: no version = current requirement
+- Version suffix aligns with release tags (e.g., `.0.1.0` ↔ `v0.1.0`)
+- Version bumps: PATCH (clarification), MINOR (criteria change), MAJOR (breaking change)
 
-**Rationale**: Unique keys enable traceability from intent to runtime. Immutability ensures audit integrity. (Methodology 11.0)
+**Rationale**: Unique keys enable traceability from intent to runtime. Immutability ensures audit integrity. Version suffix enables stringent tracking for regulated environments. (Methodology 11.0)
 
 **Traces To**: Methodology Section 11.0 (End-to-End Requirement Traceability)
 
+**Change History**:
+- `.0.1.0`: Initial - base key format
+- `.0.2.0`: Added version suffix convention for release alignment
+
 ---
 
-### REQ-REQ-002: Requirement Types
+### REQ-REQ-002.0.1.0: Requirement Types
 
 **Priority**: High
 **Type**: Functional
@@ -238,7 +273,7 @@ The Requirements Stage transforms raw intent into structured, traceable requirem
 
 ---
 
-### REQ-REQ-003: Requirement Refinement
+### REQ-REQ-003.0.1.0: Requirement Refinement
 
 **Priority**: High
 **Type**: Functional
@@ -257,7 +292,7 @@ The Requirements Stage transforms raw intent into structured, traceable requirem
 
 ---
 
-### REQ-REQ-004: Homeostasis Model Definition
+### REQ-REQ-004.0.1.0: Homeostasis Model Definition
 
 **Priority**: High
 **Type**: Functional
@@ -286,7 +321,7 @@ Design bridges the gap between business intent and technical implementation.
 
 ---
 
-### REQ-DES-001: Component Design
+### REQ-DES-001.0.1.0: Component Design
 
 **Priority**: High
 **Type**: Functional
@@ -305,7 +340,7 @@ Design bridges the gap between business intent and technical implementation.
 
 ---
 
-### REQ-DES-002: Architecture Decision Records
+### REQ-DES-002.0.1.0: Architecture Decision Records
 
 **Priority**: High
 **Type**: Functional
@@ -324,7 +359,7 @@ Design bridges the gap between business intent and technical implementation.
 
 ---
 
-### REQ-DES-003: Design-to-Requirement Traceability
+### REQ-DES-003.0.1.0: Design-to-Requirement Traceability
 
 **Priority**: High
 **Type**: Functional
@@ -353,7 +388,7 @@ Tasks enable parallel work, estimation, and progress tracking.
 
 ---
 
-### REQ-TASK-001: Work Breakdown
+### REQ-TASK-001.0.1.0: Work Breakdown
 
 **Priority**: High
 **Type**: Functional
@@ -372,7 +407,7 @@ Tasks enable parallel work, estimation, and progress tracking.
 
 ---
 
-### REQ-TASK-002: Dependency Tracking
+### REQ-TASK-002.0.1.0: Dependency Tracking
 
 **Priority**: Medium
 **Type**: Functional
@@ -391,7 +426,7 @@ Tasks enable parallel work, estimation, and progress tracking.
 
 ---
 
-### REQ-TASK-003: Task-to-Requirement Traceability
+### REQ-TASK-003.0.1.0: Task-to-Requirement Traceability
 
 **Priority**: High
 **Type**: Functional
@@ -419,7 +454,7 @@ Code stage transforms tasks into working software using disciplined engineering 
 
 ---
 
-### REQ-CODE-001: TDD Workflow
+### REQ-CODE-001.0.1.0: TDD Workflow
 
 **Priority**: Critical
 **Type**: Functional
@@ -439,7 +474,7 @@ Code stage transforms tasks into working software using disciplined engineering 
 
 ---
 
-### REQ-CODE-002: Key Principles Enforcement
+### REQ-CODE-002.0.1.0: Key Principles Enforcement
 
 **Priority**: High
 **Type**: Functional
@@ -462,7 +497,7 @@ Code stage transforms tasks into working software using disciplined engineering 
 
 ---
 
-### REQ-CODE-003: Code-to-Requirement Tagging
+### REQ-CODE-003.0.1.0: Code-to-Requirement Tagging
 
 **Priority**: Critical
 **Type**: Functional
@@ -481,7 +516,7 @@ Code stage transforms tasks into working software using disciplined engineering 
 
 ---
 
-### REQ-CODE-004: Test Coverage
+### REQ-CODE-004.0.1.0: Test Coverage
 
 **Priority**: High
 **Type**: Non-Functional
@@ -510,7 +545,7 @@ System Test validates that components work together correctly.
 
 ---
 
-### REQ-SYSTEST-001: BDD Scenario Creation
+### REQ-SYSTEST-001.0.1.0: BDD Scenario Creation
 
 **Priority**: High
 **Type**: Functional
@@ -529,7 +564,7 @@ System Test validates that components work together correctly.
 
 ---
 
-### REQ-SYSTEST-002: Integration Test Execution
+### REQ-SYSTEST-002.0.1.0: Integration Test Execution
 
 **Priority**: High
 **Type**: Functional
@@ -548,7 +583,7 @@ System Test validates that components work together correctly.
 
 ---
 
-### REQ-SYSTEST-003: Test-to-Requirement Traceability
+### REQ-SYSTEST-003.0.1.0: Test-to-Requirement Traceability
 
 **Priority**: High
 **Type**: Functional
@@ -576,7 +611,7 @@ UAT ensures business value is delivered.
 
 ---
 
-### REQ-UAT-001: Business Validation Tests
+### REQ-UAT-001.0.1.0: Business Validation Tests
 
 **Priority**: High
 **Type**: Functional
@@ -595,7 +630,7 @@ UAT ensures business value is delivered.
 
 ---
 
-### REQ-UAT-002: Sign-off Workflow
+### REQ-UAT-002.0.1.0: Sign-off Workflow
 
 **Priority**: High
 **Type**: Functional
@@ -624,7 +659,7 @@ Runtime Feedback makes the system self-regulating.
 
 ---
 
-### REQ-RUNTIME-001: Telemetry Tagging
+### REQ-RUNTIME-001.0.1.0: Telemetry Tagging
 
 **Priority**: High
 **Type**: Functional
@@ -643,7 +678,7 @@ Runtime Feedback makes the system self-regulating.
 
 ---
 
-### REQ-RUNTIME-002: Deviation Detection
+### REQ-RUNTIME-002.0.1.0: Deviation Detection
 
 **Priority**: High
 **Type**: Functional
@@ -662,7 +697,7 @@ Runtime Feedback makes the system self-regulating.
 
 ---
 
-### REQ-RUNTIME-003: Feedback Loop Closure
+### REQ-RUNTIME-003.0.1.0: Feedback Loop Closure
 
 **Priority**: Critical
 **Type**: Functional
@@ -691,7 +726,7 @@ Traceability is the backbone of the methodology.
 
 ---
 
-### REQ-TRACE-001: Full Lifecycle Traceability
+### REQ-TRACE-001.0.1.0: Full Lifecycle Traceability
 
 **Priority**: Critical
 **Type**: Non-Functional
@@ -710,7 +745,7 @@ Traceability is the backbone of the methodology.
 
 ---
 
-### REQ-TRACE-002: Requirement Key Propagation
+### REQ-TRACE-002.0.1.0: Requirement Key Propagation
 
 **Priority**: Critical
 **Type**: Non-Functional
@@ -729,7 +764,7 @@ Traceability is the backbone of the methodology.
 
 ---
 
-### REQ-TRACE-003: Traceability Validation
+### REQ-TRACE-003.0.1.0: Traceability Validation
 
 **Priority**: High
 **Type**: Functional
@@ -758,7 +793,7 @@ AI augments every stage while humans remain accountable.
 
 ---
 
-### REQ-AI-001: AI Assistance Per Stage
+### REQ-AI-001.0.1.0: AI Assistance Per Stage
 
 **Priority**: High
 **Type**: Functional
@@ -780,7 +815,7 @@ AI augments every stage while humans remain accountable.
 
 ---
 
-### REQ-AI-002: Human Accountability
+### REQ-AI-002.0.1.0: Human Accountability
 
 **Priority**: Critical
 **Type**: Non-Functional
@@ -799,7 +834,7 @@ AI augments every stage while humans remain accountable.
 
 ---
 
-### REQ-AI-003: Stage-Specific Agent Personas
+### REQ-AI-003.0.1.0: Stage-Specific Agent Personas
 
 **Priority**: High
 **Type**: Functional
@@ -826,7 +861,7 @@ Tooling infrastructure enables the methodology to be delivered via AI coding ass
 
 ---
 
-### REQ-TOOL-001: Plugin Architecture
+### REQ-TOOL-001.0.1.0: Plugin Architecture
 
 **Priority**: High
 **Type**: Functional
@@ -845,7 +880,7 @@ Tooling infrastructure enables the methodology to be delivered via AI coding ass
 
 ---
 
-### REQ-TOOL-002: Developer Workspace
+### REQ-TOOL-002.0.1.0: Developer Workspace
 
 **Priority**: High
 **Type**: Functional
@@ -864,7 +899,7 @@ Tooling infrastructure enables the methodology to be delivered via AI coding ass
 
 ---
 
-### REQ-TOOL-003: Workflow Commands
+### REQ-TOOL-003.0.1.0: Workflow Commands
 
 **Priority**: Medium
 **Type**: Functional
@@ -883,7 +918,7 @@ Tooling infrastructure enables the methodology to be delivered via AI coding ass
 
 ---
 
-### REQ-TOOL-004: Configuration Hierarchy
+### REQ-TOOL-004.0.1.0: Configuration Hierarchy
 
 **Priority**: Medium
 **Type**: Functional
@@ -902,7 +937,7 @@ Tooling infrastructure enables the methodology to be delivered via AI coding ass
 
 ---
 
-### REQ-TOOL-005: Release Management
+### REQ-TOOL-005.0.1.0: Release Management
 
 **Priority**: High
 **Type**: Functional
@@ -922,7 +957,7 @@ Tooling infrastructure enables the methodology to be delivered via AI coding ass
 
 ---
 
-### REQ-TOOL-006: Framework Updates
+### REQ-TOOL-006.0.1.0: Framework Updates
 
 **Priority**: Medium
 **Type**: Functional
@@ -942,7 +977,7 @@ Tooling infrastructure enables the methodology to be delivered via AI coding ass
 
 ---
 
-### REQ-TOOL-007: Test Gap Analysis
+### REQ-TOOL-007.0.1.0: Test Gap Analysis
 
 **Priority**: High
 **Type**: Functional
@@ -962,7 +997,7 @@ Tooling infrastructure enables the methodology to be delivered via AI coding ass
 
 ---
 
-### REQ-TOOL-008: Methodology Hooks
+### REQ-TOOL-008.0.1.0: Methodology Hooks
 
 **Priority**: Medium
 **Type**: Functional

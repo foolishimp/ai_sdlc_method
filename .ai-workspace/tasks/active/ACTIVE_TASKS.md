@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-12-04 17:30*
+*Last Updated: 2025-12-10 12:00*
 
 ---
 
@@ -531,6 +531,15 @@ This task tracks all code development required to implement the claude-aisdlc de
   - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #28: Implement Requirement Versioning Convention (2025-12-10 12:00)
+  - Added version suffix to all 43 requirements (`.0.1.0` baseline)
+  - Added versioning convention documentation to requirements file
+  - Format: `REQ-{TYPE}-{DOMAIN}-{SEQ}.{MAJOR}.{MINOR}.{PATCH}`
+  - Made REQ-REQ-001 self-reflexive (bumped to `.0.2.0`)
+  - Version aligns with git tags (`.0.1.0` ↔ `v0.1.0`)
+  - "By exception" approach - no version = current requirement
+  - Implements: REQ-REQ-001.0.2.0
+  - See: `.ai-workspace/tasks/finished/20251210_1200_requirement_versioning_convention.md`
 - ✅ Task #27: Mandatory Artifacts + Init Command + Status/Help Improvements (2025-12-04 17:30)
   - Added `mandatory_artifacts` section to stages_config.yml (v0.4.9)
   - Added `artifact_traceability_chain` showing full INT→REQ→Design→Code→Test→UAT→Runtime flow
