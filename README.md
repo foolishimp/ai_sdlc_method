@@ -4,8 +4,6 @@
 
 **Mantra**: **"Excellence or nothing"** 🔥
 
-**Version**: 0.4.8
-
 Please credit the work done here if you find it useful!
 Would love to hear your feedback, improvements, and contributions.
 
