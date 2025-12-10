@@ -8,8 +8,16 @@ Display the current version of the AI SDLC methodology plugin and its components
 
 Read and display version information from the following files:
 
-1. **Plugin Version**: `claude-code/.claude-plugin/plugins/aisdlc-methodology/.claude-plugin/plugin.json` (field: `version`)
-2. **Stages Config Version**: `claude-code/.claude-plugin/plugins/aisdlc-methodology/config/stages_config.yml` (field: `ai_sdlc_stages.version`)
+1. **Plugin Version**: Find `plugin.json` by searching:
+   - `.claude-plugin/plugin.json` (relative to command file)
+   - `../plugin.json` (if commands are in subdirectory)
+   - Search for `aisdlc-methodology/.claude-plugin/plugin.json` in project
+   Extract the `version` field.
+
+2. **Stages Config Version**: Find `stages_config.yml` by searching:
+   - `config/stages_config.yml` (relative to plugin root)
+   - Search for `aisdlc-methodology/config/stages_config.yml` in project
+   Extract `ai_sdlc_stages.version` field.
 3. **Git Tag** (if available): Run `git describe --tags --abbrev=0` to get latest tag
 
 Display output in this format:
