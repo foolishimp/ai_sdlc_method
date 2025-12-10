@@ -35,6 +35,7 @@ What it does:
 import sys
 import json
 import argparse
+import shutil
 from pathlib import Path
 from datetime import datetime
 
@@ -408,6 +409,29 @@ def print_warning(msg):
     print(f"  [WARN] {msg}")
 
 
+def clear_plugin_cache(dry_run: bool) -> bool:
+    """Clear cached plugin to ensure latest version is fetched."""
+    # Standard Claude Code cache location
+    cache_dir = Path.home() / ".claude" / "plugins" / "cache" / "aisdlc" / PLUGIN_NAME
+
+    if not cache_dir.exists():
+        print_info("No cached plugin found (fresh install)")
+        return True
+
+    if dry_run:
+        print_info(f"Would remove: {cache_dir}")
+        return True
+
+    try:
+        shutil.rmtree(cache_dir)
+        print_success(f"Cleared plugin cache: {cache_dir}")
+        return True
+    except Exception as e:
+        print_warning(f"Could not clear cache: {e}")
+        print_info("You may need to manually run: rm -rf ~/.claude/plugins/cache/aisdlc/aisdlc-methodology/")
+        return False
+
+
 def setup_settings(target: Path, dry_run: bool) -> bool:
     """Create or update .claude/settings.json with plugin configuration."""
     settings_file = target / ".claude" / "settings.json"
@@ -529,13 +553,19 @@ Examples:
     # Run setup
     success = True
 
-    # 1. Settings (marketplace + plugin)
+    # 1. Clear plugin cache (ensures latest version)
+    print("--- Plugin Cache ---")
+    if not clear_plugin_cache(args.dry_run):
+        success = False
+    print()
+
+    # 2. Settings (marketplace + plugin)
     print("--- Plugin Configuration ---")
     if not setup_settings(target, args.dry_run):
         success = False
     print()
 
-    # 2. Workspace (default: yes)
+    # 3. Workspace (default: yes)
     if not args.no_workspace:
         print("--- Workspace Structure ---")
         if not setup_workspace(target, args.dry_run):
