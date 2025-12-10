@@ -1,6 +1,6 @@
 # /aisdlc-release - Commit, Tag, and Push Release
 
-Create a new release: commit any changes, bump version, create tag, push everything.
+Create a new release: commit any changes, bump version in all files, create tag, push everything.
 
 <!-- Implements: REQ-TOOL-003 (Workflow Commands) -->
 <!-- Implements: REQ-TOOL-005 (Release Management) -->
@@ -10,9 +10,10 @@ Create a new release: commit any changes, bump version, create tag, push everyth
 ## What It Does
 
 1. **Commit** any uncommitted changes (like `/aisdlc-commit`)
-2. **Bump** version (patch: x.y.z → x.y.z+1)
-3. **Tag** with changelog
-4. **Push** commits and tag
+2. **Bump** version in plugin.json and stages_config.yml
+3. **Commit** version bump
+4. **Tag** with changelog
+5. **Push** commits and tag
 
 ## Instructions
 
@@ -29,26 +30,44 @@ git status --short
 - Commit: `git add -A && git commit -m "{message}"`
 
 **If no changes**:
-- Continue to tagging (release existing commits)
+- Continue to version bump
 
 ### Step 2: Calculate Next Version
 
 ```bash
-# Get current version
+# Get current version from git tag
 CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 
 # Bump patch version
-# v0.5.1 → v0.5.2
+# v0.5.2 → v0.5.3
 ```
 
-### Step 3: Generate Changelog
+### Step 3: Bump Version in Files
+
+**IMPORTANT**: Update version in these files before tagging:
+
+1. **plugin.json**: Update `"version": "X.Y.Z"` field
+   - Search for: `aisdlc-methodology/.claude-plugin/plugin.json`
+
+2. **stages_config.yml**: Update both version references
+   - Search for: `aisdlc-methodology/config/stages_config.yml`
+   - Update comment: `# Version: X.Y.Z`
+   - Update field: `version: "X.Y.Z"`
+
+```bash
+# Commit version bump
+git add -A
+git commit -m "chore: Bump version to vX.Y.Z"
+```
+
+### Step 4: Generate Changelog
 
 ```bash
 # Get commits since last tag
 git log $CURRENT_VERSION..HEAD --pretty=format:"- %s" --no-merges
 ```
 
-### Step 4: Create Tag and Push
+### Step 5: Create Tag and Push
 
 ```bash
 # Create annotated tag
@@ -64,7 +83,7 @@ git push origin main
 git push origin $NEW_VERSION
 ```
 
-### Step 5: Report
+### Step 6: Report
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -79,6 +98,10 @@ git push origin $NEW_VERSION
    - commit 2
    - commit 3
 
+✅ Files Updated:
+   - plugin.json
+   - stages_config.yml
+
 ✅ Pushed: commits + tag
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -92,35 +115,31 @@ Optional: Create GitHub release
 ```
 > /aisdlc-release
 
-📦 Current Version: v0.5.1
+📦 Current Version: v0.5.2
 
 📝 Uncommitted changes:
    M  commands/aisdlc-help.md
-   M  plugin.json
 
 Commit message:
 ─────────────────────────
-refactor: Remove finish-task command
+fix: Update help references
 
 🤖 Generated with Claude Code
 ─────────────────────────
 
 Proceed with release? [Y/n] y
 
-✅ Committed: 24f790f
-🆕 New Version: v0.5.2
-🏷️  Tagged: v0.5.2
+✅ Committed: a1b2c3d
+📝 Bumping version: v0.5.2 → v0.5.3
+   Updated: plugin.json
+   Updated: stages_config.yml
+✅ Committed: d4e5f6g (chore: Bump version to v0.5.3)
+🏷️  Tagged: v0.5.3
 📤 Pushed: commits + tag
 
 ╔══════════════════════════════════════════════════════════════╗
 ║                    Release Complete                          ║
 ╚══════════════════════════════════════════════════════════════╝
-```
-
-```
-> /aisdlc-release "big refactor done"
-
-(uses provided message, same flow)
 ```
 
 ## Version Bump
@@ -135,4 +154,4 @@ For major/minor bumps, specify manually:
 
 ---
 
-**Note**: This is `/aisdlc-commit` + version bump + tag + push. Use for releases.
+**Note**: This bumps version in plugin.json and stages_config.yml, then tags. All version sources stay in sync.
