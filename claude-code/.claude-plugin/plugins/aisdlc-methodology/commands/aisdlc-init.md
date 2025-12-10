@@ -507,10 +507,10 @@ Display a summary of what was created:
 
 ### Step 6: Show Version Info
 
-Display the current plugin version at the end:
+Display the current plugin version at the end (read from plugin.json):
 
 ```
-  Plugin Version: v0.4.9 (aisdlc-methodology)
+  Plugin Version: {version} (aisdlc-methodology)
   Docs: https://github.com/foolishimp/ai_sdlc_method
 ```
 

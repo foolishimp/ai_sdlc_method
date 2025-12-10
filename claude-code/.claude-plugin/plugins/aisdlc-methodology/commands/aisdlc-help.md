@@ -82,7 +82,7 @@ Then display the full AI SDLC help guide:
   1. /aisdlc-status → see active tasks
   2. Pick a task: "Continue working on Task #X"
   3. /aisdlc-checkpoint-tasks → save progress
-  4. /aisdlc-commit-task → commit with traceability
+  4. /aisdlc-commit → commit and push
 
   ### Creating Requirements
   "Help me create requirements for user authentication"
@@ -97,7 +97,7 @@ Then display the full AI SDLC help guide:
   → RED: Write failing test
   → GREEN: Implement to pass
   → REFACTOR: Improve quality
-  → COMMIT: /aisdlc-commit-task
+  → COMMIT: /aisdlc-commit
 
 ## Requirement Traceability
 

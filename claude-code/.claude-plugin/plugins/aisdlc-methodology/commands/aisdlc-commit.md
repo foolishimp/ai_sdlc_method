@@ -85,4 +85,4 @@ WIP: auth feature
 
 ---
 
-**Note**: This replaces `/aisdlc-commit-task`. Use this for all commits.
+**Note**: Use `/aisdlc-release` when you want to commit + tag a new version.
