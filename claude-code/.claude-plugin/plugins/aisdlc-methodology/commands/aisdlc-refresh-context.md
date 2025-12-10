@@ -49,7 +49,7 @@ Refresh Claude's context with AI SDLC methodology and workspace structure.
    1. /aisdlc-status (check where you are)
    2. Use TodoWrite tool (track progress)
    3. /aisdlc-checkpoint-tasks (after work)
-   4. /aisdlc-commit-task (commit with REQ-* tags)
+   4. /aisdlc-commit (commit and push)
 
 ✅ Critical Rules Loaded
    - NEVER put finished tasks outside .ai-workspace/

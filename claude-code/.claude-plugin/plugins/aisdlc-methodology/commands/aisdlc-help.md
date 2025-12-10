@@ -46,7 +46,6 @@ Then display the full AI SDLC help guide:
   /aisdlc-version          Show plugin version information
 
   ### Task Management
-  /aisdlc-finish-task      Mark a task as complete
   /aisdlc-checkpoint-tasks Update task status from conversation context
   /aisdlc-commit           Commit and push current changes
 

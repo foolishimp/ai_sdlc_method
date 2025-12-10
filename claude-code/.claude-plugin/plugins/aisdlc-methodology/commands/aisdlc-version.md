@@ -36,7 +36,7 @@ Display output in this format:
 
   Components:
   ├─ Agents:     7 (Requirements, Design, Tasks, Code, System Test, UAT, Runtime)
-  ├─ Commands:   9 (including this one)
+  ├─ Commands:   8 (including this one)
   ├─ Skills:     11 consolidated workflows
   └─ Hooks:      2 (Stop, PreToolUse)
 
