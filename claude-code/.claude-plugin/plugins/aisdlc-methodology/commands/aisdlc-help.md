@@ -48,7 +48,7 @@ Then display the full AI SDLC help guide:
   ### Task Management
   /aisdlc-finish-task      Mark a task as complete
   /aisdlc-checkpoint-tasks Update task status from conversation context
-  /aisdlc-commit-task      Commit with REQ-* tag (traceability)
+  /aisdlc-commit           Commit and push current changes
 
   ### Release
   /aisdlc-release          Create a new release (tag + changelog)
