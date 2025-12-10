@@ -411,25 +411,34 @@ def print_warning(msg):
 
 def clear_plugin_cache(dry_run: bool) -> bool:
     """Clear cached plugin to ensure latest version is fetched."""
-    # Standard Claude Code cache location
-    cache_dir = Path.home() / ".claude" / "plugins" / "cache" / "aisdlc" / PLUGIN_NAME
+    # Claude Code stores marketplace plugins in multiple locations
+    cache_locations = [
+        # Marketplace cache (main location)
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "aisdlc",
+        # Version-specific cache
+        Path.home() / ".claude" / "plugins" / "cache" / "aisdlc" / PLUGIN_NAME,
+    ]
 
-    if not cache_dir.exists():
+    found_any = False
+    for cache_dir in cache_locations:
+        if not cache_dir.exists():
+            continue
+
+        found_any = True
+        if dry_run:
+            print_info(f"Would remove: {cache_dir}")
+            continue
+
+        try:
+            shutil.rmtree(cache_dir)
+            print_success(f"Cleared: {cache_dir}")
+        except Exception as e:
+            print_warning(f"Could not clear {cache_dir}: {e}")
+
+    if not found_any:
         print_info("No cached plugin found (fresh install)")
-        return True
 
-    if dry_run:
-        print_info(f"Would remove: {cache_dir}")
-        return True
-
-    try:
-        shutil.rmtree(cache_dir)
-        print_success(f"Cleared plugin cache: {cache_dir}")
-        return True
-    except Exception as e:
-        print_warning(f"Could not clear cache: {e}")
-        print_info("You may need to manually run: rm -rf ~/.claude/plugins/cache/aisdlc/aisdlc-methodology/")
-        return False
+    return True
 
 
 def setup_settings(target: Path, dry_run: bool) -> bool:
