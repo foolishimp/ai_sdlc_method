@@ -1,9 +1,9 @@
 # AI SDLC Multi-Stage Agent Configuration
 # Reference: /Users/jim/src/apps/ai_sdlc_method/docs/ai_sdlc_method.md
-# Version: 0.5.2
+# Version: 0.5.3
 
 ai_sdlc_stages:
-  version: "0.5.2"
+  version: "0.5.3"
   description: "Complete AI SDLC stage configurations with AI agent specifications"
   reference_doc: "file://../../docs/ai_sdlc_method.md"
 
