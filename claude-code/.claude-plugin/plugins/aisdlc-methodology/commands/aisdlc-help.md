@@ -156,6 +156,17 @@ Then display the full AI SDLC help guide:
 
   💡 Not sure where you are? Run /aisdlc-status for next step.
 
+## Troubleshooting
+
+  ### Plugin Not Updating?
+  If you're seeing an old version after reinstalling, clear the cache:
+
+  ```bash
+  rm -rf ~/.claude/plugins/marketplaces/aisdlc
+  ```
+
+  Then restart Claude Code. It will fetch the latest version.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📚 Full docs: https://github.com/foolishimp/ai_sdlc_method
