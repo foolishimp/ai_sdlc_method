@@ -161,9 +161,7 @@ Then display the full AI SDLC help guide:
   ### Plugin Not Updating?
   If you're seeing an old version after reinstalling, clear the cache:
 
-  ```bash
-  rm -rf ~/.claude/plugins/marketplaces/aisdlc
-  ```
+    rm -rf ~/.claude/plugins/marketplaces/aisdlc
 
   Then restart Claude Code. It will fetch the latest version.
 
