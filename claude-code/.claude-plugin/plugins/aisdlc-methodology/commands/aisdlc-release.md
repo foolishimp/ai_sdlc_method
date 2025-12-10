@@ -1,216 +1,138 @@
-# /aisdlc-release - Project Release Management
+# /aisdlc-release - Commit, Tag, and Push Release
 
-Create a new release of your project by bumping the build number, generating changelog, and creating a git tag.
+Create a new release: commit any changes, bump version, create tag, push everything.
 
 <!-- Implements: REQ-TOOL-003 (Workflow Commands) -->
 <!-- Implements: REQ-TOOL-005 (Release Management) -->
 
-## Command Purpose
+**Usage**: `/aisdlc-release` or `/aisdlc-release "optional commit message"`
 
-Execute controlled release of your project:
-1. Validate release readiness (clean git state, on main branch)
-2. Automatically bump build number (x.y.z → x.y.z+1)
-3. Generate changelog from git commits
-4. Create annotated git tag
-5. Generate release summary with next steps
+## What It Does
 
-## Implementation Steps
+1. **Commit** any uncommitted changes (like `/aisdlc-commit`)
+2. **Bump** version (patch: x.y.z → x.y.z+1)
+3. **Tag** with changelog
+4. **Push** commits and tag
 
-### 1. Pre-release Validation
+## Instructions
+
+### Step 1: Check for Changes and Commit
 
 ```bash
 # Check for uncommitted changes
-if [ -n "$(git status --porcelain)" ]; then
-    echo "❌ Error: Uncommitted changes detected"
-    echo "   Please commit or stash changes before release"
-    git status --short
-    exit 1
-fi
-
-# Check current branch
-CURRENT_BRANCH=$(git branch --show-current)
-if [ "$CURRENT_BRANCH" != "main" ]; then
-    echo "⚠️  Warning: Not on main branch (current: $CURRENT_BRANCH)"
-    echo "   Releases should typically be from main"
-fi
-
-# Get current version
-CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-echo "📦 Current Version: $CURRENT_VERSION"
+git status --short
 ```
 
-### 2. Calculate Next Build Number
+**If changes exist**:
+- Generate commit message from diff (or use provided message)
+- Show message and ask for confirmation
+- Commit: `git add -A && git commit -m "{message}"`
 
-Automatically increment the build number (patch version):
+**If no changes**:
+- Continue to tagging (release existing commits)
+
+### Step 2: Calculate Next Version
 
 ```bash
-# Parse current version (e.g., v0.2.0 → major=0, minor=2, build=0)
-VERSION="${CURRENT_VERSION#v}"
-MAJOR=$(echo "$VERSION" | cut -d. -f1)
-MINOR=$(echo "$VERSION" | cut -d. -f2)
-BUILD=$(echo "$VERSION" | cut -d. -f3)
+# Get current version
+CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 
-# Increment build number
-NEW_BUILD=$((BUILD + 1))
-NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_BUILD}"
-
-echo "🆕 New Version: $NEW_VERSION (build bump)"
+# Bump patch version
+# v0.5.1 → v0.5.2
 ```
 
-### 3. Changelog Generation
+### Step 3: Generate Changelog
 
 ```bash
 # Get commits since last tag
-echo ""
-echo "📝 Changes since $CURRENT_VERSION:"
-echo ""
-
-git log $CURRENT_VERSION..HEAD --pretty=format:"- %s" --no-merges | while read line; do
-    echo "   $line"
-done
-
-echo ""
+git log $CURRENT_VERSION..HEAD --pretty=format:"- %s" --no-merges
 ```
 
-### 4. Create Git Tag
+### Step 4: Create Tag and Push
 
 ```bash
 # Create annotated tag
-NEW_VERSION="vX.Y.Z"  # calculated from step 2
-TAG_MESSAGE="Release $NEW_VERSION
+git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION
 
 Changes:
-$(git log $CURRENT_VERSION..HEAD --pretty=format:"- %s" --no-merges)
+{changelog}
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"
 
-git tag -a "$NEW_VERSION" -m "$TAG_MESSAGE"
-
-echo "🏷️  Created tag: $NEW_VERSION"
+# Push everything
+git push origin main
+git push origin $NEW_VERSION
 ```
 
-### 5. Generate Release Report
+### Step 5: Report
 
-```bash
-echo ""
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║              Project Release Complete                        ║"
-echo "╚══════════════════════════════════════════════════════════════╝"
-echo ""
-echo "📦 Previous Version: $CURRENT_VERSION"
-echo "🆕 New Version: $NEW_VERSION"
-echo "🏷️  Tag Created: $NEW_VERSION"
-echo "⏱️  Timestamp: $(date)"
-echo ""
-echo "📝 Included Changes:"
-git log $CURRENT_VERSION..HEAD --pretty=format:"   - %s" --no-merges
-echo ""
-echo ""
-echo "📝 Next Steps:"
-echo "   1. Review tag: git show $NEW_VERSION"
-echo "   2. Push tag: git push origin $NEW_VERSION"
-echo "   3. Push commits: git push origin main"
-echo "   4. Create GitHub release (optional):"
-echo "      gh release create $NEW_VERSION --title \"$NEW_VERSION\" --notes-file -"
-echo ""
-```
-
-## Command Options
-
-```bash
-# Standard release (auto-bumps build number)
-/aisdlc-release
-
-# Dry run (preview without changes)
-/aisdlc-release --dry-run
-
-# Skip changelog display
-/aisdlc-release --no-changelog
-```
-
-**Note**: This command only bumps the build number (e.g., v0.2.0 → v0.2.1). For major/minor version changes, manually create the tag: `git tag -a v0.3.0 -m "Release v0.3.0"`
-
-## Example Session
-
-**User**: `/aisdlc-release`
-
-**Claude**:
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║              Project Release                                 ║
+║                    Release Complete                          ║
 ╚══════════════════════════════════════════════════════════════╝
 
-📦 Current Version: v0.1.4
+📦 Previous: {old_version}
+🆕 Released: {new_version}
 
-✅ Pre-release Checks:
-   - No uncommitted changes ✅
-   - On main branch ✅
+📝 Changes:
+   - commit 1
+   - commit 2
+   - commit 3
 
-🆕 New Version: v0.1.5 (build bump)
+✅ Pushed: commits + tag
 
-📝 Changes since v0.1.4:
-   - feat: Add new feature X
-   - fix: Fix bug in Y
-   - docs: Update documentation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Creating release...
-   ✅ Tag created: v0.1.5
-   ✅ Release notes generated
+Optional: Create GitHub release
+  gh release create {new_version} --generate-notes
+```
+
+## Examples
+
+```
+> /aisdlc-release
+
+📦 Current Version: v0.5.1
+
+📝 Uncommitted changes:
+   M  commands/aisdlc-help.md
+   M  plugin.json
+
+Commit message:
+─────────────────────────
+refactor: Remove finish-task command
+
+🤖 Generated with Claude Code
+─────────────────────────
+
+Proceed with release? [Y/n] y
+
+✅ Committed: 24f790f
+🆕 New Version: v0.5.2
+🏷️  Tagged: v0.5.2
+📤 Pushed: commits + tag
 
 ╔══════════════════════════════════════════════════════════════╗
-║              Project Release Complete                        ║
+║                    Release Complete                          ║
 ╚══════════════════════════════════════════════════════════════╝
-
-📦 Previous Version: v0.1.4
-🆕 New Version: v0.1.5
-⏱️  Timestamp: 2025-11-25 14:00:00
-
-📝 Next Steps:
-   1. Review tag: git show v0.1.5
-   2. Push tag: git push origin v0.1.5
-   3. Create GitHub release (optional)
 ```
 
-## Version Bump Rules
+```
+> /aisdlc-release "big refactor done"
 
-Follow Semantic Versioning (SemVer):
-
-| Change Type | Bump | Example |
-|-------------|------|---------|
-| Bug fixes, typos, minor docs | patch | v0.1.4 → v0.1.5 |
-| New features, backwards compatible | minor | v0.1.4 → v0.2.0 |
-| Breaking changes, major rewrites | major | v0.1.4 → v1.0.0 |
-
-## Safety Features
-
-**Pre-release Checks**:
-- Uncommitted changes detection
-- Branch verification (warns if not on main)
-- Dry-run mode for preview
-
-**No Automatic Push**:
-- Tags are created locally only
-- User must explicitly push tag and commits
-- Allows review before publishing
-
-**Rollback**:
-```bash
-# If tag created in error
-git tag -d vX.Y.Z  # Delete local tag
+(uses provided message, same flow)
 ```
 
-## Integration with GitHub
+## Version Bump
 
-After local release, optionally create GitHub release:
+Default: **patch** bump (x.y.z → x.y.z+1)
 
-```bash
-# Create GitHub release with auto-generated notes
-gh release create vX.Y.Z --generate-notes
-
-# Or with custom notes
-gh release create vX.Y.Z --title "vX.Y.Z" --notes "Release notes here"
+For major/minor bumps, specify manually:
+```
+/aisdlc-release --minor    # x.y.z → x.y+1.0
+/aisdlc-release --major    # x.y.z → x+1.0.0
 ```
 
 ---
 
-**Usage**: Run `/aisdlc-release` to create a new project release.
+**Note**: This is `/aisdlc-commit` + version bump + tag + push. Use for releases.
