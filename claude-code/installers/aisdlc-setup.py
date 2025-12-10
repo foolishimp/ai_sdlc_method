@@ -36,6 +36,8 @@ import sys
 import json
 import argparse
 import shutil
+import urllib.request
+import urllib.error
 from pathlib import Path
 from datetime import datetime
 
@@ -48,6 +50,9 @@ GITHUB_REPO = "foolishimp/ai_sdlc_method"
 
 # The consolidated plugin (contains all skills, agents, commands, and hooks)
 PLUGIN_NAME = "aisdlc-methodology"
+
+# URL to fetch plugin version
+PLUGIN_JSON_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/claude-code/.claude-plugin/plugins/{PLUGIN_NAME}/.claude-plugin/plugin.json"
 
 
 # =============================================================================
@@ -388,11 +393,14 @@ def get_workspace_structure(date: str) -> dict:
 # Installer Logic
 # =============================================================================
 
-def print_banner():
-    """Print setup banner."""
+def print_banner(version: str):
+    """Print setup banner with version."""
     print()
     print("+" + "=" * 62 + "+")
     print("|" + " " * 14 + "AI SDLC Method - Project Setup" + " " * 17 + "|")
+    version_line = f"Version: {version}"
+    padding = (62 - len(version_line)) // 2
+    print("|" + " " * padding + version_line + " " * (62 - padding - len(version_line)) + "|")
     print("+" + "=" * 62 + "+")
     print()
 
@@ -407,6 +415,16 @@ def print_info(msg):
 
 def print_warning(msg):
     print(f"  [WARN] {msg}")
+
+
+def get_plugin_version() -> str:
+    """Fetch the latest plugin version from GitHub."""
+    try:
+        with urllib.request.urlopen(PLUGIN_JSON_URL, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            return data.get('version', 'unknown')
+    except (urllib.error.URLError, json.JSONDecodeError, KeyError):
+        return 'unknown'
 
 
 def clear_plugin_cache(dry_run: bool) -> bool:
@@ -549,11 +567,12 @@ Examples:
     # Resolve target
     target = Path(args.target).resolve()
 
-    # Print banner
-    print_banner()
+    # Fetch version and print banner
+    version = get_plugin_version()
+    print_banner(version)
 
     print_info(f"Target: {target}")
-    print_info(f"Plugin: {PLUGIN_NAME} (includes hooks)")
+    print_info(f"Plugin: {PLUGIN_NAME} v{version}")
     print_info(f"Workspace: {'No' if args.no_workspace else 'Yes (with templates)'}")
     if args.dry_run:
         print_warning("DRY RUN - no changes will be made")
