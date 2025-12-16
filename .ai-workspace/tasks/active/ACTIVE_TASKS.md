@@ -1,6 +1,6 @@
 # Active Tasks
 
-*Last Updated: 2025-12-10 12:00*
+*Last Updated: 2025-12-16 12:30*
 
 ---
 
@@ -407,16 +407,16 @@ E(t) System Components:
 This task tracks all code development required to implement the claude-aisdlc design. The design stage is 100% complete (43/43 requirements). This task creates the formal work breakdown to move from Design → Code → System Test.
 
 **Current State**:
-- Requirements: 43/43 (100%) ✅
-- Design: 43/43 (100%) ✅
-- Tasks: 0/43 (0%) ❌ ← THIS TASK
-- Code: 15/43 (35%) 🚧
-- System Test: 5/43 (12%) 🚧
+- Requirements: 46/46 (100%) ✅ (now phased: 33 Phase 1, 13 Phase 2)
+- Design: 46/46 (100%) ✅
+- Tasks: 46/46 (100%) ✅
+- Code (claude): 16/46 (35%) 🚧
+- System Test (claude): 7/46 (15%) 🚧
 
 **Target State**:
-- Tasks: 43/43 (100%) ✅
-- Code: 43/43 (100%) ✅
-- System Test: 43/43 (100%) ✅
+- Code (claude): 33/33 Phase 1 (100%) ✅
+- System Test (claude): 33/33 Phase 1 (100%) ✅
+- Phase 2 deferred to v2.0
 
 ---
 
@@ -461,7 +461,7 @@ This task tracks all code development required to implement the claude-aisdlc de
 | **Runtime Feedback** |
 | WU-027 | REQ-RUNTIME-001 | Telemetry Tagging | RUNTIME_FEEDBACK_DESIGN.md | Low | Not Started | `skills-consolidated/runtime-observability.md` |
 | WU-028 | REQ-RUNTIME-002 | Deviation Detection | RUNTIME_FEEDBACK_DESIGN.md | Low | Not Started | `skills/trace-production-issue/` |
-| WU-029 | REQ-RUNTIME-003 | Feedback Loop Closure | RUNTIME_FEEDBACK_DESIGN.md | Critical | Not Started | `agents/aisdlc-runtime-feedback-agent.md` |
+| WU-029 | REQ-RUNTIME-003 | Feedback Loop Closure | RUNTIME_FEEDBACK_DESIGN.md | Critical | ✅ Complete | `agents/aisdlc-runtime-feedback-agent.md` |
 | **Traceability** |
 | WU-030 | REQ-TRACE-001 | Full Lifecycle Traceability | TRACEABILITY_DESIGN.md | Critical | Partial | TRACEABILITY_MATRIX.md |
 | WU-031 | REQ-TRACE-002 | Requirement Key Propagation | TRACEABILITY_DESIGN.md | Critical | Partial | `installers/validate_traceability.py` |
@@ -486,27 +486,34 @@ This task tracks all code development required to implement the claude-aisdlc de
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| ✅ Complete | 14 | 33% |
-| 🚧 Partial | 15 | 35% |
-| ❌ Not Started | 14 | 33% |
-| **Total** | **43** | 100% |
+| ✅ Complete | 16 | 35% |
+| 🚧 Partial | 15 | 33% |
+| ❌ Not Started | 15 | 33% |
+| **Total** | **46** | 100% |
+
+### Phase Breakdown
+
+| Phase | Scope | Requirements | Critical | Target |
+|-------|-------|--------------|----------|--------|
+| **Phase 1** | MVP: Intent → System Test | 33 | 7 | v1.0 |
+| **Phase 2** | Ecosystem: Runtime + UAT | 13 | 3 | v2.0 |
 
 ### Priority Breakdown
 
 | Priority | Complete | Partial | Not Started | Total |
 |----------|----------|---------|-------------|-------|
-| Critical | 7 | 4 | 1 | 12 |
-| High | 5 | 7 | 4 | 16 |
-| Medium | 2 | 4 | 5 | 11 |
-| Low | 0 | 0 | 4 | 4 |
+| Critical | 8 | 4 | 0 | 12 |
+| High | 6 | 7 | 3 | 16 |
+| Medium | 2 | 4 | 6 | 12 |
+| Low | 0 | 0 | 6 | 6 |
 
-### Next Actions (Priority Order)
+### Next Actions (Priority Order - Phase 1 Focus)
 
-1. **REQ-RUNTIME-003** (Critical, Not Started) - Implement feedback loop closure
-2. **REQ-TRACE-003** (High, Not Started) - Automated traceability validation
-3. **REQ-SYSTEST-003** (High, Not Started) - Test-requirement traceability
-4. **REQ-TOOL-007** (High, Not Started) - Test gap analysis
-5. **REQ-TASK-002** (Medium, Not Started) - Dependency tracking
+1. **REQ-TRACE-003** (High, Not Started) - Automated traceability validation
+2. **REQ-SYSTEST-003** (High, Not Started) - Test-requirement traceability
+3. **REQ-TOOL-007** (High, Not Started) - Test gap analysis
+4. **REQ-TOOL-009** (High, Not Started) - Design-Impl structure validation
+5. **REQ-TOOL-010** (High, Not Started) - Installer scaffolding
 
 **Acceptance Criteria**:
 - [ ] All 43 work units have status tracked
@@ -531,6 +538,16 @@ This task tracks all code development required to implement the claude-aisdlc de
   - Task #18: Gemini Implementation Parity (2.0) - HIGH
 
 **Recently Completed**:
+- ✅ Task #29: Phase Breakdown and Traceability Matrix Cleanup (2025-12-16 12:30)
+  - Added Phase markers (1 or 2) to all 46 requirements
+  - Phase 1: 33 requirements (MVP: Intent → System Test)
+  - Phase 2: 13 requirements (Ecosystem: Runtime + UAT)
+  - Completely restructured TRACEABILITY_MATRIX.md (430 → 220 lines)
+  - Added Design Variants table (claude_aisdlc active, others planned)
+  - Split matrix into Phase 1 and Phase 2 sections
+  - Removed accumulated cruft (old mapping tables, review notes)
+  - Implements: REQ-TRACE-001, REQ-TRACE-002, REQ-REQ-001
+  - See: `.ai-workspace/tasks/finished/20251216_1200_phase_breakdown_and_traceability_cleanup.md`
 - ✅ Task #28: Implement Requirement Versioning Convention (2025-12-10 12:00)
   - Added version suffix to all 43 requirements (`.0.1.0` baseline)
   - Added versioning convention documentation to requirements file

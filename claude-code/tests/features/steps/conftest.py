@@ -195,3 +195,153 @@ def verify_tag_exists(repo_path: Path, tag_name: str) -> bool:
         text=True
     )
     return tag_name in result.stdout
+
+
+def create_snapshot_template(template_dir: Path) -> Path:
+    """Create a snapshot template file with all variables."""
+    template_file = template_dir / "CONTEXT_SNAPSHOT_TEMPLATE.md"
+    template_content = """# Context Snapshot - {TIMESTAMP}
+
+**Created**: {YYYY-MM-DD} {HH:MM:SS}
+**Snapshot ID**: snapshot-{YYYY-MM-DD}-{HH-MM-SS}
+**Project**: {PROJECT_NAME}
+**Branch**: {GIT_BRANCH}
+
+---
+
+## 🎯 Active Tasks Summary
+
+**Total Active**: {TOTAL_ACTIVE_COUNT}
+- In Progress: {IN_PROGRESS_COUNT}
+- Pending: {PENDING_COUNT}
+- Blocked: {BLOCKED_COUNT}
+
+### Tasks In Progress
+
+{IN_PROGRESS_TASKS_TABLE}
+
+### Tasks Pending
+
+{PENDING_TASKS_TABLE}
+
+### Tasks Blocked
+
+{BLOCKED_TASKS_TABLE}
+
+---
+
+## 📁 File Changes
+
+**Modified Files** (uncommitted):
+{MODIFIED_FILES_LIST}
+
+**Staged Files**:
+{STAGED_FILES_LIST}
+
+**Untracked Files**:
+{UNTRACKED_FILES_LIST}
+
+**Git Status**:
+```
+{GIT_STATUS_OUTPUT}
+```
+
+---
+
+## 🔄 Recovery Guidance
+
+### How to Restore This Context
+
+1. **Review This Snapshot**:
+   - Read all sections above
+
+2. **Restore Active Tasks**:
+   ```bash
+   cat .ai-workspace/tasks/active/ACTIVE_TASKS.md
+   ```
+
+3. **Check Git State**:
+   ```bash
+   git status
+   git log --oneline -n 10
+   ```
+
+---
+
+## 📊 Metadata
+
+**Snapshot Version**: 1.0
+**Related Snapshots**:
+- Previous: {PREVIOUS_SNAPSHOT_ID}
+- Next: {NEXT_SNAPSHOT_ID}
+
+**Statistics**:
+- Files modified: {FILES_MODIFIED_COUNT}
+
+---
+
+## 🔗 Related Files
+
+**Recent Finished Tasks**:
+{RECENT_FINISHED_TASKS_LIST}
+
+---
+
+**END OF SNAPSHOT**
+"""
+    template_file.write_text(template_content)
+    return template_file
+
+
+def parse_snapshot_file(snapshot_path: Path) -> dict:
+    """Parse a snapshot file and extract key information."""
+    content = snapshot_path.read_text()
+
+    # Extract basic metadata
+    snapshot_data = {
+        "content": content,
+        "path": snapshot_path,
+        "filename": snapshot_path.name
+    }
+
+    # Extract snapshot ID
+    import re
+    id_match = re.search(r'\*\*Snapshot ID\*\*: (.+)', content)
+    if id_match:
+        snapshot_data["id"] = id_match.group(1).strip()
+
+    # Extract task counts
+    total_match = re.search(r'\*\*Total Active\*\*: (\d+)', content)
+    if total_match:
+        snapshot_data["total_tasks"] = int(total_match.group(1))
+
+    in_progress_match = re.search(r'In Progress: (\d+)', content)
+    if in_progress_match:
+        snapshot_data["in_progress"] = int(in_progress_match.group(1))
+
+    pending_match = re.search(r'Pending: (\d+)', content)
+    if pending_match:
+        snapshot_data["pending"] = int(pending_match.group(1))
+
+    blocked_match = re.search(r'Blocked: (\d+)', content)
+    if blocked_match:
+        snapshot_data["blocked"] = int(blocked_match.group(1))
+
+    # Extract git branch
+    branch_match = re.search(r'\*\*Branch\*\*: (.+)', content)
+    if branch_match:
+        snapshot_data["branch"] = branch_match.group(1).strip()
+
+    # Extract project name
+    project_match = re.search(r'\*\*Project\*\*: (.+)', content)
+    if project_match:
+        snapshot_data["project"] = project_match.group(1).strip()
+
+    return snapshot_data
+
+
+def count_snapshot_files(snapshots_dir: Path) -> int:
+    """Count the number of snapshot files in a directory."""
+    if not snapshots_dir.exists():
+        return 0
+    return len(list(snapshots_dir.glob("snapshot-*.md")))

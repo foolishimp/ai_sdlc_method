@@ -106,6 +106,7 @@ The AI SDLC Method is implemented as a **Claude Code plugin ecosystem** with thr
 | Runtime Feedback | Production monitoring | [RUNTIME_FEEDBACK_DESIGN.md](RUNTIME_FEEDBACK_DESIGN.md) |
 | Traceability | Full lifecycle tracking | [TRACEABILITY_DESIGN.md](TRACEABILITY_DESIGN.md) |
 | AI Augmentation | AI assistance patterns | [AI_AUGMENTATION_DESIGN.md](AI_AUGMENTATION_DESIGN.md) |
+| Context Snapshot | Session continuity and recovery | [CONTEXT_SNAPSHOT_DESIGN.md](CONTEXT_SNAPSHOT_DESIGN.md) |
 
 ---
 
@@ -219,13 +220,14 @@ claude-code/.claude-plugin/plugins/
 
 ### 2.4 Command System
 
-**Requirements**: REQ-TOOL-003
+**Requirements**: REQ-TOOL-003, REQ-TOOL-012
 
-**Commands** (8 total):
+**Commands** (9 total):
 | Command | Purpose |
 |---------|---------|
 | `/aisdlc-status` | Show task queue status |
 | `/aisdlc-checkpoint-tasks` | Save work context |
+| `/aisdlc-snapshot-context` | Capture session context snapshot (REQ-TOOL-012) |
 | `/aisdlc-finish-task` | Complete and document task |
 | `/aisdlc-commit-task` | Generate commit message |
 | `/aisdlc-release` | Create release notes |
@@ -239,22 +241,30 @@ claude-code/.claude-plugin/plugins/
 
 ### 2.5 Workspace System
 
-**Requirements**: REQ-TOOL-002
+**Requirements**: REQ-TOOL-002, REQ-TOOL-012
 
 **Workspace Structure**:
 ```
 .ai-workspace/
 ├── config/
-│   └── workspace_config.yml      # Configuration
+│   └── workspace_config.yml           # Configuration
 ├── tasks/
 │   ├── active/
-│   │   └── ACTIVE_TASKS.md       # Current tasks
-│   ├── finished/                 # Completed docs
+│   │   └── ACTIVE_TASKS.md            # Current tasks
+│   ├── finished/                      # Completed docs
 │   │   └── YYYYMMDD_HHMM_*.md
-│   └── archive/                  # Old tasks
+│   └── archive/                       # Old tasks
+├── context_history/                   # REQ-TOOL-012
+│   ├── snapshots/                     # Active snapshots
+│   │   └── snapshot-YYYY-MM-DD-HH-MM-SS.md
+│   ├── archive/                       # Archived snapshots (>30 days)
+│   │   └── YYYY-MM/
+│   │       └── snapshot-*.md
+│   └── .snapshot_index.yml            # Metadata index (optional)
 └── templates/
     ├── TASK_TEMPLATE.md
     ├── FINISHED_TASK_TEMPLATE.md
+    ├── CONTEXT_SNAPSHOT_TEMPLATE.md   # REQ-TOOL-012
     └── AISDLC_METHOD_REFERENCE.md
 ```
 
