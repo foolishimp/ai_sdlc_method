@@ -11,11 +11,16 @@ Show a snapshot of project status and intelligently suggest next steps.
 ### Step 0: Get Version
 
 Read the plugin version from the plugin.json file. Try these locations in order:
-1. `.claude-plugin/plugin.json` (relative to the command file location)
-2. `../plugin.json` (if commands are in a subdirectory)
-3. Search for `aisdlc-methodology/.claude-plugin/plugin.json` in the project
+1. `~/.claude/plugins/marketplaces/aisdlc/**/aisdlc-methodology/.claude-plugin/plugin.json` (marketplace cache)
+2. `.claude-plugin/plugin.json` (relative to the command file location)
+3. `../plugin.json` (if commands are in a subdirectory)
+4. Search for `aisdlc-methodology/.claude-plugin/plugin.json` in the project
 
-Extract the `"version"` field and display it in the header (e.g., "v0.5.0").
+**IMPORTANT**: For marketplace-installed plugins, the version is in the marketplace cache, NOT in the project directory.
+
+Extract the `"version"` field and display it in the header (e.g., "v0.5.5").
+
+If version cannot be found, display "v0.5.5" as the hardcoded fallback (current release).
 
 ### Step 1: Check Workspace Exists
 
