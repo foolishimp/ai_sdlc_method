@@ -524,13 +524,425 @@ This task tracks all code development required to implement the claude-aisdlc de
 
 ---
 
+## Task #30: Roo Parity Phase 1A - Foundation
+
+**Priority**: Critical
+**Status**: Not Started
+**Release Target**: 1.0 (Roo)
+**Estimated Time**: 10-15 days
+**Dependencies**: None
+
+**Requirements Traceability**:
+- REQ-ROO-INSTALL-001: Python Installer
+- REQ-ROO-RULE-003: REQ Tagging Rule
+- REQ-ROO-RULE-004: Feedback Protocol Rule
+- REQ-ROO-RULE-006: Workspace Safeguards Rule
+- REQ-ROO-MODE-001: Requirements Stage Mode
+- REQ-ROO-MODE-004: Code Stage Mode
+- REQ-ROO-CMD-002: Workspace Init
+- REQ-ROO-CMD-005: Help System
+- REQ-ROO-WORKSPACE-001/002/003: All workspace structures
+
+**SDLC Stages**: 3 - Tasks, 4 - Code
+**Agents**: Tasks Agent, Code Agent
+
+**Description**:
+Implement Phase 1A (Foundation) of Roo AISDLC parity - the minimum viable set of components needed to initialize a project, capture requirements, and implement with TDD. This establishes the foundation for Phase 1B (complete workflow) and Phase 1C (polish).
+
+**Phase 1A Scope**:
+1. Installer system that scaffolds complete Roo structure
+2. Core rules (REQ tagging, feedback protocol, workspace safeguards)
+3. Foundation modes (Requirements Agent, Code Agent)
+4. Basic commands (init, help)
+
+**Target State**:
+```
+roo-code-iclaude/
+├── installers/
+│   └── aisdlc-setup.py          # Complete installer (1,000+ lines)
+├── project-template/
+│   ├── roo/modes/*.json         # 11 mode JSONs (2 complete: requirements, code)
+│   ├── roo/rules/*.md           # 6 rule files (3 complete: req-tagging, feedback, safeguards)
+│   └── templates for all workspace files
+└── docs/
+    └── design/roo_aisdlc/
+        ├── ROO_PARITY_REQUIREMENTS.md  # ✅ Complete
+        └── ROO_PARITY_DESIGN.md        # ✅ Complete
+```
+
+---
+
+### Work Breakdown (15 Tasks)
+
+#### Sprint 1: Installer + Workspace Structure (Days 1-5)
+
+**TASK-ROO-001: Create Python Installer Class Structure**
+**Priority**: Critical | **Status**: Not Started | **Estimated**: 2-3 hours
+**Implements**: REQ-ROO-INSTALL-001
+**Description**: Create `aisdlc-setup.py` with `AisdlcSetup` class, `init()`, `validate()`, `update()` methods
+**Acceptance Criteria**:
+- [ ] Script runs without errors
+- [ ] `init()` method creates directory structure
+- [ ] `validate()` method checks required files exist
+- [ ] `update()` method handles incremental updates
+- [ ] Command line interface works: `python aisdlc-setup.py init --variant myapp`
+- [ ] Exit codes correct (0=success, 1=validation failed, 2=operation failed)
+**Artifacts**: `roo-code-iclaude/installers/aisdlc-setup.py`
+
+---
+
+**TASK-ROO-002: Implement Directory Creation Logic**
+**Priority**: Critical | **Status**: Not Started | **Estimated**: 1-2 hours
+**Implements**: REQ-ROO-WORKSPACE-001, REQ-ROO-WORKSPACE-002, REQ-ROO-WORKSPACE-003
+**Description**: Implement `_create_directory_structure()` method to create all required directories
+**Acceptance Criteria**:
+- [ ] Creates `roo/modes/`, `roo/rules/`, `roo/memory-bank/`
+- [ ] Creates `.ai-workspace/tasks/active/`, `.ai-workspace/tasks/finished/`
+- [ ] Creates `.ai-workspace/templates/`, `.ai-workspace/config/`, `.ai-workspace/context_history/`
+- [ ] Creates `docs/requirements/`, `docs/design/{variant}_aisdlc/adrs/`
+- [ ] Creates `docs/test/coverage/`, `docs/uat/test_cases/`, `docs/runtime/telemetry/`, `docs/releases/`
+- [ ] Uses `Path.mkdir(parents=True, exist_ok=True)` for safe creation
+**Dependencies**: TASK-ROO-001
+**Artifacts**: Method in `aisdlc-setup.py`
+
+---
+
+**TASK-ROO-003: Implement Template File Copying**
+**Priority**: Critical | **Status**: Not Started | **Estimated**: 2-3 hours
+**Implements**: REQ-ROO-INSTALL-002
+**Description**: Implement template file copying with placeholder substitution
+**Acceptance Criteria**:
+- [ ] `_copy_template_file()` method copies files from template directory
+- [ ] Placeholder substitution works: `{project_name}`, `{variant}`, `{date}`
+- [ ] `--force` flag overwrites existing files
+- [ ] User work preserved (ACTIVE_TASKS.md, finished/, requirements/, design/)
+- [ ] Progress messages displayed for each file created
+**Dependencies**: TASK-ROO-002
+**Artifacts**: Methods: `_copy_template_file()`, `_get_project_name()`, `_copy_mode_files()`, `_copy_rule_files()`
+
+---
+
+**TASK-ROO-004: Create Workspace Template Files**
+**Priority**: High | **Status**: Not Started | **Estimated**: 2-3 hours
+**Implements**: REQ-ROO-WORKSPACE-001
+**Description**: Create template files for `.ai-workspace/` directory
+**Acceptance Criteria**:
+- [ ] ACTIVE_TASKS.md template with placeholder tasks
+- [ ] TASK_TEMPLATE.md with standard task structure
+- [ ] FINISHED_TASK_TEMPLATE.md with completion documentation format
+- [ ] workspace_config.yml with all settings (auto_checkpoint, require_req_tags, coverage_minimum)
+- [ ] README.md explaining workspace structure
+- [ ] All templates use placeholders for project-specific values
+**Dependencies**: TASK-ROO-003
+**Artifacts**: `project-template/.ai-workspace/templates/*`
+
+---
+
+**TASK-ROO-005: Implement Validation Methods**
+**Priority**: High | **Status**: Not Started | **Estimated**: 2-3 hours
+**Implements**: REQ-ROO-INSTALL-001
+**Description**: Implement `validate()` method and supporting validation functions
+**Acceptance Criteria**:
+- [ ] `_validate_structure()` checks all required files present
+- [ ] `_validate_mode_jsons()` validates JSON syntax and required fields
+- [ ] `validate()` method returns exit code 0 (valid) or 1 (validation failed)
+- [ ] Validation errors collected in `self.errors` list
+- [ ] Detailed error messages for each validation failure
+- [ ] `--strict` mode fails on ANY gap
+**Dependencies**: TASK-ROO-003
+**Artifacts**: Methods: `validate()`, `_validate_structure()`, `_validate_mode_jsons()`
+
+---
+
+#### Sprint 2: Core Rules (Days 6-10)
+
+**TASK-ROO-006: Write REQ Tagging Rule**
+**Priority**: Critical | **Status**: Not Started | **Estimated**: 2-3 hours
+**Implements**: REQ-ROO-RULE-003
+**Description**: Write complete `roo/rules/req-tagging.md` with format specification, usage examples, validation checklist
+**Acceptance Criteria**:
+- [ ] REQ-* key format fully specified: `REQ-{TYPE}-{DOMAIN}-{SEQ}`
+- [ ] All types documented: F, NFR, DATA, BR
+- [ ] Usage by artifact type: requirements, design, tasks, code, tests, commits, traceability matrix
+- [ ] Complete code examples in Python and TypeScript
+- [ ] Anti-patterns section showing what NOT to do
+- [ ] Validation checklist for agents
+- [ ] File is 600+ lines (comprehensive)
+**Artifacts**: `project-template/roo/rules/req-tagging.md`
+
+---
+
+**TASK-ROO-007: Write Feedback Protocol Rule**
+**Priority**: High | **Status**: Not Started | **Estimated**: 1-2 hours
+**Implements**: REQ-ROO-RULE-004
+**Description**: Write complete `roo/rules/feedback-protocol.md` defining bidirectional feedback between stages
+**Acceptance Criteria**:
+- [ ] Universal feedback behavior specified (REQ-NFR-REFINE-001)
+- [ ] "Accept FROM downstream" examples (Code → Design, Test → Code)
+- [ ] "Provide TO upstream" examples (Design → Requirements)
+- [ ] Feedback triggers documented (gap, ambiguity, conflict, error)
+- [ ] Feedback actions defined (pause, analyze, decide, update, version, notify, resume)
+- [ ] Maximum 3 iterations per item
+- [ ] Examples for each stage transition
+**Artifacts**: `project-template/roo/rules/feedback-protocol.md`
+
+---
+
+**TASK-ROO-008: Write Workspace Safeguards Rule**
+**Priority**: Medium | **Status**: Not Started | **Estimated**: 1 hour
+**Implements**: REQ-ROO-RULE-006
+**Description**: Write complete `roo/rules/workspace-safeguards.md` protecting user work
+**Acceptance Criteria**:
+- [ ] Never delete ACTIVE_TASKS.md without explicit confirmation
+- [ ] Never delete finished task files
+- [ ] Always backup before `--force` operations
+- [ ] Validate file paths before write operations
+- [ ] Preserve user work during framework updates
+- [ ] Checklist for agents before destructive operations
+**Artifacts**: `project-template/roo/rules/workspace-safeguards.md`
+
+---
+
+**TASK-ROO-009: Create Memory Bank Templates**
+**Priority**: Medium | **Status**: Not Started | **Estimated**: 1-2 hours
+**Implements**: REQ-ROO-WORKSPACE-002
+**Description**: Create memory bank template files for persistent project context
+**Acceptance Criteria**:
+- [ ] projectbrief.md template with sections: Overview, Goals, Stakeholders, Success Criteria
+- [ ] techstack.md template with sections: Languages, Frameworks, Libraries, Tools, Infrastructure
+- [ ] activecontext.md template with sections: Current Work, Recent Decisions, Blockers, Next Steps
+- [ ] All templates use placeholders for project-specific values
+- [ ] README.md explaining memory bank purpose and usage
+**Dependencies**: TASK-ROO-003
+**Artifacts**: `project-template/roo/memory-bank/*.md`
+
+---
+
+#### Sprint 3: Foundation Modes (Days 11-15)
+
+**TASK-ROO-010: Write Requirements Mode JSON**
+**Priority**: Critical | **Status**: Not Started | **Estimated**: 3-4 hours
+**Implements**: REQ-ROO-MODE-001
+**Description**: Write complete `aisdlc-requirements.json` mode definition
+**Acceptance Criteria**:
+- [ ] `slug`: "aisdlc-requirements" (matches filename)
+- [ ] `name`: "AISDLC Requirements Agent" (human-readable)
+- [ ] `roleDefinition`: 450+ characters defining persona, purpose, responsibilities, quality gates
+- [ ] `groups`: ["read", "edit", "browser"] (minimal necessary permissions)
+- [ ] `customInstructions`: References @rules/req-tagging.md, @rules/feedback-protocol.md
+- [ ] Workflow documented: Initialize → Analyze → Generate Keys → Define Criteria → Prioritize → Document
+- [ ] Auto-checkpoint protocol included
+- [ ] Example output format provided
+- [ ] JSON is valid and loads without errors
+**Artifacts**: `project-template/roo/modes/aisdlc-requirements.json`
+
+---
+
+**TASK-ROO-011: Write Code Mode JSON**
+**Priority**: Critical | **Status**: Not Started | **Estimated**: 3-4 hours
+**Implements**: REQ-ROO-MODE-004
+**Description**: Write complete `aisdlc-code.json` mode definition with TDD and Key Principles
+**Acceptance Criteria**:
+- [ ] `slug`: "aisdlc-code" (matches filename)
+- [ ] `name`: "AISDLC Code Agent" (human-readable)
+- [ ] `roleDefinition`: 450+ characters emphasizing TDD discipline and Seven Principles
+- [ ] `groups`: ["read", "edit", "command"] (includes command for running tests)
+- [ ] `customInstructions`: References @rules/tdd-workflow.md, @rules/key-principles.md, @rules/req-tagging.md
+- [ ] Seven Questions section ("STOP and ask" before implementation)
+- [ ] TDD Cycle documented: RED → GREEN → REFACTOR → COMMIT
+- [ ] Code tagging examples provided
+- [ ] Coverage enforcement (≥ 80%)
+- [ ] Feedback protocol to Design Agent
+- [ ] JSON is valid and loads without errors
+**Artifacts**: `project-template/roo/modes/aisdlc-code.json`
+
+---
+
+**TASK-ROO-012: Create TDD and Key Principles Rule Files**
+**Priority**: High | **Status**: Not Started | **Estimated**: 2-3 hours
+**Implements**: REQ-ROO-RULE-001, REQ-ROO-RULE-005
+**Description**: Write `tdd-workflow.md` and `key-principles.md` rules for Code mode
+**Acceptance Criteria**:
+- [ ] tdd-workflow.md: RED phase (write failing test), GREEN phase (minimal implementation), REFACTOR phase (improve quality), COMMIT phase (save with tags)
+- [ ] tdd-workflow.md: Examples for each phase
+- [ ] key-principles.md: All 7 principles documented with rationale
+- [ ] key-principles.md: Seven Questions checklist
+- [ ] key-principles.md: Examples of each principle in practice
+- [ ] Both files referenced correctly by Code mode JSON
+**Artifacts**: `project-template/roo/rules/tdd-workflow.md`, `project-template/roo/rules/key-principles.md`
+
+---
+
+#### Sprint 4: Basic Commands (Days 16-20)
+
+**TASK-ROO-013: Write Init Command Mode JSON**
+**Priority**: Critical | **Status**: Not Started | **Estimated**: 2 hours
+**Implements**: REQ-ROO-CMD-002
+**Description**: Write `aisdlc-init.json` mode that invokes installer script
+**Acceptance Criteria**:
+- [ ] `slug`: "aisdlc-init" (matches filename)
+- [ ] `name`: "AISDLC Workspace Initializer" (human-readable)
+- [ ] `roleDefinition`: 100+ characters describing operation
+- [ ] `groups`: ["read", "edit", "command"] (needs command for Python execution)
+- [ ] `customInstructions`: Steps to invoke `python aisdlc-setup.py init --variant {user_input}`
+- [ ] Prompts user for project name/variant
+- [ ] Reports created files and directories
+- [ ] Handles errors gracefully
+- [ ] JSON is valid and loads without errors
+**Artifacts**: `project-template/roo/modes/aisdlc-init.json`
+
+---
+
+**TASK-ROO-014: Write Help Command Mode JSON**
+**Priority**: Medium | **Status**: Not Started | **Estimated**: 2 hours
+**Implements**: REQ-ROO-CMD-005
+**Description**: Write `aisdlc-help.json` mode that displays methodology guide
+**Acceptance Criteria**:
+- [ ] `slug`: "aisdlc-help" (matches filename)
+- [ ] `name`: "AISDLC Help System" (human-readable)
+- [ ] `roleDefinition`: 100+ characters describing help system
+- [ ] `groups`: ["read"] (read-only operation)
+- [ ] `customInstructions`: Display all available modes and their purposes
+- [ ] Show invocation examples ("@mode aisdlc-requirements", "Checkpoint my tasks")
+- [ ] List available rules
+- [ ] Explain workflow (Requirements → Design → Tasks → Code → System Test)
+- [ ] Link to documentation
+- [ ] JSON is valid and loads without errors
+**Artifacts**: `project-template/roo/modes/aisdlc-help.json`
+
+---
+
+**TASK-ROO-015: Write Documentation Template Files**
+**Priority**: High | **Status**: Not Started | **Estimated**: 2-3 hours
+**Implements**: REQ-ROO-WORKSPACE-003
+**Description**: Create documentation template files for requirements, design, ADRs, traceability
+**Acceptance Criteria**:
+- [ ] INTENT.md template with sections: Intent ID, Description, Business Value, Stakeholders
+- [ ] REQUIREMENTS.md template with REQ-* format examples
+- [ ] DESIGN.md template with component sections, API specs, data models
+- [ ] ADR-000-template.md with standard ADR structure
+- [ ] TRACEABILITY_MATRIX.md template with 7-stage tracking table
+- [ ] All templates use placeholders for project-specific values
+**Dependencies**: TASK-ROO-003
+**Artifacts**: `project-template/docs/requirements/*`, `project-template/docs/design/{variant}_aisdlc/*`
+
+---
+
+#### Integration & Testing (Days 18-20)
+
+**TASK-ROO-016: Integration Test - Fresh Project Initialization**
+**Priority**: High | **Status**: Not Started | **Estimated**: 2 hours
+**Description**: End-to-end test of installer creating complete structure
+**Acceptance Criteria**:
+- [ ] Create empty test directory
+- [ ] Run `python aisdlc-setup.py init --variant test`
+- [ ] Verify all directories created
+- [ ] Verify all files present
+- [ ] Run `python aisdlc-setup.py validate` (exit code 0)
+- [ ] Verify placeholders substituted correctly
+- [ ] Verify mode JSONs are valid JSON
+- [ ] Test passes consistently
+**Dependencies**: All previous tasks
+**Artifacts**: Test script in `installers/tests/test_integration.py`
+
+---
+
+**TASK-ROO-017: Create Installation Documentation**
+**Priority**: High | **Status**: Not Started | **Estimated**: 2 hours
+**Implements**: REQ-ROO-DOC-001
+**Description**: Write comprehensive installation guide for Roo AISDLC
+**Acceptance Criteria**:
+- [ ] Prerequisites section (Roo Code, Python 3.8+, git)
+- [ ] Installation steps with commands
+- [ ] Project initialization guide
+- [ ] Mode activation examples
+- [ ] Troubleshooting section
+- [ ] Example quickstart project walkthrough
+- [ ] Links to full methodology documentation
+**Artifacts**: `roo-code-iclaude/README.md`
+
+---
+
+### Task Summary
+
+| Sprint | Focus | Tasks | Critical | High | Medium | Estimated |
+|--------|-------|-------|----------|------|--------|-----------|
+| 1 | Installer + Workspace | 5 | 3 | 2 | 0 | 10-14 hours |
+| 2 | Core Rules | 4 | 1 | 1 | 2 | 5-8 hours |
+| 3 | Foundation Modes | 3 | 2 | 1 | 0 | 8-11 hours |
+| 4 | Commands + Testing | 5 | 1 | 3 | 1 | 10-13 hours |
+| **Total** | **Phase 1A** | **17** | **7** | **7** | **3** | **33-46 hours** |
+
+### Phase 1A Completion Criteria
+
+Phase 1A is complete when ALL of the following are true:
+
+1. ✅ **Installer Working**:
+   - `python aisdlc-setup.py init` creates complete structure
+   - `python aisdlc-setup.py validate` passes
+   - All directories and files created with correct placeholders
+
+2. ✅ **Core Rules Complete**:
+   - req-tagging.md (600+ lines with comprehensive examples)
+   - feedback-protocol.md (universal behavior, triggers, actions)
+   - workspace-safeguards.md (protect user work)
+
+3. ✅ **Foundation Modes Working**:
+   - aisdlc-requirements.json (450+ char roleDefinition, loads rules)
+   - aisdlc-code.json (450+ char roleDefinition, TDD + Seven Principles)
+   - Both modes loadable in Roo Code via `@mode` syntax
+
+4. ✅ **Basic Commands Working**:
+   - aisdlc-init.json invokes installer
+   - aisdlc-help.json displays methodology guide
+
+5. ✅ **Integration Tests Passing**:
+   - Fresh project initialization test passes
+   - Mode JSONs validate successfully
+
+6. ✅ **Documentation Complete**:
+   - Installation guide (README.md)
+   - All template files with placeholders
+
+### Acceptance Test Scenario
+
+**Scenario**: New developer sets up Roo AISDLC and implements authentication feature.
+
+**Steps**:
+1. Initialize: `python aisdlc-setup.py init --variant myapp`
+2. Verify: All directories and files created
+3. Activate Requirements mode: `@mode aisdlc-requirements`
+4. Provide intent: "Users should be able to log in with email and password"
+5. Verify: REQUIREMENTS.md contains REQ-F-AUTH-001 with acceptance criteria
+6. Activate Code mode: `@mode aisdlc-code`
+7. Implement: "Implement REQ-F-AUTH-001 using TDD"
+8. Verify: test_auth.py has failing test with tag `# Validates: REQ-F-AUTH-001`
+9. Verify: auth.py has implementation with tag `# Implements: REQ-F-AUTH-001`
+10. Verify: Tests pass, coverage ≥ 80%
+
+**Result**: Full traceability from intent to tested code with proper REQ-* tagging.
+
+---
+
+### Notes
+
+- Phase 1A establishes the foundation for Roo AISDLC
+- Phase 1B (Complete Workflow): Design, Tasks, System Test modes + remaining rules
+- Phase 1C (Polish): Validation scripts, remaining commands, complete documentation
+- Design documents already complete: ROO_PARITY_REQUIREMENTS.md (31 requirements), ROO_PARITY_DESIGN.md (detailed architecture)
+- Target: Claude parity for Phase 1 MVP (Requirements → System Test stages)
+
+---
+
 ## Summary
 
-**Total Active Tasks**: 5
+**Total Active Tasks**: 6
+- Critical Priority: 2
 - High Priority: 3
-- Medium Priority: 2
-- Not Started: 4
-  - Task #26: Claude-AISDLC Code Implementation (1.0 MVP) - HIGH ← NEW
+- Medium Priority: 1
+- Not Started: 5
+  - Task #30: Roo Parity Phase 1A - Foundation (1.0 Roo) - CRITICAL ← NEW
+  - Task #26: Claude-AISDLC Code Implementation (1.0 MVP) - HIGH
   - Task #14: Implement Codex Command Layer and Installers (1.0 MVP) - HIGH
   - Task #13: Repurpose /aisdlc-release for Release Management (1.0 MVP) - MEDIUM
   - Task #12: Ecosystem E(t) Tracking (v1.5 - planned) - MEDIUM
