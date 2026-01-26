@@ -122,6 +122,87 @@ The mapping:
 | Entanglement entropy | Area of surfaces |
 | Change in entanglement | Curvature |
 
+#### 9.1 Constraint Density, Compression, and Relativity
+
+**Near a superdense object** (black hole, neutron star):
+- Constraint network is maximally compressed - enormous constraint density
+- Every micro-region requires vastly more constraint structure
+- Updates propagate through a "thicker" constraint medium
+- Time slows because the local update rate decreases relative to sparse regions
+- Space "stretches" because more constraint structure is packed per unit of emergent coordinate
+
+**In "empty" space**:
+- Constraint network is sparse - minimal constraint density
+- Updates propagate near the maximum rate
+- Projection onto spacetime is "flat" (uniform constraint density)
+- Never truly empty - vacuum fluctuations are minimum non-zero constraint activity
+
+**The relativity of size**: An electron is a standing-wave mode of the constraint network. Near a black hole, the same standing wave (same constraint pattern) projects onto more coordinate space because the projection is denser. The electron is "bigger" in coordinates, but identical in constraint structure. This is gravitational effects applied to spatial extent.
+
+**Why gravity is weak**: Gravity is a second-order effect - the gradient of constraint density, not the density itself. Direct constraint couplings (electromagnetism, strong force) are primary; gravity is what the curvature of the compression map looks like from inside the projection.
+
+#### 9.2 Relationship to Smolin's Work
+
+**Credit where due**: Lee Smolin has developed closely related ideas through a more classical physics lens. His work deserves explicit acknowledgment, with areas of alignment and divergence noted.
+
+**Smolin's Key Contributions**:
+
+1. **Loop Quantum Gravity** (with Rovelli)
+   - Spacetime is discrete at Planck scale
+   - Spin networks as fundamental relational structure
+   - Area and volume are quantized
+
+   *Alignment*: Spin networks map almost directly to discrete constraint graphs. Quantized area = minimum constraint resolution. Spin foams = constraint network evolution.
+
+2. **Cosmological Natural Selection**
+   - Black holes spawn baby universes with mutated constants
+   - Selection pressure favors universes producing more black holes
+   - Constants evolve rather than being arbitrary
+
+   *Alignment*: Constants as attractor states of constraint dynamics. *Extension*: The constraint ontology frames this as meta-constraint selection across universe-generations.
+
+3. **Time Reborn / The Singular Universe**
+   - Time is fundamental, not emergent
+   - Space emerges from relational networks
+   - Laws of physics may evolve
+
+   *Partial alignment*: Both agree space emerges from relations. *Divergence*: Smolin insists time is fundamental; constraint ontology is agnostic (see below).
+
+**Key Divergence Table**:
+
+| Aspect | Smolin | Constraint Ontology |
+|--------|--------|---------------------|
+| Time | Fundamental, irreducible | Fundamental at base layer OR emergent - undetermined |
+| Laws | Evolve with time | Stable attractor states; appear fixed from within one basin |
+| Relations | Primary ontological category | Relations = constraint connections (compatible) |
+| Discreteness | Spin networks at Planck scale | Constraint network discreteness (compatible) |
+
+#### 9.3 The Fundamental Tick: Time at the Bottom
+
+If the constraint network has a bottom - a self-bounding, self-perpetuating standing wave that cannot decompose further - then:
+
+**The fundamental tick of time is the update rate of the base constraint layer.**
+
+This is the ultimate clock. Everything above it experiences time as **change measured on emergent constraint surfaces**:
+
+```
+Base layer tick (τ₀)           ← Fundamental: the self-perpetuating ground pattern updates
+    ↓
+Quantum field time             ← Change on the first emergent surface
+    ↓
+Particle time                  ← Change on the particle constraint plane
+    ↓
+Atomic time                    ← Change on the atomic constraint plane
+    ↓
+...                            ← Each layer measures time as its local rate of change
+    ↓
+Human experienced time         ← Change on the cognitive constraint plane
+```
+
+**The profound implication**: There is no universal "flow of time" - there is only the base tick and its cascading projections through emergent layers. What we call time at any scale is the measure of change upon that scale's constraint surface, ultimately grounded in the fundamental tick.
+
+This resolves the Smolin question differently: time is fundamental **at the base layer** (the tick exists), but **emergent at every layer above** (each layer's time is derived from constraint dynamics). Both views are correct at their respective scales.
+
 ### 10. Constants are Emergent Invariants
 
 Physical constants are not arbitrary inputs. They are invariants of stable attractor states of the constraint network. They must ultimately be derivable from deeper structural features.
