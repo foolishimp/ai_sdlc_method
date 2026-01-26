@@ -28,22 +28,35 @@ This document presents a coherent *ontological framework* - a way of thinking ab
 **The actual cycle of science**:
 
 ```
-Observe / Do things in the world
-         ↓
-Notice new behaviors (tools reveal phenomena)
-         ↓
-Update philosophical ontology (why does it work this way?)
-         ↓
-Hypothesize (what pattern explains this?)
-         ↓
-Formalize (write the mathematics)
-         ↓
-Test and prove (or refute)
-         ↓
-[cycle repeats with new tools and observations]
+       ┌────────────────────────────────────────┐
+       │                                        │
+       ▼                                        │
+   Observe through current model                │
+       │                                        │
+       ▼                                        │
+   Notice anomalies / new behaviors             │
+   (tools reveal what model couldn't predict)   │
+       │                                        │
+       ▼                                        │
+   Update ontology / model                      │
+   (why does it work this way?)                 │
+       │                                        │
+       ▼                                        │
+   Hypothesize (what pattern explains this?)    │
+       │                                        │
+       ▼                                        │
+   Formalize (write the mathematics)            │
+       │                                        │
+       ▼                                        │
+   Test predictions against observations ───────┘
+   (which are themselves model-dependent)
 ```
 
-We are at stage 3 - updating ontology based on what computation, AI, and modern physics have revealed. The formalization (stage 5) awaits someone who can write the mathematics. The testing (stage 6) awaits predictions that differ from current theory.
+**The key insight**: Observation is never raw - we always observe *through* a model. The model determines what we can notice and what remains invisible. Anomalies appear when reality resists the model. Updating the model changes what we can observe next.
+
+This is why ontology matters: **a better model reveals phenomena a worse model hides**.
+
+We are at the "update ontology" stage - refining the conceptual model based on what computation, AI, and modern physics have revealed. The formalization awaits someone who can write the mathematics. The testing awaits predictions that differ from current theory.
 
 This document is a snapshot of the philosophical stage - which is necessary, not preliminary. You cannot formalize what you cannot conceive.
 
