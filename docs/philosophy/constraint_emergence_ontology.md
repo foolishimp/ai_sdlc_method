@@ -4,6 +4,25 @@
 
 ---
 
+## Epistemic Status: Philosophical Speculation
+
+**This document is philosophy, not physics.**
+
+It presents a coherent *ontological framework* - a way of thinking about reality - but it is not a scientific theory. Specifically:
+
+- **No new mathematics**: It provides no equations beyond those already in standard physics
+- **No unique predictions**: It makes no testable predictions that distinguish it from General Relativity, Quantum Mechanics, or Quantum Field Theory
+- **No experimental program**: It suggests no experiments that could confirm or refute it
+- **Interpretation, not theory**: It reinterprets existing physics through a constraint lens, but does not extend the physics
+
+**What it is**: A philosophical synthesis that may be *useful for thinking* - particularly for bridging physics intuitions to computation and AI systems. The value, if any, is conceptual clarity, not scientific advance.
+
+**What it is not**: A contribution to physics. The speculations about constraint networks, variable-c, and emergent time are *consistent* with known physics but do not *add* to it.
+
+This honesty is essential. Confusing philosophy for physics is exactly the error this framework criticizes in others.
+
+---
+
 ## Executive Summary
 
 This document synthesizes key conclusions from a foundational exploration of how reality works at its deepest levels. The conversation developed a coherent ontological framework that:
