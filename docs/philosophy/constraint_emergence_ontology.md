@@ -4,22 +4,26 @@
 
 ---
 
-## Epistemic Status: Philosophical Speculation
+## Epistemic Status: Philosophy Preceding Physics
 
-**This document is philosophy, not physics.**
+**This document is philosophy - and science starts with philosophy.**
 
-It presents a coherent *ontological framework* - a way of thinking about reality - but it is not a scientific theory. Specifically:
+Einstein began with thought experiments about trains and light beams, not tensor calculus. Bohr and Heisenberg argued about ontology before the equations settled. Every major shift in physics was preceded by a conceptual reframing that made new mathematics *thinkable*.
 
-- **No new mathematics**: It provides no equations beyond those already in standard physics
-- **No unique predictions**: It makes no testable predictions that distinguish it from General Relativity, Quantum Mechanics, or Quantum Field Theory
-- **No experimental program**: It suggests no experiments that could confirm or refute it
-- **Interpretation, not theory**: It reinterprets existing physics through a constraint lens, but does not extend the physics
+This document presents a coherent *ontological framework* - a way of thinking about reality. In its current form:
 
-**What it is**: A philosophical synthesis that may be *useful for thinking* - particularly for bridging physics intuitions to computation and AI systems. The value, if any, is conceptual clarity, not scientific advance.
+- **No new mathematics yet**: It provides no equations beyond those already in standard physics
+- **No unique predictions yet**: It makes no testable predictions that distinguish it from GR, QM, or QFT
+- **Interpretation, not theory**: It reinterprets existing physics through a constraint lens
 
-**What it is not**: A contribution to physics. The speculations about constraint networks, variable-c, and emergent time are *consistent* with known physics but do not *add* to it.
+**What it is**: A philosophical synthesis that prepares conceptual ground. It may be useful for:
+- Bridging physics intuitions to computation and AI systems
+- Suggesting where new mathematics might be found
+- Identifying which questions are worth formalizing
 
-This honesty is essential. Confusing philosophy for physics is exactly the error this framework criticizes in others.
+**What it is not (yet)**: A scientific theory. The speculations about constraint networks, variable-c, and emergent time are *consistent* with known physics but do not *extend* it until formalized.
+
+**The honest position**: This is pre-physics. It may remain philosophy forever, or it may point toward mathematics that someone eventually writes down. The value now is conceptual clarity and a generative mental model. Whether it becomes more depends on whether it leads to formalism that makes new predictions.
 
 ---
 
