@@ -25,6 +25,28 @@ This document presents a coherent *ontological framework* - a way of thinking ab
 
 **The honest position**: This is pre-physics. It may remain philosophy forever, or it may point toward mathematics that someone eventually writes down. The value now is conceptual clarity and a generative mental model. Whether it becomes more depends on whether it leads to formalism that makes new predictions.
 
+**The actual cycle of science**:
+
+```
+Observe / Do things in the world
+         ↓
+Notice new behaviors (tools reveal phenomena)
+         ↓
+Update philosophical ontology (why does it work this way?)
+         ↓
+Hypothesize (what pattern explains this?)
+         ↓
+Formalize (write the mathematics)
+         ↓
+Test and prove (or refute)
+         ↓
+[cycle repeats with new tools and observations]
+```
+
+We are at stage 3 - updating ontology based on what computation, AI, and modern physics have revealed. The formalization (stage 5) awaits someone who can write the mathematics. The testing (stage 6) awaits predictions that differ from current theory.
+
+This document is a snapshot of the philosophical stage - which is necessary, not preliminary. You cannot formalize what you cannot conceive.
+
 ---
 
 ## Executive Summary
