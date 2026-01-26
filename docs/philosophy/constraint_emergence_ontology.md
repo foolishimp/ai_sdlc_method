@@ -82,6 +82,33 @@ Quantum nonlocality arises because constraints are global. Entangled systems sha
 
 Spacetime is not fundamental. It is the geometric projection of the constraint network at large scales - the drawing surface on which standing-wave patterns appear. Time is the parameter that orders updates of the constraint network.
 
+#### 8.1 Scale-Dependent Time: Change Upon Emergent Constraint Planes
+
+Time is not singular - it is **stratified by emergence level**. Each layer of the constraint hierarchy defines its own characteristic timescale: the rate at which patterns on that constraint plane update.
+
+| Emergence Layer | Characteristic Timescale | What "Changes" |
+|-----------------|-------------------------|----------------|
+| Quantum fields | ~10⁻⁴³ s (Planck) | Constraint network micro-updates |
+| Particles | ~10⁻²³ s | Field excitation dynamics |
+| Atoms | ~10⁻¹⁵ s (femto) | Electron orbital transitions |
+| Molecules | ~10⁻¹² s (pico) | Vibrational/rotational modes |
+| Chemistry | ~10⁻⁹ to 10⁻³ s | Reaction dynamics |
+| Cells | seconds to hours | Metabolic cycles |
+| Organisms | days to decades | Developmental/behavioral change |
+| Ecosystems | centuries to millions of years | Evolutionary dynamics |
+| Cognition/LLMs | milliseconds to hours | Inference, learning, context |
+
+**The key insight**: What we experience as "time" at any scale is the **rate of change upon that scale's emergent constraint plane**. Faster layers appear "frozen" to slower observers; slower layers appear "static background" to faster processes.
+
+This is why:
+- Atoms appear stable to chemistry (their timescale is orders of magnitude faster)
+- Geological time appears static to organisms
+- LLM inference (milliseconds) can model processes spanning millennia
+
+**Time as vector field**: At each emergence layer, time can be understood as a vector field on that layer's constraint manifold - pointing in the direction of allowed state transitions. Different layers have different "time vectors" - they evolve at different rates and in different constraint-defined directions.
+
+The hierarchy of times is not metaphorical - it is the natural consequence of constraint planes stacking. Each plane's "now" is defined by the update frequency of its standing-wave patterns.
+
 ### 9. Gravity is Constraint Geometry
 
 Gravity is not a force. It is the curvature of constraint connectivity that appears when energy/information density changes. Modern physics is converging on: **spacetime is the network diagram of entanglement**.
