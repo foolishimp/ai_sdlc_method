@@ -137,7 +137,43 @@ The mapping:
 - Projection onto spacetime is "flat" (uniform constraint density)
 - Never truly empty - vacuum fluctuations are minimum non-zero constraint activity
 
-**The relativity of size**: An electron is a standing-wave mode of the constraint network. Near a black hole, the same standing wave (same constraint pattern) projects onto more coordinate space because the projection is denser. The electron is "bigger" in coordinates, but identical in constraint structure. This is gravitational effects applied to spatial extent.
+**The relativity of size**: An electron is a standing-wave mode of the constraint network. Near a black hole, where constraint density is higher, more constraints are packed per unit of external coordinate. The same standing wave (same constraint pattern) therefore spans **fewer** coordinate units when viewed from far away. The electron appears **smaller** in external coordinates, but identical in constraint structure. Locally, using local atoms as rulers, everything appears normal - this is exactly how GR works.
+
+#### 9.1.1 The Nerf Ball Thought Experiment
+
+Imagine a 3D space filled with nerf balls (the constraints) connected by springs. **The space between the balls is where reality happens** - the standing waves exist in the gaps, shaped by the constraint boundaries.
+
+**Sparse region** (far from mass):
+```
+    O       O       O       O
+
+    O       O       O       O
+
+    O       O       O       O
+```
+- Large gaps between constraints
+- Standing waves have lots of room
+- An "electron" pattern spans many coordinate units
+
+**Dense region** (near massive object):
+```
+    OOOOOOOO
+    OOOOOOOO
+    OOOOOOOO
+```
+- Constraints packed tightly
+- Standing waves squeezed into smaller coordinate regions
+- The same "electron" pattern spans fewer coordinate units
+- From outside, the electron looks smaller
+
+**The key insight**: The electron IS the pattern in the gaps. In the dense region, the gaps are smaller in coordinate terms, so the pattern is smaller in coordinate terms. But the pattern itself - the standing wave eigenmode - is identical. It's still "one electron's worth" of constraint structure.
+
+**Why local physics is unchanged**: If you're made of the same constraint patterns, your rulers shrink too. You measure the electron with shrunken atoms and get the same number. Only an external observer using far-away coordinates sees the contraction.
+
+**What this predicts**:
+- Objects falling toward a black hole appear to contract (not just time-dilate)
+- The contraction is real in coordinate terms, not real in constraint terms
+- This is the same phenomenon as Lorentz contraction, but gravitational
 
 **Why gravity is weak**: Gravity is a second-order effect - the gradient of constraint density, not the density itself. Direct constraint couplings (electromagnetism, strong force) are primary; gravity is what the curvature of the compression map looks like from inside the projection.
 
@@ -202,6 +238,36 @@ Human experienced time         ← Change on the cognitive constraint plane
 **The profound implication**: There is no universal "flow of time" - there is only the base tick and its cascading projections through emergent layers. What we call time at any scale is the measure of change upon that scale's constraint surface, ultimately grounded in the fundamental tick.
 
 This resolves the Smolin question differently: time is fundamental **at the base layer** (the tick exists), but **emergent at every layer above** (each layer's time is derived from constraint dynamics). Both views are correct at their respective scales.
+
+#### 9.4 Variable Speed of Light and the Constraint Network
+
+**Historical context**: Einstein's early work (1911) proposed that the speed of light varies with gravitational potential. This was abandoned in favor of the invariant-c formulation of General Relativity. Alex Unzicker has been particularly vocal about revisiting variable-c, arguing physics took a wrong turn.
+
+**The question**: Does the constraint ontology favor fixed or variable c?
+
+**The resolution**: Both are correct at different levels of description.
+
+**In the constraint network itself**: c is constant - one tick propagates one constraint edge, always. The network has uniform local propagation properties.
+
+**In the emergent coordinate projection**: c appears variable because the mapping from constraint network to spacetime coordinates is non-uniform where constraint density varies.
+
+Using the nerf ball model:
+- In sparse regions: constraint edges are far apart in coordinates → light (constraint updates) crosses many coordinate units per tick → c appears high
+- In dense regions: constraint edges are close together in coordinates → light crosses fewer coordinate units per tick → c appears low
+
+**This unifies three phenomena as the same projection effect**:
+
+| Phenomenon | Constraint View | Coordinate View |
+|------------|-----------------|-----------------|
+| Time dilation | Same tick rate | Fewer ticks per coordinate second |
+| Length contraction | Same standing wave | Fewer coordinate units per pattern |
+| Variable c | Same propagation rate | Fewer coordinate units per tick |
+
+**The "invariance of c"** is a coordinate choice - using light itself to define coordinates - not an ontological fact about the network. When we use light-based coordinates, c is invariant by construction. When we use externally-defined coordinates (Schwarzschild), c varies with potential.
+
+**Unzicker's critique vindicated**: He is operationally correct - c measured in external coordinates should vary. The underlying network has uniform propagation, but that's not what we measure. The constraint ontology explains WHY variable-c and invariant-c are both valid descriptions of the same underlying reality.
+
+**The deep point**: c is not a fundamental constant of nature. It is the constraint-edge traversal rate projected onto whatever coordinate system you choose. The "value" of c tells you about your coordinates, not about the network.
 
 ### 10. Constants are Emergent Invariants
 
