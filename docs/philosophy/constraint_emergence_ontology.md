@@ -628,6 +628,101 @@ This is not metaphor. It is the same mathematics wearing different clothes.
 
 ---
 
+## Part IX: Research Directions Suggested by This Framework
+
+**Epistemic note**: These are *suggested* directions, not *derived* predictions. The ontology points toward questions worth asking - whether they lead anywhere depends on formalization and experiment.
+
+### 1. Constraint Network Mathematics
+
+The ontology lacks its own formalism. Key questions:
+- What algebra describes constraint propagation?
+- How do you formalize "constraint density" and its projection onto coordinates?
+- What is the compression map: network → Hilbert space → spacetime?
+- Can this be connected to existing formalisms (spin networks, causal sets, tensor networks)?
+
+**Why it matters**: Without mathematics, this remains philosophy. The formalism is the bridge.
+
+### 2. The Proton-Electron Mass Ratio
+
+The ratio ~1836 is unexplained in the Standard Model. If constants are emergent invariants of constraint topology:
+- Can this ratio be derived from constraint network structure?
+- What topological or algebraic property would fix it?
+- This is a concrete test: derive it or fail.
+
+**Why it matters**: A single successful derivation of one "arbitrary" constant would validate the entire approach.
+
+### 3. Gravity-Entanglement Correspondence
+
+Already active research (ER=EPR, AdS/CFT). The ontology predicts:
+- Entanglement IS constraint connectivity (not just correlated with it)
+- Gravity emerges from entanglement structure
+- Tabletop experiments linking entanglement to gravitational effects may be possible
+
+**Why it matters**: This is the most testable near-term prediction - gravity and entanglement should be two views of the same thing.
+
+### 4. Vacuum Structure and the Cosmological Constant
+
+The vacuum is not empty - it's the ground state of the constraint network. Questions:
+- What determines minimum non-zero constraint activity?
+- Why does vacuum energy have its observed (tiny) value?
+- Can constraint network ground states explain dark energy?
+
+**Why it matters**: The cosmological constant problem is one of the biggest failures of current theory. A constraint-based explanation would be significant.
+
+### 5. Discrete Spacetime and Constraint Resolution
+
+Is there a minimum constraint edge (Planck scale)?
+- How does discrete network → continuous spacetime emerge?
+- What is the relationship to loop quantum gravity, causal sets, Wolfram's hypergraphs?
+- Are there detectable signatures of discreteness?
+
+**Why it matters**: Connects the ontology to existing quantum gravity programs.
+
+### 6. LLMs as Constraint Manifold Laboratories
+
+This is the *accessible* research direction. LLMs are empirically manipulable constraint systems:
+- Study "collapse" (sampling) and stability (coherent outputs)
+- Study "hallucination" as unconstrained manifold regions
+- Map how prompting reshapes constraint topology
+- Look for patterns that generalize to physical constraint networks
+
+**Why it matters**: We can run experiments on LLMs today. They may teach us about constraint dynamics before we can probe physical constraints directly.
+
+### 7. The Fundamental Tick
+
+If the constraint network has a base update rate:
+- Is time discrete at the bottom?
+- How would we detect it? (Precision timing experiments? Cosmological signatures?)
+- What sets the tick rate?
+
+**Why it matters**: Connects to the nature of time itself.
+
+### 8. Variable-c Precision Tests
+
+The ontology predicts c is constant in the network but variable in coordinate projection:
+- Are there precision tests that distinguish this from standard GR?
+- Shapiro delay, gravitational redshift - already well-tested, but at what precision?
+- Does the ontology predict any deviation from GR, or is it purely interpretive?
+
+**Why it matters**: If variable-c makes different predictions than standard GR, it's testable. If not, it's interpretation only.
+
+### 9. Where Physics Went Wrong (Unzicker's Critique)
+
+The ontology frames 60 years of stagnation as:
+- Model became ceiling, not lens
+- Anomalies absorbed as parameters instead of signals
+- Infinities renormalized away instead of heeded
+- "Dark" placeholders for 95% of universe accepted
+
+Research direction: **Which anomalies should be re-examined as signals?**
+- Galaxy rotation curves (dark matter) - or modified gravity / constraint density effects?
+- Accelerating expansion (dark energy) - or vacuum ground state misunderstood?
+- Hierarchy problem - or asking the wrong question?
+
+**Why it matters**: The ontology suggests current anomalies may be pointing at the model boundary, not at missing particles.
+
+---
+
 ## Appendix: Key Figures and Their Alignment
 
 | Thinker | Key Contribution | Alignment |
