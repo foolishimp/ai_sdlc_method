@@ -36,15 +36,18 @@ The methodology aims to preserve:
 
 The entire methodology in one diagram:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   INTENT ──→ REQUIREMENTS ──→ BUILD ──→ EXECUTE ──→ OBSERVE    │
-│      ↑                                                  │       │
-│      │                                                  │       │
-│      └──────────────── FEEDBACK ←───────────────────────┘       │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph LOOP[" "]
+        INTENT["Intent<br/>(desire for change)"]
+        REQ["Requirements<br/>(REQ-* keys)"]
+        BUILD["Build<br/>(7-stage pipeline)"]
+        EXEC["Execute<br/>(production)"]
+        OBS["Observe<br/>(metrics, logs)"]
+    end
+
+    INTENT --> REQ --> BUILD --> EXEC --> OBS
+    OBS -->|"deviation"| INTENT
 ```
 
 | Stage | What Happens |
