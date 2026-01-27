@@ -32,6 +32,32 @@ The methodology aims to preserve:
 * **Context preservation** – Maintain shared understanding of constraints, standards, and decisions across all team members and stages
 * **Governance & safety** – Continuously monitor system behavior against expectations and respond to deviations
 
+### **1.1.3 Mental Model**
+
+The entire methodology in one diagram:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   INTENT ──→ REQUIREMENTS ──→ BUILD ──→ EXECUTE ──→ OBSERVE    │
+│      ↑                                                  │       │
+│      │                                                  │       │
+│      └──────────────── FEEDBACK ←───────────────────────┘       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Stage | What Happens |
+|-------|--------------|
+| **Intent** | Someone wants something changed (problem, opportunity, risk) |
+| **Requirements** | Intent becomes structured, traceable specs (REQ-*) |
+| **Build** | Design → Tasks → Code → Test → UAT (the 7-stage pipeline) |
+| **Execute** | Deployed system runs in production |
+| **Observe** | Monitor behavior, collect metrics, detect deviations |
+| **Feedback** | Deviations generate new intent → cycle repeats |
+
+**That's it.** Everything else is detail on how each stage works.
+
 ## **1.2 Core Principles**
 
 ### **1.2.1 Intent First**
@@ -129,6 +155,16 @@ This clarity ensures everyone knows their role and that work is reproducible whe
 - Compliance requirements evolve
 
 **Eco-Intent**: When E(t) changes, it generates **Eco-Intents** - automated feedback that triggers new SDLC cycles to adapt to ecosystem evolution (see Section 10.2.2).
+
+## **1.3 Non-Goals**
+
+This methodology is **not**:
+
+- **A CI/CD platform** - Use Jenkins, GitHub Actions, ArgoCD, etc. The AI SDLC integrates with your existing CI/CD; it doesn't replace it.
+- **A project management tool** - Use Jira, Linear, Trello, whatever works. The AI SDLC defines what goes into tickets, not how you track them.
+- **AI autonomy** - Humans decide, AI assists. The methodology augments human judgment; it doesn't replace accountability.
+- **A low-ceremony framework** - This is structured by design. If you want minimal process, look elsewhere.
+- **An enterprise governance framework (yet)** - v1.0 targets single developers and small teams. Formal approval matrices, conflict resolution procedures, and audit controls come in later versions.
 
 ---
 
@@ -2892,3 +2928,25 @@ This methodology reference contains Sections 1.0-13.0 covering the complete AI S
 - [Manager Guide](guides/manager_guide.md) - Governance, metrics, process (coming soon)
 
 **Excellence or nothing** 🔥
+
+---
+
+# **Appendix A: Glossary**
+
+| Term | Definition |
+|------|------------|
+| **Intent** | A desire for change—something to build, fix, or improve. The origin of all work. |
+| **Intent Manager** | The conceptual entry point where intent is captured and classified before entering the SDLC. |
+| **Requirement Key** | Unique, immutable identifier (e.g., REQ-F-AUTH-001) that traces through all stages. |
+| **Homeostasis Model** | Requirements treated as a living control system that defines target state, not a static spec. |
+| **CRUD Work Types** | Classification of intent: Create, Read, Update, Delete/Retire. |
+| **Builder.CRUD** | The 7-stage pipeline that processes all work types uniformly. |
+| **Ecosystem E(t)** | External environment at time t: platforms, APIs, compliance, costs, team skills. Given, not chosen. |
+| **Eco-Intent** | Automated intent generated when the ecosystem changes (CVEs, deprecations, cost spikes). |
+| **Sub-vector** | A nested or concurrent AI SDLC for complex activities (architecture, testing, data pipelines). |
+| **TDD** | Test-Driven Development: RED (failing test) → GREEN (minimal code) → REFACTOR → COMMIT. |
+| **BDD** | Behavior-Driven Development: Given/When/Then scenarios in business language. |
+| **ADR** | Architecture Decision Record: documents strategic technical decisions and their rationale. |
+| **Traceability** | Ability to follow a requirement from intent through code to runtime behavior (forward) or from production issue back to requirement (backward). |
+| **Governance Loop** | Continuous observation and evaluation of runtime behavior against requirements. |
+| **Key Principles** | Seven development principles for the Code stage: TDD, Fail Fast, Modular, Reuse, Open Source First, No Legacy, Excellence. |
