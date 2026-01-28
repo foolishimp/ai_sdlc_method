@@ -4,6 +4,98 @@
 
 ---
 
+## Part 0: Structural Invariance, Universal Computation, and the Ontology of Change
+
+### 0.1 The Level of Abstraction This Document Operates At
+
+This document does not propose a new physical substrate, a new computational rule set, or a new mathematical formalism. It operates at a higher level of abstraction: the structure of change itself.
+
+Across physics, computation, biology, cognition, and engineered systems, the medium differs—but the patterns governing how systems change, stabilise, collapse, and compose recur with striking regularity. This work adopts the position that these recurring patterns are not coincidental, nor merely metaphorical, but reflect structural invariants that persist across substrates.
+
+The central claim is therefore categorical, not material:
+
+> The invariants of reality live in the structure of admissible transformations, not in the material being transformed.
+
+This is structural realism about dynamics: the claim that what persists across substrates is the architecture of admissible change, not the substance undergoing change.
+
+### 0.2 Category Theory as Philosophical Orientation
+
+Category theory provides the philosophical orientation for this investigation—not as formalism to be deployed, but as a discipline of attention.
+
+The categorical stance asks: What transformations exist? What compositions are valid? What structure is preserved under mapping? It privileges:
+
+- **Morphisms over objects** — what things *do* over what things *are*
+- **Structure-preservation over identity** — family resemblance over strict equivalence
+- **Quotients over constructions** — emergence through forgetting irrelevant distinctions
+
+This document adopts that stance without constructing explicit categorical models. The aim is not to prove that physics, computation, and engineered systems form equivalent categories, but to investigate whether the patterns governing admissible change—constraint, stabilisation, collapse, composition—recur across substrates in ways that suggest shared structural principles.
+
+The payoff of this orientation is permission to seek universals without requiring exhaustive taxonomy. If the structure of change is what matters, we can recognise family resemblance across domains without claiming identity.
+
+### 0.3 Constraint as a Morphism-Level Concept
+
+Throughout this document, the term *constraint* should be understood structurally:
+
+> A constraint is not a rule that dictates what must happen next, but a condition that determines which transformations are admissible at all.
+
+Constraints:
+
+- Restrict which morphisms exist
+- Limit composability
+- Induce stability
+- Enable coarse-graining and abstraction
+- Define boundaries that allow subsystems to exist
+
+Seen this way, constraints are not opposed to freedom or computation; they are what make structured change possible. Without constraint, everything is permitted—and nothing persists.
+
+### 0.4 Universal Computation as the Ambient Space
+
+The ideas developed here align with the programme of universal computation: the recognition that sufficiently expressive systems can emulate arbitrary processes, regardless of substrate.
+
+Universal computation provides the ambient space—the totality of possible processes, the full landscape of potential evolutions, the maximal phase space of what can happen.
+
+This framework does not compete with that view. Instead, it asks a different question:
+
+> Why do only tiny regions of the space of all computations resemble physics, minds, or stable engineered systems?
+
+The division of labour:
+
+| Programme | Question |
+|-----------|----------|
+| Universal computation | What is possible? |
+| Constraint-emergence | What is *inhabitable*? |
+
+The universe we inhabit is not just computable—it is inhabitable. It supports stable objects, persistent structures, layered emergence, and observers embedded within the process. This document is concerned with the selection principles that distinguish such regions from the overwhelming majority of possible computations that are unstable, incoherent, or unstructurable.
+
+### 0.5 Emergence as Quotienting
+
+A recurring theme in what follows is that emergence does not arise from adding complexity, but from coarse-graining:
+
+- Collapsing many micro-states into effective macro-states
+- Identifying equivalence classes of transformations
+- Replacing detailed dynamics with higher-level invariants
+
+This is not metaphor. It is the same operation that appears in renormalisation, abstraction boundaries, interface design, modular software, and semantic stabilisation in language models.
+
+Emergence is therefore understood as passing to a quotient structure: new objects and morphisms appear, not because something was added, but because irrelevant distinctions were factored out.
+
+### 0.6 How to Read the Rest of This Document
+
+Everything that follows should be read through this lens:
+
+- When physics is discussed, the focus is on structural roles, not literal mechanisms
+- When computation or AI is discussed, the focus is on constraint behaviour, not intelligence claims
+- When parallels are drawn across domains, they are structural, not material
+- No claim is made that different systems are identical—only that the architecture of change is conserved
+
+The unifying question is always:
+
+> What must be true of any system—regardless of substrate—for stable, emergent structure to exist within it?
+
+The remainder of this document explores one answer: that reality, computation, and engineered systems alike are best understood as constraint-governed processes whose stable forms arise from invariant patterns of admissible change.
+
+---
+
 ## Epistemic Status: Philosophy Preceding Physics
 
 **This document is philosophy - and science starts with philosophy.**
