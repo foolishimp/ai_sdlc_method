@@ -229,6 +229,36 @@ If our laws of physics are not physics, several consequences follow:
 
 **The laws can change without reality changing.** We update our descriptions when we find better ones. The constraint network is indifferent to our revisions. Ptolemaic epicycles gave way to Keplerian ellipses; reality did not reorganize itself.
 
+> **Aside: The Edinburgh Error and Its Consequences**
+>
+> The confusion of map with territory has a specific intellectual history. The Edinburgh School's "Strong Programme" (Bloor, Barnes, 1970s) held that the *same* social causes explain both true and false scientific beliefs—that reality does not privilege one description over another. This fed into Foucault's power/knowledge framework, standpoint epistemology, and various critical theory programs.
+>
+> The problematic move:
+>
+> | Valid insight | Invalid extension |
+> |---------------|-------------------|
+> | Social position affects which questions get asked | Therefore there are no objective answers |
+> | Power structures influence what gets studied | Therefore "objectivity" is itself a power move |
+> | Dominant groups shape official knowledge | Therefore all knowledge claims are domination |
+>
+> The Aristotelian framework clarifies the error. It is *legitimate* to note that medical research historically underrepresented women and minorities—that's a social constraint on which questions got asked, and the constraint network had answers we weren't seeking. It is *illegitimate* to conclude that "objectivity" is merely a tool of oppression, or that the constraint network's answers depend on who is asking.
+>
+> The constraint network doesn't care about power dynamics. It constrains equally. The *questions we ask* are socially shaped. The *answers reality gives* are not.
+>
+> **Important nuance: The social emergent plane.** This does not mean beliefs are inconsequential. At the social level of emergence, models running in heads ARE causal forces. If everyone believes the bank will fail, the bank fails—the belief is a real constraint on that emergent plane. The map, at this level, reshapes the territory.
+>
+> This is why propaganda, emotional manipulation, and social engineering work. They don't change the base constraint network (physics); they engineer the *social* constraint landscape. Our evolved "gregarious social engine"—wired for social proof, emotional contagion, status hierarchies, tribal boundaries—makes us susceptible. Beliefs propagate through the social mesh like standing waves. Manipulate the belief, manipulate the behavior.
+>
+> | Level | Status of "beliefs/models" |
+> |-------|---------------------------|
+> | Base constraint network | Indifferent—beliefs don't change physics |
+> | Social emergent plane | Causal—beliefs ARE constraints here |
+> | Individual behavior | Shaped by social constraint landscape |
+>
+> The Edinburgh error is not claiming that social beliefs are consequential (they are). The error is concluding that because social beliefs shape social reality, *base reality* is also just belief. That's the level confusion. Physics doesn't care what you believe about gravity. Social systems care deeply what you believe about status, threat, and belonging.
+>
+> When you lose the map/territory distinction, you get "lived experience" as unfalsifiable truth claim, "objectivity" reframed as oppression, and disagreement reframed as harm. These are downstream consequences of the Edinburgh error: treating descriptions as if they were the reality being described—and failing to distinguish which level of reality is at stake.
+
 **"Fundamental" in physics means "fundamental to our current best description," not "fundamental to reality."** Quarks are fundamental in the Standard Model. Whether they are fundamental in the constraint network is a separate question that the Standard Model cannot answer.
 
 This is Aristotelian modesty: our knowledge is always of forms abstracted from substance. We never grasp the substance directly. We grasp it through the forms we extract—and the forms are ours. The equations are human artifacts. The constraint network is not.
