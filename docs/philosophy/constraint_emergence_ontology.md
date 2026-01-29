@@ -258,6 +258,24 @@ If our laws of physics are not physics, several consequences follow:
 > The Edinburgh error is not claiming that social beliefs are consequential (they are). The error is concluding that because social beliefs shape social reality, *base reality* is also just belief. That's the level confusion. Physics doesn't care what you believe about gravity. Social systems care deeply what you believe about status, threat, and belonging.
 >
 > When you lose the map/territory distinction, you get "lived experience" as unfalsifiable truth claim, "objectivity" reframed as oppression, and disagreement reframed as harm. These are downstream consequences of the Edinburgh error: treating descriptions as if they were the reality being described—and failing to distinguish which level of reality is at stake.
+>
+> **Game theory: Rehabilitating Foucault's insight.** Foucault wasn't entirely wrong—he was incomplete. Power *does* shape discourse. Game theory explains *why* and *how*, without nihilism:
+>
+> We are evolved optimizers. Shaping narratives is a *strategy* for maximizing payoffs. Our "gregarious social engine" implements game-theoretic behaviors:
+> - **Coalitional politics**: Form alliances, signal loyalty, punish defectors
+> - **Status games**: Hierarchy determines resource access; narrative shapes status
+> - **Information warfare**: Control the narrative = reshape others' constraint landscape
+> - **Reputation games**: Repeated interactions reward credibility (sometimes)
+>
+> | Position | Claim |
+> |----------|-------|
+> | Naive realism | Truth wins because it's true |
+> | Foucault | "Truth" is just whoever won the power game |
+> | Game-theoretic | Truth is one attractor, but stable lies can also be Nash equilibria; reality constrains which equilibria survive long-term |
+>
+> Foucault saw the game but denied the rules. Game theory says: yes, agents manipulate—but they play against *constraints*, including other optimizing agents and a reality that eventually pushes back. You can construct a "bank is safe" narrative, but if the vault is empty, reality intrudes.
+>
+> Chomsky's critique lands here: if you deny the constraints, you can't explain why some power plays *fail*. The constraint network—including game-theoretic equilibria—determines which narratives are stable and which collapse under pressure. Power is real. So are the limits of power.
 
 **"Fundamental" in physics means "fundamental to our current best description," not "fundamental to reality."** Quarks are fundamental in the Standard Model. Whether they are fundamental in the constraint network is a separate question that the Standard Model cannot answer.
 
