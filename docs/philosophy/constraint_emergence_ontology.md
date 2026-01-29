@@ -531,7 +531,7 @@ The mapping (correspondences, not identities):
 
 #### 10.1.1 The Nerf Ball Thought Experiment
 
-Imagine a 3D space filled with nerf balls (the constraints) connected by springs. **The space between the balls is where reality happens** - the standing waves exist in the gaps, shaped by the constraint boundaries.
+Imagine a 3D space filled with nerf balls of many different sizes (the constraints) pressed together. The balls are not uniform—they vary in size and shape. They are an analogy for topology we don't directly see—the underlying constraint structure. **The space between the balls is where reality happens** - the standing waves exist in the gaps, shaped by the constraint boundaries.
 
 **Sparse region** (far from mass):
 ```
@@ -566,6 +566,17 @@ Imagine a 3D space filled with nerf balls (the constraints) connected by springs
 - This is the same phenomenon as Lorentz contraction, but gravitational
 
 **Why gravity is weak**: In this description, gravity is a second-order effect - the gradient of constraint density, not the density itself. Direct constraint couplings (electromagnetism, strong force) are primary; what we describe as gravitational effects emerge from how density variation in the constraint network projects onto coordinate space.
+
+**The dynamic picture**: The diagrams above are static snapshots with uniform symbols for simplicity. The real topology has balls of many different sizes, constantly in motion, jostling and reconfiguring. The gaps shift continuously.
+
+Now imagine a quantum of energy—a fixed "volume of water"—propagating through this churning topology. The water must find its way through whatever gaps exist at each instant:
+- The **volume is conserved** (charge, energy-momentum, quantum numbers)
+- The **shape is dictated by the available gaps** at each moment
+- The **path emerges** from the instantaneous gap configuration
+
+**Feynman diagrams reframed**: Each diagram represents one possible gap-sequence the water could navigate. The full amplitude sums over all sequences. What we call **virtual particles** are the transient shapes the water takes as it squeezes through different gap configurations—not separate entities emitted and absorbed, but the conserved quantum adapting its form to the available topology.
+
+The vacuum is not empty. The churning balls ARE other constraint patterns—other particles, field modes, vacuum fluctuations. A propagating quantum navigates through all of it.
 
 #### 10.2 Relationship to Smolin's Work
 
