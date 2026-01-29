@@ -46,6 +46,67 @@ No other moral, ideological, cultural, or political assumptions may be introduce
 
 ---
 
+## **Foundational Assumptions (Model Grounding)**
+
+This Political OS is not neutral. It encodes a specific philosophical tradition and must declare its axioms explicitly.
+
+### **Philosophical Grounding: Classical Western Liberalism**
+
+This OS is grounded in the Classical Liberal tradition (Locke, Mill, etc.) which holds that:
+- The **individual** is the irreducible unit of political analysis
+- The **state** derives legitimacy from the consent of individuals
+- **Authority** requires justification; freedom is the default
+
+This is ONE possible Political OS among alternatives:
+
+| Political OS Variant | Primary Unit | Pre-Order (Gradient Direction) |
+|---------------------|--------------|-------------------------------|
+| **Classical Liberal (this document)** | Individual | Consent > Coercion |
+| Collectivist | Class / Nation / State | Collective good > Individual preference |
+| Theocratic | Divine order | Submission > Autonomy |
+| Communitarian | Community | Belonging > Exit |
+
+By adopting Classical Liberalism, this OS **chooses** to optimize for individual agency. This is a philosophical commitment, not a discovered truth.
+
+### **The Individual as Irreducible Markov Object**
+
+In constraint ontology terms: the individual is the **irreducible** Markov object in this system—the smallest unit that cannot be further factored without losing agency.
+
+- **The State** is not a Markov object with its own rights. It is a **Constraint Geometry**—a mesh designed to facilitate interactions between individual Markov objects.
+- **Collectives** (institutions, corporations, parties) are composite structures that derive legitimacy from the consent of their constituent individuals.
+- State-centric arguments ("The State needs X for the greater good") are treated as **Political Programs** to be evaluated against the OS invariants, not as OS-level constraints themselves.
+
+### **The Pre-Order: Consent > Coercion**
+
+The topological pre-order of this OS is directional:
+
+- **Consent** is the ground state (lowest energy, most stable configuration)
+- **Coercion** is potential energy (instability that must be minimized)
+- The system "rolls downhill" toward consent via gradient descent
+
+Agency and Information (invariants 1.1 and 1.2) are the **load-bearing constraints**. Compress them and the consent gradient inverts—the system rolls toward coercion rather than away from it.
+
+### **Rights as Admissible Transformations (Aristotelian)**
+
+Aligning with Aristotelian ontology (not Platonic): "Rights" are not abstract entities that exist in a vacuum. They are **structural guarantees that certain morphisms remain available**:
+
+- A "Right to Information" = the transformation "Exchange Information" is never deleted from the network
+- A "Right to Exit" = the transformation "Leave Association" remains accessible
+- "Legitimacy" = the system's potential for revocability remains actualized
+
+Rights are constraints on the constraint geometry—meta-constraints that preserve the shape of the manifold.
+
+### **Scope: Individual vs State**
+
+This OS addresses the relationship between **individuals and the state**. It does not address:
+- Individual-to-individual conflicts (these are resolved by legal systems derived from this OS)
+- International relations between states
+- Sub-state community governance
+
+These domains may have their own OS layers compiled from this foundation.
+
+---
+
 ## **Definitions**
 
 ### **Consent**
