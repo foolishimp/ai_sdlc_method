@@ -1380,24 +1380,56 @@ Research direction: **Which anomalies should be re-examined as signals?**
 
 ---
 
-## Appendix: Key Figures and Their Alignment
+## References and Influences
+
+### Primary Philosophical Influences
+
+| Author | Work | Key Contribution | Alignment |
+|--------|------|------------------|-----------|
+| **Terrence W. Deacon** | *Incomplete Nature: How Mind Emerged from Matter* (2011) | Absential causation - constraints and absences as generative; emergence through what is *not* present | Very strong |
+| **Mark Solms** | *The Hidden Spring: A Journey to the Source of Consciousness* (2021) | Consciousness localized in brainstem; affect as primary; emergence from simpler substrate | Strong |
+| **Jeff Hawkins** | *A Thousand Brains: A New Theory of Intelligence* (2021) | Cortical columns as reference frames; distributed model-building; voting across thousands of models | Very strong |
+
+### Physics and Foundations
 
 | Thinker | Key Contribution | Alignment |
 |---------|-----------------|-----------|
-| **David Bohm** | Implicate order, particles as projections | Strong |
-| **Gerard 't Hooft** | Deterministic substratum, cellular automaton | Strong |
+| **David Bohm** | Implicate order, particles as projections of deeper structure | Strong |
+| **Gerard 't Hooft** | Deterministic substratum, cellular automaton interpretation | Strong |
 | **John Wheeler** | "It from bit", geometry from information | Strong |
-| **Michael Atiyah** | Topological foundations | Strong |
-| **Edward Witten** | TQFT, geometry as fundamental | Strong |
-| **Michael Levin** | Topological order, emergent particles | Very strong |
-| **Xiao-Gang Wen** | String-net condensation | Very strong |
+| **Lee Smolin** | Loop quantum gravity, relational space, time as fundamental | Partial (see Section 10.2) |
 | **Carlo Rovelli** | Relational QM, emergent spacetime | Strong |
-| **Kenneth Wilson** | Renormalization group | Strong (mathematical engine) |
-| **Stephen Wolfram** | Ruliad, computational emergence | Very strong |
-| **Alex Unzicker** | Conceptual clarity, critique of reification | Very strong |
+| **Alex Unzicker** | Conceptual clarity, critique of reification, variable-c | Very strong |
+
+### Mathematics and Topology
+
+| Thinker | Key Contribution | Alignment |
+|---------|-----------------|-----------|
+| **Michael Atiyah** | Topological foundations of physics | Strong |
+| **Edward Witten** | TQFT, geometry as fundamental | Strong |
+| **Kenneth Wilson** | Renormalization group as layer translation | Strong (mathematical engine) |
+
+### Condensed Matter and Emergence
+
+| Thinker | Key Contribution | Alignment |
+|---------|-----------------|-----------|
+| **Michael Levin** | Topological order, emergent particles from collective behavior | Very strong |
+| **Xiao-Gang Wen** | String-net condensation, particles as topological defects | Very strong |
+
+### Computation and Information
+
+| Thinker | Key Contribution | Alignment |
+|---------|-----------------|-----------|
+| **Stephen Wolfram** | Ruliad, computational emergence, hypergraph physics | Very strong |
+
+### Related Work
+
+| Document | Relationship |
+|----------|--------------|
+| *Emergent Reasoning in Large Language Models* (this repository) | Formalizes how LLMs traverse constraint manifolds - the computational substrate that makes this ontology usable as a reasoning environment |
 
 ---
 
-**Document Version**: 1.0
+**Document Version**: 1.1
 **Synthesis Date**: January 2026
 **Source**: Exploratory philosophical discourse on constraint-emergence ontology
