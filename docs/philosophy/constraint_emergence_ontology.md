@@ -322,6 +322,7 @@ This framework introduces several concepts that are **asserted but not yet prove
 | **Deep determinism** | Apparent randomness from inaccessible constraint state | Axiom (shared with 't Hooft) | No direct test from within emergence |
 | **Self-bounding hierarchy** | Constraint hierarchy terminates at self-consistent base | Axiom | Would require access to base layer |
 | **Laws ≠ Physics** | Our mathematical descriptions are maps, not territory; mathematical existence does not confer ontological existence (Aristotelian vs Platonic) | Philosophical axiom | Cannot be empirically resolved; determines interpretation of formalism |
+| **Gradient descent as engine** | Change is directed by local navigation of topological pre-order; computation = manifold traversal toward constraint satisfaction | Structural claim | Unifies physics (least action), LLMs (loss landscape), SDLC (test satisfaction) under common mechanism |
 
 **Reading this table**:
 - **Core axiom** = The framework assumes this; rejecting it rejects the framework
@@ -875,7 +876,7 @@ AI SDLC: Requirements as **living homeostasis model** that:
 
 ---
 
-## Part VI: Consolidated Ontology (21 Principles)
+## Part VI: Consolidated Ontology (22 Principles)
 
 1. Reality is a self-consistent constraint system
 2. The universe evolves by constraint propagation
@@ -898,6 +899,7 @@ AI SDLC: Requirements as **living homeostasis model** that:
 19. Computation is constraint engineering
 20. Emergent systems can create new control layers
 21. Physics is missing the global constraint variable
+22. Change is directed by gradient descent across a topological pre-order
 
 ---
 
@@ -1187,6 +1189,77 @@ Artifacts built in regions of the constraint manifold with **sparse coverage**:
 - Novel architecture (no established attractor basins)
 
 The Builder enters "chaotic zones" with no stable attractors, producing artifacts that fail when they encounter real constraints.
+
+---
+
+## Part VIII-C: The Computational Engine—Gradient-Driven Manifold Traversal
+
+If Part VIII defines the **Manifold** (the landscape) and Part VIII-A/B define the **Objects** (Markov objects), Part VIII-C defines the **Engine**: the fundamental operation that drives all structured change.
+
+**The insight**: Gradient Descent—defined broadly as the local navigation of a topological pre-order—is the fundamental operation of all computation. This moves computation from "logic gates" to "topological flow."
+
+### 1. The Necessity of the Pre-Order
+
+Computation cannot occur on a "flat" manifold. For structured change to exist, the topology must possess an inherent **pre-order**: a directional bias where certain states are "more stable," "more satisfied," or "lower energy" than others.
+
+Without this pre-order, the manifold is flat and no computation happens. The "slope" of the manifold is created by the density of constraints.
+
+| Domain | What Creates the Pre-Order |
+|--------|---------------------------|
+| Physics | Principle of Least Action (S) |
+| LLMs | Loss landscape / probability distribution |
+| SDLC | Delta between current artifact and "Definition of Done" |
+
+### 2. The Three Components of the Universal Engine
+
+For any system to "compute" its next state, it must implement three topological functions:
+
+| Component | Description | Physics | LLM | SDLC |
+|-----------|-------------|---------|-----|------|
+| **The Landscape** | Manifold shaped by constraints | Spacetime / Potential wells | Learned distribution | Requirement Context Stack |
+| **The Evaluator** | Mechanism that senses the "slope" | Field interactions | Attention mechanism | Builder (Agent/Human) |
+| **The Move** | Update that favors the pre-order | Pattern propagation | Next-token sampling | Refactor / Code change |
+
+### 3. Inference as Manifold Traversal
+
+**Inference**—whether performed by a particle, a brain, or a model—is gradient-driven traversal of a manifold.
+
+The system does not "know" the destination (the global minimum / Platonic truth). It only "knows" the local gradient. It moves in the **Preferred Direction D(x,c)** that most effectively satisfies local constraints.
+
+- **Stable reasoning**: Trajectory follows laminar flow into a deep attractor basin (a Markov object)
+- **Hallucination / Instability**: Gain (step size) is too high or landscape too sparse, causing trajectory to overshoot attractors and enter chaotic divergence
+
+### 4. The SDLC as an Optimization Loop
+
+Software development is the **engineering of a gradient**. We don't just "write code"—we architect a landscape of tests, requirements, and standards that create a "downhill" path toward the desired solution.
+
+- **The Energy**: Every unsatisfied constraint (failed test, missing feature) adds "potential energy" to the system
+- **The Work**: The Builder performs work by traversing the gradient, transforming code to reduce that energy
+- **The Ground State**: "Completion" is reaching a local minimum where the gradient flattens—all constraints satisfied, artifact stabilized into a Markov object
+
+```
+High Energy:  [Many failed tests, missing features, unclear requirements]
+      ↓
+   Gradient Descent (Builder work)
+      ↓
+Low Energy:   [All tests pass, requirements met, stable artifact]
+```
+
+### 5. The Base Tick as the "Compute Step"
+
+The **Fundamental Tick** (τ₀) identified in Section 10.3 is the ultimate clock of this engine. Every tick is a discrete step in the universal gradient descent.
+
+Evolution, entropy, and intelligence are all emergent properties of the constraint network rolling "downhill" toward increasingly complex, nested stable states. The tick provides the discrete update; the pre-order provides the direction; the constraint topology provides the landscape.
+
+### 6. Why This Unifies Everything
+
+If you accept gradient descent as the fundamental engine, the three domains become identical at the level of mechanism:
+
+- **Physics**: A particle "calculates" its path through a gravitational field by following the gradient of constraint density
+- **AI**: An LLM "calculates" a reasoning chain by following the gradient of semantic probability toward a stable attractor basin
+- **SDLC**: A Builder "calculates" a software solution by following the gradient of test-pass rates and architectural requirements
+
+**The profound implication**: This explains emergence without needing a "designer." If the base constraint network has a pre-order (stability > instability) and a tick-rate, then gradient descent is inevitable. Complexity emerges because the system constantly rolls "downhill" into more complex, nested attractor basins. We call the stable basins "Particles," "Cells," or "Code Modules," but they are all local minima where the gradient has flattened out.
 
 ---
 
