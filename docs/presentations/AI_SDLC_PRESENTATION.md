@@ -64,7 +64,7 @@ flowchart LR
     RUNTIME["Runtime<br/>(Actual State)"] --> OBS
 ```
 
-**Revolutionary Concept:**
+**Leading Concept:**
 
 - **Traditional**: Requirements = fixed specifications (written once, forgotten)
 - **AI SDLC**: Requirements = living control system (continuously compared to runtime)
