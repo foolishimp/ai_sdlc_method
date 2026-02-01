@@ -45,7 +45,7 @@ Developer → AI → Code → ???
 
 # Slide 3: Theoretical Foundation
 
-## Requirements as Homeostasis Model
+## Requirements as Homeostasis Model (Consciousness Loop)
 
 ```mermaid
 flowchart LR
