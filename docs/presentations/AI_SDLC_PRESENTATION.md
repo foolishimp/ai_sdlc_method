@@ -43,9 +43,114 @@ Developer → AI → Code → ???
 
 ---
 
-# Slide 3: Theoretical Foundation
+# Slide 3: The Chain of Intentionality
 
-## Requirements as Homeostasis Model (Consciousness Loop)
+## Where Does Intent Come From?
+
+```mermaid
+flowchart LR
+    subgraph Origin["Origin of Intent"]
+        RW["🌍 Real World<br/>(Infinitely Complex)"]
+        PERSON["👤 Person<br/>Observes"]
+        MENTAL["🧠 Mental Model<br/>(Abstraction of Reality)"]
+    end
+
+    RW -->|"Observes"| PERSON
+    PERSON -->|"Compares against"| MENTAL
+    MENTAL -->|"Mismatch detected"| INT["💡 Intent<br/>(Problem to Solve)"]
+```
+
+**The Insight:**
+- IT Systems are built to solve real-world problems
+- The real world is infinitely complex
+- Our minds store only a small abstraction of reality
+- Our IT Systems (for now) store even less
+- **Intent arises from mismatch between observation and mental model**
+
+---
+
+# Slide 4: The Complete Consciousness Loop
+
+## Builder → Executor → Observer → Evaluator → Intent
+
+```mermaid
+flowchart TB
+    subgraph Builder["🔨 BUILDER (AI SDLC)"]
+        INT["Intent"] --> REQ["Requirements"]
+        REQ --> DES["Design"]
+        DES --> CODE["Code"]
+    end
+
+    subgraph Assets["📦 DOMAIN ASSETS"]
+        CODE --> STORE["Asset Service<br/>(Git, Registry)"]
+    end
+
+    subgraph Executor["⚡ EXECUTOR"]
+        STORE -->|"Deploy"| RUN["Running System"]
+        RUN --> DATA["Domain Data<br/>(World Model)"]
+    end
+
+    subgraph Observer["👁️ OBSERVER / EVALUATOR"]
+        DATA --> OBS["Observer<br/>(Monitor)"]
+        OBS --> EVAL["Evaluator"]
+        HOMEO["Homeostasis Model<br/>(Requirements)"] --> EVAL
+        EVAL -->|"Deviation?"| NEWINT["New Intent"]
+    end
+
+    NEWINT -.->|"Feedback Loop"| INT
+
+    style INT fill:#e3f2fd
+    style NEWINT fill:#e3f2fd
+    style HOMEO fill:#fff3e0
+```
+
+**The Four Phases:**
+
+| Phase | Purpose | Output |
+|-------|---------|--------|
+| **Builder** | Transform intent into executable assets | Code, Tests, Configs |
+| **Executor** | Run assets to create domain data | Running system + World Model |
+| **Observer** | Monitor the changing world | Observations, Metrics |
+| **Evaluator** | Compare actual vs. required state | Deviations → New Intent |
+
+**This is the Consciousness Loop**: The system becomes *aware* of its own behavior and self-corrects.
+
+---
+
+# Slide 5: Intent Categories
+
+## Discovery vs. Builder
+
+```mermaid
+flowchart LR
+    INT["💡 Intent"] --> DISC["🔍 Discovery<br/>(Find new solutions)"]
+    INT --> BUILD["🔨 Builder<br/>(Build known solutions)"]
+
+    DISC -->|"Research, POC"| NEWMODEL["Improve<br/>Homeostasis Model"]
+    BUILD -->|"AI SDLC"| ASSETS["Create<br/>Domain Assets"]
+
+    NEWMODEL -.-> INT
+    ASSETS --> EXEC["Execute"] --> DATA["Domain Data"]
+    DATA -.-> INT
+```
+
+| Category | Purpose | When to Use |
+|----------|---------|-------------|
+| **Discovery** | Find new solutions to improve the homeostasis model | Unknown problem space, research, POC |
+| **Builder** | Build assets using known solution patterns | Known solution, ready to implement |
+
+**Builder Work Types (CRUD):**
+- **Create**: Build something new (greenfield)
+- **Update**: Change existing behavior (enhancement)
+- **Remediation**: Fix risks/bugs (urgent)
+- **Read**: Analysis/discovery (investigation)
+- **Delete**: Decommission (tech debt reduction)
+
+---
+
+# Slide 6: The Homeostasis Model in Detail
+
+## Requirements as Living Control System
 
 ```mermaid
 flowchart LR
@@ -76,7 +181,7 @@ flowchart LR
 
 ---
 
-# Slide 4: The 7-Stage Pipeline
+# Slide 7: The 7-Stage Pipeline
 
 ## Complete Lifecycle with Full Traceability
 
@@ -107,7 +212,7 @@ flowchart LR
 
 ---
 
-# Slide 5: The Golden Thread
+# Slide 8: The Golden Thread
 
 ## Requirement Traceability from Intent to Runtime
 
@@ -152,7 +257,7 @@ logger.info("Login failed", extra={"req": "REQ-F-AUTH-001"})
 
 ---
 
-# Slide 6: Code Stage - TDD + Key Principles
+# Slide 9: Code Stage - TDD + Key Principles
 
 ## The Heart of Quality: No Code Without Tests
 
@@ -180,7 +285,7 @@ flowchart LR
 
 ---
 
-# Slide 7: BDD - Executable Specifications
+# Slide 10: BDD - Executable Specifications
 
 ## Business-Readable Tests That Validate Requirements
 
@@ -216,7 +321,7 @@ Feature: Customer Self-Service Portal
 
 ---
 
-# Slide 8: Ecosystem-Aware Development
+# Slide 11: Ecosystem-Aware Development
 
 ## Acknowledging External Reality: E(t)
 
@@ -249,7 +354,7 @@ flowchart TB
 
 ---
 
-# Slide 9: What Makes AI SDLC Unique
+# Slide 12: What Makes AI SDLC Unique
 
 ## Differentiators from Traditional and Ad-hoc Approaches
 
@@ -287,7 +392,7 @@ quadrantChart
 
 ---
 
-# Slide 10: Sub-Vectors - Concurrent Development
+# Slide 13: Sub-Vectors - Concurrent Development
 
 ## Complex Activities Spawn Their Own AI SDLC
 
@@ -327,7 +432,7 @@ flowchart TB
 
 ---
 
-# Slide 11: Complete Walkthrough
+# Slide 14: Complete Walkthrough
 
 ## REQ-F-AUTH-001: From Intent to Runtime
 
@@ -377,7 +482,7 @@ flowchart TB
 
 ---
 
-# Slide 12: Getting Started
+# Slide 15: Getting Started
 
 ## Three Paths to Adoption
 
