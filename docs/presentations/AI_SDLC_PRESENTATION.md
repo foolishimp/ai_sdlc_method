@@ -546,5 +546,370 @@ Project Plugin
 
 *"Excellence or nothing"* 🔥
 
+---
+
+# Appendix A: Use Case Example - Categorical Data Mapping Engine (CDME)
+
+## Real-World Demonstration of AI SDLC in Practice
+
+**Project**: `/ai_sdlc_examples/local_projects/data_mapper.test02`
+
+This production-grade example demonstrates the complete 7-stage AI SDLC methodology applied to a mathematically rigorous data transformation engine.
+
+---
+
+## A.1: Project Overview
+
+### What is CDME?
+
+A **type-safe data transformation engine** built on Category Theory principles that:
+
+- **Prevents silent data bugs** through compile-time validation
+- **Proves no data loss** with accounting ledger invariants
+- **Tracks complete lineage** from source to destination
+- **Enforces grain safety** (can't accidentally mix atomic and aggregated data)
+
+### Technology Stack
+
+| Component | Choice |
+|-----------|--------|
+| Language | Scala 2.13.12 |
+| Engine | Apache Spark 4.0.1 |
+| Runtime | Java 25 |
+| Testing | ScalaTest (BDD) |
+| Methodology | AI SDLC (all 7 stages) |
+
+### Quality Metrics
+
+| Metric | Value |
+|--------|-------|
+| Formal Requirements | 60+ (REQ-* tagged) |
+| Architectural Decisions | 24 ADRs |
+| Passing Tests | 234 |
+| BDD Scenarios | 53 |
+| Test Coverage | ≥80% |
+
+---
+
+## A.2: Stage-by-Stage Implementation
+
+### Stage 1: Requirements
+
+**Artifact**: `docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md`
+
+```
+Intent: INT-001 "Build categorical data mapping engine"
+    ↓
+Requirements (60 formal specifications):
+├── REQ-LDM-01 through REQ-LDM-06: Logical Data Model
+├── REQ-PDM-01 through REQ-PDM-05: Physical Data Model
+├── REQ-TRV-01 through REQ-TRV-06: Traversal & Composition
+├── REQ-TYP-01 through REQ-TYP-07: Type System
+├── REQ-ADJ-01 through REQ-ADJ-05: Adjoint Morphisms
+├── REQ-ACC-01 through REQ-ACC-05: Accounting Ledger
+└── REQ-ERROR-*, REQ-AI-*, REQ-CFG-*: Cross-cutting concerns
+```
+
+**Example Requirement**:
+```yaml
+REQ-ACC-01: Accounting Invariant
+  Description: Every input record must appear in exactly one output
+               (either valid results or error domain)
+  Rationale: Prove no data loss during transformations
+  Priority: MUST
+  Acceptance: sum(input) = sum(valid_output) + sum(errors)
+```
+
+---
+
+### Stage 2: Design
+
+**Artifact**: `docs/design/data_mapper/AISDLC_IMPLEMENTATION_DESIGN.md` (3,279 lines)
+
+```mermaid
+flowchart TB
+    subgraph Core["CDME Architecture"]
+        REG["Schema Registry<br/>(LDM Topology)"]
+        COMP["Compiler<br/>(Path Validation)"]
+        EXEC["Executor<br/>(Spark Engine)"]
+    end
+
+    subgraph Outputs["Output Types"]
+        VALID["Valid Results"]
+        ERR["Error Domain<br/>(Dead Letter Queue)"]
+        LEDGER["Accounting Ledger<br/>(Proof of No Loss)"]
+        LINE["Lineage Graph"]
+    end
+
+    REG --> COMP
+    COMP -->|"Validated Path"| EXEC
+    EXEC --> VALID
+    EXEC --> ERR
+    EXEC --> LEDGER
+    EXEC --> LINE
+```
+
+**Key ADRs**:
+
+| ADR | Decision | Rationale |
+|-----|----------|-----------|
+| ADR-001 | Adjoint over Dagger | Cleaner reversibility semantics |
+| ADR-002 | Schema Registry as source of truth | Single validation point |
+| ADR-003 | Either monad for errors | Type-safe error propagation |
+| ADR-005 | Grain as first-class concept | Prevent aggregation bugs |
+| ADR-006 | Deterministic execution | Reproducible results |
+
+---
+
+### Stage 3: Tasks
+
+**Artifact**: `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
+
+```markdown
+## Task #11: Tax Agent Domain Model
+Status: COMPLETE
+Requirements: REQ-LDM-01 through REQ-LDM-06, REQ-TRV-01, REQ-TRV-02
+Deliverable: Domain model with 6 business types
+
+## Task #12: Tax Agent Data Generator
+Status: COMPLETE
+Requirements: REQ-TRV-05 (reproducibility)
+Deliverable: Generator producing 818,876 entries in 8.5s
+
+## Task #13: Tax Agent System Spec
+Status: COMPLETE
+Requirements: REQ-LDM-03, REQ-TRV-02, REQ-INT-01, REQ-ACC-01-05
+Deliverable: 20 BDD scenarios, 234 total tests passing
+```
+
+---
+
+### Stage 4: Code (TDD)
+
+**Location**: `src/data_mapper.spark.scala/src/main/scala/cdme/`
+
+**TDD Cycle Applied**:
+
+```scala
+// 🔴 RED: Write failing test first
+"AccountingLedger" should "prove no data loss" in {
+  val input = generateTestData(1000)
+  val result = executor.run(input)
+
+  // Validates: REQ-ACC-01
+  result.ledger.inputCount shouldBe 1000
+  result.ledger.validCount + result.ledger.errorCount shouldBe 1000
+}
+
+// 🟢 GREEN: Implement minimal solution
+// Implements: REQ-ACC-01, REQ-ACC-02, REQ-ACC-03, REQ-ACC-04
+class AccountingLedger {
+  def record(input: DataFrame, valid: DataFrame, errors: DataFrame): Proof = {
+    val inputCount = input.count()
+    val validCount = valid.count()
+    val errorCount = errors.count()
+
+    require(inputCount == validCount + errorCount,
+      s"Accounting invariant violated: $inputCount != $validCount + $errorCount")
+
+    Proof(inputCount, validCount, errorCount, verified = true)
+  }
+}
+
+// 🔵 REFACTOR: Improve quality
+// ✅ COMMIT: "feat: Implement AccountingLedger (REQ-ACC-01/02/03/04)"
+```
+
+---
+
+### Stage 5: System Test (BDD)
+
+**Artifact**: `src/test/scala/cdme/airline/AirlineSystemSpec.scala`
+
+```gherkin
+Feature: Multi-Leg International Booking with Currency Conversion
+  # Validates: REQ-TRV-02, REQ-TYP-03, REQ-ADJ-01, REQ-ACC-01
+
+  Scenario: Daily revenue summary for cross-border flights
+    Given FlightSegment entities (SFO→LHR, LHR→CDG) with currencies (USD, GBP, EUR)
+    When traversing path FlightSegment.Journey.Customer
+    And aggregating revenue to daily grain
+    Then grain transitions from Atomic to Daily
+    And currency normalizes to reporting currency (USD)
+    And adjoint metadata captures reverse path
+    And accounting ledger proves all segments accounted for
+```
+
+**Tax Agent Example** (`TaxAgentSystemSpec.scala`):
+
+```gherkin
+Feature: Tax Form Consolidation
+  # Validates: REQ-LDM-03, REQ-TRV-02, REQ-ACC-01
+
+  Scenario: Route PersonalLedger entries to TaxForm.PersonalSection
+    Given PersonalLedger with income/deductions/credits (atomic grain)
+    When aggregating to TaxForm (yearly grain) grouped by customer_id, tax_year
+    Then grain safety prevents invalid direct copy
+    And only valid (status='POSTED') entries included
+    And accounting invariant holds
+    And adjoint metadata traces each line to source entries
+```
+
+---
+
+### Stage 6: UAT
+
+**Artifact**: `src/test/scala/cdme/UATSpec.scala` (33 scenarios)
+
+```gherkin
+Feature: Business User Data Transformation
+  # Pure business language, no technical jargon
+
+  Scenario: Accountant views daily revenue summary
+    Given I have flight booking data for last week
+    When I request a daily revenue summary
+    Then I should see totals by day
+    And every booking should be accounted for
+    And I can trace any total back to individual bookings
+```
+
+---
+
+### Stage 7: Runtime Feedback
+
+**Implementation**: `AccountingLedger.scala`
+
+```scala
+// Runtime proof artifact
+case class LedgerProof(
+  runId: String,
+  timestamp: Instant,
+  inputCount: Long,
+  validCount: Long,
+  errorCount: Long,
+  invariantHolds: Boolean,
+  // Tagged with requirement for traceability
+  requirement: String = "REQ-ACC-01"
+)
+
+// If production issue occurs:
+// Alert: "VIOLATION: REQ-ACC-01 - Accounting invariant failed"
+//   → Traces to: REQ-ACC-01 specification
+//   → Generates: New intent INT-042 "Fix data loss in aggregation"
+//   → Feedback loop completes
+```
+
+---
+
+## A.3: Traceability Matrix
+
+```
+INT-001 (Build CDME)
+    │
+    ├── REQ-ACC-01 (Accounting Invariant)
+    │       │
+    │       ├── ADR-009 (Immutable Run Hierarchy)
+    │       │
+    │       ├── Task #11 (Implement AccountingLedger)
+    │       │
+    │       ├── AccountingLedger.scala
+    │       │   └── Comment: "// Implements: REQ-ACC-01"
+    │       │
+    │       ├── AccountingLedgerSpec.scala
+    │       │   └── Comment: "// Validates: REQ-ACC-01"
+    │       │
+    │       ├── AirlineSystemSpec.scala
+    │       │   └── Scenario: "accounting ledger proves..."
+    │       │
+    │       └── UATSpec.scala
+    │           └── Scenario: "every booking accounted for"
+    │
+    └── [60+ other requirements with similar chains]
+```
+
+---
+
+## A.4: Key Takeaways
+
+### What This Example Demonstrates
+
+| AI SDLC Concept | How CDME Shows It |
+|-----------------|-------------------|
+| **REQ Key Propagation** | 60 requirements flow from intent to code to tests to runtime |
+| **TDD Discipline** | 234 tests, RED→GREEN→REFACTOR cycle in every commit |
+| **BDD Validation** | 53 business-readable scenarios validating requirements |
+| **ADR Documentation** | 24 decisions with explicit rationale and ecosystem context |
+| **Task Traceability** | Each task links to specific REQ keys |
+| **Runtime Feedback** | AccountingLedger proves correctness, alerts trace to REQ keys |
+| **Mathematics as Enforcement** | Category Theory guarantees prevent entire bug classes |
+
+### Why This Matters
+
+1. **AI-Generated Code is Verified**: Compiler rejects invalid paths before runtime
+2. **No Silent Failures**: Type system catches errors at compile time
+3. **Audit Trail**: Every transformation traced and accounted for
+4. **Human Oversight**: LLM-generated code must pass type-checker to execute
+5. **Self-Correcting**: Runtime violations generate new intents automatically
+
+---
+
+## A.5: Project Structure
+
+```
+data_mapper.test02/
+├── INTENT.md                          # Original intent
+├── docs/
+│   ├── requirements/
+│   │   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # 60 REQ-* keys
+│   │   └── INTENT.md                  # 6 formal intents
+│   └── design/
+│       ├── data_mapper/
+│       │   ├── AISDLC_IMPLEMENTATION_DESIGN.md    # 3,279 lines
+│       │   └── adrs/                  # 11 ADRs
+│       └── design_spark/
+│           └── adrs/                  # 13 Scala/Spark ADRs
+├── src/data_mapper.spark.scala/
+│   └── src/
+│       ├── main/scala/cdme/           # Production code
+│       │   ├── core/                  # Types, Domain, Algebra
+│       │   ├── compiler/              # Path validation
+│       │   └── executor/              # Spark execution
+│       └── test/scala/cdme/           # 234 tests
+│           ├── UATSpec.scala          # 33 BDD scenarios
+│           ├── airline/               # 22 scenarios
+│           └── taxagent/              # 20 scenarios
+└── .ai-workspace/
+    └── tasks/active/ACTIVE_TASKS.md   # Task tracking
+```
+
+---
+
+## A.6: Try It Yourself
+
+```bash
+# Clone the examples repository
+git clone https://github.com/foolishimp/ai_sdlc_examples
+cd ai_sdlc_examples/local_projects/data_mapper.test02
+
+# Run all 234 tests
+cd src/data_mapper.spark.scala
+sbt test
+
+# Run specific test suites
+sbt "testOnly cdme.airline.*"     # Airline domain (22 tests)
+sbt "testOnly cdme.taxagent.*"    # Tax Agent domain (50 tests)
+sbt "testOnly cdme.UATSpec"       # UAT scenarios (33 tests)
+```
+
+**Explore the Traceability**:
+1. Read `docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md`
+2. Find REQ-ACC-01 (Accounting Invariant)
+3. Grep for "REQ-ACC-01" across the codebase
+4. See how it appears in design, code, and tests
+
+---
+
+*This appendix demonstrates that AI SDLC is not just theory—it's a practical methodology producing real, tested, traceable software.*
+
 **Version**: 1.0
 **Date**: February 2026
