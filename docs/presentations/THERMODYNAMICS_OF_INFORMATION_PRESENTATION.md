@@ -4,6 +4,8 @@
 
 *How physical principles govern the behavior of information systems*
 
+**Note**: This presentation represents my understanding and interpretation of concepts from *"Incomplete Nature: How Mind Emerged from Matter"* by Terrence W. Deacon (UC Berkeley), applied to information systems and software engineering.
+
 ---
 
 # Slide 1: The Deep Connection
@@ -693,7 +695,19 @@ flowchart TB
 
 ---
 
-*This presentation explores how thermodynamic principles govern information systems, connecting physical law to system design.*
+## References
+
+**Primary Influence**:
+- Deacon, Terrence W. *"Incomplete Nature: How Mind Emerged from Matter"* (UC Berkeley) - The core concepts of energy gradients, entropy-decreasing topology creating information, absential causation, and the emergence of self-identity as preservation optimization are drawn from my understanding of this work.
+
+**Additional References**:
+- Landauer, Rolf. "Irreversibility and Heat Generation in the Computing Process" (1961)
+- Prigogine, Ilya. *"Order Out of Chaos"* - Dissipative structures
+- Shannon, Claude. "A Mathematical Theory of Communication" (1948)
+
+---
+
+*This presentation explores how thermodynamic principles govern information systems, connecting physical law to system design. It represents my interpretation and application of these concepts to software engineering.*
 
 **Version**: 1.0
 **Date**: February 2026
