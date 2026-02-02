@@ -18,7 +18,7 @@ Current political discourse suffers from:
 - **Category confusion** - Mixing OS-level constraints with program preferences
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Current["Current State"]
         TRIBE1["Tribe A:<br/>'This is freedom'"]
         TRIBE2["Tribe B:<br/>'No, THIS is freedom'"]
@@ -40,7 +40,7 @@ flowchart TB
 ## Political OS - A Constraint Specification
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Stack["The Analysis Stack"]
         REALITY["Reality OS<br/>(Constraint-Emergence Ontology)"]
         POLITICAL["Political OS<br/>(This document)"]
@@ -66,7 +66,7 @@ flowchart TB
 **Explicitly grounded in Classical Western Liberalism** (Locke, Mill, etc.):
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Axioms["Declared Axioms"]
         A1["The INDIVIDUAL is the<br/>irreducible unit of analysis"]
         A2["The STATE derives legitimacy<br/>from consent of individuals"]
@@ -116,7 +116,7 @@ Each OS is internally consistent. This document adopts Classical Liberalism.
 ## Mapping to Constraint Ontology
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Ontology["Constraint Ontology Mapping"]
         IND["INDIVIDUAL<br/>= Irreducible Markov Object"]
         STATE["STATE<br/>= Constraint Geometry"]
@@ -141,7 +141,7 @@ flowchart TB
 ## The Topological Gradient
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Energy["Political Energy Landscape"]
         HIGH["HIGH ENERGY<br/>(Unstable)<br/>COERCION"]
         LOW["LOW ENERGY<br/>(Stable)<br/>CONSENT"]
@@ -168,7 +168,7 @@ flowchart TB
 ## Aristotelian, Not Platonic
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph NotThis["NOT This (Platonic)"]
         ABSTRACT["'Rights' as abstract<br/>entities existing<br/>in a vacuum"]
     end
@@ -226,7 +226,7 @@ flowchart LR
 ## Hard Constraints That Must Never Be Violated
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Invariants["System Invariants"]
         I1["1.1 AGENCY<br/>Freedom of choice without<br/>coercion, compulsion,<br/>intimidation, or<br/>survival dependency"]
         I2["1.2 INFORMATION<br/>Ability to seek, receive,<br/>question, and exchange<br/>information for<br/>informed choice"]
@@ -249,7 +249,7 @@ flowchart TB
 ## Freedom of Choice
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Agency["AGENCY Preserved When"]
         A1["No coercion"]
         A2["No compulsion"]
@@ -279,7 +279,7 @@ flowchart TB
 ## The Prerequisite for Informed Consent
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Information["INFORMATION Preserved When"]
         I1["Can SEEK information"]
         I2["Can RECEIVE information"]
@@ -309,7 +309,7 @@ flowchart TB
 ## Exit Options Must Exist
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Alternatives["ALTERNATIVES Preserved When"]
         A1["Association options exist"]
         A2["Governance options exist"]
@@ -339,7 +339,7 @@ flowchart TB
 ## Authority Must Be Removable
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Revocability["REVOCABILITY Preserved When"]
         R1["Authority can be removed"]
         R2["Through LAWFUL mechanisms"]
@@ -408,7 +408,7 @@ flowchart LR
 ## Mechanical Analysis Process
 
 ```mermaid
-flowchart TB
+flowchart LR
     X["Object X<br/>(law, policy, institution,<br/>technology, action)"]
 
     TEST["Test X against<br/>invariants 1.1-1.4"]
@@ -440,7 +440,7 @@ flowchart TB
 ## The Taxonomy
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph States["System States"]
         STABLE["STABLE<br/>All invariants intact"]
         STRAIN["STRAINED<br/>One invariant degraded"]
@@ -476,7 +476,7 @@ flowchart TB
 ## What the Framework Does NOT Evaluate
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph DoNot["DO NOT Evaluate"]
         INT["Intentions"]
         MOT["Motives"]
@@ -505,7 +505,7 @@ flowchart TB
 ## Applying the Framework
 
 ```mermaid
-flowchart TB
+flowchart LR
     X["Law X: Government can<br/>remove 'harmful' content<br/>from platforms"]
 
     TEST1["Test 1.1 Agency<br/>→ PASS (no direct coercion)"]
@@ -533,7 +533,7 @@ flowchart TB
 ## Compounding Degradation
 
 ```mermaid
-flowchart TB
+flowchart LR
     X["Policy Y: Indefinite<br/>emergency powers with<br/>surveillance authority"]
 
     TEST1["Test 1.1 Agency<br/>→ FAIL (surveillance chills behavior)"]
@@ -565,7 +565,7 @@ flowchart TB
 ## When the System Rolls Uphill
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Normal["Normal Gradient"]
         N_HIGH["Coercion<br/>(High energy)"]
         N_LOW["Consent<br/>(Low energy)"]
@@ -593,7 +593,7 @@ flowchart TB
 ## Political Systems as Constraint Manifolds
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Ontology["Constraint-Emergence Ontology"]
         O1["Reality = Constraint network"]
         O2["Stable patterns = Markov objects"]
@@ -625,7 +625,7 @@ flowchart TB
 ## Objective Analysis Becomes Possible
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Without["Without Framework"]
         W1["'That policy is fascist!'"]
         W2["'No, it's protecting democracy!'"]
@@ -657,7 +657,7 @@ flowchart TB
 ## What This Framework Cannot Do
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Cannot["Framework CANNOT"]
         C1["Tell you which<br/>programs to prefer"]
         C2["Resolve individual<br/>conflicts"]
@@ -681,7 +681,7 @@ flowchart TB
 ## The Meta-Rule
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Principle["The Operating Principle"]
         PROG["Programs may fail"]
         OS["The Operating System<br/>must not be broken"]
@@ -704,7 +704,7 @@ flowchart TB
 ## Political OS v1.0
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Framework["The Framework"]
         GROUND["Grounded in<br/>Classical Liberalism"]
         UNIT["Individual as<br/>irreducible Markov object"]

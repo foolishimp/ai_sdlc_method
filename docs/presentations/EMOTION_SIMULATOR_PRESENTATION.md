@@ -26,7 +26,7 @@ A simulation framework exploring how **culture emerges** from:
 ## Entities and Their Relationships
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph PopEntity["Pop (Agent)"]
         ID["Identity"]
         BELIEF["Beliefs<br/>(Acquired + Intrinsic)"]
@@ -96,7 +96,7 @@ flowchart TB
 ## The Three Pillars of Survival
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Drivers["Homeostatic Drivers"]
         HAB["Habitability<br/>(Shelter, Safety)"]
         SUS["Sustenance<br/>(Food, Resources)"]
@@ -205,7 +205,7 @@ flowchart LR
 ## The Complete Cognitive Architecture
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Environment["Environment (External Reality)"]
         ENV["Physical World"]
     end
@@ -314,7 +314,7 @@ flowchart LR
 ## Beliefs ARE Memories (But Transmissible)
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Premise["Core Premise"]
         P["Given a situation,<br/>a belief determines an action"]
     end
@@ -381,7 +381,7 @@ flowchart LR
 ## Tech-Constrained Capabilities
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Actions["Physical Actions (Tech-Constrained)"]
         GATHER["Gather Resource"]
         CONSUME["Consume Resource"]
@@ -446,7 +446,7 @@ flowchart LR
 ## The Terrain Grid
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Grid["X,Y Grid World"]
         subgraph Row1
             T1["Shelter"]
@@ -486,7 +486,7 @@ flowchart TB
 ## Felt Needs Drive Behavior
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Emotions["Primary Emotions (Felt Needs)"]
         LUST["LUST"]
         SEEK["SEEKING"]
@@ -559,7 +559,7 @@ flowchart LR
 ## Core Components to Implement
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph MVP["Minimum Viable Product"]
         LOOP["Homeostatic Loop"]
         POP["Pop Creation<br/>(Gene Mechanism)"]
@@ -606,7 +606,7 @@ flowchart TB
 ## The Core Algorithm
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph HomeostaticFunction["Homeostasis Function"]
         EVAL["EvaluateSelf(<br/>Self, EnvironmentalState)"]
         FELT["Felt Need"]
@@ -648,7 +648,7 @@ EnvironmentalState = EmbodiedSimulation(
 ## Key Insights from the Model
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Insights["Core Conclusions"]
         I1["Abstractions = Pattern Matching<br/>over Frames of Reference"]
         I2["Embodied Simulation<br/>Generated from Beliefs"]
@@ -712,7 +712,7 @@ flowchart LR
 ## Continuous Capability Model
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Current["Current: Discrete Life Phases"]
         C["Child"] --> A["Adult"] --> S["Senior"]
     end
@@ -772,7 +772,7 @@ Where:
 ## Emergent Social Dynamics
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Drivers["Community Drivers"]
         DRIVE["Drive & Urgency"]
         FRONT["New Frontiers"]
@@ -803,7 +803,7 @@ flowchart TB
 ## Systemic Risks in Complex Societies
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Risks["Economic Fragility Sources"]
         JIT["Modern Supply Chain<br/>(Hidden Counterparties, JIT)"]
         REG["Regulatory Capture<br/>(Walled Garden + Deregulation)"]
@@ -832,7 +832,7 @@ flowchart TB
 ## From Biology to Culture
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph L1["Layer 1: Biology"]
         HOMEO["Homeostasis<br/>(Survival, Sustenance, Reproduction)"]
     end
@@ -914,7 +914,7 @@ flowchart LR
 ## MacOS M1: Apache Tensor/Spark/Hadoop
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Python["Python Environment"]
         PY["Python 3.9"]
         PYSPARK["PySpark"]

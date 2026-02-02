@@ -11,7 +11,7 @@
 ## Information Systems Lag Reality
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Reality["Reality (The Business)"]
         R1["Traders buy and sell"]
         R2["Deals are made"]
@@ -45,7 +45,7 @@ flowchart TB
 ## From Reality to Systems
 
 ```mermaid
-flowchart TB
+flowchart LR
     REALITY["Reality<br/>(In the real world things happen)"]
 
     BA["Business Domain Model<br/>(Conceptual Abstraction)"]
@@ -70,7 +70,7 @@ flowchart TB
 ## Managing Complexity Through Separation
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph CGM["CGM Context"]
         CGM_DEAL["Deal"]
         CGM_TRADE["Trade"]
@@ -150,7 +150,7 @@ flowchart LR
 ## Systems Composable Through Events
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Call["API Call"]
         C_ID["Identity"]
         C_CRED["Credential (AuthN,AuthZ)"]
@@ -222,7 +222,7 @@ flowchart LR
 ## Four Patterns for Event Consumption
 
 ```mermaid
-flowchart TB
+flowchart LR
     PUB["Event<br/>Publisher"]
 
     subgraph Pattern1["1. Event-Aware Service"]
@@ -298,7 +298,7 @@ flowchart LR
 ## Real-World Architecture
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph APIs["API Layer"]
         CMD["Command API"]
         QUERY["Adhoc Query API"]
@@ -343,7 +343,7 @@ flowchart TB
 ## Complete Architecture
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph External["External State"]
         EXT["External<br/>Systems"]
     end
@@ -404,7 +404,7 @@ flowchart TB
 ## Serverless Execution Architecture
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Repository["Repository"]
         GRAPH["Graph<br/>Definitions"]
         BUSINESS["Business<br/>Fn Definitions"]
@@ -452,7 +452,7 @@ flowchart TB
 ## Workflow Orchestration
 
 ```mermaid
-flowchart TB
+flowchart LR
     RUN["Run"]
 
     subgraph Workflow["Workflow"]
@@ -531,7 +531,7 @@ flowchart LR
 ## Technology-Agnostic Data Storage
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Bucket["Technology Bucket"]
         IMDS["Immutable Managed<br/>Data Set"]
         DATA["Data"]
@@ -668,7 +668,7 @@ flowchart RL
 ## From Current State to Future State
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Landscape["Domain Landscape"]
         BOUND["The Bounded<br/>Context"]
     end
@@ -733,7 +733,7 @@ flowchart TB
 ## Orchestrating Without Dependency Chains
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Saga["Saga Orchestrator"]
         ORCH["Orchestrator"]
     end
@@ -778,7 +778,7 @@ flowchart TB
 ## Business View vs Systems View
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph SystemsTime["Systems Activity Time Line: As At"]
         T1["T1:a"]
         T2["T2:x"]
@@ -876,7 +876,7 @@ flowchart LR
 ## The Two Fundamental Patterns
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Patterns["Integration Patterns"]
         EVENTS["Events<br/>(Asynchronous)"]
         APIS["APIs<br/>(Synchronous)"]
@@ -918,7 +918,7 @@ flowchart TB
 4. **BUT**: If your automated API tests exercise the execution paths, then the need for internal testing is greatly mitigated
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Product["Releasable Product"]
         INTERFACE["Public Interface"]
         INTERNAL["Internal Modules"]
@@ -937,7 +937,7 @@ flowchart TB
 ## On-Demand Data Architecture
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Foundation["Foundation"]
         DOMAIN["Domain-Driven<br/>Design"]
         BOUNDED["Bounded<br/>Contexts"]

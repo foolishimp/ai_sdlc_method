@@ -42,7 +42,7 @@ flowchart LR
 > **The invariants of reality live in the structure of admissible transformations, not in the material being transformed.**
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Wrong["Traditional View"]
         STUFF["Stuff exists"]
         LAWS["Laws govern it"]
@@ -69,7 +69,7 @@ flowchart TB
 This framework operates at the level of **the structure of change itself**.
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Domains["Different Substrates"]
         PHYS["Physics"]
         COMP["Computation"]
@@ -133,7 +133,7 @@ flowchart LR
 > A constraint is not a rule that dictates what must happen next, but a condition that determines which transformations are admissible at all.
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Constraints["What Constraints Do"]
         RESTRICT["Restrict which<br/>morphisms exist"]
         LIMIT["Limit<br/>composability"]
@@ -160,7 +160,7 @@ flowchart TB
 ## The Division of Labor
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Ruliad["Universal Computation (The Ruliad)"]
         ALL["All possible computations<br/>All possible rules<br/>All possible initial conditions"]
     end
@@ -191,7 +191,7 @@ flowchart TB
 ## Emergence Through Forgetting
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Micro["Micro-Level"]
         M1["State 1"]
         M2["State 2"]
@@ -230,7 +230,7 @@ This appears in: renormalization, abstraction boundaries, interface design, modu
 ## The Fundamental Substrate
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Wrong["Not Fundamental"]
         PART["Particles"]
         FIELD["Fields"]
@@ -258,7 +258,7 @@ flowchart TB
 ## The Universal Concept of Stable Emergence
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Definition["Markov Object Definition"]
         DEF["Stable pattern with<br/>conditional independence<br/>from exterior given boundary"]
     end
@@ -291,7 +291,7 @@ flowchart TB
 ## The Nerf Ball Model
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Mesh["Constraint Mesh (The Nerf Balls)"]
         B1["O"]
         B2["O"]
@@ -321,7 +321,7 @@ flowchart TB
 ## The Engine of Emergence
 
 ```mermaid
-flowchart TB
+flowchart LR
     L1["Quantum Fields<br/>(Basic constraints)"]
     L2["Particles<br/>(Stable excitations)"]
     L3["Atoms<br/>(Particle resonances)"]
@@ -411,7 +411,7 @@ flowchart LR
 ## Nothing Travels Through Space
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Analogy["Electricity in a Wire"]
         DRIFT["Electron drift:<br/>~0.1 mm/second"]
         SIGNAL["Signal propagation:<br/>~70% of c"]
@@ -441,7 +441,7 @@ flowchart TB
 ## Scale-Dependent Time
 
 ```mermaid
-flowchart TB
+flowchart LR
     BASE["Base layer tick (τ₀)<br/>← Fundamental"]
     QF["Quantum field time"]
     PART["Particle time"]
@@ -509,7 +509,7 @@ flowchart LR
 ## Mathematical Existence vs. Ontological Existence
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Plato["Platonist (Many-Worlds)"]
         P1["Mathematical structure<br/>is ontologically<br/>self-sufficient"]
         P2["What can be<br/>written down, exists"]
@@ -542,7 +542,7 @@ flowchart TB
 ## Same Formalism, Different Metaphysics
 
 ```mermaid
-flowchart TB
+flowchart LR
     FORM["Same Formalism<br/>(Quantum Mechanics)"]
 
     subgraph ManyWorlds["Many-Worlds"]
@@ -574,7 +574,7 @@ flowchart TB
 ## The Complete Ontology
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Core["Core Ontology"]
         C1["1. Reality is constraint system"]
         C2["2. Universe evolves by constraint propagation"]
@@ -620,7 +620,7 @@ flowchart TB
 ## Same Structure, Different Substrates
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Physics["Physical Reality"]
         P_CONST["Global constraint network"]
         P_UPDATE["Hamiltonian flow"]
@@ -674,7 +674,7 @@ flowchart TB
 ## The Full Mapping
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph ConstraintStack["SDLC Constraint Manifold"]
         REQ["Requirements<br/>(functional, NFR, risk, SLA)"]
         ARCH["Architecture Context<br/>(tech stack, patterns, ADRs)"]
@@ -739,7 +739,7 @@ This is literally **"explore → constrain → collapse"** - the same pattern as
 ## The Fundamental Operation of All Computation
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Engine["The Universal Engine"]
         LAND["The Landscape<br/>(Manifold shaped by constraints)"]
         EVAL["The Evaluator<br/>(Senses the 'slope')"]
@@ -765,7 +765,7 @@ flowchart TB
 ## Engineering a Gradient
 
 ```mermaid
-flowchart TB
+flowchart LR
     HIGH["High Energy<br/>(Many failed tests,<br/>missing features)"]
 
     WORK["Gradient Descent<br/>(Builder work)"]
@@ -791,7 +791,7 @@ flowchart TB
 ## Leaving the Stable Manifold Region
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Stable["Well-Constrained Region"]
         ATTR["Deep Attractor<br/>(Markov object)"]
         TRAJ1["Trajectory →"]
@@ -839,7 +839,7 @@ flowchart TB
 ## Truth as Markov Object
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph MetaPrinciple["Truth = Markov Object in Constraint Manifold"]
         PHYS["Physics:<br/>Stable standing waves<br/>persisting under perturbation"]
         LLM["LLMs:<br/>Attractor basins where<br/>sequences remain coherent"]
@@ -865,7 +865,7 @@ All are constraint satisfaction systems producing emergent stability.
 ## What This Framework Suggests
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Near["Near-Term (Accessible)"]
         LLM_LAB["LLMs as Constraint<br/>Manifold Laboratories"]
         MECH["Mechanistic<br/>Interpretability"]
@@ -893,7 +893,7 @@ flowchart TB
 ## Standing on Shoulders
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Philosophy["Philosophy"]
         DEC["Terrence Deacon<br/>(Absential causation)"]
         SOLMS["Mark Solms<br/>(Consciousness)"]
@@ -928,7 +928,7 @@ flowchart TB
 ## Map/Territory Confusion at the Social Level
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Valid["Valid Insight"]
         V1["Social position affects<br/>which questions get asked"]
     end
@@ -993,7 +993,7 @@ flowchart LR
 ## The Synthesis
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Reality["Reality"]
         R["Self-organizing constraint network"]
     end
@@ -1047,7 +1047,7 @@ flowchart TB
 ## What This Framework Provides
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Provides["What It Provides"]
         BRIDGE["Bridge between physics,<br/>computation, and AI"]
         SUGGEST["Suggests where new<br/>mathematics might be found"]

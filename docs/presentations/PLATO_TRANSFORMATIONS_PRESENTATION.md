@@ -47,7 +47,7 @@ flowchart LR
 ## How We Actually Solve Problems
 
 ```mermaid
-flowchart TB
+flowchart LR
     REALITY["Reality<br/>(The Business Domain)"]
 
     OBS["Observation &<br/>Interpretation"]
@@ -74,7 +74,7 @@ flowchart TB
 ## The Traditional Approach
 
 ```mermaid
-flowchart TB
+flowchart LR
     REALITY["Reality<br/>(Business deals with their reality)"]
 
     BA["Business Analyst<br/>translates into<br/>abstract domain"]
@@ -104,7 +104,7 @@ flowchart TB
 ## The Automated Approach
 
 ```mermaid
-flowchart TB
+flowchart LR
     REALITY["Reality"]
 
     BA["Business Analyst"]
@@ -161,7 +161,7 @@ Output: Executable Spark code for Hydra
 ## Automatic Structure-Preserving Transformation
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Universe["Universe (Common Domain Model)"]
         A["A"]
         B["B"]
@@ -302,7 +302,7 @@ RESULT_KEYS = Query_KEYS( Path, Arc = Path.head, RESULT_KEYS )
 ## Transform ( {U:P1->X} -> {U:P2->Y} )
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Network["Network Definition"]
         NA["A"]
         NB["B"]
@@ -399,7 +399,7 @@ flowchart TB
 ## System Components
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Inputs["Configuration Inputs"]
         CONF1["Model Conf"]
         CONF2["Conf TCL"]
@@ -544,7 +544,7 @@ flowchart LR
 ## Session and Lineage Tracking
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Factory["Session Instance (factory)"]
         UNIVERSE1["Universe"]
         RULESET1["Projection Ruleset"]
@@ -587,7 +587,7 @@ flowchart TB
 ## Composing Universes
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph U1["Universe U1"]
         U1B["B₁"]
         U1A["A₁"]
@@ -683,7 +683,7 @@ P1.Traverse(P0.Path(A,B)).Arcs_Sequence.map(
 ## Aggregation and Optimization
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Basic["Basic Instruction Set"]
         I1["1. Create destination Node<br/>(have schema in place)"]
         I2["2. Collect data from sources"]
@@ -751,7 +751,7 @@ flowchart LR
 ## Plato as Constraint-Preserving Transformation
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Ontology["Constraint-Emergence Ontology"]
         O1["Reality = Constraint network"]
         O2["Morphisms = Admissible transformations"]
@@ -784,7 +784,7 @@ flowchart TB
 ## The Business Value
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Before["Before Plato"]
         B1["N×M custom ETL jobs"]
         B2["Manual coding"]

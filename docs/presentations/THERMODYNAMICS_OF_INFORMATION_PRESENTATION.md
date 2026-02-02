@@ -13,7 +13,7 @@
 ## Information Systems Obey Physical Laws
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Physics["Physical Reality"]
         THERMO["Thermodynamics"]
         ENTROPY["Entropy"]
@@ -75,7 +75,7 @@ flowchart LR
 ## Topology Creates the Gradient
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph ClosedSystem["Closed System"]
         EC_HIGH["Energy<br/>Carrier<br/>(High State)"]
 
@@ -148,7 +148,7 @@ flowchart LR
 **Closed System, Entropy Always Increases** - BUT NET Entropy always increases **more quickly** when it contains **Entropy Decreasing sub-systems**.
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Outer["Closed System (Entropy Increases)"]
         subgraph Inner["Sub-System (Entropy Decreases)"]
             EC1["Energy<br/>Carrier"]
@@ -227,7 +227,7 @@ Both processes have inherent energy loss (unusable energy).
 > **Self-Identity arose as an optimization for constant preservation on feedback from underlying sense system.**
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph System["System with Sense Feedback"]
         SENSE["Sense<br/>System"]
         FEEDBACK["Feedback<br/>Loop"]
@@ -257,7 +257,7 @@ This connects to:
 ## The Critical Distinction
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Closed["Closed System"]
         C1["Fixed energy budget"]
         C2["Entropy always increases"]
@@ -318,7 +318,7 @@ flowchart LR
 ## Maxwell's Demon and the Cost of Knowledge
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Demon["Maxwell's Demon"]
         OBSERVE["Observe<br/>molecules"]
         DECIDE["Decide<br/>fast/slow"]
@@ -349,7 +349,7 @@ Gaining information requires expending energy. There is no free lunch.
 ## The Cost of Order
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Structure["Maintained Structure"]
         ORDER["Low Entropy<br/>(Ordered State)"]
     end
@@ -417,7 +417,7 @@ flowchart LR
 ## Where Does the Energy Go?
 
 ```mermaid
-flowchart TB
+flowchart LR
     INPUT["Energy Input<br/>(Electricity)"]
 
     subgraph Useful["Useful Work"]
@@ -451,7 +451,7 @@ flowchart TB
 ## Structure Emerges from Gradients
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Universe["Energy Gradient"]
         HIGH["High Energy<br/>Source"]
         LOW["Low Energy<br/>Sink"]
@@ -516,7 +516,7 @@ flowchart LR
 ## Energy Gradients as Constraints
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Ontology["Constraint-Emergence Ontology"]
         CONST["Constraints define<br/>admissible transformations"]
         GRAD["Energy gradient =<br/>Pre-order on states"]
@@ -548,7 +548,7 @@ flowchart TB
 ## Designing with Thermodynamics
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Principles["Design Principles"]
         P1["Minimize unnecessary<br/>state (reduce entropy)"]
         P2["Design for energy<br/>efficiency"]
@@ -635,7 +635,7 @@ flowchart LR
 ## Key Principles
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Core["Core Principles"]
         C1["Information is physical"]
         C2["Processing has<br/>thermodynamic cost"]
@@ -669,7 +669,7 @@ flowchart TB
 ## Homeostasis as Thermodynamic Equilibrium
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph AISDLC["AI SDLC"]
         HOMEO["Homeostasis Model"]
         FEEDBACK["Feedback Loops"]

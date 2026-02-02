@@ -37,7 +37,7 @@ flowchart LR
 ## LLM Computation = Constrained Topological Traversal
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Traditional["Traditional View"]
         T1["LLMs = Token prediction"]
         T2["No 'real' reasoning"]
@@ -64,7 +64,7 @@ flowchart TB
 ## All Physical Computation Involves Noise
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Noise["Sources of Noise"]
         NEURON["Neurons fire<br/>stochastically"]
         TRANS["Transistors experience<br/>thermal noise"]
@@ -90,7 +90,7 @@ flowchart TB
 ## Where LLM Computation Happens
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Manifold["Semantic Manifold M ⊆ ℝᵈ"]
         X0["x₀<br/>(Initial state)"]
         X1["x₁"]
@@ -119,7 +119,7 @@ Each point represents a semantic configuration; trajectories represent semantic 
 ## Context Narrows the Possible
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Full["Full Manifold M"]
         subgraph Constrained["Ω(c) - Constrained Region"]
             VALID["Valid semantic<br/>states given context"]
@@ -257,7 +257,7 @@ This is **soft unification**: similarity-weighted synthesis.
 | Discrete search tree | Dynamical system trajectory |
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Abstract["Abstract Pattern-Matching"]
         MATCH["Match patterns<br/>to constraints"]
         PROP["Propagate<br/>bindings"]
@@ -279,7 +279,7 @@ flowchart TB
 ## Parallel Soft Constraints
 
 ```mermaid
-flowchart TB
+flowchart LR
     INPUT["Input State"]
 
     H1["Head 1<br/>(Relations)"]
@@ -317,7 +317,7 @@ flowchart TB
 ## Where Symbolic-Like Behavior Emerges
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Manifold["Semantic Manifold"]
         subgraph R1["Region R_α (Proto-symbol)"]
             A1["Attractor<br/>center"]
@@ -387,7 +387,7 @@ flowchart TD
 ## Statistical Independence at Region Edges
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Region["Proto-Symbol Region R_α"]
         subgraph Interior["Interior"]
             I1["State 1"]
@@ -453,7 +453,7 @@ flowchart LR
 ## The Core Computational Primitive
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Given["Given a Topology..."]
         TOPO["Manifold M"]
         CONST["Constraints C"]
@@ -489,7 +489,7 @@ D(x, c) : M × C → T(M)
 ## Stability = Meaning
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Attractors["Attractor Basins"]
         A1["'Cat' concept"]
         A2["'Dog' concept"]
@@ -548,7 +548,7 @@ This provides a rigorous mathematical foundation for the framework.
 ## How to Build Explicit Reasoning
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Modulation["Directional Modulation"]
         BASE["D_base<br/>(Learned)"]
         SYM["D_symbolic<br/>(Validators)"]
@@ -589,7 +589,7 @@ D_total(x, c) = D_base + Σₖ D_constraint^(k)
 ## Training for Better Reasoning
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Encourage["Encourage"]
         E1["Clean attractors"]
         E2["Clear boundaries"]
@@ -621,7 +621,7 @@ flowchart TB
 ## The Best of Both Worlds
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Neural["Neural Component"]
         MANIFOLD["Semantic Manifold<br/>(Learned, continuous)"]
     end
@@ -656,7 +656,7 @@ These reshape manifold traversal, preventing hallucination while preserving flex
 ## LLMs as Constraint Manifold Laboratories
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Ontology["Constraint-Emergence Ontology"]
         O1["Reality = Constraint network"]
         O2["Stable patterns = Markov objects"]
@@ -720,7 +720,7 @@ flowchart LR
 ## What We've Established
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Framework["The Framework"]
         M["Semantic Manifold M"]
         D["Preferred Direction D(x,c)"]
@@ -753,7 +753,7 @@ flowchart TB
 ## What This Means for AI Development
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Takeaways["Key Insights"]
         T1["Probabilistic ≠ No reasoning"]
         T2["Reasoning = Structured trajectory"]

@@ -60,6 +60,8 @@ flowchart LR
     MENTAL -->|"Mismatch detected"| INT["💡 Intent<br/>(Problem to Solve)"]
 ```
 
+![Where Does Intent Come From?](/Users/jim/src/apps/ai_sdlc_method/docs/info/AI_SDLC_Manifesto_01b/Slide2.png)
+
 **The Insight:**
 - IT Systems are built to solve real-world problems
 - The real world is infinitely complex
@@ -74,7 +76,7 @@ flowchart LR
 ## Builder → Executor → Observer → Evaluator → Intent
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Builder["🔨 BUILDER (AI SDLC)"]
         INT["Intent"] --> REQ["Requirements"]
         REQ --> DES["Design"]
@@ -103,6 +105,14 @@ flowchart TB
     style NEWINT fill:#e3f2fd
     style HOMEO fill:#fff3e0
 ```
+
+### Builder / Executor Pattern
+
+![Builder / Executor](/Users/jim/src/apps/ai_sdlc_method/docs/info/AI_SDLC_Manifesto_01b/Slide3.png)
+
+### Observer / Evaluator Pattern
+
+![Observer / Evaluator](/Users/jim/src/apps/ai_sdlc_method/docs/info/AI_SDLC_Manifesto_01b/Slide4.png)
 
 **The Four Phases:**
 
@@ -217,43 +227,25 @@ flowchart LR
 ## Requirement Traceability from Intent to Runtime
 
 ```mermaid
-flowchart TB
-    subgraph Forward["Forward Traceability"]
-        I["Intent: 'Users need login'"]
-        R["REQ-F-AUTH-001"]
-        D["AuthService Component"]
-        T["JIRA: PORTAL-101"]
-        C["auth_service.py"]
-        S["test_auth.feature"]
-        U["UAT-001: Login Test"]
-        M["Metric: auth_success_rate"]
+flowchart LR
+    subgraph Row1["Intent → Requirements → Design"]
+        I["Intent:<br/>'Users need login'"] --> R["REQ-F-AUTH-001"] --> D["AuthService<br/>Component"]
     end
 
-    I --> R
-    R --> D
+    subgraph Row2["Tasks → Code → Test"]
+        T["JIRA:<br/>PORTAL-101"] --> C["auth_service.py"] --> S["test_auth.feature"]
+    end
+
+    subgraph Row3["UAT → Runtime"]
+        U["UAT-001:<br/>Login Test"] --> M["Metric:<br/>auth_success_rate"]
+    end
+
     D --> T
-    T --> C
-    C --> S
     S --> U
-    U --> M
-
-    M -.->|"Backward: Alert traces to REQ"| R
+    M -.->|"Alert traces to REQ"| R
 ```
 
-**Every artifact tagged with REQ keys:**
-
-```python
-# Code: Implements: REQ-F-AUTH-001
-def authenticate(email: str, password: str) -> AuthResult:
-    ...
-
-# Test: Validates: REQ-F-AUTH-001
-def test_user_login():
-    ...
-
-# Log: Tagged with REQ key
-logger.info("Login failed", extra={"req": "REQ-F-AUTH-001"})
-```
+**Every artifact tagged with REQ keys:** Code (`# Implements: REQ-F-AUTH-001`), Tests (`# Validates: REQ-F-AUTH-001`), Logs (`extra={"req": "REQ-F-AUTH-001"}`)
 
 ---
 
@@ -285,7 +277,23 @@ flowchart LR
 
 ---
 
-# Slide 10: BDD - Executable Specifications
+# Slide 10: AI Augmented Asset Building
+
+## Human in the Middle - Managing Context
+
+![AI Augmented Asset Building](/Users/jim/src/apps/ai_sdlc_method/docs/info/AI_SDLC_Manifesto_01b/Slide12.png)
+
+**The Unit of AI Builder:**
+1. **Full Context** - Complete project knowledge available
+2. **Intent Manager** - Human decides on intent, manages context
+3. **Agent LLM** - AI executes within context window
+4. **Output** - Assets evaluated by human before acceptance
+
+**Key Principle**: AI augments human capability; human maintains control and context.
+
+---
+
+# Slide 11: BDD - Executable Specifications
 
 ## Business-Readable Tests That Validate Requirements
 
@@ -321,12 +329,12 @@ Feature: Customer Self-Service Portal
 
 ---
 
-# Slide 11: Ecosystem-Aware Development
+# Slide 12: Ecosystem-Aware Development
 
 ## Acknowledging External Reality: E(t)
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Ecosystem["Ecosystem E(t) - External Reality"]
         PLAT["Platforms<br/>Python 3.11, Node 20"]
         CLOUD["Cloud<br/>AWS, GCP, Azure"]
@@ -354,50 +362,28 @@ flowchart TB
 
 ---
 
-# Slide 12: What Makes AI SDLC Unique
+# Slide 13: What Makes AI SDLC Unique
 
 ## Differentiators from Traditional and Ad-hoc Approaches
 
-```mermaid
-quadrantChart
-    title AI SDLC Positioning
-    x-axis Low Rigor --> High Rigor
-    y-axis Low Speed --> High Speed
-    quadrant-1 AI SDLC
-    quadrant-2 Ad-hoc AI
-    quadrant-3 No Process
-    quadrant-4 Traditional SDLC
-    "AI SDLC": [0.85, 0.85]
-    "Copilot/ChatGPT": [0.25, 0.75]
-    "Waterfall": [0.80, 0.20]
-    "Agile": [0.60, 0.50]
-    "No Process": [0.15, 0.30]
-```
-
 | Feature | Traditional | Ad-hoc AI | AI SDLC |
 |---------|------------|-----------|---------|
-| **Traceability** | Manual, partial | None | Automatic, complete |
-| **Requirements** | Static docs | None | Living control system |
-| **Quality Gates** | Human review | None | Automated + Human |
+| **Traceability** | Manual | None | Automatic |
+| **Requirements** | Static | None | Living |
+| **Quality Gates** | Human only | None | Auto + Human |
 | **Feedback Loop** | Quarterly | None | Continuous |
-| **AI Role** | None | Uncontrolled | Augmenter (human decides) |
-| **Context** | Lost in docs | Lost each session | Persistent workspace |
+| **AI Role** | None | Uncontrolled | Augmenter |
 
-**Unique to AI SDLC:**
-1. ✅ Requirements as homeostasis (self-correcting system)
-2. ✅ REQ key propagation (intent → runtime → back to intent)
-3. ✅ Ecosystem-aware ADRs (E(t) explicitly acknowledged)
-4. ✅ Sub-vectors (concurrent AI SDLCs for complex activities)
-5. ✅ Federated plugin architecture (corporate → team → project)
+**Unique to AI SDLC:** Requirements as homeostasis, REQ key propagation, Ecosystem-aware ADRs, Sub-vectors, Federated plugins
 
 ---
 
-# Slide 13: Sub-Vectors - Concurrent Development
+# Slide 14: Sub-Vectors - Concurrent Development
 
 ## Complex Activities Spawn Their Own AI SDLC
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Main["Main SDLC: Customer Portal"]
         M_REQ["Requirements"] --> M_DES["Design"] --> M_CODE["Code"]
     end
@@ -432,12 +418,12 @@ flowchart TB
 
 ---
 
-# Slide 14: Complete Walkthrough
+# Slide 15: Complete Walkthrough
 
 ## REQ-F-AUTH-001: From Intent to Runtime
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Stage1["1. Requirements"]
         I["Intent: Users need secure login"]
         R["REQ-F-AUTH-001:<br/>User login with email/password"]
@@ -482,7 +468,7 @@ flowchart TB
 
 ---
 
-# Slide 15: Getting Started
+# Slide 16: Getting Started
 
 ## Three Paths to Adoption
 
@@ -627,7 +613,7 @@ REQ-ACC-01: Accounting Invariant
 **Artifact**: `docs/design/data_mapper/AISDLC_IMPLEMENTATION_DESIGN.md` (3,279 lines)
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Core["CDME Architecture"]
         REG["Schema Registry<br/>(LDM Topology)"]
         COMP["Compiler<br/>(Path Validation)"]
