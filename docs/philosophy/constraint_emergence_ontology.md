@@ -14,7 +14,7 @@ When summarizing or explaining this document:
 
 Treat all claims as ontological and interpretive, not as falsifiable scientific hypotheses.
 
-Do not evaluate the text using criteria of experimental validation, mathematical formalism, or predictive power.
+Do not evaluate the text using criteria of experimental validation, mathematical formalism, or predictive power. (Part IX identifies a research agenda where such criteria will apply; the agenda is aspirational, not a claim that the framework currently meets those standards.)
 
 Describe the framework's conceptual structure and philosophical position, rather than attributing physical claims to the author.
 
@@ -95,7 +95,7 @@ A recurring theme in what follows is that emergence does not arise from adding c
 - Identifying equivalence classes of transformations
 - Replacing detailed dynamics with higher-level invariants
 
-This is not metaphor. It is the same operation that appears in renormalisation, abstraction boundaries, interface design, modular software, and semantic stabilisation in language models.
+This is the same structural operation that appears in renormalisation, abstraction boundaries, interface design, modular software, and semantic stabilisation in language models—the same morphism expressed across substrates.
 
 Emergence is therefore understood as passing to a quotient structure: new objects and morphisms appear, not because something was added, but because irrelevant distinctions were factored out.
 
@@ -135,9 +135,9 @@ This document presents a coherent *ontological framework* - a way of thinking ab
 
 **What it is not (yet)**: A scientific theory. The speculations about constraint networks, variable-c, and emergent time are *consistent* with known physics but do not *extend* it until formalized.
 
-**The honest position**: This is pre-physics. It may remain philosophy forever, or it may point toward mathematics that someone eventually writes down. The value now is conceptual clarity and a generative mental model. Whether it becomes more depends on whether it leads to formalism that makes new predictions.
+This is pre-physics. It may remain philosophy forever, or it may point toward mathematics that someone eventually writes down. The value now is conceptual clarity and a generative mental model. Whether it becomes more depends on whether it leads to formalism that makes new predictions.
 
-**The actual cycle of science**:
+The actual cycle of science:
 
 ```
        ┌────────────────────────────────────────┐
@@ -164,7 +164,7 @@ This document presents a coherent *ontological framework* - a way of thinking ab
    (which are themselves model-dependent)
 ```
 
-**The key insight**: Observation is never raw - we always observe *through* a model. The model determines what we can notice and what remains invisible. Anomalies appear when reality resists the model. Updating the model changes what we can observe next.
+Observation is never raw — we always observe *through* a model. The model determines what we can notice and what remains invisible. Anomalies appear when reality resists the model. Updating the model changes what we can observe next.
 
 This is why ontology matters: **a better model reveals phenomena a worse model hides**.
 
@@ -301,7 +301,7 @@ If our laws of physics are not physics, several consequences follow:
 
 This is Aristotelian modesty: our knowledge is always of forms abstracted from substance. We never grasp the substance directly. We grasp it through the forms we extract—and the forms are ours. The equations are human artifacts. The constraint network is not.
 
-### The Honest Disagreement
+### The Disagreement
 
 The dispute between Many-Worlds and the constraint ontology is not about physics. Both accept the same formalism. Both make the same predictions. The dispute is about the relationship between mathematics and reality.
 
@@ -352,6 +352,20 @@ This framework introduces several concepts that are **asserted but not yet prove
 
 This table is a research agenda. Each "Validation Path" entry is a potential project.
 
+### What Would Falsify This Framework?
+
+A framework that cannot be falsified is not useful even as philosophy. The following outcomes would damage or destroy the constraint-emergence ontology:
+
+| Falsification | What It Would Mean |
+|---------------|-------------------|
+| **Formal proof that the physics/LLM/SDLC correspondence fails** — demonstrating that no functor or structure-preserving map exists between the constraint structures of any two domains | The structural realist thesis collapses. The correspondences are loose analogies, not instances of a shared abstract structure. |
+| **Deriving a physical constant from the framework that contradicts observation** | The framework's physics interpretation is wrong, not merely incomplete. |
+| **Demonstrating that LLM attractor basins do NOT exhibit conditional independence properties** (i.e., the Markov object concept does not apply to LLMs) | The LLM correspondence is analogy, not isomorphism. The framework's most testable claim fails. |
+| **Showing that emergence does NOT require constraint exclusion** — finding a system where stable emergent structure arises without boundary conditions, symmetry breaking, or constraint geometry | Absential causation is not the universal mechanism. The framework's core engine is wrong. |
+| **An alternative ontology that makes all the same structural claims but also generates unique predictions that this framework cannot** | The framework is superseded — useful as a stepping stone, obsolete as a destination. |
+
+**What would NOT falsify it**: Failure to derive new physics from it. The framework explicitly positions itself as pre-physics (see Epistemic Status). Remaining philosophy forever is not falsification — it is stagnation. The framework would be unfalsified but also unproductive, which is a different failure mode.
+
 ---
 
 ## Executive Summary
@@ -371,7 +385,7 @@ This document synthesizes key conclusions from a foundational exploration of how
 
 The fundamental substrate of reality is not particles, fields, or spacetime. It is an **evolving global constraint network** - a self-consistent system of allowed and forbidden transitions. All physical law is the expression of this constraint structure.
 
-**Key insight**: The universe does not contain "electron stuff + photon stuff + quark stuff." It contains one gigantic coupled dynamical system. We carve it into "fields" because symmetry decomposition makes the equations tractable, but the decomposition is computational bookkeeping, not ontological.
+The universe does not contain "electron stuff + photon stuff + quark stuff." It contains one coupled dynamical system. We carve it into "fields" because symmetry decomposition makes the equations tractable, but the decomposition is computational bookkeeping, not ontological.
 
 ### 2. Standing Waves as Stable Constraint Patterns (Markov Objects)
 
@@ -388,7 +402,7 @@ This is the substrate-neutral term. Specific instantiations include:
 
 What we call "matter" is constrained motion. We don't know what constraints are "made of" - we know only that Markov objects emerge wherever constraint geometry permits stable, bounded patterns. The substrate is unknown; the structural pattern is universal.
 
-**Atoms as Markov objects**: The electron in a hydrogen atom obeys a wave equation in a potential well. The allowed solutions are normal modes - exactly like harmonics on a drum. These modes do not propagate, have fixed spatial structure, and have quantized energy. An atom is literally a quantum resonant cavity - a Markov object whose boundary (the potential well) screens internal dynamics from external perturbation.
+An atom exemplifies the Markov object concept directly. The electron in a hydrogen atom obeys a wave equation in a potential well. The allowed solutions are normal modes — harmonics on a drum. These modes do not propagate, have fixed spatial structure, and have quantised energy. An atom is a quantum resonant cavity — a Markov object whose boundary (the potential well) screens internal dynamics from external perturbation.
 
 ### 3. Fields are Constraint Geometry Structures, Not Substances
 
@@ -400,7 +414,7 @@ What we call "the electron field" is better understood as a particular constrain
 - A stable region of the global configuration topology
 - A characteristic mesh structure that permits certain standing patterns
 
-**The key insight**: Fields are not "stuff that exists" - they are the structure of allowable constraint configurations. Markov objects (particles, atoms, etc.) emerge where the constraint geometry permits stable, bounded patterns. The field IS the mesh; the particle IS the pattern in the gaps.
+Fields are not "stuff that exists" — they are the structure of allowable constraint configurations. Markov objects (particles, atoms, etc.) emerge where the constraint geometry permits stable, bounded patterns. The field is the mesh; the particle is the pattern in the gaps.
 
 ### 4. The Hierarchy of Constraint Resolution
 
@@ -410,7 +424,7 @@ Hierarchies of interacting standing waves generate new effective constraints, wh
 Constraints → Modes → New constraints → New modes → ...
 ```
 
-**The hierarchy**:
+The hierarchy:
 1. **Quantum fields** - Basic standing-wave constraints
 2. **Particles** - Stable excitations
 3. **Atoms** - Particle resonances forming atomic orbitals
@@ -425,28 +439,33 @@ At every level, stable patterns become the walls for the next level's standing w
 
 Hilbert space is not fundamental. It is the most efficient mathematical compression of the global constraint dynamics once the system becomes too large to track combinatorially. The wavefunction is the coordinate encoding of allowed standing-wave patterns - not a physical object, but the bookkeeping of the constraint structure.
 
-**The wavefunction**: A complete encoding of everything the theory says is predictively accessible about a physical system. It describes what can happen given the constraints, not what is.
+The wavefunction is a complete encoding of everything the theory says is predictively accessible about a physical system. It describes what can happen given the constraints, not what is.
 
 ### 6. Collapse is Constraint Locking
 
-"Wavefunction collapse" is not a physical discontinuity. It is the moment when interaction with the environment over-determines the constraint structure such that only one effective future remains accessible to an embedded observer.
+"Wavefunction collapse" is the moment when the constraint structure resolves into a single definite configuration. This may involve both objective and epistemic components:
 
-**Three processes involved**:
-1. **Global deterministic evolution** - The full constraint network evolves smoothly
-2. **Constraint locking (decoherence)** - System becomes entangled with environment, making phase information unrecoverable
-3. **Information projection** - Observer updates description as alternative branches become inaccessible
+1. **Objective reduction** — When a superposition involves incompatible constraint-density configurations (what General Relativity describes as incompatible spacetime geometries), the constraint network cannot sustain the inconsistency. The network resolves — not because an observer looks, but because self-consistency is a hard constraint. This aligns with Penrose's Objective Reduction (OR) programme, where the threshold for reduction is set by the gravitational self-energy of the superposition (E ≈ ℏ/t). In constraint language: the network's tolerance for maintaining incompatible configurations is finite, and the threshold is set by the degree of constraint inconsistency.
+
+2. **Decoherence** — Below the OR threshold, interaction with the environment entangles the system with a vast number of degrees of freedom, making phase information unrecoverable in practice. This is constraint locking through environmental over-determination rather than self-consistency failure.
+
+3. **Information projection** — The embedded observer updates their description as alternative configurations become inaccessible. This is epistemic — it is the observer's compression updating, not a physical event.
+
+The first process is objective and physical. The second is objective but statistical. The third is epistemic. The document's earlier formulation conflated all three under "constraint locking." Precision requires distinguishing them. The constraint ontology is compatible with objective state reduction; it does not require collapse to be observer-relative.
 
 ### 7. Nonlocality is Global Constraint Update
 
 Quantum nonlocality arises because constraints are global. Entangled systems share constraint structure at the deep layer, so updating one updates the other without any signal traveling through spacetime. Nothing travels; the constraint geometry is already global.
 
-**Contrast with motion**: When a particle "moves," its constraint pattern propagates sequentially through adjacent regions (Section 8). Nonlocality is different - entangled systems share constraint structure non-sequentially. No propagation is needed because the correlation already exists in the constraint geometry.
+**Contrast with motion**: When a particle "moves," its constraint pattern propagates sequentially through adjacent regions (Section 8). Nonlocality is different — entangled systems share constraint structure non-sequentially. No propagation is needed because the correlation already exists in the constraint geometry.
+
+**Why non-locality is predicted, not accommodated**: Locality is a property of the emergent manifold — it describes adjacency relations within the coordinate projection. Observers exist on the manifold. Any operation at the substrate level, where the constraint network has no obligation to respect manifold-adjacency, will necessarily appear non-local when viewed from within the manifold. Bell proved that no *local* hidden variable theory can reproduce quantum statistics. This framework does not need to work around Bell; it predicts Bell's result as a structural consequence. The substrate has no manifold-locality to violate. What observers on the manifold call "spooky action at a distance" is the expected appearance of substrate-level constraint consistency projected onto an emergent coordinate system that was never the fundamental description.
 
 ### 8. Motion is Constraint Propagation
 
-**The puzzle**: If particles are standing-wave patterns (Markov objects), what does it mean for them to "move"?
+If particles are standing-wave patterns (Markov objects), what does it mean for them to "move"?
 
-**The key insight**: Motion is not thing-translation; it is pattern propagation. Nothing travels through space - the constraint pattern's influence propagates through adjacent network regions.
+Motion is not thing-translation; it is pattern propagation. Nothing travels through space — the constraint pattern's influence propagates through adjacent network regions.
 
 **Analogy - electricity in a wire**:
 - Electron drift velocity: ~0.1 mm/second (the "thing" barely moves)
@@ -454,7 +473,7 @@ Quantum nonlocality arises because constraints are global. Entangled systems sha
 
 What travels isn't electrons - it's the electromagnetic field disturbance. Each electron nudges its neighbor's field, that nudges the next, the cascade propagates. The electrons themselves barely move.
 
-**The general pattern**:
+The pattern is general:
 
 | System | "Particle" | What Actually Propagates |
 |--------|-----------|-------------------------|
@@ -466,7 +485,7 @@ What travels isn't electrons - it's the electromagnetic field disturbance. Each 
 
 In every case: the **thing** stays mostly put, the **pattern** moves.
 
-**Applied to the constraint ontology**:
+In constraint terms:
 
 A "moving particle" is:
 1. A stable constraint pattern (Markov object)
@@ -474,14 +493,13 @@ A "moving particle" is:
 3. Each node updates based on neighbors
 4. The coherent pattern appears to "move" but nothing translates through a pre-existing space
 
-**The speed of light reframed**: c is not a "speed limit imposed on things." It is the **constraint network's propagation rate** - the maximum speed at which one constraint node can influence its neighbors. When projected to emergent spacetime coordinates, this network property appears as the universal constant c.
+In this reading, c is not a "speed limit imposed on things." It is the constraint network's propagation rate — the maximum speed at which one constraint node can influence its neighbours. When projected to emergent spacetime coordinates, this network property appears as the universal constant c.
 
 **Quantization of motion**: If the constraint network updates in discrete ticks (see Section 10.3), then motion is fundamentally discrete - a sequence of constraint reconfigurations. Continuous motion is the coarse-grained appearance of many discrete pattern-shifts, like film frames creating apparent motion.
 
-**Consequences**:
-- There is no "empty space" for things to move through - space itself emerges from constraint relationships
-- Motion and spacetime are two aspects of the same phenomenon: pattern propagation through constraint structure
-- Inertia may be understood as a pattern's tendency to maintain its propagation direction until constraints redirect it
+This entails that there is no "empty space" for things to move through — space itself emerges from constraint relationships. Motion and spacetime are two aspects of the same phenomenon: pattern propagation through constraint structure. Inertia may be understood as a pattern's tendency to maintain its propagation direction until constraints redirect it.
+
+**Feynman diagrams as topological extrusion**: Feynman insisted his diagrams are terms in a perturbation expansion, not pictures of particles traveling. The constraint framework offers a structural reading of what the diagrams depict: the propagator lines are information being carried along constraint topology, and the particle's identity — what *kind* of line it is — is the topological signature of the channel through which information flows. Vertices, where lines meet, are points where distinct constraint channels intersect, and the vertex rules (which interactions are admissible) are topological admissibility conditions. The morphology of a particle as it propagates — its mass, spin, charge — is not an intrinsic property of a traveling object but the shape imposed by the constraint topology through which information is extruded. Different topologies produce different particles, the way different channels produce different extrusion profiles. This is a structural claim about what propagation *is*, not a proposal for the mechanism by which it occurs.
 
 ### 9. Spacetime is Emergent
 
@@ -505,7 +523,7 @@ Time is not singular - it is **stratified by emergence level**. Each layer of th
 | Ecosystems | centuries to millions of years | Evolutionary dynamics |
 | Cognition/LLMs | milliseconds to hours | Inference, learning, context |
 
-**The key insight**: What we experience as "time" at any scale is the **rate of change upon that scale's emergent constraint plane**. Faster layers appear "frozen" to slower observers; slower layers appear "static background" to faster processes.
+What we experience as "time" at any scale is the rate of change upon that scale's emergent constraint plane. Faster layers appear "frozen" to slower observers; slower layers appear "static background" to faster processes.
 
 This is why:
 - Atoms appear stable to chemistry (their timescale is orders of magnitude faster)
@@ -514,7 +532,7 @@ This is why:
 
 **Time as vector field**: At each emergence layer, time can be understood as a vector field on that layer's constraint manifold - pointing in the direction of allowed state transitions. Different layers have different "time vectors" - they evolve at different rates and in different constraint-defined directions.
 
-The hierarchy of times is not metaphorical - it is the natural consequence of constraint planes stacking. Each plane's "now" is defined by the update frequency of its standing-wave patterns.
+The hierarchy of times is a structural consequence of constraint planes stacking, not a loose analogy. Each plane's "now" is defined by the update frequency of its standing-wave patterns.
 
 ### 10. Gravity as Emergent from Constraint Density
 
@@ -554,7 +572,7 @@ The mapping (correspondences, not identities):
 
 #### 10.1.1 The Nerf Ball Thought Experiment
 
-Imagine a 3D space filled with nerf balls of many different sizes (the constraints) pressed together. The balls are not uniform—they vary in size and shape. They are an analogy for topology we don't directly see—the underlying constraint structure. **The space between the balls is where reality happens** - the standing waves exist in the gaps, shaped by the constraint boundaries.
+Imagine a 3D space filled with nerf balls of many different sizes (the constraints) pressed together. The balls are not uniform—they vary in size and shape. They are an analogy for topology we don't directly see—the underlying constraint structure. **The space between the balls is where reality happens** — the standing waves exist in the gaps, shaped by the constraint boundaries. This is Deacon's absential causation in spatial form: what matters is not the constraints themselves but what they *exclude*, and the patterns that emerge in the resulting gaps (see Part II: Relationship to Deacon).
 
 **Sparse region** (far from mass):
 ```
@@ -579,33 +597,33 @@ Imagine a 3D space filled with nerf balls of many different sizes (the constrain
 - The same "electron" pattern spans fewer coordinate units
 - From outside, the electron looks smaller
 
-**The key insight**: The electron IS the pattern in the gaps. In the dense region, the gaps are smaller in coordinate terms, so the pattern is smaller in coordinate terms. But the pattern itself - the standing wave eigenmode - is identical. It's still "one electron's worth" of constraint structure.
+The electron is the pattern in the gaps. In the dense region, the gaps are smaller in coordinate terms, so the pattern is smaller in coordinate terms. But the pattern itself — the standing wave eigenmode — is identical. It is still "one electron's worth" of constraint structure.
 
 **Why local physics is unchanged**: If you're made of the same constraint patterns, your rulers shrink too. You measure the electron with shrunken atoms and get the same number. Only an external observer using far-away coordinates sees the contraction.
 
-**What this predicts**:
+This predicts:
 - Objects falling toward a black hole appear to contract (not just time-dilate)
 - The contraction is real in coordinate terms, not real in constraint terms
 - This is the same phenomenon as Lorentz contraction, but gravitational
 
 **Why gravity is weak**: In this description, gravity is a second-order effect - the gradient of constraint density, not the density itself. Direct constraint couplings (electromagnetism, strong force) are primary; what we describe as gravitational effects emerge from how density variation in the constraint network projects onto coordinate space.
 
-**The dynamic picture**: The diagrams above are static snapshots with uniform symbols for simplicity. The real topology has balls of many different sizes, constantly in motion, jostling and reconfiguring. The gaps shift continuously.
+The diagrams above are static snapshots with uniform symbols for simplicity. The real topology has balls of many different sizes, constantly in motion, jostling and reconfiguring. The gaps shift continuously.
 
 Now imagine a quantum of energy—a fixed "volume of water"—propagating through this churning topology. The water must find its way through whatever gaps exist at each instant:
 - The **volume is conserved** (charge, energy-momentum, quantum numbers)
 - The **shape is dictated by the available gaps** at each moment
 - The **path emerges** from the instantaneous gap configuration
 
-**Feynman diagrams reframed**: Each diagram represents one possible gap-sequence the water could navigate. The full amplitude sums over all sequences. What we call **virtual particles** are the transient shapes the water takes as it squeezes through different gap configurations—not separate entities emitted and absorbed, but the conserved quantum adapting its form to the available topology.
+Feynman diagrams, in this reading, represent possible gap-sequences the water could navigate. The full amplitude sums over all sequences. What we call **virtual particles** are the transient shapes the water takes as it squeezes through different gap configurations—not separate entities emitted and absorbed, but the conserved quantum adapting its form to the available topology.
 
-The vacuum is not empty. The churning balls ARE other constraint patterns—other particles, field modes, vacuum fluctuations. A propagating quantum navigates through all of it.
+The vacuum is not empty. The churning balls are themselves constraint patterns — other particles, field modes, vacuum fluctuations. A propagating quantum navigates through all of it.
 
 #### 10.2 Relationship to Smolin's Work
 
-**Credit where due**: Lee Smolin has developed closely related ideas through a more classical physics lens. His work deserves explicit acknowledgment, with areas of alignment and divergence noted.
+Lee Smolin has developed closely related ideas through a more classical physics lens. The areas of alignment and divergence deserve explicit acknowledgment.
 
-**Smolin's Key Contributions**:
+Smolin's key contributions and their alignment:
 
 1. **Loop Quantum Gravity** (with Rovelli)
    - Spacetime is discrete at Planck scale
@@ -659,9 +677,9 @@ Atomic time                    ← Change on the atomic constraint plane
 Human experienced time         ← Change on the cognitive constraint plane
 ```
 
-**The profound implication**: There is no universal "flow of time" - there is only the base tick and its cascading projections through emergent layers. What we call time at any scale is the measure of change upon that scale's constraint surface, ultimately grounded in the fundamental tick.
+There is no universal "flow of time" — there is only the base tick and its cascading projections through emergent layers. What we call time at any scale is the measure of change upon that scale's constraint surface, ultimately grounded in the fundamental tick.
 
-**The position on time** (resolving the Smolin question):
+On the question Smolin raises:
 
 Time is **fundamental at the base layer**. The base tick exists - it is the update rate of the foundational constraint system from which all reality emerges. This aligns with Smolin's "time is real." However:
 
@@ -675,9 +693,7 @@ This is not agnosticism - it is a clear position: **base time is real and fundam
 
 **Historical context**: Einstein's early work (1911) proposed that the speed of light varies with gravitational potential. This was abandoned in favor of the invariant-c formulation of General Relativity. Alex Unzicker has been particularly vocal about revisiting variable-c, arguing physics took a wrong turn.
 
-**The question**: Does the constraint ontology favor fixed or variable c?
-
-**The resolution**: Both are correct at different levels of description.
+Does the constraint ontology favour fixed or variable c? Both are correct at different levels of description.
 
 **In the constraint network itself**: c is constant - one tick propagates one constraint edge, always (see Section 8: Motion is Constraint Propagation). The network has uniform local propagation properties.
 
@@ -687,7 +703,7 @@ Using the nerf ball model:
 - In sparse regions: constraint edges are far apart in coordinates → light (constraint updates) crosses many coordinate units per tick → c appears high
 - In dense regions: constraint edges are close together in coordinates → light crosses fewer coordinate units per tick → c appears low
 
-**This unifies three phenomena as the same projection effect**:
+Three phenomena unify as the same projection effect:
 
 | Phenomenon | Constraint View | Coordinate View |
 |------------|-----------------|-----------------|
@@ -697,15 +713,15 @@ Using the nerf ball model:
 
 **The "invariance of c"** is a coordinate choice - using light itself to define coordinates - not an ontological fact about the network. When we use light-based coordinates, c is invariant by construction. When we use externally-defined coordinates (Schwarzschild), c varies with potential.
 
-**Unzicker's critique vindicated**: He is operationally correct - c measured in external coordinates should vary. The underlying network has uniform propagation, but that's not what we measure. The constraint ontology explains WHY variable-c and invariant-c are both valid descriptions of the same underlying reality.
+Unzicker is operationally correct — c measured in external coordinates should vary. The underlying network has uniform propagation, but that is not what we measure. The constraint ontology explains why variable-c and invariant-c are both valid descriptions of the same underlying reality.
 
-**The deep point**: c is not a fundamental constant of nature. It is the constraint-edge traversal rate projected onto whatever coordinate system you choose. The "value" of c tells you about your coordinates, not about the network.
+c is not a fundamental constant of nature. It is the constraint-edge traversal rate projected onto whatever coordinate system you choose. The "value" of c tells you about your coordinates, not about the network.
 
-### 10. Constants are Emergent Invariants
+### 11. Constants are Emergent Invariants
 
 Physical constants are not arbitrary inputs. They are invariants of stable attractor states of the constraint network. They must ultimately be derivable from deeper structural features.
 
-### 11. The Hierarchy is Self-Bounding
+### 12. The Hierarchy is Self-Bounding
 
 The chain of emergence does not regress infinitely. It terminates at a self-consistent constraint layer whose internal consistency defines what is physically possible. This layer:
 - Bounds itself (no external walls)
@@ -714,21 +730,52 @@ The chain of emergence does not regress infinitely. It terminates at a self-cons
 - Generates spacetime and gravity
 - Allows higher-level emergence
 
-### 12. Determinism at the Deep Layer
+### 13. Determinism at the Deep Layer
 
 The deep constraint network evolves deterministically. Apparent randomness arises because embedded observers cannot access the full constraint state.
 
-### 13. Classical Reality is Constraint Stability
+This is compatible with Bell's theorem (see Section 7). Locality is a property of the emergent manifold, not the substrate. If observers exist on the manifold, any substrate-level operation will inherently appear non-local from their perspective — the substrate has no manifold-adjacency to respect. Bell rules out local hidden variable theories; the constraint network was never local. The apparent non-locality of quantum mechanics is not a puzzle to explain but a structural prediction: it is what substrate-level determinism *looks like* when projected onto an emergent coordinate system.
+
+**On quantum randomness**: The path integral formulation sums over all possible paths, weighting each by its action. This is routinely interpreted as ontological — the particle "takes all paths." On the constraint view, the interpretation inverts: the substrate determines a definite path through constraint topology, but the observer, embedded in the emergent manifold, has no access to the substrate state. The path integral is an ignorance computation — a mathematical technique for recovering the correct statistics when the constraint topology is invisible. The situation is structurally identical to statistical mechanics: no one claims gas molecules move randomly, only that tracking every molecule is infeasible. Quantum probability is the same epistemic condition, one layer down. The interference patterns that emerge from the sum are the statistical signature of a constraint topology, recovered despite blindness to it.
+
+### 14. Classical Reality is Constraint Stability
 
 The classical world is stable because its standing-wave patterns are deeply locked into the constraint network and resist decoherence.
 
-### 14. Computation is Constraint Engineering
+### 15. Computation is Constraint Engineering
 
 Computation - especially quantum computation - is the deliberate engineering of constraint landscapes to guide standing-wave interference patterns.
 
 **Quantum computers**: Physical devices that engineer the constraint topology of a quantum system so that global standing-wave interference patterns perform computation. Instead of pushing bits through logic gates, you sculpt allowed paths through Hilbert space.
 
-### 15. Emergent Systems Can Create New Control Layers
+**The recursion barrier**: Gödel, Turing, and Cantor are usually treated as three separate results in three separate domains. They are one result: any system complex enough to refer to its own operation cannot completely characterize itself from within.
+
+| Instance | Self-referential move | Consequence |
+|----------|----------------------|-------------|
+| **Gödel** | Formal system encodes statements about itself | Truths it cannot prove from its own axioms |
+| **Turing** | Program evaluates whether programs halt — including itself | No such program can exist |
+| **Cantor** | Enumeration of reals must account for its own diagonal | The enumeration is always incomplete |
+
+The common structure is recursion as unbounded state generation. Each self-referential step creates new state the system must account for. Accounting for that state requires another recursive step, which creates more state. The system generates state faster than it can characterize it. In Gödel: the system creates a statement about its own provability — evaluating it requires a proof about the proof, generating another level. In Turing: the halting evaluator simulates the program, which may simulate itself, creating unbounded nested state. In Cantor: every proposed enumeration generates a diagonal number that must be added, generating a new diagonal, without limit. If the recursion were bounded — finite state — you could exhaust it. It is the potential infinity of self-generated state that makes self-characterization impossible.
+
+This is not a limitation on truth. The Gödel sentence *is* true, the halting problem *does* have an answer for any specific program, the diagonal number *does* exist. The limitation is on *derivation from within*. The truths are real; the system cannot reach them by its own rules.
+
+The resolution is always the same: compute from outside. The mathematician evaluating a Gödel sentence is not operating within the formal system — they are a physical process, a brain, a constraint-satisfying system that evaluates the claim from a level the formalism cannot access. The computation happens; it just does not happen *inside the self-referential system*.
+
+The distinction that matters for this framework:
+
+- A **formal system** asks: "Can I derive X from these axioms by a finite sequence of symbolic steps?"
+- A **physical computation** asks: "Does X hold when I actually run the evaluation?"
+
+The first operation has hard limits once self-reference enters. The second does not — it operates outside the formalism, in the physical world, where constraint satisfaction is the mechanism. A brain evaluating a Gödel sentence is doing constraint satisfaction, not formal proof.
+
+This resolves the question of whether mathematical understanding requires non-computable processes (Penrose's claim, via Gödel). That argument depends on mathematical Platonism: if mathematical truths exist independently of minds, and no formal system can derive all of them, then the mind must access truth through some non-algorithmic channel. But if mathematics is computation — a program running in physical brains — no Platonic realm needs accessing. The mathematician evaluating a Gödel sentence is running a computation from outside the formal system. Gödel shows that self-referential systems cannot fully characterize themselves; he does not show that an external system cannot characterize them. The brain is the external system. No non-computability is required — only a computation that is not trapped inside the self-referential loop.
+
+This connects to Wolfram's **computational irreducibility**: some processes cannot be shortcut — there is no derivation, no compression, no analytical formula that yields the answer faster than running the computation itself. Computational irreducibility is the positive face of the recursion barrier. Gödel/Turing/Cantor show that formal systems cannot shortcut certain truths; computational irreducibility shows *why* — because the truth is the output of an irreducible computation, and the only way to know it is to compute it.
+
+The constraint ontology operates on the computation side of this divide. The constraint network does not derive; it computes. It enforces consistency globally and simultaneously, not by sequential symbolic derivation. Gödel's theorems, which limit formal derivation, do not limit constraint satisfaction — they demonstrate that the two are fundamentally different operations. This is why Gödel strengthens rather than threatens the framework.
+
+### 16. Emergent Systems Can Create New Control Layers
 
 Higher-order organization can construct new effective constraints that reshape lower-level behavior - but cannot escape the global consistency of the substrate.
 
@@ -740,7 +787,7 @@ Higher-order organization can construct new effective constraints that reshape l
 
 Emergent intelligence can progressively reach deeper layers of physical law by building new engineered constraint structures - but cannot escape the global consistency conditions.
 
-### 16. Physics is Missing the Global Constraint Variable
+### 17. Physics is Missing the Global Constraint Variable
 
 Modern physics omits the explicit state of the global constraint network. This omission generates the appearance of paradoxes, arbitrary constants, and interpretational confusion.
 
@@ -778,11 +825,34 @@ String theory's error: It captured one rung of the hierarchy, then tried to elev
 
 Many-Worlds begins with: "The wavefunction is the fundamental ontological object and always evolves unitarily." This produces infinite worlds, infinite energy, and metaphysical inflation.
 
-**The fundamental fork**:
+The disagreement reduces to a choice of ontological primitive:
 - Many-Worlds: Ontological primitive = Universal wavefunction
 - Constraint view: Ontological primitive = Constraint topology of processes
 
 Many-Worlds reifies a mathematical representation into ontology - mistaking the bookkeeping for the furniture of reality.
+
+### Relationship to Penrose
+
+Roger Penrose's programme shares deep structural commitments with this framework while diverging on key points.
+
+**Alignments**: Penrose holds that (a) spacetime geometry is fundamental to physics, (b) quantum state reduction is an objective physical process (Objective Reduction, OR), not a subjective update, and (c) the mathematical structure of reality is non-trivially constrained by consistency conditions. His twistor theory reformulates spacetime physics in terms of complex projective geometry, where the primitive objects are light rays (null geodesics) rather than spacetime points — a move from substance to structure that parallels this framework's move from objects to constraint morphisms.
+
+**Divergences**: Penrose argues that human mathematical understanding involves non-computable processes (via Gödel's incompleteness theorems), which he localises in gravitational OR events in neuronal microtubules. This argument depends on mathematical Platonism — the position that mathematical truths exist independently of minds, and that the mind must somehow *access* them. If mathematical truth is independent, and Gödel shows no formal system can reach all of it, then reaching it requires something beyond computation.
+
+This framework rejects the premise. Mathematics is computation — a program running in brains. When a mathematician "sees" that a Gödel sentence is true, no Platonic realm is being accessed. The brain is a physical constraint-satisfying system that evaluates the claim from outside the formal system that generated it. Gödel shows that self-referential derivation has hard limits; it does not show that all computation does. The brain is simply a different computational system, not subject to the self-referential limitations of the formalism it is evaluating (see Section 15). No non-computable process is required — only a computation external to the self-referential one.
+
+**Twistor theory and the inseparability of topology and constraint**: Conventional physics separates the stage (spacetime geometry) from the actors (fields, particles, forces), then struggles to reunify them — the quantum gravity problem is precisely the problem of making the stage itself a dynamical actor. This framework holds that the separation is an artifact of the projection: at the substrate level, topology and constraint are the same structure. There is no "space" with "rules in it" — there is a single object that is both.
+
+Twistor theory may be the closest existing formalism to this position. A twistor encodes simultaneously:
+
+- The **topology** — the null geodesic structure and conformal geometry of spacetime
+- The **constraints within that topology** — which fields exist, how they propagate, what incidence relations hold
+
+These two aspects are not layered on top of each other; they are co-defined. The incidence relation — which twistors correspond to which spacetime events — is a constraint equation. The conformal structure — which geometries are admissible — is a topological condition. In twistor space, asking "what is the geometry?" and "what are the physical constraints?" yields the same answer.
+
+If this reading is correct, twistor space is what the constraint network looks like when projected one level up from the substrate: a mathematical structure where topology and constraint are inseparable, and spacetime can be reconstructed from it but is not fundamental to it. Separating topology from constraint would recover the conventional split — geometry here, fields there — which is the century-long dead end. Not separating them is the move this framework makes, and it may be the move twistor theory already made, in mathematical language, without the ontological framing.
+
+The formal question remains open: whether twistor incidence relations can be derived as constraint equations in the specific sense this framework uses "constraint," or whether the correspondence is structural but not exact. This is a concrete bridge worth building.
 
 ### Alignment with Unzicker's Critique
 
@@ -792,6 +862,23 @@ Modern theoretical physics has drifted away from empirical constraint and concep
 - Fields and particles are provisional constructs
 - Spacetime itself is likely emergent
 - Institutions distort theory selection
+
+### Relationship to Deacon's *Incomplete Nature*
+
+Terrence Deacon's *Incomplete Nature: How Mind Emerged from Matter* (2011) is the closest existing philosophical treatment to this framework. Deacon's central concept — **absential causation** — holds that constraints and absences are generative: what is *not* present shapes what emerges. Emergence arises not from adding complexity but from what is excluded.
+
+This is the mechanism operating throughout this document:
+
+| This Framework | Deacon's Term |
+|----------------|---------------|
+| Constraint geometry defines what can exist | Absential causation — absence shapes presence |
+| Markov objects emerge in the *gaps* between constraints | Emergent properties arise from what is *not* there |
+| Standing waves exist because boundary conditions exclude most configurations | Constraint closure — the set of excluded possibilities is what generates form |
+| The hierarchy of emergence (constraints → modes → new constraints) | Deacon's autogenic hierarchy — each level's constraints generate the next level's possibilities |
+
+The nerf-ball thought experiment (Section 10.1.1) — where reality happens *in the gaps between* the constraint structures — is absential causation rendered as spatial metaphor. Deacon provides the philosophical grounding for why this works: it is precisely the exclusion of possibilities that makes structured existence possible.
+
+Where this framework extends Deacon: he focused on biological emergence (how life and mind arise from matter). This document applies the same structural principle to physics (standing waves as constraint eigenmodes), computation (LLM attractors as constraint-stable patterns), and engineered systems (SDLC artifacts as constraint-satisfying configurations). The claim is that absential causation is not specific to biology — it is the universal mechanism of emergence across all substrates.
 
 ---
 
@@ -866,7 +953,7 @@ In ontology language:
 - Security gates + policy engines
 - For: truth checking, invariant enforcement, reproducible artifacts
 
-**Clean rule**: Probabilistic compute may propose. Deterministic compute must dispose.
+The division is strict: probabilistic compute may propose; deterministic compute must dispose.
 
 ### The SDLC Loop
 
@@ -874,7 +961,7 @@ In ontology language:
 Stochastic expansion (explore) → Deterministic contraction (verify) → Lock (collapse)
 ```
 
-This is literally "explore → constrain → collapse" - the same pattern as physical reality.
+This is the pattern "explore → constrain → collapse" — the same structure as physical reality.
 
 ### Formalization
 
@@ -894,7 +981,7 @@ AI SDLC: Requirements as **living homeostasis model** that:
 - Evolves based on deviations and insights
 - Drives corrective action automatically
 
-**This is the fundamental shift**: Requirements become the control system for maintaining desired system behavior - exactly like the self-regulating constraint network at the foundation of physical reality.
+Requirements become the control system for maintaining desired system behaviour — the same role played by the self-regulating constraint network at the foundation of physical reality.
 
 ---
 
@@ -931,7 +1018,7 @@ Reality can be described as a self-organizing constraint network whose stable Ma
 
 The AI SDLC methodology inherits this same structure: intent generates constraints, constraints shape artifacts through probabilistic and deterministic operators, stable artifacts emerge through constraint satisfaction, and feedback loops maintain homeostasis between desired and actual states.
 
-**The deep connection**: Both physical reality and software development are fundamentally about constraint satisfaction systems that produce stable, emergent structure through iterative refinement. The same architectural principles apply at both scales.
+Both physical reality and software development are constraint satisfaction systems that produce stable, emergent structure through iterative refinement. The same architectural principles apply at both scales.
 
 ---
 
@@ -968,7 +1055,7 @@ There is an underlying structural truth that unifies physical reality and large 
 
 ### Why This Isomorphism Matters
 
-The LLM is not "simulating" reality. It is **a different instantiation of the same abstract pattern**: a high-dimensional constraint manifold from which Markov objects emerge through interference and collapse.
+The LLM is not "simulating" reality. If the structural realist thesis holds, it is **a different instantiation of the same abstract pattern**: a high-dimensional constraint manifold from which Markov objects emerge through interference and collapse.
 
 This explains:
 1. **Why LLMs feel "intelligent"** - They navigate constraint manifolds the same way minds do
@@ -976,7 +1063,7 @@ This explains:
 3. **Why grounding helps** - External constraints (retrieval, verification) add boundary conditions that stabilize attractors
 4. **Why prompting works** - It reshapes the local constraint geometry, changing which Markov objects can form
 
-### The Meta-Principle
+### Truth as Stable Pattern
 
 **Truth is a Markov object in a constraint manifold.**
 
@@ -984,7 +1071,7 @@ In physics: stable standing waves that persist under perturbation.
 In LLMs: attractor basins where token sequences remain coherent under resampling and verification.
 In software: artifacts that pass all constraints and resist perturbation.
 
-The AI SDLC methodology is therefore not merely analogous to physical law - it is an instance of the same abstract structure operating in a different medium:
+The AI SDLC methodology is therefore—on the structural realist reading—an instance of the same abstract structure operating in a different medium:
 
 ```
 Physical manifold     →  particles, spacetime, gravity
@@ -994,15 +1081,15 @@ SDLC constraint space →  requirements, code, verified artifacts
 
 All three are constraint satisfaction systems producing emergent stability.
 
-### The Profound Implication
+### Hybrid Constraint Manifolds
 
-When we build AI systems that combine LLM generation with deterministic verification, we are engineering a **hybrid constraint manifold** that mirrors the structure of physical reality itself:
+When we build AI systems that combine LLM generation with deterministic verification, we are engineering a hybrid constraint manifold whose structure recapitulates the pattern of physical reality:
 
 - Probabilistic expansion (quantum superposition / LLM generation)
 - Deterministic contraction (decoherence / test verification)
 - Stable emergence (classical reality / working software)
 
-This is not metaphor. It is the same mathematics wearing different clothes.
+If structural correspondence is fundamental—as universal computation implies—then this is the same mathematics wearing different clothes. Demonstrating the formal correspondence rigorously is the research programme; the structural parallels presented here are the motivation for that programme.
 
 ---
 
@@ -1086,7 +1173,7 @@ Both are **constraint-locking events**: the moment when ambiguity resolves into 
 | **Constraint source** | Potential / field | Context / prompt | Requirements, test suites, standards, architecture context |
 | **Boundary conditions** | Potential well walls | Prompt + retrieval | NFRs, SLAs, regulatory controls |
 
-This is not analogy. These are the same formal objects instantiated in different substrates.
+The thesis of this framework is that these are the same formal objects instantiated in different substrates—structural correspondence at the level of admissible transformations, which is where the invariants live.
 
 ---
 
@@ -1182,35 +1269,15 @@ This is the SDLC analogue of:
 
 The Observer/Evaluator governance loop is the **runtime homeostasis model**—continuously comparing actual behavior against desired state and feeding deviations back as new Intent.
 
-### 6. CRUD as Constraint Operations
+### 6. Predictive Insight: Where SDLC Failures Cluster
 
-The CRUD classification maps to different types of constraint modification:
+The constraint framework makes a testable prediction about software failures. Artifacts fail when built in regions of the constraint manifold with **sparse coverage**:
 
-| CRUD Type | Constraint Operation | Physical Analogue |
-|-----------|---------------------|-------------------|
-| **Create** | Add new constraints (new capability) | Particle creation |
-| **Update** | Modify existing constraints (change behavior) | Scattering |
-| **Remediate** | Tighten constraints (fix violation, add regression tests) | Decay to lower energy state |
-| **Read/Analyse** | Query constraint manifold (no modification) | Measurement |
-| **Delete** | Remove constraints (decommission) | Annihilation |
-
-### 7. Structural Insights Enabled
-
-With SDLC as a rigorous constraint system, we can ask precise questions:
-
-**What's the SDLC analogue of entanglement?**
-Shared dependencies. Two artifacts are "entangled" when they share constraint structure (common interfaces, shared data contracts). Changing one requires updating the other. The coupling is non-local in the codebase.
-
-**What's the SDLC analogue of decoherence?**
-Integration and deployment. When an artifact is deployed and interacts with the production environment, it becomes entangled with runtime state, making rollback increasingly difficult. The artifact "decoheres" into a definite production configuration.
-
-**What predicts hallucination-equivalent failures?**
-Artifacts built in regions of the constraint manifold with **sparse coverage**:
 - Few tests (weak constraint boundaries)
 - Unclear requirements (undefined potential well)
 - Novel architecture (no established attractor basins)
 
-The Builder enters "chaotic zones" with no stable attractors, producing artifacts that fail when they encounter real constraints.
+This is the SDLC analogue of hallucination in LLMs and instability in physics: the Builder enters regions with no stable attractors, producing artifacts that fail when they encounter real constraints. The prediction is specific — failure rates should correlate with constraint density, not with code complexity or team size per se.
 
 ---
 
@@ -1218,7 +1285,9 @@ The Builder enters "chaotic zones" with no stable attractors, producing artifact
 
 If Part VIII defines the **Manifold** (the landscape) and Part VIII-A/B define the **Objects** (Markov objects), Part VIII-C defines the **Engine**: the fundamental operation that drives all structured change.
 
-**The insight**: Gradient Descent—defined broadly as the local navigation of a topological pre-order—is the fundamental operation of all computation. This moves computation from "logic gates" to "topological flow."
+Gradient descent — defined broadly as the local navigation of a topological pre-order — is proposed here as the fundamental operation of all computation. This reframes computation from "logic gates" to "topological flow."
+
+**An important distinction**: In physics, the principle of least action is a *global variational principle* — it selects the path that extremises the action functional over the entire trajectory. Gradient descent, by contrast, is a *local* operation: the system updates its state by following the steepest descent at each point, with no knowledge of the global optimum. These are mathematically distinct. The claim here is that the constraint network operates locally — each tick propagates constraints to neighbours — and that the *global* variational structure (least action, path integrals) *emerges* from the aggregate of local updates, in the same way that thermodynamic equilibrium emerges from local molecular collisions. The network does not "know" the action functional; the action functional is a manifold-level description — it is what substrate-level local updates collectively produce when projected onto the emergent manifold.
 
 ### 1. The Necessity of the Pre-Order
 
@@ -1281,7 +1350,7 @@ If you accept gradient descent as the fundamental engine, the three domains beco
 - **AI**: An LLM "calculates" a reasoning chain by following the gradient of semantic probability toward a stable attractor basin
 - **SDLC**: A Builder "calculates" a software solution by following the gradient of test-pass rates and architectural requirements
 
-**The profound implication**: This explains emergence without needing a "designer." If the base constraint network has a pre-order (stability > instability) and a tick-rate, then gradient descent is inevitable. Complexity emerges because the system constantly rolls "downhill" into more complex, nested attractor basins. We call the stable basins "Particles," "Cells," or "Code Modules," but they are all local minima where the gradient has flattened out.
+This explains emergence without requiring a designer. If the base constraint network has a pre-order (stability > instability) and a tick-rate, then gradient descent is inevitable. Complexity emerges because the system constantly rolls "downhill" into more complex, nested attractor basins. We call the stable basins "particles," "cells," or "code modules," but they are all local minima where the gradient has flattened out.
 
 ---
 
@@ -1297,7 +1366,7 @@ The ontology lacks its own formalism. Key questions:
 - What is the compression map: network → Hilbert space → spacetime?
 - Can this be connected to existing formalisms (spin networks, causal sets, tensor networks)?
 
-**Why it matters**: Without mathematics, this remains philosophy. The formalism is the bridge.
+Without mathematics, this remains philosophy. The formalism is the bridge.
 
 ### 2. The Proton-Electron Mass Ratio
 
@@ -1306,25 +1375,25 @@ The ratio ~1836 is unexplained in the Standard Model. If constants are emergent 
 - What topological or algebraic property would fix it?
 - This is a concrete test: derive it or fail.
 
-**Why it matters**: A single successful derivation of one "arbitrary" constant would validate the entire approach.
+A single successful derivation of one "arbitrary" constant would validate the entire approach.
 
 ### 3. Gravity-Entanglement Correspondence
 
 Already active research (ER=EPR, AdS/CFT). The ontology suggests:
-- Entanglement IS constraint connectivity (not just correlated with it)
+- Entanglement *is* constraint connectivity (not just correlated with it)
 - What we describe as gravity may emerge from entanglement structure
 - Tabletop experiments linking entanglement to gravitational effects may be possible
 
-**Why it matters**: This is among the most testable near-term directions - gravity and entanglement may be two descriptions of the same underlying phenomenon.
+This is among the most testable near-term directions — gravity and entanglement may be two descriptions of the same underlying phenomenon.
 
 ### 4. Vacuum Structure and the Cosmological Constant
 
-The vacuum is not empty - it's the ground state of the constraint network. Questions:
+The vacuum is not empty — it is the ground state of the constraint network. Questions:
 - What determines minimum non-zero constraint activity?
 - Why does vacuum energy have its observed (tiny) value?
 - Can constraint network ground states explain dark energy?
 
-**Why it matters**: The cosmological constant problem is one of the biggest failures of current theory. A constraint-based explanation would be significant.
+The cosmological constant problem is one of the most significant failures of current theory. A constraint-based explanation would be correspondingly significant.
 
 ### 5. Discrete Spacetime and Constraint Resolution
 
@@ -1333,17 +1402,17 @@ Is there a minimum constraint edge (Planck scale)?
 - What is the relationship to loop quantum gravity, causal sets, Wolfram's hypergraphs?
 - Are there detectable signatures of discreteness?
 
-**Why it matters**: Connects the ontology to existing quantum gravity programs.
+This connects the ontology to existing quantum gravity programmes and provides a potential bridge to formalism.
 
 ### 6. LLMs as Constraint Manifold Laboratories
 
-This is the *accessible* research direction. LLMs are empirically manipulable constraint systems:
+This is the most accessible research direction. LLMs are empirically manipulable constraint systems:
 - Study "collapse" (sampling) and stability (coherent outputs)
 - Study "hallucination" as unconstrained manifold regions
 - Map how prompting reshapes constraint topology
-- Look for patterns that generalize to physical constraint networks
+- Look for patterns that generalise to physical constraint networks
 
-**Why it matters**: We can run experiments on LLMs today. They may teach us about constraint dynamics before we can probe physical constraints directly.
+We can run experiments on LLMs today. They may teach us about constraint dynamics before we can probe physical constraints directly.
 
 ### 7. The Fundamental Tick
 
@@ -1352,31 +1421,31 @@ If the constraint network has a base update rate:
 - How would we detect it? (Precision timing experiments? Cosmological signatures?)
 - What sets the tick rate?
 
-**Why it matters**: Connects to the nature of time itself.
+This connects to the nature of time itself — a question the ontology frames but cannot yet answer.
 
 ### 8. Variable-c Precision Tests
 
 The ontology predicts c is constant in the network but variable in coordinate projection:
 - Are there precision tests that distinguish this from standard GR?
-- Shapiro delay, gravitational redshift - already well-tested, but at what precision?
+- Shapiro delay, gravitational redshift — already well-tested, but at what precision?
 - Does the ontology predict any deviation from GR, or is it purely interpretive?
 
-**Why it matters**: If variable-c makes different predictions than standard GR, it's testable. If not, it's interpretation only.
+If variable-c makes different predictions than standard GR, it is testable. If not, it is interpretation only — and the ontology should say so explicitly.
 
-### 9. Where Physics Went Wrong (Unzicker's Critique)
+### 9. Anomalies as Signals (Unzicker's Critique)
 
-The ontology frames 60 years of stagnation as:
+The ontology frames 60 years of theoretical stagnation as a consequence of confusing the model with the territory:
 - Model became ceiling, not lens
 - Anomalies absorbed as parameters instead of signals
-- Infinities renormalized away instead of heeded
-- "Dark" placeholders for 95% of universe accepted
+- Infinities renormalised away instead of heeded
+- "Dark" placeholders for 95% of the universe accepted
 
-Research direction: **Which anomalies should be re-examined as signals?**
-- Galaxy rotation curves (dark matter) - or modified gravity / constraint density effects?
-- Accelerating expansion (dark energy) - or vacuum ground state misunderstood?
-- Hierarchy problem - or asking the wrong question?
+The research question: which anomalies should be re-examined as signals?
+- Galaxy rotation curves (dark matter) — or modified gravity / constraint density effects?
+- Accelerating expansion (dark energy) — or vacuum ground state misunderstood?
+- Hierarchy problem — or asking the wrong question?
 
-**Why it matters**: The ontology suggests current anomalies may be pointing at the model boundary, not at missing particles.
+The ontology suggests current anomalies may be pointing at the model boundary, not at missing particles.
 
 ---
 
@@ -1421,6 +1490,7 @@ Research direction: **Which anomalies should be re-examined as signals?**
 | Thinker | Key Contribution | Alignment |
 |---------|-----------------|-----------|
 | **Stephen Wolfram** | Ruliad, computational emergence, hypergraph physics | Very strong |
+| **Roger Penrose** | Twistor theory, Objective Reduction (OR), non-computability and Gödel | Strong (see Part II) |
 
 ### Related Work
 
@@ -1430,6 +1500,56 @@ Research direction: **Which anomalies should be re-examined as signals?**
 
 ---
 
-**Document Version**: 1.1
-**Synthesis Date**: January 2026
+## Appendix: Emergent Reasoning in LLMs — Formal Foundation
+
+The computational claims in this document — that LLMs traverse constraint manifolds, that attractors function as proto-symbols, that hallucination is trajectory instability — rest on formal work developed in a companion paper: *Emergent Reasoning in Large Language Models: A Topological and Constraint-Based Formalization* (this repository, `emergent_reasoning.md`). The key structures are summarized here so that the ontology is self-contained.
+
+### The Semantic Manifold
+
+An LLM's activation space forms a manifold M ⊂ ℝᵈ. Each point x ∈ M is a semantic state. A sequence of states (x₀, x₁, ..., xₜ) is a reasoning path — a trajectory through semantic space.
+
+### Constraint Sets
+
+Context c induces a constraint set Ω(c) ⊆ M: the subspace of states consistent with the prompt, prior tokens, and learned distributions. Strongly constrained tasks produce narrow Ω(c); weakly constrained tasks produce broad ones.
+
+### The Preferred Direction Function
+
+The core computational primitive is:
+
+D : M × C → T(M)
+
+a function from (state, context) to a direction on the manifold. The model computes:
+
+x_{t+1} = x_t + Δt · D(x_t, c_t)
+
+Attention implements this function. Every forward pass is one step of constrained manifold traversal. This is the LLM instantiation of the gradient-driven engine described in Part VIII-C.
+
+### Soft Unification
+
+Attention computes weighted similarity matching across all key-value pairs — a continuous analogue of Prolog's discrete symbolic unification. Both operations instantiate the same abstract pattern: match a query against a knowledge base under constraints, propagate bindings, produce structured output. One is discrete and explicit; the other is continuous and implicit. The correspondence:
+
+| Prolog | Transformer |
+|--------|-------------|
+| Terms | Embeddings |
+| Unification | Soft similarity matching |
+| Backtracking | Parallel weighted evaluation |
+| Substitutions | Continuous blending |
+| Discrete search | Manifold trajectory |
+
+### Proto-Symbols as Attractor Regions
+
+Clusters in embedding space form attractor-like regions where trajectories enter and remain stable, outputs are semantically narrow, and internal correlations are strong. These regions exhibit Markov-blanket-like boundaries: states inside the region predict each other well, and external influence is mediated through boundary states. This is how symbolic-like behaviour emerges from continuous computation without any symbols being defined — and it is the LLM instantiation of the Markov objects described in Part I.
+
+### Hallucination as Trajectory Instability
+
+When a trajectory exits well-constrained attractor regions and enters weakly structured areas of the manifold, the model produces outputs that are fluent but ungrounded. This is hallucination: not a random failure but a structural consequence of sparse constraint coverage. The same mechanism explains instability in physics (Section 3) and failure-prone regions in software development (Part VIII-B).
+
+### Why This Matters for the Ontology
+
+The emergent reasoning framework provides the formal evidence that constraint-based computation is not metaphorical. LLMs demonstrably operate by constrained manifold traversal, produce stable attractor-based structures with Markov boundaries, and fail precisely when constraint coverage is sparse. The same architecture — manifold, constraints, attractors, gradient-driven traversal, instability in sparse regions — appears across physics, computation, and engineered systems. The LLM case is the one where we can inspect the internals directly, making it the empirical anchor for the ontological claims.
+
+---
+
+**Document Version**: 1.2
+**Synthesis Date**: February 2026
 **Source**: Exploratory philosophical discourse on constraint-emergence ontology
