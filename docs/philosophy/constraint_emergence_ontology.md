@@ -112,6 +112,16 @@ The unifying question is always:
 
 > What must be true of any system—regardless of substrate—for stable, emergent structure to exist within it?
 
+### 0.7 Philosophy as Ontology Construction
+
+Philosophy is storytelling. This is not a dismissal — it is a description of what philosophy does, and the companion paper on emergent reasoning (see Appendix) provides the formal mechanism.
+
+Storytelling — whether performed by a brain or a language model — is constrained manifold traversal: a trajectory through semantic space, shaped by context, directed by the preferred direction function, stabilising in attractor regions. The output of that traversal is a narrative. And a narrative, when it defines primitives, relationships, and admissible transformations, constructs an ontology. An ontology is a constraint manifold. Storytelling is therefore manifold traversal that constructs new manifolds for future traversal.
+
+Every physical theory is a story that creates a manifold. Newtonian mechanics tells a story about point masses in absolute space, and physicists computed over that manifold for two centuries. Quantum mechanics tells a story about state vectors in Hilbert space, and physicists compute over that manifold now. The story is not separate from the computation — it constructs the space in which computation occurs.
+
+This document is an instance of the process it describes: a narrative traversal of a conceptual manifold that constructs a new constraint manifold (the ontology) over which future reasoning — physical, computational, philosophical — can be performed. The question is not whether this is "just a story" — all frameworks are stories. The question is whether this story creates a more productive manifold to compute over than the alternatives. That question can only be answered by computing over it and seeing what emerges.
+
 The remainder of this document explores one answer: that reality, computation, and engineered systems alike are best understood as constraint-governed processes whose stable forms arise from invariant patterns of admissible change.
 
 ---
@@ -331,7 +341,7 @@ This framework introduces several concepts that are **asserted but not yet prove
 | **Constraint network substrate** | Reality is fundamentally a constraint network, not fields/particles/spacetime | Core axiom | Derive predictions differing from standard physics |
 | **Markov objects** | Stable patterns exhibit conditional independence from exterior given boundary | Definitional + empirical | Testable in LLMs via mechanistic interpretability |
 | **Fields as constraint geometry** | Fields are mesh structures; particles emerge in gaps | Interpretive | No independent test unless predictions differ from QFT |
-| **Base time exists** | Fundamental tick at base constraint layer | Axiom | Detect discreteness signatures (Planck-scale effects) |
+| **Base change exists** | The constraint network evolves in discrete units of change; the character and scale of these units are epistemically inaccessible from within emergence | Axiom | Detect discreteness signatures (if scale can be determined) |
 | **Constants are emergent** | Physical constants derive from constraint topology | Conjecture | Derive one constant (e.g., proton-electron mass ratio) |
 | **Spacetime is emergent** | Spacetime is projection of constraint network | Shared with other programs | Consistent with ER=EPR, AdS/CFT research |
 | **Motion is pattern propagation** | Nothing travels through space; patterns propagate through constraint network; c is network propagation rate | Interpretive | Consistent with field theory; different framing of same mathematics |
@@ -495,7 +505,7 @@ A "moving particle" is:
 
 In this reading, c is not a "speed limit imposed on things." It is the constraint network's propagation rate — the maximum speed at which one constraint node can influence its neighbours. When projected to emergent spacetime coordinates, this network property appears as the universal constant c.
 
-**Quantization of motion**: If the constraint network updates in discrete ticks (see Section 10.3), then motion is fundamentally discrete - a sequence of constraint reconfigurations. Continuous motion is the coarse-grained appearance of many discrete pattern-shifts, like film frames creating apparent motion.
+**Quantization of motion**: If the constraint network evolves in discrete units of change (see Section 10.3), then motion is fundamentally discrete — a sequence of constraint reconfigurations. Continuous motion is the coarse-grained appearance of many discrete updates, like film frames creating apparent motion. The framework takes no position on the scale or physical character of these units.
 
 This entails that there is no "empty space" for things to move through — space itself emerges from constraint relationships. Motion and spacetime are two aspects of the same phenomenon: pattern propagation through constraint structure. Inertia may be understood as a pattern's tendency to maintain its propagation direction until constraints redirect it.
 
@@ -655,16 +665,16 @@ Smolin's key contributions and their alignment:
 | Relations | Primary ontological category | Relations = constraint connections (compatible) |
 | Discreteness | Spin networks at Planck scale | Constraint network discreteness (compatible) |
 
-#### 10.3 The Fundamental Tick: Time at the Bottom
+#### 10.3 The Unit of Change
 
-If the constraint network has a bottom - a self-bounding, self-perpetuating standing wave that cannot decompose further - then:
+The constraint network evolves. Change is real — not an illusion, not a dimension to be traversed, but the fundamental process by which the network updates. This is what Smolin means by "time is real," and this framework agrees: the thing we call time points at something real. But "time" as physicists use it — a continuous parameter t, a dimension, something clocks measure — is an emergent manifold-level description of something more fundamental.
 
-**The fundamental tick of time is the update rate of the base constraint layer.**
+What is fundamental is the **unit of change**: the discrete step by which the constraint network evolves. This framework takes no position on its scale, duration, locality, or physical character. It is not identified with Planck time or any other specific quantity. It is the abstract fact that the network's evolution is discrete — change happens in units, not continuously.
 
-This is the ultimate clock. Everything above it experiences time as **change measured on emergent constraint surfaces**:
+Everything above the base layer experiences time as **change measured on emergent constraint surfaces**:
 
 ```
-Base layer tick (τ₀)           ← Fundamental: the self-perpetuating ground pattern updates
+Base layer unit of change      ← Fundamental: the network updates
     ↓
 Quantum field time             ← Change on the first emergent surface
     ↓
@@ -677,17 +687,18 @@ Atomic time                    ← Change on the atomic constraint plane
 Human experienced time         ← Change on the cognitive constraint plane
 ```
 
-There is no universal "flow of time" — there is only the base tick and its cascading projections through emergent layers. What we call time at any scale is the measure of change upon that scale's constraint surface, ultimately grounded in the fundamental tick.
+There is no universal "flow of time" — there are only units of change and their cascading projections through emergent layers. What we call time at any scale is the measure of change upon that scale's constraint surface.
 
 On the question Smolin raises:
 
-Time is **fundamental at the base layer**. The base tick exists - it is the update rate of the foundational constraint system from which all reality emerges. This aligns with Smolin's "time is real." However:
+Change is **real and fundamental**. The thing we call "time" points at something real — the unit of change at the base layer. This aligns with Smolin's position. However:
 
-- **Emergent times are derivatives** - each constraint plane above the base has its own time, defined as the rate of change on that plane
-- **We cannot know the base tick's character** - from our emergent plane, we cannot determine if the base tick is constant, periodic, or variable. We are animated upon an emergent constraint surface and lack direct access to layers below.
-- **Observability requires cross-plane instrumentation** - we could only characterize the base tick if we could instrument constraint planes both above AND below the one we inhabit. Currently, we cannot.
+- **Emergent times are derivatives** — each constraint plane above the base has its own time, defined as the measure of change on that plane
+- **We cannot know the base unit's character** — from our emergent plane, we cannot determine if the unit of change is constant, periodic, variable, or even temporal in any sense we would recognise. We are animated upon an emergent constraint surface and lack direct access to layers below.
+- **The past does not exist** — only the results of prior computation persist as the current state. The prior state was consumed in producing the current one.
+- **The future does not exist** — it has not been computed. The next state of the network is not determined until the next unit of change occurs.
 
-This is not agnosticism - it is a clear position: **base time is real and fundamental; all other times are emergent measures of change on constraint surfaces above it; the base tick's properties are epistemically inaccessible from within emergence.**
+This is not agnosticism — it is a clear position: **change is real and fundamental; the current state is the only state that exists; all experienced times are emergent measures of change on constraint surfaces above the base; the base unit's properties are epistemically inaccessible from within emergence.**
 
 #### 10.4 Variable Speed of Light and the Constraint Network
 
@@ -695,21 +706,21 @@ This is not agnosticism - it is a clear position: **base time is real and fundam
 
 Does the constraint ontology favour fixed or variable c? Both are correct at different levels of description.
 
-**In the constraint network itself**: c is constant - one tick propagates one constraint edge, always (see Section 8: Motion is Constraint Propagation). The network has uniform local propagation properties.
+**In the constraint network itself**: c is constant — one unit of change propagates one constraint edge (see Section 8: Motion is Constraint Propagation). The network has uniform local propagation properties.
 
 **In the emergent coordinate projection**: c appears variable because the mapping from constraint network to spacetime coordinates is non-uniform where constraint density varies.
 
 Using the nerf ball model:
-- In sparse regions: constraint edges are far apart in coordinates → light (constraint updates) crosses many coordinate units per tick → c appears high
-- In dense regions: constraint edges are close together in coordinates → light crosses fewer coordinate units per tick → c appears low
+- In sparse regions: constraint edges are far apart in coordinates → constraint updates cross many coordinate units per step → c appears high
+- In dense regions: constraint edges are close together in coordinates → updates cross fewer coordinate units per step → c appears low
 
 Three phenomena unify as the same projection effect:
 
 | Phenomenon | Constraint View | Coordinate View |
 |------------|-----------------|-----------------|
-| Time dilation | Same tick rate | Fewer ticks per coordinate second |
+| Time dilation | Same update rate | Fewer units of change per coordinate second |
 | Length contraction | Same standing wave | Fewer coordinate units per pattern |
-| Variable c | Same propagation rate | Fewer coordinate units per tick |
+| Variable c | Same propagation rate | Fewer coordinate units per step |
 
 **The "invariance of c"** is a coordinate choice - using light itself to define coordinates - not an ontological fact about the network. When we use light-based coordinates, c is invariant by construction. When we use externally-defined coordinates (Schwarzschild), c varies with potential.
 
@@ -823,13 +834,19 @@ String theory's error: It captured one rung of the hierarchy, then tried to elev
 
 ### Critique of Many-Worlds
 
-Many-Worlds begins with: "The wavefunction is the fundamental ontological object and always evolves unitarily." This produces infinite worlds, infinite energy, and metaphysical inflation.
+Many-Worlds begins with a principled move: take the Schrödinger equation seriously, apply it universally, and refuse to add a collapse postulate. The wavefunction evolves unitarily; what appears as "collapse" is decoherence — the branching of the wavefunction into orthogonal components that no longer interfere. This is mathematically clean and avoids the measurement problem. The appeal is real.
+
+The constraint ontology's objection is not to the mathematics but to the ontological claim that all branches exist.
+
+Existence, on the constraint view, requires computation. To exist is to have been computed — to be the output of the constraint network's forward evolution. The network evolves one unit of change at a time. Each step produces the next state from the current state. The current state is the only state that exists: the prior state was consumed in producing it, and the next state has not yet been computed. There is no past to branch from (only the results of prior computation persist) and no future to branch into (it has not been computed yet).
+
+Many-Worlds requires that at every decoherence event, all branches acquire and retain ontological status — the full superposition persists as physically real. But the constraint network did not compute those branches. The Schrödinger equation "contains" them as terms in a mathematical description, but the network's forward computation produced one outcome. The other terms are features of the manifold-level description (the wavefunction), not features of the substrate.
 
 The disagreement reduces to a choice of ontological primitive:
-- Many-Worlds: Ontological primitive = Universal wavefunction
-- Constraint view: Ontological primitive = Constraint topology of processes
+- Many-Worlds: Ontological primitive = the universal wavefunction, which contains all branches
+- Constraint view: Ontological primitive = the constraint network's computed state, which is singular
 
-Many-Worlds reifies a mathematical representation into ontology - mistaking the bookkeeping for the furniture of reality.
+Many-Worlds reifies a manifold-level mathematical description into substrate-level ontology — granting physical existence to states the network never computed. This is the same structural error as treating the path integral's sum over all paths as evidence that all paths are physically traversed, rather than recognising the sum as an ignorance computation over a constraint topology the observer cannot see.
 
 ### Relationship to Penrose
 
@@ -1287,7 +1304,7 @@ If Part VIII defines the **Manifold** (the landscape) and Part VIII-A/B define t
 
 Gradient descent — defined broadly as the local navigation of a topological pre-order — is proposed here as the fundamental operation of all computation. This reframes computation from "logic gates" to "topological flow."
 
-**An important distinction**: In physics, the principle of least action is a *global variational principle* — it selects the path that extremises the action functional over the entire trajectory. Gradient descent, by contrast, is a *local* operation: the system updates its state by following the steepest descent at each point, with no knowledge of the global optimum. These are mathematically distinct. The claim here is that the constraint network operates locally — each tick propagates constraints to neighbours — and that the *global* variational structure (least action, path integrals) *emerges* from the aggregate of local updates, in the same way that thermodynamic equilibrium emerges from local molecular collisions. The network does not "know" the action functional; the action functional is a manifold-level description — it is what substrate-level local updates collectively produce when projected onto the emergent manifold.
+**An important distinction**: In physics, the principle of least action is a *global variational principle* — it selects the path that extremises the action functional over the entire trajectory. Gradient descent, by contrast, is a *local* operation: the system updates its state by following the steepest descent at each point, with no knowledge of the global optimum. These are mathematically distinct. The claim here is that the constraint network operates locally — each unit of change propagates constraints to neighbours — and that the *global* variational structure (least action, path integrals) *emerges* from the aggregate of local updates, in the same way that thermodynamic equilibrium emerges from local molecular collisions. The network does not "know" the action functional; the action functional is a manifold-level description — it is what substrate-level local updates collectively produce when projected onto the emergent manifold.
 
 ### 1. The Necessity of the Pre-Order
 
@@ -1336,11 +1353,11 @@ High Energy:  [Many failed tests, missing features, unclear requirements]
 Low Energy:   [All tests pass, requirements met, stable artifact]
 ```
 
-### 5. The Base Tick as the "Compute Step"
+### 5. The Unit of Change as the Compute Step
 
-The **Fundamental Tick** (τ₀) identified in Section 10.3 is the ultimate clock of this engine. Every tick is a discrete step in the universal gradient descent.
+The unit of change identified in Section 10.3 is the discrete step of the engine. Every unit of change is one step of constraint propagation across the manifold.
 
-Evolution, entropy, and intelligence are all emergent properties of the constraint network rolling "downhill" toward increasingly complex, nested stable states. The tick provides the discrete update; the pre-order provides the direction; the constraint topology provides the landscape.
+Evolution, entropy, and intelligence are all emergent properties of the constraint network rolling "downhill" toward increasingly complex, nested stable states. The unit of change provides the discrete update; the pre-order provides the direction; the constraint topology provides the landscape.
 
 ### 6. Why This Unifies Everything
 
@@ -1350,7 +1367,7 @@ If you accept gradient descent as the fundamental engine, the three domains beco
 - **AI**: An LLM "calculates" a reasoning chain by following the gradient of semantic probability toward a stable attractor basin
 - **SDLC**: A Builder "calculates" a software solution by following the gradient of test-pass rates and architectural requirements
 
-This explains emergence without requiring a designer. If the base constraint network has a pre-order (stability > instability) and a tick-rate, then gradient descent is inevitable. Complexity emerges because the system constantly rolls "downhill" into more complex, nested attractor basins. We call the stable basins "particles," "cells," or "code modules," but they are all local minima where the gradient has flattened out.
+This explains emergence without requiring a designer. If the base constraint network has a pre-order (stability > instability) and discrete units of change, then gradient descent is inevitable. Complexity emerges because the system constantly rolls "downhill" into more complex, nested attractor basins. We call the stable basins "particles," "cells," or "code modules," but they are all local minima where the gradient has flattened out.
 
 ---
 
@@ -1414,14 +1431,15 @@ This is the most accessible research direction. LLMs are empirically manipulable
 
 We can run experiments on LLMs today. They may teach us about constraint dynamics before we can probe physical constraints directly.
 
-### 7. The Fundamental Tick
+### 7. The Unit of Change
 
-If the constraint network has a base update rate:
-- Is time discrete at the bottom?
-- How would we detect it? (Precision timing experiments? Cosmological signatures?)
-- What sets the tick rate?
+The framework posits discrete units of change but takes no position on their physical character:
+- What is the relationship between the unit of change and what we call "time"?
+- Is the unit constant, periodic, or variable?
+- How would we detect its discreteness from within emergence? (Precision timing experiments? Cosmological signatures?)
+- Can the unit's properties be inferred indirectly from emergent-layer observations?
 
-This connects to the nature of time itself — a question the ontology frames but cannot yet answer.
+This connects to the nature of time itself — the framework claims change is real and fundamental, but the character of the base unit is epistemically inaccessible from within emergence.
 
 ### 8. Variable-c Precision Tests
 
