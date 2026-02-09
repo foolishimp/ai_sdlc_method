@@ -879,6 +879,23 @@ The recursive loop — standing waves → new constraints → new standing waves
 
 3. **The selection question is Platonic** — Wolfram asks: given the ruliad (all possible computations), what selects which ones are actual? But the ruliad is a mathematical description of possibility space. The question "what selects the actual from the possible?" presupposes that the possible exists in a way that requires selection — that the ruliad is a real space from which our universe is drawn. This is the same Platonic move the document rejects in Many-Worlds: treating mathematical description as ontological reality, then needing a mechanism to explain why only part of it is observed. The Aristotelian response: there is one constraint network. It computes what it computes. The "space of all possible computations" is our description of what *could* be consistent, not a real space requiring a selection principle. The question "why this universe?" is not unanswered — it is malformed. It presupposes entities (alternative universes, uncomputed manifolds) that the framework declines to posit. Do not needlessly multiply entities.
 
+### Relationship to Constructor Theory (Deutsch & Marletto)
+
+Constructor theory reformulates physics in terms of which transformations are possible and which are impossible, rather than equations of motion describing what happens. A **constructor** is any object that can cause a transformation and retains the ability to cause it again. Laws of physics become statements about possible and impossible transformations, independent of any specific dynamical model.
+
+The structural parallel to this framework is direct:
+
+| Constructor Theory | This Framework |
+|---|---|
+| Possible/impossible transformations | Admissible/inadmissible morphisms |
+| Constructor (causes transformation, persists) | Markov object (stable pattern, persists through interactions) |
+| Substrate independence | Structural invariance across substrates |
+| Laws as constraints on transformations | Constraints as conditions on admissible change |
+
+Constructor theory may be the closest existing formalism to the constraint ontology's structural claims. Both frameworks ask "what can and cannot happen?" rather than "what does happen next?" Both are substrate-independent by design. Both treat laws as constraint statements rather than dynamical equations.
+
+The philosophical foundations diverge — Deutsch's programme is Platonic (mathematical structures are independently real) where this framework is Aristotelian (mathematics describes real structure but does not exist independently). This is a clean separation that does not diminish the structural correspondence. The formalism of constructor theory — particularly its treatment of possible and impossible transformations as the fundamental content of physical law — may provide mathematical tools that this framework's ontological claims require.
+
 ### Relationship to String Theory
 
 String theory began as a phenomenological model of hadrons: standing waves bounded by quarks. The string is not fundamental; it is an effective standing-wave description of deeper constraint structures.
@@ -1563,6 +1580,7 @@ The ontology suggests current anomalies may be pointing at the model boundary, n
 |---------|-----------------|-----------|
 | **Stephen Wolfram** | Ruliad, computational emergence, hypergraph physics | Very strong |
 | **Roger Penrose** | Twistor theory, Objective Reduction (OR), non-computability and Gödel | Strong (see Part II) |
+| **David Deutsch & Chiara Marletto** | Constructor theory — laws as possible/impossible transformations, substrate independence | Strong structural parallel; philosophical divergence (see Part II) |
 
 ### Related Work
 
