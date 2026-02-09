@@ -151,7 +151,7 @@ claude-code/plugins/aisdlc-methodology/
 **Key Features:**
 - 7-stage AI SDLC (Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback)
 - AI agent configurations (1,273 lines)
-- Key Principles principles (TDD, Fail Fast, Modular, etc.)
+- Key Principles (TDD, Fail Fast, Modular, etc.)
 - Requirement traceability (REQ-* keys)
 - TDD workflow (RED → GREEN → REFACTOR)
 - BDD testing (Given/When/Then)

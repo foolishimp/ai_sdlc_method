@@ -26,7 +26,7 @@ This example project demonstrates how to **override a single Key Principles prin
 
 **You can't just "break things and move fast"** - that violates customer trust and contracts.
 
-**Solution**: Override Principle #6 to use **feature flags for backwards compatibility** while maintaining all other Key Principles principles.
+**Solution**: Override Principle #6 to use **feature flags for backwards compatibility** while maintaining all other Key Principles.
 
 ---
 
@@ -441,7 +441,7 @@ print(principle_1['mantra'])
 **This example shows**:
 
 1. ✅ How to override ONE principle (Principle #6)
-2. ✅ While keeping all other Key Principles principles intact
+2. ✅ While keeping all other Key Principles intact
 3. ✅ With clear rationale (customer-facing APIs)
 4. ✅ Time-bounded tech debt removal (2 major versions)
 5. ✅ Systematic approach (6-phase lifecycle)

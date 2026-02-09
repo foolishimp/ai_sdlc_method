@@ -6,7 +6,7 @@
 
 ## Overview
 
-This plugin provides a complete **7-stage AI SDLC methodology** with fully specified AI agent configurations for each stage. It extends the foundational Key Principles principles with end-to-end lifecycle management from intent to runtime feedback.
+This plugin provides a complete **7-stage AI SDLC methodology** with fully specified AI agent configurations for each stage. It extends the foundational Key Principles with end-to-end lifecycle management from intent to runtime feedback.
 
 **This is the master plugin** that contains all organizational elements for the AI SDLC framework:
 - **Commands** - Slash commands for workflow (`/aisdlc-*`)
@@ -388,7 +388,7 @@ Complete 7-stage agent configuration with:
 - Key principles
 
 ### `config/config.yml`
-Key Principles principles and TDD workflow (foundation for Code Stage)
+Key Principles and TDD workflow (foundation for Code Stage)
 
 ### Reference: `../../docs/ai_sdlc_method.md`
 Complete AI SDLC methodology documentation (Sections 1.0-13.0)
@@ -433,7 +433,7 @@ requirements_agent:
 
 ## Integration with Key Principles
 
-The Code Stage (Section 7.0) fully integrates the Key Principles principles:
+The Code Stage (Section 7.0) fully integrates the Key Principles:
 
 1. **Test Driven Development** → TDD cycle mandatory (RED → GREEN → REFACTOR)
 2. **Fail Fast & Root Cause** → Tests fail loudly, no workarounds
@@ -475,7 +475,7 @@ The Code Stage (Section 7.0) fully integrates the Key Principles principles:
 - Updated plugin.json with stage metadata
 
 ### 1.0.0 (2025-10-17)
-- Initial release with Key Principles principles
+- Initial release with Key Principles
 - TDD workflow for Code stage
 - Pair programming and session management guides
 

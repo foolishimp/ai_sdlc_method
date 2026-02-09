@@ -2,7 +2,7 @@
 
 ## 🎯 Core Hierarchy of Principles
 
-When in doubt, follow this priority order (references Key Principles principles):
+When in doubt, follow this priority order (references Key Principles):
 
 1. **Test First** (Principle #1) - TDD before implementation, no exceptions
 2. **Fail Fast** (Principle #2) - Root cause over workarounds

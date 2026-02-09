@@ -918,13 +918,13 @@ Converts the Design into actionable work items. This is the bridge between "What
 
 ---
 
-# **7.0 Code Stage (TDD + Key Principles Principles)**
+# **7.0 Code Stage (TDD + Key Principles)**
 
 ## **7.1 Code – Overview**
 
 ### **7.1.1 What is Code Stage**
 
-The Code stage creates the executable artifacts. This stage integrates **Test-Driven Development (TDD)** to ensure code is born tested and follows the **Key Principles Principles** from the ai_init methodology.
+The Code stage creates the executable artifacts. This stage integrates **Test-Driven Development (TDD)** to ensure code is born tested and follows the **Key Principles** from the ai_init methodology.
 
 ### **7.1.2 Why TDD Matters**
 
@@ -935,7 +935,7 @@ The Code stage creates the executable artifacts. This stage integrates **Test-Dr
 * **Regression safety**: Tests catch breaking changes
 * **Requirement validation**: Tests verify requirements are met
 
-### **7.1.3 The Key Principles Principles**
+### **7.1.3 The Key Principles**
 
 The Code stage is built on seven foundational principles from the [ai_init methodology](https://github.com/foolishimp/ai_init):
 
@@ -1299,7 +1299,7 @@ Code implementation is constrained by:
 - ✅ All code has corresponding unit tests (TDD cycle followed)
 - ✅ All tests pass (GREEN)
 - ✅ Unit test coverage ≥ 80% (critical paths 100%)
-- ✅ Code follows Key Principles principles
+- ✅ Code follows Key Principles
 - ✅ Code follows coding standards (linting passes)
 - ✅ Security scan clean (no critical vulnerabilities)
 - ✅ All requirement keys documented in code and tests
@@ -2791,7 +2791,7 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 * Uses **CRUD work types** to structure intent (Create, Read, Update, Delete).
 * Channels all work through the **Builder AI SDLC pipeline**.
 * Maintains **Requirements** as a living homeostasis model (not fixed specifications).
-* Follows **Key Principles Principles** in Code stage for excellence.
+* Follows **Key Principles** in Code stage for excellence.
 * Enforces **TDD (RED → GREEN → REFACTOR)** for all code development.
 * Uses **BDD (Given/When/Then)** for System Test and UAT stages.
 * Ensures **continuous governance** through observation and evaluation.
@@ -2805,7 +2805,7 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 * **Complete traceability** from intent to runtime behavior using unique requirement keys:
   - Forward traceability: Intent → Requirements → Design → Code → Tests → Deployment → Runtime
   - Backward traceability: Production issues → Code → Requirements → Intent
-* **Key Principles Principles** ensure code excellence (TDD, Fail Fast, Modular, Reuse Before Build, Open Source First, No Legacy Baggage, Perfectionist Excellence)
+* **Key Principles** ensure code excellence (TDD, Fail Fast, Modular, Reuse Before Build, Open Source First, No Legacy Baggage, Perfectionist Excellence)
 * **TDD workflow** ensures all code is born tested (RED → GREEN → REFACTOR → COMMIT)
 * **BDD scenarios** provide executable specifications in business language
 * Strong **governance** and auditability across the full software and data lifecycle.
@@ -2829,7 +2829,7 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 
 1. **Setup ai_sdlc_method repository**: Initialize folder structure for context (Section 3.4)
 2. **Define requirement key format**: Choose REQ key structure for your organization (Section 3.5)
-3. **Adopt Key Principles Principles**: Integrate ai_init methodology into development workflow (Section 7.1.3)
+3. **Adopt Key Principles**: Integrate ai_init methodology into development workflow (Section 7.1.3)
 4. **Configure AI agents**: Setup agent system prompts to follow TDD workflow (Section 7.3)
 5. **Identify sub-vectors**: Determine which activities warrant concurrent AI SDLCs (Section 12)
 
@@ -2847,7 +2847,7 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 **Version**: 1.2
 **Date**: 2025-11-20
 **Status**: Merged - Best of v1.0 + v1.1
-**Changes from v1.1**: Restored Key Principles Principles, Homeostasis Model, End-to-End Traceability Section, Sub-Vectors 4-6, and BDD examples
+**Changes from v1.1**: Restored Key Principles, Homeostasis Model, End-to-End Traceability Section, Sub-Vectors 4-6, and BDD examples
 
 # **Appendix A: Ecosystem Dynamics and Formal Foundations**
 

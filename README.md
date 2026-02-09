@@ -137,7 +137,7 @@ open claude-code/plugins/aisdlc-methodology/README.md
 **Agent**: AISDLC Code Agent / Developer Agent
 **Purpose**: TDD-driven implementation (RED → GREEN → REFACTOR)
 
-**Methodology**: Key Principles principles + TDD cycle
+**Methodology**: Key Principles + TDD cycle
 **Outputs**: Production code with requirement tags, unit tests, integration tests
 
 ### 5. System Test Stage (Section 8.0)
@@ -219,7 +219,7 @@ Feedback: New intent: INT-042 "Fix auth timeout"
 
 ---
 
-## Key Principles Principles (Code Stage Foundation)
+## Key Principles (Code Stage Foundation)
 
 The Code Stage (Section 7.0) is built on these principles:
 
@@ -504,7 +504,7 @@ ai_sdlc_method/
 - **[Methodology Plugin](claude-code/plugins/aisdlc-methodology/README.md)** - Plugin overview
 
 ### Principles & Processes
-- **[Key Principles Principles](claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)** - Core principles
+- **[Key Principles](claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)** - Core principles
 - **[TDD Workflow](claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)** - Development process
 - **[Pair Programming](claude-code/plugins/aisdlc-methodology/docs/guides/PAIR_PROGRAMMING_WITH_AI.md)** - Human-AI collaboration
 
@@ -601,7 +601,7 @@ MIT
 
 - **Inspired by** [ai_init](https://github.com/foolishimp/ai_init) - Original Key Principles methodology
 - **Expanded with** Complete 7-stage AI SDLC framework
-- **Built with** Claude Code and the Key Principles principles
+- **Built with** Claude Code and the Key Principles
 - **Simplified** by leveraging Claude Code's native marketplace system
 
 ---

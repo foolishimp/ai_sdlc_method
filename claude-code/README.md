@@ -19,7 +19,7 @@ claude-code/
 │   ├── aisdlc-core/           # Foundation (traceability, REQ keys)
 │   ├── code-skills/           # TDD/BDD/generation skills
 │   ├── design-skills/         # ADR and design skills
-│   ├── principles-key/        # Key Principles principles
+│   ├── principles-key/        # Key Principles
 │   ├── python-standards/      # Python language standards
 │   ├── requirements-skills/   # Requirement extraction skills
 │   ├── runtime-skills/        # Observability skills

@@ -19,7 +19,7 @@ Enable AI-augmented software development where:
 ### Key Features
 
 ✅ **Complete 7-Stage Methodology** - Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
-✅ **Key Principles Principles** - Foundation for Code stage (TDD, Fail Fast, Modular, etc.)
+✅ **Key Principles** - Foundation for Code stage (TDD, Fail Fast, Modular, etc.)
 ✅ **TDD Workflow** - RED → GREEN → REFACTOR → COMMIT cycle
 ✅ **BDD Testing** - Given/When/Then scenarios for System Test and UAT stages
 ✅ **AI Agent Specifications** - 1,273-line configuration file with detailed agent specs
@@ -165,7 +165,7 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 **Purpose**: Implement work units using TDD workflow
 **Input**: Work units from Tasks stage
 **Output**: Production code with requirement tags, unit tests, integration tests
-**Methodology**: TDD (RED → GREEN → REFACTOR) + Key Principles principles
+**Methodology**: TDD (RED → GREEN → REFACTOR) + Key Principles
 
 #### 5. System Test Stage (Section 8.0)
 **Agent**: AISDLC System Test Agent / QA Agent
@@ -265,7 +265,7 @@ requirements_agent = requirements_stage['agent']
 print(f"Role: {requirements_agent['role']}")
 print(f"Purpose: {requirements_agent['purpose']}")
 
-# Get Key Principles principles
+# Get Key Principles
 key.principles = code_stage['key.principles']
 print(f"TDD Workflow: {key.principles['tdd']['workflow']}")
 ```

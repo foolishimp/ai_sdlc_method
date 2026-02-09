@@ -18,12 +18,12 @@ Enable AI-augmented software development where:
 
 ### Key Features
 
-✅ **Complete 7-Stage Methodology** - Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
-✅ **Key Principles Principles** - Foundation for Code stage (TDD, Fail Fast, Modular, etc.)
-✅ **TDD Workflow** - RED → GREEN → REFACTOR → COMMIT cycle
-✅ **BDD Testing** - Given/When/Then scenarios for System Test and UAT stages
-✅ **AI Agent Specifications** - 1,273-line configuration file with detailed agent specs
-✅ **Requirement Key Tagging** - Automatic propagation of REQ keys from intent to runtime
+- [COMPLETE] **Complete 7-Stage Methodology** - Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
+- [COMPLETE] **Key Principles** - Foundation for Code stage (TDD, Fail Fast, Modular, etc.)
+- [COMPLETE] **TDD Workflow** - RED → GREEN → REFACTOR → COMMIT cycle
+- [COMPLETE] **BDD Testing** - Given/When/Then scenarios for System Test and UAT stages
+- [COMPLETE] **AI Agent Specifications** - 1,273-line configuration file with detailed agent specs
+- [COMPLETE] **Requirement Key Tagging** - Automatic propagation of REQ keys from intent to runtime
 
 ---
 
@@ -32,15 +32,20 @@ Enable AI-augmented software development where:
 ```
 ai_sdlc_method/
 ├── docs/                        # Core documentation
-│   ├── ai_sdlc_overview.md      # 📊 High-level introduction (~30 min read)
-│   ├── ai_sdlc_method.md        # 📖 Complete methodology (Sections 1-13, ~2,850 lines)
-│   ├── ai_sdlc_appendices.md    # 🔬 Technical deep-dives (category theory, ecosystem)
-│   ├── guides/                  # 👥 Role-specific application guides
-│   │   └── README.md            # Guide index (architect, developer, QA, manager)
+│   ├── requirements/            # Methodology and implementation requirements
+│   │   ├── AI_SDLC_REQUIREMENTS.md   # Complete methodology (Sections 1-13, ~2,950 lines)
+│   │   ├── AI_SDLC_OVERVIEW.md       # High-level introduction
+│   │   ├── AI_SDLC_CONCEPTS.md       # Exhaustive concept inventory
+│   │   ├── AI_SDLC_APPENDICES.md     # Technical deep-dives (category theory, ecosystem)
+│   │   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # Platform-agnostic implementation reqs
+│   │   └── INTENT.md                 # Project intent document
+│   ├── TRACEABILITY_MATRIX.md   # Requirements traceability across phases
+│   ├── guides/                  # Role-specific application guides
+│   │   └── PLUGIN_GUIDE.md      # Plugin creation and usage guide
 │   ├── README.md                # Documentation index with role-based learning paths
 │   └── deprecated/              # Archive of previous versions
 │
-├── claude-code/plugins/                     # Claude Code plugins and skills
+├── claude-code/.claude-plugin/plugins/  # Claude Code plugins and skills
 │   ├── aisdlc-methodology/      # 7-stage methodology plugin (v2.0.0)
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json      # Plugin metadata
@@ -52,8 +57,7 @@ ai_sdlc_method/
 │   │   │   └── processes/TDD_WORKFLOW.md
 │   │   └── README.md            # Plugin overview
 │   ├── python-standards/        # Python language standards plugin
-│   ├── code-skills/             # Code generation skills plugin
-│   └── README.md                # Plugin creation and usage guide
+│   └── code-skills/             # Code generation skills plugin
 │
 ├── installers/                  # Python installation scripts
 │   └── README.md                # Installation scripts documentation
@@ -62,7 +66,6 @@ ai_sdlc_method/
 ├── marketplace.json             # Claude Code marketplace registry
 ├── README.md                    # Project overview
 ├── QUICKSTART.md                # Quick start guide
-├── PLUGIN_GUIDE.md              # Plugin creation and usage guide
 └── CLAUDE.md                    # This file
 ```
 
@@ -165,7 +168,7 @@ Intent → Requirements → Design → Tasks → Code → System Test → UAT �
 **Purpose**: Implement work units using TDD workflow
 **Input**: Work units from Tasks stage
 **Output**: Production code with requirement tags, unit tests, integration tests
-**Methodology**: TDD (RED → GREEN → REFACTOR) + Key Principles principles
+**Methodology**: TDD (RED → GREEN → REFACTOR) + Key Principles
 
 #### 5. System Test Stage (Section 8.0)
 **Agent**: AISDLC System Test Agent / QA Agent
@@ -208,7 +211,7 @@ Code: auth_service.py
 Tests: test_auth.py # Validates: REQ-F-AUTH-001
        auth.feature # BDD: Given/When/Then for REQ-F-AUTH-001
   ↓
-UAT: UAT-001 → REQ-F-AUTH-001 (Business sign-off ✅)
+UAT: UAT-001 → REQ-F-AUTH-001 (Business sign-off [COMPLETE])
   ↓
 Runtime: Datadog alert: "ERROR: REQ-F-AUTH-001 - Auth timeout"
   ↓
@@ -265,16 +268,16 @@ requirements_agent = requirements_stage['agent']
 print(f"Role: {requirements_agent['role']}")
 print(f"Purpose: {requirements_agent['purpose']}")
 
-# Get Key Principles principles
-key.principles = code_stage['key.principles']
-print(f"TDD Workflow: {key.principles['tdd']['workflow']}")
+# Get Key Principles
+key_principles = code_stage['key_principles']
+print(f"TDD Workflow: {key_principles['tdd']['workflow']}")
 ```
 
 ---
 
 ## Development Methodology
 
-**IMPORTANT**: This project follows the **Key Principles** principles, which are now integrated as the foundation for the Code stage (Section 7.0) in the complete 7-stage AI SDLC methodology.
+**IMPORTANT**: This project follows the **Key Principles**, which are integrated as the foundation for the Code stage (Section 7.0) in the complete 7-stage AI SDLC methodology.
 
 ### The Key Principles
 
@@ -286,9 +289,7 @@ print(f"TDD Workflow: {key.principles['tdd']['workflow']}")
 6. **No Legacy Baggage** - "Clean slate, no debt"
 7. **Perfectionist Excellence** - "Best of breed only"
 
-**Ultimate Mantra**: **"Excellence or nothing"** 🔥
-
-👉 **Read Full Principles**: [claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md](claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
+**Read Full Principles**: [KEY_PRINCIPLES.md](claude-code/.claude-plugin/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md)
 
 ### TDD Workflow (Code Stage)
 
@@ -302,7 +303,7 @@ print(f"TDD Workflow: {key.principles['tdd']['workflow']}")
 
 **No code without tests. Ever.**
 
-👉 **Read Full Workflow**: [claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md](claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
+**Read Full Workflow**: [TDD_WORKFLOW.md](claude-code/.claude-plugin/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md)
 
 ### Before You Code (7 Questions)
 
@@ -324,7 +325,7 @@ Ask these seven questions:
 
 ### Must-Read Documents
 
-1. **[docs/ai_sdlc_method.md](docs/ai_sdlc_method.md)** ⭐ - Complete 7-stage methodology (3,300+ lines)
+1. **[docs/requirements/AI_SDLC_REQUIREMENTS.md](docs/requirements/AI_SDLC_REQUIREMENTS.md)** - Complete 7-stage methodology (~2,950 lines)
    - Section 1.0: Introduction
    - Section 2.0: End-to-End Intent Lifecycle
    - Section 3.0: Builder Pipeline Overview
@@ -335,9 +336,9 @@ Ask these seven questions:
    - Section 8.0: System Test Stage (BDD)
    - Section 9.0: UAT Stage
    - Section 10.0: Runtime Feedback Stage
-   - Section 11.0: Personas & Collaboration
-   - Section 12.0: Data Quality Integration
-   - Section 13.0: Governance & Compliance
+   - Section 11.0: End-to-End Requirement Traceability
+   - Section 12.0: AI SDLC Sub-Vectors
+   - Section 13.0: Conclusion
 
 2. **[claude-code/plugins/aisdlc-methodology/config/stages_config.yml](claude-code/plugins/aisdlc-methodology/config/stages_config.yml)** - 7-stage agent specifications (1,273 lines)
 
@@ -423,7 +424,7 @@ See [docs/README.md](docs/README.md) for learning paths tailored to:
      title: "Validate user login flow"
      requirement: REQ-F-AUTH-001
      tester: Business Analyst
-     status: APPROVED ✅
+     status: APPROVED
    ```
 
 7. **Runtime Feedback Stage**: Telemetry
@@ -450,7 +451,6 @@ See [docs/README.md](docs/README.md) for learning paths tailored to:
 - Add docstrings to all public methods
 - Keep functions focused and small
 - No technical debt
-- Excellence or nothing
 
 ---
 
@@ -480,7 +480,7 @@ ai_sdlc:
     code:
       testing:
         coverage_minimum: 90
-      key.principles:
+      key_principles:
         enabled: true
 ```
 
@@ -514,11 +514,9 @@ This project evolved from and replaces:
 
 - **Quick Start**: See [QUICKSTART.md](QUICKSTART.md)
 - **Plugin Guide**: See [docs/guides/PLUGIN_GUIDE.md](docs/guides/PLUGIN_GUIDE.md)
-- **Complete Methodology**: See [docs/ai_sdlc_method.md](docs/ai_sdlc_method.md)
+- **Complete Methodology**: See [docs/requirements/AI_SDLC_REQUIREMENTS.md](docs/requirements/AI_SDLC_REQUIREMENTS.md)
 - **Examples**: See [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples)
 - **Documentation Index**: See [docs/README.md](docs/README.md)
 - **Ask Claude Code**: I'm here to help!
 
 ---
-
-**"Excellence or nothing"** 🔥

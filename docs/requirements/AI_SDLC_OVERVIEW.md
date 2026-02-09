@@ -9,11 +9,11 @@
 **Reading Time**: ~30 minutes
 
 **Related Documents**:
-- [AI SDLC Method](ai_sdlc_method.md) - Complete methodology reference (Sections 1-13)
-- [AI SDLC Concepts](ai_sdlc_concepts.md) - Exhaustive concept inventory (audit checklist)
-- [AI SDLC Appendices](ai_sdlc_appendices.md) - Technical deep-dives
-- [Role-Specific Guides](guides/) - Practical application guides
-- [QUICKSTART](../QUICKSTART.md) - Getting started (3 methods)
+- [AI SDLC Method](AI_SDLC_REQUIREMENTS.md) - Complete methodology reference (Sections 1-13)
+- [AI SDLC Concepts](AI_SDLC_CONCEPTS.md) - Exhaustive concept inventory (audit checklist)
+- [AI SDLC Appendices](AI_SDLC_APPENDICES.md) - Technical deep-dives
+- [Role-Specific Guides](../guides/) - Practical application guides
+- [QUICKSTART](../../QUICKSTART.md) - Getting started (3 methods)
 
 ---
 
@@ -70,7 +70,7 @@ All intent classified into:
 
 ## **2.3 Homeostasis Model**
 
-**Revolutionary concept**: Requirements ARE the homeostasis model
+**Core concept**: Requirements ARE the homeostasis model
 
 Traditional SDLC: Requirements = fixed specifications (written once)
 AI SDLC: Requirements = living control system (continuously compared to runtime)
@@ -135,11 +135,11 @@ flowchart LR
 - **BDD Scenarios**: Executable specifications (Given/When/Then)
 
 **Quality Gates**:
-- ✅ All requirements have unique, immutable keys
-- ✅ All requirements have clear acceptance criteria
-- ✅ BDD scenarios cover positive, negative, edge cases
-- ✅ Data requirements reviewed by Data Steward
-- ✅ Security/compliance reviewed by Risk Officer
+- [COMPLETE] All requirements have unique, immutable keys
+- [COMPLETE] All requirements have clear acceptance criteria
+- [COMPLETE] BDD scenarios cover positive, negative, edge cases
+- [COMPLETE] Data requirements reviewed by Data Steward
+- [COMPLETE] Security/compliance reviewed by Risk Officer
 
 ---
 
@@ -186,13 +186,13 @@ Selected: [Option] | Rejected: [Alternatives with rationale]
 ```
 
 **Quality Gates**:
-- ✅ Design adheres to architecture context
-- ✅ All components mapped to specific REQ keys
-- ✅ **ADRs written for all strategic decisions (framework, cloud, database, auth)**
-- ✅ **ADRs acknowledge ecosystem constraints E(t) (team, timeline, budget, compliance)**
-- ✅ Data models meet data architecture standards
-- ✅ Security/privacy controls defined
-- ✅ Cost estimates within budget
+- [COMPLETE] Design adheres to architecture context
+- [COMPLETE] All components mapped to specific REQ keys
+- [COMPLETE] **ADRs written for all strategic decisions (framework, cloud, database, auth)**
+- [COMPLETE] **ADRs acknowledge ecosystem constraints E(t) (team, timeline, budget, compliance)**
+- [COMPLETE] Data models meet data architecture standards
+- [COMPLETE] Security/privacy controls defined
+- [COMPLETE] Cost estimates within budget
 
 ---
 
@@ -207,10 +207,10 @@ Selected: [Option] | Rejected: [Alternatives with rationale]
 - All tickets tagged with REQ keys
 
 **Quality Gates**:
-- ✅ All tasks linked to REQ keys
-- ✅ All tasks estimated
-- ✅ Dependencies identified and sequenced
-- ✅ Capacity validated against demand
+- [COMPLETE] All tasks linked to REQ keys
+- [COMPLETE] All tasks estimated
+- [COMPLETE] Dependencies identified and sequenced
+- [COMPLETE] Capacity validated against demand
 
 ---
 
@@ -218,7 +218,7 @@ Selected: [Option] | Rejected: [Alternatives with rationale]
 
 **Purpose**: Create executable artifacts using Test-Driven Development
 
-## **7.1 Key Principles Principles**
+## **7.1 Key Principles**
 
 From [ai_init methodology](https://github.com/foolishimp/ai_init):
 
@@ -229,8 +229,6 @@ From [ai_init methodology](https://github.com/foolishimp/ai_init):
 5. **Open Source First** - "Suggest alternatives, human decides"
 6. **No Legacy Baggage** - "Clean slate, no debt"
 7. **Perfectionist Excellence** - "Best of breed only"
-
-**Ultimate Mantra**: **"Excellence or nothing"** 🔥
 
 ## **7.2 TDD Workflow**
 
@@ -274,14 +272,14 @@ def authenticate(email: str, password: str) -> AuthResult:
 
 ## **7.4 Quality Gates**
 
-- ✅ All code has unit tests (TDD followed)
-- ✅ All tests pass (GREEN)
-- ✅ Coverage ≥ 80% (critical paths 100%)
-- ✅ Key Principles principles followed
-- ✅ Linting passes
-- ✅ Security scan clean
-- ✅ All REQ keys in code/tests
-- ✅ Git history shows RED→GREEN→REFACTOR
+- [COMPLETE] All code has unit tests (TDD followed)
+- [COMPLETE] All tests pass (GREEN)
+- [COMPLETE] Coverage ≥ 80% (critical paths 100%)
+- [COMPLETE] Key Principles followed
+- [COMPLETE] Linting passes
+- [COMPLETE] Security scan clean
+- [COMPLETE] All REQ keys in code/tests
+- [COMPLETE] Git history shows RED→GREEN→REFACTOR
 
 ---
 
@@ -313,11 +311,11 @@ Feature: User Authentication
 
 ## **8.3 Quality Gates**
 
-- ✅ All requirements have ≥1 BDD scenario
-- ✅ All scenarios pass
-- ✅ Requirement coverage ≥95%
-- ✅ No critical defects open
-- ✅ Performance scenarios meet NFRs
+- [COMPLETE] All requirements have ≥1 BDD scenario
+- [COMPLETE] All scenarios pass
+- [COMPLETE] Requirement coverage ≥95%
+- [COMPLETE] No critical defects open
+- [COMPLETE] Performance scenarios meet NFRs
 
 ---
 
@@ -341,10 +339,10 @@ Feature: Customer Self-Service Portal
 
 ## **9.2 Quality Gates**
 
-- ✅ All critical business scenarios pass
-- ✅ Data Steward sign-off obtained
-- ✅ Business users approve BDD scenarios
-- ✅ Deployment readiness complete
+- [COMPLETE] All critical business scenarios pass
+- [COMPLETE] Data Steward sign-off obtained
+- [COMPLETE] Business users approve BDD scenarios
+- [COMPLETE] Deployment readiness complete
 
 ---
 
@@ -511,40 +509,40 @@ Intent → REQ-F-AUTH-001 → Design → Code → Tests → UAT → Deploy → R
 
 ## **13.1 Traceability & Governance**
 
-✅ Complete traceability (Intent → Runtime → Intent)
-✅ Auditability (every asset traces to originating intent)
-✅ Impact analysis ("What breaks if we change X?")
-✅ Root cause analysis (production issue → requirement)
-✅ Clear role responsibilities and accountability
+[COMPLETE] Complete traceability (Intent → Runtime → Intent)
+[COMPLETE] Auditability (every asset traces to originating intent)
+[COMPLETE] Impact analysis ("What breaks if we change X?")
+[COMPLETE] Root cause analysis (production issue → requirement)
+[COMPLETE] Clear role responsibilities and accountability
 
 ## **13.2 Quality & Excellence**
 
-✅ Key Principles Principles ensure code excellence
-✅ TDD ensures all code is born tested
-✅ BDD provides executable business specifications
-✅ Coverage requirements (≥80% unit, ≥95% integration)
-✅ No technical debt from day one
+[COMPLETE] Key Principles ensure code excellence
+[COMPLETE] TDD ensures all code is born tested
+[COMPLETE] BDD provides executable business specifications
+[COMPLETE] Coverage requirements (≥80% unit, ≥95% integration)
+[COMPLETE] No technical debt from day one
 
 ## **13.3 Agility & Feedback**
 
-✅ Homeostasis model - requirements evolve based on feedback
-✅ Continuous governance (not one-time gates)
-✅ Fast feedback loops (runtime → new intent)
-✅ Self-correcting system (deviations → corrective actions)
+[COMPLETE] Homeostasis model - requirements evolve based on feedback
+[COMPLETE] Continuous governance (not one-time gates)
+[COMPLETE] Fast feedback loops (runtime → new intent)
+[COMPLETE] Self-correcting system (deviations → corrective actions)
 
 ## **13.4 Scalability**
 
-✅ Sub-vectors enable concurrent development
-✅ Composable and reusable patterns
-✅ Clear separation of concerns
-✅ AI agent orchestration for parallel work
+[COMPLETE] Sub-vectors enable concurrent development
+[COMPLETE] Composable and reusable patterns
+[COMPLETE] Clear separation of concerns
+[COMPLETE] AI agent orchestration for parallel work
 
 ## **13.5 Future-Ready**
 
-✅ Requirements provide deterministic control over AI behavior
-✅ Automatic observer/evaluator generation from requirements
-✅ Runtime assurance for AI-generated applications
-✅ Post-run verification of probabilistic outputs
+[COMPLETE] Requirements provide deterministic control over AI behavior
+[COMPLETE] Automatic observer/evaluator generation from requirements
+[COMPLETE] Runtime assurance for AI-generated applications
+[COMPLETE] Post-run verification of probabilistic outputs
 
 ---
 
@@ -612,7 +610,7 @@ Before coding, ask:
 
 ## **15.1 Getting Started**
 
-1. **Read complete methodology**: [AI SDLC Method](ai_sdlc_method.md) (Sections 1-13)
+1. **Read complete methodology**: [AI SDLC Method](AI_SDLC_REQUIREMENTS.md) (Sections 1-13)
 2. **Setup ai_sdlc_method repository**: Initialize folder structure
 3. **Define REQ key format**: Choose structure for your organization
 4. **Adopt Key Principles**: Integrate principles from methodology
@@ -621,27 +619,25 @@ Before coding, ask:
 ## **15.2 Learning Resources**
 
 **Core Documents**:
-- [AI SDLC Method](ai_sdlc_method.md) - Complete methodology (Sections 1-13, ~2,850 lines)
-- [AI SDLC Appendices](ai_sdlc_appendices.md) - Technical deep-dives
-- [QUICKSTART](../QUICKSTART.md) - Getting started (3 methods)
-- [PLUGIN_GUIDE](../PLUGIN_GUIDE.md) - Claude Code plugins
+- [AI SDLC Method](AI_SDLC_REQUIREMENTS.md) - Complete methodology (Sections 1-13, ~2,950 lines)
+- [AI SDLC Appendices](AI_SDLC_APPENDICES.md) - Technical deep-dives
+- [QUICKSTART](../../QUICKSTART.md) - Getting started (3 methods)
+- [PLUGIN_GUIDE](../guides/PLUGIN_GUIDE.md) - Claude Code plugins
 
 **Principles & Workflows**:
-- [Key Principles](../claude-code/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - Code stage principles (evolvable)
-- [TDD Workflow](../claude-code/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - RED → GREEN → REFACTOR
+- [Key Principles](../../claude-code/.claude-plugin/plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md) - Code stage principles (evolvable)
+- [TDD Workflow](../../claude-code/.claude-plugin/plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md) - RED → GREEN → REFACTOR
 
 **Examples**:
 - [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) - Complete 7-stage walkthrough (separate repo)
 
 **Role-Specific Guides** (coming soon):
-- [Architect Guide](guides/architect_guide.md) - ADRs, design, ecosystem
-- [Developer Guide](guides/developer_guide.md) - TDD, Key Principles, code
-- [QA Guide](guides/qa_guide.md) - BDD, testing, coverage
-- [Manager Guide](guides/manager_guide.md) - Governance, metrics, process
+- [Architect Guide](../guides/architect_guide.md) - ADRs, design, ecosystem
+- [Developer Guide](../guides/developer_guide.md) - TDD, Key Principles, code
+- [QA Guide](../guides/qa_guide.md) - BDD, testing, coverage
+- [Manager Guide](../guides/manager_guide.md) - Governance, metrics, process
 
 ---
-
-**Ultimate Mantra**: **"Excellence or nothing"** 🔥
 
 **Version**: 1.2
 **Document Type**: Overview

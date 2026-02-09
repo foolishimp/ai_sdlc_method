@@ -8,7 +8,7 @@ This directory contains the core development methodology for ai_sdlc_method, ada
 
 ## Quick Start
 
-### The Key Principles Principles
+### The Key Principles
 
 1. **Test Driven Development** - "No code without tests"
 2. **Fail Fast & Root Cause** - "Break loudly, fix completely"
@@ -201,7 +201,7 @@ Our commitment to these principles is demonstrated by:
 
 - [ ] All new code has tests
 - [ ] Tests follow RED→GREEN→REFACTOR
-- [ ] Code follows Key Principles principles
+- [ ] Code follows Key Principles
 - [ ] No technical debt introduced
 - [ ] Documentation is clear
 - [ ] Commit messages are descriptive
@@ -225,7 +225,7 @@ The Key Principles are not arbitrary rules - they're battle-tested practices tha
 ai_sdlc_method inherits and extends the ai_init methodology:
 
 **Inherited**:
-- The Key Principles principles
+- The Key Principles
 - TDD workflow (RED→GREEN→REFACTOR)
 - "Excellence or nothing" mindset
 - Comprehensive testing practices
@@ -266,7 +266,7 @@ These practices are **requirements**, not suggestions:
 
 ### Internal
 
-- [Key Principles Principles](principles/KEY_PRINCIPLES.md)
+- [Key Principles](principles/KEY_PRINCIPLES.md)
 - [TDD Workflow](processes/TDD_WORKFLOW.md)
 - [Test Suite](../tests/)
 - [Test README](../tests/README.md)

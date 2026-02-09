@@ -10,7 +10,7 @@ project:
     Serves 10,000+ external customers with SLA commitments.
 
 # Override ONLY Principle #6 - No Legacy Baggage
-# All other Key Principles principles remain unchanged
+# All other Key Principles remain unchanged
 methodology:
   principles:
     # Principle #6 Override: From "No Legacy Baggage" to "Managed Evolution"
@@ -139,7 +139,7 @@ methodology:
           - "Wait 2 major versions before removal"
 
         if_no:
-          - "Follow standard Key Principles principles"
+          - "Follow standard Key Principles"
           - "Deploy directly (no flag needed)"
           - "No backwards compatibility burden"
 

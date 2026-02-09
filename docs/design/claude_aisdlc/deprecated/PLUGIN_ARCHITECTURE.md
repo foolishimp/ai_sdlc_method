@@ -418,7 +418,7 @@ code:
 
 **9. principles-key** (v1.0.0)
 - **Category**: Methodology
-- **Purpose**: Key Principles principles (TDD, Fail Fast, etc.)
+- **Purpose**: Key Principles (TDD, Fail Fast, etc.)
 - **Dependencies**: None
 - **Documentation**: KEY_PRINCIPLES.md, TDD_WORKFLOW.md
 - **Size**: ~300 lines

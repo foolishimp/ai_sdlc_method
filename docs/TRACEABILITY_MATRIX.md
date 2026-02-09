@@ -9,14 +9,14 @@
 
 ## Executive Summary
 
-**Total Requirements**: 47 (34 Phase 1 + 13 Phase 2)
+**Total Requirements**: 47 (36 Phase 1 + 11 Phase 2)
 
 ### Phase Overview
 
 | Phase | Scope | Count | Critical | Target |
 |-------|-------|-------|----------|--------|
-| **Phase 1** | MVP: Intent → System Test | 34 | 7 | v1.0 |
-| **Phase 2** | Ecosystem: Runtime + UAT | 13 | 3 | v2.0 |
+| **Phase 1** | MVP: Intent → System Test | 36 | 9 | v1.0 |
+| **Phase 2** | Ecosystem: Runtime + UAT | 11 | 1 | v2.0 |
 
 ### Design Variants
 
@@ -24,103 +24,103 @@ Requirements are platform-agnostic. Design and implementation are per-variant:
 
 | Variant | Platform | Design Location | Status |
 |---------|----------|-----------------|--------|
-| claude_aisdlc | Claude Code | `docs/design/claude_aisdlc/` | 🚧 Active |
-| codex_aisdlc | OpenAI Codex | `docs/design/codex_aisdlc/` | 📋 Planned |
-| roo_aisdlc | Roo Code | `docs/design/roo_aisdlc/` | 📋 Planned |
-| gemini_aisdlc | Google Gemini | `docs/design/gemini_aisdlc/` | 📋 Planned |
-| copilot_aisdlc | GitHub Copilot | `docs/design/copilot_aisdlc/` | 📋 Planned |
+| claude_aisdlc | Claude Code | `docs/design/claude_aisdlc/` | [PARTIAL] |
+| codex_aisdlc | OpenAI Codex | `docs/design/codex_aisdlc/` | [PLANNED] |
+| roo_aisdlc | Roo Code | `docs/design/roo_aisdlc/` | [PLANNED] |
+| gemini_aisdlc | Google Gemini | `docs/design/gemini_aisdlc/` | [PLANNED] |
+| copilot_aisdlc | GitHub Copilot | `docs/design/copilot_aisdlc/` | [PLANNED] |
 
 ---
 
-## Phase 1: MVP Requirements (33)
+## Phase 1: MVP Requirements (36)
 
 **Scope**: Given intent → Build code through System Test
 
 | Req ID | Description | Priority | Req | claude |
 |--------|-------------|----------|-----|--------|
 | **Intent Management** |||||
-| REQ-INTENT-001 | Intent Capture | Critical | ✅ | 🚧 |
+| REQ-INTENT-001 | Intent Capture | Critical | [COMPLETE] | [PARTIAL] |
 | **7-Stage Workflow** |||||
-| REQ-STAGE-001 | Stage Definitions | Critical | ✅ | ✅ |
-| REQ-STAGE-002 | Stage Transitions | High | ✅ | 🚧 |
-| REQ-STAGE-003 | Signal Transformation | High | ✅ | 🚧 |
-| REQ-STAGE-004 | Bidirectional Feedback | Critical | ✅ | 🚧 |
+| REQ-STAGE-001 | Stage Definitions | Critical | [COMPLETE] | [COMPLETE] |
+| REQ-STAGE-002 | Stage Transitions | High | [COMPLETE] | [PARTIAL] |
+| REQ-STAGE-003 | Signal Transformation | High | [COMPLETE] | [PARTIAL] |
+| REQ-STAGE-004 | Bidirectional Feedback | Critical | [COMPLETE] | [PARTIAL] |
 | **Requirements Stage** |||||
-| REQ-REQ-001 | Requirement Key Generation | Critical | ✅ | ✅ |
-| REQ-REQ-002 | Requirement Types | High | ✅ | ✅ |
-| REQ-REQ-003 | Requirement Refinement | High | ✅ | 🚧 |
+| REQ-REQ-001 | Requirement Key Generation | Critical | [COMPLETE] | [COMPLETE] |
+| REQ-REQ-002 | Requirement Types | High | [COMPLETE] | [COMPLETE] |
+| REQ-REQ-003 | Requirement Refinement | High | [COMPLETE] | [PARTIAL] |
 | **Design Stage** |||||
-| REQ-DES-001 | Component Design | High | ✅ | ✅ |
-| REQ-DES-002 | Architecture Decision Records | High | ✅ | ✅ |
-| REQ-DES-003 | Design-to-Requirement Traceability | High | ✅ | 🚧 |
+| REQ-DES-001 | Component Design | High | [COMPLETE] | [COMPLETE] |
+| REQ-DES-002 | Architecture Decision Records | High | [COMPLETE] | [COMPLETE] |
+| REQ-DES-003 | Design-to-Requirement Traceability | High | [COMPLETE] | [PARTIAL] |
 | **Tasks Stage** |||||
-| REQ-TASK-001 | Work Breakdown | High | ✅ | 🚧 |
-| REQ-TASK-003 | Task-to-Requirement Traceability | High | ✅ | 🚧 |
+| REQ-TASK-001 | Work Breakdown | High | [COMPLETE] | [PARTIAL] |
+| REQ-TASK-003 | Task-to-Requirement Traceability | High | [COMPLETE] | [PARTIAL] |
 | **Code Stage** |||||
-| REQ-CODE-001 | TDD Workflow | Critical | ✅ | ✅ |
-| REQ-CODE-002 | Key Principles Enforcement | High | ✅ | ✅ |
-| REQ-CODE-003 | Code-to-Requirement Tagging | Critical | ✅ | 🚧 |
-| REQ-CODE-004 | Test Coverage | High | ✅ | 🚧 |
+| REQ-CODE-001 | TDD Workflow | Critical | [COMPLETE] | [COMPLETE] |
+| REQ-CODE-002 | Key Principles Enforcement | High | [COMPLETE] | [COMPLETE] |
+| REQ-CODE-003 | Code-to-Requirement Tagging | Critical | [COMPLETE] | [PARTIAL] |
+| REQ-CODE-004 | Test Coverage | High | [COMPLETE] | [PARTIAL] |
 | **System Test Stage** |||||
-| REQ-SYSTEST-001 | BDD Scenario Creation | High | ✅ | 🚧 |
-| REQ-SYSTEST-002 | Integration Test Execution | High | ✅ | 🚧 |
-| REQ-SYSTEST-003 | Test-to-Requirement Traceability | High | ✅ | 🚧 |
+| REQ-SYSTEST-001 | BDD Scenario Creation | High | [COMPLETE] | [PARTIAL] |
+| REQ-SYSTEST-002 | Integration Test Execution | High | [COMPLETE] | [PARTIAL] |
+| REQ-SYSTEST-003 | Test-to-Requirement Traceability | High | [COMPLETE] | [PARTIAL] |
 | **Traceability** |||||
-| REQ-TRACE-001 | Full Lifecycle Traceability | Critical | ✅ | 🚧 |
-| REQ-TRACE-002 | Requirement Key Propagation | Critical | ✅ | 🚧 |
+| REQ-TRACE-001 | Full Lifecycle Traceability | Critical | [COMPLETE] | [PARTIAL] |
+| REQ-TRACE-002 | Requirement Key Propagation | Critical | [COMPLETE] | [PARTIAL] |
 | **AI Augmentation** |||||
-| REQ-AI-001 | AI Assistance Per Stage | High | ✅ | ✅ |
-| REQ-AI-002 | Human Accountability | Critical | ✅ | ✅ |
-| REQ-AI-003 | Stage-Specific Agent Personas | High | ✅ | ✅ |
+| REQ-AI-001 | AI Assistance Per Stage | High | [COMPLETE] | [COMPLETE] |
+| REQ-AI-002 | Human Accountability | Critical | [COMPLETE] | [COMPLETE] |
+| REQ-AI-003 | Stage-Specific Agent Personas | High | [COMPLETE] | [COMPLETE] |
 | **Tooling Infrastructure** |||||
-| REQ-TOOL-001 | Plugin Architecture | High | ✅ | ✅ |
-| REQ-TOOL-002 | Developer Workspace | High | ✅ | ✅ |
-| REQ-TOOL-003 | Workflow Commands | Medium | ✅ | ✅ |
-| REQ-TOOL-005 | Release Management | High | ✅ | 🚧 |
-| REQ-TOOL-006 | Framework Updates | Medium | ✅ | ✅ |
-| REQ-TOOL-007 | Test Gap Analysis | High | ✅ | ❌ |
-| REQ-TOOL-008 | Methodology Hooks | Medium | ✅ | 🚧 |
-| REQ-TOOL-009 | Design-Impl Structure | High | ✅ | ❌ |
-| REQ-TOOL-010 | Installer Scaffolding | High | ✅ | ❌ |
-| REQ-TOOL-011 | Design-Impl Validation | High | ✅ | ❌ |
-| REQ-TOOL-012 | Context Snapshot & Recovery | Medium | ✅ | ✅ |
+| REQ-TOOL-001 | Plugin Architecture | High | [COMPLETE] | [COMPLETE] |
+| REQ-TOOL-002 | Developer Workspace | High | [COMPLETE] | [COMPLETE] |
+| REQ-TOOL-003 | Workflow Commands | Medium | [COMPLETE] | [COMPLETE] |
+| REQ-TOOL-005 | Release Management | High | [COMPLETE] | [PARTIAL] |
+| REQ-TOOL-006 | Framework Updates | Medium | [COMPLETE] | [COMPLETE] |
+| REQ-TOOL-007 | Test Gap Analysis | High | [COMPLETE] | [NOT STARTED] |
+| REQ-TOOL-008 | Methodology Hooks | Medium | [COMPLETE] | [PARTIAL] |
+| REQ-TOOL-009 | Design-Impl Structure | High | [COMPLETE] | [NOT STARTED] |
+| REQ-TOOL-010 | Installer Scaffolding | High | [COMPLETE] | [NOT STARTED] |
+| REQ-TOOL-011 | Design-Impl Validation | High | [COMPLETE] | [NOT STARTED] |
+| REQ-TOOL-012 | Context Snapshot & Recovery | Medium | [COMPLETE] | [COMPLETE] |
 
 **Phase 1 Summary (claude_aisdlc)**:
-- ✅ Complete: 15/34 (44%)
-- 🚧 Partial: 15/34 (44%)
-- ❌ Not Started: 4/34 (12%)
+- [COMPLETE]: 15/36 (42%)
+- [PARTIAL]: 17/36 (47%)
+- [NOT STARTED]: 4/36 (11%)
 
 ---
 
-## Phase 2: Ecosystem Requirements (13)
+## Phase 2: Ecosystem Requirements (11)
 
 **Scope**: Runtime feedback loop + UAT formalization
 
 | Req ID | Description | Priority | Req | claude |
 |--------|-------------|----------|-----|--------|
 | **Intent Management** |||||
-| REQ-INTENT-002 | Intent Classification | High | ✅ | ❌ |
-| REQ-INTENT-003 | Eco-Intent Generation | Medium | ✅ | ❌ |
+| REQ-INTENT-002 | Intent Classification | High | [COMPLETE] | [NOT STARTED] |
+| REQ-INTENT-003 | Eco-Intent Generation | Medium | [COMPLETE] | [NOT STARTED] |
 | **Requirements Stage** |||||
-| REQ-REQ-004 | Homeostasis Model Definition | High | ✅ | ❌ |
+| REQ-REQ-004 | Homeostasis Model Definition | High | [COMPLETE] | [NOT STARTED] |
 | **Tasks Stage** |||||
-| REQ-TASK-002 | Dependency Tracking | Medium | ✅ | ❌ |
+| REQ-TASK-002 | Dependency Tracking | Medium | [COMPLETE] | [NOT STARTED] |
 | **UAT Stage** |||||
-| REQ-UAT-001 | Business Validation Tests | High | ✅ | ❌ |
-| REQ-UAT-002 | Sign-off Workflow | High | ✅ | ❌ |
+| REQ-UAT-001 | Business Validation Tests | High | [COMPLETE] | [NOT STARTED] |
+| REQ-UAT-002 | Sign-off Workflow | High | [COMPLETE] | [NOT STARTED] |
 | **Runtime Feedback** |||||
-| REQ-RUNTIME-001 | Telemetry Tagging | High | ✅ | ❌ |
-| REQ-RUNTIME-002 | Deviation Detection | High | ✅ | ✅ |
-| REQ-RUNTIME-003 | Feedback Loop Closure | Critical | ✅ | ✅ |
+| REQ-RUNTIME-001 | Telemetry Tagging | High | [COMPLETE] | [NOT STARTED] |
+| REQ-RUNTIME-002 | Deviation Detection | High | [COMPLETE] | [COMPLETE] |
+| REQ-RUNTIME-003 | Feedback Loop Closure | Critical | [COMPLETE] | [COMPLETE] |
 | **Traceability** |||||
-| REQ-TRACE-003 | Traceability Validation | High | ✅ | ❌ |
+| REQ-TRACE-003 | Traceability Validation | High | [COMPLETE] | [NOT STARTED] |
 | **Tooling Infrastructure** |||||
-| REQ-TOOL-004 | Configuration Hierarchy | Medium | ✅ | 🚧 |
+| REQ-TOOL-004 | Configuration Hierarchy | Medium | [COMPLETE] | [PARTIAL] |
 
 **Phase 2 Summary (claude_aisdlc)**:
-- ✅ Complete: 2/13 (15%)
-- 🚧 Partial: 1/13 (8%)
-- ❌ Not Started: 10/13 (77%)
+- [COMPLETE]: 2/11 (18%)
+- [PARTIAL]: 1/11 (9%)
+- [NOT STARTED]: 8/11 (73%)
 
 **Note**: REQ-RUNTIME-002/003 implemented early as foundational infrastructure.
 
@@ -130,16 +130,16 @@ Requirements are platform-agnostic. Design and implementation are per-variant:
 
 | Req ID | Name | Phase | claude |
 |--------|------|-------|--------|
-| REQ-INTENT-001 | Intent Capture | 1 | 🚧 |
-| REQ-STAGE-001 | Stage Definitions | 1 | ✅ |
-| REQ-STAGE-004 | Bidirectional Feedback | 1 | 🚧 |
-| REQ-REQ-001 | Requirement Key Generation | 1 | ✅ |
-| REQ-CODE-001 | TDD Workflow | 1 | ✅ |
-| REQ-CODE-003 | Code-to-Requirement Tagging | 1 | 🚧 |
-| REQ-TRACE-001 | Full Lifecycle Traceability | 1 | 🚧 |
-| REQ-TRACE-002 | Requirement Key Propagation | 1 | 🚧 |
-| REQ-AI-002 | Human Accountability | 1 | ✅ |
-| REQ-RUNTIME-003 | Feedback Loop Closure | 2 | ✅ |
+| REQ-INTENT-001 | Intent Capture | 1 | [PARTIAL] |
+| REQ-STAGE-001 | Stage Definitions | 1 | [COMPLETE] |
+| REQ-STAGE-004 | Bidirectional Feedback | 1 | [PARTIAL] |
+| REQ-REQ-001 | Requirement Key Generation | 1 | [COMPLETE] |
+| REQ-CODE-001 | TDD Workflow | 1 | [COMPLETE] |
+| REQ-CODE-003 | Code-to-Requirement Tagging | 1 | [PARTIAL] |
+| REQ-TRACE-001 | Full Lifecycle Traceability | 1 | [PARTIAL] |
+| REQ-TRACE-002 | Requirement Key Propagation | 1 | [PARTIAL] |
+| REQ-AI-002 | Human Accountability | 1 | [COMPLETE] |
+| REQ-RUNTIME-003 | Feedback Loop Closure | 2 | [COMPLETE] |
 
 **Critical Summary**: 5/10 Complete, 5/10 Partial
 
@@ -155,13 +155,13 @@ Requirements are platform-agnostic. Design and implementation are per-variant:
 
 | Stage | Coverage | Status |
 |-------|----------|--------|
-| Requirements | 46/46 | ✅ Complete |
-| Design | 46/46 | ✅ Complete |
-| Tasks | 46/46 | ✅ Complete |
-| Code | 19/46 (41%) | 🚧 In Progress |
-| System Test | 7/46 (15%) | 🚧 In Progress |
-| UAT | 0/46 | ⏳ Phase 2 |
-| Runtime | 0/46 | ⏳ Phase 2 |
+| Requirements | 47/47 | [COMPLETE] |
+| Design | 47/47 | [COMPLETE] |
+| Tasks | 47/47 | [COMPLETE] |
+| Code | 19/47 (40%) | [PARTIAL] |
+| System Test | 7/47 (15%) | [PARTIAL] |
+| UAT | 0/47 | [PLANNED] |
+| Runtime | 0/47 | [PLANNED] |
 
 ### Design Documents
 
@@ -210,11 +210,10 @@ Requirements are platform-agnostic. Design and implementation are per-variant:
 
 | Symbol | Meaning |
 |--------|---------|
-| ✅ | Complete |
-| 🚧 | Partial / In Progress |
-| ❌ | Not Started |
-| ⏳ | Planned (future phase) |
-| 📋 | Design planned |
+| [COMPLETE] | Complete |
+| [PARTIAL] | Partial / In Progress |
+| [NOT STARTED] | Not Started |
+| [PLANNED] | Planned (future phase) |
 
 ---
 

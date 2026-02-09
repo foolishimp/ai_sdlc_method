@@ -207,7 +207,7 @@ Selected: [Option] | Rejected: [Alternatives with rationale]
 
 **Purpose**: Create executable artifacts using Test-Driven Development
 
-## **7.1 Key Principles Principles**
+## **7.1 Key Principles**
 
 From [ai_init methodology](https://github.com/foolishimp/ai_init):
 
@@ -266,7 +266,7 @@ def authenticate(email: str, password: str) -> AuthResult:
 - ✅ All code has unit tests (TDD followed)
 - ✅ All tests pass (GREEN)
 - ✅ Coverage ≥ 80% (critical paths 100%)
-- ✅ Key Principles principles followed
+- ✅ Key Principles followed
 - ✅ Linting passes
 - ✅ Security scan clean
 - ✅ All REQ keys in code/tests
@@ -508,7 +508,7 @@ Intent → REQ-F-AUTH-001 → Design → Code → Tests → UAT → Deploy → R
 
 ## **13.2 Quality & Excellence**
 
-✅ Key Principles Principles ensure code excellence
+✅ Key Principles ensure code excellence
 ✅ TDD ensures all code is born tested
 ✅ BDD provides executable business specifications
 ✅ Coverage requirements (≥80% unit, ≥95% integration)

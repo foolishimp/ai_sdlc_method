@@ -2,8 +2,8 @@
 
 **Document Type**: Requirements Specification
 **Project**: ai_sdlc_method
-**Version**: 2.0
-**Date**: 2025-12-02
+**Version**: 2.1
+**Date**: 2025-12-15
 **Status**: Draft
 **Derived From**: [AI_SDLC_REQUIREMENTS.md](AI_SDLC_REQUIREMENTS.md) (Methodology v1.2)
 
@@ -1276,8 +1276,8 @@ target-project/
 
 | Phase | Description | Count | Critical | High | Medium |
 |-------|-------------|-------|----------|------|--------|
-| **Phase 1** | MVP: Intent → System Test | 34 | 7 | 22 | 5 |
-| **Phase 2** | Ecosystem: Runtime + UAT | 13 | 3 | 8 | 2 |
+| **Phase 1** | MVP: Intent → System Test | 36 | 9 | 23 | 4 |
+| **Phase 2** | Ecosystem: Runtime + UAT | 11 | 1 | 7 | 3 |
 | **Total** | | **47** | **10** | **30** | **7** |
 
 ### Phase 1 Requirements (MVP - v1.0)
@@ -1293,8 +1293,8 @@ target-project/
 | System Test Stage | 3 | REQ-SYSTEST-001, 002, 003 |
 | Traceability | 2 | REQ-TRACE-001, 002 |
 | AI Augmentation | 3 | REQ-AI-001, 002, 003 |
-| Tooling Infrastructure | 9 | REQ-TOOL-001, 002, 003, 005, 006, 007, 008, 009, 010, 011, 012 |
-| **Phase 1 Total** | **34** | |
+| Tooling Infrastructure | 11 | REQ-TOOL-001, 002, 003, 005, 006, 007, 008, 009, 010, 011, 012 |
+| **Phase 1 Total** | **36** | |
 
 ### Phase 2 Requirements (Ecosystem - v2.0)
 
@@ -1307,7 +1307,7 @@ target-project/
 | Runtime Feedback | 3 | REQ-RUNTIME-001, 002, 003 |
 | Traceability | 1 | REQ-TRACE-003 |
 | Tooling Infrastructure | 1 | REQ-TOOL-004 |
-| **Phase 2 Total** | **13** | |
+| **Phase 2 Total** | **11** | |
 
 ### By Category
 
@@ -1325,13 +1325,13 @@ target-project/
 | Traceability | 3 | 2 | 1 | 0 | 2 | 1 |
 | AI Augmentation | 3 | 1 | 2 | 0 | 3 | 0 |
 | Tooling Infrastructure | 12 | 0 | 7 | 5 | 11 | 1 |
-| **Total** | **47** | **10** | **30** | **7** | **34** | **13** |
+| **Total** | **47** | **10** | **30** | **7** | **36** | **11** |
 
 ### By Priority
 
-- **Critical**: 10 requirements (7 Phase 1, 3 Phase 2)
-- **High**: 30 requirements (22 Phase 1, 8 Phase 2)
-- **Medium**: 7 requirements (5 Phase 1, 2 Phase 2)
+- **Critical**: 10 requirements (9 Phase 1, 1 Phase 2)
+- **High**: 30 requirements (23 Phase 1, 7 Phase 2)
+- **Medium**: 7 requirements (4 Phase 1, 3 Phase 2)
 
 ### Traceability to Methodology
 

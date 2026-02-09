@@ -11,7 +11,7 @@ ai_sdlc_method provides the **complete 7-Stage AI SDLC methodology** as installa
 ✅ **7-Stage AI SDLC Methodology** - Requirements → Design → Tasks → Code → System Test → UAT → Runtime Feedback
 ✅ **AI Agent Configurations** - Detailed specifications for AI agents at each SDLC stage (1,273 lines)
 ✅ **Requirement Traceability** - Track REQ keys from intent to runtime
-✅ **Key Principles Principles** - Foundation for Code stage (TDD, Fail Fast, Modular, etc.)
+✅ **Key Principles** - Foundation for Code stage (TDD, Fail Fast, Modular, etc.)
 ✅ **TDD Workflow** - RED → GREEN → REFACTOR → COMMIT cycle
 ✅ **BDD Testing** - Given/When/Then scenarios for System Test and UAT stages
 ✅ **Bidirectional Feedback** - Production issues flow back to requirements
@@ -225,7 +225,7 @@ ai_sdlc_stages:
 
 #### 2. config.yml
 
-Key Principles principles and Code stage configuration:
+Key Principles and Code stage configuration:
 
 ```yaml
 methodology:
@@ -565,7 +565,7 @@ New cycle begins at Requirements stage to address INT-042
 
 ✅ **Clear Guidance** - AI agents specify exactly what to do at each stage
 ✅ **TDD Workflow** - RED → GREEN → REFACTOR cycle enforced
-✅ **Key Principles Principles** - Foundation for excellent code
+✅ **Key Principles** - Foundation for excellent code
 ✅ **Automated Tagging** - Requirement keys automatically tracked
 ✅ **Bidirectional Feedback** - Production issues link back to requirements
 

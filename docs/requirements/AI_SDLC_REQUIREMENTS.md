@@ -8,10 +8,10 @@
 **Date**: 2025-11-20
 
 **Related Documents**:
-- [AI SDLC Overview](ai_sdlc_overview.md) - High-level introduction
-- [AI SDLC Concepts](ai_sdlc_concepts.md) - Exhaustive concept inventory (audit checklist)
-- [AI SDLC Appendices](ai_sdlc_appendices.md) - Technical deep-dives
-- [Role-Specific Guides](guides/) - Practical application guides
+- [AI SDLC Overview](AI_SDLC_OVERVIEW.md) - High-level introduction
+- [AI SDLC Concepts](AI_SDLC_CONCEPTS.md) - Exhaustive concept inventory (audit checklist)
+- [AI SDLC Appendices](AI_SDLC_APPENDICES.md) - Technical deep-dives
+- [Role-Specific Guides](../guides/) - Practical application guides
 
 ---
 
@@ -933,19 +933,19 @@ The Design stage transforms Requirements into an **implementable technical and d
 | **Data Model** | Conceptual/Logical/Physical ERDs | Maps to `REQ-DATA-*` |
 | **API Specifications** | OpenAPI/GraphQL contracts | Maps to `REQ-F-*` |
 | **Data Flow Diagrams** | Lineage and transformation logic | Maps to `REQ-DATA-*` |
-| **Architecture Decision Records (ADRs)** ⭐ **NEW** | Strategic tech decisions acknowledging E(t) constraints | Maps decisions to `REQ-*`, documents E(t) context |
+| **Architecture Decision Records (ADRs)** | Strategic tech decisions acknowledging E(t) constraints | Maps decisions to `REQ-*`, documents E(t) context |
 | **Traceability Matrix** | Maps Design Elements → Req Keys → ADRs | Links requirements to technical decisions |
 
 ## **5.5 Governance & Quality Gates**
 
   * [ ] Design adheres to Architecture Context (patterns/stack).
   * [ ] All components mapped to specific `REQ` keys.
-  * [ ] **ADRs written for all strategic decisions (framework, cloud, database, auth).** ⭐
-  * [ ] **ADRs acknowledge ecosystem constraints E(t) (team, timeline, budget, compliance).** ⭐
+  * [ ] **ADRs written for all strategic decisions (framework, cloud, database, auth).**
+  * [ ] **ADRs acknowledge ecosystem constraints E(t) (team, timeline, budget, compliance).**
   * [ ] Data models meet Data Architecture standards.
   * [ ] Security and Privacy (PII) controls explicitly defined.
   * [ ] Cost estimates fall within budget context.
-  * [ ] **Ecosystem dependencies identified and monitored.** ⭐
+  * [ ] **Ecosystem dependencies identified and monitored.**
 
 ---
 
@@ -983,13 +983,13 @@ Converts the Design into actionable work items. This is the bridge between "What
 
 ---
 
-# **7.0 Code Stage (TDD + Key Principles Principles)**
+# **7.0 Code Stage (TDD + Key Principles)**
 
 ## **7.1 Code – Overview**
 
 ### **7.1.1 What is Code Stage**
 
-The Code stage creates the executable artifacts. This stage integrates **Test-Driven Development (TDD)** to ensure code is born tested and follows the **Key Principles Principles** from the ai_init methodology.
+The Code stage creates the executable artifacts. This stage integrates **Test-Driven Development (TDD)** to ensure code is born tested and follows the **Key Principles** from the ai_init methodology.
 
 ### **7.1.2 Why TDD Matters**
 
@@ -1000,7 +1000,7 @@ The Code stage creates the executable artifacts. This stage integrates **Test-Dr
 * **Regression safety**: Tests catch breaking changes
 * **Requirement validation**: Tests verify requirements are met
 
-### **7.1.3 The Key Principles Principles**
+### **7.1.3 The Key Principles**
 
 The Code stage is built on seven foundational principles from the [ai_init methodology](https://github.com/foolishimp/ai_init):
 
@@ -1066,8 +1066,6 @@ The Code stage is built on seven foundational principles from the [ai_init metho
 - Continuous improvement mindset
 - Excellence in every commit
 - No compromises on quality
-
-**Ultimate Mantra**: **"Excellence or nothing"** 🔥
 
 ## **7.2 TDD Cycle (The Core Development Loop)**
 
@@ -1361,14 +1359,14 @@ Code implementation is constrained by:
 ### **7.6.4 Governance**
 
 **TDD Quality Gates**:
-- ✅ All code has corresponding unit tests (TDD cycle followed)
-- ✅ All tests pass (GREEN)
-- ✅ Unit test coverage ≥ 80% (critical paths 100%)
-- ✅ Code follows Key Principles principles
-- ✅ Code follows coding standards (linting passes)
-- ✅ Security scan clean (no critical vulnerabilities)
-- ✅ All requirement keys documented in code and tests
-- ✅ Git history shows RED → GREEN → REFACTOR commits
+- [COMPLETE] All code has corresponding unit tests (TDD cycle followed)
+- [COMPLETE] All tests pass (GREEN)
+- [COMPLETE] Unit test coverage ≥ 80% (critical paths 100%)
+- [COMPLETE] Code follows Key Principles
+- [COMPLETE] Code follows coding standards (linting passes)
+- [COMPLETE] Security scan clean (no critical vulnerabilities)
+- [COMPLETE] All requirement keys documented in code and tests
+- [COMPLETE] Git history shows RED → GREEN → REFACTOR commits
 
 **TDD Audit Trail**:
 - Tests committed before implementation
@@ -1497,10 +1495,10 @@ System Test produces **requirement coverage reports**:
 
 **Example coverage report**:
 ```
-REQ-F-AUTH-001: ✅ Covered (3 scenarios, all passing)
-REQ-NFR-PERF-001: ✅ Covered (2 scenarios, all passing)
-REQ-DATA-CQ-001: ⚠️  Covered (4 scenarios, 1 failing)
-REQ-BR-CALC-001: ❌ Not covered (no scenarios)
+REQ-F-AUTH-001: [COMPLETE] Covered (3 scenarios, all passing)
+REQ-NFR-PERF-001: [COMPLETE] Covered (2 scenarios, all passing)
+REQ-DATA-CQ-001: [PARTIAL]  Covered (4 scenarios, 1 failing)
+REQ-BR-CALC-001: [NOT STARTED] Not covered (no scenarios)
 ```
 
 ## **8.4 System Test Stage Context**
@@ -1540,13 +1538,13 @@ REQ-BR-CALC-001: ❌ Not covered (no scenarios)
 ### **8.4.4 Governance**
 
 **BDD Quality Gates**:
-- ✅ All requirements have ≥ 1 BDD scenario
-- ✅ All scenarios pass (or failures documented with tickets)
-- ✅ Requirement coverage ≥ 95%
-- ✅ No critical defects open
-- ✅ Performance scenarios meet NFRs
-- ✅ Data quality scenarios pass
-- ✅ QA Lead approves test summary
+- [COMPLETE] All requirements have ≥ 1 BDD scenario
+- [COMPLETE] All scenarios pass (or failures documented with tickets)
+- [COMPLETE] Requirement coverage ≥ 95%
+- [COMPLETE] No critical defects open
+- [COMPLETE] Performance scenarios meet NFRs
+- [COMPLETE] Data quality scenarios pass
+- [COMPLETE] QA Lead approves test summary
 
 ---
 
@@ -1651,10 +1649,10 @@ Feature: Customer Self-Service Portal
 ### **9.3.3 Governance**
 
 **UAT Quality Gates**:
-- ✅ All critical business scenarios passed
-- ✅ Data Steward sign-off obtained
-- ✅ UAT BDD scenarios approved by business users
-- ✅ Deployment Readiness Checklist complete
+- [COMPLETE] All critical business scenarios passed
+- [COMPLETE] Data Steward sign-off obtained
+- [COMPLETE] UAT BDD scenarios approved by business users
+- [COMPLETE] Deployment Readiness Checklist complete
 
 ---
 
@@ -1741,11 +1739,11 @@ All runtime feedback feeds into the **Intent Manager**, creating **new or refine
 ### **10.4.3 Governance**
 
 **Runtime observability gates**:
-- ✅ All deployed code tagged with requirement keys
-- ✅ Telemetry systems configured to capture requirement keys
-- ✅ Alerts routed to Intent Manager
-- ✅ Release manifests include requirement traceability
-- ✅ Incident response links issues to requirements
+- [COMPLETE] All deployed code tagged with requirement keys
+- [COMPLETE] Telemetry systems configured to capture requirement keys
+- [COMPLETE] Alerts routed to Intent Manager
+- [COMPLETE] Release manifests include requirement traceability
+- [COMPLETE] Incident response links issues to requirements
 
 **Feedback loop health**:
 - Telemetry coverage (% of code with requirement key tags)
@@ -1797,7 +1795,7 @@ flowchart LR
     TASK["TASK-001: Implement login"]
     CODE["Code: auth.py (line 42)"]
     TEST["TEST-001: test_user_login"]
-    UAT["UAT: Accepted ✅"]
+    UAT["UAT: Accepted [COMPLETE]"]
     DEPLOY["Release v2.5.0"]
     RUNTIME["Metric: auth_success_rate"]
 
@@ -1838,10 +1836,10 @@ A **traceability matrix** provides a comprehensive view of requirement status ac
 
 | Requirement Key | Intent | Design | Tasks | Code | Tests | UAT | Deployed | Runtime Status |
 |----------------|--------|--------|-------|------|-------|-----|----------|----------------|
-| REQ-F-AUTH-001 | ✅ | ✅ | ✅ | ✅ | ✅ (3 tests) | ✅ Accepted | v2.5.0 | ✅ Healthy |
-| REQ-NFR-PERF-001 | ✅ | ✅ | ✅ | ✅ | ✅ (2 tests) | ✅ Accepted | v2.5.0 | ⚠️ Degraded |
-| REQ-DATA-CQ-001 | ✅ | ✅ | ✅ | ✅ | ⚠️ (1 failing) | ❌ Rejected | - | - |
-| REQ-BR-CALC-001 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | - | - |
+| REQ-F-AUTH-001 | [COMPLETE] | [COMPLETE] | [COMPLETE] | [COMPLETE] | [COMPLETE] (3 tests) | [COMPLETE] Accepted | v2.5.0 | [COMPLETE] Healthy |
+| REQ-NFR-PERF-001 | [COMPLETE] | [COMPLETE] | [COMPLETE] | [COMPLETE] | [COMPLETE] (2 tests) | [COMPLETE] Accepted | v2.5.0 | [PARTIAL] Degraded |
+| REQ-DATA-CQ-001 | [COMPLETE] | [COMPLETE] | [COMPLETE] | [COMPLETE] | [PARTIAL] (1 failing) | [NOT STARTED] Rejected | - | - |
+| REQ-BR-CALC-001 | [COMPLETE] | [COMPLETE] | [COMPLETE] | [NOT STARTED] | [NOT STARTED] | [NOT STARTED] | - | - |
 
 ---
 
@@ -2161,9 +2159,9 @@ Feature: User Authentication System Test
 ```
 Feature: User Authentication System Test
   REQ-F-AUTH-001: User Authentication
-    ✅ Scenario: Successful authentication with valid credentials (PASS)
-    ✅ Scenario: Authentication fails with invalid password (PASS)
-    ✅ Scenario: Authentication fails for nonexistent user (PASS)
+    [COMPLETE] Scenario: Successful authentication with valid credentials (PASS)
+    [COMPLETE] Scenario: Authentication fails with invalid password (PASS)
+    [COMPLETE] Scenario: Authentication fails for nonexistent user (PASS)
 
   Coverage: REQ-F-AUTH-001 fully validated
 ```
@@ -2243,7 +2241,7 @@ metrics.increment(
 **Observability Dashboard**:
 ```
 REQ-F-AUTH-001: User Authentication
-  Status: ✅ Healthy
+  Status: [COMPLETE] Healthy
   Metrics (Last 24 hours):
     - auth.success: 12,543 (99.2% success rate)
     - auth.failure: 98 (0.8% failure rate)
@@ -2856,7 +2854,7 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 * Uses **CRUD work types** to structure intent (Create, Read, Update, Delete).
 * Channels all work through the **Builder AI SDLC pipeline**.
 * Maintains **Requirements** as a living homeostasis model (not fixed specifications).
-* Follows **Key Principles Principles** in Code stage for excellence.
+* Follows **Key Principles** in Code stage for excellence.
 * Enforces **TDD (RED → GREEN → REFACTOR)** for all code development.
 * Uses **BDD (Given/When/Then)** for System Test and UAT stages.
 * Ensures **continuous governance** through observation and evaluation.
@@ -2870,7 +2868,7 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 * **Complete traceability** from intent to runtime behavior using unique requirement keys:
   - Forward traceability: Intent → Requirements → Design → Code → Tests → Deployment → Runtime
   - Backward traceability: Production issues → Code → Requirements → Intent
-* **Key Principles Principles** ensure code excellence (TDD, Fail Fast, Modular, Reuse Before Build, Open Source First, No Legacy Baggage, Perfectionist Excellence)
+* **Key Principles** ensure code excellence (TDD, Fail Fast, Modular, Reuse Before Build, Open Source First, No Legacy Baggage, Perfectionist Excellence)
 * **TDD workflow** ensures all code is born tested (RED → GREEN → REFACTOR → COMMIT)
 * **BDD scenarios** provide executable specifications in business language
 * Strong **governance** and auditability across the full software and data lifecycle.
@@ -2894,7 +2892,7 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 
 1. **Setup ai_sdlc_method repository**: Initialize folder structure for context (Section 3.4)
 2. **Define requirement key format**: Choose REQ key structure for your organization (Section 3.5)
-3. **Adopt Key Principles Principles**: Integrate ai_init methodology into development workflow (Section 7.1.3)
+3. **Adopt Key Principles**: Integrate ai_init methodology into development workflow (Section 7.1.3)
 4. **Configure AI agents**: Setup agent system prompts to follow TDD workflow (Section 7.3)
 5. **Identify sub-vectors**: Determine which activities warrant concurrent AI SDLCs (Section 12)
 
@@ -2905,14 +2903,12 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 - **Write BDD scenarios**: Practice Given/When/Then format (Section 8.2)
 - **Understand homeostasis**: Study feedback loop examples (Section 2.7.3)
 
-**Ultimate Mantra**: **"Excellence or nothing"** 🔥
-
 ---
 
 **Version**: 1.2
 **Date**: 2025-11-20
 **Status**: Merged - Best of v1.0 + v1.1
-**Changes from v1.1**: Restored Key Principles Principles, Homeostasis Model, End-to-End Traceability Section, Sub-Vectors 4-6, and BDD examples
+**Changes from v1.1**: Restored Key Principles, Homeostasis Model, End-to-End Traceability Section, Sub-Vectors 4-6, and BDD examples
 
 
 ---
@@ -2922,15 +2918,13 @@ The AI SDLC methodology provides a **closed-loop, intent-driven** framework that
 This methodology reference contains Sections 1.0-13.0 covering the complete AI SDLC.
 
 **For technical deep-dives and formal foundations**, see:
-- [AI SDLC Appendices](ai_sdlc_appendices.md) - Ecosystem dynamics, category theory, implementation patterns
+- [AI SDLC Appendices](AI_SDLC_APPENDICES.md) - Ecosystem dynamics, category theory, implementation patterns
 
 **For practical application guides**, see:
-- [Architect Guide](guides/architect_guide.md) - ADRs, design, ecosystem (coming soon)
-- [Developer Guide](guides/developer_guide.md) - TDD, Key Principles, code (coming soon)
-- [QA Guide](guides/qa_guide.md) - BDD, testing, coverage (coming soon)
-- [Manager Guide](guides/manager_guide.md) - Governance, metrics, process (coming soon)
-
-**Excellence or nothing** 🔥
+- [Architect Guide](../guides/architect_guide.md) - ADRs, design, ecosystem (coming soon)
+- [Developer Guide](../guides/developer_guide.md) - TDD, Key Principles, code (coming soon)
+- [QA Guide](../guides/qa_guide.md) - BDD, testing, coverage (coming soon)
+- [Manager Guide](../guides/manager_guide.md) - Governance, metrics, process (coming soon)
 
 ---
 

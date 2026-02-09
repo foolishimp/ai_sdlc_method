@@ -8,8 +8,8 @@
 **Date**: 2025-11-20
 
 **Related Documents**:
-- [AI SDLC Method](ai_sdlc_method.md) - Complete methodology (Sections 1-13)
-- [AI SDLC Overview](ai_sdlc_overview.md) - High-level introduction
+- [AI SDLC Method](AI_SDLC_REQUIREMENTS.md) - Complete methodology (Sections 1-13)
+- [AI SDLC Overview](AI_SDLC_OVERVIEW.md) - High-level introduction
 
 ---
 
@@ -93,7 +93,7 @@ workflow: Requirements → (skip Design) → Tasks → Code → Test → Deploy
 
 ### **A.3.4 Ecosystem as Ambient Category**
 
-**Novel contribution**: E(t) is the **ambient category** we operate within.
+E(t) is the **ambient category** we operate within.
 
 **Functor** F: 𝓒_SDLC → 𝓔_Eco(t) maps SDLC decisions to ecosystem constraints:
 - F(Design) = {frameworks, cloud providers, team skills}

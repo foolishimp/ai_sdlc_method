@@ -612,7 +612,7 @@ Requirements: REQ-F-AUTH-002 "Optimize authentication performance"
 
 - **AI SDLC Methodology Plugin**: `../../../plugins/aisdlc-methodology/`
 - **AI SDLC Method**: `../../../docs/ai_sdlc_method.md`
-- **Key Principles Principles**: `../../../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`
+- **Key Principles**: `../../../plugins/aisdlc-methodology/docs/principles/KEY_PRINCIPLES.md`
 - **TDD Workflow**: `../../../plugins/aisdlc-methodology/docs/processes/TDD_WORKFLOW.md`
 
 ---
