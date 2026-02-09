@@ -819,6 +819,12 @@ No special theory of observation is needed. The observer is a Markov object. Wha
 
 The causal direction is manifold → observer, not observer → manifold. The observer is a product of the constraint dynamics it inhabits. Over hundreds of millions of years of evolution — itself a constraint-satisfaction process discovering optimal minima and maxima within the manifold — the observer adapted to the manifold's structure. Its perceptual categories, its predictive models, its sense of locality and causality are all consequences of the manifold it evolved within. Any theory that begins with the observer's properties and derives physics from them has the causality backwards. The observer does not need a separate theory; it needs an evolutionary account — which is just constraint dynamics applied to self-replicating Markov objects over deep time.
 
+**From observer to meaning**: Meaning does not exist at the substrate level. The constraint network propagates; patterns stabilise; hierarchies emerge — but none of this *means* anything until the hierarchy produces a Markov object that *evaluates*: a system that models, compares, and computes a delta between current state and target state. From evaluation arises **intent**: the delta itself, directed at something that does not yet exist. Intent has meaning because it refers beyond the current state.
+
+The threshold for meaning is *evaluation*, not life. An LLM evaluates — it takes context, computes a direction, generates output that refers beyond itself. Its output has meaning. A software test suite evaluates — it compares current behaviour against requirements and computes a delta. Its output has meaning. A thermostat evaluates. None of these systems are alive. Meaning requires an evaluator with a target state; it does not require self-maintenance.
+
+Life and meaning are distinctions on different manifolds. The transition from non-life to life — what Deacon calls the *teleodynamic* transition, where constraint closure becomes self-maintaining and the Markov object begins to act on its own behalf — adds *caring*. A living evaluator persists, repairs itself, reproduces, and acts to maintain its own boundary conditions. It does not merely compute a delta; it *acts on* the delta. But caring is not a prerequisite for meaning. It is a separate emergence on a separate constraint surface. An LLM's outputs mean something. The LLM does not care. An organism's signals mean something. The organism cares. The meaning is the same kind of thing — evaluation producing reference — but caring is a different kind of thing, arising on the life/non-life manifold rather than the meaning/no-meaning manifold.
+
 ---
 
 ## Part II: Philosophical Positioning
@@ -828,6 +834,26 @@ The causal direction is manifold → observer, not observer → manifold. The ob
 Einstein's unification programme was not "add electromagnetism to gravity." His goal was: **eliminate arbitrary structure from physics by making all fields and constants emerge from geometry**. He wanted no point particles, no singular sources, no free constants, no arbitrary coupling strengths. Einstein was trying to discover the substrate and make all "fields" and "constants" emergent invariants.
 
 Einstein's failure: He tried to build the substrate directly in spacetime geometry, forcing continuous manifolds, singularities, and dimensionful constants as input. He was missing the **pre-geometric constraint substrate** layer.
+
+### Relationship to Bohm
+
+David Bohm's *Wholeness and the Implicate Order* (1980) is the single deepest influence on this framework. Bohm argued that what we observe — the **explicate order** — is a projection of a deeper, enfolded **implicate order** where everything is interconnected. Particles are not fundamental objects; they are relatively stable projections of the implicate order, like vortices in a stream. The whole is primary; parts are abstractions imposed by our mode of description.
+
+This maps directly onto the constraint ontology:
+
+| Bohm | This framework |
+|------|---------------|
+| Implicate order | Constraint network / substrate |
+| Explicate order | Emergent manifold |
+| Unfolding | Constraint dynamics projected onto emergent spacetime |
+| Particles as projections | Markov objects as stable patterns in constraint geometry |
+| Holomovement | Constraint propagation — the undivided process |
+| Wholeness primary | One coupled dynamical system; "fields" are bookkeeping |
+| Fragmentation as artifact of thought | Manifold-level description carves reality into objects that don't exist at the substrate |
+
+Bohm's pilot wave theory (de Broglie-Bohm mechanics) is deterministic and non-local — exactly the two properties this framework attributes to the substrate (Sections 7, 13). He reached these conclusions decades before Bell's theorem was widely understood, and his insistence that quantum mechanics could be completed by a deeper deterministic theory was vindicated structurally, even if the specific pilot wave formalism remains contested.
+
+Where this framework extends Bohm: he described the implicate order qualitatively and through analogy (the hologram, the ink-drop experiment). This framework attempts to characterise the structural invariants more precisely — constraint propagation, Markov objects, emergent manifolds, the unit of change — and to identify the same architecture across physics, computation, and engineered systems. Bohm provided the philosophical foundation; the constraint ontology is an attempt to build on it.
 
 ### Relationship to Feynman
 
@@ -1509,7 +1535,7 @@ The ontology suggests current anomalies may be pointing at the model boundary, n
 
 | Thinker | Key Contribution | Alignment |
 |---------|-----------------|-----------|
-| **David Bohm** | Implicate order, particles as projections of deeper structure | Strong |
+| **David Bohm** | *Wholeness and the Implicate Order* — implicate/explicate order, particles as projections, deterministic non-local substrate, wholeness primary | Very strong (see Part II) |
 | **Gerard 't Hooft** | Deterministic substratum, cellular automaton interpretation | Strong |
 | **John Wheeler** | "It from bit", geometry from information | Strong |
 | **Lee Smolin** | Loop quantum gravity, relational space, time as fundamental | Partial (see Section 10.2) |
