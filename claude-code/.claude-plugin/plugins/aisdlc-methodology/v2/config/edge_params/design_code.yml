@@ -11,33 +11,62 @@ description: |
   Note: this edge typically feeds into the TDD co-evolution edge
   (code↔unit_tests) for the actual implementation cycle.
 
-# Evaluators
-evaluators:
-  agent:
-    checks:
-      - code_matches_design
-      - req_tags_present
-      - follows_coding_standards
-      - component_interfaces_implemented
-  deterministic:
-    checks:
-      - compiles_or_parses
-      - lint_passes
-      - type_checks_pass
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR CHECKLIST
+# ═══════════════════════════════════════════════════════════════════════
 
-# Convergence
+checklist:
+
+  - name: "code_matches_design"
+    type: agent
+    criterion: "Code implements the component interfaces and structure defined in the design document."
+    source: default
+    required: true
+
+  - name: "req_tags_present"
+    type: agent
+    criterion: "Every code file has '# Implements: REQ-*' tags for the requirements it satisfies."
+    source: default
+    required: true
+
+  - name: "follows_coding_standards"
+    type: agent
+    criterion: "Code follows $standards.style_guide, $standards.docstrings, and $standards.type_hints policies."
+    source: default
+    required: true
+
+  - name: "compiles_or_parses"
+    type: deterministic
+    criterion: "Code compiles/parses without syntax errors"
+    source: default
+    required: true
+    command: "$tools.linter.command $tools.linter.args"
+    pass_criterion: "$tools.linter.pass_criterion"
+
+  - name: "lint_passes"
+    type: deterministic
+    criterion: "Linter reports zero violations"
+    source: default
+    required: true
+    command: "$tools.linter.command $tools.linter.args"
+    pass_criterion: "$tools.linter.pass_criterion"
+
+  - name: "type_check"
+    type: deterministic
+    criterion: "Type checker reports zero errors"
+    source: default
+    required: "$tools.type_checker.required"
+    command: "$tools.type_checker.command $tools.type_checker.args"
+    pass_criterion: "$tools.type_checker.pass_criterion"
+
 convergence:
-  compiles: true
-  has_req_tags: true
-  style_compliant: true
-  matches_design: true
+  rule: "all_required_checks_pass"
 
-# Guidance for the iterate agent
 agent_guidance: |
   When generating code from design:
-  1. Implement the component interfaces defined in the design
-  2. Tag every file with # Implements: REQ-* for the requirements it satisfies
-  3. Follow coding standards from Context[] (language, style, conventions)
-  4. Start minimal — the TDD edge will drive detailed implementation
-  5. If the design is insufficient for implementation, flag it as feedback
-  6. Generate code structure first, then detail via TDD co-evolution
+  1. Build effective checklist (edge defaults + project constraints)
+  2. Implement component interfaces from the design
+  3. Tag every file with # Implements: REQ-*
+  4. Follow coding standards from project_constraints.yml
+  5. Start minimal — TDD edge will drive detailed implementation
+  6. Report checklist: "N of M required checks pass"

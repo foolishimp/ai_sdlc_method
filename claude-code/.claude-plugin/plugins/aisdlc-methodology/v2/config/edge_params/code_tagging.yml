@@ -39,24 +39,49 @@ tag_formats:
 
       Implements: REQ-F-AUTH-001, REQ-NFR-SEC-001
 
-# Validation rules
-validation:
-  # Tags must reference valid REQ keys (exist in requirements)
-  valid_req_reference: true
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR CHECKLIST
+# ═══════════════════════════════════════════════════════════════════════
+# Cross-cutting: these checks are COMPOSED INTO other edge checklists
+# when the edge produces code or test assets.
 
-  # Every code file must have at least one Implements tag
-  min_tags_per_file: 1
+checklist:
 
-  # Every test file must have at least one Validates tag
-  min_test_tags_per_file: 1
+  - name: "valid_tag_format"
+    type: deterministic
+    criterion: "All tags match the format: (Implements|Validates): REQ-{TYPE}-{DOMAIN}-{SEQ}"
+    command: "grep -rPn '(Implements|Validates):\\s+REQ-' src/ tests/ || true"
+    pass_criterion: "All tags match regex: (Implements|Validates):\\s+REQ-[A-Z]+-[A-Z]+-\\d+"
+    source: default
+    required: true
 
-  # Commit messages must reference at least one REQ key
-  commit_tag_required: true
+  - name: "valid_req_references"
+    type: agent
+    criterion: "All REQ keys referenced in tags exist in the requirements document."
+    source: default
+    required: true
 
-  # Tag format regex (the contract)
-  tag_regex: "(Implements|Validates):\\s+REQ-[A-Z]+-[A-Z]+-\\d+"
+  - name: "code_files_tagged"
+    type: agent
+    criterion: "Every production code file has at least one '# Implements: REQ-*' tag."
+    source: default
+    required: true
 
-# Guidance for the iterate agent
+  - name: "test_files_tagged"
+    type: agent
+    criterion: "Every test file has at least one '# Validates: REQ-*' tag."
+    source: default
+    required: true
+
+  - name: "commit_messages_tagged"
+    type: agent
+    criterion: "Commit messages reference at least one REQ key via 'Implements: REQ-*'."
+    source: default
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+
 agent_guidance: |
   When producing code or test assets:
   1. ALWAYS include REQ key tags — this is non-negotiable
@@ -65,3 +90,4 @@ agent_guidance: |
   4. If you're unsure which REQ key applies, flag it as a gap
   5. Validate that referenced REQ keys exist in the requirements
   6. Include tags in commit messages when committing
+  7. These checks compose INTO other edge checklists — they are not standalone

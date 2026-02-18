@@ -59,20 +59,133 @@ phases:
 # After commit, cycle repeats with next test
 cycle: "red → green → refactor → commit → red"
 
-# Convergence criteria for the full TDD edge
-convergence:
-  all_tests_pass: true
-  coverage_threshold: 0.80
-  critical_path_coverage: 1.00
-  all_req_keys_covered: true  # Every REQ-* in scope has at least one test
-  no_untested_code_paths: false  # Aspirational, not blocking
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR CHECKLIST
+# ═══════════════════════════════════════════════════════════════════════
+# Concrete, enumerable checks. The iterate agent evaluates each and reports:
+#   "N of M required checks pass. Failing: [list]"
+#
+# $variable references resolve from project_constraints.yml.
+# Feature acceptance_criteria append at runtime from the feature file.
 
-# Guidance for the iterate agent
+checklist:
+
+  # ─── Deterministic checks ───────────────────────────────────────────
+  - name: "tests_pass"
+    type: deterministic
+    criterion: "All tests pass"
+    source: default
+    required: true
+    command: "$tools.test_runner.command $tools.test_runner.args"
+    pass_criterion: "$tools.test_runner.pass_criterion"
+
+  - name: "coverage_meets_threshold"
+    type: deterministic
+    criterion: "Test coverage >= $thresholds.test_coverage_minimum"
+    source: default
+    required: true
+    command: "$tools.coverage.command $tools.coverage.args"
+    pass_criterion: "$tools.coverage.pass_criterion"
+
+  - name: "lint_passes"
+    type: deterministic
+    criterion: "Linter reports zero violations"
+    source: default
+    required: true
+    command: "$tools.linter.command $tools.linter.args"
+    pass_criterion: "$tools.linter.pass_criterion"
+
+  - name: "format_check"
+    type: deterministic
+    criterion: "Code is properly formatted"
+    source: default
+    required: true
+    command: "$tools.formatter.command $tools.formatter.args"
+    pass_criterion: "$tools.formatter.pass_criterion"
+
+  - name: "type_check"
+    type: deterministic
+    criterion: "Type checker reports zero errors"
+    source: default
+    required: "$tools.type_checker.required"
+    command: "$tools.type_checker.command $tools.type_checker.args"
+    pass_criterion: "$tools.type_checker.pass_criterion"
+
+  # ─── Agent checks ──────────────────────────────────────────────────
+  - name: "req_tags_present"
+    type: agent
+    criterion: |
+      Every code file has "# Implements: REQ-*" tag.
+      Every test file has "# Validates: REQ-*" tag.
+      All referenced REQ keys exist in the requirements.
+    source: default
+    required: true
+
+  - name: "all_req_keys_covered"
+    type: agent
+    criterion: |
+      Every REQ key in scope for this feature has at least one test
+      that references it with "# Validates: REQ-*".
+    source: default
+    required: true
+
+  - name: "code_quality"
+    type: agent
+    criterion: |
+      Code follows $standards.style_guide.
+      Functions focused (< $thresholds.max_function_lines lines).
+      Docstrings per $standards.docstrings policy.
+      Type hints per $standards.type_hints policy.
+      No duplication, dead code, or overly complex logic.
+    source: default
+    required: true
+
+  - name: "test_quality"
+    type: agent
+    criterion: |
+      Tests follow $standards.test_structure pattern.
+      Tests are independent (no ordering dependencies).
+      Tests cover happy path, error paths, and edge cases.
+      Test names clearly describe the behaviour being tested.
+    source: default
+    required: true
+
+  # ─── Feature checks (injected at runtime) ──────────────────────────
+  # The iterate agent appends from:
+  #   feature.constraints.acceptance_criteria
+  #   feature.constraints.additional_checks
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONVERGENCE
+# ═══════════════════════════════════════════════════════════════════════
+
+convergence:
+  rule: "all_required_checks_pass"
+  description: |
+    This edge converges when every check in the effective checklist
+    where required=true reports PASS.
+
+# ═══════════════════════════════════════════════════════════════════════
+# AGENT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
 agent_guidance: |
   When iterating on this edge:
-  1. Always start with RED — never write code before the test
-  2. Keep GREEN minimal — resist adding "while I'm here" changes
-  3. REFACTOR is mandatory, not optional — this is where quality lives
-  4. If a test can't be written, that's feedback: the requirement or design is unclear
-  5. Track which REQ keys are covered vs uncovered
-  6. Report coverage gaps as part of the delta
+
+  1. BUILD THE EFFECTIVE CHECKLIST:
+     a. Start with the checklist above (edge defaults)
+     b. Resolve $tools/$thresholds/$standards from project_constraints.yml
+     c. Load feature file, apply threshold_overrides, append acceptance_criteria
+     d. The result is your concrete list of pass/fail checks
+
+  2. ALWAYS follow RED → GREEN → REFACTOR → COMMIT
+
+  3. RUN DETERMINISTIC CHECKS: execute resolved commands, record pass/fail
+
+  4. EVALUATE AGENT CHECKS: assess candidate against each criterion honestly
+
+  5. REPORT DELTA as a checklist table:
+     "N of M required checks pass" with PASS/FAIL/SKIP per check
+
+  6. If a test can't be written, that's feedback to upstream (requirement/design)
+  7. If a $variable can't be resolved, SKIP the check with a warning

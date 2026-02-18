@@ -73,7 +73,32 @@ Copy the plugin's `v2/config/evaluator_defaults.yml`.
 #### `.ai-workspace/graph/edges/`
 Copy all files from the plugin's `v2/config/edge_params/` directory.
 
-### Step 4: Create Context Manifest
+### Step 4: Scaffold Project Constraints
+
+#### `.ai-workspace/context/project_constraints.yml`
+
+Copy from the plugin's `v2/config/project_constraints_template.yml` and auto-detect values:
+
+1. **Project name**: from directory name, `package.json`, or `pyproject.toml`
+2. **Language**: detect from file extensions, `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`
+3. **Test runner**: detect from `pyproject.toml` (pytest), `package.json` (jest/vitest), `Cargo.toml` (cargo test)
+4. **Linter**: detect from `.ruff.toml`, `.eslintrc`, `rustfmt.toml`
+5. **Formatter**: detect from `.prettierrc`, `.ruff.toml`, `rustfmt.toml`
+6. **Type checker**: detect from `mypy.ini`, `tsconfig.json`
+
+For any tool not auto-detected, leave the template default and add a comment:
+```yaml
+# TODO: Configure your test runner
+```
+
+Present the scaffolded file to the user for review before writing.
+
+### Step 5: Copy Feature Vector Template
+
+#### `.ai-workspace/features/feature_vector_template.yml`
+Copy the plugin's `v2/config/feature_vector_template.yml` as the template for new feature vectors.
+
+### Step 6: Create Context Manifest
 
 #### `.ai-workspace/context/context_manifest.yml`
 ```yaml
@@ -102,7 +127,7 @@ completed_features: []
 dependency_graph: {}
 ```
 
-### Step 6: Create Active Tasks
+### Step 7: Create Active Tasks
 
 #### `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
 ```markdown
@@ -131,7 +156,7 @@ No tasks yet. Start by capturing your intent.
 None yet.
 ```
 
-### Step 7: Create Intent Placeholder
+### Step 8: Create Intent Placeholder
 
 #### `docs/requirements/INTENT.md`
 ```markdown
@@ -167,7 +192,7 @@ None yet.
 3. Review and approve requirements
 ```
 
-### Step 8: Create ADR Template
+### Step 9: Create ADR Template
 
 #### `docs/design/{project_name}/adrs/ADR-000-template.md`
 ```markdown
@@ -206,7 +231,7 @@ We will {describe decision here}.
 - REQ-*: {requirement description}
 ```
 
-### Step 9: Report Results
+### Step 10: Report Results
 
 Display a summary:
 
@@ -222,18 +247,25 @@ Graph Topology:
   Transitions:  {count from graph_topology.yml}
   Edge configs: {count of files in edges/}
 
+Project Constraints:
+  Language:     {detected language}
+  Test runner:  {detected or "not configured"}
+  Linter:       {detected or "not configured"}
+  Coverage min: {threshold}%
+
 Workspace:
   .ai-workspace/graph/          Graph topology + edge configs
-  .ai-workspace/context/        Context[] store (ADRs, models, policy)
-  .ai-workspace/features/       Feature vector tracking
+  .ai-workspace/context/        Context[] store (ADRs, models, policy, constraints)
+  .ai-workspace/features/       Feature vector tracking + template
   .ai-workspace/tasks/          Task management
   .ai-workspace/snapshots/      Session recovery
 
 Next Steps:
-  1. Edit docs/requirements/INTENT.md with your project intent
-  2. Run: /aisdlc-iterate --edge "intent→requirements" --feature "REQ-F-{DOMAIN}-001"
-  3. Review generated requirements
-  4. Run: /aisdlc-status to see progress
+  1. Review .ai-workspace/context/project_constraints.yml — configure your toolchain
+  2. Edit docs/requirements/INTENT.md with your project intent
+  3. Run: /aisdlc-iterate --edge "intent→requirements" --feature "REQ-F-{DOMAIN}-001"
+  4. Review generated requirements
+  5. Run: /aisdlc-status to see progress
 ```
 
 ## Preserved on --force

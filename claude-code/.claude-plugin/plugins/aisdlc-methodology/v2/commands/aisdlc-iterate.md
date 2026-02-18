@@ -26,12 +26,19 @@ This command is the primary workflow action. It invokes the iterate agent on a s
 2. Verify the requested edge exists in the `transitions` section
 3. If not found, list available transitions and ask the user to choose
 
-### Step 2: Load Context
+### Step 2: Load Context and Build Effective Checklist
 
 1. Load the edge parameterisation from `.ai-workspace/graph/edges/{edge_config}`
-2. Load relevant Context[] from `.ai-workspace/context/`
-3. Load the current asset state from the feature vector file
-4. Record the current context hash for spec reproducibility
+2. Load project constraints from `.ai-workspace/context/project_constraints.yml`
+3. Load the feature vector from `.ai-workspace/features/active/{feature}.yml`
+4. Build the **effective checklist** (composition algorithm from the iterate agent):
+   - Start with edge checklist (from edge config)
+   - Resolve `$variable` references from project_constraints.yml
+   - Apply `threshold_overrides` from feature.constraints
+   - Append `acceptance_criteria` from feature.constraints
+   - Append `additional_checks` from feature.constraints
+5. Load remaining Context[] from `.ai-workspace/context/` (ADRs, models, policy)
+6. Record the current context hash for spec reproducibility
 
 ### Step 3: Invoke Iterate Agent
 
@@ -65,21 +72,24 @@ Pass to the `aisdlc-iterate` agent:
 ### Step 5: Show Iteration Report
 
 ```
-ITERATION REPORT
-================
+═══ ITERATION REPORT ═══
 Edge:       {source} → {target}
 Feature:    {REQ-F-*}
 Iteration:  {n}
 
-Evaluators:
-  Agent:          {PASS | FAIL: details}
-  Deterministic:  {PASS | FAIL: details}
-  Human:          {APPROVED | PENDING | REJECTED}
+CHECKLIST RESULTS: {pass_count} of {total_required} required checks pass
+┌──────────────────────────┬───────────────┬────────┬──────────┐
+│ Check                    │ Type          │ Result │ Required │
+├──────────────────────────┼───────────────┼────────┼──────────┤
+│ {check_name}             │ {type}        │ {result}│ {yes/no}│
+└──────────────────────────┴───────────────┴────────┴──────────┘
 
-Delta: {what remains}
-Status: {CONVERGED | ITERATING | BLOCKED}
-
-Next: {suggested action}
+FAILURES: {specific failure details with remediation}
+SKIPPED:  {unresolved $variables or optional checks}
+DELTA:    {count of failing required checks}
+STATUS:   {CONVERGED | ITERATING | BLOCKED}
+NEXT:     {suggested action}
+═══════════════════════════
 ```
 
 ## Examples

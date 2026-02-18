@@ -60,33 +60,65 @@ triggers:
   - deviation_from_standard_practice
   - irreversible_or_costly_to_change
 
-# Evaluators
-evaluators:
-  agent:
-    checks:
-      - has_context
-      - has_decision
-      - has_rationale
-      - alternatives_documented
-      - traces_to_requirements
-  human:
-    checks:
-      - decision_approved
-      - rationale_sound
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR CHECKLIST
+# ═══════════════════════════════════════════════════════════════════════
 
-# Convergence
+checklist:
+
+  - name: "has_context"
+    type: agent
+    criterion: "ADR has a Context section explaining the forces at play and the problem being addressed."
+    source: default
+    required: true
+
+  - name: "has_decision"
+    type: agent
+    criterion: "ADR has a clear Decision section stating what was decided in 'We will...' form."
+    source: default
+    required: true
+
+  - name: "has_rationale"
+    type: agent
+    criterion: "ADR has a Rationale section explaining WHY this decision over alternatives."
+    source: default
+    required: true
+
+  - name: "alternatives_documented"
+    type: agent
+    criterion: "At least 2 alternatives are documented with reasons for rejection."
+    source: default
+    required: true
+
+  - name: "traces_to_requirements"
+    type: agent
+    criterion: "ADR references specific REQ-* keys it addresses in the Requirements field."
+    source: default
+    required: true
+
+  - name: "consequences_documented"
+    type: agent
+    criterion: "ADR documents positive consequences, negative consequences, and mitigations."
+    source: default
+    required: true
+
+  - name: "human_approves_decision"
+    type: human
+    criterion: "Human confirms the architectural decision is sound and the rationale is convincing."
+    source: default
+    required: true
+
 convergence:
-  req_reference_required: true
-  alternatives_required: true
-  human_approved: true
+  rule: "all_required_checks_pass"
 
-# Guidance for the iterate agent
 agent_guidance: |
   When generating ADRs at this edge:
-  1. Review all requirements being addressed
-  2. Identify decisions where there are meaningful alternatives
-  3. Document WHY, not just WHAT — rationale is the most important section
-  4. Always list at least 2 alternatives with reasons for rejection
-  5. Be honest about negative consequences and how to mitigate them
-  6. Link every ADR to the specific REQ-* keys it addresses
-  7. Present to human for approval — they own the architectural decision
+  1. Build effective checklist (edge defaults + any project overrides)
+  2. Review all requirements being addressed
+  3. Identify decisions where there are meaningful alternatives
+  4. Document WHY, not just WHAT — rationale is the most important section
+  5. Always list at least 2 alternatives with reasons for rejection
+  6. Be honest about negative consequences and how to mitigate them
+  7. Link every ADR to the specific REQ-* keys it addresses
+  8. Present to human for approval — they own the architectural decision
+  9. Report checklist: "N of M required checks pass"

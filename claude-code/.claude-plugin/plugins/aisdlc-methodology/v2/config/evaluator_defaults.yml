@@ -59,6 +59,43 @@ evaluator_types:
 
 ---
 
+# ═══════════════════════════════════════════════════════════════════════
+# CHECKLIST FORMAT
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Edge configs define evaluator checks as structured checklist entries.
+# Each check is ONE evaluable condition. The iterate agent counts pass/fail
+# and reports "N of M required checks pass" with details on failures.
+#
+# Check entry schema:
+#
+#   - name: string               # unique identifier for this check
+#     type: enum                  # agent | deterministic | human
+#     criterion: string           # what "pass" means (readable by the LLM)
+#     source: enum                # default | project | feature
+#     required: bool              # true = blocks convergence, false = advisory
+#     command: string             # (deterministic only) shell command to run
+#     pass_criterion: string      # (deterministic only) how to interpret result
+#
+# $variable references resolve from project_constraints.yml:
+#   $tools.{name}.{field}    → project tools configuration
+#   $thresholds.{key}        → project numeric thresholds
+#   $standards.{key}         → project qualitative standards
+#
+# Composition rules:
+#   1. Edge checklist defines default checks
+#   2. $variables resolve from project_constraints.yml
+#   3. Feature threshold_overrides apply on top
+#   4. Feature acceptance_criteria append to checklist
+#   5. Feature additional_checks append to checklist
+#   6. required=true at any layer stays true (most restrictive wins)
+#   7. Unresolved $variables → check SKIPPED with warning
+#
+# Delta = count of failing required checks
+# Convergence = delta == 0
+
+---
+
 # Convergence composition rules
 convergence_rules:
   # All evaluators on an edge must pass for convergence

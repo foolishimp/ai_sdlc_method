@@ -47,9 +47,42 @@ Read the edge parameterisation from `.ai-workspace/graph/edges/` for the request
 - What convergence criteria must be met
 - What construction pattern to follow (TDD co-evolution, BDD scenarios, ADR format, etc.)
 
-### Step 2: Load Context
+### Step 2: Load Context and Build Effective Checklist
 
-Read relevant Context[] elements from `.ai-workspace/context/`:
+Read relevant Context[] elements and compose the **effective checklist**:
+
+#### 2a. Load project constraints
+Read `.ai-workspace/context/project_constraints.yml`:
+- **Tools**: test runner, linter, formatter, coverage (command + args + pass_criterion)
+- **Thresholds**: coverage minimum, complexity max, function length max
+- **Standards**: style guide, docstrings, type hints, test structure
+
+#### 2b. Load feature constraints
+Read the feature vector file for the current feature (`.ai-workspace/features/{feature}.yml`):
+- **Acceptance criteria**: feature-specific checks bound to REQ keys
+- **Threshold overrides**: per-feature threshold adjustments
+- **Additional checks**: feature-specific checks beyond defaults
+
+#### 2c. Build effective checklist (composition algorithm)
+
+```
+1. Start with edge checklist (from edge_params/{edge}.yml)
+2. Resolve $variable references from project_constraints.yml:
+   - $tools.{name}.{field}     → tools.{name}.{field}
+   - $thresholds.{key}         → thresholds.{key}
+   - $standards.{key}          → standards.{key}
+3. Apply threshold_overrides from feature.constraints
+   (feature value replaces project value for specified keys only)
+4. Append acceptance_criteria from feature.constraints
+   (each becomes a named check in the effective checklist)
+5. Append additional_checks from feature.constraints
+6. Unresolved $variables → check is SKIPPED with warning
+7. required: true at ANY layer stays true (most restrictive wins)
+```
+
+Result: a **concrete, countable list** of pass/fail checks.
+
+#### 2d. Load remaining context
 - ADRs that constrain this transition
 - Data models the asset must conform to
 - Templates/standards to follow
@@ -57,23 +90,27 @@ Read relevant Context[] elements from `.ai-workspace/context/`:
 
 ### Step 3: Assess Current State (Compute Delta)
 
-Compare the current asset against the edge's evaluator criteria:
+Run each check in the effective checklist:
 
-**Agent evaluator** (you):
-- Is the asset coherent with its source asset?
-- Is it complete — all acceptance criteria addressed?
-- Gap analysis: what's missing or inconsistent?
+**Deterministic checks** (when applicable):
+- Execute the `command` from the check entry
+- Compare output against `pass_criterion`
+- Result is binary: PASS or FAIL
+- Report specific failures with remediation guidance
 
-**Deterministic evaluator** (when applicable):
-- Does it compile / parse / validate?
-- Do tests pass?
-- Does it conform to the schema?
-- Are REQ key tags present and valid?
+**Agent checks** (you):
+- Evaluate the asset against the `criterion` text
+- Be honest — if the criterion is not satisfied, it's a FAIL
+- Provide specific, actionable feedback for the next iteration
 
-**Human evaluator** (when the edge requires it):
+**Human checks** (when the edge requires them):
 - Present the asset for human review
+- Show which checks passed/failed so far
 - Await approval, rejection, or refinement guidance
 - Record human feedback in iteration history
+
+**Delta = count of failing required checks in the effective checklist.**
+**Convergence = delta == 0 (all required checks pass).**
 
 ### Step 4: Construct Next Candidate
 
@@ -214,18 +251,33 @@ Edge:       {source} → {target}
 Feature:    {REQ-F-*}
 Iteration:  {n}
 
-EVALUATOR RESULTS:
-  Agent:          {PASS | FAIL: reason}
-  Deterministic:  {PASS | FAIL: reason}  (if applicable)
-  Human:          {APPROVED | PENDING | REJECTED: feedback}  (if applicable)
+CHECKLIST RESULTS: {pass_count} of {total_required} required checks pass
+┌──────────────────────────────┬───────────────┬────────┬──────────┐
+│ Check                        │ Type          │ Result │ Required │
+├──────────────────────────────┼───────────────┼────────┼──────────┤
+│ tests_pass                   │ deterministic │ PASS   │ yes      │
+│ coverage_meets_threshold     │ deterministic │ FAIL   │ yes      │
+│ lint_passes                  │ deterministic │ PASS   │ yes      │
+│ req_tags_present             │ agent         │ PASS   │ yes      │
+│ AC-AUTH-001                  │ deterministic │ PASS   │ yes      │
+│ AC-AUTH-003                  │ agent         │ FAIL   │ yes      │
+│ human_approves_coverage      │ human         │ PENDING│ yes      │
+│ type_check                   │ deterministic │ SKIP   │ no       │
+└──────────────────────────────┴───────────────┴────────┴──────────┘
 
-DELTA:
-  {What remains to reach convergence}
+FAILURES:
+- coverage_meets_threshold: 78% actual, 95% required (feature override)
+- AC-AUTH-003: password hash logged at auth_service.py:47
+
+SKIPPED:
+- type_check: $tools.type_checker not configured (required: false)
+
+DELTA: 2 failing required checks
 
 STATUS: {CONVERGED | ITERATING | BLOCKED}
 
 NEXT ACTION:
-  {What needs to happen next}
+  {What needs to happen next — specific actions to fix failing checks}
 ═══════════════════════════
 ```
 
