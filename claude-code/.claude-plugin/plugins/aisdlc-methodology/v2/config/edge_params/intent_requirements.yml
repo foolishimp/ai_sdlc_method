@@ -1,0 +1,76 @@
+# Edge Parameterisation: Intent → Requirements
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2, §3
+
+---
+
+edge: "intent→requirements"
+pattern: requirements_extraction
+description: |
+  Transform raw intent into structured, testable requirements
+  with unique immutable keys. Each requirement must trace back
+  to the originating intent.
+
+# REQ key format
+key_format:
+  pattern: "REQ-{TYPE}-{DOMAIN}-{SEQ}"
+  types:
+    F: "Functional"
+    NFR: "Non-Functional"
+    DATA: "Data Quality"
+    BR: "Business Rule"
+  domain: "2-5 uppercase letters describing the domain (e.g., AUTH, PERF, SEC)"
+  sequence: "3-digit zero-padded number (001, 002, ...)"
+  immutability: "Once assigned, a REQ key never changes. Evolution produces new versions."
+  versioned_form: "REQ-{TYPE}-{DOMAIN}-{SEQ}.MAJOR.MINOR.PATCH (tracks statement changes)"
+
+# Requirement template
+template: |
+  ### REQ-{TYPE}-{DOMAIN}-{SEQ}: {Title}
+
+  **Priority**: Critical | High | Medium
+  **Type**: {Functional | Non-Functional | Data Quality | Business Rule}
+
+  **Description**: {What the system must do or constrain}
+
+  **Acceptance Criteria**:
+  - {Testable criterion 1}
+  - {Testable criterion 2}
+
+  **Traces To**: INT-{SEQ}
+
+# Evaluators
+evaluators:
+  agent:
+    checks:
+      - all_intent_aspects_covered
+      - requirements_are_testable
+      - acceptance_criteria_are_specific
+      - no_ambiguous_language
+      - correct_key_format
+      - appropriate_type_classification
+  human:
+    checks:
+      - requirements_match_intent
+      - priorities_correct
+      - nothing_missing
+      - nothing_out_of_scope
+
+# Convergence
+convergence:
+  all_intent_covered: true
+  human_approved: true
+  each_req_has_acceptance_criteria: true
+  each_req_traces_to_intent: true
+
+# Guidance for the iterate agent
+agent_guidance: |
+  When extracting requirements from intent:
+  1. Read the intent document carefully — understand the problem, not just features
+  2. Generate FUNCTIONAL requirements first (what the system does)
+  3. Then NON-FUNCTIONAL (performance, security, scalability)
+  4. Then DATA requirements (quality, format, validation)
+  5. Then BUSINESS RULES (domain logic, constraints)
+  6. Each requirement must be independently testable
+  7. Avoid "and" in requirements — split into separate REQ keys
+  8. Present to human for review — they validate completeness and priorities
+  9. Keys are immutable once assigned — if a requirement changes, version it

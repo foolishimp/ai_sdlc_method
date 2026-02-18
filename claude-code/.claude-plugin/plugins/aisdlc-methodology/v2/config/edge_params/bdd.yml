@@ -1,0 +1,74 @@
+# Edge Parameterisation: Design → UAT Tests (BDD)
+# Implements: REQ-EDGE-002
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §4.1
+
+---
+
+edge: "design→uat_tests"
+pattern: bdd
+description: |
+  Behaviour-Driven Development scenarios generated from design specifications.
+  UAT tests use BUSINESS language only — no technical jargon.
+  These are the tests that business stakeholders validate.
+
+scenario_format: gherkin
+language_constraint: business
+description_constraint: |
+  Scenarios MUST be written in language a business stakeholder understands.
+  NO: "When the API returns 200 with JSON payload"
+  YES: "When the user successfully logs in"
+
+# Gherkin template
+template: |
+  Feature: {Feature Name}
+    # Validates: REQ-F-{DOMAIN}-{SEQ}
+
+    Background:
+      Given {common setup}
+
+    Scenario: {Scenario Name}
+      Given {precondition}
+      When {action}
+      Then {expected outcome}
+
+    Scenario Outline: {Parameterised Scenario}
+      Given {precondition with <param>}
+      When {action with <param>}
+      Then {expected outcome with <param>}
+
+      Examples:
+        | param | expected |
+        | value1 | result1 |
+        | value2 | result2 |
+
+# Evaluators
+evaluators:
+  agent:
+    checks:
+      - scenarios_cover_all_requirements
+      - business_language_only
+      - given_when_then_structure
+      - req_tags_present
+  human:
+    checks:
+      - business_language_validated
+      - scenarios_match_business_intent
+      - acceptance_confirmed
+
+# Convergence
+convergence:
+  min_scenarios_per_req: 1
+  req_tag_required: true
+  business_language_validated: true  # Human confirms language is accessible
+  human_approved: true
+
+# Guidance for the iterate agent
+agent_guidance: |
+  When generating BDD scenarios:
+  1. Read the design specifications for the feature
+  2. Identify all functional requirements (REQ-F-*) in scope
+  3. For each requirement, generate at least one Gherkin scenario
+  4. Use ONLY business language — imagine a non-technical stakeholder reading this
+  5. Include positive paths, negative paths, and edge cases
+  6. Present to human for review — they own the business language validation
+  7. If the design is unclear, flag it as feedback to the design asset

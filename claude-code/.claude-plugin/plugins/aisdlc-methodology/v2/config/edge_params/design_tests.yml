@@ -1,0 +1,57 @@
+# Edge Parameterisation: Design → Test Cases
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2, §3
+
+---
+
+edge: "design→test_cases"
+pattern: integration_test_generation
+description: |
+  Generate integration/system test cases from design specifications.
+  These test component interactions and system behaviour.
+  Distinct from unit tests (TDD) and UAT tests (BDD).
+
+# Test case template
+template: |
+  # Test Case: {Title}
+  # Validates: REQ-{TYPE}-{DOMAIN}-{SEQ}
+
+  ## Preconditions
+  - {Setup required}
+
+  ## Steps
+  1. {Action}
+  2. {Action}
+
+  ## Expected Result
+  - {What should happen}
+
+  ## Cleanup
+  - {Teardown if needed}
+
+# Evaluators
+evaluators:
+  agent:
+    checks:
+      - covers_component_interactions
+      - covers_error_paths
+      - req_tags_present
+      - tests_are_independent
+  deterministic:
+    checks:
+      - valid_test_syntax
+      - tests_execute
+
+# Convergence
+convergence:
+  req_coverage: true
+  tests_pass: true
+  has_req_tags: true
+
+# Guidance for the iterate agent
+agent_guidance: |
+  When generating test cases from design:
+  1. Focus on component INTERACTIONS, not individual functions (those are unit tests)
+  2. Test error paths and edge cases, not just happy paths
+  3. Each test case must reference # Validates: REQ-*
+  4. Tests should be independent — no ordering dependencies
+  5. Include both positive and negative scenarios

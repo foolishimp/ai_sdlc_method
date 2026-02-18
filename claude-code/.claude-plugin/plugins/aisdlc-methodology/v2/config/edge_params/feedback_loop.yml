@@ -1,0 +1,72 @@
+# Edge Parameterisation: Telemetry → Intent (Feedback Loop)
+# Implements: REQ-LIFE-003, REQ-INTENT-003
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2.4
+
+---
+
+edge: "telemetry→intent"
+pattern: feedback_loop
+description: |
+  Close the lifecycle loop: runtime telemetry that deviates from
+  SLA bounds generates new intents that flow back into the graph.
+  This includes homeostasis monitoring and eco-intent generation.
+
+# Feedback sources
+sources:
+  runtime_deviation:
+    description: "Telemetry shows system behaviour outside constraint bounds"
+    trigger: "SLA violation, error rate spike, performance degradation"
+    intent_template: |
+      ## INT-{SEQ}: {Issue Summary}
+
+      **Source**: runtime_feedback
+      **Priority**: {derived from severity}
+      **Triggered By**: Telemetry alert — {alert description}
+      **Affected Requirements**: REQ-{keys from telemetry tags}
+      **Description**: {What deviated, how much, since when}
+
+  ecosystem_change:
+    description: "External ecosystem changes requiring adaptation"
+    trigger: "Dependency update, API deprecation, security advisory, regulation change"
+    intent_template: |
+      ## INT-{SEQ}: {Change Summary}
+
+      **Source**: ecosystem
+      **Priority**: {derived from impact assessment}
+      **Triggered By**: {ecosystem event}
+      **Affected Requirements**: {requirements impacted by the change}
+      **Description**: {What changed, what impact it has, what adaptation is needed}
+
+# Evaluators
+evaluators:
+  deterministic:
+    checks:
+      - telemetry_tagged_with_req_keys
+      - deviation_quantified
+  agent:
+    checks:
+      - root_cause_identified
+      - affected_requirements_traced
+      - priority_appropriate
+  human:
+    checks:
+      - intent_warrants_action
+      - priority_confirmed
+
+# Convergence
+convergence:
+  deviation_documented: true
+  req_keys_traced: true
+  human_approved: true  # Human decides whether to act
+
+# Guidance for the iterate agent
+agent_guidance: |
+  When processing feedback from telemetry:
+  1. Check which REQ keys are tagged on the telemetry data
+  2. Quantify the deviation (what bound was crossed, by how much)
+  3. Trace back to the requirements and design that produced the affected code
+  4. Draft a new intent (INT-*) capturing the issue
+  5. Present to human — they decide whether to create a new feature vector
+  6. For ecosystem changes: assess impact on existing requirements
+  7. This is Phase 2 functionality — in Phase 1, the graph topology supports it
+     but constructors/evaluators are manual

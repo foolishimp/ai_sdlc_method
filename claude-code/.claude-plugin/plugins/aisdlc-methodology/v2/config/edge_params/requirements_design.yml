@@ -1,0 +1,75 @@
+# Edge Parameterisation: Requirements → Design
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2, §3
+
+---
+
+edge: "requirements→design"
+pattern: technical_design
+description: |
+  Transform structured requirements into technical solution architecture.
+  Includes component design, data models, API specs, and ADRs.
+  Every component must trace to the requirements it satisfies.
+
+# Design outputs
+outputs:
+  components:
+    description: "System components with responsibilities and interfaces"
+    required: true
+    template: |
+      ### Component: {Name}
+
+      **Implements**: {list of REQ-* keys}
+
+      **Responsibilities**:
+      - {What this component does}
+
+      **Interfaces**:
+      - {How other components interact with it}
+
+      **Dependencies**:
+      - {What this component needs}
+
+  data_models:
+    description: "Data structures and schemas"
+    required_if: "requirements include DATA type"
+
+  api_specs:
+    description: "API endpoints and contracts"
+    required_if: "requirements imply external interfaces"
+
+  adrs:
+    description: "Architecture Decision Records for significant choices"
+    required: true
+    edge_config: "adr.yml"  # Uses the ADR edge parameterisation
+
+# Evaluators
+evaluators:
+  agent:
+    checks:
+      - all_requirements_traced_to_components
+      - no_orphan_components  # Every component implements at least one REQ
+      - interfaces_consistent
+      - dependencies_acyclic_or_justified
+      - adrs_for_significant_decisions
+  human:
+    checks:
+      - architecture_sound
+      - trade_offs_acceptable
+      - no_missing_components
+
+# Convergence
+convergence:
+  all_reqs_mapped: true
+  adrs_documented: true
+  human_approved: true
+
+# Guidance for the iterate agent
+agent_guidance: |
+  When designing from requirements:
+  1. Group related requirements into components
+  2. Define clear interfaces between components
+  3. Create ADRs for any decision where alternatives exist
+  4. Include a traceability table: component → REQ-* keys
+  5. Consider non-functional requirements (NFR) when choosing architecture
+  6. Identify data models from DATA requirements
+  7. Present to human for architecture review

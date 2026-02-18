@@ -1,0 +1,40 @@
+{
+  "name": "aisdlc-methodology-v2",
+  "version": "2.1.0",
+  "description": "AI SDLC Asset Graph Model v2.1 — universal iterate agent, edge-parameterised graph, spec reproducibility. 1 agent, 8 commands, configurable YAML topology.",
+  "author": {
+    "name": "foolishimp"
+  },
+  "license": "MIT",
+  "keywords": [
+    "methodology",
+    "ai-sdlc",
+    "asset-graph",
+    "iterate",
+    "tdd",
+    "bdd",
+    "traceability",
+    "evaluators",
+    "context",
+    "convergence"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "commands": [
+    "./commands/aisdlc-init.md",
+    "./commands/aisdlc-iterate.md",
+    "./commands/aisdlc-status.md",
+    "./commands/aisdlc-checkpoint.md",
+    "./commands/aisdlc-review.md",
+    "./commands/aisdlc-trace.md",
+    "./commands/aisdlc-gaps.md",
+    "./commands/aisdlc-release.md"
+  ],
+  "agents": [
+    "./agents/aisdlc-iterate.md"
+  ],
+  "config": [
+    "./config/graph_topology.yml",
+    "./config/evaluator_defaults.yml",
+    "./config/edge_params/"
+  ]
+}

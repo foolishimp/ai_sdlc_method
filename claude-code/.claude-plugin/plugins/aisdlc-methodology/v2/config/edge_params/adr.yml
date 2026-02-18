@@ -1,0 +1,92 @@
+# Edge Parameterisation: Requirements → Design (ADR Generation)
+# Implements: REQ-EDGE-003
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §4.1
+
+---
+
+edge: "requirements→design"
+pattern: adr_generation
+description: |
+  Architecture Decision Records capture significant design decisions.
+  Generated at the Requirements → Design edge, ADRs document
+  context, decision, rationale, alternatives, and consequences.
+
+# ADR template
+template: |
+  # ADR-{SEQ}: {Decision Title}
+
+  **Status**: Proposed | Accepted | Superseded
+  **Date**: {date}
+  **Requirements**: {list of REQ-* addressed}
+
+  ## Context
+
+  {What forces are at play? What problem or decision are we facing?}
+
+  ## Decision
+
+  We will {describe the decision}.
+
+  ## Rationale
+
+  {Why this decision over alternatives?}
+
+  ### Alternatives Considered
+
+  1. **{Alternative 1}**: {description} — rejected because {reason}
+  2. **{Alternative 2}**: {description} — rejected because {reason}
+
+  ## Consequences
+
+  ### Positive
+  - {Positive consequence}
+
+  ### Negative
+  - {Negative consequence}
+
+  ### Mitigations
+  - {How negative consequences are addressed}
+
+  ## References
+
+  - {Related requirements}
+  - {Related design documents}
+
+# What triggers ADR creation
+triggers:
+  - significant_technology_choice
+  - architectural_pattern_selection
+  - trade_off_between_requirements
+  - deviation_from_standard_practice
+  - irreversible_or_costly_to_change
+
+# Evaluators
+evaluators:
+  agent:
+    checks:
+      - has_context
+      - has_decision
+      - has_rationale
+      - alternatives_documented
+      - traces_to_requirements
+  human:
+    checks:
+      - decision_approved
+      - rationale_sound
+
+# Convergence
+convergence:
+  req_reference_required: true
+  alternatives_required: true
+  human_approved: true
+
+# Guidance for the iterate agent
+agent_guidance: |
+  When generating ADRs at this edge:
+  1. Review all requirements being addressed
+  2. Identify decisions where there are meaningful alternatives
+  3. Document WHY, not just WHAT — rationale is the most important section
+  4. Always list at least 2 alternatives with reasons for rejection
+  5. Be honest about negative consequences and how to mitigate them
+  6. Link every ADR to the specific REQ-* keys it addresses
+  7. Present to human for approval — they own the architectural decision
