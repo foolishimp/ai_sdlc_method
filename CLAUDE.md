@@ -52,7 +52,7 @@ Feature views are generated at every stage by grepping REQ keys across artifacts
 ```
 ai_sdlc_method/
 ├── docs/
-│   ├── requirements/                      # SPEC (tech-agnostic)
+│   ├── specification/                     # SPEC (tech-agnostic)
 │   │   ├── INTENT.md                      #   Business intent
 │   │   ├── AI_SDLC_ASSET_GRAPH_MODEL.md   #   Formal system (4 primitives)
 │   │   ├── PROJECTIONS_AND_INVARIANTS.md   #   Projections, vector types
@@ -87,11 +87,11 @@ ai_sdlc_method/
 
 | Document | Path | What it covers |
 |----------|------|---------------|
-| Intent | docs/requirements/INTENT.md | Business motivation |
-| Asset Graph Model | docs/requirements/AI_SDLC_ASSET_GRAPH_MODEL.md | Formal system, Hilbert space |
-| Projections | docs/requirements/PROJECTIONS_AND_INVARIANTS.md | Projections, vector types, spawning |
-| Implementation Reqs | docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 32 platform-agnostic reqs |
-| Feature Vectors | docs/requirements/FEATURE_VECTORS.md | Feature decomposition |
+| Intent | docs/specification/INTENT.md | Business motivation |
+| Asset Graph Model | docs/specification/AI_SDLC_ASSET_GRAPH_MODEL.md | Formal system, Hilbert space |
+| Projections | docs/specification/PROJECTIONS_AND_INVARIANTS.md | Projections, vector types, spawning |
+| Implementation Reqs | docs/specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 32 platform-agnostic reqs |
+| Feature Vectors | docs/specification/FEATURE_VECTORS.md | Feature decomposition |
 | Design | docs/design/claude_aisdlc/AISDLC_V2_DESIGN.md | Claude Code implementation |
 | Iterate Agent | claude-code/.../v2/agents/aisdlc-iterate.md | The universal agent |
 | Graph Topology | claude-code/.../v2/config/graph_topology.yml | 10 asset types, 10 transitions |

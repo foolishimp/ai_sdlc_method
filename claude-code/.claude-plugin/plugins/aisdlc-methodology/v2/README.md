@@ -51,7 +51,7 @@ v2/
 /aisdlc-init
 
 # 2. Edit your intent
-#    docs/requirements/INTENT.md
+#    docs/specification/INTENT.md
 
 # 3. Generate requirements
 /aisdlc-iterate --edge "intent→requirements" --feature "REQ-F-MYFEATURE-001"
@@ -71,6 +71,6 @@ v2/
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../docs/requirements/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../docs/specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology
 - [AISDLC_V2_DESIGN.md](../../../docs/design/claude_aisdlc/AISDLC_V2_DESIGN.md) — Implementation design
-- [FEATURE_VECTORS.md](../../../docs/requirements/FEATURE_VECTORS.md) — Feature decomposition
+- [FEATURE_VECTORS.md](../../../docs/specification/FEATURE_VECTORS.md) — Feature decomposition

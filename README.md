@@ -91,7 +91,7 @@ A 10-minute spike and a regulated medical device both use the same four primitiv
 ```
 ai_sdlc_method/
 ├── docs/
-│   ├── requirements/                    # SPEC (tech-agnostic)
+│   ├── specification/                   # SPEC (tech-agnostic)
 │   │   ├── INTENT.md                    #   Business intent
 │   │   ├── AI_SDLC_ASSET_GRAPH_MODEL.md #   Formal system (4 primitives)
 │   │   ├── PROJECTIONS_AND_INVARIANTS.md #   Projections, vector types
@@ -124,11 +124,11 @@ ai_sdlc_method/
 
 | Document | What it covers |
 |----------|---------------|
-| [INTENT.md](docs/requirements/INTENT.md) | Business intent and motivation |
-| [AI_SDLC_ASSET_GRAPH_MODEL.md](docs/requirements/AI_SDLC_ASSET_GRAPH_MODEL.md) | Formal system — 4 primitives, 1 operation, Hilbert space structure |
-| [PROJECTIONS_AND_INVARIANTS.md](docs/requirements/PROJECTIONS_AND_INVARIANTS.md) | Projections, vector types, spawning, fold-back, time-boxing |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](docs/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | Platform-agnostic implementation requirements |
-| [FEATURE_VECTORS.md](docs/requirements/FEATURE_VECTORS.md) | Feature decomposition for building the methodology itself |
+| [INTENT.md](docs/specification/INTENT.md) | Business intent and motivation |
+| [AI_SDLC_ASSET_GRAPH_MODEL.md](docs/specification/AI_SDLC_ASSET_GRAPH_MODEL.md) | Formal system — 4 primitives, 1 operation, Hilbert space structure |
+| [PROJECTIONS_AND_INVARIANTS.md](docs/specification/PROJECTIONS_AND_INVARIANTS.md) | Projections, vector types, spawning, fold-back, time-boxing |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](docs/specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | Platform-agnostic implementation requirements |
+| [FEATURE_VECTORS.md](docs/specification/FEATURE_VECTORS.md) | Feature decomposition for building the methodology itself |
 | [AISDLC_V2_DESIGN.md](docs/design/claude_aisdlc/AISDLC_V2_DESIGN.md) | Claude Code implementation design |
 
 ---

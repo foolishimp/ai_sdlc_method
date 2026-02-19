@@ -19,7 +19,7 @@ Analyse REQ key coverage across the asset graph and identify uncovered trajector
 ### Step 1: Gather REQ Keys
 
 Collect all REQ keys from:
-- Requirements documents (`docs/requirements/`)
+- Requirements documents (`docs/specification/`)
 - Feature vector files (`.ai-workspace/features/`)
 
 ### Step 2: Scan Assets

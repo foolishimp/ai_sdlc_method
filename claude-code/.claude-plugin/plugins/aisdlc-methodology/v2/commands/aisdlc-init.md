@@ -158,7 +158,7 @@ None yet.
 
 ### Step 8: Create Intent Placeholder
 
-#### `docs/requirements/INTENT.md`
+#### `docs/specification/INTENT.md`
 ```markdown
 # Project Intent
 
@@ -262,7 +262,7 @@ Workspace:
 
 Next Steps:
   1. Review .ai-workspace/context/project_constraints.yml — configure your toolchain
-  2. Edit docs/requirements/INTENT.md with your project intent
+  2. Edit docs/specification/INTENT.md with your project intent
   3. Run: /aisdlc-iterate --edge "intent→requirements" --feature "REQ-F-{DOMAIN}-001"
   4. Review generated requirements
   5. Run: /aisdlc-status to see progress
@@ -277,5 +277,5 @@ Next Steps:
 | `.ai-workspace/features/` | Create | **Preserve** |
 | `.ai-workspace/tasks/active/ACTIVE_TASKS.md` | Create | **Preserve** |
 | `.ai-workspace/tasks/finished/*` | Create | **Preserve** |
-| `docs/requirements/*.md` | Create | **Preserve** |
+| `docs/specification/*.md` | Create | **Preserve** |
 | `docs/design/**/*.md` | Create | **Preserve** |

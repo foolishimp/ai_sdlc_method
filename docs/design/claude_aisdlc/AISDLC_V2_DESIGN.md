@@ -2,8 +2,8 @@
 
 **Version**: 1.0.0
 **Date**: 2026-02-19
-**Derived From**: [FEATURE_VECTORS.md](../../requirements/FEATURE_VECTORS.md) (v1.0.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../requirements/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.1.0)
+**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.0.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.1.0)
 **Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
 ---
@@ -729,8 +729,8 @@ Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../requirements/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.1.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 32 implementation requirements (v3.1.0)
-- [FEATURE_VECTORS.md](../../requirements/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.1.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 32 implementation requirements (v3.1.0)
+- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
 - [AISDLC_IMPLEMENTATION_DESIGN.md](AISDLC_IMPLEMENTATION_DESIGN.md) — Prior v1.x design (superseded)
 - [adrs/ADR-001-claude-code-as-mvp-platform.md](adrs/ADR-001-claude-code-as-mvp-platform.md) — Platform choice (carried forward)

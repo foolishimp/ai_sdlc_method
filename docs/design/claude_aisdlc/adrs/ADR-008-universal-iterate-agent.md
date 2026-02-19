@@ -96,6 +96,6 @@ Dynamic agent generation adds complexity without benefit. Claude Code loads the 
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../requirements/AI_SDLC_ASSET_GRAPH_MODEL.md) §3 (The Iteration Function)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §3 (The Iteration Function)
 - [AISDLC_V2_DESIGN.md](../AISDLC_V2_DESIGN.md) §2.1 (Asset Graph Engine)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-ITER-001, REQ-ITER-002
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-ITER-001, REQ-ITER-002

@@ -104,6 +104,6 @@ Projects can extend, modify, or simplify this topology via their workspace YAML.
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../requirements/AI_SDLC_ASSET_GRAPH_MODEL.md) §2 (The Asset Graph), §5 (Constraint Surface)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §2 (The Asset Graph), §5 (Constraint Surface)
 - [AISDLC_V2_DESIGN.md](../AISDLC_V2_DESIGN.md) §2.1 (Asset Type Registry, Admissible Transitions)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003

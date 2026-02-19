@@ -83,9 +83,9 @@ Created **PROJECTIONS_AND_INVARIANTS.md** addressing 6 identified gaps:
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `docs/requirements/AI_SDLC_ASSET_GRAPH_MODEL.md` | ~570 | Formal spec — 4 primitives, 1 operation |
-| `docs/requirements/FEATURE_VECTORS.md` | ~120 | Feature decomposition |
-| `docs/requirements/PROJECTIONS_AND_INVARIANTS.md` | ~640 | Projections, invariants, vector types |
+| `docs/specification/AI_SDLC_ASSET_GRAPH_MODEL.md` | ~570 | Formal spec — 4 primitives, 1 operation |
+| `docs/specification/FEATURE_VECTORS.md` | ~120 | Feature decomposition |
+| `docs/specification/PROJECTIONS_AND_INVARIANTS.md` | ~640 | Projections, invariants, vector types |
 | `v2/config/graph_topology.yml` | | 10 asset types, 10 transitions |
 | `v2/config/evaluator_defaults.yml` | | 3 evaluator types, check schema |
 | `v2/config/project_constraints_template.yml` | | Project tools/thresholds/standards |
