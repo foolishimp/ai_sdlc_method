@@ -22,6 +22,7 @@
   "commands": [
     "./commands/aisdlc-init.md",
     "./commands/aisdlc-iterate.md",
+    "./commands/aisdlc-spawn.md",
     "./commands/aisdlc-status.md",
     "./commands/aisdlc-checkpoint.md",
     "./commands/aisdlc-review.md",
@@ -35,6 +36,7 @@
   "config": [
     "./config/graph_topology.yml",
     "./config/evaluator_defaults.yml",
-    "./config/edge_params/"
+    "./config/edge_params/",
+    "./config/profiles/"
   ]
 }

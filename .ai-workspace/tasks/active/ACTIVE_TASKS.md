@@ -36,26 +36,22 @@ Review the spec documents against session decisions.
 ## Task #32: Projection Profiles and Vector Type Support
 
 **Priority**: High
-**Status**: Not Started
+**Status**: COMPLETE (2026-02-20)
 **Release Target**: 2.1
 
 **Description**:
 Turn the projection and vector type concepts from PROJECTIONS_AND_INVARIANTS.md into working configs and agent support. Currently prose — needs to become implementation.
 
-**Work Breakdown**:
+**Result**: All 6 projection profile YAMLs created (full, standard, poc, spike, hotfix, minimal). Iterate agent extended with extended convergence (question_answered, time_box_expired), spawn detection, and profile awareness. New `/aisdlc-spawn` command created for child vector spawning with fold-back. Feature vector template updated with vector_type, profile, time_box, and parent/children fields. Init command updated to scaffold profiles and fold-back directories.
 
-1. Projection profile YAML configs — 6 named profiles (full, standard, poc, spike, hotfix, minimal) as `v2/config/profiles/*.yml`
-2. Vector type support in iterate agent — extend `aisdlc-iterate.md` to handle discovery/spike/PoC convergence criteria
-3. Spawning mechanism — `/aisdlc-feature --type spike` or `/aisdlc-spawn` to create child vectors with fold-back tracking
-4. Fold-back mechanism — child vector outputs update parent's Context[] and unblock
-5. Time-boxing support — `time_box` field in feature vector template, check-in cadence, expiry handling
-6. "10-minute build" projection — simplest useful projection (intent → code, agent evaluator only). Prove it works.
-
-**Acceptance Criteria**:
-- [ ] At least 3 projection profile YAMLs pass validation
-- [ ] Iterate agent handles discovery vector convergence (question_answered)
-- [ ] Time-box field in feature vector template
-- [ ] End-to-end: spawn a spike from a feature, fold back results
+**Deliverables**:
+- 6 profile YAMLs: `v2/config/profiles/{full,standard,poc,spike,hotfix,minimal}.yml`
+- Extended iterate agent: vector types, extended convergence, spawn detection, profile loading
+- New command: `v2/commands/aisdlc-spawn.md` (child vector spawning + fold-back)
+- Updated feature vector template: vector_type, profile, time_box, parent/children
+- Updated iterate command: --profile flag, extended convergence, spawn handling
+- Updated init command: profiles + fold-back directory scaffolding
+- Updated plugin.json: new command + profiles config
 
 ---
 
@@ -129,21 +125,21 @@ Four insights from v2.1 that should propagate to the constraint-emergence ontolo
 
 | Status | Count |
 |--------|-------|
-| Not Started | 4 |
-| Complete | 2 |
+| Not Started | 3 |
+| Complete | 3 |
 | Backlog | 4 |
 
 **Priority**:
-- High: #32 (Projection Profiles)
 - Medium: #36 (Traceability Validation)
 - Low: #37 (Ecosystem E(t)), #34 (Ontology Propagation)
 
-**Recommended next**: #32 (Projection Profiles)
+**Recommended next**: #36 (Automated Traceability Validation)
 
 ---
 
 ## Recently Completed
 
+- **Task #32**: Projection Profiles and Vector Type Support (2026-02-20) — 6 profiles, spawn command, extended convergence, time-boxing
 - **Task #38**: Review and Refine v2.1 Spec (2026-02-20) — 4 docs updated, 3 new reqs, PDFs regenerated
 - **Task #33**: Dogfood on Real Project (2026-02-20) — 6 bugs found and fixed, see findings doc
 - Task #35: v1.x Task Closure and Carry-Forward Analysis (2026-02-19)

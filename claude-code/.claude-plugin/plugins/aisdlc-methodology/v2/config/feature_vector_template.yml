@@ -11,9 +11,40 @@
 feature: "REQ-F-{DOMAIN}-{SEQ}"
 title: "{feature title}"
 intent: "INT-{SEQ}"
-status: pending                       # pending | in_progress | converged | blocked
+vector_type: feature                  # feature | discovery | spike | poc | hotfix
+profile: standard                    # projection profile: full | standard | poc | spike | hotfix | minimal
+status: pending                       # pending | in_progress | converged | blocked | time_box_expired
+convergence_type: ""                  # standard | question_answered | time_box_expired
 created: "{timestamp}"
 updated: "{timestamp}"
+
+# ═══════════════════════════════════════════════════════════════════════
+# TIME BOX (optional — for spike, poc, discovery, hotfix vectors)
+# ═══════════════════════════════════════════════════════════════════════
+# Set by /aisdlc-spawn or manually. Profile defaults apply if not set.
+
+time_box:
+  enabled: false
+  # duration: "1 week"                # calendar time
+  # started: ""                       # ISO timestamp when iteration began
+  # check_in: daily                   # intermediate evaluation cadence
+  # on_expiry: fold_back              # fold_back | escalate | accept_best_effort
+
+# ═══════════════════════════════════════════════════════════════════════
+# PARENT / CHILD RELATIONSHIPS (spawning & fold-back)
+# ═══════════════════════════════════════════════════════════════════════
+
+parent:
+  feature: ""                         # parent feature vector ID (empty if root)
+  edge: ""                            # edge where spawn was triggered
+  reason: ""                          # why this child was spawned
+
+children: []
+  # - feature: "REQ-F-SPIKE-001"
+  #   vector_type: spike
+  #   status: pending                 # pending | converged | time_box_expired
+  #   fold_back_status: pending       # pending | folded_back
+  #   fold_back_payload: ""           # path to fold-back results
 
 # ═══════════════════════════════════════════════════════════════════════
 # TRAJECTORY

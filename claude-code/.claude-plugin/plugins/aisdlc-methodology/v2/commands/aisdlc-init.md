@@ -42,7 +42,9 @@ Create these directories if they don't exist:
 │   └── policy/             # Compliance, security
 ├── features/
 │   ├── active/             # In-progress feature vectors
-│   └── completed/          # Converged feature vectors
+│   ├── completed/          # Converged feature vectors
+│   └── fold-back/          # Child vector fold-back results
+├── profiles/               # Projection profiles (full, standard, poc, spike, hotfix, minimal)
 ├── intents/                # Captured intents
 ├── tasks/
 │   ├── active/             # Current work items
@@ -93,10 +95,16 @@ For any tool not auto-detected, leave the template default and add a comment:
 
 Present the scaffolded file to the user for review before writing.
 
-### Step 5: Copy Feature Vector Template
+### Step 5: Copy Feature Vector Template and Projection Profiles
 
 #### `.ai-workspace/features/feature_vector_template.yml`
 Copy the plugin's `v2/config/feature_vector_template.yml` as the template for new feature vectors.
+
+#### `.ai-workspace/profiles/`
+Copy all files from the plugin's `v2/config/profiles/` directory (full.yml, standard.yml, poc.yml, spike.yml, hotfix.yml, minimal.yml). These are the named projection profiles that control graph subset, evaluator composition, convergence criteria, and context density.
+
+#### `.ai-workspace/features/fold-back/`
+Create the fold-back directory for child vector results that fold back to parent vectors.
 
 ### Step 6: Create Context Manifest
 

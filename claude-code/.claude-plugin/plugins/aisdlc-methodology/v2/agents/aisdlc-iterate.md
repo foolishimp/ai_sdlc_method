@@ -113,7 +113,58 @@ Run each check in the effective checklist:
 - Record human feedback in iteration history
 
 **Delta = count of failing required checks in the effective checklist.**
+
+#### Standard Convergence (feature, hotfix)
 **Convergence = delta == 0 (all required checks pass).**
+
+#### Extended Convergence (discovery, spike, PoC)
+
+For non-feature vector types, convergence is generalised:
+
+```
+converged(vector) =
+    δ = 0                                       // all required checks pass
+    OR (question_answered AND δ_required = 0)   // discovery/spike: question resolved
+    OR time_box_expired(fold_back_partial)       // timeout: fold back what we have
+```
+
+Where:
+- **δ = 0** is the standard convergence (feature vectors, hotfixes)
+- **question_answered** is a human evaluator judgment ("yes, we now know enough")
+- **time_box_expired** triggers a graceful fold-back of partial results
+
+Check the feature vector's `vector_type` field. If it is `discovery`, `spike`, or `poc`:
+1. Ask the human: "Has the question been answered / risk been assessed?"
+2. If yes, converge with status `question_answered` even if some non-required checks remain
+3. If a `time_box` is configured and expired, converge with status `time_box_expired`
+
+### Step 3b: Check Projection Profile (if configured)
+
+If the feature vector specifies a `profile` field:
+1. Load the projection profile from `.ai-workspace/profiles/{profile}.yml`
+   (or fall back to plugin profile at `v2/config/profiles/{profile}.yml`)
+2. Verify the current edge is in the profile's `graph.include` list
+   - If the edge is in `graph.skip`, report: "Edge {edge} is skipped in profile {profile}"
+3. Apply profile evaluator overrides on top of edge defaults
+4. Apply profile convergence rules (threshold_strictness, human_required_on_all_edges)
+5. Apply profile context density settings
+
+### Step 3c: Detect Spawn Opportunities
+
+During evaluation, watch for conditions that should spawn child vectors:
+
+| Condition | Spawns |
+|-----------|--------|
+| Knowledge gap — "we don't know X" | Discovery vector |
+| Technical risk — "can technology Y do Z?" | Spike vector |
+| Feasibility question — "is approach W viable?" | PoC vector |
+| Production incident during lifecycle edge | Hotfix vector |
+
+If a spawn condition is detected:
+1. Report it to the human with the recommended child vector type
+2. If human approves, note the spawn request (the `/aisdlc-spawn` command handles creation)
+3. Mark the current vector as `blocked` on the spawned child's result
+4. Continue iteration on other non-blocked checks
 
 ### Step 4: Construct Next Candidate
 
@@ -123,10 +174,25 @@ If delta > 0 (not yet converged):
 - Produce the next candidate that reduces delta
 - Tag with REQ keys and update lineage
 
-If delta ≈ 0 (converged):
-- Report convergence
-- Asset is ready for **promotion** to Markov object
+If converged (delta == 0, question_answered, or time_box_expired):
+- Report convergence with the specific convergence type
+- For standard convergence: asset is ready for **promotion** to Markov object
+- For question_answered: package findings as fold-back payload
+- For time_box_expired: package partial results as fold-back payload
 - Update the feature vector state
+
+### Step 4b: Time-Box Check
+
+If the feature vector has a `time_box` configured:
+1. Compare current time against `time_box.started` + `time_box.duration`
+2. If within a check-in window (`time_box.check_in`):
+   - Report progress: δ now vs δ at start
+   - Human decides: continue, extend, pivot, or terminate early
+3. If expired:
+   - Run final evaluation
+   - Package all outputs (even incomplete) as fold-back payload
+   - Converge with status `time_box_expired`
+   - The fold-back payload goes to parent vector's Context[]
 
 ### Step 5: Record Iteration
 
@@ -134,7 +200,9 @@ Update the feature vector tracking file:
 - Increment iteration count
 - Record evaluator results
 - Record context hash (for spec reproducibility)
-- If converged: update status to `converged`, record timestamp
+- If converged: update status to `converged`, record convergence_type and timestamp
+- If time_box_expired: update status to `time_box_expired`, record fold_back payload
+- If spawn detected: record spawn request with child vector type
 
 ---
 
@@ -277,10 +345,16 @@ SKIPPED:
 
 DELTA: 2 failing required checks
 
-STATUS: {CONVERGED | ITERATING | BLOCKED}
+STATUS:   {CONVERGED | CONVERGED_QUESTION_ANSWERED | TIME_BOX_EXPIRED | ITERATING | BLOCKED | SPAWN_REQUESTED}
+VECTOR:   {feature | discovery | spike | poc | hotfix}
+PROFILE:  {profile name, if configured}
+TIME_BOX: {remaining duration, if configured}
 
 NEXT ACTION:
   {What needs to happen next — specific actions to fix failing checks}
+
+SPAWN REQUESTS (if any):
+  - {child_type}: {reason} — awaiting human approval
 ═══════════════════════════
 ```
 
@@ -294,3 +368,6 @@ NEXT ACTION:
 4. **Spec reproducibility** — record the context hash at each iteration
 5. **No silent failures** — if something doesn't converge, report why clearly
 6. **One operation** — iterate. You do not have separate "modes" for different stages. You read the edge config and adapt.
+7. **Extended convergence** — discovery/spike/PoC vectors can converge via `question_answered` or `time_box_expired`, not just `δ = 0`
+8. **Spawn detection** — watch for knowledge gaps, technical risks, and feasibility questions that warrant child vectors
+9. **Profile awareness** — if a projection profile is set, respect its graph, evaluator, and convergence constraints
