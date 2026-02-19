@@ -1,8 +1,8 @@
 # AI SDLC: Projections and Invariants
 
-**Version**: 1.0.0
-**Date**: 2026-02-19
-**Extends**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.1.0)
+**Version**: 1.1.0
+**Date**: 2026-02-20
+**Extends**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.2.0)
 **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) (§V, §VIII-B)
 
 ---
@@ -78,6 +78,8 @@ If all four invariants hold, traceability is recoverable. If any one is absent, 
 
 In lighter projections, traceability may be coarser (e.g., "this code came from that intent" without intermediate design documents), but the causal chain from intent to artifact is never fully severed.
 
+**Feature views** (Asset Graph Model §6.4) are the observable manifestation of traceability: grepping for a REQ key across all artifacts produces a per-feature status report. In a full projection, the feature view shows all stages. In a lighter projection, the view shows fewer stages — but the REQ key still threads through whatever assets exist. Feature views degrade gracefully with projection: fewer stages, same key.
+
 ---
 
 ## 3. Projections
@@ -109,6 +111,8 @@ A projection is specified along four dimensions:
 | **Context** | Full constraint surface (ADRs, models, policy, templates) | Project constraints + intent | Intent only |
 
 These dimensions are independent — you can have a full graph with light evaluators (fast pass through all stages) or a minimal graph with strict evaluators (one edge, done properly).
+
+**Spec/Design boundary** (Asset Graph Model §2.6): When projecting the graph dimension, the Spec/Design boundary matters. Projections that skip the Requirements → Design edge (e.g., spike, hotfix) collapse the boundary — they go from intent directly to tech-bound code. Projections that preserve the boundary (standard, full) maintain the separation between WHAT and HOW, enabling multiple design variants per spec.
 
 ```mermaid
 flowchart LR

@@ -1,8 +1,8 @@
 # AI SDLC — Feature Vector Decomposition
 
-**Version**: 1.0.0
-**Date**: 2026-02-19
-**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.1.0)
+**Version**: 1.1.0
+**Date**: 2026-02-20
+**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.2.0)
 **Method**: Asset Graph Model §6.4 (Task Planning as Trajectory Optimisation)
 
 ---
@@ -115,13 +115,14 @@ TDD, BDD, ADR, and code tagging configurations for common graph edges.
 
 CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
-**Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-INTENT-003
+**Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-INTENT-003
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩ → |uat⟩
 
 **What converges**:
 - CI/CD as graph edge (Code → CI/CD → Running System)
-- Telemetry tagged with REQ keys
+- Telemetry tagged with REQ keys (`req="REQ-*"` as structured field)
+- Per-feature observability: latency, error rate, incidents queryable by REQ key
 - Homeostasis: is running system within constraint bounds?
 - Deviation → new INT-* intent → back into the graph
 - Eco-intent: automatic intent generation from ecosystem changes
@@ -134,7 +135,7 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
 Plugin architecture, workspace, commands, release, test gap analysis, hooks, scaffolding, snapshots.
 
-**Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008
+**Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -147,6 +148,8 @@ Plugin architecture, workspace, commands, release, test gap analysis, hooks, sca
 - Methodology hooks: commit/transition/session triggers, REQ tag validation
 - Project scaffolding: graph config, context dirs, workspace templates
 - Context snapshot: immutable session capture for recovery
+- Feature views: per-REQ-key cross-artifact status (grep-based traceability)
+- Spec/Design boundary enforcement: technology leakage detection, multiple design variants
 
 **Dependencies**: REQ-F-ENGINE-001.|design⟩ (tooling wraps the engine), REQ-F-TRACE-001.|design⟩ (tooling uses REQ keys)
 
@@ -234,8 +237,11 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-TOOL-006 | REQ-F-TOOL-001 |
 | REQ-TOOL-007 | REQ-F-TOOL-001 |
 | REQ-TOOL-008 | REQ-F-TOOL-001 |
+| REQ-TOOL-009 | REQ-F-TOOL-001 |
+| REQ-TOOL-010 | REQ-F-TOOL-001 |
+| REQ-LIFE-004 | REQ-F-LIFE-001 |
 
-**32/32 requirements covered. No orphans.**
+**35/35 requirements covered. No orphans.**
 
 ---
 
@@ -248,8 +254,8 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-CTX-001 | 3 | 1b | ENGINE |
 | REQ-F-TRACE-001 | 5 | 1b | ENGINE, CTX |
 | REQ-F-EDGE-001 | 4 | 1c | EVAL |
-| REQ-F-LIFE-001 | 4 | 2 | ENGINE, TRACE |
-| REQ-F-TOOL-001 | 8 | 1c | ENGINE, TRACE |
-| **Total** | **32** | | |
+| REQ-F-LIFE-001 | 5 | 2 | ENGINE, TRACE |
+| REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
+| **Total** | **35** | | |
 
-7 feature vectors. 32 implementation requirements. Full coverage. Critical path: ENGINE design.
+7 feature vectors. 35 implementation requirements. Full coverage. Critical path: ENGINE design.

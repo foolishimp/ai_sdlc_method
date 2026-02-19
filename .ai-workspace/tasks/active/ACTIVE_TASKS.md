@@ -23,20 +23,13 @@ Key decisions made during design review session:
 ## Task #38: Review and Refine v2.1 Spec
 
 **Priority**: High
-**Status**: Not Started
+**Status**: COMPLETE (2026-02-20)
 **Release Target**: 2.1
 
 **Description**:
-Review the spec documents against session decisions. The formal system was written before the Spec/Design separation, bootstrap graph, and feature lineage decisions were made. The spec needs to reflect these refinements.
+Review the spec documents against session decisions.
 
-**Work Breakdown**:
-1. Review AI_SDLC_ASSET_GRAPH_MODEL.md — does the graph match the bootstrap graph?
-2. Review PROJECTIONS_AND_INVARIANTS.md — do projection profiles match the committed flow?
-3. Add Spec/Design boundary concept (tech-agnostic vs tech-bound) explicitly
-4. Add feature lineage in telemetry as a formal requirement
-5. Add feature views concept (generated traceability at each stage)
-6. Update AISDLC_IMPLEMENTATION_REQUIREMENTS.md if needed
-7. Regenerate PDFs after updates
+**Result**: All 4 spec documents updated. Added: Spec/Design boundary (§2.6), multiple implementations (§2.7), feature lineage in telemetry (§6.3), feature views (§6.4). 3 new requirements (REQ-LIFE-004, REQ-TOOL-009, REQ-TOOL-010) — total now 35. All PDFs regenerated.
 
 ---
 
@@ -136,21 +129,22 @@ Four insights from v2.1 that should propagate to the constraint-emergence ontolo
 
 | Status | Count |
 |--------|-------|
-| Not Started | 5 |
-| Complete | 1 |
+| Not Started | 4 |
+| Complete | 2 |
 | Backlog | 4 |
 
 **Priority**:
-- High: #38 (Spec Review), #32 (Projection Profiles)
+- High: #32 (Projection Profiles)
 - Medium: #36 (Traceability Validation)
 - Low: #37 (Ecosystem E(t)), #34 (Ontology Propagation)
 
-**Recommended next**: #38 (Review Spec) → #32 (Projections)
+**Recommended next**: #32 (Projection Profiles)
 
 ---
 
 ## Recently Completed
 
+- **Task #38**: Review and Refine v2.1 Spec (2026-02-20) — 4 docs updated, 3 new reqs, PDFs regenerated
 - **Task #33**: Dogfood on Real Project (2026-02-20) — 6 bugs found and fixed, see findings doc
 - Task #35: v1.x Task Closure and Carry-Forward Analysis (2026-02-19)
 - Task #31: v2.1 Asset Graph Model — Spec, Implementation, and Projections (2026-02-19)

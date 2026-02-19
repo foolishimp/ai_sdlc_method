@@ -1,7 +1,7 @@
 # AI SDLC: The Asset Graph Model
 
-**Version**: 2.1.0
-**Date**: 2026-02-19
+**Version**: 2.2.0
+**Date**: 2026-02-20
 **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) (§V, §VIII-B, §VIII-C)
 
 ---
@@ -171,6 +171,42 @@ Tests are the canonical example of scale-dependent assurance:
 UAT to the software product is as unit tests to a code module — **the same evaluator pattern at a different scale**. Whether UAT is an explicit asset or an inherent evaluator of the composite depends on the zoom level chosen.
 
 The four primitives (Graph, Iterate, Evaluators, Spec+Context) are the same at every scale. The graph is fractal.
+
+### 2.6 The Spec/Design Boundary
+
+The asset graph contains a fundamental boundary between **specification** and **design**:
+
+- **Spec** (Requirements) = **WHAT** the system does. Tech-agnostic. One spec can have many designs.
+- **Design** = **HOW** architecturally. Tech-bound — ADRs, ecosystem binding, component architecture.
+
+This boundary is the Requirements → Design edge. Everything upstream of this edge (Intent, Requirements) describes the problem and constraints without committing to technology. Everything downstream (Design, Code, Tests) is bound to a specific technology stack and architecture.
+
+```
+                 Spec/Design boundary
+                        │
+  Intent → Requirements │ Design → Code ↔ Tests → ...
+                        │
+  WHAT (tech-agnostic)  │  HOW (tech-bound)
+  One spec              │  Many possible designs
+```
+
+This separation enables:
+- **Multiple implementations**: The same spec (REQ-F-AUTH-001) can have `design.claude`, `design.codex`, `design.rust` — different designs for the same requirements. Telemetry enables data-driven variant selection.
+- **Technology migration**: Change the design without changing the spec. The requirements survive platform shifts.
+- **Disambiguation routing**: When iteration reveals ambiguity, the evaluator routes feedback to the right level — business gap → Spec, technical gap → Design.
+
+### 2.7 Multiple Implementations Per Spec
+
+A single requirement key can have multiple design variants:
+
+```
+REQ-F-AUTH-001 (spec)
+  ├── design.claude  → code.python  → tests.pytest
+  ├── design.codex   → code.python  → tests.pytest
+  └── design.rust    → code.rust    → tests.cargo
+```
+
+Each variant is a separate trajectory through the downstream graph, sharing the same upstream spec. The variants can run in parallel, and telemetry from production enables data-driven selection between them. This is the Hilbert space (§11) in action — multiple vectors in superposition until measurement (production telemetry) collapses to the best-performing variant.
 
 ---
 
@@ -393,7 +429,42 @@ Intent lineage is the feature's **accumulated state** across all edges: the orig
 
 This is the ontology's constraint propagation (#2) through the asset graph. REQ-F-AUTH-001 propagating across edges is a constraint signal maintaining coherence across the entire composite vector.
 
-### 6.3 Feature Dependencies
+### 6.3 Feature Lineage in Code and Telemetry
+
+REQ keys are not just documentation — they are **runtime-observable identifiers** that thread from spec to production:
+
+```
+Spec:        REQ-F-AUTH-001 defined
+Design:      Implements: REQ-F-AUTH-001
+Code:        # Implements: REQ-F-AUTH-001
+Tests:       # Validates: REQ-F-AUTH-001
+Telemetry:   logger.info("login", req="REQ-F-AUTH-001", latency_ms=42)
+```
+
+The tag format (`Implements: REQ-*`, `Validates: REQ-*`) is the contract. The comment syntax is language-specific (`#` for Python, `//` for Go/JS, `--` for SQL). In telemetry, the REQ key appears as a structured field in logs, metrics, and traces.
+
+This makes features **observable at runtime**: you can query production telemetry by REQ key to see how a specific requirement behaves in production, measure latency per feature, detect regressions per feature, and route incidents back to the originating requirement.
+
+### 6.4 Feature Views
+
+A **feature view** is a generated cross-artifact status report for a single REQ key, produced by grepping the tag format across all artifacts:
+
+```
+Feature View: REQ-F-AUTH-001
+────────────────────────────
+Spec:       docs/specification/requirements.md     ✓ defined
+Design:     docs/design/auth/DESIGN.md             ✓ component traced
+Code:       src/auth/login.py:23                   ✓ Implements: REQ-F-AUTH-001
+Tests:      tests/test_login.py:15                 ✓ Validates: REQ-F-AUTH-001
+Telemetry:  dashboards/auth.json                   ✓ req="REQ-F-AUTH-001"
+Coverage:   5/5 stages tagged
+```
+
+Feature views are generated at every stage — they are the mechanism for answering "where is this feature in the graph?" at any point in time. The view is computed by searching for the REQ key across all artifacts, not maintained as a separate document.
+
+This is the practical realisation of the composite vector (§6.1): the feature view shows the vector's current projection onto each basis component.
+
+### 6.5 Feature Dependencies
 
 Features can depend on other features. Feature B's code asset might require Feature A's code asset to be stable first:
 
@@ -405,7 +476,7 @@ Feature B: |req⟩ → |design⟩ → |code⟩ → |tests⟩
 
 Dependencies are between features (or their component assets), not between pipeline stages. This is a cross-vector constraint.
 
-### 6.4 Task Planning as Trajectory Optimisation
+### 6.6 Task Planning as Trajectory Optimisation
 
 Tasks **emerge** from feature vector decomposition (#3, generative principle):
 
@@ -544,6 +615,9 @@ This is the abiogenesis insight (#39) completing itself: the methodology starts 
 | Hallucination / failure | Probability degeneracy from sparse constraints | 54 |
 | Context density | Constraint density | 16 |
 | Graph topology as Context | Abiogenesis — encoded structure from practice | 39 |
+| Spec/Design boundary | Boundary between encoded representation and constructor | 40, 41 |
+| Feature view (cross-artifact) | Observable projection of trajectory state | 15 + 9 |
+| Multiple design variants | Superposition of alternative constructions | 45 |
 
 ### 8.2 The Construction Pattern
 
@@ -612,6 +686,10 @@ The methodology follows the abiogenesis pattern (#39) at two levels:
 - **Graph abiogenesis** — graph topology itself follows the construction pattern
 - **CI/CD, Telemetry, Homeostasis** — as graph assets, not afterthoughts
 - **Formal ontology grounding** — every element traceable to constraint-emergence concepts
+- **Spec/Design boundary** — WHAT (tech-agnostic) vs HOW (tech-bound), one spec many designs
+- **Feature lineage in telemetry** — REQ keys in logs/metrics/traces, observable at runtime
+- **Feature views** — cross-artifact status per REQ key, generated by grepping tag format
+- **Multiple implementations** — same spec, different designs, telemetry-driven variant selection
 
 ---
 
@@ -624,7 +702,9 @@ The AI SDLC is:
 3. Traced by **feature vectors** — composite vectors (trajectories through the graph), identified by REQ keys
 4. Bounded by **Spec + Context[]** — the constraint surface (including the graph topology itself) that prevents degeneracy
 5. Evaluated by **{Human, Agent, Tests}** — composable convergence criteria per edge
-6. Completing the **full lifecycle** — through CI/CD, Telemetry, Homeostasis, and back to Intent
+6. Split at a **Spec/Design boundary** — Spec = WHAT (tech-agnostic), Design = HOW (tech-bound). One spec, many designs.
+7. Observable via **feature views** — REQ keys grepped across all artifacts produce per-feature status at any time
+8. Completing the **full lifecycle** — through CI/CD, Telemetry (tagged with REQ keys), Homeostasis, and back to Intent
 
 The graph is not universal — it is domain-constructed via abiogenesis (#39). The SDLC graph is one crystallisation. A legal document, a physics paper, an organisational policy each produce different graphs from the same four primitives. The graph is zoomable: any edge expandable into a sub-graph, any sub-graph collapsible into a single edge.
 
@@ -703,4 +783,4 @@ Constraint density (#16) is the **metric** on the space — it determines how "f
 ## References
 
 - **Constraint-Emergence Ontology** — [github.com/foolishimp/constraint_emergence_ontology](https://github.com/foolishimp/constraint_emergence_ontology) — parent theory. Concept numbers (#N) throughout this document refer to the canonical concept index in that repository.
-- **Prior AI SDLC (v1.2)** — tagged `v2.0` in this repository. The 7-stage pipeline model this document supersedes.
+- **Prior AI SDLC (v1.x)** — tagged `v1.x-final` in this repository. The 7-stage pipeline model this document supersedes.
