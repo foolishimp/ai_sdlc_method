@@ -1,0 +1,21 @@
+[project]
+name = "ai-sdlc-method"
+version = "2.1.0"
+description = "AI SDLC Asset Graph Model — methodology validation tests"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-bdd>=7.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "tdd: TDD unit tests — deterministic config validation",
+    "bdd: BDD acceptance tests — methodology workflow validation",
+]
