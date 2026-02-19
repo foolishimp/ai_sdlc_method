@@ -50,7 +50,7 @@ Create these directories if they don't exist:
 └── snapshots/              # Immutable session checkpoints
 
 docs/
-├── requirements/
+├── specification/
 └── design/{project_name}/
     └── adrs/
 ```
@@ -113,7 +113,7 @@ aggregate_hash: "pending"  # Computed on first /aisdlc-checkpoint
 entries: []  # Populated as context files are added
 ```
 
-### Step 5: Create Feature Index
+### Step 6: Create Feature Index
 
 #### `.ai-workspace/features/feature_index.yml`
 ```yaml

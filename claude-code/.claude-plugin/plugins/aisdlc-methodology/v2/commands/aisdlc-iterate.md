@@ -31,6 +31,7 @@ This command is the primary workflow action. It invokes the iterate agent on a s
 1. Load the edge parameterisation from `.ai-workspace/graph/edges/{edge_config}`
 2. Load project constraints from `.ai-workspace/context/project_constraints.yml`
 3. Load the feature vector from `.ai-workspace/features/active/{feature}.yml`
+   - If the file does not exist, create it from `.ai-workspace/features/feature_vector_template.yml`, populate the feature ID, title, and intent fields, and save to `.ai-workspace/features/active/{feature}.yml`
 4. Build the **effective checklist** (composition algorithm from the iterate agent):
    - Start with edge checklist (from edge config)
    - Resolve `$variable` references from project_constraints.yml

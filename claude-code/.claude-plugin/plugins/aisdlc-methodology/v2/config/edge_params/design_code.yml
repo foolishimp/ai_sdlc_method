@@ -40,8 +40,8 @@ checklist:
     criterion: "Code compiles/parses without syntax errors"
     source: default
     required: true
-    command: "$tools.linter.command $tools.linter.args"
-    pass_criterion: "$tools.linter.pass_criterion"
+    command: "$tools.syntax_checker.command $tools.syntax_checker.args"
+    pass_criterion: "$tools.syntax_checker.pass_criterion"
 
   - name: "lint_passes"
     type: deterministic

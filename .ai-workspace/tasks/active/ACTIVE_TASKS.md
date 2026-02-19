@@ -69,21 +69,13 @@ Turn the projection and vector type concepts from PROJECTIONS_AND_INVARIANTS.md 
 ## Task #33: Dogfood on Real Project
 
 **Priority**: High
-**Status**: Not Started
+**Status**: COMPLETE (2026-02-20)
 **Release Target**: 2.1
 
 **Description**:
 Use `/aisdlc-init` on an actual codebase, run `/aisdlc-iterate` on real edges, validate that the checklist composition and $variable resolution actually work. First real test of v2.1.
 
-**Work Breakdown**:
-
-1. Pick a small real project (or create a test project)
-2. Run `/aisdlc-init` — verify scaffolding, auto-detection, project_constraints
-3. Create a feature vector for a simple feature
-4. Traverse at least 3 edges end-to-end with `/aisdlc-iterate`
-5. Verify checklist composition resolves $variables correctly
-6. Verify iteration report displays structured pass/fail table
-7. Document what works, what breaks, what's missing
+**Result**: Dogfooded on `~/src/apps/aisdlc-dogfood/` (Python CLI bookmark manager). Traversed 3 edges (intent→requirements→design→code). Found 6 bugs, all fixed. See `.ai-workspace/tasks/finished/20260220_dogfood_task33.md` for full findings.
 
 ---
 
@@ -144,21 +136,22 @@ Four insights from v2.1 that should propagate to the constraint-emergence ontolo
 
 | Status | Count |
 |--------|-------|
-| Not Started | 6 |
-| In Progress | 0 |
+| Not Started | 5 |
+| Complete | 1 |
 | Backlog | 4 |
 
 **Priority**:
-- High: #38 (Spec Review), #32 (Projection Profiles), #33 (Dogfood)
+- High: #38 (Spec Review), #32 (Projection Profiles)
 - Medium: #36 (Traceability Validation)
 - Low: #37 (Ecosystem E(t)), #34 (Ontology Propagation)
 
-**Recommended next**: #38 (Review Spec) → #33 (Dogfood) → #32 (Projections)
+**Recommended next**: #38 (Review Spec) → #32 (Projections)
 
 ---
 
 ## Recently Completed
 
+- **Task #33**: Dogfood on Real Project (2026-02-20) — 6 bugs found and fixed, see findings doc
 - Task #35: v1.x Task Closure and Carry-Forward Analysis (2026-02-19)
 - Task #31: v2.1 Asset Graph Model — Spec, Implementation, and Projections (2026-02-19)
 - **2026-02-20 Session**: Pruned repo (v1.x-final tag), rewrote README.md and CLAUDE.md, established bootstrap graph, spec/design separation, feature lineage decisions

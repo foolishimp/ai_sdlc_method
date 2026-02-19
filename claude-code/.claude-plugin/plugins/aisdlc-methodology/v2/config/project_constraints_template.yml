@@ -41,6 +41,11 @@ language:
 # If a tool is not configured, checks referencing it are SKIPPED.
 
 tools:
+  syntax_checker:
+    command: "python -m py_compile"
+    args: ""                        # populated with file paths during check
+    pass_criterion: "exit code 0"
+
   test_runner:
     command: "pytest"
     args: "-v --tb=short"

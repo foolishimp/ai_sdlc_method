@@ -65,8 +65,8 @@ checklist:
   - name: "no_ambiguous_language"
     type: agent
     criterion: |
-      No use of: "should", "may", "might", "could", "appropriate", "reasonable".
-      Requirements use: "must", "shall", "will" for mandatory; "may" only for optional.
+      Requirements must not use: "should", "might", "could", "appropriate", "reasonable".
+      Use "must" or "shall" for mandatory behaviour. Use "may" for explicitly optional behaviour.
     source: default
     required: true
 

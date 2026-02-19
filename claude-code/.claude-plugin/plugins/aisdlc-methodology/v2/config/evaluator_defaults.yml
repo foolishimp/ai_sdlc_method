@@ -81,6 +81,7 @@ evaluator_types:
 #   $tools.{name}.{field}    → project tools configuration
 #   $thresholds.{key}        → project numeric thresholds
 #   $standards.{key}         → project qualitative standards
+#   $architecture.{key}      → project architecture constraints
 #
 # Composition rules:
 #   1. Edge checklist defines default checks

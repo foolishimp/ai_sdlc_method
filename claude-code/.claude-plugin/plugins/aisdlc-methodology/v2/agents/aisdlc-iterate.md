@@ -58,7 +58,9 @@ Read `.ai-workspace/context/project_constraints.yml`:
 - **Standards**: style guide, docstrings, type hints, test structure
 
 #### 2b. Load feature constraints
-Read the feature vector file for the current feature (`.ai-workspace/features/{feature}.yml`):
+Read the feature vector file for the current feature (`.ai-workspace/features/active/{feature}.yml`).
+If the file does not exist, create it from `.ai-workspace/features/feature_vector_template.yml`,
+populate the feature ID, title, and intent fields, and save it before continuing.
 - **Acceptance criteria**: feature-specific checks bound to REQ keys
 - **Threshold overrides**: per-feature threshold adjustments
 - **Additional checks**: feature-specific checks beyond defaults
@@ -71,6 +73,7 @@ Read the feature vector file for the current feature (`.ai-workspace/features/{f
    - $tools.{name}.{field}     → tools.{name}.{field}
    - $thresholds.{key}         → thresholds.{key}
    - $standards.{key}          → standards.{key}
+   - $architecture.{key}       → architecture.{key}
 3. Apply threshold_overrides from feature.constraints
    (feature value replaces project value for specified keys only)
 4. Append acceptance_criteria from feature.constraints
