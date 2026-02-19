@@ -1,6 +1,85 @@
 # Active Tasks
 
-*Last Updated: 2025-12-16 12:30*
+*Last Updated: 2026-02-19 16:00*
+
+---
+
+## Task #32: v2.1 Projection Profiles and Vector Type Support
+
+**Priority**: High
+**Status**: Not Started
+**Release Target**: 2.1
+**Dependencies**: Task #31 (v2.1 Spec + Implementation - COMPLETE)
+
+**Requirements Traceability**:
+- All v2.1 requirements (REQ-GRAPH-*, REQ-ITER-*, REQ-EVAL-*)
+- PROJECTIONS_AND_INVARIANTS.md (new spec)
+
+**SDLC Stages**: 2 - Design, 4 - Code
+**Agents**: Iterate Agent (universal)
+
+**Description**:
+Turn the projection and vector type concepts from PROJECTIONS_AND_INVARIANTS.md into working configs and agent support. The formal spec defines projections, vector types (feature/discovery/spike/PoC/hotfix), spawning/fold-back, and named profiles — but these are currently prose, not implementation.
+
+**Work Breakdown**:
+
+1. **Projection profile YAML configs** — Turn the 6 named profiles (full, standard, poc, spike, hotfix, minimal) from PROJECTIONS_AND_INVARIANTS.md section 7 into actual configs in `v2/config/profiles/`
+2. **Vector type support in iterate agent** — Extend `aisdlc-iterate.md` to handle discovery/spike/PoC vectors with different convergence criteria
+3. **Spawning command** — Add `/aisdlc-spawn` or extend `/aisdlc-feature` to create child vectors with fold-back tracking
+4. **Fold-back mechanism** — When child vector converges, update parent's Context[] and unblock
+5. **Time-boxing support** — Add `time_box` field to feature vector template, check-in cadence, expiry handling
+6. **"10-minute build" projection** — Simplest useful projection: intent → code, agent evaluator only. Prove projections work.
+
+**Acceptance Criteria**:
+- [ ] At least 3 projection profile YAMLs exist and pass validation
+- [ ] Iterate agent handles discovery vector convergence (question_answered)
+- [ ] Time-box field in feature vector template
+- [ ] End-to-end: spawn a spike from a feature, fold back results
+
+---
+
+## Task #33: Test Methodology on Real Project
+
+**Priority**: High
+**Status**: Not Started
+**Release Target**: 2.1
+**Dependencies**: Task #31 (v2.1 Spec + Implementation - COMPLETE)
+
+**Description**:
+Use `/aisdlc-init` on an actual codebase, run `/aisdlc-iterate` on real edges, validate that the checklist composition and $variable resolution actually work end-to-end. This is the first real dogfooding of v2.1.
+
+**Work Breakdown**:
+
+1. Pick a small real project (or create a test project)
+2. Run `/aisdlc-init` — verify scaffolding, auto-detection, project_constraints
+3. Create a feature vector for a simple feature
+4. Run `/aisdlc-iterate --edge "intent→requirements"` — verify agent evaluators + human approval
+5. Run `/aisdlc-iterate --edge "requirements→design"` — verify ADR generation + checklist
+6. Run `/aisdlc-iterate --edge "code↔unit_tests"` — verify TDD co-evolution + deterministic checks
+7. Document what works, what breaks, what's missing
+
+**Acceptance Criteria**:
+- [ ] /aisdlc-init scaffolds a working workspace
+- [ ] At least 3 edges traversed end-to-end
+- [ ] Checklist composition resolves $variables correctly
+- [ ] Iteration report displays structured pass/fail table
+- [ ] Gap list documented for next iteration
+
+---
+
+## Task #34: Propagate Insights Back to Ontology
+
+**Priority**: Low
+**Status**: Not Started
+**Release Target**: N/A (upstream contribution)
+**Dependencies**: Task #31 (v2.1 Spec + Implementation - COMPLETE)
+
+**Description**:
+PROJECTIONS_AND_INVARIANTS.md section 10.3 identifies 4 insights that should propagate back to the constraint-emergence ontology repo:
+1. Invariants as projection survival criteria (extends #9)
+2. Vector type diversity (extends #15)
+3. Fold-back as context enrichment (extends #16)
+4. Time-boxing as bounded iteration (extends #15)
 
 ---
 
@@ -936,20 +1015,29 @@ Phase 1A is complete when ALL of the following are true:
 
 ## Summary
 
-**Total Active Tasks**: 6
-- Critical Priority: 2
-- High Priority: 3
-- Medium Priority: 1
-- Not Started: 5
-  - Task #30: Roo Parity Phase 1A - Foundation (1.0 Roo) - CRITICAL ← NEW
+**Total Active Tasks**: 9
+- v2.1 (Asset Graph Model):
+  - Task #32: Projection Profiles and Vector Type Support (2.1) - HIGH ← NEW
+  - Task #33: Test Methodology on Real Project (2.1) - HIGH ← NEW
+  - Task #34: Propagate Insights to Ontology (upstream) - LOW ← NEW
+- v1.x (Legacy — may be superseded by v2.1):
+  - Task #30: Roo Parity Phase 1A - Foundation (1.0 Roo) - CRITICAL
   - Task #26: Claude-AISDLC Code Implementation (1.0 MVP) - HIGH
+  - Task #18: Gemini Implementation Parity (2.0) - HIGH (In Progress)
   - Task #14: Implement Codex Command Layer and Installers (1.0 MVP) - HIGH
   - Task #13: Repurpose /aisdlc-release for Release Management (1.0 MVP) - MEDIUM
   - Task #12: Ecosystem E(t) Tracking (v1.5 - planned) - MEDIUM
-- In Progress: 1
-  - Task #18: Gemini Implementation Parity (2.0) - HIGH
+
+**Note**: v1.x tasks (#12-#30) were designed for the 7-stage pipeline model. With v2.1 (Asset Graph Model), some are superseded — the methodology is now 4 primitives + 1 operation, not 7 stages with stage-specific agents. Evaluate each v1.x task for relevance before starting.
 
 **Recently Completed**:
+- ✅ Task #31: v2.1 Asset Graph Model — Spec, Implementation, and Projections (2026-02-19)
+  - Rewrote formal system: 4 primitives, 1 operation, asset graph with 10 types/10 transitions
+  - Implemented v2.1 plugin: iterate agent, graph topology, 9 edge configs, 8 commands
+  - Added constraint binding: 4-layer checklist composition with $variable resolution
+  - Added projections and invariants spec: vector types, spawning, fold-back, time-boxing, profiles
+  - 6 commits: 91f29bc → fa438be (all pushed)
+  - See: `.ai-workspace/tasks/finished/20260219_v21_asset_graph_model_spec_and_implementation.md`
 - ✅ Task #29: Phase Breakdown and Traceability Matrix Cleanup (2025-12-16 12:30)
   - Added Phase markers (1 or 2) to all 46 requirements
   - Phase 1: 33 requirements (MVP: Intent → System Test)
