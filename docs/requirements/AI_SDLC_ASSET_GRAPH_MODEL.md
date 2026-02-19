@@ -55,6 +55,28 @@ Intent → Requirements → Design ──→ Code → Unit Tests              �
                                                   New Intent
 ```
 
+```mermaid
+graph LR
+    INT[Intent] --> REQ[Requirements]
+    REQ --> DES[Design]
+    DES --> CODE[Code]
+    DES --> TC[Test Cases]
+    DES --> UAT[UAT Tests]
+    CODE <--> UT[Unit Tests]
+    CODE --> CICD[CI/CD]
+    CICD --> RUN[Running System]
+    RUN --> TEL[Telemetry]
+    TEL --> OBS[Observer / Evaluator]
+    UAT --> RUN
+    TC --> OBS
+    OBS --> INT2[New Intent]
+    INT2 -.-> REQ
+
+    style INT fill:#f9f,stroke:#333
+    style INT2 fill:#f9f,stroke:#333
+    style OBS fill:#ff9,stroke:#333
+```
+
 **Every edge is the same operation** — iterative convergence. Each edge traversal runs the inner vector: evaluator detects delta → meaning (what's the gap?) → discovery (what are the options?) → solutioning (construct next candidate).
 
 ### 2.2 Graph Properties
@@ -94,9 +116,14 @@ The SDLC graph is one such crystallisation. It is not privileged.
 
 The graph is **zoomable**. Any edge can be expanded into a sub-graph, and any sub-graph can be collapsed into a single edge:
 
-```
-Zoomed in:   A → B → C → D        (4 assets, 3 edges, intermediate results explicit)
-Zoomed out:  A ──────────→ D       (1 edge, intermediates encapsulated)
+```mermaid
+graph LR
+    subgraph "Zoomed In (3 edges, intermediates explicit)"
+        A1[A] --> B1[B] --> C1[C] --> D1[D]
+    end
+    subgraph "Zoomed Out (1 edge, intermediates encapsulated)"
+        A2[A] ==> D2[D]
+    end
 ```
 
 **Zooming in** forces intermediate results to be created as explicit, evaluable assets. **Zooming out** treats the whole sub-graph as a single iterative edge — you don't care about intermediates, only that the output converges.
@@ -143,6 +170,18 @@ This is the **only operation**. Every edge in the graph is this function called 
 while not stable(candidate, edge_type):
     candidate = iterate(candidate, context, evaluators)
 return promote(candidate)   // ATn.m becomes ATn+1.0
+```
+
+```mermaid
+flowchart TD
+    A["Asset (candidate)"] --> I["iterate(Asset, Context[], Evaluators)"]
+    I --> C{"stable(candidate)?"}
+    C -- "No: δ > ε" --> I
+    C -- "Yes: δ < ε for all evaluators" --> P["promote(candidate)"]
+    P --> M["Markov Object (stable asset)"]
+
+    CTX["Context[]"] -.-> I
+    EVAL["Evaluators(edge_type)"] -.-> C
 ```
 
 ### 3.2 Ontology Mapping
@@ -198,6 +237,31 @@ Different graph edges use different evaluator combinations:
 
 The edge type determines which evaluators constitute `stable()`. This is configurable, not hardcoded.
 
+```mermaid
+graph TD
+    subgraph "intent → requirements"
+        H1[Human] & AG1[Agent]
+    end
+    subgraph "design → code"
+        AG2[Agent] & DT1[Deterministic Tests]
+    end
+    subgraph "code ↔ unit_tests"
+        AG3[Agent] & DT2[Deterministic Tests]
+    end
+    subgraph "design → uat_tests"
+        H2[Human] & AG4[Agent]
+    end
+
+    style H1 fill:#e1f5fe
+    style H2 fill:#e1f5fe
+    style AG1 fill:#fff3e0
+    style AG2 fill:#fff3e0
+    style AG3 fill:#fff3e0
+    style AG4 fill:#fff3e0
+    style DT1 fill:#e8f5e9
+    style DT2 fill:#e8f5e9
+```
+
 ### 4.3 Two Compute Regimes
 
 The evaluators instantiate the ontology's two compute regimes (#45):
@@ -243,6 +307,22 @@ Intent alone:           vast possibility space (degeneracy → hallucination)
         + Prior:        narrows to evolution-of-existing
 ```
 
+```mermaid
+flowchart LR
+    I["Intent alone\n(vast possibility space)"] --> A["+ADRs\n(tech stack)"]
+    A --> D["+Data Models\n(schema-compatible)"]
+    D --> T["+Templates\n(pattern-conformant)"]
+    T --> P["+Policy\n(compliant)"]
+    P --> PR["+Prior\n(evolution-of-existing)"]
+
+    style I fill:#ffcdd2,stroke:#c62828
+    style A fill:#ffab91
+    style D fill:#ffe0b2
+    style T fill:#fff9c4
+    style P fill:#c8e6c9
+    style PR fill:#a5d6a7,stroke:#2e7d32
+```
+
 This is the ontology's constraint density (#16) in action. Sparse constraints → probability degeneracy (#54) → hallucination/failure. Dense constraints → stable Markov objects (#7). **Context is what prevents hallucination in the construction process.**
 
 ### 5.3 Context Stability
@@ -264,6 +344,24 @@ Feature F = |req⟩ + |design⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |
 ```
 
 Each component is a stable asset produced by iterating along an edge. The REQ key is the **vector identifier** — it tags which trajectory all these assets belong to. A feature is **complete** when all its edge-produced assets have converged to Markov objects.
+
+```mermaid
+graph LR
+    R["REQ-F-AUTH-001\n|req⟩"] --> D["REQ-F-AUTH-001\n|design⟩"]
+    D --> C["REQ-F-AUTH-001\n|code⟩"]
+    C <--> T["REQ-F-AUTH-001\n|unit_tests⟩"]
+    D --> U["REQ-F-AUTH-001\n|uat_tests⟩"]
+    C --> CI["REQ-F-AUTH-001\n|cicd⟩"]
+    CI --> TEL["REQ-F-AUTH-001\n|telemetry⟩"]
+
+    style R fill:#e1f5fe
+    style D fill:#e1f5fe
+    style C fill:#e1f5fe
+    style T fill:#e1f5fe
+    style U fill:#e1f5fe
+    style CI fill:#e1f5fe
+    style TEL fill:#e1f5fe
+```
 
 ### 6.2 Intent Lineage
 
@@ -352,6 +450,23 @@ Feature vectors (composite) → edge convergence → |cicd⟩ → |running⟩
                               │
                               ▼
                        back into the graph
+```
+
+```mermaid
+flowchart TD
+    FV["Feature Vectors\n(composite)"] --> EC["Edge Convergence"]
+    EC --> CICD["|cicd⟩"]
+    CICD --> RUN["|running⟩"]
+    RUN --> TEL["|telemetry⟩\n(tagged with REQ keys)"]
+    TEL --> H{"Homeostasis:\nwithin bounds?"}
+    H -- "Yes" --> RUN
+    H -- "No: drift detected" --> OBS["Observer / Evaluator"]
+    OBS --> NI["|new_intent⟩"]
+    NI --> FV
+
+    style H fill:#fff3e0
+    style NI fill:#f9f,stroke:#333
+    style OBS fill:#ff9,stroke:#333
 ```
 
 The Observer/Evaluator at runtime uses the same three evaluator types:

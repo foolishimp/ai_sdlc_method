@@ -110,6 +110,30 @@ A projection is specified along four dimensions:
 
 These dimensions are independent — you can have a full graph with light evaluators (fast pass through all stages) or a minimal graph with strict evaluators (one edge, done properly).
 
+```mermaid
+flowchart LR
+    subgraph Full
+        G1["Graph: all edges"]
+        E1["Evaluators: H+A+D"]
+        C1["Convergence: δ=0"]
+        X1["Context: full surface"]
+    end
+    subgraph Standard
+        G2["Graph: core edges"]
+        E2["Evaluators: A+D, H on key"]
+        C2["Convergence: required pass"]
+        X2["Context: project + ADRs"]
+    end
+    subgraph Minimal
+        G3["Graph: 1 edge"]
+        E3["Evaluators: 1 type"]
+        C3["Convergence: question answered"]
+        X3["Context: intent only"]
+    end
+
+    Full -.->|"projection"| Standard -.->|"projection"| Minimal
+```
+
 ### 3.3 The Projection Function
 
 ```
@@ -144,6 +168,25 @@ The Asset Graph Model (§6) defines feature vectors — trajectories through the
 | **Spike** | Assess technical risk | Subset graph (code + tests) | Risk assessed OR time_box_expired | Context[] — findings + recommendation |
 | **PoC** | Validate feasibility | Standard or light projection | Hypothesis confirmed/rejected OR time_box_expired | Context[] + optionally promoted assets |
 | **Hotfix** | Fix production issue | Minimal graph (code → tests) | Fix verified in production | Permanent — but spawns feature vector for proper remediation |
+
+```mermaid
+graph LR
+    subgraph "Feature (full trajectory)"
+        F1["|req⟩"] --> F2["|design⟩"] --> F3["|code⟩"] --> F4["|tests⟩"] --> F5["|uat⟩"] --> F6["|telemetry⟩"]
+    end
+    subgraph "Discovery (answer a question)"
+        D1["|question⟩"] --> D2["|investigation⟩"] --> D3["|findings⟩"]
+    end
+    subgraph "Spike (assess risk)"
+        S1["|hypothesis⟩"] --> S2["|experiment⟩"] --> S3["|assessment⟩"]
+    end
+    subgraph "PoC (validate feasibility)"
+        P1["|hypothesis⟩"] --> P2["|design_sketch⟩"] --> P3["|prototype⟩"] --> P4["|validation⟩"]
+    end
+    subgraph "Hotfix (emergency fix)"
+        H1["|incident⟩"] --> H2["|fix⟩"] --> H3["|verification⟩"]
+    end
+```
 
 ### 4.2 Feature Vector (unchanged from §6)
 
@@ -278,6 +321,27 @@ After fold-back:
 3. The context hash is recomputed (spec reproducibility)
 4. Iteration resumes on the parent with richer constraints
 
+```mermaid
+sequenceDiagram
+    participant P as Parent Feature
+    participant E as Evaluator
+    participant C as Child (Discovery)
+
+    P->>E: iterate on edge
+    E->>P: gap detected!
+    P->>C: spawn(Discovery, question, time_box)
+    Note over P: status: blocked_on child
+
+    C->>C: iterate(|question⟩ → |investigation⟩)
+    C->>C: iterate(|investigation⟩ → |findings⟩)
+    C->>C: converged: question answered
+
+    C->>P: fold_back(findings)
+    Note over P: Context[] += findings
+    Note over P: status: iterating
+    P->>E: resume iteration (richer constraints)
+```
+
 ### 5.3 Fold-Back as Context Enrichment
 
 Fold-back is not a special mechanism — it is **Context[] enrichment**. The child vector's outputs become entries in the parent's constraint surface. This is the same mechanism as loading an ADR or a data model — the child's findings narrow the parent's possibility space, reducing degeneracy and driving convergence.
@@ -326,6 +390,24 @@ Where:
 - **δ = 0** is the standard convergence (feature vectors, hotfixes)
 - **question_answered** is a human evaluator judgment ("yes, we now know enough")
 - **time_box_expired** triggers a graceful fold-back of partial results
+
+```mermaid
+flowchart TD
+    V["Vector iterating"] --> CHK{"Check convergence"}
+    CHK -->|"δ = 0\n(all required checks pass)"| CONV["CONVERGED\n(standard)"]
+    CHK -->|"question_answered\n(human judgment)"| CONVQ["CONVERGED\n(discovery/spike)"]
+    CHK -->|"time_box_expired"| FB["FOLD BACK\n(partial results)"]
+    CHK -->|"none of the above"| ITER["Continue iterating"]
+    ITER --> V
+
+    CONV --> PERM["Permanent assets"]
+    CONVQ --> CTX["Context[] enrichment"]
+    FB --> CTX
+
+    style CONV fill:#a5d6a7
+    style CONVQ fill:#a5d6a7
+    style FB fill:#fff9c4
+```
 
 ### 6.3 Time Box Mechanics
 
@@ -521,6 +603,33 @@ fold_back(PoC-P → Feature F):
 ```
 
 Feature F resumes at the design edge, now with Kafka validated as a constraint. The possibility space has narrowed — no more "Kafka vs queue?" uncertainty.
+
+```mermaid
+sequenceDiagram
+    participant F as Feature F (standard)
+    participant E as Agent Evaluator
+    participant P as PoC P (poc profile)
+
+    F->>E: iterate(req → design)
+    E->>F: gap: "Kafka vs simple queue?"
+    F->>P: spawn(PoC, "Can Kafka handle 10K/sec?", 3 weeks)
+    Note over F: status: blocked_on PoC-P
+
+    rect rgb(240, 248, 255)
+        Note over P: Week 1
+        P->>P: iterate(hypothesis → design_sketch)
+        Note over P: Week 2
+        P->>P: iterate(design_sketch → prototype)
+        Note over P: Week 3
+        P->>P: iterate(prototype → validation)
+        Note over P: 12K events/sec — PASS
+    end
+
+    P->>F: fold_back(findings + ADR-007 + design_sketch)
+    Note over F: Context[] += ADR-007, findings
+    Note over F: status: iterating
+    F->>E: resume iterate(req → design) with Kafka validated
+```
 
 ### 8.5 What Was Preserved
 
