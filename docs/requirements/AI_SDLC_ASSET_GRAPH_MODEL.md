@@ -114,26 +114,50 @@ The SDLC graph is one such crystallisation. It is not privileged.
 
 ### 2.5 Graph Scaling (Zoom)
 
-The graph is **zoomable**. Any edge can be expanded into a sub-graph, and any sub-graph can be collapsed into a single edge:
+The graph is **zoomable**. Any edge can be expanded into a sub-graph, and any sub-graph can be collapsed into a single edge. But zoom is not binary — it is **selective**. You can collapse most of a sub-graph while still requiring specific intermediate assets.
 
 ```mermaid
 graph LR
-    subgraph "Zoomed In (3 edges, intermediates explicit)"
+    subgraph "Zoomed In (all intermediates explicit)"
         A1[A] --> B1[B] --> C1[C] --> D1[D]
     end
-    subgraph "Zoomed Out (1 edge, intermediates encapsulated)"
-        A2[A] ==> D2[D]
+    subgraph "Selective Zoom (B required, C collapsed)"
+        A2[A] --> B2[B] ==> D2[D]
+    end
+    subgraph "Zoomed Out (all intermediates encapsulated)"
+        A3[A] ==> D3[D]
     end
 ```
 
-**Zooming in** forces intermediate results to be created as explicit, evaluable assets. **Zooming out** treats the whole sub-graph as a single iterative edge — you don't care about intermediates, only that the output converges.
+**Zooming in** forces intermediate results to be created as explicit, evaluable assets. **Zooming out** treats the whole sub-graph as a single iterative edge. **Selective zoom** — the common case — collapses some intermediates while retaining others as mandatory waypoints.
+
+Example: a PoC skips formal requirements and UAT but still requires a design document:
+
+```
+Full:       Intent → Requirements → Design → Code ↔ Tests → UAT
+PoC:        Intent ──────────────→ Design → Code ↔ Tests
+                                   ↑ mandatory intermediate
+```
+
+You can also zoom in further and require multiple layers within a single asset type. Design might expand into:
+
+```
+Design (zoomed out):   |design⟩
+Design (zoomed in):    |high_level_design⟩ → |component_design⟩ → |api_spec⟩ → |data_model⟩
+Design (selective):    |high_level_design⟩ → |api_spec⟩
+```
+
+Each intermediate asset that is made explicit gets its own edge, its own evaluators, and its own convergence check. Making an intermediate mandatory means: "this asset must exist as a stable Markov object before the next edge can proceed."
 
 This is an operational choice, driven by Context[]:
 
 | Zoom level | When | What you get |
 |------------|------|-------------|
 | **Zoomed in** | Regulated environments, complex problems, audit requirements | Full intermediate assets, maximum traceability, higher cost |
+| **Selective** | Most real work — skip what's unnecessary, keep what matters | Required intermediates explicit, others collapsed, balanced cost |
 | **Zoomed out** | Rapid prototyping, well-understood problems, trusted constructors | Fewer assets, faster delivery, less overhead |
+
+The choice of which intermediates are mandatory is itself Context[] — it can be set at the project level (project_constraints), the feature level (feature vector overrides), or the profile level (projection profiles).
 
 Tests are the canonical example of scale-dependent assurance:
 
