@@ -109,6 +109,23 @@ checklist:
     source: default
     required: true
 
+  # ─── Traceability checks (composed from traceability.yml Layer 3) ──
+  - name: "code_req_keys_have_telemetry"
+    type: agent
+    criterion: |
+      Every REQ key in code (Implements: REQ-*) has corresponding
+      telemetry tagging (req="REQ-*"). Telemetry gaps mean features
+      running without observability — the feedback loop cannot detect
+      deviations for unmonitored features.
+    source: traceability
+    required: true
+
+  - name: "telemetry_tag_format"
+    type: deterministic
+    criterion: "All telemetry REQ tags use structured format: req=\"REQ-*\""
+    source: traceability
+    required: true
+
 convergence:
   rule: "all_required_checks_pass"
 

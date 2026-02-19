@@ -150,6 +150,40 @@ checklist:
     source: default
     required: true
 
+  # ─── Traceability checks (composed from traceability.yml) ──────────
+  # Layer 1: REQ tag coverage (required)
+  - name: "req_tags_in_code"
+    type: deterministic
+    criterion: "Every production code file has at least one 'Implements: REQ-*' tag"
+    source: traceability
+    required: true
+
+  - name: "req_tags_in_tests"
+    type: deterministic
+    criterion: "Every test file has at least one 'Validates: REQ-*' tag"
+    source: traceability
+    required: true
+
+  - name: "req_tags_valid_format"
+    type: deterministic
+    criterion: "All REQ tags follow format: (Implements|Validates): REQ-{TYPE}-{DOMAIN}-{SEQ}"
+    source: traceability
+    required: true
+
+  # Layer 2: Test gap analysis (required)
+  - name: "all_req_keys_have_tests"
+    type: agent
+    criterion: "Every REQ key in scope has at least one test with 'Validates: REQ-*' tag"
+    source: traceability
+    required: true
+
+  # Layer 3: Telemetry gap analysis (advisory at TDD stage)
+  - name: "code_req_keys_have_telemetry"
+    type: agent
+    criterion: "REQ keys in code have corresponding telemetry tagging (req=\"REQ-*\")"
+    source: traceability
+    required: false
+
   # ─── Feature checks (injected at runtime) ──────────────────────────
   # The iterate agent appends from:
   #   feature.constraints.acceptance_criteria

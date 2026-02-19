@@ -59,6 +59,20 @@ checklist:
     command: "$tools.type_checker.command $tools.type_checker.args"
     pass_criterion: "$tools.type_checker.pass_criterion"
 
+# ─── Traceability checks (composed from traceability.yml Layer 1) ────
+  - name: "req_tags_in_code"
+    type: deterministic
+    criterion: "Every production code file has at least one 'Implements: REQ-*' tag"
+    source: traceability
+    required: true
+    # See traceability.yml for command — resolve at runtime
+
+  - name: "req_tags_valid_format"
+    type: deterministic
+    criterion: "All REQ tags follow format: (Implements|Validates): REQ-{TYPE}-{DOMAIN}-{SEQ}"
+    source: traceability
+    required: true
+
 convergence:
   rule: "all_required_checks_pass"
 
@@ -69,4 +83,5 @@ agent_guidance: |
   3. Tag every file with # Implements: REQ-*
   4. Follow coding standards from project_constraints.yml
   5. Start minimal — TDD edge will drive detailed implementation
-  6. Report checklist: "N of M required checks pass"
+  6. Run traceability Layer 1 checks (REQ tag coverage) — see traceability.yml
+  7. Report checklist: "N of M required checks pass"
