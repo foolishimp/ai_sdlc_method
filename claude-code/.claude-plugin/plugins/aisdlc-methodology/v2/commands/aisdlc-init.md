@@ -1,4 +1,4 @@
-# /aisdlc-init - Initialize AI SDLC v2.1 Workspace
+# /aisdlc-init - Initialize AI SDLC v2.3 Workspace
 
 Initialize a project with the AI SDLC Asset Graph Model workspace structure.
 
@@ -18,7 +18,7 @@ Initialize a project with the AI SDLC Asset Graph Model workspace structure.
 
 ## Instructions
 
-This command scaffolds a v2.1 AI SDLC workspace: the asset graph configuration, context store, feature tracking, and task management.
+This command scaffolds a v2.3 AI SDLC workspace: the asset graph configuration (Layer 2: Graph Package), context store and project constraints (Layer 3: Project Binding), feature tracking, and task management.
 
 ### Step 1: Determine Project Name
 
@@ -93,6 +93,13 @@ For any tool not auto-detected, leave the template default and add a comment:
 ```yaml
 # TODO: Configure your test runner
 ```
+
+7. **Constraint dimensions**: auto-populate from detected values:
+   - `ecosystem_compatibility.language`: from detected language
+   - `ecosystem_compatibility.version`: from detected version
+   - `build_system.tool`: from detected build tool (npm, pip, sbt, cargo, etc.)
+   - `build_system.module_structure`: "monolith" (default) or "multi-module" if detected
+   - Mark remaining mandatory dimensions as `# TODO: Configure before running requirements→design edge`
 
 Present the scaffolded file to the user for review before writing.
 
@@ -248,32 +255,38 @@ We will {describe decision here}.
 Display a summary:
 
 ```
-AI SDLC v2.1 Workspace Initialized
+AI SDLC v2.3 Workspace Initialized
 ===================================
 
 Project: {project_name}
-Model:   Asset Graph Model v2.1
+Model:   Asset Graph Model v2.3
 
-Graph Topology:
-  Asset types:  {count from graph_topology.yml}
-  Transitions:  {count from graph_topology.yml}
-  Edge configs: {count of files in edges/}
+Graph Topology (Layer 2: Graph Package):
+  Asset types:           {count from graph_topology.yml}
+  Transitions:           {count from graph_topology.yml}
+  Edge configs:          {count of files in edges/}
+  Constraint dimensions: {count mandatory}/{count total} mandatory
 
-Project Constraints:
+Project Binding (Layer 3):
   Language:     {detected language}
   Test runner:  {detected or "not configured"}
   Linter:       {detected or "not configured"}
   Coverage min: {threshold}%
+  Dimensions configured:  {count of non-empty constraint dimensions}
+  Dimensions TODO:        {count of empty mandatory dimensions}
 
 Workspace:
-  .ai-workspace/graph/          Graph topology + edge configs
-  .ai-workspace/context/        Context[] store (ADRs, models, policy, constraints)
+  .ai-workspace/graph/          Graph topology + edge configs (Layer 2)
+  .ai-workspace/context/        Context[] store + project constraints (Layer 3)
   .ai-workspace/features/       Feature vector tracking + template
-  .ai-workspace/tasks/          Task management
+  .ai-workspace/events/         Event log (source of truth)
+  .ai-workspace/tasks/          Task management (derived view)
+  .ai-workspace/profiles/       Projection profiles
   .ai-workspace/snapshots/      Session recovery
 
 Next Steps:
-  1. Review .ai-workspace/context/project_constraints.yml — configure your toolchain
+  1. Review .ai-workspace/context/project_constraints.yml
+     — configure your toolchain AND constraint dimensions
   2. Edit docs/specification/INTENT.md with your project intent
   3. Run: /aisdlc-iterate --edge "intent→requirements" --feature "REQ-F-{DOMAIN}-001"
   4. Review generated requirements

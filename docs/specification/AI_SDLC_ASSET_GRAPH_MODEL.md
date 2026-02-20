@@ -1,6 +1,6 @@
 # AI SDLC: The Asset Graph Model
 
-**Version**: 2.2.0
+**Version**: 2.3.0
 **Date**: 2026-02-20
 **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) (§V, §VIII-B, §VIII-C)
 
@@ -195,6 +195,29 @@ This separation enables:
 - **Technology migration**: Change the design without changing the spec. The requirements survive platform shifts.
 - **Disambiguation routing**: When iteration reveals ambiguity, the evaluator routes feedback to the right level — business gap → Spec, technical gap → Design.
 
+#### 2.6.1 Constraint Dimensions at the Design Edge
+
+The Requirements → Design edge is the most consequential transition in the graph. Design must resolve **all disambiguation necessary for code to be constructed**. Each unresolved dimension leaves the design under-constrained — the constructor fills the gap with implicit assumptions that may be wrong.
+
+A **constraint dimension** is a category of decisions that design must explicitly address:
+
+| Dimension | What it resolves | Example |
+|-----------|-----------------|---------|
+| **Ecosystem Compatibility** | Runtime platform, language version, framework versions, dependency compatibility matrix | Scala 2.13 + Spark 3.5 (not Scala 3 — incompatible) |
+| **Deployment Target** | Where and how the system runs, infrastructure assumptions | Kubernetes, serverless, on-premise, hybrid |
+| **Security Model** | Authentication, authorisation, data protection, threat model | OAuth2 + RBAC, mTLS, encryption at rest |
+| **Data Governance** | Privacy, lineage, retention, compliance frameworks | GDPR, data classification, audit trail |
+| **Performance Envelope** | Latency, throughput, resource bounds, scaling strategy | p99 < 200ms, 10k RPS, horizontal scaling |
+| **Build System** | Build tool, module structure, dependency management, CI integration | sbt multi-module, Maven, Gradle |
+| **Observability** | Logging, metrics, tracing, alerting strategy | OpenTelemetry, structured logging, REQ-key tagging |
+| **Error Handling** | Failure modes, retry strategy, circuit breaking, degradation | Fail-fast, retry with backoff, graceful degradation |
+
+These dimensions are **not universal** — they are graph package configuration (§2.8). Different domains have different dimension taxonomies. A legal document graph might have dimensions for jurisdiction, precedent scope, and enforcement mechanism. The SDLC dimensions above are one crystallisation.
+
+**Each dimension resolved adds constraint density** (§5.2) at the design edge. Dogfooding observation: 5/7 bugs found at build time were in dimensions the design left implicit (ecosystem compatibility, build structure). The evaluator bar appeared adequate (1-iteration convergence) precisely because missing dimensions weren't being checked — the evaluator can't detect what the constraint surface doesn't define.
+
+The graph package (§2.8) specifies which dimensions are **mandatory** (must be explicitly resolved via ADRs or design decisions) and which are **advisory** (should be considered but may use implementation defaults). The project binding (§2.8, Layer 3) provides the concrete values for each dimension.
+
 ### 2.7 Multiple Implementations Per Spec
 
 A single requirement key can have multiple design variants:
@@ -207,6 +230,44 @@ REQ-F-AUTH-001 (spec)
 ```
 
 Each variant is a separate trajectory through the downstream graph, sharing the same upstream spec. The variants can run in parallel, and telemetry from production enables data-driven selection between them. This is the Hilbert space (§11) in action — multiple vectors in superposition until measurement (production telemetry) collapses to the best-performing variant.
+
+### 2.8 Instantiation Layers: Engine, Graph Package, Project Binding
+
+The methodology separates into three layers of increasing specificity. This separation is already implicit in the model — the four primitives are universal (§1), the SDLC graph is one domain-specific instantiation (§2.1), and project constraints are instance-specific (§5.1). Making the layers explicit enables clean packaging and deployment.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Layer 1: ENGINE (universal)                                  │
+│  4 primitives + iterate() + evaluator type taxonomy           │
+│  Same across all domains. Never changes per graph or project. │
+├──────────────────────────────────────────────────────────────┤
+│  Layer 2: GRAPH PACKAGE (domain-specific)                     │
+│  Topology + edge configs + constraint dimension taxonomy      │
+│  + evaluator checklists + projection profiles                 │
+│  One per domain (SDLC, legal, science, ...)                   │
+├──────────────────────────────────────────────────────────────┤
+│  Layer 3: PROJECT BINDING (instance-specific)                 │
+│  project_constraints + context URIs + threshold overrides     │
+│  + team conventions + CI/CD integration                       │
+│  One per project                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Layer 1: Engine** — The four primitives (§1), the iteration function (§3), the evaluator type taxonomy (§4.1), the feature vector formalism (§6), and the event sourcing execution model (§7.5). These are universal across all domains. A legal document workflow, a physics paper pipeline, and a software SDLC all use the same engine.
+
+**Layer 2: Graph Package** — A domain-specific instantiation: the graph topology (which asset types exist, which transitions are admissible), edge parameterisations (evaluator checklists and weighting per edge), constraint dimension taxonomy (what disambiguation categories design must resolve — §2.6.1), and projection profiles (full, standard, PoC, spike, hotfix — which edges to traverse, which to collapse). The SDLC graph in §2.1 is one graph package. Different domains produce different packages from the same engine. Each package follows the abiogenesis pattern (§2.4): practitioners in a domain work, patterns crystallise, the topology and edge configs encode those patterns.
+
+**Layer 3: Project Binding** — Instance-specific configuration that binds a graph package to a concrete project: technology constraints (language, frameworks, versions), context URIs (pointers to reference documents, API specs, compliance policies), evaluator threshold overrides (e.g., minimum ADR count, test coverage floor), team conventions (naming, branching strategy), and CI/CD integration details (build commands, deployment targets).
+
+This separation is itself an instance of the ontology's construction pattern (#38):
+
+| Construction pattern | Layer |
+|---------------------|-------|
+| **Constructor** (universal, substrate-independent) | Engine |
+| **Encoded representation** (domain knowledge crystallised) | Graph Package |
+| **Construction context** (specific constraints of this instance) | Project Binding |
+
+The three-layer separation explains why the same methodology can produce radically different outcomes in different domains: the engine is invariant, the graph package captures domain expertise, and the project binding captures local constraints. Changing the graph package changes the domain. Changing the project binding changes the project. The engine never changes.
 
 ---
 
@@ -583,6 +644,91 @@ When the cycle closes, the system becomes **teleodynamic** (#49): it maintains a
 
 This is the abiogenesis insight (#39) completing itself: the methodology starts as a pipeline (constructor without feedback), then the feedback loop closes (encoding updates from runtime observation), and the system becomes self-maintaining. The graph topology itself can evolve through this process.
 
+### 7.5 Event Sourcing: Immutable Facts and Derived Projections
+
+The methodology's execution model is **event sourcing**: all state changes are recorded as immutable events, and all observable state is a projection (derived view) of the event history.
+
+#### 7.5.1 Events as Immutable Facts
+
+Each methodology action produces an immutable event:
+
+```json
+{
+  "event": "edge_iteration_completed",
+  "edge": "requirements_design",
+  "feature": "REQ-F-AUTH-001",
+  "iteration": 2,
+  "evaluators": {"agent": "converged", "human": "pending"},
+  "timestamp": "2026-02-20T14:30:00Z",
+  "context_hash": "sha256:a1b2c3..."
+}
+```
+
+Events record **what happened**, not what the current state is. The event log is append-only — no event is ever modified or deleted. This is the ontology's core claim made operational: the constraint network computes forward from its current state (§10.3 of the ontology, the unit of change). The past state was consumed in producing the current one; only the record of what happened persists.
+
+Event types include: `edge_iteration_completed`, `edge_converged`, `evaluator_ran`, `finding_raised`, `context_added`, `feature_spawned`, `feature_folded_back`, `telemetry_signal_emitted`.
+
+#### 7.5.2 Projections as Derived Views
+
+All methodology state is computed from the event log:
+
+| Projection | Derived from | Purpose |
+|-----------|-------------|---------|
+| **STATUS** | All events | Current state of all edges, features, evaluators |
+| **Feature vectors** | Edge convergence events | Which features have converged at which edges |
+| **Task lists** | Feature decomposition + dependency events | What work remains, in what order |
+| **Feature views** | Tag-grepping events + artifact state | Per-REQ cross-artifact status (§6.4) |
+| **Telemetry signals** | Observer evaluation events | Self-observation of methodology performance (§7.6) |
+| **Gap analysis** | Finding events + evaluator results | What the methodology missed and why |
+
+Projections are **re-derivable**: given the event log, any projection can be reconstructed at any point in time. This provides:
+
+- **Auditability**: The full history of every decision and evaluation
+- **Reproducibility**: Any past state can be reconstructed from events
+- **Evolution**: New projections can be added without changing the event log
+- **Debugging**: When a methodology run produces unexpected results, the event log shows exactly what happened
+
+#### 7.5.3 Ontology Connection
+
+The event log is the methodology's analogue of the constraint network's evolution history. Projections are manifold-level observables — the views that emerge when the raw event stream is coarse-grained through a particular lens.
+
+This is the same relationship as:
+
+| Domain | Event stream | Projection |
+|--------|-------------|-----------|
+| **Physics** | Constraint network evolution | Spacetime, particles, gravity |
+| **LLM** | Forward pass activations | Token probabilities, output text |
+| **SDLC** | Methodology events (edge iterations, evaluator results) | STATUS, feature vectors, task lists |
+| **Biology** | DNA replication + transcription events | Phenotype, organism behaviour |
+
+The event sourcing model is an engine-level primitive (§2.8, Layer 1) — it applies regardless of which graph package or project binding is in use.
+
+### 7.6 Methodology Self-Observation
+
+The methodology observes itself using the same evaluator pattern it uses for artifacts. The observer/evaluator at the telemetry→intent edge (§7.3) applies not only to the running system but to the **methodology's own performance**.
+
+**Telemetry signals** (TELEM) are the methodology's self-evaluation:
+
+| Signal | What it observes | What it means |
+|--------|-----------------|---------------|
+| Iteration counts per edge | How many iterations before convergence | Low counts may indicate evaluator bar too low |
+| Evaluator skip counts | How many deterministic checks were skipped | Missing build environment or skip policy gap |
+| Finding redundancy | Same gaps rediscovered across edges | Missing back-propagation mechanism |
+| Source vs output structure mismatch | Design structure doesn't match build structure | Design edge missing build_system dimension (§2.6.1) |
+| Build success/failure | Whether the constructed artifact compiles and passes tests | Construction validation — the ultimate evaluator |
+| Bug category at build time | Which evaluator *should* have caught each bug | Maps directly to evaluator gaps and missing constraint dimensions |
+
+These signals feed back into the **graph package** (§2.8, Layer 2). They are the mechanism by which the methodology's own topology and evaluator checklists evolve. This is the abiogenesis pattern (§2.4) operating at the meta-level: running the methodology reveals gaps, which crystallise into improved edge configurations and constraint dimension taxonomies.
+
+The methodology is a Markov object that maintains itself (#49 — teleodynamic status). The self-observation loop is the same construct at two levels:
+
+```
+Level 1 (product):     |running_system⟩ → |telemetry⟩ → |observer⟩ → |new_intent⟩
+Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer⟩ → |graph_package_update⟩
+```
+
+Both levels use the same three evaluator types (§4.1). Both produce events (§7.5). Both close the feedback loop from observation to specification update.
+
 ---
 
 ## 8. Ontology Traceability
@@ -618,6 +764,15 @@ This is the abiogenesis insight (#39) completing itself: the methodology starts 
 | Spec/Design boundary | Boundary between encoded representation and constructor | 40, 41 |
 | Feature view (cross-artifact) | Observable projection of trajectory state | 15 + 9 |
 | Multiple design variants | Superposition of alternative constructions | 45 |
+| Constraint dimension | Category of disambiguation at design edge | 16 (constraint density) |
+| Engine (Layer 1) | Universal constructor — substrate-independent | 41 |
+| Graph Package (Layer 2) | Domain-specific encoded representation | 40 |
+| Project Binding (Layer 3) | Instance-specific construction context | 9 (local constraint surface) |
+| Event (immutable fact) | Unit of change — discrete constraint network update | 10.3 (unit of change) |
+| Projection (derived view) | Emergent manifold-level observable | 9, 11 |
+| Event log | Constraint network evolution history | 2 (constraint propagation) |
+| TELEM signal (self-observation) | Methodology as self-observing Markov object | 35, 49 |
+| Methodology self-maintenance | Teleodynamic status — system maintains own specification | 49 |
 
 ### 8.2 The Construction Pattern
 
@@ -690,6 +845,10 @@ The methodology follows the abiogenesis pattern (#39) at two levels:
 - **Feature lineage in telemetry** — REQ keys in logs/metrics/traces, observable at runtime
 - **Feature views** — cross-artifact status per REQ key, generated by grepping tag format
 - **Multiple implementations** — same spec, different designs, telemetry-driven variant selection
+- **Constraint dimension taxonomy** — mandatory disambiguation categories at the design edge (ecosystem, security, deployment, ...)
+- **Three-layer architecture** — Engine (universal) / Graph Package (domain-specific) / Project Binding (instance-specific)
+- **Event sourcing execution model** — immutable events, derived projections (STATUS, feature vectors, task lists)
+- **Methodology self-observation** — TELEM signals feed back into graph package evolution
 
 ---
 
@@ -702,15 +861,18 @@ The AI SDLC is:
 3. Traced by **feature vectors** — composite vectors (trajectories through the graph), identified by REQ keys
 4. Bounded by **Spec + Context[]** — the constraint surface (including the graph topology itself) that prevents degeneracy
 5. Evaluated by **{Human, Agent, Tests}** — composable convergence criteria per edge
-6. Split at a **Spec/Design boundary** — Spec = WHAT (tech-agnostic), Design = HOW (tech-bound). One spec, many designs.
+6. Split at a **Spec/Design boundary** — Spec = WHAT (tech-agnostic), Design = HOW (tech-bound). Constraint dimensions define what design must resolve.
 7. Observable via **feature views** — REQ keys grepped across all artifacts produce per-feature status at any time
 8. Completing the **full lifecycle** — through CI/CD, Telemetry (tagged with REQ keys), Homeostasis, and back to Intent
+9. Packaged in **three layers** — Engine (universal primitives) / Graph Package (domain-specific topology + edge configs + constraint dimensions) / Project Binding (instance-specific constraints + context URIs)
+10. Executed via **event sourcing** — immutable events, all state (STATUS, feature vectors, tasks) as derived projections
+11. **Self-observing** — TELEM signals from methodology runs feed back into graph package evolution
 
 The graph is not universal — it is domain-constructed via abiogenesis (#39). The SDLC graph is one crystallisation. A legal document, a physics paper, an organisational policy each produce different graphs from the same four primitives. The graph is zoomable: any edge expandable into a sub-graph, any sub-graph collapsible into a single edge.
 
-The methodology is an instantiation of the constraint-emergence ontology's information-driven construction pattern (#38), with the iteration function as local preorder traversal (#15) on the constraint manifold (#9), producing stable Markov objects (#7) that become constraints for the next construction, closing the feedback loop (#44) through runtime observation, and achieving self-maintaining teleodynamic status (#49) when the specification becomes a living encoding (#46) updated from production experience.
+The methodology is an instantiation of the constraint-emergence ontology's information-driven construction pattern (#38), with the iteration function as local preorder traversal (#15) on the constraint manifold (#9), producing stable Markov objects (#7) that become constraints for the next construction, closing the feedback loop (#44) through runtime observation, and achieving self-maintaining teleodynamic status (#49) when the specification becomes a living encoding (#46) updated from production experience. The execution model is event sourcing — each methodology action produces an immutable event; all observable state is a projection of the event history. The methodology observes itself through the same evaluator pattern it uses for artifacts.
 
-Four primitives. One operation. The rest is parameterisation — including the graph itself.
+Four primitives. One operation. Three layers. The rest is parameterisation — including the graph itself.
 
 ---
 

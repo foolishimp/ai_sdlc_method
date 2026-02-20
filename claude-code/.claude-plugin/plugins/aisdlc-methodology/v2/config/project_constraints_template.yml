@@ -119,6 +119,85 @@ standards:
     commits: "Implements: REQ-{TYPE}-{DOMAIN}-{SEQ}"
 
 # ═══════════════════════════════════════════════════════════════════════
+# CONSTRAINT DIMENSIONS (Spec §2.6.1, Layer 3 Project Binding)
+# ═══════════════════════════════════════════════════════════════════════
+# These provide the concrete values for each constraint dimension defined
+# in graph_topology.yml. The iterate agent checks that all mandatory
+# dimensions are resolved at the Requirements → Design edge.
+#
+# Mandatory dimensions: ecosystem_compatibility, deployment_target,
+#                       security_model, build_system
+# Advisory dimensions:  data_governance, performance_envelope,
+#                       observability, error_handling
+
+constraint_dimensions:
+
+  ecosystem_compatibility:
+    language: "{primary language}"          # python | scala | typescript | go | rust | java
+    version: "{language version}"           # e.g., "3.12", "2.13.12"
+    runtime: ""                             # e.g., "Spark 3.5", "Node 20", "JVM 21"
+    frameworks: []
+      # - name: "Django"
+      #   version: "5.0"
+      # - name: "Spark"
+      #   version: "3.5.0"
+      #   scope: "provided"
+    compatibility_notes: ""
+      # "Spark 3.5.x only supports Scala 2.12/2.13, NOT Scala 3"
+
+  deployment_target:
+    platform: ""                            # kubernetes | serverless | docker-compose | bare-metal
+    cloud_provider: ""                      # aws | gcp | azure | on-premise | hybrid
+    environment_tiers: []
+      # - dev
+      # - staging
+      # - production
+    notes: ""
+
+  security_model:
+    authentication: ""                      # oauth2 | jwt | api-key | mtls | saml
+    authorisation: ""                       # rbac | abac | acl | none
+    data_protection: ""                     # encryption-at-rest | encryption-in-transit | both
+    compliance: []
+      # - "SOC2"
+      # - "HIPAA"
+    notes: ""
+
+  build_system:
+    tool: ""                                # sbt | gradle | maven | npm | cargo | make
+    module_structure: ""                    # monolith | multi-module | monorepo | polyrepo
+    ci_integration: ""                      # github-actions | jenkins | gitlab-ci | circleci
+    notes: ""
+
+  # Advisory dimensions — fill in if relevant, leave empty if not applicable
+
+  data_governance:
+    classification: ""                      # public | internal | confidential | restricted
+    retention_policy: ""                    # e.g., "7 years", "30 days"
+    lineage_required: false
+    compliance_frameworks: []
+      # - "GDPR"
+      # - "CCPA"
+
+  performance_envelope:
+    latency_target: ""                      # e.g., "p99 < 200ms"
+    throughput_target: ""                    # e.g., "10k RPS", "1M records/hour"
+    scaling_strategy: ""                    # horizontal | vertical | auto
+    resource_bounds: ""                     # e.g., "4 CPU, 8GB RAM per pod"
+
+  observability:
+    logging: ""                             # structured-json | plain-text | opentelemetry
+    metrics: ""                             # prometheus | cloudwatch | datadog
+    tracing: ""                             # opentelemetry | jaeger | zipkin
+    req_key_tagging: true                   # Tag telemetry with REQ keys (recommended)
+
+  error_handling:
+    strategy: ""                            # fail-fast | retry-with-backoff | circuit-breaker
+    error_types: ""                         # structured | exception-hierarchy | error-codes
+    degradation: ""                         # graceful | fail-fast | fallback
+    notes: ""
+
+# ═══════════════════════════════════════════════════════════════════════
 # ARCHITECTURE CONSTRAINTS
 # ═══════════════════════════════════════════════════════════════════════
 # Standing architectural decisions that constrain all features.

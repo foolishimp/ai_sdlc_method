@@ -1,6 +1,6 @@
 # AI SDLC — Default Graph Topology
-# Version: 2.1.0
-# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md (v2.1.0)
+# Version: 2.3.0
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md (v2.3.0)
 #
 # This file defines the asset types and admissible transitions for the
 # default SDLC graph. Projects can extend or modify this topology.
@@ -140,6 +140,94 @@ asset_types:
       - tagged_with_req_keys
 
 # ═══════════════════════════════════════════
+# Constraint Dimensions (Spec §2.6.1)
+# ═══════════════════════════════════════════
+#
+# Constraint dimensions are categories of disambiguation that design must
+# resolve at the Requirements → Design edge. Each unresolved mandatory
+# dimension leaves the design under-constrained — the constructor fills
+# the gap with implicit assumptions that may be wrong.
+#
+# These dimensions are SDLC-specific (graph package configuration).
+# Different domains have different dimension taxonomies.
+#
+# mandatory: must be explicitly resolved via ADR or design decision
+# advisory:  should be considered, may use implementation defaults
+#
+# Project bindings provide concrete values for each dimension in
+# project_constraints.yml under the `constraint_dimensions:` key.
+
+constraint_dimensions:
+
+  ecosystem_compatibility:
+    description: "Runtime platform, language version, framework versions, dependency compatibility"
+    mandatory: true
+    resolves_via: adr
+    examples:
+      - "Scala 2.13 + Spark 3.5 (not Scala 3 — incompatible)"
+      - "Python 3.12 + Django 5.0"
+      - "Node 20 + React 18 + Next.js 14"
+
+  deployment_target:
+    description: "Where and how the system runs, infrastructure assumptions"
+    mandatory: true
+    resolves_via: adr
+    examples:
+      - "Kubernetes on AWS EKS"
+      - "Serverless (Lambda + API Gateway)"
+      - "On-premise Docker Compose"
+
+  security_model:
+    description: "Authentication, authorisation, data protection, threat model"
+    mandatory: true
+    resolves_via: adr
+    examples:
+      - "OAuth2 + RBAC, mTLS between services"
+      - "API key + rate limiting"
+      - "JWT + row-level security"
+
+  data_governance:
+    description: "Privacy, lineage, retention, compliance frameworks"
+    mandatory: false
+    resolves_via: adr_or_design_section
+    examples:
+      - "GDPR compliant, data classification, 7-year retention"
+      - "SOC2 audit trail required"
+
+  performance_envelope:
+    description: "Latency, throughput, resource bounds, scaling strategy"
+    mandatory: false
+    resolves_via: design_section
+    examples:
+      - "p99 < 200ms, 10k RPS, horizontal scaling"
+      - "Batch processing: 1M records/hour"
+
+  build_system:
+    description: "Build tool, module structure, dependency management, CI integration"
+    mandatory: true
+    resolves_via: adr_or_design_section
+    examples:
+      - "sbt multi-module with dependency DAG"
+      - "npm workspaces monorepo"
+      - "Gradle with convention plugins"
+
+  observability:
+    description: "Logging, metrics, tracing, alerting strategy"
+    mandatory: false
+    resolves_via: design_section
+    examples:
+      - "OpenTelemetry, structured JSON logging, REQ-key tagging"
+      - "Prometheus + Grafana, ELK stack"
+
+  error_handling:
+    description: "Failure modes, retry strategy, circuit breaking, degradation"
+    mandatory: false
+    resolves_via: design_section
+    examples:
+      - "Fail-fast with structured error types"
+      - "Retry with exponential backoff, circuit breaker on external calls"
+
+# ═══════════════════════════════════════════
 # Admissible Transitions
 # ═══════════════════════════════════════════
 #
@@ -241,4 +329,4 @@ graph_properties:
   cyclic: true         # Feedback loop: telemetry → intent
   extensible: true     # Add new asset types/transitions via YAML
   zoomable: true       # Any edge can expand into a sub-graph
-  version: "2.1.0"
+  version: "2.3.0"

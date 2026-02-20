@@ -1,7 +1,7 @@
 {
   "name": "aisdlc-methodology-v2",
-  "version": "2.1.0",
-  "description": "AI SDLC Asset Graph Model v2.1 — universal iterate agent, edge-parameterised graph, projection profiles, traceability validation. 1 agent, 9 commands, configurable YAML topology.",
+  "version": "2.3.0",
+  "description": "AI SDLC Asset Graph Model v2.3 — universal iterate agent, edge-parameterised graph, constraint dimensions, event sourcing, projection profiles, methodology self-observation, traceability validation. 1 agent, 9 commands, configurable YAML topology.",
   "author": {
     "name": "foolishimp"
   },

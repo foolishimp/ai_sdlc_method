@@ -3,6 +3,7 @@
 Display the current state of all feature vectors and their trajectories through the graph.
 
 <!-- Implements: REQ-TOOL-002, REQ-FEAT-002 -->
+<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.3.0 §7.5 Event Sourcing, §7.6 Self-Observation -->
 
 ## Usage
 
@@ -67,6 +68,16 @@ Trajectory:
 
 Dependencies:
   REQ-F-DB-001   ✓ resolved (database schema available)
+
+Constraint Dimensions (at design edge):
+  ecosystem_compatibility  ✓ resolved (ADR-003: Python 3.12 + Django 5.0)
+  deployment_target        ✓ resolved (ADR-004: Kubernetes on AWS EKS)
+  security_model           ✓ resolved (ADR-005: OAuth2 + RBAC)
+  build_system             ✓ resolved (ADR-006: pip + Docker multi-stage)
+  data_governance          ~ advisory (acknowledged — GDPR not applicable)
+  performance_envelope     ~ advisory (p99 < 200ms target documented)
+  observability            ~ advisory (OpenTelemetry planned)
+  error_handling           ~ advisory (fail-fast strategy documented)
 
 Context Hash: sha256:a1b2c3...
 ```

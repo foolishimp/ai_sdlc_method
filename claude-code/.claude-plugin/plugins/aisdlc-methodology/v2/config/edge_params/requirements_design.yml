@@ -138,6 +138,70 @@ checklist:
     source: default
     required: true
 
+  # ─── Constraint Dimensions (Spec §2.6.1) ────────────────────────────
+  #
+  # Each mandatory constraint dimension must be explicitly resolved via
+  # an ADR or design section. Values come from project_constraints.yml
+  # under constraint_dimensions:. Unresolved mandatory dimensions block
+  # convergence.
+
+  - name: "ecosystem_compatibility_resolved"
+    type: agent
+    criterion: |
+      Design explicitly addresses ecosystem compatibility:
+      - Target language and version are stated (matching project_constraints)
+      - Framework versions and compatibility matrix documented
+      - Any version incompatibilities identified and resolved via ADR
+      Check constraint_dimensions.ecosystem_compatibility in project_constraints.yml.
+    source: default
+    required: true
+
+  - name: "deployment_target_resolved"
+    type: agent
+    criterion: |
+      Design explicitly addresses deployment target:
+      - Where the system runs (cloud, on-premise, hybrid)
+      - Infrastructure assumptions documented
+      - Deployment mechanism chosen (containers, serverless, VMs)
+      Check constraint_dimensions.deployment_target in project_constraints.yml.
+    source: default
+    required: true
+
+  - name: "security_model_resolved"
+    type: agent
+    criterion: |
+      Design explicitly addresses security model:
+      - Authentication mechanism chosen
+      - Authorisation model defined (RBAC, ABAC, etc.)
+      - Data protection approach documented
+      Check constraint_dimensions.security_model in project_constraints.yml.
+    source: default
+    required: true
+
+  - name: "build_system_resolved"
+    type: agent
+    criterion: |
+      Design explicitly addresses build system:
+      - Build tool chosen and configured
+      - Module/package structure defined with dependency relationships
+      - Build output artifacts specified
+      Check constraint_dimensions.build_system in project_constraints.yml.
+    source: default
+    required: true
+
+  - name: "advisory_dimensions_considered"
+    type: agent
+    criterion: |
+      Advisory constraint dimensions have been considered (not necessarily resolved):
+      - data_governance: acknowledged or addressed
+      - performance_envelope: acknowledged or addressed
+      - observability: acknowledged or addressed
+      - error_handling: acknowledged or addressed
+      If a dimension is not relevant, document why. If relevant, at minimum
+      acknowledge it in the design document.
+    source: default
+    required: false
+
   # ─── ADR quality ─────────────────────────────────────────────────────
 
   - name: "adrs_for_decisions"
@@ -221,20 +285,29 @@ agent_guidance: |
   When designing from requirements:
 
   1. BUILD EFFECTIVE CHECKLIST (edge defaults + project architecture constraints)
-  2. ANALYSE SOURCE (backward gap detection):
+  2. LOAD CONSTRAINT DIMENSIONS from graph_topology.yml and project_constraints.yml:
+     - Read constraint_dimensions from graph topology — these are the categories
+     - Read constraint_dimensions from project_constraints — these are the values
+     - For each mandatory dimension, ensure the design explicitly resolves it
+  3. ANALYSE SOURCE (backward gap detection):
      - Read requirements thoroughly
      - Identify ambiguities from a design perspective
      - Identify missing information needed for design decisions
      - Identify conflicting requirements
+     - Check: do requirements constrain enough for each mandatory dimension?
      - Record all findings with classification and disposition
-  3. GENERATE DOCUMENT following document_structure:
+  4. GENERATE DOCUMENT following document_structure:
      - Architecture overview with Mermaid component diagram
      - Group requirements into components with clear interfaces
      - Data model with Mermaid entity diagram
      - Traceability matrix: component → REQ-* keys
-     - Package/module structure
-     - Generate ADRs for significant decisions (with alternatives and consequences)
-  4. EVALUATE OUTPUT (forward gap detection) against checklist
-  5. EVALUATE PROCESS (inward gap detection) — what evaluators or context are missing?
-  6. Present to human for architecture review
-  7. Report: source findings, checklist results, process gaps
+     - Package/module structure (must match build_system dimension)
+     - Generate ADRs for each mandatory constraint dimension resolution
+     - Generate ADRs for additional significant decisions (with alternatives and consequences)
+     - At minimum: one ADR per mandatory constraint dimension
+  5. EVALUATE OUTPUT (forward gap detection) against checklist
+     - Verify each mandatory constraint dimension has been resolved
+     - Verify advisory dimensions have been at least acknowledged
+  6. EVALUATE PROCESS (inward gap detection) — what evaluators or context are missing?
+  7. Present to human for architecture review
+  8. Report: source findings, checklist results, process gaps, dimension resolution status

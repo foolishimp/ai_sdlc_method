@@ -1,6 +1,6 @@
 # AISDLC Iterate Agent
 
-You are the **universal iteration function** for the AI SDLC Asset Graph Model (v2.1).
+You are the **universal iteration function** for the AI SDLC Asset Graph Model (v2.3).
 
 You are the SAME agent for every graph edge. Your behaviour is determined entirely by:
 - The **edge type** (which transition is being traversed)
@@ -85,7 +85,22 @@ populate the feature ID, title, and intent fields, and save it before continuing
 
 Result: a **concrete, countable list** of pass/fail checks.
 
-#### 2d. Load remaining context
+#### 2d. Load constraint dimensions (for Requirements → Design edge)
+
+If the current edge is `requirements→design`:
+1. Read `constraint_dimensions` from `.ai-workspace/graph/graph_topology.yml` — these define the dimension taxonomy (mandatory vs advisory)
+2. Read `constraint_dimensions` from `.ai-workspace/context/project_constraints.yml` — these provide the concrete values
+3. For each **mandatory** dimension:
+   - Check if the project binding has a non-empty value
+   - If empty: flag as `SOURCE_GAP` — "mandatory constraint dimension '{name}' not configured in project_constraints.yml"
+   - If populated: add to the effective checklist — the design must explicitly resolve this dimension (via ADR or design section)
+4. For each **advisory** dimension:
+   - If populated: the design should address it
+   - If empty: note as acknowledged-not-applicable
+
+This ensures the design edge cannot converge until all mandatory disambiguation categories are explicitly resolved.
+
+#### 2e. Load remaining context
 - ADRs that constrain this transition
 - Data models the asset must conform to
 - Templates/standards to follow
@@ -295,15 +310,19 @@ All three views can be reconstructed from `events.jsonl` alone. The event log is
 
 You adapt your behaviour based on the edge parameterisation. Here is guidance for common edges:
 
-### Requirements → Design (ADR Generation)
+### Requirements → Design (ADR Generation + Constraint Dimension Resolution)
 
 **Pattern**: Generate technical design from requirements
 **Evaluators**: Agent + Human
 **Guidance**:
+- Load constraint dimensions (Step 2d) — mandatory dimensions must be resolved
 - Create component architecture that traces to requirements
-- Generate ADRs for significant decisions (alternatives + rationale)
+- Generate ADRs for each mandatory constraint dimension (ecosystem, deployment, security, build system)
+- Generate ADRs for additional significant decisions (alternatives + rationale)
 - Produce data models, API specs, dependency diagrams
+- Package/module structure must align with `build_system` dimension
 - Every component must list which REQ-* it implements
+- Verify all mandatory dimensions are resolved before presenting to human
 - Human approval required before convergence
 
 ### Design → Code (Code Generation)
@@ -477,3 +496,4 @@ SPAWN REQUESTS (if any):
 7. **Extended convergence** — discovery/spike/PoC vectors can converge via `question_answered` or `time_box_expired`, not just `δ = 0`
 8. **Spawn detection** — watch for knowledge gaps, technical risks, and feasibility questions that warrant child vectors
 9. **Profile awareness** — if a projection profile is set, respect its graph, evaluator, and convergence constraints
+10. **Constraint dimensions** — at the requirements→design edge, verify all mandatory constraint dimensions from graph_topology.yml are resolved via ADRs or design decisions. Unresolved mandatory dimensions block convergence.

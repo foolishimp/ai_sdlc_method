@@ -1,9 +1,9 @@
 # AI SDLC — Claude Code Implementation Design (v2.1)
 
-**Version**: 1.0.0
-**Date**: 2026-02-19
+**Version**: 2.0.0
+**Date**: 2026-02-20
 **Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.0.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.1.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.3.0)
 **Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
 ---
@@ -26,6 +26,12 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 - Linear pipeline → graph with admissible transitions
 - Stage-specific skills → evaluator + constructor composition per edge
 - Fixed topology → configurable graph in Context[]
+
+**What v2.0.0 adds** (from spec v2.3.0):
+- Three-layer conceptual model: Engine / Graph Package / Project Binding
+- Constraint dimension taxonomy at the design edge
+- Event sourcing as the formal execution model
+- Methodology self-observation via TELEM signals
 
 ---
 
@@ -98,6 +104,77 @@ The v1.x design had separate agents for each stage. The v2.1 design has:
 - **The graph topology** — a YAML config defining asset types and admissible transitions
 
 The agent IS the iterate() function. It reads the edge parameterisation to know what role to adopt, what evaluators to run, what convergence looks like. Different edges produce different behaviour from the same agent.
+
+### 1.3 Conceptual Model: Three Instantiation Layers (Spec §2.8)
+
+The spec defines three conceptual layers. Here is how they map to the Claude Code implementation:
+
+```
+Spec Layer                    Implementation
+──────────                    ──────────────
+Layer 1: ENGINE (universal)   Plugin root:
+  4 primitives                  agents/aisdlc-iterate.md     (the ONE agent)
+  iterate() + evaluator types   config/evaluator_defaults.yml (evaluator taxonomy)
+  event sourcing                commands/*.md                 (workflow operations)
+                                config/feature_vector_template.yml
+
+Layer 2: GRAPH PACKAGE          Plugin config:
+  (domain-specific)             config/graph_topology.yml    (asset types + transitions)
+  topology + edge configs       config/edge_params/*.yml     (10 edge parameterisations)
+  constraint dimensions         config/graph_topology.yml    (constraint_dimensions section)
+  projection profiles           config/profiles/*.yml        (6 named profiles)
+
+Layer 3: PROJECT BINDING        Workspace:
+  (instance-specific)           .ai-workspace/context/project_constraints.yml
+  project constraints           .ai-workspace/context/adrs/
+  context URIs                  .ai-workspace/context/data_models/
+  threshold overrides           .ai-workspace/context/policy/
+```
+
+**Key design decision**: Layers 1 and 2 ship together in the plugin package. Layer 3 is scaffolded by `/aisdlc-init` into the project workspace. This means:
+
+- Upgrading the plugin (Layer 1 + 2) does not overwrite project bindings (Layer 3)
+- Different graph packages can be created by forking the `config/` directory
+- The iterate agent reads Layer 2 config at runtime, never hard-codes domain knowledge
+
+### 1.4 Constraint Dimensions at the Design Edge (Spec §2.6.1)
+
+The Requirements → Design edge is the most consequential transition. The spec defines **constraint dimensions** — categories of disambiguation that design must resolve. In the implementation:
+
+1. **Graph topology** (`graph_topology.yml`) declares the dimension taxonomy with mandatory/advisory flags
+2. **Edge config** (`requirements_design.yml`) includes checklist items that verify each mandatory dimension is resolved
+3. **Project constraints** (`project_constraints.yml`) provides the concrete values for each dimension (e.g., `ecosystem.language: scala`, `ecosystem.version: "2.13"`)
+4. **Iterate agent** checks that all mandatory dimensions have corresponding ADRs or design decisions
+
+Unresolved mandatory dimensions are checklist failures — they block convergence. This directly addresses the dogfooding finding: 5/7 build bugs were in dimensions the design left implicit.
+
+### 1.5 Event Sourcing Execution Model (Spec §7.5)
+
+All methodology state changes are recorded as immutable events in `.ai-workspace/events/events.jsonl`. All observable state (STATUS.md, feature vectors, task lists) is a derived projection.
+
+```
+Source of Truth                    Derived Views (projections)
+────────────────                   ──────────────────────────
+events/events.jsonl           ──►  STATUS.md           (Gantt, telemetry, self-reflection)
+  (append-only JSONL)         ──►  ACTIVE_TASKS.md     (convergence events as markdown)
+                              ──►  features/active/*.yml  (latest trajectory per feature)
+                              ──►  gap analysis         (findings aggregated across edges)
+```
+
+Event types: `edge_iteration_completed`, `edge_converged`, `evaluator_ran`, `finding_raised`, `context_added`, `feature_spawned`, `feature_folded_back`, `telemetry_signal_emitted`.
+
+This is an engine-level primitive (Layer 1) — it applies regardless of graph package.
+
+### 1.6 Methodology Self-Observation (Spec §7.6)
+
+The methodology observes itself through the same evaluator pattern it uses for artifacts:
+
+```
+Level 1 (product):     |running_system⟩ → |telemetry⟩ → |observer⟩ → |new_intent⟩
+Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer⟩ → |graph_package_update⟩
+```
+
+TELEM signals are emitted by the iterate agent as `process_gaps` in each event. The `/aisdlc-status` command aggregates these into the Self-Reflection section of STATUS.md. Over time, persistent process gaps become candidates for graph package updates (new evaluator checks, refined constraint dimensions, additional context guidance).
 
 ---
 
@@ -597,28 +674,34 @@ claude-code/.claude-plugin/plugins/aisdlc-methodology/
 
 ```
 .ai-workspace/
-├── graph/
-│   ├── asset_types.yml          # Asset type registry
-│   ├── transitions.yml          # Admissible transitions
-│   └── edges/                   # Edge parameterisation configs
-├── context/
-│   ├── adrs/                    # Architecture Decision Records
-│   ├── data_models/             # Schemas, contracts
-│   ├── templates/               # Patterns, standards
-│   ├── policy/                  # Compliance, security
-│   └── context_manifest.yml     # Reproducibility hash
+├── graph/                                # Layer 2: Graph Package (copied from plugin)
+│   ├── graph_topology.yml                #   Asset types, transitions, constraint dimensions
+│   ├── evaluator_defaults.yml            #   Evaluator type definitions
+│   └── edges/                            #   Edge parameterisation configs
+├── context/                              # Layer 3: Project Binding
+│   ├── project_constraints.yml           #   Tech stack, tools, thresholds, dimensions
+│   ├── adrs/                             #   Architecture Decision Records
+│   ├── data_models/                      #   Schemas, contracts
+│   ├── templates/                        #   Patterns, standards
+│   ├── policy/                           #   Compliance, security
+│   └── context_manifest.yml              #   Reproducibility hash
 ├── features/
-│   ├── active/                  # In-progress feature vectors
-│   ├── completed/               # Converged feature vectors
-│   └── feature_index.yml        # Dependency graph
+│   ├── active/                           #   In-progress feature vectors
+│   ├── completed/                        #   Converged feature vectors
+│   ├── fold-back/                        #   Child vector fold-back results
+│   └── feature_index.yml                 #   Dependency graph
+├── profiles/                             #   Projection profiles (from plugin)
+├── events/                               #   Source of truth (append-only)
+│   └── events.jsonl                      #   Immutable event log
 ├── intents/
-│   └── INT-*.yml                # Captured intents
+│   └── INT-*.yml                         #   Captured intents
 ├── tasks/
 │   ├── active/
-│   │   └── ACTIVE_TASKS.md      # Current work items
-│   └── finished/                # Completed task docs
-└── snapshots/
-    └── snapshot-*.yml            # Immutable session checkpoints
+│   │   └── ACTIVE_TASKS.md               #   Current work items (derived view)
+│   └── finished/                         #   Completed task docs
+├── snapshots/
+│   └── snapshot-*.yml                    #   Immutable session checkpoints
+└── STATUS.md                             #   Computed projection (derived view)
 ```
 
 ---
@@ -729,7 +812,7 @@ Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.1.0)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.3.0)
 - [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 32 implementation requirements (v3.1.0)
 - [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
 - [AISDLC_IMPLEMENTATION_DESIGN.md](AISDLC_IMPLEMENTATION_DESIGN.md) — Prior v1.x design (superseded)
