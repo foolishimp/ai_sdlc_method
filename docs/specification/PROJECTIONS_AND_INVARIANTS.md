@@ -192,7 +192,7 @@ graph LR
     end
 ```
 
-### 4.2 Feature Vector (unchanged from §6)
+### 4.2 Feature Vector (zoomed-out form; see Asset Graph Model §6.1 for full form including |module_decomp⟩ + |basis_projections⟩ at zoom)
 
 The standard trajectory through the graph producing permanent Markov objects.
 

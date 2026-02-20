@@ -3,7 +3,7 @@
 **Version**: 2.0.0
 **Date**: 2026-02-20
 **Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.0.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.3.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.5.0)
 **Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
 ---
@@ -27,7 +27,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 - Stage-specific skills → evaluator + constructor composition per edge
 - Fixed topology → configurable graph in Context[]
 
-**What v2.0.0 adds** (from spec v2.3.0):
+**What v2.0.0 adds** (from spec v2.5.0):
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
 - Constraint dimension taxonomy at the design edge
 - Event sourcing as the formal execution model
@@ -812,7 +812,7 @@ Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.3.0)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.5.0)
 - [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 32 implementation requirements (v3.1.0)
 - [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
 - [AISDLC_IMPLEMENTATION_DESIGN.md](AISDLC_IMPLEMENTATION_DESIGN.md) — Prior v1.x design (superseded)

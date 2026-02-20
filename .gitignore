@@ -41,6 +41,17 @@ Thumbs.db
 .coverage
 htmlcov/
 
+# Scala / JVM / sbt
+target/
+*.class
+*.jar
+*.war
+.bsp/
+.metals/
+.bloop/
+project/target/
+project/project/
+
 # Project specific
 *.log
 

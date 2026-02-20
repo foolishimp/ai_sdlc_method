@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "aisdlc-iterate",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/on-iterate-start.sh",
+            "statusMessage": "Setting edge traversal context..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/on-stop-check-protocol.sh",
+            "statusMessage": "Checking iterate protocol completion..."
+          }
+        ]
+      }
+    ]
+  }
+}

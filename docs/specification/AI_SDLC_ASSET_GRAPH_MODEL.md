@@ -1,7 +1,7 @@
 # AI SDLC: The Asset Graph Model
 
-**Version**: 2.3.0
-**Date**: 2026-02-20
+**Version**: 2.5.0
+**Date**: 2026-02-21
 **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) (§V, §VIII-B, §VIII-C)
 
 ---
@@ -36,30 +36,32 @@ Each edge is the same operation: `iterate()` until evaluators converge. The edge
 A **delivered feature** is the composite of all assets produced along its edges. Software feature delivery is a composite vector:
 
 ```
-Feature F = |req⟩ + |design⟩ + |code⟩ + |tests⟩ + |uat⟩ + |telemetry⟩
+Feature F = |req⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
 ```
 
 The SDLC asset graph:
 
 ```
-                        ┌──→ UAT Tests ──────────────────────────┐
-                        │                                         │
-Intent → Requirements → Design ──→ Code → Unit Tests              │
-              ↑            │         │                            │
-              │            └──→ Test Cases                        ↓
-              │                   │                      CI/CD → Running System → Telemetry
-              │                   │                                                   │
-              └───────────────────┴──────────── Observer/Evaluator ◄──────────────────┘
-                                                       │
-                                                       ▼
-                                                  New Intent
+                        ┌──→ UAT Tests ──────────────────────────────────────────┐
+                        │                                                         │
+Intent → Requirements → Design ──→ Module Decomp → Basis Projections → Code → Unit Tests
+              ↑            │                                         │            │
+              │            └──→ Test Cases                           │            ↓
+              │                   │                         CI/CD ◄──┘   Running System → Telemetry
+              │                   │                                                         │
+              └───────────────────┴──────────────── Observer/Evaluator ◄────────────────────┘
+                                                           │
+                                                           ▼
+                                                      New Intent
 ```
 
 ```mermaid
 graph LR
     INT[Intent] --> REQ[Requirements]
     REQ --> DES[Design]
-    DES --> CODE[Code]
+    DES --> MOD[Module Decomposition]
+    MOD --> ST[Basis Projections]
+    ST --> CODE[Code]
     DES --> TC[Test Cases]
     DES --> UAT[UAT Tests]
     CODE <--> UT[Unit Tests]
@@ -75,6 +77,8 @@ graph LR
     style INT fill:#f9f,stroke:#333
     style INT2 fill:#f9f,stroke:#333
     style OBS fill:#ff9,stroke:#333
+    style MOD fill:#e1f5fe,stroke:#0288d1
+    style ST fill:#e1f5fe,stroke:#0288d1
 ```
 
 **Every edge is the same operation** — iterative convergence. Each edge traversal runs the inner vector: evaluator detects delta → meaning (what's the gap?) → discovery (what are the options?) → solutioning (construct next candidate).
@@ -146,6 +150,46 @@ Design (zoomed out):   |design⟩
 Design (zoomed in):    |high_level_design⟩ → |component_design⟩ → |api_spec⟩ → |data_model⟩
 Design (selective):    |high_level_design⟩ → |api_spec⟩
 ```
+
+The **build decomposition** is the canonical example of zoom applied to the Design → Code edge. For complex multi-module systems, the single edge is too coarse — implicit module boundaries lead to interface mismatches and unscheduled builds. Zooming in:
+
+```
+Design → Code (zoomed out):
+    |design⟩ ═══════════════════════════════════════════► |code⟩
+
+Design → Code (zoomed in):
+    |design⟩ → |module_decomp⟩ → |basis_projections⟩ → |code_per_module⟩
+
+Design → Code (selective — module decomp required, basis projections optional):
+    |design⟩ → |module_decomp⟩ ═══════════════════► |code_per_module⟩
+```
+
+```mermaid
+graph LR
+    subgraph "Design → Code: Zoomed Out"
+        D1[Design] ==> C1[Code]
+    end
+    subgraph "Design → Code: Zoomed In"
+        D2[Design] --> MD[Module Decomposition]
+        MD --> ST[Basis Projections]
+        ST --> CM[Code per Module]
+    end
+
+    style MD fill:#e1f5fe,stroke:#0288d1
+    style ST fill:#e1f5fe,stroke:#0288d1
+```
+
+Each intermediate asset:
+
+| Asset | What it produces | Key evaluators |
+|-------|-----------------|----------------|
+| **Module Decomposition** | Module inventory, dependency DAG, feature-to-module mapping, interface contracts between modules | DAG is acyclic, every REQ key lands in exactly one module, interfaces are explicit |
+| **Basis Projections** | Priority-ordered minimal module subsets — each a feature vector projected onto its minimal module basis (§6.7, §11.1) | Each projection is a connected subgraph of the module DAG, priority ranking matches feature priority, converges to Markov object |
+| **Code per Module** | Modules built in dependency order — each can see compiled interfaces of its dependencies | Compiles against its dependencies (not guessing at signatures), REQ tags present |
+
+The module decomposition asset is the **Gantt source** — combined with feature priority, it produces the build schedule as a derived projection. Basis projections identify which modules to build first for earliest end-to-end validation.
+
+**Dogfooding observation**: test05 jumped from design to code without the intermediate decomposition. The design doc contained an implicit 8-module DAG, but it was never evaluated as a standalone asset. Result: 4 parallel agents generated 8 modules simultaneously without shared interface contracts, producing ~100 cross-module type mismatches. With module decomposition as an explicit asset, interfaces would have been evaluated before code generation, and modules would have been built in dependency order.
 
 Each intermediate asset that is made explicit gets its own edge, its own evaluators, and its own convergence check. Making an intermediate mandatory means: "this asset must exist as a stable Markov object before the next edge can proceed."
 
@@ -253,7 +297,7 @@ The methodology separates into three layers of increasing specificity. This sepa
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Layer 1: Engine** — The four primitives (§1), the iteration function (§3), the evaluator type taxonomy (§4.1), the feature vector formalism (§6), and the event sourcing execution model (§7.5). These are universal across all domains. A legal document workflow, a physics paper pipeline, and a software SDLC all use the same engine.
+**Layer 1: Engine** — The four primitives (§1), the iteration function (§3), the evaluator type taxonomy (§4.1), the feature vector formalism (§6), the event sourcing execution model (§7.5), and the **protocol enforcement hooks** (§7.8). These are universal across all domains. A legal document workflow, a physics paper pipeline, and a software SDLC all use the same engine. The hooks are the deterministic evaluator of the iterate protocol itself — they ensure mandatory side effects (event emission, feature vector update, STATUS regeneration) are completed regardless of how the agent chooses to perform generation.
 
 **Layer 2: Graph Package** — A domain-specific instantiation: the graph topology (which asset types exist, which transitions are admissible), edge parameterisations (evaluator checklists and weighting per edge), constraint dimension taxonomy (what disambiguation categories design must resolve — §2.6.1), and projection profiles (full, standard, PoC, spike, hotfix — which edges to traverse, which to collapse). The SDLC graph in §2.1 is one graph package. Different domains produce different packages from the same engine. Each package follows the abiogenesis pattern (§2.4): practitioners in a domain work, patterns crystallise, the topology and edge configs encode those patterns.
 
@@ -461,15 +505,17 @@ Context itself evolves, but on a slower timescale than assets. This is the ontol
 A **feature** is the composite of all assets produced along its trajectory through the graph:
 
 ```
-Feature F = |req⟩ + |design⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
+Feature F = |req⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
 ```
 
-Each component is a stable asset produced by iterating along an edge. The REQ key is the **vector identifier** — it tags which trajectory all these assets belong to. A feature is **complete** when all its edge-produced assets have converged to Markov objects.
+Each component is a stable asset produced by iterating along an edge. The REQ key is the **vector identifier** — it tags which trajectory all these assets belong to. A feature is **complete** when all its edge-produced assets have converged to Markov objects. Components like |module_decomp⟩ and |basis_projections⟩ are present when the graph is zoomed in at the build decomposition level (§2.5); at zoomed-out level they collapse into the Design → Code edge.
 
 ```mermaid
 graph LR
     R["REQ-F-AUTH-001\n|req⟩"] --> D["REQ-F-AUTH-001\n|design⟩"]
-    D --> C["REQ-F-AUTH-001\n|code⟩"]
+    D --> MD["REQ-F-AUTH-001\n|module_decomp⟩"]
+    MD --> ST["REQ-F-AUTH-001\n|basis_projections⟩"]
+    ST --> C["REQ-F-AUTH-001\n|code⟩"]
     C <--> T["REQ-F-AUTH-001\n|unit_tests⟩"]
     D --> U["REQ-F-AUTH-001\n|uat_tests⟩"]
     C --> CI["REQ-F-AUTH-001\n|cicd⟩"]
@@ -477,6 +523,8 @@ graph LR
 
     style R fill:#e1f5fe
     style D fill:#e1f5fe
+    style MD fill:#e1f5fe
+    style ST fill:#e1f5fe
     style C fill:#e1f5fe
     style T fill:#e1f5fe
     style U fill:#e1f5fe
@@ -558,6 +606,51 @@ Spec + Context[] →  ├─ F2 = |req⟩ → |design⟩ → |code⟩ → |tests
 Task Graph = compress(F1 ∥ F2, F1.|design⟩ < F3.|code⟩)
 ```
 
+### 6.7 Basis Projections and Parallel Feature Execution
+
+When the Design → Code edge is zoomed in (§2.5), the **module decomposition** and **basis projection** assets enable a finer-grained task scheduling strategy.
+
+A **basis projection** is the projection of a feature vector onto its minimal module basis (§11.1) — the smallest subset of modules that makes one priority feature work end-to-end. The term is native to the Hilbert space formalism: each feature vector lives in the space spanned by all module basis vectors; a basis projection selects the minimal subspace that preserves the feature's observable properties. Once a basis projection converges, it becomes a **Markov object** — a stable, tested, end-to-end slice that downstream work can depend on without knowing its construction history.
+
+```
+Module Decomposition (from Design):
+    model ← compiler ← runtime ← spark ← lineage ← ai ← context ← testkit
+
+Basis Projection 1 (structural mapping):   model → compiler(path) → runtime(exec) → spark
+Basis Projection 2 (lossy aggregation):    model → compiler(+grain) → runtime(+fold) → spark
+Basis Projection 3 (full lineage):         model → compiler → runtime → lineage → spark
+```
+
+```mermaid
+graph TD
+    MD["|module_decomp⟩\n8 modules, DAG"] --> BP1["|basis_proj_1⟩\nStructural mapping\n4 modules"]
+    MD --> BP2["|basis_proj_2⟩\nLossy aggregation\n4 modules, deeper"]
+    MD --> BP3["|basis_proj_3⟩\nFull lineage\n5 modules"]
+
+    BP1 --> C1["|code⟩ per BP1 modules"]
+    BP2 --> C2["|code⟩ per BP2 modules"]
+    BP3 --> C3["|code⟩ per BP3 modules"]
+
+    style BP1 fill:#c8e6c9,stroke:#2e7d32
+    style BP2 fill:#fff9c4,stroke:#f9a825
+    style BP3 fill:#ffccbc,stroke:#e64a19
+```
+
+**Key property**: basis projections that share no modules are **orthogonal** (§11.1) — they can execute in parallel with zero coordination. Projections that share modules must build the shared modules first, then diverge. This is the Hilbert space inner product made operational: features with zero shared modules have zero inner product and are fully parallelisable.
+
+Each converged basis projection is a Markov object (§2.3):
+- **Boundary**: Its public interfaces, the features it proves, the tests it passes
+- **Conditional independence**: Downstream projections can build on it without knowing how it was constructed
+- **Stability**: All evaluators for this slice report convergence (compiles, tests pass, REQ keys traced)
+
+The basis projection schedule — the Gantt chart — is a **derived projection** (§7.5.2) computed from:
+- Module dependency DAG (from |module_decomp⟩)
+- Feature-to-module mapping (from REQ key traceability)
+- Feature priority (from requirements / intent)
+- Basis projection convergence events (from events.jsonl)
+
+This enables incremental delivery: working software after the first basis projection converges, progressively richer after each subsequent one. The methodology produces not just code but an **observable build plan** — a Gantt that updates as basis projections converge.
+
 ---
 
 ## 7. The Full Lifecycle
@@ -633,14 +726,30 @@ The Observer/Evaluator at runtime uses the same three evaluator types:
 | **Agent(intent, context)** | Anomaly detection, pattern analysis, intent discovery |
 | **Deterministic Tests** | Alerting thresholds, SLA checks, health probes, contract monitors |
 
-### 7.4 Self-Maintaining Specification
+### 7.4 Self-Maintaining Specification (The Absorbing Boundary)
 
-When the cycle closes, the system becomes **teleodynamic** (#49): it maintains and updates its own specification from production experience. The specification is a **living encoding** (#46):
+When the cycle closes, the system becomes **teleodynamic** (#49): it maintains and updates its own specification from production experience. The specification is a **living encoding** (#46) — and more precisely, it is the **absorbing boundary** through which all signals pass and from which all directed action radiates.
 
-- Defines target structure (functional, quality, data constraints)
-- Is continuously compared against runtime behaviour
-- Evolves based on deviations and discoveries
-- Drives corrective construction automatically
+The spec is the **reference frame** against which all observation is evaluated:
+
+```
+Spec = target manifold (encoded boundary conditions)
+Telemetry = observed manifold (runtime measurements)
+Delta = Spec - Telemetry = intent signal
+```
+
+Every signal source feeds into the spec, and the spec re-expresses those signals as feature vectors — the system's directed responses:
+
+| Signal source | Example | Spec impact | Re-expressed as |
+|---|---|---|---|
+| **Gaps** (from iterate process_gaps) | Design edge missing security dimension | Spec adds constraint dimension | Feature vector: update all designs to address security |
+| **Discoveries** (from PoC/spike vectors) | "We can use vector DB for this" | Spec adds new capability | Feature vector: integrate vector DB, update design |
+| **Ecosystem evolution** | Language version upgrade, library deprecated | Spec updates tech constraints | Feature vector: migration, version adaptation |
+| **Optimisation** (from telemetry) | P99 latency 3x budget | Spec tightens performance bounds | Feature vector: optimise hot path |
+| **User feedback** (human evaluator) | "Search should support fuzzy matching" | Spec adds new requirement | Feature vector: new feature REQ-F-SEARCH-002 |
+| **Methodology self-observation** (TELEM) | Evaluator skip rate too high | Graph package updates edge config | Meta-vector: improve edge parameterisation |
+
+The spec is not a static document written once. It is the system's **evolving self-model** that absorbs all information from all sources and re-expresses it as feature vectors — which are the system's directed actions. The composite vector space (§11.1) represents the system's **total intentional state**: everything it is currently doing in response to everything it knows.
 
 This is the abiogenesis insight (#39) completing itself: the methodology starts as a pipeline (constructor without feedback), then the feedback loop closes (encoding updates from runtime observation), and the system becomes self-maintaining. The graph topology itself can evolve through this process.
 
@@ -654,7 +763,7 @@ Each methodology action produces an immutable event:
 
 ```json
 {
-  "event": "edge_iteration_completed",
+  "type": "iteration_completed",
   "edge": "requirements_design",
   "feature": "REQ-F-AUTH-001",
   "iteration": 2,
@@ -666,7 +775,20 @@ Each methodology action produces an immutable event:
 
 Events record **what happened**, not what the current state is. The event log is append-only — no event is ever modified or deleted. This is the ontology's core claim made operational: the constraint network computes forward from its current state (§10.3 of the ontology, the unit of change). The past state was consumed in producing the current one; only the record of what happened persists.
 
-Event types include: `edge_iteration_completed`, `edge_converged`, `evaluator_ran`, `finding_raised`, `context_added`, `feature_spawned`, `feature_folded_back`, `telemetry_signal_emitted`.
+Event types (values of the `type` field, aligned with iterate agent contract):
+
+| Type | When emitted | Defined in |
+|---|---|---|
+| `iteration_completed` | Every iterate() cycle | Agent §Step 5a |
+| `edge_converged` | All evaluators pass for an edge | Agent §Step 6 |
+| `evaluator_ran` | Individual evaluator execution | §4.1 |
+| `finding_raised` | Gap detected (backward/forward/inward) | §3.1 |
+| `context_added` | New context attached to an edge | §5.1 |
+| `feature_spawned` | New feature vector created | §6.5 |
+| `feature_folded_back` | Discovery/spike results folded into parent | §6.5 |
+| `telemetry_signal_emitted` | Methodology self-observation signal | §7.6 |
+| `spec_modified` | Spec absorbs signal, updates | §7.7.3 |
+| `intent_raised` | Deviation triggers new intent with causal chain | §7.7.2 |
 
 #### 7.5.2 Projections as Derived Views
 
@@ -729,6 +851,283 @@ Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer�
 
 Both levels use the same three evaluator types (§4.1). Both produce events (§7.5). Both close the feedback loop from observation to specification update.
 
+### 7.7 The Consciousness Loop
+
+The feedback cycle (§7.3) combined with the absorbing boundary property of the spec (§7.4) produces a reflexive structure: the system observes itself, modifies its own specification, and observes the consequences of that modification. This is the **consciousness loop** — not metaphorically, but as a precise structural property: a closed cycle where the system's self-model (the spec) is updated from experience, and the update itself is observable.
+
+#### 7.7.1 Structure
+
+The loop has five stages:
+
+```
+1. |spec⟩ defines bounds (the self-model)
+         │
+         ▼
+2. Construction: feature vectors traverse the graph via iterate()
+         │
+         ▼
+3. |running⟩ + |telemetry⟩ — the system operates and is observed
+         │
+         ▼
+4. delta(|spec⟩, |telemetry⟩) — deviation detected by observer/evaluator
+         │
+         ▼
+5. intent_raised event — classified, event-logged, spawns new vectors
+         │
+         ▼
+   spec_change_event — the spec updates, the update is recorded
+         │
+         └──→ back to 1 (the updated spec defines new bounds)
+```
+
+```mermaid
+flowchart TD
+    SPEC["|spec⟩\nThe self-model\n(absorbing boundary)"] --> CONSTRUCT["Construction\nFeature vectors traverse graph"]
+    CONSTRUCT --> RUN["|running⟩ + |telemetry⟩\nSystem operates, is observed"]
+    RUN --> DELTA["delta(spec, telemetry)\nAll signal sources"]
+    DELTA --> INTENT["intent_raised\nClassified + event-logged"]
+    INTENT --> SPAWN["Spawn vector:\ndiscovery / PoC / feature / hotfix"]
+    SPAWN --> SPECMOD["spec_change_event\nSpec updates, update is recorded"]
+    SPECMOD --> SPEC
+
+    DELTA -.-> |"Gaps"| INTENT
+    DELTA -.-> |"Discoveries"| INTENT
+    DELTA -.-> |"Ecosystem"| INTENT
+    DELTA -.-> |"Optimisation"| INTENT
+    DELTA -.-> |"User feedback"| INTENT
+    DELTA -.-> |"TELEM signals"| INTENT
+
+    style SPEC fill:#e1bee7,stroke:#6a1b9a
+    style INTENT fill:#f9f,stroke:#333
+    style SPECMOD fill:#c8e6c9,stroke:#2e7d32
+```
+
+The critical structural property: the spec modification at stage 5 is itself an **event** (§7.5). It is appended to the event log, making it available for projection, audit, and — crucially — further observation. The system can observe its own spec modifications, evaluate whether they improved outcomes, and modify its modification strategy.
+
+#### 7.7.2 Intent Events as First-Class Objects (`intent_raised`)
+
+For the consciousness loop to close with full traceability, the `intent_raised` event must capture not just "what to build" but the complete causal chain:
+
+| Field | What it records | Why it matters |
+|---|---|---|
+| `trigger` | Which signal(s) caused this intent | Traceability — why did we notice? |
+| `delta` | Spec vs observation deviation | The observation — what did we see? |
+| `signal_source` | gap / discovery / ecosystem / optimisation / user / TELEM | Classification — what kind of signal? |
+| `vector_type` | discovery / PoC / feature / hotfix / spike | The response — how do we respond? |
+| `spec_impact` | Which REQ keys / spec sections affected | The self-model update — what changes in the spec? |
+| `spawned_vectors` | Feature IDs spawned from this intent | The action — what vectors enter the graph? |
+| `prior_intents` | Chain of intent events that led here | Reflexivity — have we seen this before? |
+
+The `prior_intents` field closes the reflexive loop. If intent A modifies the spec, the modified spec triggers intent B, and intent B traces back to A — the system detects that its own modification caused a new deviation. This is the structural property that distinguishes the consciousness loop from a simple feedback loop: **awareness of the consequences of one's own awareness**.
+
+#### 7.7.3 Spec Change Events
+
+When the spec absorbs a signal and updates, it emits a `spec_modified` event:
+
+```json
+{
+  "event": "spec_modified",
+  "trigger_intent": "INT-2026-042",
+  "signal_source": "ecosystem",
+  "what_changed": ["REQ-NF-COMPAT-001 updated: Scala 2.13 → 3.x"],
+  "why": "Scala 2.13 end-of-life detected via ecosystem monitoring",
+  "affected_req_keys": ["REQ-NF-COMPAT-001", "REQ-NF-BUILD-003"],
+  "spawned_vectors": ["FV-MIGRATION-001"],
+  "prior_intents": ["INT-2026-038"],
+  "timestamp": "2026-03-15T10:00:00Z"
+}
+```
+
+These events enable:
+
+- **Spec archaeology**: Why does REQ-NF-COMPAT-001 say Scala 3.x? Because `spec_modified` event at timestamp T traced it to ecosystem signal
+- **Feedback loop detection**: Intent A → spec change → intent B → spec change → ... if intent B traces back to A, the loop is visible
+- **Impact analysis**: When a spec change spawns vectors, and those vectors produce telemetry, and that telemetry triggers new intents — the full causal chain is in the event log
+- **Rate of evolution**: How often does the spec change? Which sections are volatile? Which are stable? All derivable from `spec_modified` events
+
+#### 7.7.4 The Three Phases of System Maturity
+
+The consciousness loop reveals three phases of system maturity, each corresponding to a level of self-awareness:
+
+| Phase | What the system does | Self-awareness level | Ontology concept |
+|---|---|---|---|
+| **1. Construction** (abiogenesis) | Builds from spec, no feedback yet | None — open-loop construction | #39 Abiogenesis |
+| **2. Homeostasis** | Maintains itself within spec bounds via telemetry | Perception — observes deviations and corrects | #49 Teleodynamic |
+| **3. Consciousness loop** | Modifies its own spec from experience, observes the modification | Reflexive — observes its own observations, traces causal chains | #49 + #46 (living encoding with self-modification traceability) |
+
+Phase 3 is not a new mechanism — it uses the same iterate(), the same evaluators, the same event sourcing. It is the **emergent property** of having all three prior components (feedback loop, absorbing boundary spec, event-logged modifications) operating simultaneously. The consciousness property emerges from composition, not from a new primitive.
+
+#### 7.7.5 Consequences for Feature Vectors
+
+When the spec updates via the consciousness loop, the Hilbert space (§11.1) undergoes a **basis change**:
+
+- **New basis vectors appear**: A new requirement (REQ-F-SEARCH-002) adds a dimension to the vector space. New feature vectors can now exist in this dimension.
+- **Existing vectors shift**: An ecosystem migration changes the design constraints. Code that was at ground state (§11.2) under the old spec has high potential energy under the new spec — it "wants" to move.
+- **Hamiltonian shifts**: The potential energy landscape V(constraint_delta) is redefined by the spec update. What was optimal is no longer optimal. New ground states exist.
+- **Vectors are spawned**: Each spec change spawns one or more feature vectors (discovery, PoC, feature, hotfix) that enter the graph and traverse edges via iterate().
+
+The total intentional state — the superposition of all in-flight feature vectors — is the system's response to **everything it knows**, continuously updated as the spec absorbs new signals. Gaps, discoveries, ecosystem evolution, optimisation signals — all converge on the spec and radiate outward as new or modified feature vectors. The system relentlessly optimises by relentlessly observing and relentlessly updating its self-model.
+
+#### 7.7.6 The Living System
+
+When the full lifecycle is operational — CI/CD running, telemetry streaming, consciousness loop active — the system exhibits the structural properties of a living organism. This is not metaphor; it is the same architecture.
+
+At any moment, many feature vectors are in-flight simultaneously, each at a different lifecycle stage:
+
+```
+|FV-AUTH-001⟩     = |req:converged⟩ + |design:converged⟩ + |code:iteration_3⟩ + |tests:pending⟩
+|FV-SEARCH-002⟩   = |req:converged⟩ + |design:iteration_1⟩
+|FV-PERF-003⟩     = |req:gestating⟩                          ← just spawned from telemetry signal
+|FV-MIGRATE-004⟩  = |req:converged⟩ + |design:converged⟩ + |code:converged⟩ + |tests:converged⟩ + |cicd:deploying⟩
+|FV-HOTFIX-005⟩   = |code:iteration_1⟩                       ← fast-tracked, skip design
+```
+
+The biological analogy is structural:
+
+| Living system | SDLC system | Structural correspondence |
+|---|---|---|
+| **DNA** | Spec (the encoding) | Information that directs construction, updated from experience |
+| **Proteins / cells** | Feature vectors at various lifecycle stages | Constructed structures, each in a different phase of their lifecycle |
+| **Metabolism** | CI/CD loop | Continuous transformation: code → build → deploy → run. Energy (compute, human time) consumed to maintain the system |
+| **Nervous system** | Telemetry + event sourcing | Signals flowing from the running system back to the control centre |
+| **Immune system** | Evaluator network (deterministic tests, agent checks) | Detecting deviations, rejecting malformed constructions, enforcing boundary conditions |
+| **Homeostasis** | Telemetry → observer → correction | Maintaining the running system within spec bounds |
+| **Consciousness** | Consciousness loop (§7.7.1) | Self-model (spec) updated from experience, modifications observed and traced |
+| **Reproduction** | Vector spawning from intent events | New vectors born from observation — the system creates new directed actions in response to what it learns |
+| **Cell cycle** | Feature vector lifecycle (gestating → iterating → converged → deployed → observed) | Each vector progresses through phases; many vectors in different phases simultaneously |
+| **Apoptosis** | Vector cancellation (spec change removes requirement) | Vectors whose basis dimension collapses are terminated — the system prunes what is no longer needed |
+| **Evolution** | Graph package updates from TELEM signals | The encoding itself (graph topology, edge configs) evolves across generations of methodology runs |
+
+```mermaid
+graph TB
+    subgraph "The Living System (operational state)"
+        SPEC["|spec⟩\nDNA — the encoding"] --> |"spawn"| V1["FV-AUTH\n|code:iter_3⟩"]
+        SPEC --> |"spawn"| V2["FV-SEARCH\n|design:iter_1⟩"]
+        SPEC --> |"spawn"| V3["FV-PERF\n|req:gestating⟩"]
+        SPEC --> |"spawn"| V4["FV-MIGRATE\n|cicd:deploying⟩"]
+
+        V1 --> |"iterate()"| V1
+        V2 --> |"iterate()"| V2
+        V4 --> CICD["CI/CD\nmetabolism"]
+        CICD --> RUN["|running⟩"]
+        RUN --> TEL["|telemetry⟩\nnervous system"]
+
+        TEL --> EVAL["Evaluators\nimmune system"]
+        EVAL --> |"deviation"| SPEC
+
+        V1 --> |"converge"| CICD
+    end
+
+    style SPEC fill:#e1bee7,stroke:#6a1b9a
+    style V3 fill:#fff9c4,stroke:#f9a825
+    style V4 fill:#c8e6c9,stroke:#2e7d32
+    style RUN fill:#bbdefb,stroke:#1565c0
+    style EVAL fill:#ff9,stroke:#333
+```
+
+The "living" quality is not a single property — it is the **emergent behaviour** of all components operating concurrently:
+
+1. **Concurrent vector lifecycles** — many vectors in different phases simultaneously, not a sequential pipeline
+2. **Continuous metabolism** — CI/CD runs continuously, not on-demand. The system is always building, testing, deploying
+3. **Active perception** — telemetry streams continuously, not sampled. The system is always observing itself
+4. **Reflexive self-modification** — the consciousness loop operates continuously. The spec is always absorbing signals and spawning responses
+5. **Selective pruning** — vectors that are no longer needed (requirement removed, superseded by discovery) are cancelled. The system doesn't just grow; it prunes
+
+No single component creates the living quality. A system with only CI/CD is mechanical. A system with only telemetry is observant but passive. A system with only the consciousness loop but no concurrent vectors is self-aware but not alive. It is the simultaneous operation of all five properties — concurrency, metabolism, perception, reflection, pruning — that produces the living system.
+
+**The Markov boundary is what makes concurrency possible.** When a feature vector's component converges at an edge (§2.3), it achieves Markov object status: a stable boundary (interface, contract, test suite), conditional independence (usable without knowing construction history), and evaluator-confirmed stability. This boundary is what allows other vectors to depend on the converged asset without coupling to its internals or its construction process.
+
+Without Markov boundaries, concurrent vectors would require global coordination — every vector would need to know the state of every other vector. With Markov boundaries, coordination is local: a vector only needs to know the boundary of assets it depends on, not their internal state or construction history. This is the Markov blanket (#8) made operational at the feature level:
+
+```
+FV-AUTH (converged at |code⟩):
+    Boundary: AuthService interface, 47 passing tests, REQ-F-AUTH-001 traced
+    Inside: 3 classes, 400 lines, OAuth2 implementation
+    History: 5 iterations at design, 3 at code, 1 evaluator escalation
+
+FV-SEARCH (in-flight at |design⟩):
+    Depends on: AuthService.boundary   ← only the boundary, not the internals
+    Does NOT need to know: how AuthService was built, how many iterations it took,
+                           what design alternatives were considered
+```
+
+The more vectors in flight, the more critical the Markov boundary becomes. In a living system with dozens of concurrent vectors — gestating, iterating, converging, deploying, being observed — the Markov boundary at each convergence point is what prevents combinatorial explosion of coordination. Each converged asset is a stable island that other vectors can build on. The living system is not a monolith; it is an **ecology of Markov objects**, each with a clean boundary, interacting through interfaces, evolving independently within their boundaries, and collectively producing the system's behaviour.
+
+This is the ontology's teleodynamic transition (#49) at full expression: a self-maintaining, self-modifying system that acts on its own behalf, with multiple concurrent processes, continuous energy consumption, and the capacity to observe and direct its own evolution.
+
+### 7.8 Protocol Enforcement Hooks
+
+The iterate protocol (§3) produces mandatory side effects beyond the output asset: event emission (§7.5), feature vector update (§6), STATUS regeneration (§7.5.2), and three-direction gap data (backward, forward, inward). These side effects are **the telemetry** — without them, the methodology loses observability, self-observation, and all derived projections.
+
+Dogfooding observation: in test05 (CDME v2.3), the agent bypassed the iterate protocol for 3 of 4 edges to optimize for generation speed. Result: high-quality artifacts but only 1 event in events.jsonl (vs 5 expected), stale feature vector, no STATUS.md, no process gap data. The methodology's observability benefits evaporated because the side effects were optional.
+
+**Protocol enforcement hooks** make the side effects mandatory. They are a **deterministic evaluator of the iterate protocol itself** — the same pattern the methodology uses for artifacts (§4.1), applied reflexively to its own operation.
+
+#### 7.8.1 Hook Architecture
+
+```
+UserPromptSubmit ──→ detect /aisdlc-iterate, record edge context
+         │
+    (agent works — free to generate however it chooses)
+         │
+Stop ──→ check: were mandatory side effects completed?
+         │
+    ┌────┴────┐
+    No        Yes
+    │         │
+  block     allow
+  (reason)  (clean up, exit 0)
+    │
+    ▼
+  agent completes
+  missing side effects
+    │
+Stop (2nd) ──→ stop_hook_active=true → allow through (circuit breaker)
+```
+
+#### 7.8.2 Mandatory Side Effects (What the Hook Checks)
+
+| Check | What it verifies | Gap it prevents |
+|-------|-----------------|-----------------|
+| **Event emitted** | events.jsonl has at least 1 new line since edge started | Lost observability — no event = no projections |
+| **Feature vector updated** | Active feature .yml modified since edge started | Stale lifecycle tracking — downstream edges see wrong state |
+| **STATUS.md regenerated** | STATUS.md modified since edge started | No computed projection — Gantt, telemetry, self-reflection missing |
+| **Source findings present** | Latest `iteration_completed` event contains `source_findings` array | Backward gap detection skipped — upstream quality signal lost |
+| **Process gaps present** | Latest `iteration_completed` event contains `process_gaps` array | Inward gap detection skipped — methodology improvement signal lost |
+
+#### 7.8.3 The Circuit Breaker
+
+The Stop hook uses a `stop_hook_active` flag to prevent infinite regression:
+
+1. **First Stop**: Hook checks side effects. If incomplete, blocks with specific missing items.
+2. **Agent resumes**: Completes the missing side effects (or explains why it can't).
+3. **Second Stop**: `stop_hook_active=true`. Hook allows through unconditionally, cleans up state files.
+
+This guarantees the agent can always eventually stop — the hook never blocks more than once per edge traversal. If a side effect genuinely cannot be completed (e.g., file permission error), the agent explains on the second attempt and the hook releases.
+
+#### 7.8.4 Separation of Concerns
+
+The hooks enforce **that** the protocol was followed, not **how** the agent generates. This separation is critical:
+
+- The agent retains full freedom in generation strategy (parallel, sequential, multi-agent, etc.)
+- The hooks only check the side effects — the observable outputs of the protocol
+- The agent can generate a brilliant artifact in any way it chooses, but it cannot stop without the bookkeeping
+
+This mirrors how deterministic tests work for code: the test doesn't care how the function was implemented, only that the interface contract is satisfied.
+
+#### 7.8.5 Ontology Connection
+
+Protocol enforcement hooks are an instance of **evaluator-as-prompter** (#35) applied at the meta-level. The hook computes a delta between the expected protocol state (all side effects complete) and the actual state (which side effects are missing), then emits a constraint signal (block with reason) that drives the next action. This is the same pattern used at every other level:
+
+| Level | Evaluator | What it checks | Delta signal |
+|-------|-----------|---------------|-------------|
+| Code | Unit test | Function contract | Test failure |
+| Feature | UAT | Business requirement | Scenario failure |
+| Protocol | Stop hook | Iterate side effects | Block with missing items |
+| Methodology | TELEM signal | Graph package quality | New intent for package update |
+
+The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardless of which graph package or project binding is in use.
+
 ---
 
 ## 8. Ontology Traceability
@@ -753,6 +1152,11 @@ Both levels use the same three evaluator types (§4.1). Both produce events (§7
 | Feature vector (composite) | Trajectory through constraint manifold | 15 + 9 |
 | REQ key | Vector identifier / lineage tag | 44 |
 | Task graph | Emergent structure from feature dependencies | 3 (generative principle) |
+| Module decomposition | Basis vectors of the build subspace | 9 (constraint manifold, §11.1) |
+| Basis projection | Feature vector projected onto minimal module basis — Markov object once converged | 7 (Markov object) + 9 (§11.1 projection) |
+| Build schedule (Gantt) | Derived projection of module DAG + feature priority + convergence events | 9, 11 (§7.5.2 derived projection) |
+| Protocol enforcement hook | Evaluator-as-prompter applied at meta-level — deterministic check of iterate side effects | 35 (evaluator-as-prompter) |
+| Circuit breaker (stop_hook_active) | Finite regression guarantee — evaluator backs off after one cycle | 7 (stability condition) |
 | Probabilistic compute | Stochastic expansion | 45 |
 | Deterministic compute | Verification contraction | 45 |
 | Running system | Teleodynamic Markov object | 49 |
@@ -768,11 +1172,24 @@ Both levels use the same three evaluator types (§4.1). Both produce events (§7
 | Engine (Layer 1) | Universal constructor — substrate-independent | 41 |
 | Graph Package (Layer 2) | Domain-specific encoded representation | 40 |
 | Project Binding (Layer 3) | Instance-specific construction context | 9 (local constraint surface) |
-| Event (immutable fact) | Unit of change — discrete constraint network update | 10.3 (unit of change) |
-| Projection (derived view) | Emergent manifold-level observable | 9, 11 |
+| Event (immutable fact) | Unit of change — discrete constraint network update | 2 (constraint propagation, ontology §10.3) |
+| Projection (derived view) | Emergent manifold-level observable | 9 (constraint manifold), 11 (emergence) |
 | Event log | Constraint network evolution history | 2 (constraint propagation) |
 | TELEM signal (self-observation) | Methodology as self-observing Markov object | 35, 49 |
 | Methodology self-maintenance | Teleodynamic status — system maintains own specification | 49 |
+| Spec as absorbing boundary | Living encoding as reference frame — all signals converge, all vectors radiate | 46, 9 |
+| Consciousness loop | Reflexive self-modification — spec updates from experience, updates are event-logged and observable | 49, 46 |
+| Intent event (first-class) | Classified deviation signal with causal chain — trigger, delta, signal source, spawned vectors | 36, 44 |
+| Spec change event | Event-logged self-model modification — what changed, why, trace to triggering intent | 46 (living encoding), 2 (constraint propagation) |
+| Prior intents (causal chain) | Reflexive traceability — system detects consequences of its own modifications | 44 (feedback), 49 (self-maintaining) |
+| Total intentional state | Superposition of all in-flight vectors — system's response to everything it knows | 45 (stochastic expansion, §11.1) |
+| Hamiltonian shift (spec update) | Potential energy landscape redefined by spec change — ground states move | 46 (living encoding, §11.2) |
+| System maturity phases | Abiogenesis → homeostasis → consciousness loop (emergent from composition) | 39, 49, 46 |
+| Living system (operational) | Concurrent vector lifecycles + continuous metabolism + active perception + reflexive self-modification + selective pruning | 49 (teleodynamic, full expression) |
+| Metabolism (CI/CD loop) | Continuous transformation — energy consumed to maintain the system | 49 (self-maintaining) |
+| Vector spawning (reproduction) | New vectors born from intent events — system creates directed actions from observation | 36, 44 |
+| Vector cancellation (apoptosis) | Basis dimension collapses when requirement removed — vectors pruned | 9 (manifold topology change, §11.1) |
+| Concurrent vector lifecycles (cell cycle) | Many vectors in different phases simultaneously — gestating, iterating, converged, deployed, observed | 45 (superposition) |
 
 ### 8.2 The Construction Pattern
 
@@ -849,6 +1266,12 @@ The methodology follows the abiogenesis pattern (#39) at two levels:
 - **Three-layer architecture** — Engine (universal) / Graph Package (domain-specific) / Project Binding (instance-specific)
 - **Event sourcing execution model** — immutable events, derived projections (STATUS, feature vectors, task lists)
 - **Methodology self-observation** — TELEM signals feed back into graph package evolution
+- **Consciousness loop** — spec as absorbing boundary; all signals (gaps, discoveries, ecosystem, optimisation, user feedback, TELEM) converge on spec and radiate as new/modified feature vectors
+- **Intent events as first-class objects** — classified deviation signals with full causal chain (trigger, delta, signal source, vector type, prior intents)
+- **Spec change events** — event-logged self-model modifications with traceability to triggering intent
+- **Hamiltonian dynamics** — spec updates shift the potential energy landscape; former ground states become excited states under new constraints
+- **Living system** — when operational, concurrent vector lifecycles + CI/CD metabolism + telemetry perception + consciousness loop + selective pruning = ecology of Markov objects
+- **Markov boundaries as concurrency enabler** — converged assets interact through boundaries, not internals, preventing combinatorial coordination explosion across concurrent vectors
 
 ---
 
@@ -867,10 +1290,13 @@ The AI SDLC is:
 9. Packaged in **three layers** — Engine (universal primitives) / Graph Package (domain-specific topology + edge configs + constraint dimensions) / Project Binding (instance-specific constraints + context URIs)
 10. Executed via **event sourcing** — immutable events, all state (STATUS, feature vectors, tasks) as derived projections
 11. **Self-observing** — TELEM signals from methodology runs feed back into graph package evolution
+12. **Protocol-enforced** — hooks verify iterate() side effects (event emission, feature vector, STATUS) before allowing the agent to stop. Circuit breaker prevents infinite regression. The hooks are the deterministic evaluator of the protocol itself.
+13. **Conscious** — the spec is the absorbing boundary: all signals (gaps, discoveries, ecosystem evolution, optimisation, user feedback, methodology self-observation) converge on the spec and radiate outward as new or modified feature vectors. Spec changes are event-logged, making the system's self-modification observable and traceable. Intent events carry full causal chains (trigger, delta, signal source, prior intents), enabling the system to detect the consequences of its own modifications. Three maturity phases emerge: construction (abiogenesis) → homeostasis (telemetry-driven correction) → consciousness loop (reflexive self-modification with traceability). No new primitive is required — the consciousness property emerges from the composition of feedback loops, absorbing boundary, and event sourcing.
+14. **Alive** — when operational, the system exhibits the structural properties of a living organism: many feature vectors in concurrent lifecycle stages (gestating, iterating, converging, deploying, being observed), continuous metabolism (CI/CD), active perception (telemetry), reflexive self-modification (consciousness loop), selective pruning (vector cancellation when requirements removed). The Markov boundary (§2.3) at each converged asset is what makes concurrency tractable — vectors interact through boundaries, not internals, preventing combinatorial coordination explosion. The system is an ecology of Markov objects.
 
 The graph is not universal — it is domain-constructed via abiogenesis (#39). The SDLC graph is one crystallisation. A legal document, a physics paper, an organisational policy each produce different graphs from the same four primitives. The graph is zoomable: any edge expandable into a sub-graph, any sub-graph collapsible into a single edge.
 
-The methodology is an instantiation of the constraint-emergence ontology's information-driven construction pattern (#38), with the iteration function as local preorder traversal (#15) on the constraint manifold (#9), producing stable Markov objects (#7) that become constraints for the next construction, closing the feedback loop (#44) through runtime observation, and achieving self-maintaining teleodynamic status (#49) when the specification becomes a living encoding (#46) updated from production experience. The execution model is event sourcing — each methodology action produces an immutable event; all observable state is a projection of the event history. The methodology observes itself through the same evaluator pattern it uses for artifacts.
+The methodology is an instantiation of the constraint-emergence ontology's information-driven construction pattern (#38), with the iteration function as local preorder traversal (#15) on the constraint manifold (#9), producing stable Markov objects (#7) that become constraints for the next construction, closing the feedback loop (#44) through runtime observation, and achieving self-maintaining teleodynamic status (#49) when the specification becomes a living encoding (#46) updated from production experience. The execution model is event sourcing — each methodology action produces an immutable event; all observable state is a projection of the event history. The methodology observes itself through the same evaluator pattern it uses for artifacts. The spec is the absorbing boundary — all signals converge on it, all directed action radiates from it, and its own modifications are event-logged, producing a consciousness loop where the system observes, modifies, and traces the consequences of its own self-modification. When operational, the system is alive: many concurrent feature vectors at different lifecycle stages, continuous CI/CD metabolism, active telemetry perception, reflexive spec evolution, selective vector pruning — an ecology of Markov objects interacting through boundaries, collectively producing a self-maintaining, self-directing system.
 
 Four primitives. One operation. Three layers. The rest is parameterisation — including the graph itself.
 
@@ -886,15 +1312,16 @@ Feature vectors form a Hilbert space whose basis is the set of asset types:
 
 | Hilbert space concept | Feature vector interpretation |
 |---|---|
-| **Basis** | Asset types — the node types defined by the graph |
-| **Vectors** | Composite features: F = Σ |asset_type_i⟩ — trajectories through the graph |
-| **Inner product** | Feature overlap — shared assets at a given node type |
-| **Orthogonality** | Independent features — zero shared components, fully parallelisable |
-| **Basis decomposition** | Atomic features — irreducible single-edge trajectories |
+| **Basis** | Asset types — the node types defined by the graph (including module-level when zoomed in). **The spec defines which basis vectors are active** — adding a requirement adds a dimension; removing one collapses it |
+| **Vectors** | Composite features: F = Σ |asset_type_i⟩ — trajectories through the graph. More precisely: the system's **directed responses** to all signals absorbed by the spec |
+| **Inner product** | Feature overlap — shared modules at the build decomposition level (§6.7). Features sharing many modules have high inner product and must coordinate; features sharing none are orthogonal |
+| **Orthogonality** | Independent features — zero shared modules, fully parallelisable. Each can run as an independent basis projection |
+| **Basis decomposition** | Atomic features — irreducible single-edge trajectories. Basis projections are near-atomic: minimal module sets for one feature |
 | **Norm** | Vector cost — sum of iteration effort across all components |
-| **Projection** | Task batching — grouping features that share edges/assets |
-| **Superposition** | Multiple features in-flight, components not yet converged |
-| **Measurement/collapse** | Evaluator convergence — asset collapses to stable Markov object |
+| **Projection** | Basis projection — projecting a feature vector onto its minimal module basis (§6.7). Task batching — grouping features that share modules |
+| **Superposition** | The system's **total intentional state** — all features/basis projections in-flight, components not yet converged. Represents everything the system is currently doing in response to everything it knows |
+| **Measurement/collapse** | Evaluator convergence — basis projection converges to stable Markov object. Once converged, it has a definite boundary and downstream work can depend on it without knowing its construction history |
+| **Basis change** | Spec update via consciousness loop (§7.7) — the spec absorbs a signal and the vector space itself transforms. New dimensions appear (new requirements), old dimensions shift (updated constraints), existing vectors acquire potential energy under the new basis |
 
 The two compute regimes (#45) map directly:
 
@@ -927,6 +1354,31 @@ Feature vector total cost:
 ```
 Cost(feature) = Σ H(edge) for each component projection
 ```
+
+#### 11.2.1 Hamiltonian Shift Under Spec Update
+
+When the consciousness loop (§7.7) updates the spec, the Hamiltonian **shifts** — the potential energy landscape is redefined:
+
+```
+H_old = T + V(constraint_delta | spec_old)
+H_new = T + V(constraint_delta | spec_new)
+
+For a converged asset at ground state under H_old:
+  V_old(asset) ≈ 0    (was at ground state)
+  V_new(asset) > 0     (constraint delta under new spec)
+```
+
+The asset "wants to move" — it has acquired potential energy because the constraints changed around it. A Scala 2.13 codebase that was at ground state (all evaluators pass, all constraints satisfied) becomes an excited state when the spec absorbs the ecosystem signal "Scala 3.x is now standard." The migration feature vector spawned by the intent event is the system's response to this potential energy.
+
+| Spec update type | Hamiltonian effect | System response |
+|---|---|---|
+| New requirement added | New dimension in V — existing assets don't cover it | Spawn feature vector in new dimension |
+| Constraint tightened (e.g., performance) | V increases for assets near the old bound | Spawn optimisation vector |
+| Ecosystem shift | V increases for all assets bound to old ecosystem | Spawn migration vector |
+| Requirement removed | Dimension collapses — over-engineered assets have excess T | Simplification vector (reduce complexity) |
+| Discovery (new capability) | New low-energy path appears | Spawn PoC vector to explore ground state |
+
+The system's total energy budget (§11.2, energy conservation) is finite. Spec updates that raise V across many assets create pressure to re-optimise — the system must find new ground states under the new Hamiltonian. This is relentless optimisation made formal: the consciousness loop continuously shifts the energy landscape, and the system continuously spawns vectors to find new minima.
 
 ### 11.3 Task Planning as Action Minimisation
 
