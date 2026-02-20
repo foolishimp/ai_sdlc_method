@@ -755,3 +755,275 @@ class TestThreeDirectionGapDetection:
         with open(EDGE_PARAMS_DIR / "tdd.yml") as f:
             content = f.read()
         assert "test_data_strategy" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 12: Constraint Dimension Initialization
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestConstraintDimensionInitialization:
+    """
+    GIVEN the /aisdlc-init command
+    WHEN a user initializes a new project
+    THEN constraint dimensions are auto-detected and scaffolded in project_constraints.yml.
+    """
+
+    @pytest.mark.bdd
+    def test_init_references_constraint_dimensions(self):
+        """Init command must reference constraint dimensions."""
+        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+            content = f.read()
+        assert "constraint_dimensions" in content or "Constraint" in content
+
+    @pytest.mark.bdd
+    def test_init_auto_detects_ecosystem_language(self):
+        """Init must auto-detect ecosystem_compatibility.language."""
+        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+            content = f.read()
+        assert "ecosystem_compatibility" in content or "language" in content.lower()
+
+    @pytest.mark.bdd
+    def test_init_auto_detects_build_system(self):
+        """Init must auto-detect build_system.tool."""
+        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+            content = f.read()
+        assert "build_system" in content or "build" in content.lower()
+
+    @pytest.mark.bdd
+    def test_init_marks_undetected_dimensions_todo(self):
+        """Init must mark undetected mandatory dimensions as TODO."""
+        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+            content = f.read()
+        assert "TODO" in content
+
+    @pytest.mark.bdd
+    def test_init_report_shows_dimension_status(self):
+        """Init report must show constraint dimension configuration status."""
+        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+            content = f.read()
+        # Report should show how many dimensions are configured vs TODO
+        assert "Dimensions" in content or "dimensions" in content
+
+    @pytest.mark.bdd
+    def test_init_report_shows_three_layer_structure(self):
+        """Init report must show the three-layer structure (Graph Package + Project Binding)."""
+        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+            content = f.read()
+        assert "Layer 2" in content or "Graph Package" in content
+        assert "Layer 3" in content or "Project Binding" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 13: Constraint Dimension Convergence at Design Edge
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestConstraintDimensionConvergence:
+    """
+    GIVEN a requirements→design edge traversal
+    WHEN the iterate agent evaluates design
+    THEN all mandatory constraint dimensions must be resolved for convergence.
+    """
+
+    @pytest.mark.bdd
+    def test_design_edge_has_4_mandatory_dimension_checks(self):
+        """Requirements→Design edge must have checklist items for all 4 mandatory dimensions."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        check_names = [c["name"] for c in config["checklist"]]
+        mandatory = [
+            "ecosystem_compatibility_resolved",
+            "deployment_target_resolved",
+            "security_model_resolved",
+            "build_system_resolved",
+        ]
+        for name in mandatory:
+            assert name in check_names, f"design edge missing mandatory dimension check: {name}"
+
+    @pytest.mark.bdd
+    def test_mandatory_checks_block_convergence(self):
+        """Mandatory dimension checks must be required (blocking convergence)."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        checks_by_name = {c["name"]: c for c in config["checklist"]}
+        for name in ("ecosystem_compatibility_resolved", "deployment_target_resolved",
+                      "security_model_resolved", "build_system_resolved"):
+            assert checks_by_name[name]["required"] is True, \
+                f"'{name}' must be required to block convergence"
+
+    @pytest.mark.bdd
+    def test_advisory_check_does_not_block_convergence(self):
+        """Advisory dimensions check must NOT block convergence."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        checks_by_name = {c["name"]: c for c in config["checklist"]}
+        assert checks_by_name["advisory_dimensions_considered"]["required"] is False
+
+    @pytest.mark.bdd
+    def test_convergence_rule_is_all_required(self):
+        """Convergence rule must be all_required_checks_pass."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        assert config["convergence"]["rule"] == "all_required_checks_pass"
+
+    @pytest.mark.bdd
+    def test_iterate_agent_loads_constraint_dimensions(self):
+        """Iterate agent must load constraint dimensions at design edge."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "constraint dimension" in content.lower() or "constraint_dimensions" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 14: Design Document Structure Requirements
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestDesignDocumentStructure:
+    """
+    GIVEN the requirements→design edge config
+    WHEN it defines document structure requirements
+    THEN all required sections, diagrams, and traceability are enforced.
+    """
+
+    @pytest.mark.bdd
+    def test_six_required_sections_defined(self):
+        """Design document_structure must define 6 required sections."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        required = config["document_structure"]["required_sections"]
+        assert len(required) >= 6
+
+    @pytest.mark.bdd
+    def test_required_sections_include_core_set(self):
+        """Required sections must include Architecture Overview, Component Design, Data Model, etc."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        titles = [s["title"] for s in config["document_structure"]["required_sections"]]
+        for expected in ("Architecture Overview", "Component Design", "Data Model",
+                         "Traceability Matrix", "ADR Index", "Package/Module Structure"):
+            assert expected in titles, f"missing required section: {expected}"
+
+    @pytest.mark.bdd
+    def test_mermaid_diagrams_check_exists(self):
+        """Checklist must include architecture_diagrams_present check."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        check_names = [c["name"] for c in config["checklist"]]
+        assert "architecture_diagrams_present" in check_names
+
+    @pytest.mark.bdd
+    def test_mermaid_check_requires_two_diagrams(self):
+        """Architecture diagrams check must require at least 2 Mermaid diagrams."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        checks_by_name = {c["name"]: c for c in config["checklist"]}
+        criterion = checks_by_name["architecture_diagrams_present"]["criterion"]
+        assert "2" in criterion or "two" in criterion.lower()
+
+    @pytest.mark.bdd
+    def test_traceability_matrix_check_exists(self):
+        """Checklist must include all_reqs_traced_to_components check."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        check_names = [c["name"] for c in config["checklist"]]
+        assert "all_reqs_traced_to_components" in check_names
+
+    @pytest.mark.bdd
+    def test_no_orphan_components_check_exists(self):
+        """Checklist must include no_orphan_components check."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        check_names = [c["name"] for c in config["checklist"]]
+        assert "no_orphan_components" in check_names
+
+    @pytest.mark.bdd
+    def test_recommended_sections_defined(self):
+        """Document structure should have recommended (optional) sections."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        recommended = config["document_structure"].get("recommended_sections", [])
+        assert len(recommended) >= 1
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 15: ADR Generation for Constraint Dimensions
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestConstraintDimensionADRs:
+    """
+    GIVEN a design that resolves mandatory constraint dimensions
+    WHEN ADRs are checked
+    THEN each mandatory dimension resolution has an ADR with alternatives and consequences.
+    """
+
+    @pytest.mark.bdd
+    def test_adr_check_exists_in_design_edge(self):
+        """Design edge must have adrs_for_decisions check."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        check_names = [c["name"] for c in config["checklist"]]
+        assert "adrs_for_decisions" in check_names
+
+    @pytest.mark.bdd
+    def test_adr_depth_check_requires_alternatives(self):
+        """ADR depth check must require at least 2 alternatives considered."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        checks_by_name = {c["name"]: c for c in config["checklist"]}
+        criterion = checks_by_name["adr_depth_adequate"]["criterion"]
+        assert "2 alternatives" in criterion or "alternatives considered" in criterion.lower()
+
+    @pytest.mark.bdd
+    def test_adr_depth_check_requires_consequences(self):
+        """ADR depth check must require concrete consequences."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        checks_by_name = {c["name"]: c for c in config["checklist"]}
+        criterion = checks_by_name["adr_depth_adequate"]["criterion"]
+        assert "consequence" in criterion.lower()
+
+    @pytest.mark.bdd
+    def test_adr_depth_check_requires_req_key_connection(self):
+        """ADR depth check must require connection to REQ keys."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        checks_by_name = {c["name"]: c for c in config["checklist"]}
+        criterion = checks_by_name["adr_depth_adequate"]["criterion"]
+        assert "REQ" in criterion
+
+    @pytest.mark.bdd
+    def test_agent_guidance_prescribes_dimension_adrs(self):
+        """Agent guidance must prescribe generating ADRs for mandatory dimensions."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        guidance = config["agent_guidance"]
+        assert "ADR" in guidance
+        assert "mandatory" in guidance.lower() or "dimension" in guidance.lower()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 16: Status Command — Constraint Dimension Display
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestStatusConstraintDimensions:
+    """
+    GIVEN the /aisdlc-status command with --feature flag
+    WHEN displaying detailed feature status
+    THEN constraint dimension resolution status is shown.
+    """
+
+    @pytest.mark.bdd
+    def test_status_shows_constraint_dimensions_section(self):
+        """Detailed status view must show Constraint Dimensions section."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "Constraint Dimensions" in content
+
+    @pytest.mark.bdd
+    def test_status_shows_resolved_indicator(self):
+        """Status must show resolution indicators (resolved/advisory)."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "resolved" in content.lower()
+
+    @pytest.mark.bdd
+    def test_status_links_dimensions_to_adrs(self):
+        """Status must show which ADR resolved each dimension."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "ADR-" in content
+
+    @pytest.mark.bdd
+    def test_status_shows_advisory_acknowledgement(self):
+        """Status must show advisory dimensions with acknowledgement status."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "advisory" in content.lower()

@@ -437,3 +437,246 @@ class TestEvaluatorDefaults:
         rules = evaluator_defaults["convergence_rules"]
         assert "composition" in rules
         assert rules["composition"] == "all_must_pass"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 9. CONSTRAINT DIMENSIONS VALIDATION (Spec §2.6.1)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestConstraintDimensions:
+    """Constraint dimensions in graph_topology must define the taxonomy for design disambiguation."""
+
+    EXPECTED_DIMENSIONS = {
+        "ecosystem_compatibility", "deployment_target", "security_model",
+        "data_governance", "performance_envelope", "build_system",
+        "observability", "error_handling",
+    }
+    MANDATORY_DIMENSIONS = {
+        "ecosystem_compatibility", "deployment_target", "security_model", "build_system",
+    }
+    ADVISORY_DIMENSIONS = {
+        "data_governance", "performance_envelope", "observability", "error_handling",
+    }
+    VALID_RESOLVES_VIA = {"adr", "adr_or_design_section", "design_section"}
+
+    @pytest.mark.tdd
+    def test_constraint_dimensions_section_exists(self, graph_topology):
+        """Graph topology must have a constraint_dimensions section."""
+        assert "constraint_dimensions" in graph_topology
+
+    @pytest.mark.tdd
+    def test_all_eight_dimensions_present(self, graph_topology):
+        """All 8 constraint dimensions must be defined."""
+        dims = set(graph_topology["constraint_dimensions"].keys())
+        missing = self.EXPECTED_DIMENSIONS - dims
+        assert not missing, f"missing constraint dimensions: {missing}"
+
+    @pytest.mark.tdd
+    def test_dimensions_have_required_fields(self, graph_topology):
+        """Each dimension needs description, mandatory, resolves_via, examples."""
+        for name, dim in graph_topology["constraint_dimensions"].items():
+            assert "description" in dim, f"dimension '{name}' missing description"
+            assert "mandatory" in dim, f"dimension '{name}' missing mandatory flag"
+            assert isinstance(dim["mandatory"], bool), f"dimension '{name}' mandatory must be bool"
+            assert "resolves_via" in dim, f"dimension '{name}' missing resolves_via"
+            assert dim["resolves_via"] in self.VALID_RESOLVES_VIA, \
+                f"dimension '{name}' resolves_via '{dim['resolves_via']}' not in {self.VALID_RESOLVES_VIA}"
+            assert "examples" in dim, f"dimension '{name}' missing examples"
+            assert len(dim["examples"]) >= 1, f"dimension '{name}' needs at least 1 example"
+
+    @pytest.mark.tdd
+    def test_mandatory_dimensions_correctly_flagged(self, graph_topology):
+        """Exactly 4 dimensions must be mandatory."""
+        dims = graph_topology["constraint_dimensions"]
+        actual_mandatory = {n for n, d in dims.items() if d["mandatory"]}
+        assert actual_mandatory == self.MANDATORY_DIMENSIONS, \
+            f"mandatory mismatch: expected {self.MANDATORY_DIMENSIONS}, got {actual_mandatory}"
+
+    @pytest.mark.tdd
+    def test_advisory_dimensions_correctly_flagged(self, graph_topology):
+        """Exactly 4 dimensions must be advisory (not mandatory)."""
+        dims = graph_topology["constraint_dimensions"]
+        actual_advisory = {n for n, d in dims.items() if not d["mandatory"]}
+        assert actual_advisory == self.ADVISORY_DIMENSIONS, \
+            f"advisory mismatch: expected {self.ADVISORY_DIMENSIONS}, got {actual_advisory}"
+
+    @pytest.mark.tdd
+    def test_mandatory_dimensions_resolve_via_adr(self, graph_topology):
+        """Mandatory dimensions must resolve via ADR (not just design section)."""
+        dims = graph_topology["constraint_dimensions"]
+        for name in self.MANDATORY_DIMENSIONS:
+            assert dims[name]["resolves_via"] in ("adr", "adr_or_design_section"), \
+                f"mandatory dimension '{name}' should resolve via ADR, got '{dims[name]['resolves_via']}'"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 10. REQUIREMENTS→DESIGN CONSTRAINT DIMENSION CHECKS
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestRequirementsDesignDimensionChecks:
+    """Requirements→Design edge must have checklist items for constraint dimension resolution."""
+
+    MANDATORY_CHECKS = [
+        "ecosystem_compatibility_resolved",
+        "deployment_target_resolved",
+        "security_model_resolved",
+        "build_system_resolved",
+    ]
+
+    @pytest.fixture
+    def req_design_config(self):
+        return load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+
+    @pytest.mark.tdd
+    def test_mandatory_dimension_checks_present(self, req_design_config):
+        """Checklist must include a check for each mandatory constraint dimension."""
+        check_names = [c["name"] for c in req_design_config["checklist"]]
+        for name in self.MANDATORY_CHECKS:
+            assert name in check_names, f"missing mandatory dimension check: {name}"
+
+    @pytest.mark.tdd
+    def test_mandatory_dimension_checks_required(self, req_design_config):
+        """Each mandatory dimension check must be required: true."""
+        checks_by_name = {c["name"]: c for c in req_design_config["checklist"]}
+        for name in self.MANDATORY_CHECKS:
+            assert checks_by_name[name]["required"] is True, \
+                f"dimension check '{name}' must be required"
+
+    @pytest.mark.tdd
+    def test_mandatory_dimension_checks_are_agent_type(self, req_design_config):
+        """Dimension checks are agent-evaluated (not deterministic)."""
+        checks_by_name = {c["name"]: c for c in req_design_config["checklist"]}
+        for name in self.MANDATORY_CHECKS:
+            assert checks_by_name[name]["type"] == "agent", \
+                f"dimension check '{name}' should be type 'agent'"
+
+    @pytest.mark.tdd
+    def test_advisory_dimensions_check_present(self, req_design_config):
+        """Advisory dimensions check must exist and be optional."""
+        checks_by_name = {c["name"]: c for c in req_design_config["checklist"]}
+        assert "advisory_dimensions_considered" in checks_by_name
+        assert checks_by_name["advisory_dimensions_considered"]["required"] is False
+
+    @pytest.mark.tdd
+    def test_dimension_checks_reference_project_constraints(self, req_design_config):
+        """Dimension check criteria should reference project_constraints.yml."""
+        checks_by_name = {c["name"]: c for c in req_design_config["checklist"]}
+        for name in self.MANDATORY_CHECKS:
+            criterion = checks_by_name[name]["criterion"]
+            assert "project_constraints" in criterion or "constraint_dimensions" in criterion, \
+                f"dimension check '{name}' criterion should reference project_constraints"
+
+    @pytest.mark.tdd
+    def test_source_analysis_section_exists(self, req_design_config):
+        """Requirements→Design must have source_analysis section."""
+        assert "source_analysis" in req_design_config
+        assert len(req_design_config["source_analysis"]) >= 3
+
+    @pytest.mark.tdd
+    def test_source_analysis_checks_have_required_fields(self, req_design_config):
+        """Each source_analysis check needs name, criterion, required."""
+        for check in req_design_config["source_analysis"]:
+            assert "name" in check, f"source_analysis check missing 'name'"
+            assert "criterion" in check, f"source_analysis check '{check.get('name')}' missing 'criterion'"
+            assert "required" in check, f"source_analysis check '{check.get('name')}' missing 'required'"
+
+    @pytest.mark.tdd
+    def test_agent_guidance_includes_dimension_loading(self, req_design_config):
+        """Agent guidance must include constraint dimension loading step."""
+        guidance = req_design_config["agent_guidance"]
+        assert "LOAD CONSTRAINT DIMENSIONS" in guidance or "constraint_dimensions" in guidance
+
+    @pytest.mark.tdd
+    def test_context_guidance_requires_project_constraints(self, req_design_config):
+        """Context guidance must list project_constraints.yml as required."""
+        required_ctx = req_design_config["context_guidance"]["required"]
+        ctx_str = " ".join(str(c) for c in required_ctx)
+        assert "project_constraints" in ctx_str
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 11. PROJECT CONSTRAINTS TEMPLATE — DIMENSION BINDINGS
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestProjectConstraintsDimensions:
+    """Project constraints template must have binding fields for all constraint dimensions."""
+
+    @pytest.mark.tdd
+    def test_constraint_dimensions_section_exists(self, project_constraints_template):
+        """Template must have constraint_dimensions section."""
+        assert "constraint_dimensions" in project_constraints_template
+
+    @pytest.mark.tdd
+    def test_all_topology_dimensions_have_bindings(self, graph_topology, project_constraints_template):
+        """Every dimension in graph_topology must have a binding in project_constraints template."""
+        topology_dims = set(graph_topology["constraint_dimensions"].keys())
+        template_dims = set(project_constraints_template["constraint_dimensions"].keys())
+        missing = topology_dims - template_dims
+        assert not missing, f"dimensions in topology but not in template: {missing}"
+
+    @pytest.mark.tdd
+    def test_ecosystem_compatibility_has_fields(self, project_constraints_template):
+        """Ecosystem compatibility binding must have language, version, runtime, frameworks."""
+        eco = project_constraints_template["constraint_dimensions"]["ecosystem_compatibility"]
+        for field in ("language", "version", "runtime", "frameworks"):
+            assert field in eco, f"ecosystem_compatibility missing field '{field}'"
+
+    @pytest.mark.tdd
+    def test_deployment_target_has_fields(self, project_constraints_template):
+        """Deployment target binding must have platform, cloud_provider."""
+        dep = project_constraints_template["constraint_dimensions"]["deployment_target"]
+        for field in ("platform", "cloud_provider"):
+            assert field in dep, f"deployment_target missing field '{field}'"
+
+    @pytest.mark.tdd
+    def test_security_model_has_fields(self, project_constraints_template):
+        """Security model binding must have authentication, authorisation, data_protection."""
+        sec = project_constraints_template["constraint_dimensions"]["security_model"]
+        for field in ("authentication", "authorisation", "data_protection"):
+            assert field in sec, f"security_model missing field '{field}'"
+
+    @pytest.mark.tdd
+    def test_build_system_has_fields(self, project_constraints_template):
+        """Build system binding must have tool, module_structure."""
+        bld = project_constraints_template["constraint_dimensions"]["build_system"]
+        for field in ("tool", "module_structure"):
+            assert field in bld, f"build_system missing field '{field}'"
+
+    @pytest.mark.tdd
+    def test_advisory_dimensions_present(self, project_constraints_template):
+        """All 4 advisory dimensions must be present in template."""
+        dims = project_constraints_template["constraint_dimensions"]
+        for name in ("data_governance", "performance_envelope", "observability", "error_handling"):
+            assert name in dims, f"advisory dimension '{name}' missing from template"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 12. VERSION CONSISTENCY
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestVersionConsistency:
+    """Version references must be consistent across spec, plugin, and configs."""
+
+    @pytest.mark.tdd
+    def test_plugin_version_is_2_3(self, plugin_json):
+        """plugin.json version must be 2.3.0."""
+        assert plugin_json["version"] == "2.3.0"
+
+    @pytest.mark.tdd
+    def test_graph_topology_version_is_2_3(self, graph_topology):
+        """graph_topology.yml version must be 2.3.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.3.0"
+
+    @pytest.mark.tdd
+    def test_plugin_description_mentions_constraint_dimensions(self, plugin_json):
+        """Plugin description should mention constraint dimensions."""
+        assert "constraint dimensions" in plugin_json["description"]
+
+    @pytest.mark.tdd
+    def test_plugin_description_mentions_event_sourcing(self, plugin_json):
+        """Plugin description should mention event sourcing."""
+        assert "event sourcing" in plugin_json["description"]
