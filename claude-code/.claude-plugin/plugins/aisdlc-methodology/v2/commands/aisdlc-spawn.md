@@ -75,7 +75,15 @@ Load the profile from `.ai-workspace/profiles/{profile}.yml` or fall back to `v2
    - Set parent edge status to `blocked`
    - Add `blocked_by: REQ-F-SPIKE-001` to the edge
 
-### Step 5: Report
+### Step 5: Emit Event
+
+Append a `spawn_created` event to `.ai-workspace/events/events.jsonl`:
+
+```json
+{"event_type": "spawn_created", "timestamp": "{ISO 8601}", "project": "{project name}", "data": {"parent": "{parent feature ID}", "child": "{child feature ID}", "vector_type": "{discovery|spike|poc|hotfix}", "reason": "{reason}", "time_box": "{duration}", "profile": "{profile name}", "triggered_at_edge": "{edge where spawn was triggered}"}}
+```
+
+### Step 6: Report
 
 ```
 ═══ SPAWN REPORT ═══
@@ -129,7 +137,12 @@ When a child vector converges or its time box expires:
    - The child's results now constrain subsequent parent iterations
    - Unblock the parent edge if it was blocked
 
-5. If hotfix: spawn remediation feature vector (permanent fix for the root cause)
+5. **Emit fold-back event** to `.ai-workspace/events/events.jsonl`:
+   ```json
+   {"event_type": "spawn_folded_back", "timestamp": "{ISO 8601}", "project": "{project name}", "data": {"parent": "{parent ID}", "child": "{child ID}", "fold_back_status": "converged|time_box_expired", "payload_path": ".ai-workspace/features/fold-back/{child_id}.md"}}
+   ```
+
+6. If hotfix: spawn remediation feature vector (permanent fix for the root cause)
 
 ## Examples
 

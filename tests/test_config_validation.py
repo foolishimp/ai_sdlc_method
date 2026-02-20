@@ -12,7 +12,7 @@ import yaml
 
 from conftest import (
     CONFIG_DIR, EDGE_PARAMS_DIR, PROFILES_DIR, COMMANDS_DIR,
-    AGENTS_DIR, PLUGIN_ROOT, SPEC_DIR, load_yaml,
+    AGENTS_DIR, PLUGIN_ROOT, SPEC_DIR, DOCS_DIR, load_yaml,
 )
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -680,3 +680,147 @@ class TestVersionConsistency:
     def test_plugin_description_mentions_event_sourcing(self, plugin_json):
         """Plugin description should mention event sourcing."""
         assert "event sourcing" in plugin_json["description"]
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Consciousness Loop — Signal Source Validation
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestFeedbackLoopConfig:
+    """Validate feedback_loop.yml signal source configuration."""
+
+    REQUIRED_SIGNAL_SOURCES = {
+        "gap", "test_failure", "refactoring",
+        "source_finding", "process_gap",
+        "runtime_feedback", "ecosystem",
+    }
+
+    @pytest.mark.tdd
+    def test_feedback_loop_config_exists(self):
+        """feedback_loop.yml must exist in edge_params."""
+        assert (EDGE_PARAMS_DIR / "feedback_loop.yml").exists()
+
+    @pytest.mark.tdd
+    def test_feedback_loop_has_sources_section(self, all_edge_configs):
+        """feedback_loop.yml must have a sources section."""
+        feedback = all_edge_configs["feedback_loop"]
+        assert "sources" in feedback
+
+    @pytest.mark.tdd
+    def test_feedback_loop_signal_sources_are_complete(self, all_edge_configs):
+        """All 7 signal source types must be defined."""
+        feedback = all_edge_configs["feedback_loop"]
+        sources = feedback.get("sources", {})
+        found_signals = set()
+        for key, val in sources.items():
+            if isinstance(val, dict) and "signal_source" in val:
+                found_signals.add(val["signal_source"])
+        missing = self.REQUIRED_SIGNAL_SOURCES - found_signals
+        assert not missing, f"Missing signal sources: {missing}"
+
+    @pytest.mark.tdd
+    def test_each_source_has_description(self, all_edge_configs):
+        """Each signal source must have a description."""
+        feedback = all_edge_configs["feedback_loop"]
+        for key, val in feedback.get("sources", {}).items():
+            if isinstance(val, dict) and "signal_source" in val:
+                assert "description" in val, f"Source {key} missing description"
+
+    @pytest.mark.tdd
+    def test_each_source_has_trigger(self, all_edge_configs):
+        """Each signal source must have a trigger description."""
+        feedback = all_edge_configs["feedback_loop"]
+        for key, val in feedback.get("sources", {}).items():
+            if isinstance(val, dict) and "signal_source" in val:
+                assert "trigger" in val, f"Source {key} missing trigger"
+
+    @pytest.mark.tdd
+    def test_intent_raised_schema_defined(self, all_edge_configs):
+        """feedback_loop.yml must define the intent_raised event schema."""
+        feedback = all_edge_configs["feedback_loop"]
+        assert "intent_raised_schema" in feedback
+        schema = feedback["intent_raised_schema"]
+        assert schema.get("event_type") == "intent_raised"
+
+    @pytest.mark.tdd
+    def test_intent_raised_schema_has_required_fields(self, all_edge_configs):
+        """intent_raised schema must include all required fields."""
+        feedback = all_edge_configs["feedback_loop"]
+        schema = feedback.get("intent_raised_schema", {})
+        fields = schema.get("fields", [])
+        field_names = set()
+        for f in fields:
+            if isinstance(f, dict):
+                field_names.update(f.keys())
+        required = {"timestamp", "project", "intent_id", "trigger", "delta",
+                    "signal_source", "vector_type", "affected_req_keys",
+                    "prior_intents", "edge_context", "severity"}
+        missing = required - field_names
+        assert not missing, f"intent_raised schema missing fields: {missing}"
+
+
+class TestTDDIntentGeneration:
+    """Validate TDD edge config has intent generation for failures and refactoring."""
+
+    @pytest.mark.tdd
+    def test_tdd_guidance_mentions_intent_raised(self, all_edge_configs):
+        """TDD agent guidance must mention intent_raised event."""
+        tdd = all_edge_configs["tdd"]
+        guidance = tdd.get("agent_guidance", "")
+        assert "intent_raised" in guidance
+
+    @pytest.mark.tdd
+    def test_tdd_guidance_mentions_stuck_delta(self, all_edge_configs):
+        """TDD agent guidance must mention stuck delta threshold (>3 iterations)."""
+        tdd = all_edge_configs["tdd"]
+        guidance = tdd.get("agent_guidance", "")
+        assert "3 iteration" in guidance or "> 3" in guidance
+
+    @pytest.mark.tdd
+    def test_tdd_guidance_mentions_refactoring_signal(self, all_edge_configs):
+        """TDD agent guidance must mention refactoring as a signal source."""
+        tdd = all_edge_configs["tdd"]
+        guidance = tdd.get("agent_guidance", "")
+        assert "refactoring" in guidance
+
+
+class TestRequirementsLineage:
+    """Validate that consciousness loop requirements exist and trace correctly."""
+
+    CONSCIOUSNESS_REQS = ["REQ-LIFE-005", "REQ-LIFE-006", "REQ-LIFE-007", "REQ-LIFE-008"]
+
+    @pytest.mark.tdd
+    def test_consciousness_reqs_exist(self):
+        """REQ-LIFE-005 through REQ-LIFE-008 must exist in implementation requirements."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        for req in self.CONSCIOUSNESS_REQS:
+            assert req in content, f"{req} not found in implementation requirements"
+
+    @pytest.mark.tdd
+    def test_consciousness_reqs_trace_to_spec(self):
+        """Each consciousness requirement must trace to the formal spec."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        # Each REQ-LIFE-005..008 should reference Asset Graph Model
+        assert "Asset Graph Model §7.7" in content
+
+    @pytest.mark.tdd
+    def test_adr_011_references_all_consciousness_reqs(self):
+        """ADR-011 must reference all consciousness loop requirements."""
+        adr_path = DOCS_DIR / "design/claude_aisdlc/adrs/ADR-011-consciousness-loop-at-every-observer.md"
+        with open(adr_path) as f:
+            content = f.read()
+        for req in self.CONSCIOUSNESS_REQS:
+            assert req in content, f"ADR-011 missing {req}"
+
+    @pytest.mark.tdd
+    def test_requirement_count_updated(self):
+        """Total requirement count should reflect additions (was 35, now 39)."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        assert "**39**" in content or "| **Total** | **39**" in content

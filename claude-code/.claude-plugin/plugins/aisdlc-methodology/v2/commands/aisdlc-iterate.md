@@ -92,34 +92,49 @@ The agent performs three directions of gap detection:
    - **Update task tracking** (see Step 4a)
    - Show next available transitions
 
-4a. **Emit Event** (every iteration, not just convergence):
-   - Append a JSON event to `.ai-workspace/events/events.jsonl`:
-     ```json
-     {
-       "type": "iteration_completed",
-       "timestamp": "{ISO 8601}",
-       "feature": "{REQ-F-*}",
-       "edge": "{source}→{target}",
-       "iteration": {n},
-       "status": "{iterating|converged|blocked|time_box_expired|spawn_requested}",
-       "convergence_type": "{standard|question_answered|time_box_expired|}",
-       "evaluators": {
-         "passed": {n},
-         "failed": {n},
-         "skipped": {n},
-         "total": {n},
-         "details": [{"name": "{check}", "type": "{agent|deterministic|human}", "result": "{pass|fail|skip}", "required": true}]
-       },
-       "asset": "{path to output artifact}",
-       "context_hash": "{sha256:...}",
-       "profile": "{profile name}",
-       "vector_type": "{feature|discovery|spike|poc|hotfix}",
-       "delta": {count of failing required checks},
-       "next_edge": "{next available transition, if converged}"
-     }
-     ```
+4a. **Emit Events** (MANDATORY — every iteration must emit events):
+
+   **On first iteration for this feature+edge**: emit an `edge_started` event:
+   ```json
+   {"event_type": "edge_started", "timestamp": "{ISO 8601}", "project": "{project name}", "feature": "{REQ-F-*}", "edge": "{source}→{target}", "data": {"iteration": 1}}
+   ```
+
+   **On every iteration**: emit an `iteration_completed` event:
+   ```json
+   {
+     "event_type": "iteration_completed",
+     "timestamp": "{ISO 8601}",
+     "project": "{project name}",
+     "feature": "{REQ-F-*}",
+     "edge": "{source}→{target}",
+     "iteration": {n},
+     "status": "{iterating|converged|blocked|time_box_expired|spawn_requested}",
+     "convergence_type": "{standard|question_answered|time_box_expired|}",
+     "evaluators": {
+       "passed": {n},
+       "failed": {n},
+       "skipped": {n},
+       "total": {n},
+       "details": [{"name": "{check}", "type": "{agent|deterministic|human}", "result": "{pass|fail|skip}", "required": true}]
+     },
+     "asset": "{path to output artifact}",
+     "context_hash": "{sha256:...}",
+     "profile": "{profile name}",
+     "vector_type": "{feature|discovery|spike|poc|hotfix}",
+     "delta": {count of failing required checks},
+     "next_edge": "{next available transition, if converged}"
+   }
+   ```
+
+   **On convergence**: also emit an `edge_converged` event:
+   ```json
+   {"event_type": "edge_converged", "timestamp": "{ISO 8601}", "project": "{project name}", "feature": "{REQ-F-*}", "edge": "{source}→{target}", "data": {"iteration": {n}, "evaluators": "{pass}/{total}", "convergence_type": "standard|question_answered|time_box_expired"}}
+   ```
+
    - The event log is **append-only** and **immutable**. Events are never modified or deleted.
    - Create `.ai-workspace/events/` directory on first event if it doesn't exist.
+   - The `project` field comes from `.ai-workspace/context/project_constraints.yml` → `project.name`.
+   - See the iterate agent's **Event Type Reference** for the full event schema catalogue.
 
 4b. **Update Derived Views** (projections of the event stream):
 
@@ -152,7 +167,16 @@ The agent performs three directions of gap detection:
 
 5. If not converged:
    - Report delta (what's still needed)
-   - If `--auto`: re-invoke iterate
+   - **Check for stuck delta**: if the same check has failed for > 3 consecutive iterations,
+     emit an `intent_raised` event with `signal_source: "test_failure"` — the delta is
+     stuck and likely requires action beyond this edge's scope
+   - **Check for refactoring signals**: if the iterate agent's process gap analysis
+     identifies structural issues beyond the current feature scope, emit an
+     `intent_raised` event with `signal_source: "refactoring"`
+   - **Check for source escalation**: if backward gap detection found `escalate_upstream`
+     dispositions, emit an `intent_raised` event with `signal_source: "source_finding"`
+   - Present any generated intents to the human for decision
+   - If `--auto`: re-invoke iterate (unless stuck delta detected — pause for human)
    - If not auto: wait for user to re-invoke
 
 6. **Spawn detection**:

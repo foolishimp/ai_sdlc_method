@@ -51,11 +51,19 @@ tasks:
 git_ref: "{current git commit hash}"
 ```
 
-### Step 3: Update Task Tracking
+### Step 3: Emit Event
+
+Append a `checkpoint_created` event to `.ai-workspace/events/events.jsonl`:
+
+```json
+{"event_type": "checkpoint_created", "timestamp": "{ISO 8601}", "project": "{project name from project_constraints.yml}", "data": {"context_hash": "sha256:{aggregate hash}", "feature_count": {count of active features}, "git_ref": "{current git commit hash}", "message": "{user message or auto-generated}", "snapshot_path": ".ai-workspace/snapshots/snapshot-{timestamp}.yml"}}
+```
+
+### Step 4: Update Task Tracking
 
 Update `.ai-workspace/tasks/active/ACTIVE_TASKS.md` with current task status.
 
-### Step 4: Report
+### Step 5: Report
 
 ```
 Checkpoint saved

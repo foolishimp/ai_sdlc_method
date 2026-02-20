@@ -208,6 +208,30 @@ RECOMMENDED NEXT ACTIONS:
 ═══════════════════════════
 ```
 
+### Step 6: Emit Events
+
+**6a. Emit `gaps_validated` event**:
+
+```json
+{"event_type": "gaps_validated", "timestamp": "{ISO 8601}", "project": "{project name from project_constraints.yml}", "data": {"layers_run": [1, 2, 3], "feature": "{feature or 'all'}", "total_req_keys": {n}, "full_coverage": {n}, "partial_coverage": {n}, "no_coverage": {n}, "test_gaps": {n}, "telemetry_gaps": {n}, "layer_results": {"layer_1": "pass|fail", "layer_2": "pass|fail", "layer_3": "pass|fail"}}}
+```
+
+**6b. Emit `intent_raised` events for each gap cluster** (consciousness loop at gap observer):
+
+Gap analysis IS homeostasis during development. Every uncovered REQ key is a delta between the spec (what should be tested/monitored) and reality (what actually is). For each cluster of related gaps, emit:
+
+```json
+{"event_type": "intent_raised", "timestamp": "{ISO 8601}", "project": "{project name}", "data": {"intent_id": "INT-{SEQ}", "trigger": "/aisdlc-gaps layer {n} found {count} uncovered REQ keys", "delta": "{count} REQ keys without {test|telemetry} coverage", "signal_source": "gap", "vector_type": "feature", "affected_req_keys": ["REQ-*", "..."], "prior_intents": [], "edge_context": "gap_analysis", "severity": "high"}}
+```
+
+Clustering rules:
+- Group gaps by **domain** (e.g., all `REQ-F-AUTH-*` gaps → one intent)
+- Test gaps (Layer 2) are **High** priority — features running without verification
+- Telemetry gaps (Layer 3) are **Medium** priority — features running without observability
+- REQ tag gaps (Layer 1) are **High** priority — code without traceability
+
+Present the generated intents to the human. They decide which to pursue.
+
 ## Examples
 
 ```bash

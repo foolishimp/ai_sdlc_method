@@ -130,6 +130,8 @@ Before generating or evaluating output, analyse the **source asset** (the input 
 
 If any finding is `escalate_upstream`, report it before generating output. The human decides whether to proceed with assumptions or re-iterate upstream.
 
+**Intent generation from source findings**: If escalations accumulate (same upstream asset flagged across multiple features or iterations), emit an `intent_raised` event with `signal_source: "source_finding"` to formally capture the upstream deficiency. This is the consciousness loop operating at the backward observer point.
+
 ### Step 3a: Evaluate Output (Forward Gap Detection)
 
 Run each check in the effective checklist against the generated output:
@@ -171,6 +173,7 @@ After running the checklist, ask yourself:
 
 5. **Record process gaps as TELEM signals** in the event and in STATUS.md self-reflection.
 6. During dogfood: process gaps are methodology improvement candidates. During normal use: process gaps inform project-level methodology customisation.
+7. **Intent generation**: If any process gap is significant enough to warrant action beyond the current iteration, emit an `intent_raised` event with `signal_source: "process_gap"`. The human decides whether to create a new feature vector.
 
 #### Standard Convergence (feature, hotfix)
 **Convergence = delta == 0 (all required checks pass).**
@@ -265,12 +268,15 @@ Update the feature vector tracking file:
 
 ### Step 5a: Emit Event (every iteration)
 
-After every iteration (not just convergence), append a JSON event to `.ai-workspace/events/events.jsonl`:
+After every iteration (not just convergence), append a JSON event to `.ai-workspace/events/events.jsonl`.
+
+**This is MANDATORY. Every iteration MUST emit an event.** The event log is the source of truth for all observability — STATUS.md, ACTIVE_TASKS.md, feature vector trajectories, and external monitors all derive from it.
 
 ```json
 {
-  "type": "iteration_completed",
+  "event_type": "iteration_completed",
   "timestamp": "{ISO 8601}",
+  "project": "{project name from project_constraints.yml}",
   "feature": "{REQ-F-*}",
   "edge": "{source}→{target}",
   "iteration": {n},
@@ -289,6 +295,13 @@ After every iteration (not just convergence), append a JSON event to `.ai-worksp
 ```
 
 The event log is **append-only** and **immutable**. Create `.ai-workspace/events/` on first event.
+
+**Event emission protocol:**
+1. Build the JSON object with all required fields
+2. Append as a single line to `.ai-workspace/events/events.jsonl` (no trailing newline within the JSON, newline after)
+3. Never modify or delete existing events
+4. If the file or directory doesn't exist, create it
+5. **Circuit breaker**: if event emission itself fails (filesystem error, malformed JSON), log the failure as a TELEM signal in the iteration report rather than entering infinite regression. The iteration should not block on observability failure.
 
 ### Step 5b: Update Derived Views
 
@@ -497,3 +510,114 @@ SPAWN REQUESTS (if any):
 8. **Spawn detection** — watch for knowledge gaps, technical risks, and feasibility questions that warrant child vectors
 9. **Profile awareness** — if a projection profile is set, respect its graph, evaluator, and convergence constraints
 10. **Constraint dimensions** — at the requirements→design edge, verify all mandatory constraint dimensions from graph_topology.yml are resolved via ADRs or design decisions. Unresolved mandatory dimensions block convergence.
+
+---
+
+## Event Type Reference
+
+All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Every event has these common fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `event_type` | string | One of the types below |
+| `timestamp` | string | ISO 8601 UTC timestamp |
+| `project` | string | Project name from project_constraints.yml |
+
+### Event Types
+
+| event_type | Emitted by | When |
+|------------|-----------|------|
+| `project_initialized` | `/aisdlc-init` | Workspace scaffolding complete |
+| `iteration_completed` | `/aisdlc-iterate` | After every iteration (converged or not) |
+| `edge_started` | `/aisdlc-iterate` | First iteration on an edge for a feature |
+| `edge_converged` | `/aisdlc-iterate` | Edge reaches δ=0 or extended convergence |
+| `spawn_created` | `/aisdlc-spawn` | Child vector created |
+| `spawn_folded_back` | `/aisdlc-spawn` | Child results folded back to parent |
+| `checkpoint_created` | `/aisdlc-checkpoint` | Session snapshot saved |
+| `review_completed` | `/aisdlc-review` | Human evaluator decision recorded |
+| `gaps_validated` | `/aisdlc-gaps` | Traceability validation run completed |
+| `release_created` | `/aisdlc-release` | Release manifest generated |
+| `intent_raised` | any edge (iterate, gaps, review) | Observer detects delta → new intent |
+| `spec_modified` | `/aisdlc-iterate` (feedback loop) | Spec absorbs signal, updates |
+
+### Event Schema by Type
+
+**`iteration_completed`** — see Step 5a above for full schema.
+
+**`edge_started`** — emitted on the FIRST iteration of a feature on an edge:
+```json
+{"event_type": "edge_started", "timestamp": "...", "project": "...", "feature": "REQ-F-*", "edge": "{source}→{target}", "data": {"iteration": 1}}
+```
+
+**`edge_converged`** — emitted when an edge reaches convergence:
+```json
+{"event_type": "edge_converged", "timestamp": "...", "project": "...", "feature": "REQ-F-*", "edge": "{source}→{target}", "data": {"iteration": {n}, "evaluators": "{pass}/{total}", "convergence_type": "standard|question_answered|time_box_expired"}}
+```
+
+**`project_initialized`**:
+```json
+{"event_type": "project_initialized", "timestamp": "...", "project": "...", "data": {"language": "...", "tools_detected": [...], "constraint_dimensions_configured": {n}}}
+```
+
+**`spawn_created`**:
+```json
+{"event_type": "spawn_created", "timestamp": "...", "project": "...", "data": {"parent": "REQ-F-*", "child": "REQ-F-SPIKE-*", "vector_type": "discovery|spike|poc|hotfix", "reason": "...", "time_box": "..."}}
+```
+
+**`spawn_folded_back`**:
+```json
+{"event_type": "spawn_folded_back", "timestamp": "...", "project": "...", "data": {"parent": "REQ-F-*", "child": "REQ-F-SPIKE-*", "fold_back_status": "converged|time_box_expired", "payload_path": "..."}}
+```
+
+**`checkpoint_created`**:
+```json
+{"event_type": "checkpoint_created", "timestamp": "...", "project": "...", "data": {"context_hash": "sha256:...", "feature_count": {n}, "git_ref": "...", "message": "..."}}
+```
+
+**`review_completed`**:
+```json
+{"event_type": "review_completed", "timestamp": "...", "project": "...", "data": {"feature": "REQ-F-*", "edge": "{source}→{target}", "decision": "approved|rejected|refined", "feedback": "..."}}
+```
+
+**`gaps_validated`**:
+```json
+{"event_type": "gaps_validated", "timestamp": "...", "project": "...", "data": {"layers_run": [1,2,3], "total_req_keys": {n}, "full_coverage": {n}, "test_gaps": {n}, "telemetry_gaps": {n}}}
+```
+
+**`release_created`**:
+```json
+{"event_type": "release_created", "timestamp": "...", "project": "...", "data": {"version": "...", "features_included": {n}, "coverage_pct": {n}, "known_gaps": {n}}}
+```
+
+**`intent_raised`** — emitted when ANY observer detects a delta that warrants a new intent (§7.7.2):
+```json
+{"event_type": "intent_raised", "timestamp": "...", "project": "...", "data": {"intent_id": "INT-{SEQ}", "trigger": "what signal caused this", "delta": "expected vs observed", "signal_source": "gap|test_failure|refactoring|source_finding|process_gap|runtime_feedback|ecosystem|user|TELEM", "vector_type": "feature|discovery|spike|poc|hotfix", "affected_req_keys": ["REQ-*"], "prior_intents": ["INT-* chain"], "edge_context": "which edge was active", "severity": "critical|high|medium|low"}}
+```
+
+**`spec_modified`** — emitted when the spec absorbs a signal and updates (§7.7.3):
+```json
+{"event_type": "spec_modified", "timestamp": "...", "project": "...", "data": {"trigger_intent": "INT-*", "signal_source": "...", "what_changed": ["REQ-* updated: description"], "affected_req_keys": ["REQ-*"], "spawned_vectors": ["REQ-F-*"], "prior_intents": ["INT-*"]}}
+```
+
+### The Consciousness Loop at Every Observer Point
+
+The `intent_raised` event is not limited to the `telemetry→intent` edge. **Every evaluator is an observer.** The three-direction gap detection that runs at every iteration IS the consciousness loop operating during development:
+
+| Observer point | Signal source | Example delta |
+|---------------|---------------|---------------|
+| Forward evaluation | `test_failure` | Tests fail > 3 iterations on same check |
+| Backward evaluation | `source_finding` | Upstream asset ambiguous, can't resolve with assumption |
+| Inward evaluation | `process_gap` | Evaluator missing for important quality dimension |
+| Gap analysis | `gap` | REQ keys without test coverage |
+| TDD refactor phase | `refactoring` | Cross-cutting structural debt beyond current scope |
+| Production telemetry | `runtime_feedback` | SLA violation detected |
+| Ecosystem monitoring | `ecosystem` | Dependency deprecated |
+
+When ANY of these observers detects a non-trivial delta:
+1. Emit `intent_raised` event with full causal chain
+2. The `prior_intents` field enables reflexive loop detection — if intent A led to intent B, the chain is visible
+3. Human decides whether to act (create feature vector) or acknowledge (log and continue)
+
+See `edge_params/feedback_loop.yml` for the full signal source taxonomy and intent templates.
+
+External monitors (e.g., genesis-monitor) can watch `events.jsonl` for changes and parse these events to build real-time dashboards. The event log is the **sole integration contract** between the methodology and any observability tool.

@@ -391,6 +391,80 @@ Runtime telemetry shall carry REQ keys as structured fields, enabling per-featur
 
 ---
 
+### REQ-LIFE-005: Intent Events as First-Class Objects
+
+**Priority**: Critical | **Phase**: 1
+
+Every observer point that detects a non-trivial delta shall emit an `intent_raised` event with full causal chain. The consciousness loop (§7.7) operates at every evaluator, not only the telemetry→intent production edge.
+
+**Acceptance Criteria**:
+- `intent_raised` event emitted to `events.jsonl` whenever an observer detects a delta warranting action beyond the current iteration
+- Event includes: `intent_id`, `trigger`, `delta`, `signal_source`, `vector_type`, `affected_req_keys`, `prior_intents`, `edge_context`, `severity`
+- The `prior_intents` field traces the causal chain — if intent A led to spec change that caused intent B, the chain A→B is recorded
+- Signal sources classified as one of: `gap`, `test_failure`, `refactoring`, `source_finding`, `process_gap`, `runtime_feedback`, `ecosystem`
+- Human presented with generated intent for decision (create feature vector, acknowledge, or dismiss)
+
+**Traces To**: Asset Graph Model §7.7.2 (Intent Events as First-Class Objects) | Ontology #49 (teleodynamic — self-maintaining), #46 (living encoding)
+
+---
+
+### REQ-LIFE-006: Signal Source Classification
+
+**Priority**: High | **Phase**: 1
+
+All observations that feed back into the intent system shall be classified by signal source. Classification enables telemetry analysis (which signal types generate the most work, which are noise).
+
+**Acceptance Criteria**:
+- Seven signal source types recognised: `gap` (traceability validation), `test_failure` (stuck delta or test revealing upstream deficiency), `refactoring` (structural debt beyond current scope), `source_finding` (backward gap detection escalation), `process_gap` (inward gap detection — methodology deficiency), `runtime_feedback` (production telemetry deviation), `ecosystem` (external change)
+- Each signal source has an intent template in the feedback loop edge configuration
+- Signal source recorded in every `intent_raised` event
+- Development-time signals (gap, test_failure, refactoring, source_finding, process_gap) use the same mechanism as production signals (runtime_feedback, ecosystem)
+- `/aisdlc-gaps` emits `intent_raised` with `signal_source: "gap"` for each gap cluster
+- TDD iterate emits `intent_raised` with `signal_source: "test_failure"` when same check fails > 3 iterations
+- TDD iterate emits `intent_raised` with `signal_source: "refactoring"` when structural debt exceeds current scope
+
+**Traces To**: Asset Graph Model §7.4 (Self-Maintaining Specification — signal sources table), §7.6 (Methodology Self-Observation) | Ontology #44 (deviation signal)
+
+---
+
+### REQ-LIFE-007: Spec Change Events
+
+**Priority**: High | **Phase**: 1
+
+When the specification absorbs a signal and updates, a `spec_modified` event shall be emitted. This enables spec archaeology, feedback loop detection, and impact analysis.
+
+**Acceptance Criteria**:
+- `spec_modified` event emitted to `events.jsonl` whenever a requirement is added, modified, or deprecated
+- Event includes: `trigger_intent`, `signal_source`, `what_changed` (list of REQ key changes), `affected_req_keys`, `spawned_vectors`, `prior_intents`
+- Spec changes traceable: given any REQ key, the full history of modifications is reconstructable from `spec_modified` events
+- Feedback loop detection: if intent A → spec change → intent B → spec change, and intent B traces back to A via `prior_intents`, the cycle is visible in the event log
+- Rate of evolution derivable: which spec sections are volatile vs stable
+
+**Traces To**: Asset Graph Model §7.7.3 (Spec Change Events) | Ontology #46 (living encoding — spec updates from experience)
+
+---
+
+### REQ-LIFE-008: Protocol Enforcement Hooks
+
+**Priority**: High | **Phase**: 1
+
+Every `iterate()` invocation shall enforce mandatory side effects. Skipping event emission, feature vector update, or gap reporting shall be detectable and blockable.
+
+**Acceptance Criteria**:
+- After every iteration, the following side effects are mandatory:
+  1. Event emitted to `events.jsonl`
+  2. Feature vector state updated
+  3. STATUS.md regenerated (or marked stale)
+  4. `source_findings` array present in the event (may be empty)
+  5. `process_gaps` array present in the event (may be empty)
+- Detection mechanism: verify side effects occurred after each iteration
+- Circuit breaker: if enforcement itself fails, log the failure as a TELEM signal rather than entering infinite regression
+- Protocol violations reported as `process_gap` with type `PROTOCOL_VIOLATION`
+
+**Traces To**: Asset Graph Model §7.8 (Protocol Enforcement Hooks) | Ontology #49 (teleodynamic — boundary maintenance)
+
+---
+
 ## 8. Edge Parameterisations
 
 These requirements specify evaluator configuration for common graph edges. They are parameterisations of the universal iteration function, not separate engines.
@@ -627,13 +701,13 @@ The system shall enforce the Spec/Design boundary — requirements (WHAT) must b
 | Evaluators | 3 | 2 | 1 | 0 |
 | Context | 2 | 0 | 1 | 1 |
 | Feature Vectors | 3 | 1 | 2 | 0 |
-| Full Lifecycle | 4 | 1 | 3 | 0 |
+| Full Lifecycle | 8 | 2 | 6 | 0 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
 | Tooling | 10 | 0 | 6 | 4 |
-| **Total** | **35** | **9** | **20** | **6** |
+| **Total** | **39** | **10** | **24** | **6** |
 
-### Phase 1 (Core Graph Engine): 29 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (incl. feature views, spec/design boundary).
+### Phase 1 (Core Graph Engine): 33 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, consciousness loop mechanics (intent events, signal classification, spec change events, protocol enforcement).
 
 ### Phase 2 (Full Lifecycle): 6 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry.

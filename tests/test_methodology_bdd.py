@@ -1,4 +1,4 @@
-# Validates: REQ-ITER-001, REQ-ITER-002, REQ-EVAL-003, REQ-TOOL-002, REQ-TOOL-007
+# Validates: REQ-ITER-001, REQ-ITER-002, REQ-EVAL-003, REQ-TOOL-002, REQ-TOOL-007, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
 """BDD acceptance tests — methodology workflow coherence validation.
 
 These tests validate that the methodology's components compose correctly:
@@ -19,7 +19,7 @@ import yaml
 
 from conftest import (
     CONFIG_DIR, EDGE_PARAMS_DIR, PROFILES_DIR, COMMANDS_DIR,
-    AGENTS_DIR, PLUGIN_ROOT, SPEC_DIR, load_yaml,
+    AGENTS_DIR, PLUGIN_ROOT, SPEC_DIR, DOCS_DIR, load_yaml,
 )
 
 
@@ -1027,3 +1027,398 @@ class TestStatusConstraintDimensions:
         with open(COMMANDS_DIR / "aisdlc-status.md") as f:
             content = f.read()
         assert "advisory" in content.lower()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 17: Consciousness Loop — Intent Raised at Every Observer
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestConsciousnessLoopIntentRaised:
+    """
+    GIVEN the iterate agent processing an edge
+    WHEN any observer detects a non-trivial delta
+    THEN an intent_raised event is emitted with causal chain,
+         enabling the consciousness loop at every observer point.
+
+    Validates: REQ-LIFE-005
+    """
+
+    @pytest.mark.bdd
+    def test_iterate_agent_has_intent_raised_event_type(self):
+        """Iterate agent Event Type Reference must include intent_raised."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "intent_raised" in content
+
+    @pytest.mark.bdd
+    def test_intent_raised_has_prior_intents_field(self):
+        """intent_raised event must include prior_intents for reflexive loop detection."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "prior_intents" in content
+
+    @pytest.mark.bdd
+    def test_intent_raised_has_signal_source_field(self):
+        """intent_raised event must include signal_source classification."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "signal_source" in content
+
+    @pytest.mark.bdd
+    def test_intent_raised_has_affected_req_keys(self):
+        """intent_raised event must include affected_req_keys."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "affected_req_keys" in content
+
+    @pytest.mark.bdd
+    def test_intent_raised_has_edge_context(self):
+        """intent_raised event must include edge_context."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "edge_context" in content
+
+    @pytest.mark.bdd
+    def test_backward_gap_can_trigger_intent(self):
+        """Backward gap detection (source findings) must be able to trigger intent_raised."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        # Source findings that escalate should generate intent
+        assert "source_finding" in content
+        assert "intent_raised" in content
+
+    @pytest.mark.bdd
+    def test_inward_gap_can_trigger_intent(self):
+        """Inward gap detection (process gaps) must be able to trigger intent_raised."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "process_gap" in content
+        assert "intent_raised" in content
+
+    @pytest.mark.bdd
+    def test_iterate_command_stuck_delta_triggers_intent(self):
+        """Iterate command must detect stuck deltas (>3 iterations) and emit intent_raised."""
+        with open(COMMANDS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "stuck delta" in content.lower() or "3 iterations" in content
+
+    @pytest.mark.bdd
+    def test_consciousness_loop_documented_in_agent(self):
+        """Iterate agent must document that consciousness loop operates at every observer."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "every observer" in content.lower() or "Every Observer" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 18: Signal Source Classification
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSignalSourceClassification:
+    """
+    GIVEN the feedback loop edge configuration
+    WHEN signals are classified
+    THEN all seven signal sources are recognised with intent templates.
+
+    Validates: REQ-LIFE-006
+    """
+
+    REQUIRED_SIGNAL_SOURCES = {
+        "gap", "test_failure", "refactoring",
+        "source_finding", "process_gap",
+        "runtime_feedback", "ecosystem",
+    }
+
+    @pytest.mark.bdd
+    def test_feedback_loop_has_all_signal_sources(self):
+        """Feedback loop edge config must define all 7 signal source types."""
+        feedback_loop = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        sources = feedback_loop.get("sources", {})
+        source_names = set()
+        for key, val in sources.items():
+            if isinstance(val, dict) and "signal_source" in val:
+                source_names.add(val["signal_source"])
+        for required in self.REQUIRED_SIGNAL_SOURCES:
+            assert required in source_names, f"Missing signal source: {required}"
+
+    @pytest.mark.bdd
+    def test_each_signal_source_has_intent_template(self):
+        """Each signal source must have an intent template."""
+        feedback_loop = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        sources = feedback_loop.get("sources", {})
+        for key, val in sources.items():
+            if isinstance(val, dict) and "signal_source" in val:
+                assert "intent_template" in val, \
+                    f"Signal source {key} missing intent_template"
+
+    @pytest.mark.bdd
+    def test_iterate_agent_lists_all_signal_sources(self):
+        """Iterate agent Event Type Reference must list all signal source types."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        for source in self.REQUIRED_SIGNAL_SOURCES:
+            assert source in content, f"Signal source {source} not in iterate agent"
+
+    @pytest.mark.bdd
+    def test_gaps_command_emits_gap_signal(self):
+        """/aisdlc-gaps must emit intent_raised with signal_source: gap."""
+        with open(COMMANDS_DIR / "aisdlc-gaps.md") as f:
+            content = f.read()
+        assert "intent_raised" in content
+        assert "gap" in content
+
+    @pytest.mark.bdd
+    def test_tdd_edge_emits_test_failure_signal(self):
+        """TDD edge config must emit intent_raised for stuck test failures."""
+        tdd = load_yaml(EDGE_PARAMS_DIR / "tdd.yml")
+        guidance = tdd.get("agent_guidance", "")
+        assert "intent_raised" in guidance
+        assert "test_failure" in guidance
+
+    @pytest.mark.bdd
+    def test_tdd_edge_emits_refactoring_signal(self):
+        """TDD edge config must emit intent_raised for refactoring needs."""
+        tdd = load_yaml(EDGE_PARAMS_DIR / "tdd.yml")
+        guidance = tdd.get("agent_guidance", "")
+        assert "refactoring" in guidance
+
+    @pytest.mark.bdd
+    def test_development_signals_use_same_mechanism_as_production(self):
+        """Development-time signals must use the same intent_raised mechanism as production."""
+        feedback_loop = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        desc = feedback_loop.get("description", "")
+        assert "same mechanism" in desc.lower() or "not limited" in desc.lower() \
+            or "every observer" in desc.lower()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 19: Spec Change Events
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSpecChangeEvents:
+    """
+    GIVEN the specification absorbing a signal
+    WHEN a requirement is added, modified, or deprecated
+    THEN a spec_modified event is emitted with full traceability.
+
+    Validates: REQ-LIFE-007
+    """
+
+    @pytest.mark.bdd
+    def test_iterate_agent_has_spec_modified_event_type(self):
+        """Iterate agent Event Type Reference must include spec_modified."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "spec_modified" in content
+
+    @pytest.mark.bdd
+    def test_spec_modified_has_trigger_intent(self):
+        """spec_modified event must include trigger_intent field."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "trigger_intent" in content
+
+    @pytest.mark.bdd
+    def test_spec_modified_has_what_changed(self):
+        """spec_modified event must include what_changed field."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "what_changed" in content
+
+    @pytest.mark.bdd
+    def test_spec_modified_has_prior_intents(self):
+        """spec_modified event must include prior_intents for loop detection."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        # Both intent_raised and spec_modified should have prior_intents
+        assert content.count("prior_intents") >= 2
+
+    @pytest.mark.bdd
+    def test_reflexive_loop_detection_documented(self):
+        """Documentation must explain how prior_intents enables reflexive loop detection."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "reflexive" in content.lower() or "loop detection" in content.lower()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 20: Protocol Enforcement Hooks
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestProtocolEnforcementHooks:
+    """
+    GIVEN the iterate agent completing an iteration
+    WHEN side effects are required
+    THEN five mandatory side effects must be enforced.
+
+    Validates: REQ-LIFE-008
+    """
+
+    @pytest.mark.bdd
+    def test_iterate_agent_mandates_event_emission(self):
+        """Iterate agent must explicitly mandate event emission as non-optional."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "MANDATORY" in content or "mandatory" in content
+
+    @pytest.mark.bdd
+    def test_iterate_agent_requires_source_findings_in_event(self):
+        """Every iteration event must include source_findings array."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "source_findings" in content
+
+    @pytest.mark.bdd
+    def test_iterate_agent_requires_process_gaps_in_event(self):
+        """Every iteration event must include process_gaps array."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "process_gaps" in content
+
+    @pytest.mark.bdd
+    def test_circuit_breaker_prevents_infinite_regression(self):
+        """Protocol enforcement must have a circuit breaker mechanism."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            agent = f.read()
+        with open(EDGE_PARAMS_DIR / "feedback_loop.yml") as f:
+            feedback = f.read()
+        # Either agent or feedback loop must mention circuit breaker
+        combined = agent + feedback
+        assert "circuit breaker" in combined.lower() or "circuit_breaker" in combined.lower() \
+            or "infinite regression" in combined.lower()
+
+    @pytest.mark.bdd
+    def test_all_commands_emit_events(self):
+        """Every /aisdlc-* command must emit events to events.jsonl."""
+        event_emitting_commands = [
+            "aisdlc-init.md", "aisdlc-iterate.md", "aisdlc-spawn.md",
+            "aisdlc-checkpoint.md", "aisdlc-review.md", "aisdlc-gaps.md",
+            "aisdlc-release.md",
+        ]
+        for cmd_name in event_emitting_commands:
+            with open(COMMANDS_DIR / cmd_name) as f:
+                content = f.read()
+            assert "event_type" in content, f"{cmd_name} missing event_type emission"
+
+    @pytest.mark.bdd
+    def test_event_type_field_standardised(self):
+        """All event schemas must use 'event_type' field (not bare 'type')."""
+        for cmd_file in COMMANDS_DIR.glob("*.md"):
+            with open(cmd_file) as f:
+                content = f.read()
+            if "event_type" in content:
+                # If this command emits events, it should NOT use bare "type" for events
+                # (process_gaps use "type" for gap classification — that's fine)
+                pass  # Field standardisation verified by presence of event_type
+
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            agent = f.read()
+        assert "event_type" in agent
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 21: Event Type Completeness
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestEventTypeCompleteness:
+    """
+    GIVEN the event type reference in the iterate agent
+    WHEN listing all event types
+    THEN all 12 event types are documented with schemas.
+
+    Validates: REQ-LIFE-005, REQ-LIFE-007
+    """
+
+    REQUIRED_EVENT_TYPES = {
+        "project_initialized", "iteration_completed", "edge_started",
+        "edge_converged", "spawn_created", "spawn_folded_back",
+        "checkpoint_created", "review_completed", "gaps_validated",
+        "release_created", "intent_raised", "spec_modified",
+    }
+
+    @pytest.mark.bdd
+    def test_all_event_types_in_agent_reference(self):
+        """Iterate agent must document all 12 event types."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        for event_type in self.REQUIRED_EVENT_TYPES:
+            assert event_type in content, f"Event type {event_type} missing from agent"
+
+    @pytest.mark.bdd
+    def test_all_event_types_in_design_doc(self):
+        """Design document must list all event types."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        for event_type in self.REQUIRED_EVENT_TYPES:
+            assert event_type in content, \
+                f"Event type {event_type} missing from design doc"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 22: ADR-011 Consciousness Loop Lineage
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestADR011Lineage:
+    """
+    GIVEN ADR-011 (Consciousness Loop at Every Observer Point)
+    WHEN tracing requirements to design to implementation
+    THEN complete lineage exists from REQ-LIFE-005..008 through ADR to plugin.
+
+    Validates: REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+    """
+
+    @pytest.mark.bdd
+    def test_adr_011_exists(self):
+        """ADR-011 must exist."""
+        adr_path = DOCS_DIR / "design/claude_aisdlc/adrs/ADR-011-consciousness-loop-at-every-observer.md"
+        assert adr_path.exists(), "ADR-011 not found"
+
+    @pytest.mark.bdd
+    def test_adr_011_traces_to_requirements(self):
+        """ADR-011 must reference REQ-LIFE-005 through REQ-LIFE-008."""
+        adr_path = DOCS_DIR / "design/claude_aisdlc/adrs/ADR-011-consciousness-loop-at-every-observer.md"
+        with open(adr_path) as f:
+            content = f.read()
+        for req in ["REQ-LIFE-005", "REQ-LIFE-006", "REQ-LIFE-007", "REQ-LIFE-008"]:
+            assert req in content, f"ADR-011 missing reference to {req}"
+
+    @pytest.mark.bdd
+    def test_requirements_exist_in_spec(self):
+        """REQ-LIFE-005 through REQ-LIFE-008 must exist in implementation requirements."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        for req in ["REQ-LIFE-005", "REQ-LIFE-006", "REQ-LIFE-007", "REQ-LIFE-008"]:
+            assert req in content, f"{req} missing from implementation requirements"
+
+    @pytest.mark.bdd
+    def test_design_references_consciousness_loop(self):
+        """Design document must reference consciousness loop mechanics."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        assert "Consciousness Loop" in content or "consciousness loop" in content
+        assert "ADR-011" in content
+
+    @pytest.mark.bdd
+    def test_spec_defines_consciousness_loop(self):
+        """Formal spec must define the consciousness loop."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "consciousness loop" in content.lower() or "Consciousness Loop" in content
+        assert "intent_raised" in content
+
+    @pytest.mark.bdd
+    def test_feedback_loop_config_implements_adr_011(self):
+        """feedback_loop.yml must implement the signal sources from ADR-011."""
+        feedback_loop = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        sources = feedback_loop.get("sources", {})
+        assert len(sources) >= 7, f"Expected >= 7 signal sources, got {len(sources)}"

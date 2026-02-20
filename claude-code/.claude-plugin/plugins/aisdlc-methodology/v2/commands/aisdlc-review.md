@@ -62,3 +62,13 @@ Update the feature vector file with the human evaluator result:
 
 If approved and all other evaluators pass: mark as converged.
 If rejected: provide feedback for next iteration.
+
+### Step 5: Emit Event
+
+Append a `review_completed` event to `.ai-workspace/events/events.jsonl`:
+
+```json
+{"event_type": "review_completed", "timestamp": "{ISO 8601}", "project": "{project name from project_constraints.yml}", "data": {"feature": "REQ-F-*", "edge": "{source}→{target}", "iteration": {n}, "decision": "approved|rejected|refined", "feedback": "{human feedback text or empty}", "all_evaluators_pass": true|false}}
+```
+
+If the decision is `approved` and all evaluators pass (triggering convergence), also emit an `edge_converged` event as specified in the iterate agent's Event Type Reference.

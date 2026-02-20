@@ -75,7 +75,15 @@ known_gaps:
   - REQ-F-REPORT-001: Design only
 ```
 
-### Step 4: Tag and Report
+### Step 4: Emit Event
+
+Unless `--dry-run`, append a `release_created` event to `.ai-workspace/events/events.jsonl`:
+
+```json
+{"event_type": "release_created", "timestamp": "{ISO 8601}", "project": "{project name from project_constraints.yml}", "data": {"version": "{semver}", "features_included": {count of converged features}, "coverage_pct": {overall coverage percentage}, "known_gaps": {count of known gaps}, "context_hash": "sha256:{hash}", "git_tag": "v{version}"}}
+```
+
+### Step 5: Tag and Report
 
 Unless `--dry-run`:
 - Create git tag `v{version}`

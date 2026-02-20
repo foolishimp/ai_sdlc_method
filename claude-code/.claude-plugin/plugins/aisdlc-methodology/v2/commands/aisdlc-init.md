@@ -250,7 +250,17 @@ We will {describe decision here}.
 - REQ-*: {requirement description}
 ```
 
-### Step 10: Report Results
+### Step 10: Emit Event
+
+Append a `project_initialized` event to `.ai-workspace/events/events.jsonl`:
+
+```json
+{"event_type": "project_initialized", "timestamp": "{ISO 8601}", "project": "{project_name}", "data": {"language": "{detected language}", "tools_detected": ["{test_runner}", "{linter}", "..."], "constraint_dimensions_configured": {count of non-empty mandatory dimensions}, "asset_types": {count from graph_topology}, "transitions": {count from graph_topology}}}
+```
+
+Create the `.ai-workspace/events/` directory and `events.jsonl` file if they don't exist yet.
+
+### Step 11: Report Results
 
 Display a summary:
 

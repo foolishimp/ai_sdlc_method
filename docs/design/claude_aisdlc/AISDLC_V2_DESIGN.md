@@ -161,7 +161,9 @@ events/events.jsonl           ──►  STATUS.md           (Gantt, telemetry, 
                               ──►  gap analysis         (findings aggregated across edges)
 ```
 
-Event types: `edge_iteration_completed`, `edge_converged`, `evaluator_ran`, `finding_raised`, `context_added`, `feature_spawned`, `feature_folded_back`, `telemetry_signal_emitted`.
+Event types (12): `project_initialized`, `iteration_completed`, `edge_started`, `edge_converged`, `spawn_created`, `spawn_folded_back`, `checkpoint_created`, `review_completed`, `gaps_validated`, `release_created`, `intent_raised`, `spec_modified`.
+
+All methodology commands emit events. The event log is the sole integration contract between the methodology and any external observer (e.g., genesis-monitor). See the iterate agent's **Event Type Reference** for the canonical schema catalogue.
 
 This is an engine-level primitive (Layer 1) — it applies regardless of graph package.
 
@@ -175,6 +177,110 @@ Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer�
 ```
 
 TELEM signals are emitted by the iterate agent as `process_gaps` in each event. The `/aisdlc-status` command aggregates these into the Self-Reflection section of STATUS.md. Over time, persistent process gaps become candidates for graph package updates (new evaluator checks, refined constraint dimensions, additional context guidance).
+
+### 1.7 Consciousness Loop at Every Observer Point (Spec §7.7, ADR-011)
+
+**Implements**: REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+
+The consciousness loop is not a single edge (telemetry→intent). It is a structural property that emerges at **every observer point**. Every evaluator running at every edge is an observer. When an observer detects a delta that cannot be resolved within the current iteration scope, that delta becomes a formal `intent_raised` event.
+
+#### 1.7.1 Signal Flow
+
+```
+Any edge, any iteration
+        │
+        ▼
+┌─────────────────────────┐
+│  Three-Direction Gaps   │
+│  ┌───────────────────┐  │
+│  │ Backward (source)  │──┼──► source_finding signal
+│  │ Forward (output)   │──┼──► test_failure signal
+│  │ Inward (process)   │──┼──► process_gap signal
+│  └───────────────────┘  │
+│  ┌───────────────────┐  │
+│  │ Refactor phase     │──┼──► refactoring signal
+│  └───────────────────┘  │
+└─────────┬───────────────┘
+          │
+          ▼
+┌─────────────────────────┐
+│  Delta threshold met?   │  (e.g., >3 iterations stuck,
+│  Scope exceeded?        │   cross-cutting debt,
+│  Escalation needed?     │   upstream deficiency)
+└─────────┬───────────────┘
+          │ yes
+          ▼
+┌─────────────────────────┐
+│  intent_raised event    │  signal_source classified
+│  → events.jsonl         │  prior_intents chain recorded
+│  → present to human     │  affected_req_keys tagged
+└─────────┬───────────────┘
+          │ human approves
+          ▼
+    New feature vector
+    enters the graph
+```
+
+Plus two production-time signals:
+- `/aisdlc-gaps` → `gap` signal (traceability validation)
+- telemetry→intent edge → `runtime_feedback` and `ecosystem` signals
+
+#### 1.7.2 Seven Signal Sources
+
+| Signal Source | Development/Production | Observer | Trigger |
+|---|---|---|---|
+| `gap` | Development | `/aisdlc-gaps` | REQ keys without test/telemetry coverage |
+| `test_failure` | Development | Forward evaluation | Same check fails > 3 iterations |
+| `refactoring` | Development | TDD refactor phase | Structural debt exceeds current scope |
+| `source_finding` | Development | Backward evaluation | Upstream asset deficient, escalate_upstream |
+| `process_gap` | Development | Inward evaluation | Evaluator missing/vague, context missing |
+| `runtime_feedback` | Production | Telemetry | SLA violation, error rate spike |
+| `ecosystem` | Production | External monitoring | Dependency deprecated, API changed |
+
+Each source has an intent template in `feedback_loop.yml` and is recorded in the `signal_source` field of the `intent_raised` event.
+
+#### 1.7.3 Event Flow: intent_raised → spec_modified
+
+```
+intent_raised event
+    │
+    ├── Human reviews: create vector? acknowledge? dismiss?
+    │
+    ├── If create vector:
+    │   ├── New feature vector spawned (or existing one re-opened)
+    │   ├── Spec updated (REQ keys added/modified/deprecated)
+    │   └── spec_modified event emitted
+    │
+    └── If acknowledge:
+        └── Logged as TELEM signal for telemetry analysis
+```
+
+The `prior_intents` field on both events enables reflexive loop detection:
+- If intent A → spec change → new delta → intent B, and B traces back to A, the system detects its own modification caused a new deviation
+- This distinguishes the consciousness loop from a simple feedback loop: awareness of the consequences of one's own awareness
+
+#### 1.7.4 Protocol Enforcement
+
+After every `iterate()` invocation, five mandatory side effects must occur:
+
+1. Event emitted to `events.jsonl`
+2. Feature vector state updated
+3. STATUS.md regenerated (or marked stale)
+4. `source_findings` array present in the event (may be empty)
+5. `process_gaps` array present in the event (may be empty)
+
+The iterate agent instructions mandate these. Protocol violations are logged as `process_gap` with type `PROTOCOL_VIOLATION`. A circuit breaker prevents infinite regression: if enforcement itself fails, it logs a TELEM signal rather than blocking iteration.
+
+#### 1.7.5 Implementation in Plugin
+
+| File | What was added |
+|---|---|
+| `agents/aisdlc-iterate.md` | Event Type Reference (12 types), consciousness loop observer table, `intent_raised` emission from backward/inward gap detection |
+| `commands/aisdlc-iterate.md` | Stuck delta detection (>3 iterations), refactoring signal, source escalation → `intent_raised` |
+| `commands/aisdlc-gaps.md` | Gap cluster → `intent_raised` per domain group |
+| `config/edge_params/feedback_loop.yml` | 7 signal sources with intent templates and `intent_raised` schema |
+| `config/edge_params/tdd.yml` | Intent generation from stuck failures and refactoring needs |
+| All 8 commands | `event_type` field standardised, event emission mandatory |
 
 ---
 
@@ -706,25 +812,37 @@ claude-code/.claude-plugin/plugins/aisdlc-methodology/
 
 ---
 
-## 3. Lifecycle Closure (REQ-F-LIFE-001)
+## 3. Lifecycle Closure
 
-**Implements**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-INTENT-003
+**Implements**: REQ-LIFE-001 through REQ-LIFE-008, REQ-INTENT-003
 
-### Phase 2 — designed but not implemented in Phase 1
+### Phase 1 — Consciousness Loop Mechanics (REQ-LIFE-005 through REQ-LIFE-008)
 
-The full lifecycle features (CI/CD edge, telemetry, homeostasis, feedback loop, eco-intent) are Phase 2. The graph topology already includes these transitions — the engine supports them. Phase 2 adds the constructor and evaluator implementations for these edges.
+The consciousness loop at every observer point is Phase 1. The iterate agent, commands, and edge configs already implement:
+
+- **`intent_raised` events** (REQ-LIFE-005) — emitted when any observer detects a delta warranting action beyond current iteration scope. Seven signal sources classified (REQ-LIFE-006).
+- **`spec_modified` events** (REQ-LIFE-007) — emitted when specification absorbs a signal and updates. `prior_intents` chain enables reflexive loop detection.
+- **Protocol enforcement** (REQ-LIFE-008) — five mandatory side effects after every `iterate()`. Circuit breaker prevents infinite regression.
+- **Development-time homeostasis** — gap analysis, test failures, refactoring, source findings, and process gaps are formal signals that enter the intent system via the same mechanism as production telemetry.
+
+See §1.7 for detailed design and ADR-011 for the architectural decision.
+
+### Phase 2 — Production Lifecycle (REQ-LIFE-001 through REQ-LIFE-004)
+
+The production lifecycle features (CI/CD edge, runtime telemetry, production homeostasis, eco-intent) are Phase 2. The graph topology already includes these transitions — the engine supports them. Phase 2 adds the constructor and evaluator implementations for these edges.
 
 What Phase 1 delivers:
 - Graph topology includes CI/CD → Running System → Telemetry → New Intent edges
 - Feature vectors can be traced through these edges (status: pending)
 - The iterate agent can be manually invoked on these edges
+- **Development-time consciousness loop fully operational** — all signal sources except `runtime_feedback` and `ecosystem` are active
 
 What Phase 2 adds:
 - Automated CI/CD evaluators (build/deploy checks)
 - Telemetry integration (REQ key tagging in monitoring)
-- Homeostasis checks (SLA monitoring, drift detection)
+- Production homeostasis checks (SLA monitoring, drift detection)
 - Eco-intent generation (ecosystem change detection)
-- Feedback loop automation (telemetry → new intent)
+- Production feedback loop automation (telemetry → new intent via `runtime_feedback` and `ecosystem` signal sources)
 
 ---
 

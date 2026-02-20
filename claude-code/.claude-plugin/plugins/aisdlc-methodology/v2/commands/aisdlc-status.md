@@ -238,8 +238,9 @@ Each event in `events.jsonl` follows this schema:
 
 ```json
 {
-  "type": "iteration_completed",
+  "event_type": "iteration_completed",
   "timestamp": "2026-02-19T10:30:00Z",
+  "project": "my-project",
   "feature": "REQ-F-AUTH-001",
   "edge": "intent→requirements",
   "iteration": 2,
@@ -262,6 +263,8 @@ Each event in `events.jsonl` follows this schema:
   ]
 }
 ```
+
+**Note**: All methodology commands emit events — not just `/aisdlc-iterate`. The status command reads ALL event types (`project_initialized`, `edge_started`, `edge_converged`, `spawn_created`, `checkpoint_created`, `review_completed`, `gaps_validated`, `release_created`). See the iterate agent's **Event Type Reference** for the full catalogue.
 
 ### Event Fields
 

@@ -270,5 +270,22 @@ agent_guidance: |
 
   7. REPORT: source findings, checklist results (as delta table), process gaps
 
-  8. If a test can't be written, that's feedback to upstream (requirement/design)
-  9. If a $variable can't be resolved, SKIP the check with a warning
+  8. If a test can't be written, that's feedback to upstream (requirement/design).
+     Emit an `intent_raised` event with signal_source: "test_failure" and
+     disposition: "escalate_upstream" so the deficiency is formally captured.
+
+  9. If a $variable can't be resolved, SKIP the check with a warning.
+
+  10. INTENT GENERATION FROM FAILURES (consciousness loop at TDD observer):
+      - If the SAME check fails > 3 iterations: emit `intent_raised` with
+        signal_source: "test_failure" — the delta is stuck, something is wrong
+        beyond this edge's scope.
+      - If the refactor phase reveals cross-cutting structural debt (duplication
+        across modules, missing abstraction, coupling patterns): emit
+        `intent_raised` with signal_source: "refactoring" — capture it as a
+        formal intent so it enters the graph, don't let it decay into TODO comments.
+      - If test coverage meets threshold but tests are fragile/slow/coupled:
+        emit `intent_raised` with signal_source: "refactoring" — test quality
+        degradation is a homeostatic signal.
+      Every evaluator is an observer. Every stuck delta or structural signal
+      is a potential intent. The human decides whether to act.
