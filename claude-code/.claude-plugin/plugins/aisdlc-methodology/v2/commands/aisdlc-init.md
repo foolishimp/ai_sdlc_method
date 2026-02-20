@@ -45,9 +45,10 @@ Create these directories if they don't exist:
 │   ├── completed/          # Converged feature vectors
 │   └── fold-back/          # Child vector fold-back results
 ├── profiles/               # Projection profiles (full, standard, poc, spike, hotfix, minimal)
+├── events/                 # Append-only event log (source of truth)
 ├── intents/                # Captured intents
 ├── tasks/
-│   ├── active/             # Current work items
+│   ├── active/             # Current work items (derived view)
 │   └── finished/           # Completed task docs
 └── snapshots/              # Immutable session checkpoints
 
@@ -105,6 +106,9 @@ Copy all files from the plugin's `v2/config/profiles/` directory (full.yml, stan
 
 #### `.ai-workspace/features/fold-back/`
 Create the fold-back directory for child vector results that fold back to parent vectors.
+
+#### `.ai-workspace/events/`
+Create the events directory for the append-only event log. The iterate agent writes one JSON event per line to `events.jsonl` on every iteration. This is the **source of truth** — all other views (STATUS.md, ACTIVE_TASKS.md, feature vector trajectories) are derived projections of this event stream.
 
 ### Step 6: Create Context Manifest
 

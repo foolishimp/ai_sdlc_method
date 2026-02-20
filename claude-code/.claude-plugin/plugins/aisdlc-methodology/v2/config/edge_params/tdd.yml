@@ -60,6 +60,28 @@ phases:
 cycle: "red → green → refactor → commit → red"
 
 # ═══════════════════════════════════════════════════════════════════════
+# SOURCE ANALYSIS CHECKS (Backward — analyse code and design)
+# ═══════════════════════════════════════════════════════════════════════
+
+source_analysis:
+
+  - name: "code_testability_issues"
+    criterion: |
+      Analyse the existing code for testability issues — tight coupling,
+      hidden dependencies, global state, side effects in constructors.
+      Record each as SOURCE_AMBIGUITY (unclear how to test) or SOURCE_GAP
+      (code needs refactoring to be testable).
+    required: true
+
+  - name: "design_test_gaps"
+    criterion: |
+      Identify requirements in the design that have no obvious test strategy —
+      NFRs that need integration tests, data quality rules that need
+      test data generators, business rules with complex state machines.
+      Record each as SOURCE_GAP.
+    required: true
+
+# ═══════════════════════════════════════════════════════════════════════
 # EVALUATOR CHECKLIST
 # ═══════════════════════════════════════════════════════════════════════
 # Concrete, enumerable checks. The iterate agent evaluates each and reports:
@@ -177,6 +199,18 @@ checklist:
     source: traceability
     required: true
 
+  # ─── Test data strategy ──────────────────────────────────────────────
+  - name: "test_data_strategy"
+    type: agent
+    criterion: |
+      Tests use representative test data — either generated or fixture-based.
+      Data generators (if any) are tagged with the REQ keys they exercise.
+      Test data covers: happy path, boundary conditions, error cases.
+      If the domain has complex data structures, dedicated data generators
+      or builders exist rather than inline literals.
+    source: default
+    required: true
+
   # Layer 3: Telemetry gap analysis (advisory at TDD stage)
   - name: "code_req_keys_have_telemetry"
     type: agent
@@ -203,6 +237,15 @@ convergence:
 # AGENT GUIDANCE
 # ═══════════════════════════════════════════════════════════════════════
 
+context_guidance:
+  required:
+    - "The code under test (source asset)"
+    - "The design document (for interface contracts and REQ traceability)"
+    - "project_constraints.yml (test runner, coverage tool, standards)"
+  recommended:
+    - "Requirements document (for acceptance criteria)"
+    - "Existing tests (for consistency of style and patterns)"
+
 agent_guidance: |
   When iterating on this edge:
 
@@ -212,14 +255,20 @@ agent_guidance: |
      c. Load feature file, apply threshold_overrides, append acceptance_criteria
      d. The result is your concrete list of pass/fail checks
 
-  2. ALWAYS follow RED → GREEN → REFACTOR → COMMIT
+  2. ANALYSE SOURCE (backward gap detection):
+     - Identify testability issues in the code
+     - Identify requirements that need complex test strategies
+     - Record all findings
 
-  3. RUN DETERMINISTIC CHECKS: execute resolved commands, record pass/fail
+  3. ALWAYS follow RED → GREEN → REFACTOR → COMMIT
 
-  4. EVALUATE AGENT CHECKS: assess candidate against each criterion honestly
+  4. RUN DETERMINISTIC CHECKS: execute resolved commands, record pass/fail
 
-  5. REPORT DELTA as a checklist table:
-     "N of M required checks pass" with PASS/FAIL/SKIP per check
+  5. EVALUATE AGENT CHECKS: assess candidate against each criterion honestly
 
-  6. If a test can't be written, that's feedback to upstream (requirement/design)
-  7. If a $variable can't be resolved, SKIP the check with a warning
+  6. EVALUATE PROCESS (inward gap detection) — what evaluators or context are missing?
+
+  7. REPORT: source findings, checklist results (as delta table), process gaps
+
+  8. If a test can't be written, that's feedback to upstream (requirement/design)
+  9. If a $variable can't be resolved, SKIP the check with a warning

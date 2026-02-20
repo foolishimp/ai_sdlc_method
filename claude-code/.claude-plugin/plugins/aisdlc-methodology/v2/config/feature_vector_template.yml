@@ -56,7 +56,8 @@ trajectory:
   requirements:
     status: pending                   # pending | iterating | converged
     # iteration: 0
-    # converged_at: ""
+    # started_at: ""                  # ISO timestamp — set on FIRST iteration (required for Gantt)
+    # converged_at: ""               # ISO timestamp — set on convergence (required for Gantt)
     # context_hash: ""
     # asset: ""                       # path to the asset file
     # evaluator_results:
@@ -65,15 +66,23 @@ trajectory:
 
   design:
     status: pending
+    # started_at: ""
+    # converged_at: ""
 
   code:
     status: pending
+    # started_at: ""
+    # converged_at: ""
 
   unit_tests:
     status: pending
+    # started_at: ""
+    # converged_at: ""
 
   uat_tests:
     status: pending
+    # started_at: ""
+    # converged_at: ""
 
 # ═══════════════════════════════════════════════════════════════════════
 # DEPENDENCIES

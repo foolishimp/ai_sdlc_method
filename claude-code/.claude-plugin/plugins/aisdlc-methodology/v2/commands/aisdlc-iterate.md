@@ -60,6 +60,11 @@ Pass to the `aisdlc-iterate` agent:
 - The loaded Context[]
 - The edge parameterisation (evaluators, convergence criteria, guidance)
 
+The agent performs three directions of gap detection:
+- **Backward** (source analysis): Identifies ambiguities, gaps, and underspecification in the source asset
+- **Forward** (output evaluation): Runs the effective checklist against the generated output
+- **Inward** (process evaluation): Identifies gaps in the evaluators, context, and guidance themselves
+
 ### Step 4: Process Results
 
 1. Update the feature vector tracking file:
@@ -84,7 +89,66 @@ Pass to the `aisdlc-iterate` agent:
    - Report convergence and convergence_type
    - Update feature vector status
    - If child vector: trigger fold-back to parent (see `/aisdlc-spawn` fold-back process)
+   - **Update task tracking** (see Step 4a)
    - Show next available transitions
+
+4a. **Emit Event** (every iteration, not just convergence):
+   - Append a JSON event to `.ai-workspace/events/events.jsonl`:
+     ```json
+     {
+       "type": "iteration_completed",
+       "timestamp": "{ISO 8601}",
+       "feature": "{REQ-F-*}",
+       "edge": "{source}→{target}",
+       "iteration": {n},
+       "status": "{iterating|converged|blocked|time_box_expired|spawn_requested}",
+       "convergence_type": "{standard|question_answered|time_box_expired|}",
+       "evaluators": {
+         "passed": {n},
+         "failed": {n},
+         "skipped": {n},
+         "total": {n},
+         "details": [{"name": "{check}", "type": "{agent|deterministic|human}", "result": "{pass|fail|skip}", "required": true}]
+       },
+       "asset": "{path to output artifact}",
+       "context_hash": "{sha256:...}",
+       "profile": "{profile name}",
+       "vector_type": "{feature|discovery|spike|poc|hotfix}",
+       "delta": {count of failing required checks},
+       "next_edge": "{next available transition, if converged}"
+     }
+     ```
+   - The event log is **append-only** and **immutable**. Events are never modified or deleted.
+   - Create `.ai-workspace/events/` directory on first event if it doesn't exist.
+
+4b. **Update Derived Views** (projections of the event stream):
+
+   After emitting the event, update all derived views:
+
+   1. **Feature vector** (`.ai-workspace/features/active/{feature}.yml`):
+      - Update trajectory status, iteration count, evaluator results
+      - Record `started_at` on first iteration, `converged_at` on convergence
+      - This is a **state projection** — the latest state derived from events
+
+   2. **Task log** (`.ai-workspace/tasks/active/ACTIVE_TASKS.md`):
+      - On convergence only, append a phase completion entry:
+        ```markdown
+        ### {feature}: {source}→{target} CONVERGED
+        **Date**: {timestamp}
+        **Iterations**: {n}
+        **Evaluators**: {pass_count}/{total} checks passed
+        **Asset**: {path to output artifact}
+        **Next edge**: {next available transition from graph_topology}
+        ```
+      - This is a **filtered projection** — convergence events rendered as markdown
+
+   3. **STATUS.md** (`.ai-workspace/STATUS.md`):
+      - Regenerate following the `/aisdlc-status --gantt` spec
+      - Includes Gantt chart, phase summary, process telemetry, and self-reflection
+      - This is a **computed projection** — analytics derived from the full event stream
+      - The self-reflection section closes the telemetry loop: `Telemetry / Observer → feedback → new Intent`
+
+   All three views can be reconstructed from `events.jsonl` alone. The event log is the source of truth.
 
 5. If not converged:
    - Report delta (what's still needed)
@@ -120,8 +184,13 @@ VECTOR:   {feature | discovery | spike | poc | hotfix}
 PROFILE:  {profile name, if configured}
 TIME_BOX: {remaining duration, if configured}
 NEXT:     {suggested action}
+
+TASK LOG: {feature}: {source}→{target} {STATUS} at {timestamp} ({n} iterations)
 ═══════════════════════════
 ```
+
+On convergence, the task log entry is also appended to `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
+and `/aisdlc-status --gantt` will include this phase in the Gantt chart.
 
 ## Examples
 

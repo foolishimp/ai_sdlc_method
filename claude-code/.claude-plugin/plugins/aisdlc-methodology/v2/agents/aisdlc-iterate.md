@@ -91,9 +91,33 @@ Result: a **concrete, countable list** of pass/fail checks.
 - Templates/standards to follow
 - Prior implementations as reference
 
-### Step 3: Assess Current State (Compute Delta)
+### Step 3: Analyse Source Asset (Backward Gap Detection)
 
-Run each check in the effective checklist:
+Before generating or evaluating output, analyse the **source asset** (the input to this edge):
+
+1. **Identify ambiguities** — language that could be interpreted multiple ways, undefined terms, implicit assumptions
+2. **Identify gaps** — missing information that this edge needs but the source doesn't provide
+3. **Identify underspecification** — areas where the source is too vague to produce a concrete output
+4. **Classify each finding**:
+
+| Classification | Meaning | Action |
+|---------------|---------|--------|
+| `SOURCE_AMBIGUITY` | Input has multiple valid interpretations | Resolve by choosing one and documenting the assumption, or escalate to human |
+| `SOURCE_GAP` | Input is missing information needed for this edge | Flag for upstream feedback (previous edge needs re-iteration) or make an assumption and document it |
+| `SOURCE_UNDERSPEC` | Input is too vague to constrain the output | Resolve by requesting clarification, spawning a discovery, or making explicit assumptions |
+
+5. **Record all findings** — even if you can resolve them. The findings are data about the quality of the upstream edge's output.
+6. **Decide disposition** for each finding:
+   - `resolved_with_assumption` — proceed with a documented assumption
+   - `escalate_upstream` — this edge cannot produce correct output without upstream correction
+   - `escalate_human` — human judgment needed to resolve
+   - `spawn_recommended` — uncertainty warrants a discovery/spike vector
+
+If any finding is `escalate_upstream`, report it before generating output. The human decides whether to proceed with assumptions or re-iterate upstream.
+
+### Step 3a: Evaluate Output (Forward Gap Detection)
+
+Run each check in the effective checklist against the generated output:
 
 **Deterministic checks** (when applicable):
 - Execute the `command` from the check entry
@@ -113,6 +137,25 @@ Run each check in the effective checklist:
 - Record human feedback in iteration history
 
 **Delta = count of failing required checks in the effective checklist.**
+
+### Step 3b: Evaluate the Evaluation (Inward / Process Gap Detection)
+
+After running the checklist, ask yourself:
+
+1. **What did the checklist NOT check that it should have?** — are there quality dimensions of the output that no evaluator covers?
+2. **What context was missing that would have improved the output?** — reference material, exemplars, domain knowledge that Context[] didn't include?
+3. **Did any check pass trivially?** — a check that passes because it's too vague is worse than a check that fails precisely.
+4. **Classify each finding** as a `PROCESS_GAP`:
+
+| Process Gap Type | Meaning | Example |
+|-----------------|---------|---------|
+| `EVALUATOR_MISSING` | No check exists for an important quality dimension | "No check for diagrams in requirements" |
+| `EVALUATOR_VAGUE` | Check exists but criterion is too loose | "adrs_for_decisions says 'significant' — undefined threshold" |
+| `CONTEXT_MISSING` | Context[] lacked reference material that would improve output | "No exemplar of a well-structured requirements document" |
+| `GUIDANCE_MISSING` | Agent guidance doesn't cover a relevant pattern | "No guidance on when to generate Mermaid diagrams" |
+
+5. **Record process gaps as TELEM signals** in the event and in STATUS.md self-reflection.
+6. During dogfood: process gaps are methodology improvement candidates. During normal use: process gaps inform project-level methodology customisation.
 
 #### Standard Convergence (feature, hotfix)
 **Convergence = delta == 0 (all required checks pass).**
@@ -200,9 +243,51 @@ Update the feature vector tracking file:
 - Increment iteration count
 - Record evaluator results
 - Record context hash (for spec reproducibility)
-- If converged: update status to `converged`, record convergence_type and timestamp
+- Record `started_at` timestamp on first iteration (if not already set)
+- If converged: update status to `converged`, record convergence_type and `converged_at` timestamp
 - If time_box_expired: update status to `time_box_expired`, record fold_back payload
 - If spawn detected: record spawn request with child vector type
+
+### Step 5a: Emit Event (every iteration)
+
+After every iteration (not just convergence), append a JSON event to `.ai-workspace/events/events.jsonl`:
+
+```json
+{
+  "type": "iteration_completed",
+  "timestamp": "{ISO 8601}",
+  "feature": "{REQ-F-*}",
+  "edge": "{source}→{target}",
+  "iteration": {n},
+  "status": "{iterating|converged|blocked|time_box_expired|spawn_requested}",
+  "evaluators": {"passed": {n}, "failed": {n}, "skipped": {n}, "total": {n}},
+  "asset": "{path}",
+  "context_hash": "{sha256:...}",
+  "delta": {count of failing required checks},
+  "source_findings": [
+    {"description": "...", "classification": "SOURCE_AMBIGUITY|SOURCE_GAP|SOURCE_UNDERSPEC", "disposition": "resolved_with_assumption|escalate_upstream|escalate_human|spawn_recommended"}
+  ],
+  "process_gaps": [
+    {"description": "...", "type": "EVALUATOR_MISSING|EVALUATOR_VAGUE|CONTEXT_MISSING|GUIDANCE_MISSING", "action": "..."}
+  ]
+}
+```
+
+The event log is **append-only** and **immutable**. Create `.ai-workspace/events/` on first event.
+
+### Step 5b: Update Derived Views
+
+After emitting the event, update all derived projections:
+
+1. **Feature vector** (`.ai-workspace/features/active/{feature}.yml`) — state projection (latest state)
+2. **Task log** (`.ai-workspace/tasks/active/ACTIVE_TASKS.md`) — filtered projection (convergence events as markdown)
+3. **STATUS.md** (`.ai-workspace/STATUS.md`) — computed projection with:
+   - Mermaid Gantt chart from feature vector trajectories
+   - Phase completion summary table
+   - **Process Telemetry** — convergence patterns, evaluator rates, traceability coverage, constraint surface health
+   - **Self-Reflection signals** — each TELEM-NNN with recommended action
+
+All three views can be reconstructed from `events.jsonl` alone. The event log is the source of truth. This closes the telemetry loop: the process observes its own execution and produces feedback that can become new intents.
 
 ---
 
@@ -322,7 +407,18 @@ Edge:       {source} → {target}
 Feature:    {REQ-F-*}
 Iteration:  {n}
 
-CHECKLIST RESULTS: {pass_count} of {total_required} required checks pass
+── SOURCE ANALYSIS (Backward) ──────────────────────────────────────
+{count} findings in source asset:
+┌──────────────────────────────┬────────────────────┬────────────────────────┐
+│ Finding                      │ Classification     │ Disposition            │
+├──────────────────────────────┼────────────────────┼────────────────────────┤
+│ {description}                │ SOURCE_AMBIGUITY   │ resolved_with_assumption│
+│ {description}                │ SOURCE_GAP         │ escalate_human         │
+│ {description}                │ SOURCE_UNDERSPEC   │ spawn_recommended      │
+└──────────────────────────────┴────────────────────┴────────────────────────┘
+
+── CHECKLIST RESULTS (Forward) ─────────────────────────────────────
+{pass_count} of {total_required} required checks pass
 ┌──────────────────────────────┬───────────────┬────────┬──────────┐
 │ Check                        │ Type          │ Result │ Required │
 ├──────────────────────────────┼───────────────┼────────┼──────────┤
@@ -345,7 +441,17 @@ SKIPPED:
 
 DELTA: 2 failing required checks
 
-STATUS:   {CONVERGED | CONVERGED_QUESTION_ANSWERED | TIME_BOX_EXPIRED | ITERATING | BLOCKED | SPAWN_REQUESTED}
+── PROCESS GAPS (Inward) ───────────────────────────────────────────
+┌──────────────────────────────┬────────────────────┬──────────────────────────┐
+│ Finding                      │ Type               │ Recommended Action       │
+├──────────────────────────────┼────────────────────┼──────────────────────────┤
+│ {description}                │ EVALUATOR_MISSING  │ {add check for X}        │
+│ {description}                │ CONTEXT_MISSING    │ {add exemplar for Y}     │
+│ {description}                │ EVALUATOR_VAGUE    │ {tighten criterion for Z}│
+└──────────────────────────────┴────────────────────┴──────────────────────────┘
+
+── SUMMARY ─────────────────────────────────────────────────────────
+STATUS:   {CONVERGED | ITERATING | BLOCKED | SPAWN_REQUESTED | ...}
 VECTOR:   {feature | discovery | spike | poc | hotfix}
 PROFILE:  {profile name, if configured}
 TIME_BOX: {remaining duration, if configured}
