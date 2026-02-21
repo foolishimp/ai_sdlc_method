@@ -1,0 +1,42 @@
+feature: REQ-F-EDGE-001
+title: Edge Parameterisations
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: converged
+created: "2026-02-20T08:00:00Z"
+updated: "2026-02-21T10:00:00Z"
+parent_id: REQ-F-EVAL-001
+
+description: |
+  TDD, BDD, ADR, code tagging, traceability, and feedback loop configurations
+  for common graph edges. 10 edge parameterisation YAMLs.
+
+requirements:
+  - REQ-EDGE-001
+  - REQ-EDGE-002
+  - REQ-EDGE-003
+  - REQ-EDGE-004
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+  design:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_architecture: pass
+  code:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+      deterministic_config_validation: pass
+  unit_tests:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      deterministic_pytest: pass

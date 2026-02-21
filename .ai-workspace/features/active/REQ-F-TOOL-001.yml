@@ -1,0 +1,50 @@
+feature: REQ-F-TOOL-001
+title: Developer Tooling
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: in_progress
+created: "2026-02-20T08:00:00Z"
+updated: "2026-02-21T10:00:00Z"
+parent_id: REQ-F-ENGINE-001
+
+description: |
+  Plugin architecture, workspace scaffolding, 9 slash commands,
+  release management, test gap analysis, protocol hooks, snapshots.
+  Commands specified but not yet executable (markdown specs, not agent code).
+
+requirements:
+  - REQ-TOOL-001
+  - REQ-TOOL-002
+  - REQ-TOOL-003
+  - REQ-TOOL-004
+  - REQ-TOOL-005
+  - REQ-TOOL-006
+  - REQ-TOOL-007
+  - REQ-TOOL-008
+  - REQ-TOOL-009
+  - REQ-TOOL-010
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+  design:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_architecture: pass
+  code:
+    status: in_progress
+    iteration: 1
+    evaluator_results:
+      agent_plugin_structure: pass
+      agent_command_specs: pass
+      deterministic_config_validation: pass
+  unit_tests:
+    status: in_progress
+    iteration: 1
+    evaluator_results:
+      deterministic_pytest: pass

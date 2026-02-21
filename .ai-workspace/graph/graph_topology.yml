@@ -1,0 +1,123 @@
+# AI SDLC Method — Project Graph Topology
+# Derived from: claude-code/.claude-plugin/plugins/aisdlc-methodology/v2/config/graph_topology.yml
+# Version: 2.5.0
+
+asset_types:
+  intent:
+    description: "Raw problem/opportunity statement that spawns development work"
+  requirements:
+    description: "Structured, testable requirements with unique immutable keys"
+  design:
+    description: "Technical solution architecture with component specs and ADRs"
+  code:
+    description: "Implementation source code tagged with REQ keys"
+  unit_tests:
+    description: "Unit tests co-evolved with code via TDD"
+  test_cases:
+    description: "Integration/system test cases derived from design"
+  uat_tests:
+    description: "Business acceptance tests in pure business language (BDD)"
+  cicd:
+    description: "CI/CD pipeline configuration and artifacts"
+  running_system:
+    description: "Deployed and running system with health checks"
+  telemetry:
+    description: "Runtime metrics and alerts tagged with REQ keys"
+
+transitions:
+  - source: intent
+    target: requirements
+    edge_type: intent_requirements
+  - source: requirements
+    target: design
+    edge_type: requirements_design
+  - source: design
+    target: code
+    edge_type: design_code
+  - source: code
+    target: unit_tests
+    edge_type: code_unit_tests
+  - source: design
+    target: test_cases
+    edge_type: design_test_cases
+  - source: design
+    target: uat_tests
+    edge_type: design_uat_tests
+  - source: code
+    target: cicd
+    edge_type: code_cicd
+  - source: cicd
+    target: running_system
+    edge_type: cicd_running_system
+  - source: running_system
+    target: telemetry
+    edge_type: running_system_telemetry
+  - source: telemetry
+    target: intent
+    edge_type: telemetry_intent
+
+constraint_dimensions:
+  ecosystem_compatibility:
+    mandatory: true
+    resolves_via: design
+  deployment_target:
+    mandatory: true
+    resolves_via: design
+  security_model:
+    mandatory: true
+    resolves_via: design
+  data_governance:
+    mandatory: false
+    resolves_via: design
+  performance_envelope:
+    mandatory: false
+    resolves_via: design
+  build_system:
+    mandatory: true
+    resolves_via: design
+  observability:
+    mandatory: false
+    resolves_via: design
+  error_handling:
+    mandatory: false
+    resolves_via: design
+
+profiles:
+  full:
+    graph_edges: [intent_requirements, requirements_design, design_code, code_unit_tests, design_test_cases, design_uat_tests, code_cicd, cicd_running_system, running_system_telemetry, telemetry_intent]
+    evaluator_types: [human, agent, deterministic]
+    convergence: all_pass
+    context_density: full
+    vector_types: [feature]
+  standard:
+    graph_edges: [intent_requirements, requirements_design, design_code, code_unit_tests]
+    evaluator_types: [agent, deterministic]
+    convergence: all_pass
+    context_density: full
+    vector_types: [feature]
+  poc:
+    graph_edges: [intent_requirements, requirements_design, design_code]
+    evaluator_types: [agent]
+    convergence: advisory
+    context_density: minimal
+    iteration_budget: 3
+    vector_types: [poc]
+  spike:
+    graph_edges: [requirements_design, design_code]
+    evaluator_types: [agent]
+    convergence: advisory
+    context_density: minimal
+    iteration_budget: 2
+    vector_types: [spike]
+  hotfix:
+    graph_edges: [design_code, code_unit_tests]
+    evaluator_types: [deterministic]
+    convergence: all_pass
+    context_density: minimal
+    vector_types: [hotfix]
+  minimal:
+    graph_edges: [design_code]
+    evaluator_types: [deterministic]
+    convergence: all_pass
+    context_density: minimal
+    vector_types: [feature, hotfix]

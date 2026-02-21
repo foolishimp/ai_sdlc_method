@@ -1,0 +1,43 @@
+feature: REQ-F-TRACE-001
+title: Feature Vector Traceability
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: converged
+created: "2026-02-19T10:00:00Z"
+updated: "2026-02-21T10:00:00Z"
+parent_id: REQ-F-ENGINE-001
+
+description: |
+  Intent capture, REQ keys, trajectories, dependencies, and task planning.
+  Includes /aisdlc-trace, /aisdlc-gaps, 3-layer traceability validation.
+
+requirements:
+  - REQ-INTENT-001
+  - REQ-INTENT-002
+  - REQ-FEAT-001
+  - REQ-FEAT-002
+  - REQ-FEAT-003
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+  design:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_architecture: pass
+  code:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+      deterministic_config_validation: pass
+  unit_tests:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      deterministic_pytest: pass

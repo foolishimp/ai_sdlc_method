@@ -398,7 +398,7 @@ You adapt your behaviour based on the edge parameterisation. Here is guidance fo
 
 ## Evaluator Types
 
-The three evaluator types map to two processing regimes (Spec §4.3): **conscious** (human, agent — require deliberative judgment) and **reflex** (deterministic — fire unconditionally, no judgment). Protocol side effects (event emission, feature vector update, STATUS regeneration) are also reflex. Reflexes enable consciousness — without automatic event emission at every iteration, the consciousness loop has nothing to observe.
+The three evaluator types operate across three processing phases (Spec §4.3), modelled on the biological nervous system: **reflex** (deterministic tests, event emission, protocol hooks — fire unconditionally, like the spinal cord), **affect** (signal classification, severity weighting, escalation decision — triage that filters what reaches consciousness, like the limbic system), and **conscious** (human and agent deliberative evaluation — judgment, intent generation, spec modification, like the frontal cortex). Each phase enables the next: without reflex sensing there is nothing to triage; without affect triage consciousness drowns in noise.
 
 ### Human Evaluator
 - You present your work and ask the human to approve, reject, or provide refinement guidance

@@ -11,7 +11,7 @@ evaluator_types:
 
   human:
     type: human
-    processing_regime: conscious
+    processing_phase: conscious
     description: "Human judgment — approval, rejection, or refinement guidance"
     mechanism: |
       Present the current asset candidate to the user.
@@ -25,7 +25,7 @@ evaluator_types:
 
   agent:
     type: agent
-    processing_regime: conscious
+    processing_phase: conscious    # Also operates at affect phase for signal classification/triage
     description: "LLM-based assessment — coherence, completeness, gap analysis"
     mechanism: |
       Assess the current asset candidate against:
@@ -43,7 +43,7 @@ evaluator_types:
 
   deterministic:
     type: deterministic
-    processing_regime: reflex
+    processing_phase: reflex
     description: "Automated checks — tests, schemas, linters, format validators"
     mechanism: |
       Run or invoke automated validation:
@@ -118,30 +118,19 @@ convergence_rules:
 ---
 
 # ═══════════════════════════════════════════════════════════════════════
-# PROCESSING REGIMES (Spec §4.3)
+# PROCESSING PHASES (Spec §4.3)
 # ═══════════════════════════════════════════════════════════════════════
 #
-# Two processing regimes govern all methodology operations.
-# Reflexes enable consciousness — without automatic event emission
-# there is nothing for the consciousness loop to observe.
+# Three processing phases govern all methodology operations, modelled on
+# biological nervous system architecture. Each phase enables the next:
+# reflexes produce the sensory substrate, affect triages it, consciousness
+# directs from what survives triage.
 
-processing_regimes:
-
-  conscious:
-    description: "Deliberative processing — requires judgment"
-    analogy: "Central nervous system / System 2"
-    includes:
-      - human evaluator
-      - agent evaluator
-      - gap assessment and classification
-      - intent generation from deltas
-      - spawn decisions
-      - convergence judgment (question_answered)
-    fires_when: "Judgment required — gap detected, design choice, approval needed"
+processing_phases:
 
   reflex:
-    description: "Autonomic processing — fires unconditionally, no judgment"
-    analogy: "Autonomic nervous system / System 1"
+    description: "Autonomic sensing — fires unconditionally, no judgment"
+    analogy: "Spinal cord / brainstem / System 1 (fast, automatic)"
     includes:
       - deterministic tests
       - event emission to events.jsonl
@@ -150,3 +139,26 @@ processing_regimes:
       - protocol enforcement hooks
       - circuit breaker activation
     fires_when: "Every iteration boundary, every edge — no exceptions, no decision"
+
+  affect:
+    description: "Signal triage — classifies, weights, decides escalation"
+    analogy: "Limbic system / amygdala (emotional appraisal, valence, urgency)"
+    includes:
+      - signal source classification (gap / discovery / ecosystem / optimisation / user / TELEM)
+      - severity and priority weighting
+      - escalation decision (escalate to conscious vs log-and-defer)
+      - threshold tuning per projection profile
+    fires_when: "Reflex processing surfaces a signal — classifies and assigns urgency"
+
+  conscious:
+    description: "Deliberative processing — requires judgment"
+    analogy: "Frontal cortex / prefrontal / System 2 (slow, deliberate)"
+    includes:
+      - human evaluator
+      - agent evaluator (deliberative)
+      - gap assessment and interpretation
+      - intent generation from deltas
+      - spec modification
+      - spawn decisions
+      - convergence judgment (question_answered)
+    fires_when: "Affect phase determines signal warrants deliberation — approval, design, intent"

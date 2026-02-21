@@ -86,6 +86,46 @@ A 10-minute spike and a regulated medical device both use the same four primitiv
 
 ---
 
+## Getting Started
+
+### 1. Install the Claude Code plugin
+
+```bash
+# From your project directory
+claude plugin add foolishimp/ai_sdlc_method
+```
+
+### 2. Initialize your project workspace
+
+```
+/aisdlc-init
+```
+
+This scaffolds the asset graph configuration, context store, project constraints, feature tracking, and task management directories.
+
+### 3. Start working
+
+```
+/aisdlc-iterate          # Advance an asset along the graph
+/aisdlc-status           # See current state of all assets
+/aisdlc-spawn            # Spawn a new feature/spike/hotfix vector
+/aisdlc-trace            # Trace REQ keys across artifacts
+/aisdlc-gaps             # Find traceability gaps
+/aisdlc-checkpoint       # Save current progress
+/aisdlc-review           # Review an asset for promotion
+/aisdlc-release          # Prepare a release
+```
+
+### Reading the spec (no tooling needed)
+
+If you just want to understand the methodology, start with:
+
+1. [INTENT.md](docs/specification/INTENT.md) — why this exists
+2. [AI_SDLC_ASSET_GRAPH_MODEL.md](docs/specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — the formal system
+3. [PROJECTIONS_AND_INVARIANTS.md](docs/specification/PROJECTIONS_AND_INVARIANTS.md) — how it adapts to different scales
+
+---
+
 ## Repository Structure
 
 ```
