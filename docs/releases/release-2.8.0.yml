@@ -1,0 +1,172 @@
+# Release Manifest — AI SDLC Asset Graph Model v2.8.0
+# Phase 1a: Formal System + Claude Code Binding + Configs + Tests
+
+version: "2.8.0"
+date: "2026-02-22"
+codename: "Phase 1a Complete"
+context_hash: "sha256:c66ca0aeaa604cd6a952f3318427a696c893e179"
+git_tag: "v2.8.0"
+previous_release: "v2.0"
+commits_since_previous: 36
+
+# ═══════════════════════════════════════════════════════════════════════
+# FEATURES INCLUDED
+# ═══════════════════════════════════════════════════════════════════════
+
+features_included:
+  REQ-F-ENGINE-001:
+    title: "Asset Graph Engine"
+    status: converged
+    profile: standard
+    edges: 4/4
+  REQ-F-EVAL-001:
+    title: "Evaluator Framework"
+    status: converged
+    profile: standard
+    edges: 4/4
+  REQ-F-EDGE-001:
+    title: "Edge Parameterisations"
+    status: converged
+    profile: standard
+    edges: 4/4
+  REQ-F-CTX-001:
+    title: "Context Management"
+    status: converged
+    profile: standard
+    edges: 4/4
+  REQ-F-TRACE-001:
+    title: "Feature Vector Traceability"
+    status: converged
+    profile: standard
+    edges: 4/4
+  REQ-F-UX-001:
+    title: "Two-Command UX Layer"
+    status: converged
+    profile: full
+    edges: 4/4
+  REQ-F-TOOL-001:
+    title: "Developer Tooling"
+    status: converged
+    profile: standard
+    edges: 4/4
+  REQ-F-LIFE-001:
+    title: "Full Lifecycle Closure"
+    status: converged
+    profile: full
+    edges: 4/4
+  REQ-F-SENSE-001:
+    title: "Sensory Systems"
+    status: converged
+    profile: full
+    edges: 4/4
+  REQ-F-COORD-001:
+    title: "Multi-Agent Coordination"
+    status: converged
+    profile: full
+    edges: 4/4
+
+# ═══════════════════════════════════════════════════════════════════════
+# COVERAGE
+# ═══════════════════════════════════════════════════════════════════════
+
+coverage:
+  requirements: 10/10 (100%)
+  design: 10/10 (100%)
+  code: 10/10 (100%)
+  unit_tests: 10/10 (100%)
+
+req_key_coverage:
+  total_defined: 54
+  explicit_test_coverage: 44 (81%)
+  implicit_test_coverage: 10 (19%)
+  no_coverage: 0 (0%)
+  test_count: 432
+
+gaps_validation:
+  layer_1_req_tags: pass
+  layer_2_test_gaps: pass_with_advisory
+  layer_3_telemetry: not_applicable
+  advisory: "10 REQ keys with implicit-only coverage (INTENT, FEAT, EDGE domains)"
+
+# ═══════════════════════════════════════════════════════════════════════
+# ARTIFACTS
+# ═══════════════════════════════════════════════════════════════════════
+
+specification:
+  - specification/INTENT.md
+  - specification/AI_SDLC_ASSET_GRAPH_MODEL.md (v2.8.0)
+  - specification/PROJECTIONS_AND_INVARIANTS.md
+  - specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md (v3.6.0, 54 reqs)
+  - specification/FEATURE_VECTORS.md (v1.5.0, 10 vectors)
+
+design:
+  - imp_claude/design/AISDLC_V2_DESIGN.md (v2.0.0)
+  - imp_claude/design/adrs/ADR-008 through ADR-013
+
+config_artifacts:
+  - graph_topology.yml (10 asset types, 10 transitions, 8 constraint dims)
+  - evaluator_defaults.yml (3 evaluator types)
+  - 9 edge_params/*.yml (per-edge checklists)
+  - 6 profiles/*.yml (full, standard, poc, spike, hotfix, minimal)
+  - sensory_monitors.yml (7 INTRO + 4 EXTRO monitors)
+  - affect_triage.yml (14 rules, 6 profile thresholds)
+  - agent_roles.yml (6 roles, claim protocol, parallelism)
+  - feature_vector_template.yml
+  - project_constraints_template.yml
+
+command_specs:
+  - 1 agent (aisdlc-iterate.md)
+  - 10 commands (aisdlc-start, status, iterate, spawn, gaps, release, review, checkpoint, trace, init)
+  - 2 hooks (on-iterate-start.sh, on-stop-check-protocol.sh)
+
+implementations:
+  - imp_claude/ (primary — design, code, 432 tests)
+  - imp_gemini/ (genesis bootstrap — design, code scaffold, tests)
+  - imp_codex/ (genesis bootstrap — design, code mirror, tests)
+
+# ═══════════════════════════════════════════════════════════════════════
+# KNOWN GAPS / PHASE 2 SCOPE
+# ═══════════════════════════════════════════════════════════════════════
+
+known_gaps:
+  - "No executable iterate() engine — commands are markdown specs read by Claude Code"
+  - "No MCP sensory service — configs exist but service not implemented"
+  - "No multi-agent serialiser — agent_roles.yml defines protocol but no enforcer"
+  - "$variable resolution not testable — no runtime engine"
+  - "Telemetry layer (Layer 3) entirely Phase 2 scope"
+  - "10 REQ keys with implicit-only test coverage (tagging gap, not testing gap)"
+
+# ═══════════════════════════════════════════════════════════════════════
+# CHANGELOG
+# ═══════════════════════════════════════════════════════════════════════
+
+changelog:
+  features:
+    - "Asset Graph Model v2.8.0 — 4 primitives, 1 operation, zoomable graph"
+    - "Projections & Invariants — scale-dependent assurance, 6 named profiles"
+    - "54 implementation requirements (platform-agnostic)"
+    - "10 feature vectors with full traceability"
+    - "Universal iterate agent — 1 agent for all edges"
+    - "Graph topology as configuration — 10 asset types, 10 transitions"
+    - "9 edge parameterisations (TDD, BDD, ADR, code tagging, etc.)"
+    - "Two-command UX — /aisdlc-start + /aisdlc-status replace 9 commands"
+    - "Three processing phases (reflex/affect/conscious)"
+    - "Two sensory systems (interoception + exteroception)"
+    - "Consciousness loop at every observer"
+    - "Event sourcing (events.jsonl as sole source of truth)"
+    - "Multi-agent coordination (inbox/serialiser, role-based authority)"
+    - "Multi-tenant repository (specification/ + imp_{name}/)"
+    - "432 acceptance tests (BDD + config validation)"
+
+  improvements:
+    - "Constraint dimensions as 8 mandatory/advisory dimensions"
+    - "Profile-aware edge traversal (skip edges not in profile)"
+    - "Feature vector spawning with fold-back mechanism"
+    - "Three-direction gap detection (forward, backward, inward)"
+    - "Deterministic YAML validation for all configs"
+
+  bug_fixes:
+    - "6 dogfood bugs fixed (config resolution, variable substitution, edge traversal)"
+    - "QA round 1: hook robustness, feature vector coverage, version alignment"
+    - "QA round 2: asset name regex, version sweep, INTENT front matter"
+    - "6 YAML schema test mismatches fixed (source/target, dict keys, profile include)"

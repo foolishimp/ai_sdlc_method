@@ -1,6 +1,6 @@
 # Project Status — AI SDLC Asset Graph Model (v2.8.0 — Multi-Tenant)
 
-Generated: 2026-02-22T08:00:00Z
+Generated: 2026-02-22T09:00:00Z
 
 ## State: ALL_CONVERGED
 
@@ -117,9 +117,19 @@ REQ-F-COORD-001   intent ✓ → req ✓ → design ✓ → code ✓ → tests �
 
 ## Next Actions
 
-1. `/aisdlc-gaps` — Check for traceability gaps before release
-2. `/aisdlc-release` — Create a versioned release
-3. `/aisdlc-spawn --type feature` — Start a new feature (Phase 1b: executable engine)
+1. `/aisdlc-release` — Create a versioned release (Phase 1a)
+2. `/aisdlc-spawn --type feature` — Start Phase 1b (executable engine)
+3. `/aisdlc-spawn --type feature` — Start Phase 2 (MCP sensory service)
+
+## Gaps Validation (2026-02-22T08:15:00Z)
+
+| Layer | Result | Details |
+|-------|--------|---------|
+| 1: REQ Tag Coverage | PASS | 4/4 checks pass — all code/test files tagged |
+| 2: Test Gap Analysis | PASS (advisory) | 54/54 REQ keys covered — 44 explicit, 10 implicit |
+| 3: Telemetry | N/A | Phase 2 scope — no executable code to instrument |
+
+**Advisory**: 10 REQ keys have implicit test coverage but no explicit `Validates:` tag: INTENT-001/002/004, FEAT-001/002/003, EDGE-001/002/003/004.
 
 ---
 
@@ -173,3 +183,5 @@ REQ-F-COORD-001   intent ✓ → req ✓ → design ✓ → code ✓ → tests �
 | TELEM-012 | ALL_CONVERGED — 10/10 features, 40/40 edges, 432 tests. Phase 1a is the formal system + Claude Code binding + configs + tests. No executable engine yet. | Phase 1b scope: executable iterate(), MCP sensory service, multi-agent serialiser. These are new features, not convergence of existing ones. |
 | TELEM-013 | sensory_monitors.yml and affect_triage.yml are configuration schemas — the MCP service that reads them does not exist yet. | Phase 2 scope: implement MCP server, connect to monitors, run affect triage pipeline. |
 | TELEM-014 | agent_roles.yml defines role registry and claim protocol — the serialiser that enforces them does not exist yet. | Phase 2 scope: implement serialiser, inbox staging, role-based authority checks. |
+| TELEM-015 | /aisdlc-gaps validated: Layer 1 PASS, Layer 2 PASS (advisory), Layer 3 N/A. 10 REQ keys with implicit-only coverage (INTENT, FEAT, EDGE domains). | Minor: add explicit `Validates:` tags to tests covering these 10 REQ keys. Not blocking. |
+| TELEM-016 | 3 implementations bootstrapped (Claude, Gemini, Codex). Gemini has executable Python code (start.py, status.py, state_machine.py). Codex has full config + command mirror. | Multi-tenant repository is operational. Each implementation can develop independently. |
