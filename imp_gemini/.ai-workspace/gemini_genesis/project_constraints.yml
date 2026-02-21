@@ -1,0 +1,26 @@
+# Gemini Genesis Project Constraints
+project:
+  name: "gemini-genesis"
+  kind: "service"
+  language: "python"
+  version: "3.12"
+
+tools:
+  test_runner:
+    command: "pytest"
+    args: ["-v"]
+    pass_criterion: "exit_code == 0"
+  linter:
+    command: "ruff check ."
+  formatter:
+    command: "ruff format ."
+
+thresholds:
+  coverage_minimum: 0.80
+  complexity_max: 10
+
+constraint_dimensions:
+  ecosystem_compatibility: "Python 3.12"
+  deployment_target: "CLI / Local"
+  security_model: "Local isolation"
+  build_system: "pip / setuptools"

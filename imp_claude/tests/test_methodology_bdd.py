@@ -1638,3 +1638,991 @@ class TestTwoCommandUX:
             content = f.read()
         assert "1.9 Two-Command UX Layer" in content
         assert "ADR-012" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 22: Two-Command UX — Acceptance Criteria Depth
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestTwoCommandUXAcceptanceCriteria:
+    """
+    GIVEN the two-command UX layer (Start + Status)
+    WHEN each REQ-UX acceptance criterion is checked
+    THEN the command spec contains the required content.
+
+    Validates: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
+    """
+
+    # ─── REQ-UX-001: State-Driven Routing ─────────────────────────────
+
+    @pytest.mark.bdd
+    def test_start_routes_to_action_per_state(self):
+        """Each state must route to a specific action (init, iterate, etc.)."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        # Each state maps to a numbered step
+        for action in ("Progressive Init", "Constraint Prompting",
+                       "Intent Authoring", "Feature Creation",
+                       "Feature/Edge Selection", "Release/Gaps",
+                       "Stuck Recovery", "Blocked Recovery"):
+            assert action in content, f"Start missing action: {action}"
+
+    @pytest.mark.bdd
+    def test_start_state_derived_not_stored(self):
+        """State must be derived from workspace, never stored."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "derived" in content.lower()
+        assert "pure read" in content.lower() or "never stored" in content.lower()
+
+    @pytest.mark.bdd
+    def test_start_auto_mode_loop(self):
+        """Start must support --auto mode with pause conditions."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "--auto" in content
+        # Must pause at human gates, spawn decisions, stuck, time-box
+        for pause in ("human gate", "spawn", "stuck", "time-box"):
+            assert pause.lower() in content.lower(), f"Auto-mode missing pause: {pause}"
+
+    # ─── REQ-UX-002: Progressive Disclosure ───────────────────────────
+
+    @pytest.mark.bdd
+    def test_start_init_five_questions(self):
+        """Progressive init must capture exactly 5 inputs."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        for question in ("Project name", "Project kind", "Language",
+                         "Test runner", "Intent description"):
+            assert question in content, f"Init missing question: {question}"
+
+    @pytest.mark.bdd
+    def test_start_auto_detection(self):
+        """Progressive init must auto-detect from project files."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "Auto-detect" in content or "auto-detect" in content.lower()
+        # Must mention config file detection
+        for config in ("package.json", "pyproject.toml"):
+            assert config in content, f"Init missing auto-detect from: {config}"
+
+    @pytest.mark.bdd
+    def test_start_project_kind_to_profile_mapping(self):
+        """Project kind must map to default profile."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "application" in content
+        assert "standard" in content
+        assert "library" in content
+
+    # ─── REQ-UX-003: Project-Wide Observability ───────────────────────
+
+    @pytest.mark.bdd
+    def test_status_has_project_rollup(self):
+        """Status must show cross-feature rollup with edge counts."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "Project Rollup" in content or "Rollup" in content
+        assert "converged" in content.lower()
+
+    @pytest.mark.bdd
+    def test_status_has_gantt_support(self):
+        """Status must support --gantt flag with Mermaid diagram."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "--gantt" in content
+        assert "mermaid" in content.lower() or "Mermaid" in content
+
+    @pytest.mark.bdd
+    def test_status_has_process_telemetry(self):
+        """Status must include process telemetry section."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "Process Telemetry" in content
+        assert "Convergence Pattern" in content
+
+    @pytest.mark.bdd
+    def test_status_has_self_reflection(self):
+        """Status must include self-reflection / feedback-to-intent section."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "Self-Reflection" in content or "Feedback" in content
+
+    @pytest.mark.bdd
+    def test_status_has_signals(self):
+        """Status must surface unactioned intent_raised events as signals."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "intent_raised" in content
+        assert "signal" in content.lower()
+
+    @pytest.mark.bdd
+    def test_status_event_sourcing_documented(self):
+        """Status must document event sourcing architecture."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "Event Sourcing" in content
+        assert "events.jsonl" in content
+        assert "source of truth" in content.lower() or "Source of Truth" in content
+
+    # ─── REQ-UX-004: Feature/Edge Auto-Selection ──────────────────────
+
+    @pytest.mark.bdd
+    def test_start_feature_selection_priority_tiers(self):
+        """Start must document feature selection priority tiers."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        for tier in ("time-box", "closest-to-complete", "priority", "recently touched"):
+            assert tier.lower() in content.lower(), f"Selection missing tier: {tier}"
+
+    @pytest.mark.bdd
+    def test_start_edge_determination_algorithm(self):
+        """Start must document edge determination via topological walk."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "topological" in content.lower()
+        assert "unconverged" in content.lower()
+        assert "profile" in content.lower()
+
+    @pytest.mark.bdd
+    def test_start_user_override_flags(self):
+        """Start must support --feature and --edge override flags."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "--feature" in content
+        assert "--edge" in content
+
+    @pytest.mark.bdd
+    def test_start_coevolution_edge_handling(self):
+        """Start must present co-evolution edges as a single unit."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "co-evolution" in content.lower() or "code↔unit_tests" in content
+
+    # ─── REQ-UX-005: Recovery & Self-Healing ──────────────────────────
+
+    @pytest.mark.bdd
+    def test_start_recovery_scenarios(self):
+        """Start must detect and handle recovery scenarios."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        for scenario in ("Corrupted event log", "Missing feature vectors",
+                         "Orphaned spawns", "Stuck features"):
+            assert scenario.lower() in content.lower(), \
+                f"Recovery missing scenario: {scenario}"
+
+    @pytest.mark.bdd
+    def test_start_non_destructive_recovery(self):
+        """Recovery must be non-destructive — never silently delete."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "non-destructive" in content.lower() or "never silently delete" in content.lower()
+
+    @pytest.mark.bdd
+    def test_status_health_check_comprehensive(self):
+        """Health check must cover event log, vectors, spawns, convergence, constraints."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        for check in ("Event Log", "Feature Vector", "Orphaned",
+                      "Convergence", "Constraint"):
+            assert check.lower() in content.lower(), \
+                f"Health check missing: {check}"
+
+    @pytest.mark.bdd
+    def test_status_views_rebuildable_from_events(self):
+        """Status must document that views are reconstructible from event stream."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "reconstruct" in content.lower() or "regenerat" in content.lower() or \
+            "replay" in content.lower()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 23: Developer Tooling — Acceptance Criteria Depth
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestDeveloperToolingAcceptanceCriteria:
+    """
+    GIVEN the developer tooling feature (plugin, commands, hooks, scaffolding)
+    WHEN each REQ-TOOL acceptance criterion is checked
+    THEN command specs, hook scripts, and config files contain required content.
+
+    Validates: REQ-TOOL-001, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-006,
+               REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010
+    """
+
+    # ─── REQ-TOOL-003: Workflow Commands ──────────────────────────────
+
+    @pytest.mark.bdd
+    def test_all_ten_commands_exist(self):
+        """All 10 /aisdlc-* commands must exist as markdown specs."""
+        expected = [
+            "aisdlc-checkpoint.md", "aisdlc-gaps.md", "aisdlc-init.md",
+            "aisdlc-iterate.md", "aisdlc-release.md", "aisdlc-review.md",
+            "aisdlc-spawn.md", "aisdlc-start.md", "aisdlc-status.md",
+            "aisdlc-trace.md",
+        ]
+        for cmd in expected:
+            assert (COMMANDS_DIR / cmd).exists(), f"Command missing: {cmd}"
+
+    @pytest.mark.bdd
+    def test_all_commands_have_usage_and_instructions(self):
+        """Every command spec must have Usage and Instructions sections."""
+        for cmd_file in sorted(COMMANDS_DIR.glob("aisdlc-*.md")):
+            with open(cmd_file) as f:
+                content = f.read()
+            assert "## Usage" in content, f"{cmd_file.name} missing ## Usage"
+            assert "## Instructions" in content or "## Layers" in content, \
+                f"{cmd_file.name} missing ## Instructions"
+
+    @pytest.mark.bdd
+    def test_all_commands_reference_req_keys(self):
+        """Every command spec must reference at least one REQ-* key."""
+        for cmd_file in sorted(COMMANDS_DIR.glob("aisdlc-*.md")):
+            with open(cmd_file) as f:
+                content = f.read()
+            assert "REQ-" in content, f"{cmd_file.name} missing REQ-* reference"
+
+    # ─── REQ-TOOL-004: Release Management ─────────────────────────────
+
+    @pytest.mark.bdd
+    def test_release_command_supports_semver(self):
+        """Release command must support semantic versioning."""
+        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+            content = f.read()
+        assert "semver" in content.lower() or "semantic version" in content.lower()
+        assert "--version" in content
+
+    @pytest.mark.bdd
+    def test_release_command_generates_changelog(self):
+        """Release command must generate changelog from git log."""
+        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+            content = f.read()
+        assert "changelog" in content.lower() or "Changelog" in content
+
+    @pytest.mark.bdd
+    def test_release_command_checks_coverage(self):
+        """Release command must validate REQ key coverage before release."""
+        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+            content = f.read()
+        assert "coverage" in content.lower() or "/aisdlc-gaps" in content
+
+    @pytest.mark.bdd
+    def test_release_command_emits_event(self):
+        """Release command must emit release_created event."""
+        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+            content = f.read()
+        assert "release_created" in content
+
+    # ─── REQ-TOOL-006: Methodology Hooks ──────────────────────────────
+
+    @pytest.mark.bdd
+    def test_hooks_json_exists_with_two_hooks(self):
+        """hooks.json must define UserPromptSubmit and Stop hooks."""
+        hooks_dir = COMMANDS_DIR.parent / "hooks"
+        hooks_json = hooks_dir / "hooks.json"
+        assert hooks_json.exists(), "hooks.json missing"
+        import json
+        with open(hooks_json) as f:
+            data = json.load(f)
+        assert "UserPromptSubmit" in data["hooks"]
+        assert "Stop" in data["hooks"]
+
+    @pytest.mark.bdd
+    def test_iterate_start_hook_exists(self):
+        """on-iterate-start.sh must exist and set up edge context."""
+        hooks_dir = COMMANDS_DIR.parent / "hooks"
+        hook = hooks_dir / "on-iterate-start.sh"
+        assert hook.exists()
+        with open(hook) as f:
+            content = f.read()
+        assert "edge_in_progress" in content or "EDGE" in content
+
+    @pytest.mark.bdd
+    def test_stop_check_hook_enforces_protocol(self):
+        """on-stop-check-protocol.sh must enforce iterate protocol completion."""
+        hooks_dir = COMMANDS_DIR.parent / "hooks"
+        hook = hooks_dir / "on-stop-check-protocol.sh"
+        assert hook.exists()
+        with open(hook) as f:
+            content = f.read()
+        # Must check for event emission and feature vector update
+        assert "events.jsonl" in content or "event" in content.lower()
+        assert "block" in content.lower()
+
+    @pytest.mark.bdd
+    def test_hooks_are_reflex_processing(self):
+        """Both hooks must operate in reflex processing regime (unconditional)."""
+        hooks_dir = COMMANDS_DIR.parent / "hooks"
+        for hook_name in ("on-iterate-start.sh", "on-stop-check-protocol.sh"):
+            with open(hooks_dir / hook_name) as f:
+                content = f.read()
+            assert "reflex" in content.lower() or "REFLEX" in content, \
+                f"{hook_name} missing reflex processing regime label"
+
+    # ─── REQ-TOOL-008: Context Snapshot ───────────────────────────────
+
+    @pytest.mark.bdd
+    def test_checkpoint_command_computes_context_hash(self):
+        """Checkpoint must compute SHA-256 context hash."""
+        with open(COMMANDS_DIR / "aisdlc-checkpoint.md") as f:
+            content = f.read()
+        assert "sha256" in content.lower() or "SHA-256" in content
+        assert "context_hash" in content or "Context Hash" in content
+
+    @pytest.mark.bdd
+    def test_checkpoint_creates_immutable_snapshot(self):
+        """Checkpoint must create an immutable snapshot file."""
+        with open(COMMANDS_DIR / "aisdlc-checkpoint.md") as f:
+            content = f.read()
+        assert "snapshot" in content.lower()
+        assert "immutable" in content.lower()
+
+    @pytest.mark.bdd
+    def test_checkpoint_captures_feature_states(self):
+        """Checkpoint must capture all feature vector states."""
+        with open(COMMANDS_DIR / "aisdlc-checkpoint.md") as f:
+            content = f.read()
+        assert "feature_states" in content or "feature" in content.lower()
+        assert "git_ref" in content or "git" in content.lower()
+
+    @pytest.mark.bdd
+    def test_checkpoint_emits_event(self):
+        """Checkpoint must emit checkpoint_created event."""
+        with open(COMMANDS_DIR / "aisdlc-checkpoint.md") as f:
+            content = f.read()
+        assert "checkpoint_created" in content
+
+    # ─── REQ-TOOL-009: Feature Views ──────────────────────────────────
+
+    @pytest.mark.bdd
+    def test_trace_command_supports_bidirectional(self):
+        """Trace command must support forward, backward, and both directions."""
+        with open(COMMANDS_DIR / "aisdlc-trace.md") as f:
+            content = f.read()
+        assert "forward" in content.lower()
+        assert "backward" in content.lower()
+        assert "--direction" in content
+
+    @pytest.mark.bdd
+    def test_trace_command_shows_cross_artifact_status(self):
+        """Trace must show REQ key status across spec, design, code, tests."""
+        with open(COMMANDS_DIR / "aisdlc-trace.md") as f:
+            content = f.read()
+        for stage in ("Intent", "Requirements", "Design", "Code", "Test"):
+            assert stage.lower() in content.lower(), \
+                f"Trace missing stage: {stage}"
+
+    @pytest.mark.bdd
+    def test_gaps_command_supports_three_layers(self):
+        """Gaps command must support 3 traceability layers."""
+        with open(COMMANDS_DIR / "aisdlc-gaps.md") as f:
+            content = f.read()
+        assert "Layer 1" in content or "REQ Tag Coverage" in content
+        assert "Layer 2" in content or "Test Gap" in content
+        assert "Layer 3" in content or "Telemetry Gap" in content
+        assert "--layer" in content
+
+    @pytest.mark.bdd
+    def test_gaps_command_reports_severity(self):
+        """Gaps command must report gap severity and recommended actions."""
+        with open(COMMANDS_DIR / "aisdlc-gaps.md") as f:
+            content = f.read()
+        assert "severity" in content.lower() or "Severity" in content
+
+    # ─── REQ-TOOL-010: Spec/Design Boundary ───────────────────────────
+
+    @pytest.mark.bdd
+    def test_requirements_design_edge_has_boundary_check(self):
+        """Requirements→Design edge must check for spec/design boundary."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        check_names = [c["name"] for c in config["checklist"]]
+        # Must have tech-agnostic validation or spec/design boundary check
+        has_boundary = any("spec" in n.lower() or "boundary" in n.lower()
+                          or "tech" in n.lower() or "dimension" in n.lower()
+                          for n in check_names)
+        assert has_boundary, \
+            f"requirements_design.yml missing spec/design boundary check. Checks: {check_names}"
+
+    @pytest.mark.bdd
+    def test_design_edge_mandates_adr_generation(self):
+        """Requirements→Design edge must mandate ADR generation for decisions."""
+        config = load_yaml(EDGE_PARAMS_DIR / "requirements_design.yml")
+        guidance = config.get("agent_guidance", "")
+        assert "ADR" in guidance, "Agent guidance missing ADR generation mandate"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 24: Full Lifecycle Closure — Acceptance Criteria Depth
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestFullLifecycleAcceptanceCriteria:
+    """
+    GIVEN the full lifecycle feature (CI/CD, telemetry, homeostasis, feedback loop)
+    WHEN each REQ-LIFE acceptance criterion is checked
+    THEN graph topology, edge configs, and agent docs contain required content.
+
+    Validates: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004,
+               REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008,
+               REQ-INTENT-003
+    """
+
+    # ─── REQ-LIFE-001: CI/CD as Graph Edge ────────────────────────────
+
+    @pytest.mark.bdd
+    def test_graph_has_cicd_edges(self):
+        """Graph topology must include code→cicd and cicd→running_system."""
+        config = load_yaml(CONFIG_DIR / "graph_topology.yml")
+        transitions = config.get("transitions", [])
+        edge_pairs = [(t["source"], t["target"]) for t in transitions]
+        assert ("code", "cicd") in edge_pairs, "Missing code→cicd edge"
+        assert ("cicd", "running_system") in edge_pairs, "Missing cicd→running_system"
+
+    @pytest.mark.bdd
+    def test_graph_has_cicd_asset_type(self):
+        """Graph topology must define cicd as an asset type."""
+        config = load_yaml(CONFIG_DIR / "graph_topology.yml")
+        asset_types = config.get("asset_types", {})
+        assert "cicd" in asset_types, f"Missing cicd asset type. Types: {list(asset_types.keys())}"
+
+    @pytest.mark.bdd
+    def test_release_command_lists_feature_vectors(self):
+        """Release command must include feature vector IDs in release notes."""
+        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+            content = f.read()
+        assert "REQ" in content
+        assert "feature" in content.lower()
+
+    # ─── REQ-LIFE-002: Telemetry and Homeostasis ──────────────────────
+
+    @pytest.mark.bdd
+    def test_graph_has_telemetry_edge(self):
+        """Graph topology must include running_system→telemetry."""
+        config = load_yaml(CONFIG_DIR / "graph_topology.yml")
+        transitions = config.get("transitions", [])
+        edge_pairs = [(t["source"], t["target"]) for t in transitions]
+        assert ("running_system", "telemetry") in edge_pairs
+
+    @pytest.mark.bdd
+    def test_feedback_loop_has_homeostasis_concept(self):
+        """Feedback loop config must reference homeostasis or deviation detection."""
+        config = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        content = str(config)
+        assert "homeostasis" in content.lower() or "deviation" in content.lower() \
+            or "drift" in content.lower()
+
+    @pytest.mark.bdd
+    def test_traceability_has_telemetry_layer(self):
+        """Traceability config must define Layer 3 telemetry gap analysis."""
+        config = load_yaml(EDGE_PARAMS_DIR / "traceability.yml")
+        content = str(config)
+        assert "telemetry" in content.lower()
+        assert "layer_3" in content or "Layer 3" in content or "telemetry_gap" in content
+
+    # ─── REQ-LIFE-003: Feedback Loop Closure ──────────────────────────
+
+    @pytest.mark.bdd
+    def test_graph_has_telemetry_to_intent_edge(self):
+        """Graph topology must close the loop: telemetry→intent."""
+        config = load_yaml(CONFIG_DIR / "graph_topology.yml")
+        transitions = config.get("transitions", [])
+        edge_pairs = [(t["source"], t["target"]) for t in transitions]
+        assert ("telemetry", "intent") in edge_pairs, "Missing telemetry→intent edge"
+
+    @pytest.mark.bdd
+    def test_feedback_loop_generates_intents(self):
+        """Feedback loop config must generate intent_raised events."""
+        config = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        content = str(config)
+        assert "intent_raised" in content
+
+    @pytest.mark.bdd
+    def test_feedback_loop_has_deviation_details(self):
+        """Feedback loop intents must include deviation details."""
+        config = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        content = str(config)
+        assert "deviation" in content.lower() or "delta" in content.lower() \
+            or "drift" in content.lower()
+
+    # ─── REQ-LIFE-004: Feature Lineage in Telemetry ───────────────────
+
+    @pytest.mark.bdd
+    def test_traceability_has_telemetry_tag_format(self):
+        """Traceability config must define telemetry REQ key tag format."""
+        config = load_yaml(EDGE_PARAMS_DIR / "traceability.yml")
+        content = str(config)
+        assert "telemetry" in content.lower()
+        assert "req" in content.lower()
+
+    @pytest.mark.bdd
+    def test_feedback_loop_has_telemetry_checks(self):
+        """Feedback loop must check for REQ key presence in telemetry."""
+        config = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        check_names = [c["name"] for c in config.get("checklist", [])]
+        assert "telemetry_tag_format" in check_names or \
+            "code_req_keys_have_telemetry" in check_names, \
+            f"Feedback loop missing telemetry check. Checks: {check_names}"
+
+    # ─── REQ-INTENT-003: Eco-Intent Generation ────────────────────────
+
+    @pytest.mark.bdd
+    def test_ecosystem_signal_source_exists(self):
+        """Feedback loop must recognise 'ecosystem' as a signal source."""
+        config = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
+        sources = config.get("sources", {})
+        signal_sources = [v.get("signal_source", "") for v in sources.values()
+                          if isinstance(v, dict)]
+        assert "ecosystem" in signal_sources, \
+            f"Missing ecosystem signal source. Sources: {signal_sources}"
+
+    @pytest.mark.bdd
+    def test_iterate_agent_documents_ecosystem_intent(self):
+        """Iterate agent must document ecosystem-triggered intent generation."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "ecosystem" in content.lower()
+
+    # ─── Phase 2 readiness checks ─────────────────────────────────────
+
+    @pytest.mark.bdd
+    def test_full_profile_includes_lifecycle_edges(self):
+        """Full profile must include cicd and telemetry edges."""
+        config = load_yaml(CONFIG_DIR / "profiles" / "full.yml")
+        graph_include = config.get("graph", {}).get("include", "")
+        assert graph_include == "all", \
+            f"Full profile must include all edges (got: {graph_include})"
+
+    @pytest.mark.bdd
+    def test_consciousness_loop_operates_at_every_observer(self):
+        """Agent must state consciousness loop operates at every observer."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "every observer" in content.lower() or \
+            "consciousness loop" in content.lower()
+
+
+class TestSensorySystemsAcceptanceCriteria:
+    """
+    GIVEN the sensory systems feature (MCP service, monitors, triage, review boundary)
+    WHEN each REQ-SENSE acceptance criterion is checked
+    THEN config files, design doc, and agent docs contain required content.
+
+    Validates: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003,
+               REQ-SENSE-004, REQ-SENSE-005
+    """
+
+    # ─── REQ-SENSE-001: Interoceptive Monitoring ────────────────────
+
+    @pytest.mark.bdd
+    def test_sensory_monitors_config_exists(self):
+        """sensory_monitors.yml must exist in config directory."""
+        assert (CONFIG_DIR / "sensory_monitors.yml").exists()
+
+    @pytest.mark.bdd
+    def test_interoceptive_monitors_defined(self):
+        """Config must define INTRO-001 through INTRO-007."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        monitors = config.get("monitors", {}).get("interoceptive", [])
+        ids = [m["id"] for m in monitors]
+        for i in range(1, 8):
+            expected = f"INTRO-{i:03d}"
+            assert expected in ids, f"Missing interoceptive monitor {expected}"
+
+    @pytest.mark.bdd
+    def test_interoceptive_monitors_have_thresholds(self):
+        """Each interoceptive monitor must have threshold with warning/critical levels."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        monitors = config.get("monitors", {}).get("interoceptive", [])
+        for m in monitors:
+            assert "threshold" in m or "checks" in m, \
+                f"Monitor {m['id']} missing threshold or checks"
+
+    @pytest.mark.bdd
+    def test_interoceptive_monitors_have_schedules(self):
+        """Each interoceptive monitor must define a schedule."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        monitors = config.get("monitors", {}).get("interoceptive", [])
+        for m in monitors:
+            assert "schedule" in m, f"Monitor {m['id']} missing schedule"
+
+    @pytest.mark.bdd
+    def test_service_runs_independently(self):
+        """Service must start on workspace_open, not only during iterate()."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        service = config.get("service", {})
+        assert service.get("start_on") == "workspace_open"
+
+    # ─── REQ-SENSE-002: Exteroceptive Monitoring ────────────────────
+
+    @pytest.mark.bdd
+    def test_exteroceptive_monitors_defined(self):
+        """Config must define EXTRO-001 through EXTRO-004."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        monitors = config.get("monitors", {}).get("exteroceptive", [])
+        ids = [m["id"] for m in monitors]
+        for i in range(1, 5):
+            expected = f"EXTRO-{i:03d}"
+            assert expected in ids, f"Missing exteroceptive monitor {expected}"
+
+    @pytest.mark.bdd
+    def test_exteroceptive_monitors_observe_external_sources(self):
+        """Exteroceptive monitors must reference external sources (commands, endpoints, APIs)."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        monitors = config.get("monitors", {}).get("exteroceptive", [])
+        for m in monitors:
+            has_external = "commands" in m or "endpoint" in m or "sources" in m
+            assert has_external, \
+                f"Monitor {m['id']} must reference external sources"
+
+    @pytest.mark.bdd
+    def test_cve_monitor_has_severity_filter(self):
+        """EXTRO-002 (CVE scanning) must filter by severity."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        monitors = config.get("monitors", {}).get("exteroceptive", [])
+        cve = next((m for m in monitors if m["id"] == "EXTRO-002"), None)
+        assert cve is not None, "EXTRO-002 not found"
+        assert "severity_filter" in cve, "CVE monitor must have severity_filter"
+
+    # ─── REQ-SENSE-003: Affect Triage Pipeline ──────────────────────
+
+    @pytest.mark.bdd
+    def test_affect_triage_config_exists(self):
+        """affect_triage.yml must exist in config directory."""
+        assert (CONFIG_DIR / "affect_triage.yml").exists()
+
+    @pytest.mark.bdd
+    def test_triage_has_classification_rules(self):
+        """Triage config must define classification rules."""
+        config = load_yaml(CONFIG_DIR / "affect_triage.yml")
+        rules = config.get("classification_rules", [])
+        assert len(rules) >= 5, \
+            f"Expected at least 5 classification rules, got {len(rules)}"
+
+    @pytest.mark.bdd
+    def test_triage_has_agent_fallback(self):
+        """Triage must have agent classification fallback for unmatched signals."""
+        config = load_yaml(CONFIG_DIR / "affect_triage.yml")
+        rules = config.get("classification_rules", [])
+        fallback = [r for r in rules if r.get("pattern", {}).get("unmatched")]
+        assert len(fallback) >= 1, "Missing agent_classify fallback rule"
+
+    @pytest.mark.bdd
+    def test_triage_escalation_thresholds_per_profile(self):
+        """Triage must define escalation thresholds for each profile."""
+        config = load_yaml(CONFIG_DIR / "affect_triage.yml")
+        thresholds = config.get("escalation_thresholds", {})
+        expected_profiles = ["full", "standard", "hotfix", "spike", "poc", "minimal"]
+        for profile in expected_profiles:
+            assert profile in thresholds, \
+                f"Missing escalation threshold for profile: {profile}"
+
+    @pytest.mark.bdd
+    def test_triage_assigns_classification_severity_escalation(self):
+        """Each classification rule must assign classification, severity, and escalation."""
+        config = load_yaml(CONFIG_DIR / "affect_triage.yml")
+        rules = config.get("classification_rules", [])
+        for rule in rules:
+            assert "classification" in rule, \
+                f"Rule {rule.get('name', '?')} missing classification"
+            assert "escalation" in rule, \
+                f"Rule {rule.get('name', '?')} missing escalation"
+
+    @pytest.mark.bdd
+    def test_triage_tiered_approach(self):
+        """Triage must be tiered: rule-based first, agent for ambiguous."""
+        config = load_yaml(CONFIG_DIR / "affect_triage.yml")
+        assert "classification_rules" in config, "Missing rule-based classification"
+        assert "agent_classification" in config, "Missing agent classification config"
+
+    # ─── REQ-SENSE-004: Sensory System Configuration ────────────────
+
+    @pytest.mark.bdd
+    def test_profile_overrides_exist(self):
+        """sensory_monitors.yml must define profile-level overrides."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        overrides = config.get("profile_overrides", {})
+        assert len(overrides) >= 4, \
+            f"Expected profile overrides for at least 4 profiles, got {len(overrides)}"
+
+    @pytest.mark.bdd
+    def test_spike_disables_exteroception(self):
+        """Spike profile must disable all exteroceptive monitors."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        spike = config.get("profile_overrides", {}).get("spike", {})
+        disabled = spike.get("disable", [])
+        for i in range(1, 5):
+            expected = f"EXTRO-{i:03d}"
+            assert expected in disabled, \
+                f"Spike profile must disable {expected}"
+
+    @pytest.mark.bdd
+    def test_meta_monitoring_enabled(self):
+        """Config must support meta-monitoring (monitor health)."""
+        config = load_yaml(CONFIG_DIR / "sensory_monitors.yml")
+        meta = config.get("meta_monitoring", {})
+        assert meta.get("enabled") is True, "Meta-monitoring must be enabled"
+
+    # ─── REQ-SENSE-005: Review Boundary ─────────────────────────────
+
+    @pytest.mark.bdd
+    def test_review_boundary_defined(self):
+        """affect_triage.yml must define review boundary with MCP tools."""
+        config = load_yaml(CONFIG_DIR / "affect_triage.yml")
+        boundary = config.get("review_boundary", {})
+        tools = boundary.get("mcp_tools", [])
+        tool_names = [t["name"] for t in tools]
+        expected = ["sensory-status", "sensory-proposals",
+                    "sensory-approve", "sensory-dismiss"]
+        for name in expected:
+            assert name in tool_names, f"Missing MCP tool: {name}"
+
+    @pytest.mark.bdd
+    def test_review_boundary_draft_only_autonomy(self):
+        """Review boundary must enforce draft-only autonomy model."""
+        config = load_yaml(CONFIG_DIR / "affect_triage.yml")
+        boundary = config.get("review_boundary", {})
+        assert boundary.get("autonomy_model") == "draft_only"
+
+    @pytest.mark.bdd
+    def test_review_boundary_human_required_for_modifications(self):
+        """Review boundary must require human approval for file modifications."""
+        config = load_yaml(CONFIG_DIR / "affect_triage.yml")
+        boundary = config.get("review_boundary", {})
+        human_req = boundary.get("human_required_for", [])
+        assert "file_modification" in human_req
+
+    @pytest.mark.bdd
+    def test_design_doc_covers_sensory_service(self):
+        """Design document must have §1.8 Sensory Service section."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "### 1.8 Sensory Service" in content or \
+            "## 1.8 Sensory Service" in content
+        assert "REQ-SENSE-001" in content
+        assert "REQ-SENSE-005" in content
+
+    @pytest.mark.bdd
+    def test_design_doc_has_sensory_architecture_diagram(self):
+        """Design document must include sensory service architecture diagram."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "SENSORY SERVICE" in content
+        assert "REVIEW BOUNDARY" in content
+
+    @pytest.mark.bdd
+    def test_two_event_categories_enforced(self):
+        """Design must distinguish sensor/evaluate events from change-approval events."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "observation event" in content.lower() or \
+            "sensor/evaluate" in content.lower() or \
+            "observation-only" in content.lower()
+
+
+class TestMultiAgentCoordinationAcceptanceCriteria:
+    """
+    GIVEN the multi-agent coordination feature (claims, roles, isolation, parallelism)
+    WHEN each REQ-COORD acceptance criterion is checked
+    THEN config files, design doc, and ADR contain required content.
+
+    Validates: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003,
+               REQ-COORD-004, REQ-COORD-005
+    """
+
+    # ─── REQ-COORD-001: Agent Identity ──────────────────────────────
+
+    @pytest.mark.bdd
+    def test_agent_roles_config_exists(self):
+        """agent_roles.yml must exist in config directory."""
+        assert (CONFIG_DIR / "agent_roles.yml").exists()
+
+    @pytest.mark.bdd
+    def test_roles_registry_defined(self):
+        """Config must define at least 3 agent roles."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        roles = config.get("roles", {})
+        assert len(roles) >= 3, \
+            f"Expected at least 3 roles, got {len(roles)}: {list(roles.keys())}"
+
+    @pytest.mark.bdd
+    def test_single_agent_defaults(self):
+        """Single-agent mode must default to agent_id 'primary' and role 'full_stack'."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        defaults = config.get("single_agent_defaults", {})
+        assert defaults.get("agent_id") == "primary"
+        assert defaults.get("agent_role") == "full_stack"
+
+    @pytest.mark.bdd
+    def test_full_stack_role_covers_all_edges(self):
+        """full_stack role must have converge_edges: [all] for backward compat."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        full_stack = config.get("roles", {}).get("full_stack", {})
+        edges = full_stack.get("converge_edges", [])
+        assert "all" in edges, \
+            f"full_stack must have 'all' in converge_edges, got {edges}"
+
+    @pytest.mark.bdd
+    def test_each_role_has_description(self):
+        """Every role must have a description."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        for name, role in config.get("roles", {}).items():
+            assert "description" in role, f"Role {name} missing description"
+
+    @pytest.mark.bdd
+    def test_design_doc_covers_agent_identity(self):
+        """Design document must cover agent identity with agent_id and agent_role."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "agent_id" in content
+        assert "agent_role" in content
+
+    # ─── REQ-COORD-002: Feature Assignment via Events ───────────────
+
+    @pytest.mark.bdd
+    def test_claim_protocol_defined(self):
+        """Config must define claim protocol settings."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        protocol = config.get("claim_protocol", {})
+        assert "stale_claim_timeout" in protocol, "Missing stale_claim_timeout"
+        assert "inbox" in protocol, "Missing inbox configuration"
+        assert "serialiser" in protocol, "Missing serialiser configuration"
+
+    @pytest.mark.bdd
+    def test_inbox_is_non_authoritative(self):
+        """Inbox must be documented as non-authoritative write buffer."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "non-authoritative" in content.lower()
+
+    @pytest.mark.bdd
+    def test_no_lock_files(self):
+        """Design must explicitly state no lock files, no mutex."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "no lock files" in content.lower() or \
+            "no lock" in content.lower()
+
+    @pytest.mark.bdd
+    def test_exactly_one_writer_invariant(self):
+        """Design must state exactly-one-writer invariant for events.jsonl."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "exactly one writer" in content.lower() or \
+            "single-writer" in content.lower() or \
+            "single writer" in content.lower()
+
+    @pytest.mark.bdd
+    def test_event_types_for_coordination(self):
+        """Design must define coordination event types (edge_claim, claim_rejected, etc)."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        for event_type in ["edge_claim", "claim_rejected", "edge_released",
+                           "claim_expired", "convergence_escalated"]:
+            assert event_type in content, \
+                f"Missing coordination event type: {event_type}"
+
+    # ─── REQ-COORD-003: Work Isolation ──────────────────────────────
+
+    @pytest.mark.bdd
+    def test_work_isolation_configured(self):
+        """Config must define work isolation paths (drafts, scratch)."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        isolation = config.get("work_isolation", {})
+        assert "drafts_path_template" in isolation
+        assert "scratch_path_template" in isolation
+
+    @pytest.mark.bdd
+    def test_agent_state_is_ephemeral(self):
+        """Config must mark agent state as ephemeral."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        isolation = config.get("work_isolation", {})
+        assert isolation.get("ephemeral") is True
+
+    @pytest.mark.bdd
+    def test_promotion_requires_evaluators(self):
+        """Promotion from agent-private to shared state requires evaluator gate."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        isolation = config.get("work_isolation", {})
+        promotion = isolation.get("promotion_requires", [])
+        assert "all_evaluators_pass" in promotion
+
+    @pytest.mark.bdd
+    def test_spec_mutations_require_human(self):
+        """Spec mutations must always require human evaluator approval."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        authority = config.get("authority", {})
+        assert authority.get("spec_mutation_requires_human") is True
+
+    # ─── REQ-COORD-004: Markov-Aligned Parallelism ──────────────────
+
+    @pytest.mark.bdd
+    def test_parallelism_uses_inner_product(self):
+        """Config must define inner product-based routing strategy."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        parallelism = config.get("parallelism", {})
+        assert parallelism.get("routing_strategy") == "inner_product"
+
+    @pytest.mark.bdd
+    def test_zero_inner_product_allows_parallel(self):
+        """Zero inner product features must be freely assignable."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        parallelism = config.get("parallelism", {})
+        assert "assign_freely" in str(parallelism.get("zero_inner_product", ""))
+
+    @pytest.mark.bdd
+    def test_nonzero_inner_product_warns(self):
+        """Non-zero inner product features must trigger sequencing warning."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        parallelism = config.get("parallelism", {})
+        action = str(parallelism.get("nonzero_inner_product", ""))
+        assert "warn" in action or "sequential" in action
+
+    @pytest.mark.bdd
+    def test_design_doc_covers_inner_product_routing(self):
+        """Design document must explain inner product-based agent routing."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "inner product" in content.lower()
+        assert "orthogonal" in content.lower() or "zero inner product" in content.lower()
+
+    # ─── REQ-COORD-005: Role-Based Evaluator Authority ──────────────
+
+    @pytest.mark.bdd
+    def test_roles_have_converge_edges(self):
+        """Each role must define converge_edges listing permitted edge types."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        for name, role in config.get("roles", {}).items():
+            assert "converge_edges" in role, \
+                f"Role {name} missing converge_edges"
+
+    @pytest.mark.bdd
+    def test_outside_authority_triggers_escalation(self):
+        """Convergence outside authority must trigger escalation."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        authority = config.get("authority", {})
+        assert authority.get("outside_authority_action") == "escalate"
+
+    @pytest.mark.bdd
+    def test_human_authority_is_universal(self):
+        """Human evaluator authority must be universal (may converge any edge)."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        authority = config.get("authority", {})
+        assert authority.get("human_authority") == "universal"
+
+    @pytest.mark.bdd
+    def test_adr_013_exists(self):
+        """ADR-013 must exist for multi-agent coordination decision."""
+        assert (DESIGN_DIR / "adrs" / "ADR-013-multi-agent-coordination.md").exists()
+
+    @pytest.mark.bdd
+    def test_adr_013_has_alternatives(self):
+        """ADR-013 must consider alternatives (at least 3 options)."""
+        with open(DESIGN_DIR / "adrs" / "ADR-013-multi-agent-coordination.md") as f:
+            content = f.read()
+        assert "Options Considered" in content or "Alternatives" in content
+        # ADR-013 lists 5 options
+        assert "Filesystem Mutex" in content or "lock files" in content.lower()
+        assert "Inbox" in content or "inbox" in content

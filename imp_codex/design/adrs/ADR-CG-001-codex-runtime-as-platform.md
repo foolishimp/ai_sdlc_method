@@ -53,7 +53,7 @@ Key mappings:
 
 ### Positive
 
-- Maintains 9/9 feature-vector alignment with the reference design.
+- Maintains 10/10 feature-vector alignment with the reference design.
 - Keeps event sourcing and traceability contract unchanged.
 - Enables incremental adoption without requiring a new modeling language.
 
@@ -64,7 +64,7 @@ Key mappings:
 
 ### Mitigation
 
-- Keep runtime-specific behavior in `codex_genesis` tenant and ADR set.
+- Keep runtime-specific behavior in `codex` tenant and ADR set.
 - Add a structured review helper in a follow-up ADR to standardize decision capture.
 - Validate parity regularly against Claude feature matrix.
 
@@ -73,6 +73,6 @@ Key mappings:
 ## References
 
 - [CODEX_GENESIS_DESIGN.md](../CODEX_GENESIS_DESIGN.md)
-- [AISDLC_V2_DESIGN.md](../../claude_aisdlc/AISDLC_V2_DESIGN.md)
-- [GEMINI_GENESIS_DESIGN.md](../../gemini_genesis/GEMINI_GENESIS_DESIGN.md)
+- [AISDLC_V2_DESIGN.md](../../../imp_claude/design/AISDLC_V2_DESIGN.md)
+- [GEMINI_GENESIS_DESIGN.md](../../../imp_gemini/design/GEMINI_GENESIS_DESIGN.md)
 - [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md)

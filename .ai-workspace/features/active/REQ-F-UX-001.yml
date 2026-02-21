@@ -3,9 +3,9 @@ title: User Experience (Two-Command UX Layer)
 intent: INT-AISDLC-001
 vector_type: feature
 profile: full
-status: design_converged
+status: converged
 created: "2026-02-21T14:00:00Z"
-updated: "2026-02-21T19:00:00Z"
+updated: "2026-02-22T06:15:00Z"
 
 description: |
   Two-command UX layer: /aisdlc-start (state-driven routing) and
@@ -44,5 +44,11 @@ trajectory:
     evaluator_results:
       agent_commands: pass
   unit_tests:
-    status: pending
-    iteration: 0
+    status: converged
+    iteration: 1
+    started_at: "2026-02-22T06:00:00Z"
+    converged_at: "2026-02-22T06:15:00Z"
+    evaluator_results:
+      deterministic_pytest: pass
+      agent_req_coverage: pass
+      agent_acceptance_criteria: pass

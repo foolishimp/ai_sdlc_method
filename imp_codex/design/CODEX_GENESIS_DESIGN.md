@@ -2,8 +2,8 @@
 
 **Version**: 1.0.0  
 **Date**: 2026-02-21  
-**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)  
-**Reference Implementation**: [AISDLC_V2_DESIGN.md](../claude_aisdlc/AISDLC_V2_DESIGN.md)  
+**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)  
+**Reference Implementation**: [AISDLC_V2_DESIGN.md](../../imp_claude/design/AISDLC_V2_DESIGN.md)  
 **Platform**: Codex (tool-calling coding agent runtime)
 
 ---
@@ -16,7 +16,7 @@ Primary objective: preserve methodology semantics and feature coverage while map
 
 Core objectives:
 
-1. **Reference parity**: Maintain feature-level compatibility with Claude v2.7 design (all 9 feature vectors).
+1. **Reference parity**: Maintain feature-level compatibility with Claude v2.8 design (all 10 feature vectors).
 2. **Native binding**: Map iterate/evaluator/context/tooling to Codex primitives without changing the Asset Graph model.
 3. **Spec-first control**: Keep disambiguation at intent/spec/design layers; use code/runtime observability as secondary unblock and validation controls.
 
@@ -61,10 +61,10 @@ Core objectives:
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         WORKSPACE LAYER                            │
 │  .ai-workspace/                                                     │
-│  ├── spec/              Shared tech-agnostic specification (REQ)   │
+│  ├── specification/     Shared tech-agnostic specification (REQ)    │
 │  ├── events/            Shared immutable event log (source of truth)│
 │  ├── features/          Shared feature vector tracking              │
-│  ├── codex_genesis/     Design-specific tenant                      │
+│  ├── codex/            Design-specific tenant                      │
 │  │   ├── standards/     Codex-specific conventions                  │
 │  │   ├── adrs/          Codex design decisions                      │
 │  │   ├── data_models/   Codex runtime schemas                       │
@@ -142,7 +142,7 @@ Convergence remains edge-driven (`human_required`, `max_iterations`, thresholds)
 - File-based context remains canonical for deterministic replay.
 - `context_manifest.yml` hash is checked before iteration.
 - Stale context warning when source files are newer than manifest.
-- Tenant overlays are resolved in `.ai-workspace/codex_genesis/` while preserving shared `spec/`.
+- Tenant overlays are resolved in `.ai-workspace/codex/` while preserving shared `specification/`.
 
 ### 2.4 Feature Vector Traceability (REQ-F-TRACE-001)
 
@@ -172,7 +172,7 @@ Codex-specific change is execution surface only (tool calls), not edge semantics
 
 ### 2.6 Developer Tooling Surface (REQ-F-TOOL-001)
 
-**Implements**: REQ-TOOL-001 through REQ-TOOL-008, REQ-TOOL-NEW-001
+**Implements**: REQ-TOOL-001 through REQ-TOOL-010
 
 | Operation | Codex Genesis Entry | Purpose |
 | :--- | :--- | :--- |
@@ -205,7 +205,7 @@ This section is the explicit parity contract.
 | REQ-F-SENSE-001 | Claude §1.8 | Codex §4.2 | Aligned (phased) |
 | REQ-F-UX-001 | Claude §1.9 | Codex §4.3 | Aligned |
 
-**9/9 feature vectors aligned with Claude reference implementation.**
+**10/10 feature vectors aligned with Claude reference implementation.**
 
 ---
 
@@ -242,7 +242,7 @@ Progressive disclosure is retained: newcomers use start/status, power users invo
 
 ### Phase 1 - Parity Core
 
-1. Scaffold `codex_genesis` tenant in `.ai-workspace/`.
+1. Scaffold `codex` tenant in `.ai-workspace/`.
 2. Implement `aisdlc_init`, `aisdlc_start`, `aisdlc_iterate`, `aisdlc_status`.
 3. Enforce mandatory iterate side effects and event schema parity.
 
@@ -263,17 +263,18 @@ Progressive disclosure is retained: newcomers use start/status, power users invo
 ## 6. ADR Set (Codex Genesis)
 
 - [ADR-CG-001-codex-runtime-as-platform.md](adrs/ADR-CG-001-codex-runtime-as-platform.md) - platform binding decision
-- ADR-CG-002 (planned): universal iterate orchestration for Codex runtime
-- ADR-CG-003 (planned): review boundary and structured refinement protocol
-- ADR-CG-004 (planned): event replay restore and snapshot anchoring
-- ADR-CG-005 (planned): sensory service operating modes (foreground + daemon)
+- [ADR-CG-002-universal-iterate-orchestrator.md](adrs/ADR-CG-002-universal-iterate-orchestrator.md) - universal iterate orchestration in Codex
+- [ADR-CG-003-review-boundary-and-disambiguation.md](adrs/ADR-CG-003-review-boundary-and-disambiguation.md) - spec-first disambiguation and human gating
+- [ADR-CG-004-event-replay-and-recovery.md](adrs/ADR-CG-004-event-replay-and-recovery.md) - replay-based reconstruction and checkpoint strategy
+- [ADR-CG-005-sensory-operating-modes.md](adrs/ADR-CG-005-sensory-operating-modes.md) - foreground/background sensing with shared event contracts
 
 ---
 
 ## References
 
-- [AISDLC_V2_DESIGN.md](../claude_aisdlc/AISDLC_V2_DESIGN.md) - reference implementation
-- [GEMINI_GENESIS_DESIGN.md](../gemini_genesis/GEMINI_GENESIS_DESIGN.md) - sibling design
+- [AISDLC_V2_DESIGN.md](AISDLC_V2_DESIGN.md) - Codex implementation specification (detailed)
+- [AISDLC_V2_DESIGN.md](../../imp_claude/design/AISDLC_V2_DESIGN.md) - reference implementation
+- [GEMINI_GENESIS_DESIGN.md](../../imp_gemini/design/GEMINI_GENESIS_DESIGN.md) - sibling design
 - [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) - canonical model
 - [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) - requirements baseline
 - [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) - feature vectors

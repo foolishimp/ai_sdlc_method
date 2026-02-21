@@ -1,0 +1,161 @@
+# Agent Role Registry — Multi-Agent Coordination
+# Implements: REQ-COORD-001, REQ-COORD-005
+# Reference: AISDLC_V2_DESIGN.md §1.10.4, ADR-013
+#
+# Maps agent roles to convergence authority. Each role defines which
+# edge types an agent may converge autonomously. Convergence outside
+# authority triggers convergence_escalated event → held for human approval.
+#
+# In single-agent mode: agent_id defaults to "primary", agent_role
+# defaults to "full_stack" — all edges permitted (backward compatible).
+
+---
+
+version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════════════
+# ROLE DEFINITIONS
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Each role defines:
+#   converge_edges: which edge types this role may converge
+#   description: human-readable role purpose
+#
+# Edge type names match graph_topology.yml transition source→target pairs.
+# Use "all" to grant universal convergence authority.
+
+roles:
+
+  architect:
+    description: "Designs system architecture, resolves constraint dimensions, creates ADRs"
+    converge_edges:
+      - intent_requirements
+      - requirements_design
+      - design_code
+    human_review_bypass: false   # architect still needs human review where configured
+
+  tdd_engineer:
+    description: "Implements code and tests via TDD co-evolution"
+    converge_edges:
+      - code_unit_tests
+      - design_test_cases
+    human_review_bypass: false
+
+  qa_engineer:
+    description: "Designs and implements acceptance/integration/UAT tests"
+    converge_edges:
+      - design_test_cases
+      - design_uat_tests
+      - code_unit_tests
+    human_review_bypass: false
+
+  devops_engineer:
+    description: "Manages CI/CD pipelines, deployments, infrastructure"
+    converge_edges:
+      - code_cicd
+      - cicd_running_system
+    human_review_bypass: false
+
+  observer:
+    description: "Monitors telemetry and generates intents from deviations"
+    converge_edges:
+      - running_system_telemetry
+      - telemetry_intent
+    human_review_bypass: false
+
+  full_stack:
+    description: "Single-agent default — all edges permitted (backward compatible)"
+    converge_edges: [all]
+    human_review_bypass: false
+
+# ═══════════════════════════════════════════════════════════════════════
+# AUTHORITY RULES
+# ═══════════════════════════════════════════════════════════════════════
+
+authority:
+  # Human evaluator authority is universal — a human may converge any edge
+  human_authority: universal
+
+  # What happens when an agent attempts to converge outside its role
+  outside_authority_action: escalate
+  # escalate → emit convergence_escalated event, hold for human approval
+  # reject → emit convergence_escalated event, do not converge
+  # warn → emit convergence_escalated event but allow convergence
+
+  # Spec mutations always require human approval regardless of agent role
+  spec_mutation_requires_human: true
+
+# ═══════════════════════════════════════════════════════════════════════
+# SINGLE-AGENT DEFAULTS (REQ-COORD-001 backward compatibility)
+# ═══════════════════════════════════════════════════════════════════════
+
+single_agent_defaults:
+  agent_id: "primary"
+  agent_role: "full_stack"
+  # In single-agent mode:
+  # - No serialiser needed — agent writes events.jsonl directly
+  # - No inbox staging, no claim protocol, no role checks
+  # - All multi-agent event fields are optional and additive
+  # - Event log format is identical — multi-agent mode adds fields
+
+# ═══════════════════════════════════════════════════════════════════════
+# CLAIM PROTOCOL CONFIGURATION (REQ-COORD-002)
+# ═══════════════════════════════════════════════════════════════════════
+
+claim_protocol:
+  # Timeout before a claim is considered stale (no follow-up event)
+  stale_claim_timeout: 1h
+
+  # What happens to stale claims
+  stale_claim_action: emit_signal
+  # emit_signal → claim_expired telemetry event, human decides
+  # auto_release → automatically free the claim (NOT recommended)
+
+  # Inbox semantics
+  inbox:
+    path_template: "events/inbox/{agent_id}/"
+    # Inbox is non-authoritative write buffer
+    # Deletion loses only unprocessed events
+    # Not replayed during recovery
+
+  # Serialiser ingestion order
+  serialiser:
+    ingestion_order: lexicographic_agent_id
+    # Then filesystem modification time within each inbox
+    # No clock-skew dependency
+    fallback: filesystem_mtime
+
+# ═══════════════════════════════════════════════════════════════════════
+# WORK ISOLATION (REQ-COORD-003)
+# ═══════════════════════════════════════════════════════════════════════
+
+work_isolation:
+  # Agent private working directories
+  drafts_path_template: "agents/{agent_id}/drafts/"
+  scratch_path_template: "agents/{agent_id}/scratch/"
+
+  # Agent state is ephemeral
+  # On crash: only emitted events persist; working state may be discarded
+  ephemeral: true
+
+  # Promotion to shared state requires passing all evaluators for the edge
+  promotion_requires:
+    - all_evaluators_pass
+    - human_review_where_configured
+
+# ═══════════════════════════════════════════════════════════════════════
+# PARALLELISM (REQ-COORD-004)
+# ═══════════════════════════════════════════════════════════════════════
+
+parallelism:
+  # Use inner product (shared module count) to determine safe parallelism
+  routing_strategy: inner_product
+
+  # Zero inner product → freely assign to parallel agents
+  zero_inner_product: assign_freely
+
+  # Non-zero inner product → warn and suggest sequencing
+  nonzero_inner_product: warn_and_suggest_sequential
+
+  # Feature priority tiers apply per-agent, skipping already-claimed features
+  skip_claimed_features: true
