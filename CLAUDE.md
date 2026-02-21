@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-**ai_sdlc_method** defines a formal system for AI-augmented software development — the **Asset Graph Model** (v2.1).
+**ai_sdlc_method** defines a formal system for AI-augmented software development — the **Asset Graph Model** (v2.5).
 
 ### The Model
 

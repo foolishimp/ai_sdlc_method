@@ -1,4 +1,4 @@
-# AI SDLC — Claude Code Implementation Design (v2.1)
+# AI SDLC — Claude Code Implementation Design (v2.5)
 
 **Version**: 2.0.0
 **Date**: 2026-02-20
@@ -757,7 +757,7 @@ validation_enabled: true  # Tooling parses tag format, not comment syntax
 ```
 claude-code/.claude-plugin/plugins/aisdlc-methodology/
 ├── .claude-plugin/
-│   └── plugin.json              # Metadata (v2.1.0)
+│   └── plugin.json              # Metadata (v2.5.0)
 ├── config/
 │   ├── graph_topology.yml       # Default SDLC graph
 │   ├── evaluator_defaults.yml   # Default evaluator configs
@@ -876,8 +876,8 @@ What Phase 2 adds:
 
 ### Migration Path
 
-1. New projects: `/aisdlc-init` creates v2.1 workspace
-2. Existing v1.x projects: v1.x agents/commands continue to work; v2.1 can be installed alongside
+1. New projects: `/aisdlc-init` creates v2.5 workspace
+2. Existing v1.x projects: v1.x agents/commands continue to work; v2.5 can be installed alongside
 3. No breaking changes to user workflow — commands change but concept is familiar
 
 ---

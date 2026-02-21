@@ -1,7 +1,7 @@
 # Active Tasks
 
 *Last Updated: 2026-02-20*
-*Methodology: AI SDLC Asset Graph Model v2.1*
+*Methodology: AI SDLC Asset Graph Model v2.5*
 
 ---
 

@@ -1,8 +1,8 @@
-# AI SDLC Methodology Plugin — v2.1 (Asset Graph Model)
+# AI SDLC Methodology Plugin — v2.5 (Asset Graph Model — Project Genesis)
 
 ## What Changed from v1.x
 
-| Aspect | v1.x | v2.1 |
+| Aspect | v1.x | v2.5 |
 |--------|------|------|
 | Model | 7-stage pipeline | Asset graph with typed transitions |
 | Agents | 7 (one per stage) | 1 (universal iterate agent) |
@@ -40,7 +40,7 @@ v2/
 │       ├── design_code.yml
 │       ├── design_tests.yml
 │       └── feedback_loop.yml
-├── plugin.json                    # Plugin metadata (v2.1.0)
+├── plugin.json                    # Plugin metadata (v2.5.0)
 └── README.md                      # This file
 ```
 

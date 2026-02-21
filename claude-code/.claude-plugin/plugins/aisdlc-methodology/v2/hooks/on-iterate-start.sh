@@ -38,9 +38,9 @@ elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/config/grap
 fi
 
 if [ -n "$TOPOLOGY" ]; then
-  # Extract asset type keys: lines matching "^  <word>:" under asset_types section
-  # These are the valid node names for edge parsing
-  ASSET_TYPES=$(awk '/^asset_types:/{found=1; next} found && /^[^ ]/{exit} found && /^  [a-z_]+:/{gsub(/^  |:.*/, ""); print}' "$TOPOLOGY" 2>/dev/null | paste -sd'|' - || true)
+  # Extract asset type keys: lines matching "^  <key>:" under asset_types section
+  # Keys may contain letters, digits, hyphens, underscores (e.g. design2, design-v2)
+  ASSET_TYPES=$(awk '/^asset_types:/{found=1; next} found && /^[^ ]/{exit} found && /^  [a-zA-Z][a-zA-Z0-9_-]*:/{gsub(/^  |:.*/, ""); print}' "$TOPOLOGY" 2>/dev/null | paste -sd'|' - || true)
 fi
 
 # Fallback: if topology parse failed or file not found, use known defaults

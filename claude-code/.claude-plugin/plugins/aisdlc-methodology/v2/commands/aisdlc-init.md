@@ -1,4 +1,4 @@
-# /aisdlc-init - Initialize AI SDLC v2.3 Workspace
+# /aisdlc-init - Initialize AI SDLC v2.5 Workspace
 
 Initialize a project with the AI SDLC Asset Graph Model workspace structure.
 
@@ -18,7 +18,7 @@ Initialize a project with the AI SDLC Asset Graph Model workspace structure.
 
 ## Instructions
 
-This command scaffolds a v2.3 AI SDLC workspace: the asset graph configuration (Layer 2: Graph Package), context store and project constraints (Layer 3: Project Binding), feature tracking, and task management.
+This command scaffolds a v2.5 AI SDLC workspace: the asset graph configuration (Layer 2: Graph Package), context store and project constraints (Layer 3: Project Binding), feature tracking, and task management.
 
 ### Step 1: Determine Project Name
 
@@ -153,7 +153,7 @@ dependency_graph: {}
 # Active Tasks
 
 **Project**: {project_name}
-**Methodology**: AI SDLC Asset Graph Model v2.1
+**Methodology**: AI SDLC Asset Graph Model v2.5
 **Last Updated**: {date}
 
 ## Summary
@@ -265,11 +265,11 @@ Create the `.ai-workspace/events/` directory and `events.jsonl` file if they don
 Display a summary:
 
 ```
-AI SDLC v2.3 Workspace Initialized
+AI SDLC v2.5 Workspace Initialized
 ===================================
 
 Project: {project_name}
-Model:   Asset Graph Model v2.3
+Model:   Asset Graph Model v2.5
 
 Graph Topology (Layer 2: Graph Package):
   Asset types:           {count from graph_topology.yml}

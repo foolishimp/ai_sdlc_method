@@ -1,9 +1,9 @@
 # AI SDLC — Project Genesis: Intent
 
 **Intent ID**: INT-AISDLC-001
-**Date**: 2024-01-01 (originated), 2026-02-19 (v2.1 revision)
+**Date**: 2024-01-01 (originated), 2026-02-21 (v2.5 revision)
 **Priority**: Critical
-**Status**: v2.1 — Asset Graph Model complete, implementation in progress
+**Status**: v2.5 — Asset Graph Model complete, consciousness loop, implementation Phase 1a
 
 ---
 

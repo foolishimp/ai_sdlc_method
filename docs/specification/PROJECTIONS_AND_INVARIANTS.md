@@ -9,7 +9,7 @@
 
 ## 1. Motivation
 
-The Asset Graph Model (v2.1) defines four primitives and one operation. It presents one graph instantiation — the full SDLC graph with 10 asset types and 10 edges. But the formal system's purpose is not to prescribe that graph. It is to **generate valid lighter instances** — projections — that preserve what matters while shedding what doesn't.
+The Asset Graph Model (v2.5) defines four primitives and one operation. It presents one graph instantiation — the full SDLC graph with 10 asset types and 10 edges. But the formal system's purpose is not to prescribe that graph. It is to **generate valid lighter instances** — projections — that preserve what matters while shedding what doesn't.
 
 A 10-minute proof-of-concept and a regulated medical device both use the same four primitives. They differ in which edges exist, what evaluators are active, and when convergence is declared. The formal system is a **generator of valid methodologies**, not a single methodology.
 
