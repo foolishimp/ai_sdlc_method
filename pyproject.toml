@@ -14,7 +14,7 @@ test = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["imp_claude/tests"]
 markers = [
     "tdd: TDD unit tests — deterministic config validation",
     "bdd: BDD acceptance tests — methodology workflow validation",

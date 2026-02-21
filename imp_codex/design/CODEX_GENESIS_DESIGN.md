@@ -1,0 +1,279 @@
+# AI SDLC - Codex Genesis Implementation Design (v1.0)
+
+**Version**: 1.0.0  
+**Date**: 2026-02-21  
+**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)  
+**Reference Implementation**: [AISDLC_V2_DESIGN.md](../claude_aisdlc/AISDLC_V2_DESIGN.md)  
+**Platform**: Codex (tool-calling coding agent runtime)
+
+---
+
+## Design Intent
+
+This document defines the |design> asset for a Codex-specific Genesis binding. It is a sibling implementation to Claude and Gemini bindings, with explicit feature alignment to Claude as the reference baseline.
+
+Primary objective: preserve methodology semantics and feature coverage while mapping execution to Codex-native primitives (tool calls, shell orchestration, patch application, explicit human review turns).
+
+Core objectives:
+
+1. **Reference parity**: Maintain feature-level compatibility with Claude v2.7 design (all 9 feature vectors).
+2. **Native binding**: Map iterate/evaluator/context/tooling to Codex primitives without changing the Asset Graph model.
+3. **Spec-first control**: Keep disambiguation at intent/spec/design layers; use code/runtime observability as secondary unblock and validation controls.
+
+---
+
+## 1. Architecture Overview
+
+### 1.1 Three Layers (Codex Mapping)
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                        USER (Developer)                            │
+│             Natural language requests / aisdlc command intents     │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ORCHESTRATION LAYER                           │
+│   Codex orchestration prompt + state machine routing               │
+│   (init / start / iterate / review / status / restore / trace)     │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         TOOLING LAYER                              │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                    Asset Graph Engine                        │   │
+│  │  - graph_topology.yml + edge params                         │   │
+│  │  - universal iterate orchestration                          │   │
+│  │  - evaluator execution (human/agent/deterministic)          │   │
+│  │  - event emission + derived projections                     │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  Codex primitives used:                                             │
+│  - exec_command (deterministic operations, tests, scripts)          │
+│  - apply_patch (structured file mutation)                           │
+│  - multi_tool_use.parallel (parallel reads/checks)                  │
+│  - conversational review turn (human evaluator boundary)            │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         WORKSPACE LAYER                            │
+│  .ai-workspace/                                                     │
+│  ├── spec/              Shared tech-agnostic specification (REQ)   │
+│  ├── events/            Shared immutable event log (source of truth)│
+│  ├── features/          Shared feature vector tracking              │
+│  ├── codex_genesis/     Design-specific tenant                      │
+│  │   ├── standards/     Codex-specific conventions                  │
+│  │   ├── adrs/          Codex design decisions                      │
+│  │   ├── data_models/   Codex runtime schemas                       │
+│  │   ├── context_manifest.yml                                       │
+│  │   └── project_constraints.yml                                    │
+│  ├── tasks/             Active/completed tasks (derived views)      │
+│  └── snapshots/         Immutable checkpoints                        │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 Claude-to-Codex Binding Map
+
+| Concept | Claude Reference | Codex Genesis |
+| :--- | :--- | :--- |
+| Iterate engine | `aisdlc-iterate.md` universal agent | Universal orchestration routine that reads edge configs and drives tool calls |
+| Commands | `/aisdlc-*` slash commands | `aisdlc_*` executable workflows invoked through `exec_command` or routed from natural language |
+| Context | `.ai-workspace/context/*` | Same file-based context model; Codex reads workspace directly |
+| Deterministic evaluators | Tests/linters/hooks from commands | Same evaluators via shell tools and scripts |
+| Human review | `/aisdlc-review` command | Explicit review turn before promote/converge on human-required edges |
+| Event log | `.ai-workspace/events/events.jsonl` | Same append-only contract, shared across implementations |
+
+### 1.3 Universal Iterate Orchestration (Codex)
+
+Codex Genesis keeps the Claude invariant: **one iterate operation, parameterized per edge**.
+
+Iterate flow:
+
+1. Resolve current edge + feature vector (`graph_topology.yml`, `edges/*.yml`).
+2. Load current asset and effective `Context[]` (including tenant-specific overlays).
+3. Construct candidate artifact(s) via Codex file operations.
+4. Execute evaluator chain:
+   - Agent evaluator (coherence/gap detection),
+   - Deterministic checks (tests/lint/validators),
+   - Human evaluator where required.
+5. Emit mandatory side effects:
+   - `iteration_completed`,
+   - feature vector state update,
+   - `STATUS.md` / task projection updates,
+   - process gaps and signal classification.
+6. Promote asset or iterate again until convergence policy is satisfied.
+
+---
+
+## 2. Component Design
+
+### 2.1 Asset Graph Engine (REQ-F-ENGINE-001)
+
+**Implements**: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-ITER-001, REQ-ITER-002
+
+Codex Genesis uses the same topology and edge parameterization files as Claude to preserve methodology behavior:
+
+- `.ai-workspace/graph/graph_topology.yml`
+- `.ai-workspace/graph/evaluator_defaults.yml`
+- `.ai-workspace/graph/edges/*.yml`
+- `.ai-workspace/profiles/*.yml`
+
+No edge semantics are hard-coded into the orchestrator.
+
+### 2.2 Evaluator Framework (REQ-F-EVAL-001)
+
+**Implements**: REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003
+
+Evaluator types are unchanged:
+
+- **Agent**: Codex reasoning pass using edge checklist and context.
+- **Deterministic**: shell commands, test suites, schema checks, static analysis.
+- **Human**: explicit approval decision before promote/converge where configured.
+
+Convergence remains edge-driven (`human_required`, `max_iterations`, thresholds).
+
+### 2.3 Context Management and Reproducibility (REQ-F-CTX-001)
+
+**Implements**: REQ-CTX-001, REQ-CTX-002, REQ-INTENT-004
+
+- File-based context remains canonical for deterministic replay.
+- `context_manifest.yml` hash is checked before iteration.
+- Stale context warning when source files are newer than manifest.
+- Tenant overlays are resolved in `.ai-workspace/codex_genesis/` while preserving shared `spec/`.
+
+### 2.4 Feature Vector Traceability (REQ-F-TRACE-001)
+
+**Implements**: REQ-INTENT-001, REQ-INTENT-002, REQ-FEAT-001, REQ-FEAT-002, REQ-FEAT-003
+
+Codex Genesis preserves REQ-key lineage:
+
+- Feature vectors in `.ai-workspace/features/active|completed/*.yml`
+- Structured intent docs under `.ai-workspace/intents/INT-*.yml`
+- Code/test tags:
+  - `Implements: REQ-*`
+  - `Validates: REQ-*`
+- `aisdlc_trace` projection generated from event log + feature files
+
+### 2.5 Edge Parameterisations (REQ-F-EDGE-001)
+
+**Implements**: REQ-EDGE-001, REQ-EDGE-002, REQ-EDGE-003, REQ-EDGE-004
+
+Claude and Codex share parameterized edge patterns:
+
+- TDD co-evolution (`code <-> unit_tests`)
+- BDD generation (`design -> test_cases/uat_tests`)
+- ADR generation (`requirements -> design`)
+- Code tagging and REQ-reference validation
+
+Codex-specific change is execution surface only (tool calls), not edge semantics.
+
+### 2.6 Developer Tooling Surface (REQ-F-TOOL-001)
+
+**Implements**: REQ-TOOL-001 through REQ-TOOL-008, REQ-TOOL-NEW-001
+
+| Operation | Codex Genesis Entry | Purpose |
+| :--- | :--- | :--- |
+| Initialize workspace | `aisdlc_init` | Scaffold graph/context/features/events |
+| Route next step | `aisdlc_start` | State-driven edge and feature selection |
+| Iterate edge | `aisdlc_iterate --edge --feature` | Execute universal iterate |
+| Review artifact | `aisdlc_review` | Human evaluator boundary |
+| Status | `aisdlc_status [--feature] [--health]` | Project and feature observability |
+| Checkpoint | `aisdlc_checkpoint` | Immutable snapshot |
+| Restore | `aisdlc_restore --checkpoint/--reconstruct` | Recovery via snapshot or event replay |
+| Trace | `aisdlc_trace --req` | REQ trajectory reconstruction |
+| Gaps | `aisdlc_gaps` | Coverage and process gap analysis |
+| Release | `aisdlc_release` | REQ coverage release manifest |
+
+---
+
+## 3. Feature Alignment With Claude Reference
+
+This section is the explicit parity contract.
+
+| Feature Vector | Claude Reference Section | Codex Genesis Section | Alignment |
+| :--- | :--- | :--- | :--- |
+| REQ-F-ENGINE-001 | Claude §2.1 | Codex §2.1 | Aligned |
+| REQ-F-EVAL-001 | Claude §2.2 | Codex §2.2 | Aligned |
+| REQ-F-CTX-001 | Claude §2.3 | Codex §2.3 | Aligned |
+| REQ-F-TRACE-001 | Claude §2.4 | Codex §2.4 | Aligned |
+| REQ-F-EDGE-001 | Claude §2.5 | Codex §2.5 | Aligned |
+| REQ-F-TOOL-001 | Claude §2.6 | Codex §2.6 | Aligned |
+| REQ-F-LIFE-001 | Claude §3 | Codex §4 | Aligned |
+| REQ-F-SENSE-001 | Claude §1.8 | Codex §4.2 | Aligned (phased) |
+| REQ-F-UX-001 | Claude §1.9 | Codex §4.3 | Aligned |
+
+**9/9 feature vectors aligned with Claude reference implementation.**
+
+---
+
+## 4. Lifecycle, Sensing, and UX
+
+### 4.1 Lifecycle Closure
+
+Phase model mirrors Claude:
+
+- **Phase 1**: Development-time consciousness loop fully operational (`intent_raised`, `spec_modified`, protocol side effects).
+- **Phase 2**: Production integration (CI/CD, runtime telemetry ingestion, ecosystem intent automation).
+
+### 4.2 Sensory Service Strategy
+
+Codex sessions are interactive and task-scoped. Sensory monitoring is implemented with two modes:
+
+1. **Foreground sensing** on `aisdlc_status --health` and `aisdlc_start`.
+2. **Optional daemonized watcher** launched via shell tooling for teams that need continuous sensing.
+
+Both modes emit the same event types into `events.jsonl` and preserve the same review boundary: sensors create proposals, humans approve intent creation.
+
+### 4.3 Two-Command UX Layer
+
+Codex Genesis preserves the UX pattern:
+
+- `aisdlc_start`: routing layer.
+- `aisdlc_status`: observability layer.
+
+Progressive disclosure is retained: newcomers use start/status, power users invoke direct operations.
+
+---
+
+## 5. Implementation Plan
+
+### Phase 1 - Parity Core
+
+1. Scaffold `codex_genesis` tenant in `.ai-workspace/`.
+2. Implement `aisdlc_init`, `aisdlc_start`, `aisdlc_iterate`, `aisdlc_status`.
+3. Enforce mandatory iterate side effects and event schema parity.
+
+### Phase 2 - Recovery and Governance
+
+1. Implement `aisdlc_checkpoint` and `aisdlc_restore` (event replay reconstruction).
+2. Implement `aisdlc_trace`, `aisdlc_gaps`, `aisdlc_release`.
+3. Add context manifest freshness checks and protocol enforcement hooks.
+
+### Phase 3 - Sensory and Homeostasis
+
+1. Add `aisdlc_sense` monitor pipeline and proposal queue.
+2. Integrate review boundary for sensory proposals.
+3. Add TELEM trend projection in `STATUS.md`.
+
+---
+
+## 6. ADR Set (Codex Genesis)
+
+- [ADR-CG-001-codex-runtime-as-platform.md](adrs/ADR-CG-001-codex-runtime-as-platform.md) - platform binding decision
+- ADR-CG-002 (planned): universal iterate orchestration for Codex runtime
+- ADR-CG-003 (planned): review boundary and structured refinement protocol
+- ADR-CG-004 (planned): event replay restore and snapshot anchoring
+- ADR-CG-005 (planned): sensory service operating modes (foreground + daemon)
+
+---
+
+## References
+
+- [AISDLC_V2_DESIGN.md](../claude_aisdlc/AISDLC_V2_DESIGN.md) - reference implementation
+- [GEMINI_GENESIS_DESIGN.md](../gemini_genesis/GEMINI_GENESIS_DESIGN.md) - sibling design
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) - canonical model
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) - requirements baseline
+- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) - feature vectors

@@ -1,0 +1,41 @@
+feature: REQ-F-COORD-001
+title: Multi-Agent Coordination
+intent: INT-AISDLC-001
+vector_type: feature
+profile: full
+status: design_pending
+created: "2026-02-21T14:00:00Z"
+updated: "2026-02-21T19:00:00Z"
+
+description: |
+  Multi-agent coordination protocol: event-sourced claims via inbox/serialiser
+  pattern (no lock files), role-based authority, work isolation via design
+  tenants, exactly-one-writer invariant per feature+edge. Supports single-agent
+  and multi-agent modes with the same protocol. Agents claim edges via
+  edge_claim events; serialiser resolves conflicts deterministically.
+
+requirements:
+  - REQ-COORD-001
+  - REQ-COORD-002
+  - REQ-COORD-003
+  - REQ-COORD-004
+  - REQ-COORD-005
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+  design:
+    status: in_progress
+    iteration: 1
+    started_at: "2026-02-21T19:00:00Z"
+    evaluator_results:
+      agent_architecture: pending
+  code:
+    status: pending
+    iteration: 0
+  unit_tests:
+    status: pending
+    iteration: 0

@@ -128,9 +128,9 @@ Start handles everything: init, feature creation, edge selection, iteration. It 
 
 If you just want to understand the methodology, start with:
 
-1. [INTENT.md](docs/specification/INTENT.md) — why this exists
-2. [AI_SDLC_ASSET_GRAPH_MODEL.md](docs/specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — the formal system
-3. [PROJECTIONS_AND_INVARIANTS.md](docs/specification/PROJECTIONS_AND_INVARIANTS.md) — how it adapts to different scales
+1. [INTENT.md](specification/INTENT.md) — why this exists
+2. [AI_SDLC_ASSET_GRAPH_MODEL.md](specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — the formal system
+3. [PROJECTIONS_AND_INVARIANTS.md](specification/PROJECTIONS_AND_INVARIANTS.md) — how it adapts to different scales
 
 ---
 
@@ -138,33 +138,34 @@ If you just want to understand the methodology, start with:
 
 ```
 ai_sdlc_method/
-├── docs/
-│   ├── specification/                   # SPEC (tech-agnostic)
-│   │   ├── INTENT.md                    #   Business intent
-│   │   ├── AI_SDLC_ASSET_GRAPH_MODEL.md #   Formal system (4 primitives)
-│   │   ├── PROJECTIONS_AND_INVARIANTS.md #   Projections, vector types
-│   │   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # Implementation reqs
-│   │   ├── FEATURE_VECTORS.md           #   Feature decomposition
-│   │   └── presentations/*.pdf          #   PDF versions
-│   └── design/claude_aisdlc/            # DESIGN (Claude Code binding)
-│       ├── AISDLC_V2_DESIGN.md          #   Implementation design
-│       └── adrs/                        #   Architecture decisions
-│           ├── ADR-008 (universal iterate agent)
-│           ├── ADR-009 (graph topology as config)
-│           ├── ADR-010 (spec reproducibility)
-│           └── ADR-012 (two-command UX layer)
-├── claude-code/.../v2/                  # IMPLEMENTATION (Claude Code)
-│   ├── agents/aisdlc-iterate.md         #   The ONE agent
-│   ├── commands/ (10 commands)          #   /aisdlc-* slash commands
-│   └── config/                          #   Graph + edge parameterisations
-│       ├── graph_topology.yml
-│       ├── evaluator_defaults.yml
-│       ├── project_constraints_template.yml
-│       ├── feature_vector_template.yml
-│       └── edge_params/ (9 configs)
-├── .ai-workspace/tasks/                 # Task tracking
-├── CLAUDE.md                            # Project guide
-└── README.md                            # This file
+│
+├── specification/                          # SHARED — the formal system (tech-agnostic)
+│   ├── INTENT.md
+│   ├── AI_SDLC_ASSET_GRAPH_MODEL.md
+│   ├── PROJECTIONS_AND_INVARIANTS.md
+│   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md
+│   ├── FEATURE_VECTORS.md
+│   └── presentations/
+│
+├── imp_claude/                             # Claude Code implementation
+│   ├── design/                             #   AISDLC_V2_DESIGN.md + ADRs 008-013
+│   ├── code/                               #   Plugin: 1 agent, 10 commands, configs
+│   └── tests/                              #   326 tests (spec validation + implementation)
+│
+├── imp_gemini/                             # Gemini Genesis implementation
+│   ├── design/                             #   GEMINI_GENESIS_DESIGN.md + ADRs GG-001-008
+│   ├── code/                               #   (future)
+│   └── tests/                              #   (future)
+│
+├── imp_codex/                              # Codex Genesis implementation
+│   ├── design/                             #   CODEX_GENESIS_DESIGN.md + ADR-CG-001
+│   ├── code/                               #   (future)
+│   └── tests/                              #   (future)
+│
+├── docs/analysis/                          # Cross-cutting analysis
+├── .ai-workspace/                          # Runtime workspace state
+├── CLAUDE.md                               # Project guide
+└── README.md                               # This file
 ```
 
 ---
@@ -173,23 +174,25 @@ ai_sdlc_method/
 
 | Document | What it covers |
 |----------|---------------|
-| [INTENT.md](docs/specification/INTENT.md) | Business intent and motivation |
-| [AI_SDLC_ASSET_GRAPH_MODEL.md](docs/specification/AI_SDLC_ASSET_GRAPH_MODEL.md) | Formal system — 4 primitives, 1 operation, Hilbert space structure |
-| [PROJECTIONS_AND_INVARIANTS.md](docs/specification/PROJECTIONS_AND_INVARIANTS.md) | Projections, vector types, spawning, fold-back, time-boxing |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](docs/specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | Platform-agnostic implementation requirements |
-| [FEATURE_VECTORS.md](docs/specification/FEATURE_VECTORS.md) | Feature decomposition for building the methodology itself |
-| [AISDLC_V2_DESIGN.md](docs/design/claude_aisdlc/AISDLC_V2_DESIGN.md) | Claude Code implementation design |
+| [INTENT.md](specification/INTENT.md) | Business intent and motivation |
+| [AI_SDLC_ASSET_GRAPH_MODEL.md](specification/AI_SDLC_ASSET_GRAPH_MODEL.md) | Formal system — 4 primitives, 1 operation, Hilbert space structure |
+| [PROJECTIONS_AND_INVARIANTS.md](specification/PROJECTIONS_AND_INVARIANTS.md) | Projections, vector types, spawning, fold-back, time-boxing |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | Platform-agnostic implementation requirements |
+| [FEATURE_VECTORS.md](specification/FEATURE_VECTORS.md) | Feature decomposition for building the methodology itself |
+| [AISDLC_V2_DESIGN.md](imp_claude/design/AISDLC_V2_DESIGN.md) | Claude Code implementation design |
+| [GEMINI_GENESIS_DESIGN.md](imp_gemini/design/GEMINI_GENESIS_DESIGN.md) | Gemini Genesis implementation design |
+| [CODEX_GENESIS_DESIGN.md](imp_codex/design/CODEX_GENESIS_DESIGN.md) | Codex Genesis implementation design |
 
 ---
 
 ## Status
 
-**Version**: 2.7.0 (Asset Graph Model — Project Genesis)
+**Version**: 2.8.0 (Asset Graph Model — Multi-Tenant)
 
 - Spec: Complete (formal system, projections, invariants, consciousness loop, processing phases, sensory systems, UX)
-- Design: Complete (Claude Code binding, ADRs 008-012)
-- Code: Phase 1a (configs, iterate agent, 10 commands, 2 hooks — no executable engine)
-- Tests: config validation + BDD methodology
+- Design: Complete (Claude ADRs 008-013, Gemini ADRs GG-001-008, Codex ADR-CG-001)
+- Code: Phase 1a (Claude: configs, iterate agent, 10 commands, 2 hooks — no executable engine)
+- Tests: 326 tests (Claude implementation — spec validation + implementation tests)
 - UAT / CI/CD / Telemetry: Not started
 
 **v1.x preserved at tag `v1.x-final`** — recoverable via `git checkout v1.x-final`
@@ -206,4 +209,4 @@ MIT
 
 - **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
 - **Prior work**: v1.x 7-stage pipeline (superseded), [ai_init](https://github.com/foolishimp/ai_init) (Key Principles, integrated as Context[])
-- **Built with**: Claude Code
+- **Built with**: Claude Code, Gemini CLI, Codex

@@ -1,62 +1,144 @@
-# AI SDLC Method — Project Status
+# Project Status — AI SDLC Asset Graph Model (Project Genesis)
 
-**Project**: AI SDLC Asset Graph Model (Project Genesis)
-**Version**: 2.6.1
-**Intent**: INT-AISDLC-001
+Generated: 2026-02-21T22:00:00Z
 
-## Phase Completion Summary
+## State: IN_PROGRESS
 
-| Edge | Status | Iterations | Evaluators | Source Findings | Process Gaps |
-|------|--------|------------|------------|-----------------|-------------|
-| intent→requirements | converged | 1 | 6/6 (agent+human) | 0 | 0 |
-| requirements→design | converged | 2 | 5/5 (agent+human) | 0 | 0 |
-| design→code | in_progress | 1 | 12/15 (3 pending lifecycle+sense) | 6 | 1 |
-| code↔unit_tests | in_progress | 1 | 284/284 (pytest) | 0 | 0 |
+Start would: iterate REQ-F-TOOL-001 on design→code (closest-to-complete, 2/4 edges converged)
+
+## Feature Build Schedule
 
 ```mermaid
 gantt
-    title AI SDLC Method — Development Timeline
-    dateFormat YYYY-MM-DD
-    section Phase 1a
-    Spec + Feature Vectors     :done, spec, 2026-02-19, 1d
-    Design + ADRs              :done, design, 2026-02-19, 1d
-    Engine + Configs           :done, engine, 2026-02-19, 2d
-    section Phase 1b
-    Evaluators + Edge Params   :done, eval, 2026-02-20, 1d
-    Profiles + Spawn           :done, prof, 2026-02-20, 1d
-    Dogfood Testing            :done, dog, 2026-02-20, 1d
-    section Phase 1c
-    Consciousness Loop         :done, consc, 2026-02-21, 1d
-    QA Rounds                  :done, qa, 2026-02-21, 1d
-    Three Processing Phases    :done, phases, 2026-02-21, 1d
-    section Phase 2
-    Sensory Design             :done, sensedesign, 2026-02-21, 1d
-    Lifecycle Closure           :active, life, 2026-02-22, 5d
-    CI/CD + Telemetry           :crit, cicd, after life, 5d
-    section Phase 3
-    Sensory Implementation      :crit, sense, after cicd, 5d
+    title Feature Build Schedule
+    dateFormat YYYY-MM-DD HH:mm
+    axisFormat %m-%d %H:%M
+
+    section REQ-F-ENGINE-001
+    requirements     :done,    eng-req, 2026-02-19 08:00, 2026-02-19 11:00
+    design           :done,    eng-des, after eng-req, 2026-02-19 14:00
+    code             :done,    eng-cod, after eng-des, 2026-02-19 16:00
+    unit_tests       :done,    eng-tst, after eng-des, 2026-02-19 17:00
+
+    section REQ-F-EVAL-001
+    requirements     :done,    eval-req, 2026-02-20 08:00, 2026-02-20 09:00
+    design           :done,    eval-des, after eval-req, 2026-02-20 10:00
+    code             :done,    eval-cod, after eval-des, 2026-02-20 11:00
+    unit_tests       :done,    eval-tst, after eval-des, 2026-02-20 11:00
+
+    section REQ-F-EDGE-001
+    requirements     :done,    edge-req, 2026-02-20 08:00, 2026-02-20 09:00
+    design           :done,    edge-des, after edge-req, 2026-02-20 09:30
+    code             :done,    edge-cod, after edge-des, 2026-02-20 10:00
+    unit_tests       :done,    edge-tst, after edge-des, 2026-02-20 10:00
+
+    section REQ-F-CTX-001
+    requirements     :done,    ctx-req, 2026-02-20 08:00, 2026-02-20 09:00
+    design           :done,    ctx-des, after ctx-req, 2026-02-20 10:00
+    code             :done,    ctx-cod, after ctx-des, 2026-02-20 11:00
+    unit_tests       :done,    ctx-tst, after ctx-des, 2026-02-20 11:00
+
+    section REQ-F-TRACE-001
+    requirements     :done,    trc-req, 2026-02-20 08:00, 2026-02-20 09:00
+    design           :done,    trc-des, after trc-req, 2026-02-20 10:00
+    code             :done,    trc-cod, after trc-des, 2026-02-20 11:00
+    unit_tests       :done,    trc-tst, after trc-des, 2026-02-20 11:00
+
+    section REQ-F-TOOL-001
+    requirements     :done,    tool-req, 2026-02-20 08:00, 2026-02-20 09:00
+    design           :done,    tool-des, after tool-req, 2026-02-20 10:00
+    code             :active,  tool-cod, after tool-des, 2026-02-20 12:00
+    unit_tests       :active,  tool-tst, after tool-des, 2026-02-20 12:00
+
+    section REQ-F-LIFE-001
+    requirements     :done,    life-req, 2026-02-20 08:00, 2026-02-20 09:00
+    design           :done,    life-des, after life-req, 2026-02-21 09:00
+    code             :active,  life-cod, after life-des, 2026-02-21 10:00
+    unit_tests       :active,  life-tst, after life-des, 2026-02-21 10:00
+
+    section REQ-F-SENSE-001
+    requirements     :done,    sns-req, 2026-02-21 14:00, 2026-02-21 15:00
+    design           :active,  sns-des, after sns-req, 2026-02-21 18:00
+    code             :         sns-cod, after sns-des, 60m
+    unit_tests       :         sns-tst, after sns-des, 60m
 ```
 
-## Self-Reflection (TELEM Signals)
+## You Are Here
 
-### TELEM-001: Phase 1a Complete
-**Signal**: 259 tests passing, 7 feature vectors defined, 39 implementation requirements covered. Foundation is solid.
+```
+REQ-F-ENGINE-001  intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
+REQ-F-EVAL-001    intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
+REQ-F-EDGE-001    intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
+REQ-F-CTX-001     intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
+REQ-F-TRACE-001   intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
+REQ-F-TOOL-001    intent ✓ → req ✓ → design ✓ → code ● → tests ●
+REQ-F-LIFE-001    intent ✓ → req ✓ → design ✓ → code ● → tests ●
+REQ-F-SENSE-001   intent ✓ → req ✓ → design ● → code ○ → tests ○
+REQ-F-UX-001      (spec-defined, not yet spawned in workspace)
+REQ-F-COORD-001   (spec-defined, not yet spawned in workspace)
+```
 
-### TELEM-002: Dogfood Validation
-**Signal**: Traversed 3 edges on real project (Python CLI bookmark manager). Found and fixed 6 bugs in config resolution, variable substitution, and edge traversal.
+## Phase Completion Summary
 
-### TELEM-003: Executable Agent Gap
-**Signal**: Commands are markdown specifications, not executable agents. Phase 1b needs LLM integration for iterate() to become a running system. This is the primary remaining work.
+| Phase | Converged | In Progress | Pending | Blocked |
+|-------|-----------|-------------|---------|---------|
+| requirements | 8 | 0 | 0 | 0 |
+| design | 7 | 1 | 0 | 0 |
+| code | 5 | 2 | 1 | 0 |
+| unit_tests | 5 | 2 | 1 | 0 |
+| **Total** | **25** | **5** | **2** | **0** |
 
-### TELEM-004: Biological Nervous System Formalisation
-**Signal**: Three processing phases (reflex/affect/conscious) replace two regimes. Two sensory systems (interoception/exteroception) added as continuous signal generators. The system now has the architectural specification for sensing independently of human-driven iterate() calls.
+## Active Features
 
-### TELEM-005: Sensory Design Formalised
-**Signal**: Sensory service architecture formalised — §4.5.4 in spec (MCP service model, review boundary, event categories), §1.8 in design doc (8 subsections: service arch, interoceptive monitors INTRO-001..007, exteroceptive monitors EXTRO-001..004, affect triage pipeline, homeostatic responses, review boundary MCP tools, event contracts, monitor/telemetry separation). REQ-SENSE-005 added (review boundary). 44 total requirements, 8 feature vectors.
+| Feature | Description | Current Edge | Iteration | Profile |
+|---------|-------------|-------------|-----------|---------|
+| REQ-F-TOOL-001 | Developer Tooling | code ● | 1 | standard |
+| REQ-F-LIFE-001 | Full Lifecycle Closure | code ● | 1 | full |
+| REQ-F-SENSE-001 | Sensory Systems | design ● | 1 | full |
 
-## Aggregate Metrics
+## Converged Features
 
-- **Total REQ keys**: 44
-- **Features**: 8 (5 converged, 2 in_progress, 1 design_pending)
-- **Tests**: ~284 (100% passing)
-- **Coverage**: Phase 1a-1c complete, Phase 2 sensory design done, Phase 2 lifecycle pending, Phase 3 pending
+| Feature | Description | Edges | Tests |
+|---------|-------------|-------|-------|
+| REQ-F-ENGINE-001 | Asset Graph Engine | 4/4 | 142 initial |
+| REQ-F-EVAL-001 | Evaluator Framework | 4/4 | ✓ |
+| REQ-F-EDGE-001 | Edge Parameterisations | 4/4 | ✓ |
+| REQ-F-CTX-001 | Context Management | 4/4 | ✓ |
+| REQ-F-TRACE-001 | Feature Vector Traceability | 4/4 | ✓ |
+
+## Next Actions
+
+1. **REQ-F-TOOL-001**: Continue code→unit_tests iteration (Phase 1b — executable engine needed)
+2. **REQ-F-LIFE-001**: Continue code→unit_tests iteration (production lifecycle)
+3. **REQ-F-SENSE-001**: Complete requirements→design (MCP service implementation)
+4. **Spawn**: Create workspace feature files for REQ-F-UX-001 and REQ-F-COORD-001
+
+---
+
+## Process Telemetry
+
+### Convergence Pattern
+- **1-iteration convergence**: 5/8 features converged all edges in 1 iteration each. At Phase 1a (markdown specs, no executable code), this is expected — evaluators are agent-only checks on document structure.
+- **Multi-iteration**: ENGINE-001 design (2 iterations — ADR-008, ADR-009 required refinement), LIFE-001 design (2 iterations — consciousness loop + event sourcing added ADR-011)
+- **In-progress stall risk**: TOOL-001 and LIFE-001 have been at code iteration 1 since 2026-02-20. Not yet stuck (δ is changing via spec evolution and test additions: 142→195→259→326 tests).
+
+### Traceability Coverage
+- **REQ keys defined**: 54 (AISDLC_IMPLEMENTATION_REQUIREMENTS.md v3.6.0)
+- **Feature vectors covering**: 54/54 (100%) across 10 vectors (FEATURE_VECTORS.md v1.5.0)
+- **Workspace tracked**: 8/10 features (REQ-F-UX-001, REQ-F-COORD-001 not yet spawned)
+- **Test coverage**: 326 tests passing (config validation + methodology BDD)
+
+### Constraint Surface Observations
+- All mandatory constraint dimensions resolved at design edge (via ADRs)
+- Advisory dimensions documented but not enforced
+- $variable resolution: not yet testable (no executable engine)
+
+## Self-Reflection — Feedback → New Intent
+
+| Signal | Observation | Recommended Action |
+|--------|-------------|-------------------|
+| TELEM-003 | Commands are markdown specs, not executable agents — Phase 1b needs LLM integration for iterate() | Priority: create executable engine that invokes iterate agent with edge configs |
+| TELEM-004 | Three processing phases formalised (reflex/affect/conscious), two sensory systems added | Informational — spec evolution captured in v2.6 |
+| TELEM-005 | Two-command UX (v2.7) and multi-agent coordination (v2.8) added via 3-agent review process | First cross-agent spec development. Event catalogue now 20 types. Terminology standardised (serialiser). |
+| TELEM-006 | 2 feature vectors (UX, COORD) defined in spec but not spawned in workspace | Spawn workspace .yml files to enable tracking. Both are Phase 1 (UX) / Phase 2 (COORD). |
+| TELEM-007 | Test coverage is design-stage presence checks only. Behavioural protocol tests (competing claims, stale detection, mode transitions) deferred to engine implementation. | Track as known gap. Tests will be mandatory when serialiser is implemented. |

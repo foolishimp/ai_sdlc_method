@@ -1,0 +1,274 @@
+# Project Constraints — Context[] Element
+# Scaffolded by /aisdlc-init into .ai-workspace/{impl}/context/project_constraints.yml
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §5 (Context as Constraint Surface)
+#
+# This file binds abstract evaluator types to concrete project realities.
+# The iterate agent reads this as part of Context[] when computing delta.
+#
+# Composition order:
+#   evaluator_defaults.yml  →  evaluator TYPE definitions
+#   edge_params/{edge}.yml  →  edge-specific checklist (with $variable refs)
+#   project_constraints.yml →  THIS FILE — tools, thresholds, standards
+#   feature.constraints     →  feature-specific acceptance criteria + overrides
+#   ─────────────────────────────────────────────────────────────────────
+#   = Effective checklist   →  concrete, countable pass/fail checks
+#
+# Edge checklists use $variable references that resolve from this file:
+#   $tools.{tool_name}.{field}     → tools.{tool_name}.{field}
+#   $thresholds.{key}              → thresholds.{key}
+#   $standards.{key}               → standards.{key}
+
+---
+
+project:
+  name: "{project_name}"
+  version: "0.1.0"
+  default_profile: standard        # standard | full | poc | spike | hotfix | minimal
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTEXT SOURCES (Layer 3 — external AD collections)
+# ═══════════════════════════════════════════════════════════════════════
+# URI references to external Architecture Decision collections.
+# /aisdlc-init resolves these and copies files into .ai-workspace/{impl}/context/.
+# The iterate agent discovers context files by scanning those directories —
+# no agent changes needed, files just need to land there.
+#
+# Supported URI schemes (v1):
+#   file:///absolute/path/to/collection/
+#   /absolute/path/to/collection/        (shorthand for file://)
+#   ../relative/path/to/collection/      (relative to project root)
+#
+# Each source maps to a context subdirectory (scope):
+#   adrs, data_models, templates, policy, standards
+#
+# Sources are copied, not symlinked — enabling offline use and
+# content-addressable hashing for spec reproducibility.
+
+context_sources: []
+  # - uri: "/path/to/org-standards/engineering"
+  #   scope: templates
+  #   description: "Org-wide engineering standards and patterns"
+  #
+  # - uri: "../shared/security-policy"
+  #   scope: policy
+  #   description: "Security compliance Architecture Decisions"
+  #
+  # - uri: "/path/to/team/python-templates"
+  #   scope: templates
+  #   description: "Python project templates and exemplars"
+  #
+  # - uri: "/path/to/platform/adrs"
+  #   scope: adrs
+  #   description: "Platform-level architectural decisions"
+
+# ═══════════════════════════════════════════════════════════════════════
+# LANGUAGE & RUNTIME
+# ═══════════════════════════════════════════════════════════════════════
+
+language:
+  primary: python             # python | typescript | go | rust | java | ...
+  version: "3.12"
+  secondary: []               # additional languages in this project
+
+# ═══════════════════════════════════════════════════════════════════════
+# TOOLCHAIN
+# ═══════════════════════════════════════════════════════════════════════
+# Each tool entry tells the iterate agent WHAT to run and HOW to check.
+# Edge checklists reference these via $tools.{name}.{field}.
+# If a tool is not configured, checks referencing it are SKIPPED.
+
+tools:
+  syntax_checker:
+    command: "python -m py_compile"
+    args: ""                        # populated with file paths during check
+    pass_criterion: "exit code 0"
+
+  test_runner:
+    command: "pytest"
+    args: "-v --tb=short"
+    pass_criterion: "exit code 0"
+
+  coverage:
+    command: "pytest"
+    args: "--cov --cov-report=term-missing"
+    pass_criterion: "coverage percentage >= $thresholds.test_coverage_minimum"
+
+  linter:
+    command: "ruff check"
+    args: "."
+    pass_criterion: "exit code 0, zero violations"
+
+  formatter:
+    command: "ruff format"
+    args: "--check ."
+    pass_criterion: "exit code 0 (already formatted)"
+
+  type_checker:
+    command: "mypy"
+    args: "--strict src/"
+    pass_criterion: "exit code 0, zero errors"
+    required: false             # false = advisory, not blocking convergence
+
+  # Add project-specific tools as needed:
+  # security_scanner:
+  #   command: "bandit"
+  #   args: "-r src/"
+  #   pass_criterion: "zero high-severity findings"
+  #   required: true
+
+# ═══════════════════════════════════════════════════════════════════════
+# THRESHOLDS
+# ═══════════════════════════════════════════════════════════════════════
+# Numeric values that edge checklists reference via $thresholds.{key}.
+# Features can override these per-feature via constraints.threshold_overrides.
+
+thresholds:
+  test_coverage_minimum: 0.80           # fraction, not percentage
+  test_coverage_target: 1.00            # aspirational
+  critical_path_coverage: 1.00          # non-negotiable for critical REQ keys
+  max_function_complexity: 10           # cyclomatic complexity
+  max_function_lines: 50
+  max_class_lines: 300
+  test_execution_timeout_seconds: 30
+
+# ═══════════════════════════════════════════════════════════════════════
+# STANDARDS
+# ═══════════════════════════════════════════════════════════════════════
+# Qualitative constraints the agent evaluator checks by judgment.
+# Edge checklists reference these via $standards.{key}.
+
+standards:
+  style_guide: "PEP 8"
+  docstrings: required                  # required | recommended | none
+  type_hints: required                  # required | recommended | none
+  test_structure: "AAA"                 # Arrange-Act-Assert
+
+  commit_message_format: |
+    {type}: {short summary}
+
+    {detailed description}
+
+    Implements: REQ-*
+
+  req_tag_format:
+    code: "Implements: REQ-{TYPE}-{DOMAIN}-{SEQ}"
+    tests: "Validates: REQ-{TYPE}-{DOMAIN}-{SEQ}"
+    commits: "Implements: REQ-{TYPE}-{DOMAIN}-{SEQ}"
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONSTRAINT DIMENSIONS (Spec §2.6.1, Layer 3 Project Binding)
+# ═══════════════════════════════════════════════════════════════════════
+# These provide the concrete values for each constraint dimension defined
+# in graph_topology.yml. The iterate agent checks that all mandatory
+# dimensions are resolved at the Requirements → Design edge.
+#
+# Mandatory dimensions: ecosystem_compatibility, deployment_target,
+#                       security_model, build_system
+# Advisory dimensions:  data_governance, performance_envelope,
+#                       observability, error_handling
+
+constraint_dimensions:
+
+  ecosystem_compatibility:
+    language: "{primary language}"          # python | scala | typescript | go | rust | java
+    version: "{language version}"           # e.g., "3.12", "2.13.12"
+    runtime: ""                             # e.g., "Spark 3.5", "Node 20", "JVM 21"
+    frameworks: []
+      # - name: "Django"
+      #   version: "5.0"
+      # - name: "Spark"
+      #   version: "3.5.0"
+      #   scope: "provided"
+    compatibility_notes: ""
+      # "Spark 3.5.x only supports Scala 2.12/2.13, NOT Scala 3"
+
+  deployment_target:
+    platform: ""                            # kubernetes | serverless | docker-compose | bare-metal
+    cloud_provider: ""                      # aws | gcp | azure | on-premise | hybrid
+    environment_tiers: []
+      # - dev
+      # - staging
+      # - production
+    notes: ""
+
+  security_model:
+    authentication: ""                      # oauth2 | jwt | api-key | mtls | saml
+    authorisation: ""                       # rbac | abac | acl | none
+    data_protection: ""                     # encryption-at-rest | encryption-in-transit | both
+    compliance: []
+      # - "SOC2"
+      # - "HIPAA"
+    notes: ""
+
+  build_system:
+    tool: ""                                # sbt | gradle | maven | npm | cargo | make
+    module_structure: ""                    # monolith | multi-module | monorepo | polyrepo
+    ci_integration: ""                      # github-actions | jenkins | gitlab-ci | circleci
+    notes: ""
+
+  # Advisory dimensions — fill in if relevant, leave empty if not applicable
+
+  data_governance:
+    classification: ""                      # public | internal | confidential | restricted
+    retention_policy: ""                    # e.g., "7 years", "30 days"
+    lineage_required: false
+    compliance_frameworks: []
+      # - "GDPR"
+      # - "CCPA"
+
+  performance_envelope:
+    latency_target: ""                      # e.g., "p99 < 200ms"
+    throughput_target: ""                    # e.g., "10k RPS", "1M records/hour"
+    scaling_strategy: ""                    # horizontal | vertical | auto
+    resource_bounds: ""                     # e.g., "4 CPU, 8GB RAM per pod"
+
+  observability:
+    logging: ""                             # structured-json | plain-text | opentelemetry
+    metrics: ""                             # prometheus | cloudwatch | datadog
+    tracing: ""                             # opentelemetry | jaeger | zipkin
+    req_key_tagging: true                   # Tag telemetry with REQ keys (recommended)
+
+  error_handling:
+    strategy: ""                            # fail-fast | retry-with-backoff | circuit-breaker
+    error_types: ""                         # structured | exception-hierarchy | error-codes
+    degradation: ""                         # graceful | fail-fast | fallback
+    notes: ""
+
+# ═══════════════════════════════════════════════════════════════════════
+# ARCHITECTURE CONSTRAINTS
+# ═══════════════════════════════════════════════════════════════════════
+# Standing architectural decisions that constrain all features.
+# Detailed decisions go in ADRs; this captures the binding summary.
+
+architecture:
+  patterns: []
+    # - "Hexagonal / ports-and-adapters"
+    # - "Domain-driven design"
+  dependency_rules: []
+    # - "Domain layer has zero external dependencies"
+    # - "Infrastructure depends on domain, never the reverse"
+  forbidden: []
+    # - "Global mutable state"
+    # - "Circular imports between packages"
+
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR OVERRIDES
+# ═══════════════════════════════════════════════════════════════════════
+# Override edge evaluator composition or add project-specific checks.
+# Keys here merge on top of edge_params defaults.
+
+evaluator_overrides: {}
+  # Example: make human review optional on design→code for rapid prototyping
+  # edges:
+  #   "design→code":
+  #     evaluators: [agent, deterministic]   # removed human
+  #
+  # Example: add a custom check to TDD edge
+  # edges:
+  #   "code↔unit_tests":
+  #     additional_checks:
+  #       - name: "no_print_statements"
+  #         type: deterministic
+  #         command: "grep -rn 'print(' src/ && exit 1 || exit 0"
+  #         pass_criterion: "exit code 0"
+  #         required: true
