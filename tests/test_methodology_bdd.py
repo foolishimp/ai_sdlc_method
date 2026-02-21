@@ -1422,3 +1422,83 @@ class TestADR011Lineage:
         feedback_loop = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
         sources = feedback_loop.get("sources", {})
         assert len(sources) >= 7, f"Expected >= 7 signal sources, got {len(sources)}"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 23: Two Processing Regimes in Spec and Implementation
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestProcessingRegimeInSpec:
+    """
+    GIVEN the formal spec defines two processing regimes (§4.3)
+    WHEN we check that the concept is threaded through spec, agent, and design
+    THEN all documents reference conscious/reflex with correct mappings.
+
+    Validates: REQ-EVAL-001 (processing_regime field)
+    """
+
+    @pytest.mark.bdd
+    def test_spec_defines_two_processing_regimes(self):
+        """Formal spec must define §4.3 Two Processing Regimes."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "Two Processing Regimes" in content
+        assert "conscious" in content.lower()
+        assert "reflex" in content.lower()
+
+    @pytest.mark.bdd
+    def test_spec_maps_evaluators_to_regimes(self):
+        """Spec must map evaluator types to processing regimes."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "Human evaluator" in content and "Conscious" in content
+        assert "Agent evaluator" in content and "Conscious" in content
+        assert "Deterministic" in content and "Reflex" in content
+
+    @pytest.mark.bdd
+    def test_spec_labels_hooks_as_reflex(self):
+        """Spec §7.8 must label protocol hooks as reflex arc."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "reflex arc" in content.lower()
+        assert "autonomic nervous system" in content.lower()
+
+    @pytest.mark.bdd
+    def test_spec_states_reflexes_enable_consciousness(self):
+        """Spec must state that reflexes enable consciousness."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "Reflexes enable consciousness" in content or "reflexes enable consciousness" in content
+
+    @pytest.mark.bdd
+    def test_living_system_table_has_autonomic_and_central(self):
+        """Living system table (§7.7.6) must split nervous system into autonomic and central."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "Autonomic nervous system" in content
+        assert "Central nervous system" in content
+
+    @pytest.mark.bdd
+    def test_iterate_agent_references_regimes(self):
+        """Iterate agent must reference the two processing regimes."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "processing regime" in content.lower() or "processing_regime" in content
+        assert "conscious" in content.lower()
+        assert "reflex" in content.lower()
+
+    @pytest.mark.bdd
+    def test_design_doc_references_regimes(self):
+        """Design document must reference processing regimes."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        assert "processing_regime" in content
+        assert "conscious" in content
+        assert "reflex" in content

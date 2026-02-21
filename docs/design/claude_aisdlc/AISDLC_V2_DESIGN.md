@@ -184,6 +184,8 @@ TELEM signals are emitted by the iterate agent as `process_gaps` in each event. 
 
 The consciousness loop is not a single edge (telemetry→intent). It is a structural property that emerges at **every observer point**. Every evaluator running at every edge is an observer. When an observer detects a delta that cannot be resolved within the current iteration scope, that delta becomes a formal `intent_raised` event.
 
+The consciousness loop operates in the **conscious processing regime** (Spec §4.3) — it requires deliberative judgment to interpret deltas and generate intents. But it depends entirely on the **reflex substrate**: event emission, feature vector updates, and STATUS regeneration fire unconditionally at every iteration boundary (the reflex regime). Without these autonomic reflexes, the conscious system has no data to reason about. Protocol enforcement hooks (§1.7.4) are the mechanism that guarantees the reflex substrate operates — they are the methodology's autonomic nervous system.
+
 #### 1.7.1 Signal Flow
 
 ```
@@ -477,16 +479,19 @@ User invokes: /aisdlc-iterate --edge "design→code" --feature "REQ-F-AUTH-001"
 evaluator_defaults:
   human:
     type: human
+    processing_regime: conscious    # Spec §4.3 — deliberative
     mechanism: "Present work to user, await approval/rejection/refinement"
     convergence: "User explicitly approves"
 
   agent:
     type: agent
+    processing_regime: conscious    # Spec §4.3 — deliberative
     mechanism: "LLM assesses coherence, completeness, gap analysis"
     convergence: "No gaps detected, all criteria met"
 
   deterministic:
     type: deterministic
+    processing_regime: reflex       # Spec §4.3 — autonomic
     mechanism: "Run tests, validate schemas, check formats"
     convergence: "All checks pass"
 

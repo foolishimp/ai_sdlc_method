@@ -11,6 +11,7 @@ evaluator_types:
 
   human:
     type: human
+    processing_regime: conscious
     description: "Human judgment — approval, rejection, or refinement guidance"
     mechanism: |
       Present the current asset candidate to the user.
@@ -24,6 +25,7 @@ evaluator_types:
 
   agent:
     type: agent
+    processing_regime: conscious
     description: "LLM-based assessment — coherence, completeness, gap analysis"
     mechanism: |
       Assess the current asset candidate against:
@@ -41,6 +43,7 @@ evaluator_types:
 
   deterministic:
     type: deterministic
+    processing_regime: reflex
     description: "Automated checks — tests, schemas, linters, format validators"
     mechanism: |
       Run or invoke automated validation:
@@ -111,3 +114,39 @@ convergence_rules:
 
   # Human evaluator is always last when present (reviews agent + deterministic results)
   human_always_last: true
+
+---
+
+# ═══════════════════════════════════════════════════════════════════════
+# PROCESSING REGIMES (Spec §4.3)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Two processing regimes govern all methodology operations.
+# Reflexes enable consciousness — without automatic event emission
+# there is nothing for the consciousness loop to observe.
+
+processing_regimes:
+
+  conscious:
+    description: "Deliberative processing — requires judgment"
+    analogy: "Central nervous system / System 2"
+    includes:
+      - human evaluator
+      - agent evaluator
+      - gap assessment and classification
+      - intent generation from deltas
+      - spawn decisions
+      - convergence judgment (question_answered)
+    fires_when: "Judgment required — gap detected, design choice, approval needed"
+
+  reflex:
+    description: "Autonomic processing — fires unconditionally, no judgment"
+    analogy: "Autonomic nervous system / System 1"
+    includes:
+      - deterministic tests
+      - event emission to events.jsonl
+      - feature vector state update
+      - STATUS.md regeneration
+      - protocol enforcement hooks
+      - circuit breaker activation
+    fires_when: "Every iteration boundary, every edge — no exceptions, no decision"

@@ -1,4 +1,4 @@
-# AI SDLC — Implementation Requirements
+# AI SDLC — Project Genesis: Implementation Requirements
 
 **Version**: 3.2.0
 **Date**: 2026-02-20
@@ -202,8 +202,9 @@ The system shall support three evaluator types, composable per graph edge.
 - **Agent(intent, context)**: LLM-based gap analysis, coherence checking, refinement — probabilistic compute (#45)
 - **Deterministic Tests**: pass/fail — type checks, schema validation, test suites, SLA monitors — deterministic compute (#45)
 - All three compute delta (#36) between current state and target state
+- Each evaluator type declares `processing_regime: conscious|reflex` — Human and Agent are conscious (deliberative), Deterministic is reflex (autonomic)
 
-**Traces To**: Asset Graph Model §4.1 (Three Evaluator Types) | Ontology #35 (evaluator-as-prompter), #45 (two compute regimes)
+**Traces To**: Asset Graph Model §4.1 (Three Evaluator Types), §4.3 (Two Processing Regimes) | Ontology #35 (evaluator-as-prompter), #45 (two compute regimes), #49 (teleodynamic)
 
 ---
 
@@ -460,8 +461,9 @@ Every `iterate()` invocation shall enforce mandatory side effects. Skipping even
 - Detection mechanism: verify side effects occurred after each iteration
 - Circuit breaker: if enforcement itself fails, log the failure as a TELEM signal rather than entering infinite regression
 - Protocol violations reported as `process_gap` with type `PROTOCOL_VIOLATION`
+- Hooks are classified as reflex processing regime (§4.3) — they fire unconditionally and require no deliberative judgment
 
-**Traces To**: Asset Graph Model §7.8 (Protocol Enforcement Hooks) | Ontology #49 (teleodynamic — boundary maintenance)
+**Traces To**: Asset Graph Model §7.8 (Protocol Enforcement Hooks), §4.3 (Two Processing Regimes) | Ontology #49 (teleodynamic — boundary maintenance)
 
 ---
 

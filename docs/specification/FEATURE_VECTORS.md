@@ -1,4 +1,4 @@
-# AI SDLC — Feature Vector Decomposition
+# AI SDLC — Project Genesis: Feature Vector Decomposition
 
 **Version**: 1.1.0
 **Date**: 2026-02-20

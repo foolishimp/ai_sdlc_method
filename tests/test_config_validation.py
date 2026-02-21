@@ -824,3 +824,67 @@ class TestRequirementsLineage:
         with open(req_path) as f:
             content = f.read()
         assert "**39**" in content or "| **Total** | **39**" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 14. PROCESSING REGIMES VALIDATION (Spec §4.3)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestProcessingRegimes:
+    """Evaluator defaults must declare processing_regime for each evaluator type."""
+
+    @pytest.mark.tdd
+    def test_human_is_conscious(self, evaluator_defaults):
+        """Human evaluator must be classified as conscious processing regime."""
+        human = evaluator_defaults["evaluator_types"]["human"]
+        assert human.get("processing_regime") == "conscious"
+
+    @pytest.mark.tdd
+    def test_agent_is_conscious(self, evaluator_defaults):
+        """Agent evaluator must be classified as conscious processing regime."""
+        agent = evaluator_defaults["evaluator_types"]["agent"]
+        assert agent.get("processing_regime") == "conscious"
+
+    @pytest.mark.tdd
+    def test_deterministic_is_reflex(self, evaluator_defaults):
+        """Deterministic evaluator must be classified as reflex processing regime."""
+        det = evaluator_defaults["evaluator_types"]["deterministic"]
+        assert det.get("processing_regime") == "reflex"
+
+    @pytest.mark.tdd
+    def test_all_evaluator_types_have_processing_regime(self, evaluator_defaults):
+        """Every evaluator type must declare a processing_regime field."""
+        for name, evtype in evaluator_defaults["evaluator_types"].items():
+            assert "processing_regime" in evtype, \
+                f"evaluator '{name}' missing processing_regime field"
+
+    @pytest.mark.tdd
+    def test_processing_regime_values_valid(self, evaluator_defaults):
+        """processing_regime values must be 'conscious' or 'reflex'."""
+        valid = {"conscious", "reflex"}
+        for name, evtype in evaluator_defaults["evaluator_types"].items():
+            regime = evtype.get("processing_regime")
+            assert regime in valid, \
+                f"evaluator '{name}' has invalid processing_regime '{regime}'"
+
+    @pytest.mark.tdd
+    def test_processing_regimes_section_exists(self, evaluator_defaults):
+        """evaluator_defaults.yml must have a processing_regimes section."""
+        assert "processing_regimes" in evaluator_defaults
+
+    @pytest.mark.tdd
+    def test_processing_regimes_has_conscious_and_reflex(self, evaluator_defaults):
+        """processing_regimes must define both conscious and reflex regimes."""
+        regimes = evaluator_defaults["processing_regimes"]
+        assert "conscious" in regimes
+        assert "reflex" in regimes
+
+    @pytest.mark.tdd
+    def test_processing_regimes_have_descriptions(self, evaluator_defaults):
+        """Each processing regime must have description, analogy, includes, fires_when."""
+        for name, regime in evaluator_defaults["processing_regimes"].items():
+            assert "description" in regime, f"regime '{name}' missing description"
+            assert "analogy" in regime, f"regime '{name}' missing analogy"
+            assert "includes" in regime, f"regime '{name}' missing includes"
+            assert "fires_when" in regime, f"regime '{name}' missing fires_when"

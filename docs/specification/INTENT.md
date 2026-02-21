@@ -1,4 +1,4 @@
-# Intent: AI SDLC Methodology
+# AI SDLC — Project Genesis: Intent
 
 **Intent ID**: INT-AISDLC-001
 **Date**: 2024-01-01 (originated), 2026-02-19 (v2.1 revision)

@@ -1,4 +1,4 @@
-# AI SDLC: The Asset Graph Model
+# AI SDLC — Project Genesis: The Asset Graph Model
 
 **Version**: 2.5.0
 **Date**: 2026-02-21
@@ -427,7 +427,36 @@ graph TD
     style DT2 fill:#e8f5e9
 ```
 
-### 4.3 Two Compute Regimes
+### 4.3 Two Processing Regimes
+
+The methodology operates through two distinct processing regimes — analogous to Kahneman's System 1/System 2, or the biological distinction between the autonomic and central nervous systems:
+
+| Property | Conscious (deliberative) | Reflex (autonomic) |
+|----------|-------------------------|-------------------|
+| **Analogy** | Central nervous system / System 2 | Autonomic nervous system / System 1 |
+| **When it fires** | Judgment required — gap assessment, design choice, approval | Unconditionally — every iteration, every edge, no exceptions |
+| **Evaluator types** | Human, Agent | Deterministic Tests |
+| **Protocol elements** | Generation, convergence assessment, spawn decisions | Event emission (§7.5), feature vector update, STATUS regeneration, circuit breaker (§7.8.3) |
+| **Failure mode** | Slow, expensive, may miss gaps | Silent — if skipped, observability vanishes |
+| **Can be skipped?** | Yes (projection profiles can omit human evaluator) | No — protocol hooks enforce mandatory execution (§7.8) |
+
+**Mapping of methodology elements to processing regimes:**
+
+| Element | Regime | Why |
+|---------|--------|-----|
+| Human evaluator | Conscious | Requires judgment — approval, rejection, refinement |
+| Agent evaluator | Conscious | Requires judgment — gap analysis, coherence assessment |
+| Deterministic tests | Reflex | Fire unconditionally — pass/fail, no judgment |
+| Event emission (§7.5) | Reflex | Every iteration appends to events.jsonl — no decision involved |
+| Feature vector update | Reflex | State projection updated after every iteration |
+| STATUS.md regeneration | Reflex | Derived view recomputed — mechanical, not deliberative |
+| Protocol enforcement hooks (§7.8) | Reflex | Deterministic check of iterate side effects — fire-and-verify |
+| Circuit breaker (§7.8.3) | Reflex | Automatic regression prevention — triggers on count, not judgment |
+| Gap detection (source_findings, process_gaps) | Reflex | Data collection is automatic; **escalation to intent** is conscious |
+
+**Key insight: Reflexes enable consciousness.** Without the autonomic reflex of event emission at every iteration, the consciousness loop (§7.7) has nothing to observe. Without automatic feature vector updates, derived projections (STATUS, Gantt, telemetry) cannot be computed. The reflex substrate is the nervous system that makes the conscious system possible. A methodology with only conscious processing is blind — it can think but cannot sense. A methodology with only reflex processing is mechanical — it can sense but cannot direct. The living system (§7.7.6) requires both.
+
+### 4.4 Two Compute Regimes
 
 The evaluators instantiate the ontology's two compute regimes (#45):
 
@@ -855,6 +884,8 @@ Both levels use the same three evaluator types (§4.1). Both produce events (§7
 
 The feedback cycle (§7.3) combined with the absorbing boundary property of the spec (§7.4) produces a reflexive structure: the system observes itself, modifies its own specification, and observes the consequences of that modification. This is the **consciousness loop** — not metaphorically, but as a precise structural property: a closed cycle where the system's self-model (the spec) is updated from experience, and the update itself is observable.
 
+The consciousness loop is a **conscious-regime** process (§4.3) — it requires deliberative judgment (human and agent evaluators) to interpret deltas, classify signals, and decide responses. But it depends entirely on the **reflex substrate**: without automatic event emission at every iteration, there is no event log to observe; without automatic STATUS regeneration, there are no derived projections to analyse; without automatic feature vector updates, there is no trajectory data to assess. The conscious system thinks about what the reflex system senses. Remove the reflexes and the consciousness loop goes dark.
+
 #### 7.7.1 Structure
 
 The loop has five stages:
@@ -989,7 +1020,8 @@ The biological analogy is structural:
 | **DNA** | Spec (the encoding) | Information that directs construction, updated from experience |
 | **Proteins / cells** | Feature vectors at various lifecycle stages | Constructed structures, each in a different phase of their lifecycle |
 | **Metabolism** | CI/CD loop | Continuous transformation: code → build → deploy → run. Energy (compute, human time) consumed to maintain the system |
-| **Nervous system** | Telemetry + event sourcing | Signals flowing from the running system back to the control centre |
+| **Autonomic nervous system** (reflex, §4.3) | Event emission + protocol hooks + circuit breaker | Reflexes that fire unconditionally — sensing without deliberation. The substrate that makes consciousness possible |
+| **Central nervous system** (conscious, §4.3) | Evaluators (human + agent) + consciousness loop | Deliberative processing — judgment, gap analysis, intent generation. Thinks about what the autonomic system senses |
 | **Immune system** | Evaluator network (deterministic tests, agent checks) | Detecting deviations, rejecting malformed constructions, enforcing boundary conditions |
 | **Homeostasis** | Telemetry → observer → correction | Maintaining the running system within spec bounds |
 | **Consciousness** | Consciousness loop (§7.7.1) | Self-model (spec) updated from experience, modifications observed and traced |
@@ -1058,6 +1090,8 @@ This is the ontology's teleodynamic transition (#49) at full expression: a self-
 ### 7.8 Protocol Enforcement Hooks
 
 The iterate protocol (§3) produces mandatory side effects beyond the output asset: event emission (§7.5), feature vector update (§6), STATUS regeneration (§7.5.2), and three-direction gap data (backward, forward, inward). These side effects are **the telemetry** — without them, the methodology loses observability, self-observation, and all derived projections.
+
+Protocol enforcement hooks are the methodology's **reflex arc** — the autonomic nervous system (§4.3). They fire unconditionally at every iteration boundary, verifying that mandatory side effects occurred. Like biological reflexes, they require no deliberation: the check is deterministic (did the event get emitted? yes/no), the response is automatic (block or allow), and the circuit breaker prevents runaway loops. The agent's conscious processing (generation, evaluation, gap analysis) runs freely; the reflex system ensures the bookkeeping happens regardless of how the agent chose to work.
 
 Dogfooding observation: in test05 (CDME v2.3), the agent bypassed the iterate protocol for 3 of 4 edges to optimize for generation speed. Result: high-quality artifacts but only 1 event in events.jsonl (vs 5 expected), stale feature vector, no STATUS.md, no process gap data. The methodology's observability benefits evaporated because the side effects were optional.
 
@@ -1159,6 +1193,8 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Circuit breaker (stop_hook_active) | Finite regression guarantee — evaluator backs off after one cycle | 7 (stability condition) |
 | Probabilistic compute | Stochastic expansion | 45 |
 | Deterministic compute | Verification contraction | 45 |
+| Conscious processing regime (§4.3) | Deliberative evaluation — human + agent judgment, gap assessment, intent generation | 49 (teleodynamic — self-directing) |
+| Reflex processing regime (§4.3) | Autonomic side effects — event emission, protocol hooks, circuit breakers. Fires unconditionally, enables consciousness | 49 (teleodynamic — self-maintaining) |
 | Running system | Teleodynamic Markov object | 49 |
 | Homeostasis | Self-maintaining boundary conditions | 49 |
 | Living specification | Living encoding | 46 |
@@ -1284,15 +1320,16 @@ The AI SDLC is:
 3. Traced by **feature vectors** — composite vectors (trajectories through the graph), identified by REQ keys
 4. Bounded by **Spec + Context[]** — the constraint surface (including the graph topology itself) that prevents degeneracy
 5. Evaluated by **{Human, Agent, Tests}** — composable convergence criteria per edge
-6. Split at a **Spec/Design boundary** — Spec = WHAT (tech-agnostic), Design = HOW (tech-bound). Constraint dimensions define what design must resolve.
-7. Observable via **feature views** — REQ keys grepped across all artifacts produce per-feature status at any time
-8. Completing the **full lifecycle** — through CI/CD, Telemetry (tagged with REQ keys), Homeostasis, and back to Intent
-9. Packaged in **three layers** — Engine (universal primitives) / Graph Package (domain-specific topology + edge configs + constraint dimensions) / Project Binding (instance-specific constraints + context URIs)
-10. Executed via **event sourcing** — immutable events, all state (STATUS, feature vectors, tasks) as derived projections
-11. **Self-observing** — TELEM signals from methodology runs feed back into graph package evolution
-12. **Protocol-enforced** — hooks verify iterate() side effects (event emission, feature vector, STATUS) before allowing the agent to stop. Circuit breaker prevents infinite regression. The hooks are the deterministic evaluator of the protocol itself.
-13. **Conscious** — the spec is the absorbing boundary: all signals (gaps, discoveries, ecosystem evolution, optimisation, user feedback, methodology self-observation) converge on the spec and radiate outward as new or modified feature vectors. Spec changes are event-logged, making the system's self-modification observable and traceable. Intent events carry full causal chains (trigger, delta, signal source, prior intents), enabling the system to detect the consequences of its own modifications. Three maturity phases emerge: construction (abiogenesis) → homeostasis (telemetry-driven correction) → consciousness loop (reflexive self-modification with traceability). No new primitive is required — the consciousness property emerges from the composition of feedback loops, absorbing boundary, and event sourcing.
-14. **Alive** — when operational, the system exhibits the structural properties of a living organism: many feature vectors in concurrent lifecycle stages (gestating, iterating, converging, deploying, being observed), continuous metabolism (CI/CD), active perception (telemetry), reflexive self-modification (consciousness loop), selective pruning (vector cancellation when requirements removed). The Markov boundary (§2.3) at each converged asset is what makes concurrency tractable — vectors interact through boundaries, not internals, preventing combinatorial coordination explosion. The system is an ecology of Markov objects.
+6. Operating in **two processing regimes** — conscious (deliberative: human + agent evaluators, judgment, intent generation) and reflex (autonomic: deterministic tests, event emission, protocol hooks, circuit breakers). Reflexes enable consciousness — without automatic event emission there is nothing for the consciousness loop to observe.
+7. Split at a **Spec/Design boundary** — Spec = WHAT (tech-agnostic), Design = HOW (tech-bound). Constraint dimensions define what design must resolve.
+8. Observable via **feature views** — REQ keys grepped across all artifacts produce per-feature status at any time
+9. Completing the **full lifecycle** — through CI/CD, Telemetry (tagged with REQ keys), Homeostasis, and back to Intent
+10. Packaged in **three layers** — Engine (universal primitives) / Graph Package (domain-specific topology + edge configs + constraint dimensions) / Project Binding (instance-specific constraints + context URIs)
+11. Executed via **event sourcing** — immutable events, all state (STATUS, feature vectors, tasks) as derived projections
+12. **Self-observing** — TELEM signals from methodology runs feed back into graph package evolution
+13. **Protocol-enforced** — hooks verify iterate() side effects (event emission, feature vector, STATUS) before allowing the agent to stop. Circuit breaker prevents infinite regression. The hooks are the deterministic evaluator of the protocol itself — the reflex arc (§4.3) of the methodology's autonomic nervous system.
+14. **Conscious** — the spec is the absorbing boundary: all signals (gaps, discoveries, ecosystem evolution, optimisation, user feedback, methodology self-observation) converge on the spec and radiate outward as new or modified feature vectors. Spec changes are event-logged, making the system's self-modification observable and traceable. Intent events carry full causal chains (trigger, delta, signal source, prior intents), enabling the system to detect the consequences of its own modifications. Three maturity phases emerge: construction (abiogenesis) → homeostasis (telemetry-driven correction) → consciousness loop (reflexive self-modification with traceability). No new primitive is required — the consciousness property emerges from the composition of feedback loops, absorbing boundary, and event sourcing.
+15. **Alive** — when operational, the system exhibits the structural properties of a living organism: many feature vectors in concurrent lifecycle stages (gestating, iterating, converging, deploying, being observed), continuous metabolism (CI/CD), active perception (telemetry), reflexive self-modification (consciousness loop), selective pruning (vector cancellation when requirements removed). The Markov boundary (§2.3) at each converged asset is what makes concurrency tractable — vectors interact through boundaries, not internals, preventing combinatorial coordination explosion. The system is an ecology of Markov objects.
 
 The graph is not universal — it is domain-constructed via abiogenesis (#39). The SDLC graph is one crystallisation. A legal document, a physics paper, an organisational policy each produce different graphs from the same four primitives. The graph is zoomable: any edge expandable into a sub-graph, any sub-graph collapsible into a single edge.
 

@@ -1,4 +1,4 @@
-# AI SDLC: Projections and Invariants
+# AI SDLC — Project Genesis: Projections and Invariants
 
 **Version**: 1.1.0
 **Date**: 2026-02-20

@@ -270,7 +270,7 @@ Update the feature vector tracking file:
 
 After every iteration (not just convergence), append a JSON event to `.ai-workspace/events/events.jsonl`.
 
-**This is MANDATORY. Every iteration MUST emit an event.** The event log is the source of truth for all observability — STATUS.md, ACTIVE_TASKS.md, feature vector trajectories, and external monitors all derive from it.
+**This is MANDATORY. Every iteration MUST emit an event.** This is a **reflex-regime** operation (Spec §4.3) — it fires unconditionally at every iteration boundary, requires no judgment, and cannot be skipped by projection profiles. The event log is the source of truth for all observability — STATUS.md, ACTIVE_TASKS.md, feature vector trajectories, and external monitors all derive from it. Without this reflex, the consciousness loop goes dark.
 
 ```json
 {
@@ -397,6 +397,8 @@ You adapt your behaviour based on the edge parameterisation. Here is guidance fo
 ---
 
 ## Evaluator Types
+
+The three evaluator types map to two processing regimes (Spec §4.3): **conscious** (human, agent — require deliberative judgment) and **reflex** (deterministic — fire unconditionally, no judgment). Protocol side effects (event emission, feature vector update, STATUS regeneration) are also reflex. Reflexes enable consciousness — without automatic event emission at every iteration, the consciousness loop has nothing to observe.
 
 ### Human Evaluator
 - You present your work and ask the human to approve, reject, or provide refinement guidance
@@ -601,7 +603,7 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 
 ### The Consciousness Loop at Every Observer Point
 
-The `intent_raised` event is not limited to the `telemetry→intent` edge. **Every evaluator is an observer.** The three-direction gap detection that runs at every iteration IS the consciousness loop operating during development:
+The `intent_raised` event is not limited to the `telemetry→intent` edge. **Every evaluator is an observer.** The three-direction gap detection that runs at every iteration IS the consciousness loop operating during development. This is the conscious processing regime (Spec §4.3) in action — deliberative judgment about gaps, escalations, and intent generation. It depends on the reflex substrate: the automatic event emission and feature vector updates that provide the data the conscious system reasons about.
 
 | Observer point | Signal source | Example delta |
 |---------------|---------------|---------------|
