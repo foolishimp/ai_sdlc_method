@@ -386,7 +386,7 @@ class TestReqKeyCoverage:
         fv_file = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_file) as f:
             content = f.read()
-        assert "39/39 requirements covered" in content or "No orphans" in content
+        assert "44/44 requirements covered" in content or "No orphans" in content
 
     @pytest.mark.tdd
     def test_commands_reference_req_keys(self):
@@ -819,72 +819,152 @@ class TestRequirementsLineage:
 
     @pytest.mark.tdd
     def test_requirement_count_updated(self):
-        """Total requirement count should reflect additions (was 35, now 39)."""
+        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44)."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**39**" in content or "| **Total** | **39**" in content
+        assert "**44**" in content or "| **Total** | **44**" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 14. PROCESSING REGIMES VALIDATION (Spec §4.3)
+# 14. PROCESSING PHASES VALIDATION (Spec §4.3)
 # ═══════════════════════════════════════════════════════════════════════
 
 
-class TestProcessingRegimes:
-    """Evaluator defaults must declare processing_regime for each evaluator type."""
+class TestProcessingPhases:
+    """Evaluator defaults must declare processing_phase for each evaluator type."""
 
     @pytest.mark.tdd
     def test_human_is_conscious(self, evaluator_defaults):
-        """Human evaluator must be classified as conscious processing regime."""
+        """Human evaluator must be classified as conscious processing phase."""
         human = evaluator_defaults["evaluator_types"]["human"]
-        assert human.get("processing_regime") == "conscious"
+        assert human.get("processing_phase") == "conscious"
 
     @pytest.mark.tdd
     def test_agent_is_conscious(self, evaluator_defaults):
-        """Agent evaluator must be classified as conscious processing regime."""
+        """Agent evaluator must be classified as conscious processing phase."""
         agent = evaluator_defaults["evaluator_types"]["agent"]
-        assert agent.get("processing_regime") == "conscious"
+        assert agent.get("processing_phase") == "conscious"
 
     @pytest.mark.tdd
     def test_deterministic_is_reflex(self, evaluator_defaults):
-        """Deterministic evaluator must be classified as reflex processing regime."""
+        """Deterministic evaluator must be classified as reflex processing phase."""
         det = evaluator_defaults["evaluator_types"]["deterministic"]
-        assert det.get("processing_regime") == "reflex"
+        assert det.get("processing_phase") == "reflex"
 
     @pytest.mark.tdd
-    def test_all_evaluator_types_have_processing_regime(self, evaluator_defaults):
-        """Every evaluator type must declare a processing_regime field."""
+    def test_all_evaluator_types_have_processing_phase(self, evaluator_defaults):
+        """Every evaluator type must declare a processing_phase field."""
         for name, evtype in evaluator_defaults["evaluator_types"].items():
-            assert "processing_regime" in evtype, \
-                f"evaluator '{name}' missing processing_regime field"
+            assert "processing_phase" in evtype, \
+                f"evaluator '{name}' missing processing_phase field"
 
     @pytest.mark.tdd
-    def test_processing_regime_values_valid(self, evaluator_defaults):
-        """processing_regime values must be 'conscious' or 'reflex'."""
-        valid = {"conscious", "reflex"}
+    def test_processing_phase_values_valid(self, evaluator_defaults):
+        """processing_phase values must be 'conscious', 'affect', or 'reflex'."""
+        valid = {"conscious", "affect", "reflex"}
         for name, evtype in evaluator_defaults["evaluator_types"].items():
-            regime = evtype.get("processing_regime")
-            assert regime in valid, \
-                f"evaluator '{name}' has invalid processing_regime '{regime}'"
+            phase = evtype.get("processing_phase")
+            assert phase in valid, \
+                f"evaluator '{name}' has invalid processing_phase '{phase}'"
 
     @pytest.mark.tdd
-    def test_processing_regimes_section_exists(self, evaluator_defaults):
-        """evaluator_defaults.yml must have a processing_regimes section."""
-        assert "processing_regimes" in evaluator_defaults
+    def test_processing_phases_section_exists(self, evaluator_defaults):
+        """evaluator_defaults.yml must have a processing_phases section."""
+        assert "processing_phases" in evaluator_defaults
 
     @pytest.mark.tdd
-    def test_processing_regimes_has_conscious_and_reflex(self, evaluator_defaults):
-        """processing_regimes must define both conscious and reflex regimes."""
-        regimes = evaluator_defaults["processing_regimes"]
-        assert "conscious" in regimes
-        assert "reflex" in regimes
+    def test_processing_phases_has_all_three(self, evaluator_defaults):
+        """processing_phases must define reflex, affect, and conscious."""
+        phases = evaluator_defaults["processing_phases"]
+        assert "reflex" in phases
+        assert "affect" in phases
+        assert "conscious" in phases
 
     @pytest.mark.tdd
-    def test_processing_regimes_have_descriptions(self, evaluator_defaults):
-        """Each processing regime must have description, analogy, includes, fires_when."""
-        for name, regime in evaluator_defaults["processing_regimes"].items():
-            assert "description" in regime, f"regime '{name}' missing description"
-            assert "analogy" in regime, f"regime '{name}' missing analogy"
-            assert "includes" in regime, f"regime '{name}' missing includes"
-            assert "fires_when" in regime, f"regime '{name}' missing fires_when"
+    def test_processing_phases_have_descriptions(self, evaluator_defaults):
+        """Each processing phase must have description, analogy, includes, fires_when."""
+        for name, phase in evaluator_defaults["processing_phases"].items():
+            assert "description" in phase, f"phase '{name}' missing description"
+            assert "analogy" in phase, f"phase '{name}' missing analogy"
+            assert "includes" in phase, f"phase '{name}' missing includes"
+            assert "fires_when" in phase, f"phase '{name}' missing fires_when"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 15. SENSORY SYSTEMS REQUIREMENTS VALIDATION
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSensoryRequirements:
+    """Validate that sensory system requirements are complete and correctly counted."""
+
+    SENSORY_REQS = ["REQ-SENSE-001", "REQ-SENSE-002", "REQ-SENSE-003",
+                    "REQ-SENSE-004", "REQ-SENSE-005"]
+
+    @pytest.mark.tdd
+    def test_all_sensory_reqs_exist(self):
+        """All 5 sensory requirements must exist in implementation requirements."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        for req in self.SENSORY_REQS:
+            assert req in content, f"{req} not found in implementation requirements"
+
+    @pytest.mark.tdd
+    def test_requirement_count_is_44(self):
+        """Total requirement count must be 44."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        assert "**44**" in content or "| **Total** | **44**" in content
+
+    @pytest.mark.tdd
+    def test_sensory_category_count_is_5(self):
+        """Sensory Systems category must show count of 5."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        assert "| Sensory Systems | 5 |" in content
+
+    @pytest.mark.tdd
+    def test_feature_vector_count_is_44(self):
+        """Feature vectors doc must claim 44 requirements covered."""
+        fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
+        with open(fv_path) as f:
+            content = f.read()
+        assert "44/44 requirements covered" in content or "44 implementation requirements" in content
+
+    @pytest.mark.tdd
+    def test_sense_feature_vector_has_5_reqs(self):
+        """REQ-F-SENSE-001 must list 5 requirements in feature vectors summary."""
+        fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
+        with open(fv_path) as f:
+            content = f.read()
+        assert "REQ-SENSE-005" in content
+        # The summary table should show 5 for SENSE
+        assert "| REQ-F-SENSE-001 | 5 |" in content
+
+    @pytest.mark.tdd
+    def test_req_sense_005_in_coverage_table(self):
+        """REQ-SENSE-005 must appear in the coverage check table."""
+        fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
+        with open(fv_path) as f:
+            content = f.read()
+        assert "| REQ-SENSE-005 | REQ-F-SENSE-001 |" in content
+
+    @pytest.mark.tdd
+    def test_design_doc_covers_sense_feature_vector(self):
+        """Design doc feature vector coverage must include REQ-F-SENSE-001."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        assert "REQ-F-SENSE-001" in content
+
+    @pytest.mark.tdd
+    def test_design_doc_claims_8_feature_vectors(self):
+        """Design doc must claim 8/8 feature vectors covered."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        assert "8/8 feature vectors covered" in content

@@ -10,7 +10,7 @@
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 7 feature vectors defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 8 feature vectors defined in FEATURE_VECTORS.md.
 
 **Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
 
@@ -161,7 +161,7 @@ events/events.jsonl           ──►  STATUS.md           (Gantt, telemetry, 
                               ──►  gap analysis         (findings aggregated across edges)
 ```
 
-Event types (12): `project_initialized`, `iteration_completed`, `edge_started`, `edge_converged`, `spawn_created`, `spawn_folded_back`, `checkpoint_created`, `review_completed`, `gaps_validated`, `release_created`, `intent_raised`, `spec_modified`.
+Event types (16): `project_initialized`, `iteration_completed`, `edge_started`, `edge_converged`, `spawn_created`, `spawn_folded_back`, `checkpoint_created`, `review_completed`, `gaps_validated`, `release_created`, `intent_raised`, `spec_modified`, `interoceptive_signal`, `exteroceptive_signal`, `affect_triage`, `draft_proposal`.
 
 All methodology commands emit events. The event log is the sole integration contract between the methodology and any external observer (e.g., genesis-monitor). See the iterate agent's **Event Type Reference** for the canonical schema catalogue.
 
@@ -184,7 +184,7 @@ TELEM signals are emitted by the iterate agent as `process_gaps` in each event. 
 
 The consciousness loop is not a single edge (telemetry→intent). It is a structural property that emerges at **every observer point**. Every evaluator running at every edge is an observer. When an observer detects a delta that cannot be resolved within the current iteration scope, that delta becomes a formal `intent_raised` event.
 
-The consciousness loop operates in the **conscious processing regime** (Spec §4.3) — it requires deliberative judgment to interpret deltas and generate intents. But it depends entirely on the **reflex substrate**: event emission, feature vector updates, and STATUS regeneration fire unconditionally at every iteration boundary (the reflex regime). Without these autonomic reflexes, the conscious system has no data to reason about. Protocol enforcement hooks (§1.7.4) are the mechanism that guarantees the reflex substrate operates — they are the methodology's autonomic nervous system.
+The consciousness loop spans all three processing phases (Spec §4.3). The **reflex phase** produces the sensory substrate: event emission, feature vector updates, and STATUS regeneration fire unconditionally at every iteration boundary. The **affect phase** triages those signals: classifying deltas by source (gap, discovery, ecosystem, optimisation, user, TELEM), assessing severity, and deciding which signals warrant escalation. The **conscious phase** performs deliberative review on escalated signals: interpreting deltas, generating intents, modifying the spec, spawning vectors. Protocol enforcement hooks (§1.7.4) are the mechanism that guarantees the reflex substrate operates — they are the methodology's autonomic nervous system.
 
 #### 1.7.1 Signal Flow
 
@@ -283,6 +283,365 @@ The iterate agent instructions mandate these. Protocol violations are logged as 
 | `config/edge_params/feedback_loop.yml` | 7 signal sources with intent templates and `intent_raised` schema |
 | `config/edge_params/tdd.yml` | Intent generation from stuck failures and refactoring needs |
 | All 8 commands | `event_type` field standardised, event emission mandatory |
+
+### 1.8 Sensory Service (Spec §4.5.4)
+
+**Implements**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
+
+The sensory systems run as a **long-running service** that operates independently of the interactive Claude session and iterate() invocations. Sensing is part of Genesis itself — not a separate bolt-on. The service watches the workspace, runs monitors, performs affect triage, and produces draft proposals via Claude headless. It exposes MCP tools that the interactive session uses at the review boundary.
+
+#### 1.8.1 Service Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     SENSORY SERVICE (MCP Server)                          │
+│                                                                           │
+│  ┌────────────────────┐                                                  │
+│  │ Workspace Watcher   │  inotify / polling on:                          │
+│  │                     │    .ai-workspace/events/events.jsonl            │
+│  │                     │    .ai-workspace/features/active/*.yml          │
+│  │                     │    .ai-workspace/STATUS.md                      │
+│  │                     │    src/**  tests/**  (configurable globs)       │
+│  └─────────┬───────────┘                                                 │
+│            │ file change events                                           │
+│            ▼                                                              │
+│  ┌────────────────────┐                                                  │
+│  │ Monitor Scheduler   │  cron-style intervals per monitor               │
+│  │                     │  + on-workspace-open trigger                    │
+│  │                     │  + on-file-change reactive trigger              │
+│  └─────────┬───────────┘                                                 │
+│            │ scheduled / triggered                                        │
+│            ▼                                                              │
+│  ┌────────────────────┐  ┌────────────────────┐                          │
+│  │ Interoceptive      │  │ Exteroceptive      │                          │
+│  │ Monitors           │  │ Monitors           │                          │
+│  │ (INTRO-001..007)   │  │ (EXTRO-001..004)   │                          │
+│  └─────────┬───────────┘  └─────────┬──────────┘                         │
+│            └─────────┬──────────────┘                                     │
+│                      │ typed signals                                      │
+│                      ▼                                                    │
+│  ┌──────────────────────────────────────────┐                            │
+│  │ Affect Triage Pipeline                     │                           │
+│  │ 1. Rule-based classification (fast)        │                           │
+│  │ 2. Agent-classified for ambiguous (slow)   │                           │
+│  │ 3. Severity + escalation decision          │                           │
+│  └─────────┬────────────────────────┬─────────┘                          │
+│            │ [below threshold]      │ [above threshold]                   │
+│            ▼                        ▼                                     │
+│      log + defer           ┌──────────────────┐                          │
+│                            │ Claude Headless   │                          │
+│                            │ (draft proposals) │                          │
+│                            └────────┬──────────┘                         │
+│                                     │                                     │
+│  ═══════════════════ REVIEW BOUNDARY ═══════════════════════════════════  │
+│                                     │                                     │
+│                          MCP Tools exposed:                               │
+│                          • /sensory-status                                │
+│                          • /sensory-proposals                             │
+│                          • /sensory-approve                               │
+│                          • /sensory-dismiss                               │
+└─────────────────────────────────────┼─────────────────────────────────────┘
+                                      │
+                                      ▼
+                        Interactive Claude Session
+                        (human reviews, approves/dismisses)
+```
+
+**Process lifecycle:**
+- Starts on workspace open (or on-demand via MCP tool)
+- Runs continuously in the background
+- Produces no file modifications — only observes and drafts
+- Stops on workspace close or explicit shutdown
+
+**Configuration:** The service reads its configuration from:
+- `sensory_monitors.yml` — monitor registry (which monitors, schedules, thresholds)
+- `affect_triage.yml` — triage rules (classification patterns, severity mapping, escalation thresholds)
+- Profile-level overrides from the active projection profile
+
+#### 1.8.2 Interoceptive Monitors
+
+Concrete monitors that observe the system's own health state:
+
+| Monitor ID | What it reads | Signal on | Default schedule |
+|------------|--------------|-----------|-----------------|
+| **INTRO-001** Event freshness | `events.jsonl` last timestamp | > 7 days since last event | daily |
+| **INTRO-002** Feature vector stall | `features/active/*.yml` iteration timestamps | Any vector with no iteration > 14 days | daily |
+| **INTRO-003** Test health | Test runner output (pytest, jest, etc.) | Coverage < threshold OR flaky rate > 5% | on-change (test files) |
+| **INTRO-004** STATUS freshness | `STATUS.md` mtime vs `events.jsonl` last timestamp | STATUS older than last event by > 1 day | daily |
+| **INTRO-005** Build health | CI/CD pass rate from build logs or API | Failure rate > 20% over last 10 builds | daily |
+| **INTRO-006** Spec/code drift | REQ tags in code vs REQ keys in spec | Any untagged code in traced modules | on-change (source files) |
+| **INTRO-007** Event log integrity | `events.jsonl` structure | Malformed JSON lines, missing required fields | on-change (events.jsonl) |
+
+Each monitor produces a typed signal:
+```yaml
+# interoceptive_signal schema
+event_type: interoceptive_signal
+timestamp: ISO-8601
+monitor_id: "INTRO-001"
+observation: "Last event 12 days ago"
+metric_value: 12
+threshold: 7
+unit: days
+severity: warning  # info | warning | critical
+affected_req_keys: []  # if applicable
+```
+
+#### 1.8.3 Exteroceptive Monitors
+
+Concrete monitors that observe the external environment:
+
+| Monitor ID | What it runs | Signal on | Default schedule |
+|------------|-------------|-----------|-----------------|
+| **EXTRO-001** Dependency freshness | `pip list --outdated` / `npm outdated` / lockfile analysis | Major version update available | weekly |
+| **EXTRO-002** CVE scanning | `pip-audit` / `npm audit` / GHSA API | Any CVE severity >= medium | daily |
+| **EXTRO-003** Runtime telemetry | Telemetry endpoint query (if configured) | Error rate > baseline + 2σ, latency p99 > SLA | hourly (when configured) |
+| **EXTRO-004** API contract changes | Upstream API schema diff (OpenAPI, GraphQL introspection) | Breaking change detected | daily (when configured) |
+
+Each monitor produces a typed signal:
+```yaml
+# exteroceptive_signal schema
+event_type: exteroceptive_signal
+timestamp: ISO-8601
+monitor_id: "EXTRO-002"
+external_source: "pip-audit"
+finding: "CVE-2026-1234 in requests==2.31.0 (severity: high)"
+severity: critical
+affected_packages: ["requests"]
+affected_req_keys: ["REQ-F-AUTH-001"]  # if traceable
+```
+
+#### 1.8.4 Affect Triage Pipeline
+
+Classification rules, severity levels, and escalation thresholds:
+
+**Classification (rule-based, fast):**
+
+| Signal pattern | Classification | Default severity |
+|---------------|---------------|-----------------|
+| CVE severity >= high | `vulnerability` | critical |
+| CVE severity == medium | `vulnerability` | warning |
+| Test coverage drop > 5% | `degradation` | warning |
+| Feature vector stall > 14 days | `staleness` | warning |
+| Event freshness > 7 days | `staleness` | info |
+| Major dependency update | `ecosystem_change` | info |
+| Breaking API change | `contract_break` | critical |
+| Runtime error rate spike | `runtime_deviation` | critical |
+
+**Agent-classified (slow, for ambiguous signals):**
+When rule-based classification is insufficient (signal doesn't match any pattern, or multiple patterns conflict), the triage pipeline invokes Claude headless for classification. This is the "tiered" approach: rules handle the common cases cheaply; the agent handles edge cases that require judgment.
+
+**Escalation thresholds (profile-tunable):**
+
+| Profile | Escalation threshold | Effect |
+|---------|---------------------|--------|
+| full | Low — escalate warning and above | Maximum sensitivity |
+| standard | Medium — escalate warning and above | Balanced |
+| hotfix | Very low — escalate everything | Emergency mode |
+| spike | High — escalate only critical | Suppress noise during exploration |
+| poc | High — escalate only critical | Focus on construction |
+| minimal | Medium — escalate warning and above | Sensible defaults |
+
+**Triage output:**
+```yaml
+# affect_triage schema
+event_type: affect_triage
+timestamp: ISO-8601
+signal_id: "ref to interoceptive_signal or exteroceptive_signal"
+source_monitor: "INTRO-003"
+classification: degradation
+severity: warning
+escalation_decision: escalate  # escalate | defer | log_only
+recommended_action: "Review test coverage drop — 3 modules below 80%"
+affected_req_keys: ["REQ-F-AUTH-001", "REQ-F-PERF-001"]
+profile_threshold: "warning"  # the active threshold that caused escalation
+```
+
+#### 1.8.5 Homeostatic Responses
+
+For signals that escalate past triage, the sensory service invokes **Claude headless** to generate mechanical draft proposals:
+
+**What Claude headless produces (draft only):**
+- Proposed `intent_raised` event (with suggested signal_source, affected_req_keys, vector_type)
+- Proposed diff (for mechanical fixes — e.g., dependency version bump)
+- Proposed spec modification (for spec-level changes — e.g., new requirement for CVE remediation)
+
+**What Claude headless does NOT do:**
+- Modify any file in the workspace
+- Emit events to `events.jsonl`
+- Update feature vectors
+- Change STATUS.md
+
+All proposals are stored in the service's internal state and surfaced via MCP tools. The human reviews through the interactive session.
+
+**Draft proposal schema:**
+```yaml
+# draft_proposal schema
+event_type: draft_proposal
+timestamp: ISO-8601
+trigger_signal: "ref to affect_triage event"
+proposal_type: intent | diff | spec_modification
+summary: "Bump requests to 2.32.0 to address CVE-2026-1234"
+proposed_intent:  # if proposal_type == intent
+  signal_source: vulnerability
+  affected_req_keys: ["REQ-F-AUTH-001"]
+  vector_type: hotfix
+  description: "Remediate CVE-2026-1234 in requests dependency"
+proposed_diff:  # if proposal_type == diff
+  file: "requirements.txt"
+  change: "requests==2.31.0 → requests==2.32.0"
+status: pending  # pending | approved | dismissed
+```
+
+#### 1.8.6 Review Boundary
+
+The review boundary is the MCP tool interface that separates autonomous sensing from human-approved changes:
+
+**MCP tools exposed by the sensory service:**
+
+| Tool | Purpose | Returns |
+|------|---------|---------|
+| `/sensory-status` | Current state of all monitors, last run times, signal counts | Monitor health dashboard |
+| `/sensory-proposals` | List pending draft proposals with full context | Proposal list with trigger chains |
+| `/sensory-approve --id <proposal_id>` | Approve a proposal — the interactive session applies the change | Confirmation + events emitted |
+| `/sensory-dismiss --id <proposal_id> --reason <reason>` | Dismiss a proposal with reason (logged for learning) | Dismissal logged |
+| `/sensory-config` | View/modify monitor configuration, thresholds | Current config |
+
+**Approval flow:**
+1. Human invokes `/sensory-proposals` in interactive session
+2. Reviews each pending proposal (sees trigger signal → triage → draft)
+3. Approves: interactive session applies the change (file modification, event emission, feature vector update)
+4. Dismisses: reason logged as `affect_triage` event with `escalation_decision: dismissed`
+
+The review boundary ensures that **all file modifications go through the interactive session with human oversight**, preserving REQ-EVAL-003 (Human Accountability).
+
+#### 1.8.7 Event Contracts
+
+Four new event types added to the event sourcing model (§1.5):
+
+| Event type | When emitted | Emitter | Example |
+|-----------|-------------|---------|---------|
+| `interoceptive_signal` | Monitor detects internal deviation | Sensory service | Test coverage dropped below 80% |
+| `exteroceptive_signal` | Monitor detects external change | Sensory service | CVE-2026-1234 found in dependency |
+| `affect_triage` | Signal classified and escalation decided | Sensory service | Signal escalated as "vulnerability/critical" |
+| `draft_proposal` | Homeostatic response drafted | Sensory service (Claude headless) | Proposed hotfix vector for CVE remediation |
+
+These events are logged to `events.jsonl` by the sensory service. They are **observation events** — they record what was sensed and how it was classified. They do NOT record changes to the workspace (that remains the domain of `intent_raised`, `spec_modified`, `iteration_completed`, etc., which are emitted by the interactive session after human approval).
+
+**Total event types**: 12 (existing) + 4 (sensory) = 16.
+
+#### 1.8.8 Monitor ↔ Telemetry Separation
+
+A critical architectural distinction:
+
+| | Genesis (the methodology) | genesis_monitor (the observer) |
+|---|---|---|
+| **Role** | Produces events as it operates (iterate, converge, emit) | Consumes the event stream that Genesis produces |
+| **Is the sensor?** | Yes — the sensory service (§1.8.1) IS part of Genesis | No — it reads telemetry, it doesn't sense |
+| **Produces** | events.jsonl entries, feature vectors, STATUS.md, sensory signals | Dashboards, alerts, reports, trend analysis |
+| **Modifies workspace?** | Yes (through interactive session with human approval) | No — read-only observer |
+
+The sensory service is **part of Genesis** — it is the methodology's own nervous system. `genesis_monitor` is an **external observer** that consumes the telemetry Genesis produces (including sensory signals). The monitor rides the telemetry; it does not generate it.
+
+**Future alignment with OpenTelemetry:** The event log format (`events.jsonl`) is designed to be portable. Each event has `timestamp`, `event_type`, `project`, and typed `data`. This maps naturally to OpenTelemetry spans/events. Future work: emit events as OTLP spans, enabling integration with standard observability platforms (Grafana, Datadog, etc.) without changing the methodology's internal event model.
+
+**Config schema specifications (design-level, not yet executable):**
+
+```yaml
+# sensory_monitors.yml schema
+version: "1.0.0"
+service:
+  start_on: workspace_open
+  stop_on: workspace_close
+
+monitors:
+  interoceptive:
+    - id: INTRO-001
+      name: event_freshness
+      description: "Time since last event in events.jsonl"
+      schedule: daily
+      threshold:
+        metric: days_since_last_event
+        warning: 7
+        critical: 14
+      enabled: true
+
+    - id: INTRO-002
+      name: feature_vector_stall
+      description: "In-progress vectors with no iteration for > N days"
+      schedule: daily
+      threshold:
+        metric: days_since_last_iteration
+        warning: 14
+        critical: 30
+      enabled: true
+
+    # ... INTRO-003 through INTRO-007
+
+  exteroceptive:
+    - id: EXTRO-001
+      name: dependency_freshness
+      description: "Check for major version updates in dependencies"
+      schedule: weekly
+      command: "pip list --outdated --format=json"
+      enabled: true
+
+    # ... EXTRO-002 through EXTRO-004
+
+# Profile-level overrides
+profile_overrides:
+  hotfix:
+    disable: [EXTRO-001, EXTRO-004]  # disable non-critical exteroception
+    threshold_overrides:
+      INTRO-001: { warning: 1, critical: 3 }  # tighter freshness in hotfix
+  spike:
+    disable: [EXTRO-001, EXTRO-002, EXTRO-003, EXTRO-004]  # all exteroception off
+    threshold_overrides:
+      INTRO-002: { warning: 30, critical: 60 }  # relax stall detection
+```
+
+```yaml
+# affect_triage.yml schema
+version: "1.0.0"
+
+classification_rules:
+  - pattern: { severity: "critical", monitor_type: "exteroceptive" }
+    classification: vulnerability
+    default_severity: critical
+    escalation: always
+
+  - pattern: { monitor_id: "INTRO-003", metric_delta: "> 5%" }
+    classification: degradation
+    default_severity: warning
+    escalation: threshold
+
+  - pattern: { monitor_id: "INTRO-001", metric_value: "> threshold" }
+    classification: staleness
+    default_severity: info
+    escalation: threshold
+
+  # Fallback: unclassified signals go to agent classification
+  - pattern: { unmatched: true }
+    classification: agent_classify
+    escalation: agent_decides
+
+escalation_thresholds:
+  full: info        # escalate everything info and above
+  standard: warning
+  hotfix: info
+  spike: critical
+  poc: critical
+  minimal: warning
+
+agent_classification:
+  model: claude-sonnet  # cheaper model for triage classification
+  max_tokens: 500
+  prompt_template: |
+    Classify this signal and recommend an action:
+    Monitor: {monitor_id}
+    Finding: {finding}
+    Context: {affected_req_keys}
+    Respond with: classification, severity, recommended_action
+```
 
 ---
 
@@ -479,19 +838,20 @@ User invokes: /aisdlc-iterate --edge "design→code" --feature "REQ-F-AUTH-001"
 evaluator_defaults:
   human:
     type: human
-    processing_regime: conscious    # Spec §4.3 — deliberative
+    processing_phase: conscious     # Spec §4.3 — deliberative (frontal cortex)
     mechanism: "Present work to user, await approval/rejection/refinement"
     convergence: "User explicitly approves"
 
   agent:
     type: agent
-    processing_regime: conscious    # Spec §4.3 — deliberative
+    processing_phase: conscious     # Spec §4.3 — deliberative (frontal cortex)
+    # Note: agent also operates at affect phase for signal classification/triage
     mechanism: "LLM assesses coherence, completeness, gap analysis"
     convergence: "No gaps detected, all criteria met"
 
   deterministic:
     type: deterministic
-    processing_regime: reflex       # Spec §4.3 — autonomic
+    processing_phase: reflex        # Spec §4.3 — autonomic (spinal cord)
     mechanism: "Run tests, validate schemas, check formats"
     convergence: "All checks pass"
 
@@ -913,8 +1273,9 @@ What Phase 2 adds:
 | REQ-F-EDGE-001 | §2.5 Edge Parameterisations | Designed |
 | REQ-F-TOOL-001 | §2.6 Developer Tooling | Designed |
 | REQ-F-LIFE-001 | §3 Lifecycle Closure | Designed (Phase 2 scope) |
+| REQ-F-SENSE-001 | §1.8 Sensory Service | Designed |
 
-**7/7 feature vectors covered.**
+**8/8 feature vectors covered.**
 
 ---
 

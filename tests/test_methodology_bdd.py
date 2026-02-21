@@ -1425,38 +1425,49 @@ class TestADR011Lineage:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# SCENARIO 23: Two Processing Regimes in Spec and Implementation
+# SCENARIO 23: Three Processing Phases in Spec and Implementation
 # ═══════════════════════════════════════════════════════════════════════
 
 
-class TestProcessingRegimeInSpec:
+class TestProcessingPhasesInSpec:
     """
-    GIVEN the formal spec defines two processing regimes (§4.3)
+    GIVEN the formal spec defines three processing phases (§4.3)
     WHEN we check that the concept is threaded through spec, agent, and design
-    THEN all documents reference conscious/reflex with correct mappings.
+    THEN all documents reference reflex/affect/conscious with correct mappings.
 
-    Validates: REQ-EVAL-001 (processing_regime field)
+    Validates: REQ-EVAL-001 (processing_phase field)
     """
 
     @pytest.mark.bdd
-    def test_spec_defines_two_processing_regimes(self):
-        """Formal spec must define §4.3 Two Processing Regimes."""
+    def test_spec_defines_three_processing_phases(self):
+        """Formal spec must define §4.3 Three Processing Phases."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Two Processing Regimes" in content
-        assert "conscious" in content.lower()
+        assert "Three Processing Phases" in content
         assert "reflex" in content.lower()
+        assert "affect" in content.lower()
+        assert "conscious" in content.lower()
 
     @pytest.mark.bdd
-    def test_spec_maps_evaluators_to_regimes(self):
-        """Spec must map evaluator types to processing regimes."""
+    def test_spec_maps_evaluators_to_phases(self):
+        """Spec must map evaluator types to processing phases."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
         assert "Human evaluator" in content and "Conscious" in content
         assert "Agent evaluator" in content and "Conscious" in content
         assert "Deterministic" in content and "Reflex" in content
+
+    @pytest.mark.bdd
+    def test_spec_defines_affect_phase(self):
+        """Spec §4.3 must define the affect (limbic) processing phase."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "Affect (limbic)" in content
+        assert "Limbic system" in content
+        assert "signal classification" in content.lower() or "Signal triage" in content
 
     @pytest.mark.bdd
     def test_spec_labels_hooks_as_reflex(self):
@@ -1468,37 +1479,204 @@ class TestProcessingRegimeInSpec:
         assert "autonomic nervous system" in content.lower()
 
     @pytest.mark.bdd
-    def test_spec_states_reflexes_enable_consciousness(self):
-        """Spec must state that reflexes enable consciousness."""
+    def test_spec_states_each_phase_enables_next(self):
+        """Spec must state that each phase enables the next."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Reflexes enable consciousness" in content or "reflexes enable consciousness" in content
+        assert "Each phase enables the next" in content
 
     @pytest.mark.bdd
-    def test_living_system_table_has_autonomic_and_central(self):
-        """Living system table (§7.7.6) must split nervous system into autonomic and central."""
+    def test_living_system_table_has_three_nervous_system_layers(self):
+        """Living system table (§7.7.6) must have autonomic, limbic, and frontal cortex."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
         assert "Autonomic nervous system" in content
-        assert "Central nervous system" in content
+        assert "Limbic system" in content
+        assert "Frontal cortex" in content
 
     @pytest.mark.bdd
-    def test_iterate_agent_references_regimes(self):
-        """Iterate agent must reference the two processing regimes."""
+    def test_iterate_agent_references_phases(self):
+        """Iterate agent must reference the three processing phases."""
         with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
             content = f.read()
-        assert "processing regime" in content.lower() or "processing_regime" in content
+        assert "processing phase" in content.lower() or "processing_phase" in content
         assert "conscious" in content.lower()
+        assert "affect" in content.lower()
         assert "reflex" in content.lower()
 
     @pytest.mark.bdd
-    def test_design_doc_references_regimes(self):
-        """Design document must reference processing regimes."""
+    def test_design_doc_references_phases(self):
+        """Design document must reference processing phases."""
         design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
         with open(design_path) as f:
             content = f.read()
-        assert "processing_regime" in content
+        assert "processing_phase" in content
         assert "conscious" in content
         assert "reflex" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 24: Sensory Service Architecture
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSensoryServiceArchitecture:
+    """
+    GIVEN the spec §4.5.4 defines sensory service architecture
+    WHEN we check spec, design, and requirements
+    THEN the service model, review boundary, and event contracts are defined.
+
+    Validates: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
+    """
+
+    @pytest.mark.bdd
+    def test_spec_defines_sensory_service_architecture(self):
+        """Spec §4.5.4 must define Sensory Service Architecture."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "4.5.4 Sensory Service Architecture" in content
+
+    @pytest.mark.bdd
+    def test_spec_defines_mcp_service_model(self):
+        """Spec §4.5.4 must define MCP server as the service model."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "MCP server" in content or "MCP Server" in content
+
+    @pytest.mark.bdd
+    def test_spec_defines_review_boundary(self):
+        """Spec §4.5.4 must define the review boundary separating autonomous sensing from changes."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "review boundary" in content.lower() or "REVIEW BOUNDARY" in content
+
+    @pytest.mark.bdd
+    def test_spec_defines_two_event_categories(self):
+        """Spec §4.5.4 must define sensor/evaluate vs change-approval event categories."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "Sensor/evaluate events" in content
+        assert "Change-approval events" in content
+
+    @pytest.mark.bdd
+    def test_spec_defines_draft_only_autonomy(self):
+        """Spec §4.5.4 must state that homeostatic responses are draft proposals only."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "draft proposals only" in content.lower() or "draft proposals" in content
+
+    @pytest.mark.bdd
+    def test_spec_defines_monitor_telemetry_separation(self):
+        """Spec §4.5.4 must clarify that the monitor rides the telemetry."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "monitor rides the telemetry" in content.lower() or "genesis_monitor" in content
+
+    @pytest.mark.bdd
+    def test_design_doc_has_sensory_service_section(self):
+        """Design doc must have §1.8 Sensory Service section."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        assert "1.8 Sensory Service" in content
+
+    @pytest.mark.bdd
+    def test_design_doc_has_all_sensory_subsections(self):
+        """Design doc §1.8 must have all 8 subsections."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        expected_subsections = [
+            "1.8.1 Service Architecture",
+            "1.8.2 Interoceptive Monitors",
+            "1.8.3 Exteroceptive Monitors",
+            "1.8.4 Affect Triage Pipeline",
+            "1.8.5 Homeostatic Responses",
+            "1.8.6 Review Boundary",
+            "1.8.7 Event Contracts",
+            "1.8.8 Monitor",
+        ]
+        for sub in expected_subsections:
+            assert sub in content, f"Design doc missing subsection: {sub}"
+
+    @pytest.mark.bdd
+    def test_design_doc_defines_interoceptive_monitors(self):
+        """Design doc must define INTRO-001 through INTRO-007."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        for i in range(1, 8):
+            assert f"INTRO-{i:03d}" in content, f"Design doc missing INTRO-{i:03d}"
+
+    @pytest.mark.bdd
+    def test_design_doc_defines_exteroceptive_monitors(self):
+        """Design doc must define EXTRO-001 through EXTRO-004."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        for i in range(1, 5):
+            assert f"EXTRO-{i:03d}" in content, f"Design doc missing EXTRO-{i:03d}"
+
+    @pytest.mark.bdd
+    def test_design_doc_defines_four_new_event_types(self):
+        """Design doc must define 4 new sensory event types."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        for event_type in ("interoceptive_signal", "exteroceptive_signal",
+                           "affect_triage", "draft_proposal"):
+            assert event_type in content, f"Design doc missing event type: {event_type}"
+
+    @pytest.mark.bdd
+    def test_design_doc_defines_config_schemas(self):
+        """Design doc must include sensory_monitors.yml and affect_triage.yml schemas."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        assert "sensory_monitors.yml" in content
+        assert "affect_triage.yml" in content
+
+    @pytest.mark.bdd
+    def test_req_sense_005_exists(self):
+        """REQ-SENSE-005 must exist in implementation requirements."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        assert "REQ-SENSE-005" in content
+
+    @pytest.mark.bdd
+    def test_req_sense_005_defines_review_boundary(self):
+        """REQ-SENSE-005 must define the review boundary concept."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        # Find the REQ-SENSE-005 section heading (not a cross-reference)
+        idx = content.find("### REQ-SENSE-005")
+        assert idx > 0, "REQ-SENSE-005 section heading not found"
+        section = content[idx:idx + 1000]
+        assert "Review Boundary" in section
+        assert "MCP" in section or "mcp" in section
+
+    @pytest.mark.bdd
+    def test_feature_vector_references_req_sense_005(self):
+        """REQ-F-SENSE-001 must reference REQ-SENSE-005."""
+        fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
+        with open(fv_path) as f:
+            content = f.read()
+        assert "REQ-SENSE-005" in content
+
+    @pytest.mark.bdd
+    def test_living_system_table_shows_service_hosted(self):
+        """Living system table must show interoception/exteroception as service-hosted."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "Service-hosted" in content

@@ -1,0 +1,48 @@
+feature: REQ-F-SENSE-001
+title: Sensory Systems
+intent: INT-AISDLC-001
+vector_type: feature
+profile: full
+status: design_pending
+created: "2026-02-21T14:00:00Z"
+updated: "2026-02-21T18:00:00Z"
+parent_id: REQ-F-LIFE-001
+spawned_by: REQ-F-LIFE-001
+
+description: |
+  Continuous interoceptive and exteroceptive monitoring with affect triage
+  pipeline, running as a long-running MCP service with review boundary for
+  draft-only autonomy. Interoception observes the system's own health
+  (event freshness, test staleness, vector stalls, build health, spec/code
+  drift). Exteroception observes the external environment (dependency
+  updates, CVE feeds, runtime telemetry, API changes). Affect triage
+  classifies, weights, and escalates signals through the three processing
+  phases (reflex -> affect -> conscious). Runs independently of iterate().
+  Review boundary separates autonomous sensing from human-approved changes.
+
+requirements:
+  - REQ-SENSE-001
+  - REQ-SENSE-002
+  - REQ-SENSE-003
+  - REQ-SENSE-004
+  - REQ-SENSE-005
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+  design:
+    status: in_progress
+    iteration: 1
+    started_at: "2026-02-21T18:00:00Z"
+    evaluator_results:
+      agent_architecture: pass
+      agent_service_model: pass
+  code:
+    status: pending
+    iteration: 0
+  unit_tests:
+    status: pending
+    iteration: 0

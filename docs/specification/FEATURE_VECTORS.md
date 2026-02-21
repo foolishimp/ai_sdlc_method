@@ -1,8 +1,8 @@
 # AI SDLC — Project Genesis: Feature Vector Decomposition
 
-**Version**: 1.2.0
+**Version**: 1.4.0
 **Date**: 2026-02-21
-**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.2.0)
+**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.4.0)
 **Method**: Asset Graph Model §6.4 (Task Planning as Trajectory Optimisation)
 
 ---
@@ -135,6 +135,30 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
 ---
 
+### REQ-F-SENSE-001: Sensory Systems
+
+Continuous interoceptive and exteroceptive monitoring with affect triage pipeline, running as a long-running MCP service with review boundary for draft-only autonomy.
+
+**Satisfies**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
+
+**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- Sensory service architecture: long-running MCP server with workspace watcher, monitor scheduler, affect triage
+- Interoceptive monitor framework (INTRO-001..007): event freshness, vector stall detection, test health, STATUS freshness, build health, spec/code drift, event log integrity
+- Exteroceptive monitor framework (EXTRO-001..004): dependency freshness, CVE scanning, runtime telemetry deviation, API contract changes
+- Affect triage pipeline: rule-based + agent-classified (tiered), severity weighting, escalation decision, profile-tunable thresholds
+- Homeostatic responses: Claude headless generates draft proposals only (no file modifications)
+- Review boundary: MCP tool interface separates autonomous sensing from human-approved changes
+- New event types: `interoceptive_signal`, `exteroceptive_signal`, `affect_triage`, `draft_proposal` in events.jsonl
+- Monitor registry: configurable per project and per projection profile (`sensory_monitors.yml`, `affect_triage.yml`)
+- Monitor health: meta-monitoring (senses that sensing has failed)
+- Monitor/telemetry separation: Genesis produces events (sensing), genesis_monitor consumes telemetry (observing)
+
+**Dependencies**: REQ-F-LIFE-001.|code⟩ (needs consciousness loop and event sourcing), REQ-F-EVAL-001.|code⟩ (affect triage uses evaluator pattern)
+
+---
+
 ### REQ-F-TOOL-001: Developer Tooling
 
 Plugin architecture, workspace, commands, release, test gap analysis, hooks, scaffolding, snapshots.
@@ -166,13 +190,17 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
     │
     ├──→ REQ-F-EVAL-001 (Evaluator Framework)
     │        │
-    │        └──→ REQ-F-EDGE-001 (Edge Parameterisations)
+    │        ├──→ REQ-F-EDGE-001 (Edge Parameterisations)
+    │        │
+    │        └──→ REQ-F-SENSE-001 (Sensory Systems) ←── also depends on LIFE-001
     │
     ├──→ REQ-F-CTX-001 (Context Management)
     │
     ├──→ REQ-F-TRACE-001 (Feature Traceability)
     │        │
     │        └──→ REQ-F-LIFE-001 (Lifecycle Closure)
+    │                 │
+    │                 └──→ REQ-F-SENSE-001 (Sensory Systems)
     │
     └──→ REQ-F-TOOL-001 (Developer Tooling)
 ```
@@ -185,6 +213,7 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
 - ENGINE.|design⟩ < CTX.|code⟩ (context needs engine interface)
 - EVAL.|code⟩ < EDGE.|code⟩ (edge params configure evaluators)
 - TRACE.|code⟩ < LIFE.|code⟩ (lifecycle needs REQ key propagation)
+- LIFE.|code⟩ + EVAL.|code⟩ < SENSE.|code⟩ (sensory systems need consciousness loop + evaluator pattern)
 - ENGINE.|design⟩ + TRACE.|design⟩ < TOOL.|code⟩ (tooling wraps both)
 
 ---
@@ -199,6 +228,8 @@ Phase 1b: EVAL |design⟩ → |code⟩   ∥   CTX |design⟩ → |code⟩   ∥
 Phase 1c: EDGE |code⟩ ↔ |tests⟩                                TOOL |code⟩ ↔ |tests⟩
                                                                             ↓
 Phase 2:  LIFE |design⟩ → |code⟩ ↔ |tests⟩ → |uat⟩
+                    ↓
+Phase 3:  SENSE |design⟩ → |code⟩ ↔ |tests⟩
 ```
 
 ENGINE design is the critical path. Once it converges, three features parallelise.
@@ -248,8 +279,13 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-LIFE-006 | REQ-F-LIFE-001 |
 | REQ-LIFE-007 | REQ-F-LIFE-001 |
 | REQ-LIFE-008 | REQ-F-LIFE-001 |
+| REQ-SENSE-001 | REQ-F-SENSE-001 |
+| REQ-SENSE-002 | REQ-F-SENSE-001 |
+| REQ-SENSE-003 | REQ-F-SENSE-001 |
+| REQ-SENSE-004 | REQ-F-SENSE-001 |
+| REQ-SENSE-005 | REQ-F-SENSE-001 |
 
-**39/39 requirements covered. No orphans.**
+**44/44 requirements covered. No orphans.**
 
 ---
 
@@ -263,7 +299,8 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-TRACE-001 | 5 | 1b | ENGINE, CTX |
 | REQ-F-EDGE-001 | 4 | 1c | EVAL |
 | REQ-F-LIFE-001 | 9 | 2 | ENGINE, TRACE |
+| REQ-F-SENSE-001 | 5 | 3 | LIFE, EVAL |
 | REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
-| **Total** | **39** | | |
+| **Total** | **44** | | |
 
-7 feature vectors. 39 implementation requirements. Full coverage. Critical path: ENGINE design.
+8 feature vectors. 44 implementation requirements. Full coverage. Critical path: ENGINE design.

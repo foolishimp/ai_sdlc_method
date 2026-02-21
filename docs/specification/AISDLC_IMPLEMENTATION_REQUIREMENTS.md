@@ -1,8 +1,8 @@
 # AI SDLC — Project Genesis: Implementation Requirements
 
-**Version**: 3.2.0
-**Date**: 2026-02-20
-**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.5.0)
+**Version**: 3.4.0
+**Date**: 2026-02-21
+**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.6.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
 
 ---
@@ -34,8 +34,9 @@ Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaki
 5. [Context](#5-context) — Constraint surface
 6. [Feature Vectors & Traceability](#6-feature-vectors--traceability) — Trajectories through the graph
 7. [Full Lifecycle](#7-full-lifecycle) — CI/CD, telemetry, homeostasis
-8. [Edge Parameterisations](#8-edge-parameterisations) — TDD, BDD, ADRs per edge type
-9. [Tooling](#9-tooling) — Plugins, workspace, commands
+8. [Sensory Systems](#8-sensory-systems) — Interoception, exteroception, affect triage
+9. [Edge Parameterisations](#9-edge-parameterisations) — TDD, BDD, ADRs per edge type
+10. [Tooling](#10-tooling) — Plugins, workspace, commands
 
 ---
 
@@ -202,9 +203,9 @@ The system shall support three evaluator types, composable per graph edge.
 - **Agent(intent, context)**: LLM-based gap analysis, coherence checking, refinement — probabilistic compute (#45)
 - **Deterministic Tests**: pass/fail — type checks, schema validation, test suites, SLA monitors — deterministic compute (#45)
 - All three compute delta (#36) between current state and target state
-- Each evaluator type declares `processing_regime: conscious|reflex` — Human and Agent are conscious (deliberative), Deterministic is reflex (autonomic)
+- Each evaluator type declares `processing_phase: reflex|affect|conscious` — Deterministic is reflex (autonomic), Agent classification is affect (limbic triage), Human and Agent deliberative are conscious (deliberative)
 
-**Traces To**: Asset Graph Model §4.1 (Three Evaluator Types), §4.3 (Two Processing Regimes) | Ontology #35 (evaluator-as-prompter), #45 (two compute regimes), #49 (teleodynamic)
+**Traces To**: Asset Graph Model §4.1 (Three Evaluator Types), §4.3 (Three Processing Phases) | Ontology #35 (evaluator-as-prompter), #45 (two compute regimes), #49 (teleodynamic)
 
 ---
 
@@ -413,7 +414,7 @@ Every observer point that detects a non-trivial delta shall emit an `intent_rais
 
 **Priority**: High | **Phase**: 1
 
-All observations that feed back into the intent system shall be classified by signal source. Classification enables telemetry analysis (which signal types generate the most work, which are noise).
+All observations that feed back into the intent system shall be classified by signal source. Classification is an **affect phase** operation (§4.3) — it requires pattern recognition and severity assessment but not full deliberation. Classification enables telemetry analysis (which signal types generate the most work, which are noise).
 
 **Acceptance Criteria**:
 - Seven signal source types recognised: `gap` (traceability validation), `test_failure` (stuck delta or test revealing upstream deficiency), `refactoring` (structural debt beyond current scope), `source_finding` (backward gap detection escalation), `process_gap` (inward gap detection — methodology deficiency), `runtime_feedback` (production telemetry deviation), `ecosystem` (external change)
@@ -461,13 +462,113 @@ Every `iterate()` invocation shall enforce mandatory side effects. Skipping even
 - Detection mechanism: verify side effects occurred after each iteration
 - Circuit breaker: if enforcement itself fails, log the failure as a TELEM signal rather than entering infinite regression
 - Protocol violations reported as `process_gap` with type `PROTOCOL_VIOLATION`
-- Hooks are classified as reflex processing regime (§4.3) — they fire unconditionally and require no deliberative judgment
+- Hooks are classified as reflex processing phase (§4.3) — they fire unconditionally and require no deliberative judgment
 
-**Traces To**: Asset Graph Model §7.8 (Protocol Enforcement Hooks), §4.3 (Two Processing Regimes) | Ontology #49 (teleodynamic — boundary maintenance)
+**Traces To**: Asset Graph Model §7.8 (Protocol Enforcement Hooks), §4.3 (Three Processing Phases) | Ontology #49 (teleodynamic — boundary maintenance)
 
 ---
 
-## 8. Edge Parameterisations
+## 8. Sensory Systems
+
+These requirements specify continuous observation capabilities that run independently of iterate(), feeding signals into the three processing phases (§4.3) via interoception (self-sensing, §4.5.1) and exteroception (environment-sensing, §4.5.2).
+
+### REQ-SENSE-001: Interoceptive Monitoring
+
+**Priority**: High | **Phase**: 2
+
+The system shall continuously observe its own health state, independent of iterate() calls, and generate signals when internal conditions deviate from expected bounds. Monitoring runs within a long-running sensory service (MCP server), not as a slash command.
+
+**Acceptance Criteria**:
+- Monitors run within a long-running sensory service (MCP server in Claude Code binding), on a configurable schedule (default: daily) or on workspace open, not only during iterate()
+- Minimum interoceptive monitors (INTRO-001 through INTRO-007): event freshness, feature vector stall, test health, STATUS freshness, build health, spec/code drift, event log integrity
+- Each monitor produces a typed signal with: monitor_id, observation_timestamp, metric_value, threshold, severity (info/warning/critical)
+- Signals feed into the affect triage pipeline (§4.3, §4.5.4) — not directly to conscious review
+- Interoceptive signals logged to events.jsonl as `interoceptive_signal` event type
+- Monitor thresholds configurable per project (project_constraints.yml) and per profile (§2.6.2)
+- Hotfix profile may suppress non-critical interoceptive signals; full profile runs all monitors
+- Monitors are observation-only — they do not modify workspace files
+
+**Traces To**: Asset Graph Model §4.5.1 (Interoception), §4.5.4 (Sensory Service Architecture), §4.3 (Three Processing Phases) | Ontology #49 (teleodynamic — self-maintaining), #44 (deviation signal)
+
+---
+
+### REQ-SENSE-002: Exteroceptive Monitoring
+
+**Priority**: High | **Phase**: 2
+
+The system shall continuously observe the external environment and generate signals when external conditions affect the project. Monitoring runs within the sensory service (MCP server), not as a slash command.
+
+**Acceptance Criteria**:
+- Monitors run within the sensory service (MCP server), on a configurable schedule (default: daily) or on workspace open
+- Minimum exteroceptive monitors (EXTRO-001 through EXTRO-004): dependency freshness, CVE scanning, runtime telemetry deviation, API contract changes
+- Each monitor produces a typed signal with: monitor_id, observation_timestamp, external_source, finding, severity
+- Signals feed into the affect triage pipeline (§4.3, §4.5.4) for classification and escalation
+- Exteroceptive signals logged to events.jsonl as `exteroceptive_signal` event type
+- Monitor configuration specifies external sources (package registries, CVE databases, telemetry endpoints)
+- Spike profile may disable exteroception entirely; full profile runs all configured monitors
+- Monitors are observation-only — they do not modify workspace files
+
+**Traces To**: Asset Graph Model §4.5.2 (Exteroception), §4.5.4 (Sensory Service Architecture), §4.3 (Three Processing Phases) | Ontology #49 (teleodynamic — self-maintaining), #44 (deviation signal)
+
+---
+
+### REQ-SENSE-003: Affect Triage Pipeline
+
+**Priority**: High | **Phase**: 2
+
+Signals from interoceptive and exteroceptive monitors shall pass through an affect triage pipeline that classifies, weights, and decides escalation before reaching conscious review. Triage operates within the sensory service using a tiered approach: rule-based classification first, agent-classified for ambiguous signals.
+
+**Acceptance Criteria**:
+- Every sensory signal passes through affect triage before escalation to conscious phase
+- Triage is tiered: rule-based classification (fast, pattern-matching) first; agent-classified (Claude headless) only for signals that don't match any rule
+- Triage assigns: signal_source classification (gap / ecosystem / vulnerability / staleness / drift / runtime_deviation), severity (info / warning / critical), recommended_action (defer / log / escalate)
+- Escalation thresholds configurable per profile: hotfix profile has low threshold (escalate aggressively), spike profile has high threshold (suppress most)
+- Below-threshold signals logged but not escalated — available for batch review
+- Above-threshold signals generate draft proposals via Claude headless (draft only — no file modifications)
+- Draft proposals surfaced to human via the review boundary (MCP tool interface, REQ-SENSE-005)
+- Triage decisions logged to events.jsonl as `affect_triage` event type (signal_id, classification, severity, escalation_decision)
+
+**Traces To**: Asset Graph Model §4.3 (Three Processing Phases — affect), §4.5.3 (Sensory Systems and Processing Pipeline), §4.5.4 (Sensory Service Architecture) | Ontology #49 (teleodynamic — self-regulating)
+
+---
+
+### REQ-SENSE-004: Sensory System Configuration
+
+**Priority**: Medium | **Phase**: 2
+
+Interoceptive and exteroceptive monitors shall be configurable per project and per projection profile. Configuration is read by the sensory service from design-specified YAML schemas.
+
+**Acceptance Criteria**:
+- Monitor registry in sensory service configuration (`sensory_monitors.yml` — which monitors are active, their schedules, thresholds)
+- Affect triage rules in separate configuration (`affect_triage.yml` — classification patterns, severity mapping, escalation thresholds)
+- Profile-level overrides: profiles (§2.6.2) can enable/disable specific monitors and adjust thresholds
+- Custom monitors addable via plugin architecture (REQ-TOOL-001)
+- Monitor health: if a monitor itself fails to run, it generates an interoceptive meta-signal (the system senses that its own sensing has failed)
+- Sensory configuration included in context snapshot (REQ-TOOL-008) for reproducibility
+
+**Traces To**: Asset Graph Model §4.5 (Two Sensory Systems), §4.5.4 (Sensory Service Architecture), §2.6.2 (Projection Profiles) | Ontology #9 (constraint manifold — configurable)
+
+---
+
+### REQ-SENSE-005: Review Boundary
+
+**Priority**: High | **Phase**: 2
+
+The sensory service shall expose an MCP tool interface (the review boundary) that separates autonomous sensing from human-approved changes. Draft proposals generated by the sensory service shall only become workspace modifications after human approval through the interactive session.
+
+**Acceptance Criteria**:
+- Sensory service exposes MCP tools for: viewing monitor status, listing pending proposals, approving proposals, dismissing proposals
+- Draft proposals include full context: triggering signal, triage classification, proposed action (intent, diff, or spec modification)
+- Approved proposals are applied by the interactive session (not the sensory service) — the service cannot modify workspace files
+- Dismissed proposals are logged with reason for future learning
+- The review boundary preserves REQ-EVAL-003 (Human Accountability) — all file modifications require human approval
+- Two distinct event categories enforced: sensor/evaluate events (autonomous, observation-only) vs change-approval events (conscious, human-approved)
+
+**Traces To**: Asset Graph Model §4.5.4 (Sensory Service Architecture — review boundary), §4.3 (Three Processing Phases — conscious phase requires human) | Ontology #35 (evaluator-as-prompter), #49 (teleodynamic — self-regulating within boundaries)
+
+---
+
+## 9. Edge Parameterisations
 
 These requirements specify evaluator configuration for common graph edges. They are parameterisations of the universal iteration function, not separate engines.
 
@@ -538,7 +639,7 @@ Code assets shall include feature vector trajectory tags.
 
 ---
 
-## 9. Tooling
+## 10. Tooling
 
 ### REQ-TOOL-001: Plugin Architecture
 
@@ -704,15 +805,16 @@ The system shall enforce the Spec/Design boundary — requirements (WHAT) must b
 | Context | 2 | 0 | 1 | 1 |
 | Feature Vectors | 3 | 1 | 2 | 0 |
 | Full Lifecycle | 8 | 2 | 6 | 0 |
+| Sensory Systems | 5 | 0 | 4 | 1 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
 | Tooling | 10 | 0 | 6 | 4 |
-| **Total** | **39** | **10** | **24** | **6** |
+| **Total** | **44** | **10** | **28** | **7** |
 
 ### Phase 1 (Core Graph Engine): 33 requirements
 Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, consciousness loop mechanics (intent events, signal classification, spec change events, protocol enforcement).
 
-### Phase 2 (Full Lifecycle): 6 requirements
-Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry.
+### Phase 2 (Full Lifecycle): 11 requirements
+Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary.
 
 ---
 
