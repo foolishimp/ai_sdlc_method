@@ -1,0 +1,73 @@
+version: "2.9.0"
+date: "2026-02-22"
+context_hash: "sha256:0fa2c740fc9f28b393a3331eb9e819696f8c37c5"
+
+summary: |
+  Gradient unification — homeostasis and consciousness unified under
+  single delta(state, constraints) → work at every scale. REQ-LIFE-009
+  added (Spec Review as Gradient Check). Codex review findings addressed.
+
+changes:
+  spec_refactoring:
+    - "§7 restructured: 7 sections → 7 sections (new structure)"
+    - "§7.1 The Gradient — single operation at every scale"
+    - "§7.2 Gradient at Production Scale (merged old §7.2-7.3)"
+    - "§7.3 Spec Review as Stateless Gradient Check (replaced consciousness loop §7.7.1-7.7.3)"
+    - "§7.4 Event Sourcing (renumbered from §7.5)"
+    - "§7.5 Methodology Self-Observation (renumbered from §7.6)"
+    - "§7.6 The Living System (merged old §7.7.5-7.7.6)"
+    - "§7.7 Protocol Enforcement Hooks (renumbered from §7.8)"
+    - "§8 concept mapping updated (homeostasis, consciousness, maturity rows)"
+    - "§10 summary points 14 and 16 rewritten"
+    - "§11.2 cross-reference to §7.1 added"
+
+  new_requirement:
+    - "REQ-LIFE-009: Spec Review as Gradient Check — stateless delta(workspace, spec) → intents"
+
+  consistency_fixes:
+    - "INTENT.md: counts 49/54 → 55, version v3.6 → v3.7, terminology updated"
+    - "AISDLC_V2_DESIGN.md: §1.7 renamed to Gradient at Spec Scale, feature count 8→10"
+    - "Plugin README.md: 3 broken relative links fixed"
+    - "5 tests updated: count assertions 54→55, terminology alignment"
+    - "REQ-F-LIFE-001.yml: added REQ-LIFE-009, description updated"
+
+  terminology:
+    - "Homeostasis (production only) → Gradient at system scale"
+    - "Consciousness loop → Spec review / gradient at spec scale"
+    - "Three phases of maturity → Progressive gradient activation"
+    - "Absorbing boundary → Constraint surface"
+
+features_included:
+  - REQ-F-ENGINE-001: converged
+  - REQ-F-EVAL-001: converged
+  - REQ-F-CTX-001: converged
+  - REQ-F-EDGE-001: converged
+  - REQ-F-TRACE-001: converged
+  - REQ-F-TOOL-001: converged
+  - REQ-F-UX-001: converged
+  - REQ-F-LIFE-001: converged
+  - REQ-F-SENSE-001: converged
+  - REQ-F-COORD-001: converged
+
+coverage:
+  requirements: 55/55 (100%)
+  design: 55/55 (100%)
+  code: 30/55 (55%) — Phase 1a configs+specs, not executable engine
+  tests: 41/55 explicit + 9 implicit (91%)
+  uat: 0/55 (0%) — not started
+
+known_gaps:
+  - REQ-LIFE-009: Design only — new, no code or tests yet
+  - REQ-TOOL-010: Design only — spec/design boundary enforcement
+  - REQ-INTENT-003: Code but no tests — eco-intent generation
+  - REQ-TOOL-008: Code but no tests — context snapshot
+  - REQ-EDGE-004: Code but no tests — code tagging
+  - "Telemetry layer: Phase 2 scope — no executable code to instrument"
+  - "ADR-011/012/013 reference old §7.x numbers (historical records, intentional)"
+
+version_matrix:
+  asset_graph_model: "2.7.0"
+  implementation_requirements: "3.7.0"
+  feature_vectors: "1.6.0"
+  claude_design: "2.0.0"
+  test_count: 432

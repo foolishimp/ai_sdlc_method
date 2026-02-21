@@ -74,6 +74,6 @@ Start handles everything: project init, feature creation, edge selection, iterat
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology
-- [AISDLC_V2_DESIGN.md](../../../design/AISDLC_V2_DESIGN.md) — Implementation design
-- [FEATURE_VECTORS.md](../../../../specification/FEATURE_VECTORS.md) — Feature decomposition
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology
+- [AISDLC_V2_DESIGN.md](../../../../../design/AISDLC_V2_DESIGN.md) — Implementation design
+- [FEATURE_VECTORS.md](../../../../../../specification/FEATURE_VECTORS.md) — Feature decomposition

@@ -2,15 +2,15 @@
 
 **Version**: 2.0.0
 **Date**: 2026-02-20
-**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.0.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
+**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.6.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
 ---
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 8 feature vectors defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 10 feature vectors defined in FEATURE_VECTORS.md.
 
 **Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
 
@@ -152,7 +152,7 @@ The Requirements → Design edge is the most consequential transition. The spec 
 
 Unresolved mandatory dimensions are checklist failures — they block convergence. This directly addresses the dogfooding finding: 5/7 build bugs were in dimensions the design left implicit.
 
-### 1.5 Event Sourcing Execution Model (Spec §7.5)
+### 1.5 Event Sourcing Execution Model (Spec §7.4)
 
 All methodology state changes are recorded as immutable events in `.ai-workspace/events/events.jsonl`. All observable state (STATUS.md, feature vectors, task lists) is a derived projection.
 
@@ -173,7 +173,7 @@ All methodology commands emit events. The event log is the sole integration cont
 
 This is an engine-level primitive (Layer 1) — it applies regardless of graph package.
 
-### 1.6 Methodology Self-Observation (Spec §7.6)
+### 1.6 Methodology Self-Observation (Spec §7.5)
 
 The methodology observes itself through the same evaluator pattern it uses for artifacts:
 
@@ -184,13 +184,13 @@ Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer�
 
 TELEM signals are emitted by the iterate agent as `process_gaps` in each event. The `/aisdlc-status` command aggregates these into the Self-Reflection section of STATUS.md. Over time, persistent process gaps become candidates for graph package updates (new evaluator checks, refined constraint dimensions, additional context guidance).
 
-### 1.7 Consciousness Loop at Every Observer Point (Spec §7.7, ADR-011)
+### 1.7 Gradient at Spec Scale (Spec §7.1, §7.3, ADR-011)
 
-**Implements**: REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+**Implements**: REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009
 
-The consciousness loop is not a single edge (telemetry→intent). It is a structural property that emerges at **every observer point**. Every evaluator running at every edge is an observer. When an observer detects a delta that cannot be resolved within the current iteration scope, that delta becomes a formal `intent_raised` event.
+The gradient — `delta(state, constraints) → work` — operates at every scale (Spec §7.1). At the spec scale, this becomes: `delta(workspace_state, spec) → intents`. Every evaluator running at every edge is an observer. When an observer detects a delta that cannot be resolved within the current iteration scope, that delta becomes a formal `intent_raised` event.
 
-The consciousness loop spans all three processing phases (Spec §4.3). The **reflex phase** produces the sensory substrate: event emission, feature vector updates, and STATUS regeneration fire unconditionally at every iteration boundary. The **affect phase** triages those signals: classifying deltas by source (gap, discovery, ecosystem, optimisation, user, TELEM), assessing severity, and deciding which signals warrant escalation. The **conscious phase** performs deliberative review on escalated signals: interpreting deltas, generating intents, modifying the spec, spawning vectors. Protocol enforcement hooks (§1.7.4) are the mechanism that guarantees the reflex substrate operates — they are the methodology's autonomic nervous system.
+The gradient at spec scale spans all three processing phases (Spec §4.3). The **reflex phase** produces the sensory substrate: event emission, feature vector updates, and STATUS regeneration fire unconditionally at every iteration boundary. The **affect phase** triages those signals: classifying deltas by source (gap, discovery, ecosystem, optimisation, user, TELEM), assessing severity, and deciding which signals warrant escalation. The **conscious phase** performs deliberative review on escalated signals: interpreting deltas, generating intents, modifying the spec, spawning vectors. Protocol enforcement hooks (§1.7.4) are the mechanism that guarantees the reflex substrate operates — they are the methodology's autonomic nervous system.
 
 #### 1.7.1 Signal Flow
 
@@ -265,7 +265,7 @@ intent_raised event
 
 The `prior_intents` field on both events enables reflexive loop detection:
 - If intent A → spec change → new delta → intent B, and B traces back to A, the system detects its own modification caused a new deviation
-- This distinguishes the consciousness loop from a simple feedback loop: awareness of the consequences of one's own awareness
+- This distinguishes spec review from a simple feedback loop: awareness of the consequences of one's own constraint surface changes
 
 #### 1.7.4 Protocol Enforcement
 
@@ -283,7 +283,7 @@ The iterate agent instructions mandate these. Protocol violations are logged as 
 
 | File | What was added |
 |---|---|
-| `agents/aisdlc-iterate.md` | Event Type Reference (16 command/coordination types), consciousness loop observer table, `intent_raised` emission from backward/inward gap detection |
+| `agents/aisdlc-iterate.md` | Event Type Reference (16 command/coordination types), gradient observer table, `intent_raised` emission from backward/inward gap detection |
 | `commands/aisdlc-iterate.md` | Stuck delta detection (>3 iterations), refactoring signal, source escalation → `intent_raised` |
 | `commands/aisdlc-gaps.md` | Gap cluster → `intent_raised` per domain group |
 | `config/edge_params/feedback_loop.yml` | 7 signal sources with intent templates and `intent_raised` schema |
@@ -1398,9 +1398,9 @@ imp_claude/code/.claude-plugin/plugins/aisdlc-methodology/
 
 **Implements**: REQ-LIFE-001 through REQ-LIFE-008, REQ-INTENT-003
 
-### Phase 1 — Consciousness Loop Mechanics (REQ-LIFE-005 through REQ-LIFE-008)
+### Phase 1 — Gradient Mechanics (REQ-LIFE-005 through REQ-LIFE-009)
 
-The consciousness loop at every observer point is Phase 1. The iterate agent, commands, and edge configs already implement:
+The gradient at spec scale is Phase 1. The iterate agent, commands, and edge configs already implement:
 
 - **`intent_raised` events** (REQ-LIFE-005) — emitted when any observer detects a delta warranting action beyond current iteration scope. Seven signal sources classified (REQ-LIFE-006).
 - **`spec_modified` events** (REQ-LIFE-007) — emitted when specification absorbs a signal and updates. `prior_intents` chain enables reflexive loop detection.
@@ -1408,6 +1408,8 @@ The consciousness loop at every observer point is Phase 1. The iterate agent, co
 - **Development-time homeostasis** — gap analysis, test failures, refactoring, source findings, and process gaps are formal signals that enter the intent system via the same mechanism as production telemetry.
 
 See §1.7 for detailed design and ADR-011 for the architectural decision.
+
+- **Spec review as gradient check** (REQ-LIFE-009) — stateless `delta(workspace, spec) → intents`, invocable on demand or after completion events.
 
 ### Phase 2 — Production Lifecycle (REQ-LIFE-001 through REQ-LIFE-004)
 
@@ -1417,7 +1419,8 @@ What Phase 1 delivers:
 - Graph topology includes CI/CD → Running System → Telemetry → New Intent edges
 - Feature vectors can be traced through these edges (status: pending)
 - The iterate agent can be manually invoked on these edges
-- **Development-time consciousness loop fully operational** — all signal sources except `runtime_feedback` and `ecosystem` are active
+- **Spec review as gradient check** (REQ-LIFE-009) — stateless review of workspace state against spec, generating intents where delta is non-zero
+- **Development-time gradient fully operational** — all signal sources except `runtime_feedback` and `ecosystem` are active
 
 What Phase 2 adds:
 - Automated CI/CD evaluators (build/deploy checks)
@@ -1517,8 +1520,8 @@ Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.6.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 54 implementation requirements (v3.6.0)
-- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.7.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 55 implementation requirements (v3.7.0)
+- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.6.0)
 - Prior v1.x design (AISDLC_IMPLEMENTATION_DESIGN.md) — superseded, recoverable at tag `v1.x-final`
 - ADR-001 (claude-code-as-mvp-platform) — v1.x platform choice, carried forward as standing decision

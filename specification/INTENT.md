@@ -3,7 +3,7 @@
 **Intent ID**: INT-AISDLC-001
 **Date**: 2024-01-01 (originated), 2026-02-21 (v2.6 revision)
 **Priority**: Critical
-**Status**: v2.8 — Asset Graph Model complete, multi-agent coordination, two-command UX layer, consciousness loop, processing phases, sensory systems, implementation Phase 1a
+**Status**: v2.8 — Asset Graph Model complete, multi-agent coordination, two-command UX layer, gradient unification, processing phases, sensory systems, implementation Phase 1a
 
 ---
 
@@ -48,15 +48,15 @@ Four primitives. One operation. The rest is parameterisation.
 | Document | Purpose |
 |----------|---------|
 | [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | Canonical methodology — the 4 primitives, ontology grounding |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 49 implementation requirements derived from the model |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 55 implementation requirements derived from the model |
 | [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) | Parent theory |
 
 ---
 
 ## Current Status
 
-**Asset Graph Model (v2.8)**: Complete — multi-agent coordination, two-command UX, consciousness loop, processing phases, sensory systems, protocol hooks
-**Implementation Requirements (v3.6)**: Complete — 54 requirements, 10 critical
+**Asset Graph Model (v2.8)**: Complete — multi-agent coordination, two-command UX, gradient unification, processing phases, sensory systems, protocol hooks
+**Implementation Requirements (v3.7)**: Complete — 55 requirements, 10 critical
 **Tooling (Claude Code plugins)**: Phase 1a — iterate agent, 10 commands, 2 hooks, configurable graph
 **Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) — CDME dogfood (5/5 edges converged)
 
@@ -71,4 +71,4 @@ Four primitives. One operation. The rest is parameterisation.
 - **v2.5** (2026-02): Consciousness loop, protocol enforcement hooks, event sourcing, signal classification. 39 implementation requirements.
 - **v2.6** (2026-02): Three processing phases (reflex/affect/conscious), two sensory systems (interoception/exteroception), affect triage pipeline, context sources. 44 implementation requirements.
 - **v2.7** (2026-02): Two-command UX layer (Start + Status), §11 User Experience requirements (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery). 49 implementation requirements.
-- **v2.8** (2026-02): Multi-agent coordination, §12 Coordination requirements (agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based authority). 54 implementation requirements. Synthesised from Gemini Genesis and Codex Genesis design proposals.
+- **v2.8** (2026-02): Multi-agent coordination, §12 Coordination requirements (agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based authority). 55 implementation requirements. Gradient unification (homeostasis + consciousness → single `delta(state, constraints) → work` at every scale). Synthesised from Gemini Genesis and Codex Genesis design proposals.

@@ -1383,12 +1383,12 @@ class TestADR011Lineage:
             assert req in content, f"ADR-011 missing reference to {req}"
 
     @pytest.mark.bdd
-    def test_design_references_consciousness_loop(self):
-        """Design document must reference consciousness loop mechanics."""
+    def test_design_references_gradient_at_spec_scale(self):
+        """Design document must reference gradient at spec scale (was consciousness loop)."""
         design_path = DESIGN_DIR / "AISDLC_V2_DESIGN.md"
         with open(design_path) as f:
             content = f.read()
-        assert "Consciousness Loop" in content or "consciousness loop" in content
+        assert "Gradient at Spec Scale" in content or "gradient at spec scale" in content.lower()
         assert "ADR-011" in content
 
     @pytest.mark.bdd
