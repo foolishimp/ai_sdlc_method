@@ -1,15 +1,16 @@
-# AI SDLC Methodology Plugin — v2.6 (Asset Graph Model — Project Genesis)
+# AI SDLC Methodology Plugin — v2.7 (Asset Graph Model — Project Genesis)
 
 ## What Changed from v1.x
 
-| Aspect | v1.x | v2.6 |
+| Aspect | v1.x | v2.7 |
 |--------|------|------|
 | Model | 7-stage pipeline | Asset graph with typed transitions |
 | Agents | 7 (one per stage) | 1 (universal iterate agent) |
 | Skills | 11 consolidated | Edge parameterisations (YAML) |
 | Topology | Hard-coded in agents | Configurable YAML (`graph_topology.yml`) |
 | Iteration | Per-stage feedback loops | Universal `iterate(Asset, Context[], Evaluators)` |
-| Commands | 9 | 9 (different operations) |
+| Commands | 9 | 10 (2 primary + 8 advanced) |
+| UX | Learn 9 commands | Two verbs: Start ("Go.") + Status ("Where am I?") |
 | Reproducibility | Not addressed | Content-addressable context manifest |
 
 ## Structure
@@ -19,9 +20,10 @@ v2/
 ├── agents/
 │   └── aisdlc-iterate.md          # THE one agent (universal iterate function)
 ├── commands/
+│   ├── aisdlc-start.md            # State-driven routing (the "Go" verb)
 │   ├── aisdlc-init.md             # Scaffold workspace
 │   ├── aisdlc-iterate.md          # Invoke iterate() on an edge
-│   ├── aisdlc-status.md           # Feature vector progress
+│   ├── aisdlc-status.md           # Feature vector progress (the "Where am I?" verb)
 │   ├── aisdlc-checkpoint.md       # Session snapshot + context hash
 │   ├── aisdlc-review.md           # Human evaluator review point
 │   ├── aisdlc-trace.md            # REQ key trajectory through graph
@@ -41,33 +43,33 @@ v2/
 │       ├── design_code.yml
 │       ├── design_tests.yml
 │       └── feedback_loop.yml
-├── plugin.json                    # Plugin metadata (v2.6.0)
+├── plugin.json                    # Plugin metadata (v2.7.0)
 └── README.md                      # This file
 ```
 
-## Quick Start
+## Quick Start (Two Commands)
 
 ```bash
-# 1. Initialize a project
-/aisdlc-init
+# Just two verbs — Start figures out what to do:
+/aisdlc-start              # Detects state, initializes if needed, iterates
+/aisdlc-status             # Shows where you are across all features
+```
 
-# 2. Edit your intent
-#    docs/specification/INTENT.md
+Start handles everything: project init, feature creation, edge selection, iteration. It detects your project state and routes to the right action automatically.
 
-# 3. Generate requirements
+## Advanced (9 Power-User Commands)
+
+```bash
+/aisdlc-init               # Scaffold workspace manually
 /aisdlc-iterate --edge "intent→requirements" --feature "REQ-F-MYFEATURE-001"
-
-# 4. Generate design
 /aisdlc-iterate --edge "requirements→design" --feature "REQ-F-MYFEATURE-001"
-
-# 5. Implement with TDD
 /aisdlc-iterate --edge "code↔unit_tests" --feature "REQ-F-MYFEATURE-001"
-
-# 6. Check progress
-/aisdlc-status
-
-# 7. Check coverage gaps
-/aisdlc-gaps
+/aisdlc-spawn --type feature   # Create a new feature vector
+/aisdlc-checkpoint         # Save session snapshot
+/aisdlc-review             # Human evaluator review point
+/aisdlc-trace              # Trace REQ keys across artifacts
+/aisdlc-gaps               # Check traceability coverage
+/aisdlc-release            # Create versioned release
 ```
 
 ## References

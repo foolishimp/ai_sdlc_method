@@ -3,7 +3,7 @@
 **Intent ID**: INT-AISDLC-001
 **Date**: 2024-01-01 (originated), 2026-02-21 (v2.6 revision)
 **Priority**: Critical
-**Status**: v2.6 — Asset Graph Model complete, consciousness loop, processing phases, sensory systems, implementation Phase 1a
+**Status**: v2.7 — Asset Graph Model complete, two-command UX layer, consciousness loop, processing phases, sensory systems, implementation Phase 1a
 
 ---
 
@@ -48,16 +48,16 @@ Four primitives. One operation. The rest is parameterisation.
 | Document | Purpose |
 |----------|---------|
 | [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | Canonical methodology — the 4 primitives, ontology grounding |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 44 implementation requirements derived from the model |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 49 implementation requirements derived from the model |
 | [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) | Parent theory |
 
 ---
 
 ## Current Status
 
-**Asset Graph Model (v2.6)**: Complete — consciousness loop, processing phases, sensory systems, protocol hooks
-**Implementation Requirements (v3.4)**: Complete — 44 requirements, 10 critical
-**Tooling (Claude Code plugins)**: Phase 1a — iterate agent, 9 commands, 2 hooks, configurable graph
+**Asset Graph Model (v2.7)**: Complete — two-command UX, consciousness loop, processing phases, sensory systems, protocol hooks
+**Implementation Requirements (v3.5)**: Complete — 49 requirements, 10 critical
+**Tooling (Claude Code plugins)**: Phase 1a — iterate agent, 10 commands, 2 hooks, configurable graph
 **Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) — CDME dogfood (5/5 edges converged)
 
 ---
@@ -70,3 +70,4 @@ Four primitives. One operation. The rest is parameterisation.
 - **v2.1** (2026-02): Revised framing — composite vectors, zoomable graph, scale-dependent assurance, 3-param iterate(). ~570-line canonical doc replaces 4,400 lines. 32 implementation requirements replace 47.
 - **v2.5** (2026-02): Consciousness loop, protocol enforcement hooks, event sourcing, signal classification. 39 implementation requirements.
 - **v2.6** (2026-02): Three processing phases (reflex/affect/conscious), two sensory systems (interoception/exteroception), affect triage pipeline, context sources. 44 implementation requirements.
+- **v2.7** (2026-02): Two-command UX layer (Start + Status), §11 User Experience requirements (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery). 49 implementation requirements.

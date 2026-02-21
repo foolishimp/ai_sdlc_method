@@ -409,9 +409,9 @@ class TestMethodologySelfConsistency:
 
     @pytest.mark.bdd
     def test_adrs_exist(self):
-        """ADRs 008-010 must exist."""
+        """ADRs 008-012 must exist."""
         adr_dir = PLUGIN_ROOT.parent.parent.parent.parent.parent / "docs/design/claude_aisdlc/adrs"
-        for n in (8, 9, 10):
+        for n in (8, 9, 10, 11, 12):
             pattern = f"ADR-{n:03d}*"
             matches = list(adr_dir.glob(pattern))
             assert matches, f"missing ADR-{n:03d}"
@@ -1728,3 +1728,90 @@ class TestContextSourcesInSpec:
             content = f.read()
         assert "Step 4b" in content
         assert "Resolve Context Sources" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 26: Two-Command UX Layer
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestTwoCommandUX:
+    """
+    GIVEN the two-command UX layer (Start + Status)
+    WHEN the user invokes Start or Status
+    THEN state is detected, features are selected, and routing/observability works.
+
+    Validates: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
+    """
+
+    @pytest.mark.bdd
+    def test_status_has_state_detection(self):
+        """Status command must have Step 0 state detection."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "Step 0" in content
+        assert "State Detection" in content
+
+    @pytest.mark.bdd
+    def test_status_has_you_are_here(self):
+        """Status command must show 'You Are Here' indicators."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "You Are Here" in content
+
+    @pytest.mark.bdd
+    def test_status_has_what_start_would_do(self):
+        """Status command must preview what Start would do."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "Start would" in content or "What Start Would Do" in content
+
+    @pytest.mark.bdd
+    def test_status_has_health_flag(self):
+        """Status command must support --health flag."""
+        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+            content = f.read()
+        assert "--health" in content
+
+    @pytest.mark.bdd
+    def test_start_defines_state_machine(self):
+        """Start command must define 8 states in the state machine."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        for state in ("UNINITIALISED", "NEEDS_CONSTRAINTS", "NEEDS_INTENT",
+                       "NO_FEATURES", "IN_PROGRESS", "ALL_CONVERGED",
+                       "ALL_BLOCKED", "STUCK"):
+            assert state in content, f"Start missing state: {state}"
+
+    @pytest.mark.bdd
+    def test_start_delegates_to_iterate(self):
+        """Start command must delegate to /aisdlc-iterate."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "/aisdlc-iterate" in content
+
+    @pytest.mark.bdd
+    def test_start_has_progressive_init(self):
+        """Start command must implement progressive init with ≤5 questions."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "Progressive Init" in content
+        assert "Project name" in content
+        assert "Project kind" in content
+
+    @pytest.mark.bdd
+    def test_start_has_deferred_constraints(self):
+        """Start command must defer constraint dimensions to design edge."""
+        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+            content = f.read()
+        assert "Deferred Constraint" in content or "deferred" in content.lower()
+        assert "requirements→design" in content
+
+    @pytest.mark.bdd
+    def test_design_doc_describes_two_command_ux(self):
+        """Design doc must have §1.9 Two-Command UX Layer."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        assert "1.9 Two-Command UX Layer" in content
+        assert "ADR-012" in content

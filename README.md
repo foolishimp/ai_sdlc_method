@@ -103,11 +103,19 @@ claude plugin add foolishimp/ai_sdlc_method
 
 This scaffolds the asset graph configuration, context store, project constraints, feature tracking, and task management directories.
 
-### 3. Start working
+### 3. Start working (two commands)
 
 ```
-/aisdlc-iterate          # Advance an asset along the graph
-/aisdlc-status           # See current state of all assets
+/aisdlc-start            # Detects state, selects feature/edge, iterates — "Go."
+/aisdlc-status           # Project-wide state, "you are here", signals — "Where am I?"
+```
+
+Start handles everything: init, feature creation, edge selection, iteration. It detects your project state and routes to the right action automatically.
+
+### Advanced (9 power-user commands)
+
+```
+/aisdlc-iterate          # Advance an asset along a specific edge
 /aisdlc-spawn            # Spawn a new feature/spike/hotfix vector
 /aisdlc-trace            # Trace REQ keys across artifacts
 /aisdlc-gaps             # Find traceability gaps
@@ -143,10 +151,11 @@ ai_sdlc_method/
 │       └── adrs/                        #   Architecture decisions
 │           ├── ADR-008 (universal iterate agent)
 │           ├── ADR-009 (graph topology as config)
-│           └── ADR-010 (spec reproducibility)
+│           ├── ADR-010 (spec reproducibility)
+│           └── ADR-012 (two-command UX layer)
 ├── claude-code/.../v2/                  # IMPLEMENTATION (Claude Code)
 │   ├── agents/aisdlc-iterate.md         #   The ONE agent
-│   ├── commands/ (9 commands)           #   /aisdlc-* slash commands
+│   ├── commands/ (10 commands)          #   /aisdlc-* slash commands
 │   └── config/                          #   Graph + edge parameterisations
 │       ├── graph_topology.yml
 │       ├── evaluator_defaults.yml
@@ -175,12 +184,12 @@ ai_sdlc_method/
 
 ## Status
 
-**Version**: 2.6.0 (Asset Graph Model — Project Genesis)
+**Version**: 2.7.0 (Asset Graph Model — Project Genesis)
 
-- Spec: Complete (formal system, projections, invariants, consciousness loop, processing phases, sensory systems)
-- Design: Complete (Claude Code binding, ADRs)
-- Code: Phase 1a (configs, iterate agent, 9 commands, 2 hooks — no executable engine)
-- Tests: 297 tests (config validation + BDD methodology)
+- Spec: Complete (formal system, projections, invariants, consciousness loop, processing phases, sensory systems, UX)
+- Design: Complete (Claude Code binding, ADRs 008-012)
+- Code: Phase 1a (configs, iterate agent, 10 commands, 2 hooks — no executable engine)
+- Tests: config validation + BDD methodology
 - UAT / CI/CD / Telemetry: Not started
 
 **v1.x preserved at tag `v1.x-final`** — recoverable via `git checkout v1.x-final`

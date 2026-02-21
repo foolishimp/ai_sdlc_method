@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-**ai_sdlc_method** defines a formal system for AI-augmented software development — the **Asset Graph Model** (v2.6).
+**ai_sdlc_method** defines a formal system for AI-augmented software development — the **Asset Graph Model** (v2.7).
 
 ### The Model
 
@@ -56,7 +56,7 @@ ai_sdlc_method/
 │   │   ├── INTENT.md                      #   Business intent
 │   │   ├── AI_SDLC_ASSET_GRAPH_MODEL.md   #   Formal system (4 primitives)
 │   │   ├── PROJECTIONS_AND_INVARIANTS.md   #   Projections, vector types
-│   │   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # 44 implementation reqs
+│   │   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # 49 implementation reqs
 │   │   ├── FEATURE_VECTORS.md             #   Feature decomposition
 │   │   └── presentations/*.pdf            #   PDF versions (via md2pdf)
 │   └── design/claude_aisdlc/              # DESIGN (Claude Code binding)
@@ -67,7 +67,7 @@ ai_sdlc_method/
 │           └── ADR-010-spec-reproducibility.md
 ├── claude-code/.../v2/                    # IMPLEMENTATION (Claude Code)
 │   ├── agents/aisdlc-iterate.md           #   The ONE agent
-│   ├── commands/ (9 commands)             #   /aisdlc-* slash commands
+│   ├── commands/ (10 commands)            #   /aisdlc-* slash commands (Start + 9 advanced)
 │   └── config/
 │       ├── graph_topology.yml             #   Default SDLC graph
 │       ├── evaluator_defaults.yml         #   Evaluator types
@@ -90,7 +90,7 @@ ai_sdlc_method/
 | Intent | docs/specification/INTENT.md | Business motivation |
 | Asset Graph Model | docs/specification/AI_SDLC_ASSET_GRAPH_MODEL.md | Formal system, Hilbert space |
 | Projections | docs/specification/PROJECTIONS_AND_INVARIANTS.md | Projections, vector types, spawning |
-| Implementation Reqs | docs/specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 32 platform-agnostic reqs |
+| Implementation Reqs | docs/specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 49 platform-agnostic reqs |
 | Feature Vectors | docs/specification/FEATURE_VECTORS.md | Feature decomposition |
 | Design | docs/design/claude_aisdlc/AISDLC_V2_DESIGN.md | Claude Code implementation |
 | Iterate Agent | claude-code/.../v2/agents/aisdlc-iterate.md | The universal agent |
@@ -100,14 +100,14 @@ ai_sdlc_method/
 
 ## Current Status
 
-**Version**: 2.1 (Asset Graph Model)
+**Version**: 2.7 (Asset Graph Model)
 
 | Stage | Status |
 |-------|--------|
 | Intent | Complete |
-| Spec | Complete (formal system, projections, invariants) |
-| Design | Complete (Claude Code binding, ADRs 008-010) |
-| Code | Phase 1a (configs, iterate agent, commands — no executable engine) |
+| Spec | Complete (formal system, projections, invariants, UX) |
+| Design | Complete (Claude Code binding, ADRs 008-012) |
+| Code | Phase 1a (configs, iterate agent, 10 commands — no executable engine) |
 | Tests | Not started |
 | UAT | Not started |
 | CI/CD | Not started |

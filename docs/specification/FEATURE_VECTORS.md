@@ -183,6 +183,25 @@ Plugin architecture, workspace, commands, release, test gap analysis, hooks, sca
 
 ---
 
+### REQ-F-UX-001: User Experience
+
+Two-command UX layer: state-driven routing (Start), project-wide observability (Status), progressive disclosure, automatic feature/edge selection, recovery and self-healing.
+
+**Satisfies**: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
+
+**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- State-driven routing: 8-state machine derived from workspace filesystem + event log
+- Progressive disclosure: ≤5 inputs at init, constraints deferred to design edge
+- Project-wide observability: "you are here" indicators, cross-feature rollup, signals, health
+- Automatic feature/edge selection: priority-based selection, topological edge walk
+- Recovery and self-healing: detect and guide recovery from inconsistent workspace states
+
+**Dependencies**: REQ-F-TOOL-001.|design⟩ (UX layer wraps tooling commands), REQ-F-ENGINE-001.|design⟩ (state detection reads graph)
+
+---
+
 ## Dependency Graph
 
 ```
@@ -203,6 +222,8 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
     │                 └──→ REQ-F-SENSE-001 (Sensory Systems)
     │
     └──→ REQ-F-TOOL-001 (Developer Tooling)
+              │
+              └──→ REQ-F-UX-001 (User Experience)
 ```
 
 **Parallel work** (zero inner product — independent once ENGINE.|design⟩ converges):
@@ -284,8 +305,13 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-SENSE-003 | REQ-F-SENSE-001 |
 | REQ-SENSE-004 | REQ-F-SENSE-001 |
 | REQ-SENSE-005 | REQ-F-SENSE-001 |
+| REQ-UX-001 | REQ-F-UX-001 |
+| REQ-UX-002 | REQ-F-UX-001 |
+| REQ-UX-003 | REQ-F-UX-001 |
+| REQ-UX-004 | REQ-F-UX-001 |
+| REQ-UX-005 | REQ-F-UX-001 |
 
-**44/44 requirements covered. No orphans.**
+**49/49 requirements covered. No orphans.**
 
 ---
 
@@ -301,6 +327,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-LIFE-001 | 9 | 2 | ENGINE, TRACE |
 | REQ-F-SENSE-001 | 5 | 3 | LIFE, EVAL |
 | REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
-| **Total** | **44** | | |
+| REQ-F-UX-001 | 5 | 1c | TOOL, ENGINE |
+| **Total** | **49** | | |
 
-8 feature vectors. 44 implementation requirements. Full coverage. Critical path: ENGINE design.
+9 feature vectors. 49 implementation requirements. Full coverage. Critical path: ENGINE design.

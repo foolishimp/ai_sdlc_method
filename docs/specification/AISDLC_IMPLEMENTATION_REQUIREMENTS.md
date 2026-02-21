@@ -1,8 +1,8 @@
 # AI SDLC — Project Genesis: Implementation Requirements
 
-**Version**: 3.4.0
+**Version**: 3.5.0
 **Date**: 2026-02-21
-**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.6.0)
+**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
 
 ---
@@ -19,7 +19,7 @@ Platform-agnostic implementation requirements for tooling that delivers the AI S
 
 `REQ-{CATEGORY}-{SEQ}[.MAJOR.MINOR.PATCH]`
 
-Categories: `INTENT`, `GRAPH`, `ITER`, `EVAL`, `CTX`, `FEAT`, `LIFE`, `EDGE`, `TOOL`
+Categories: `INTENT`, `GRAPH`, `ITER`, `EVAL`, `CTX`, `FEAT`, `LIFE`, `EDGE`, `TOOL`, `UX`
 
 Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaking). No version suffix = current.
 
@@ -37,6 +37,7 @@ Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaki
 8. [Sensory Systems](#8-sensory-systems) — Interoception, exteroception, affect triage
 9. [Edge Parameterisations](#9-edge-parameterisations) — TDD, BDD, ADRs per edge type
 10. [Tooling](#10-tooling) — Plugins, workspace, commands
+11. [User Experience](#11-user-experience) — State-driven routing, progressive disclosure, observability
 
 ---
 
@@ -794,6 +795,89 @@ The system shall enforce the Spec/Design boundary — requirements (WHAT) must b
 
 ---
 
+## 11. User Experience
+
+### REQ-UX-001: State-Driven Routing
+
+**Priority**: High | **Phase**: 1
+
+The system shall detect project state and route to the appropriate action without requiring the user to know command names, edge syntax, or feature vector conventions.
+
+**Acceptance Criteria**:
+- State detection: UNINITIALISED, NEEDS_CONSTRAINTS, NEEDS_INTENT, NO_FEATURES, IN_PROGRESS, ALL_CONVERGED, ALL_BLOCKED, STUCK
+- Single entry point routes to correct action (init, constraint capture, intent authoring, iterate, review, spawn, gaps, release)
+- State derived from workspace filesystem + event log — never from stored "current state" variable
+
+**Traces To**: Asset Graph Model §7.5 (Event Sourcing — state derived, not stored) | Ontology #2 (constraint propagation — state computed from constraints)
+
+---
+
+### REQ-UX-002: Progressive Disclosure
+
+**Priority**: High | **Phase**: 1
+
+The system shall request only the information needed for the current edge, deferring configuration until the edge where it is consumed.
+
+**Acceptance Criteria**:
+- Project initialisation requires ≤5 user inputs (name, project kind, language, test runner, intent description)
+- Constraint dimensions (ecosystem, deployment, security, build) deferred until `requirements→design` edge
+- Advisory dimensions deferred until explicitly needed or user opts in
+- Sensible defaults inferred from project detection (language, framework, test runner from config files)
+
+**Traces To**: Asset Graph Model §2.8 (Instantiation Layers — Layer 3 binding is incremental) | Ontology #39 (abiogenesis — encoding emerges from practice, not upfront specification)
+
+---
+
+### REQ-UX-003: Project-Wide Observability
+
+**Priority**: High | **Phase**: 1
+
+The system shall provide a project-level status view that aggregates across all features, shows blocked/in-progress/pending state, surfaces unactioned signals, and previews the next recommended action.
+
+**Acceptance Criteria**:
+- "You are here" indicator per feature: compact graph path with convergence markers
+- Cross-feature rollup: aggregate edge convergence counts
+- Blocked features shown with reason (spawn dependency, human review pending, stuck)
+- Unactioned `intent_raised` events surfaced as signals
+- Preview of what state-driven routing would do next
+- Workspace health check: event log integrity, feature vector consistency, orphaned spawns, stuck detection
+
+**Traces To**: Asset Graph Model §7.6 (Self-Observation) | Ontology #15 (trajectory observation — observing the system's own trajectories)
+
+---
+
+### REQ-UX-004: Automatic Feature and Edge Selection
+
+**Priority**: Medium | **Phase**: 1
+
+When multiple features are active, the system shall select the highest-priority actionable feature and determine the next unconverged edge from the graph topology, filtered by the active profile.
+
+**Acceptance Criteria**:
+- Feature selection priority: time-boxed spawns (urgency) → closest-to-complete (reduce WIP) → feature priority → most recently touched
+- Edge determination: topological walk of graph, skip converged, skip edges not in profile
+- User can override selection explicitly
+- Selection reasoning displayed to user
+
+**Traces To**: Asset Graph Model §6.3 (Task Planning as Trajectory Optimisation) | Ontology #45 (deterministic compute regime — selection is computable)
+
+---
+
+### REQ-UX-005: Recovery and Self-Healing
+
+**Priority**: Medium | **Phase**: 1
+
+The system shall detect and guide recovery from inconsistent workspace states without destructive reset.
+
+**Acceptance Criteria**:
+- Detect: corrupted event log, missing feature vectors, orphaned spawns, stuck features (δ unchanged 3+ iterations), unresolved mandatory constraints
+- Guided recovery: suggest specific fix actions for each detected issue
+- Non-destructive: never silently delete user data; always ask before overwrite
+- Workspace rebuildable from event log (event sourcing guarantee)
+
+**Traces To**: Asset Graph Model §7.5 (Event Sourcing — views reconstructible from events) | Ontology #7 (Markov object — stable boundary enables recovery)
+
+---
+
 ## Requirement Summary
 
 | Category | Count | Critical | High | Medium |
@@ -808,10 +892,11 @@ The system shall enforce the Spec/Design boundary — requirements (WHAT) must b
 | Sensory Systems | 5 | 0 | 4 | 1 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
 | Tooling | 10 | 0 | 6 | 4 |
-| **Total** | **44** | **10** | **28** | **7** |
+| User Experience | 5 | 0 | 3 | 2 |
+| **Total** | **49** | **10** | **31** | **9** |
 
-### Phase 1 (Core Graph Engine): 33 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, consciousness loop mechanics (intent events, signal classification, spec change events, protocol enforcement).
+### Phase 1 (Core Graph Engine): 38 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, consciousness loop mechanics (intent events, signal classification, spec change events, protocol enforcement), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery).
 
 ### Phase 2 (Full Lifecycle): 11 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary.

@@ -1,24 +1,45 @@
 # /aisdlc-status - Show Feature Vector Progress
 
-Display the current state of all feature vectors and their trajectories through the graph.
+Display the current state of all feature vectors and their trajectories through the graph. Enhanced with state detection, "you are here" indicators, project rollup, signals, and workspace health.
 
-<!-- Implements: REQ-TOOL-002, REQ-FEAT-002 -->
-<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.6.0 §7.5 Event Sourcing, §7.6 Self-Observation -->
+<!-- Implements: REQ-TOOL-002, REQ-FEAT-002, REQ-UX-003, REQ-UX-005 -->
+<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.7.0 §7.5 Event Sourcing, §7.6 Self-Observation, ADR-012 -->
 
 ## Usage
 
 ```
-/aisdlc-status [--feature "REQ-F-*"] [--verbose] [--gantt]
+/aisdlc-status [--feature "REQ-F-*"] [--verbose] [--gantt] [--health]
 ```
 
 | Option | Description |
 |--------|-------------|
-| (none) | Show summary of all feature vectors |
+| (none) | Show summary of all feature vectors with state detection |
 | `--feature` | Show detailed status for a specific feature |
 | `--verbose` | Show iteration history and evaluator details |
 | `--gantt` | Show Mermaid Gantt chart of feature build schedule |
+| `--health` | Run workspace health check (event log integrity, orphaned spawns, stuck detection) |
 
 ## Instructions
+
+### Step 0: State Detection (always runs first)
+
+Detect the current project state using the same algorithm as `/aisdlc-start`:
+
+1. Check for `.ai-workspace/` directory → UNINITIALISED if missing
+2. Check for unresolved mandatory constraints → NEEDS_CONSTRAINTS
+3. Check for intent → NEEDS_INTENT
+4. Check for active features → NO_FEATURES
+5. Check for stuck features (δ unchanged 3+ iterations) → STUCK
+6. Check for all blocked → ALL_BLOCKED
+7. Check for unconverged edges → IN_PROGRESS
+8. Check for all converged → ALL_CONVERGED
+
+Display at the top of output:
+
+```
+State: IN_PROGRESS
+  What /aisdlc-start would do: iterate REQ-F-AUTH-001 on code↔unit_tests
+```
 
 ### Default View (No Arguments)
 
@@ -28,6 +49,19 @@ Read `.ai-workspace/features/feature_index.yml` and all feature files to produce
 AI SDLC Status — {project_name}
 ================================
 
+State: IN_PROGRESS
+  Start would: iterate REQ-F-AUTH-001 on code↔unit_tests (closest-to-complete)
+
+You Are Here:
+  REQ-F-AUTH-001  intent ✓ → req ✓ → design ✓ → code ● → tests ● → uat ○
+  REQ-F-DB-001    intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓ → uat ✓
+  REQ-F-API-001   intent ✓ → req ● → design ○ → code ○ → tests ○ → uat ○
+
+Project Rollup:
+  Edges converged: 12/20 (60%)
+  Features:  1 converged, 2 in-progress, 0 blocked, 0 stuck
+  Signals:   1 unactioned intent_raised
+
 Active Features:
   REQ-F-AUTH-001  "User authentication"      design→code (iter 3)
   REQ-F-DB-001    "Database schema"           code↔tests (converged)
@@ -35,6 +69,9 @@ Active Features:
 
 Completed Features:
   REQ-F-SETUP-001 "Project scaffolding"       all edges converged
+
+Signals:
+  INT-ECO-003 (unactioned) — "dependency update: requests 2.32.0 available"
 
 Graph Coverage:
   Requirements:  12/15 (80%)
@@ -46,6 +83,31 @@ Next Actions:
   - REQ-F-AUTH-001: iterate on design→code edge
   - REQ-F-API-001: human review pending on requirements
 ```
+
+#### "You Are Here" Indicators
+
+For each active feature, show a compact graph path using convergence markers:
+- `✓` — converged (edge complete)
+- `●` — iterating (in progress)
+- `○` — pending (not started)
+- `✗` — blocked (dependency or stuck)
+
+Only show edges that are in the feature's active profile. Co-evolution edges show as a single unit.
+
+#### Project Rollup
+
+Aggregate across all features:
+- Total edges converged / total edges required
+- Feature count by status: converged, in-progress, blocked, stuck
+- Unactioned signal count (intent_raised events not yet acted upon)
+
+#### Signals
+
+Read `events.jsonl` for `intent_raised` events that have not been followed by a corresponding `spawn_created` or `spec_modified` event. These are unactioned signals that need human attention.
+
+#### "What Start Would Do"
+
+Preview the action that `/aisdlc-start` would take, including feature selection reasoning and edge determination. This helps the user understand the routing logic without invoking it.
 
 ### Detailed View (--feature)
 
@@ -206,6 +268,46 @@ Generated: {ISO timestamp}
 3. The file is viewable in VS Code with Mermaid preview extensions, or renderable to PDF via `md2pdf .ai-workspace/STATUS.md`
 
 **Important**: The status command always OVERWRITES `STATUS.md` — it is a derived snapshot, not a log. The source of truth is `events/events.jsonl`.
+
+### Health Check View (--health)
+
+Run workspace health diagnostics (REQ-UX-005):
+
+```
+Workspace Health — {project_name}
+===================================
+
+Event Log:
+  ✓ events.jsonl exists (342 events)
+  ✓ All lines valid JSON
+  ✓ All events have required fields (event_type, timestamp, project)
+  ✗ 2 events reference unknown feature IDs
+
+Feature Vectors:
+  ✓ 4 active feature vectors
+  ✓ All feature IDs match REQ-F-* format
+  ✗ 1 orphaned spawn (REQ-F-SPIKE-003 — parent REQ-F-AUTH-001 not found)
+
+Convergence:
+  ✓ No stuck features (all δ changing)
+  ✓ No time-box expirations pending
+
+Constraints:
+  ✓ All mandatory dimensions resolved
+  ✓ 2/4 advisory dimensions documented
+
+Recommendations:
+  1. Fix orphaned spawn: link REQ-F-SPIKE-003 to correct parent or archive
+  2. Investigate 2 events with unknown feature IDs
+```
+
+Checks performed:
+- **Event log integrity**: valid JSON, required fields, no orphan references
+- **Feature vector consistency**: valid format, parent/child links resolve, no duplicates
+- **Orphaned spawns**: child vectors with broken parent references
+- **Stuck detection**: features with δ unchanged for 3+ iterations
+- **Constraint resolution**: mandatory dimensions filled at design edge
+- **Time-box monitoring**: approaching or expired time boxes
 
 ### Event Sourcing Architecture
 

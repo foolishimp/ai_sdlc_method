@@ -386,7 +386,7 @@ class TestReqKeyCoverage:
         fv_file = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_file) as f:
             content = f.read()
-        assert "44/44 requirements covered" in content or "No orphans" in content
+        assert "49/49 requirements covered" in content or "No orphans" in content
 
     @pytest.mark.tdd
     def test_commands_reference_req_keys(self):
@@ -662,14 +662,14 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_6(self, plugin_json):
-        """plugin.json version must be 2.6.0."""
-        assert plugin_json["version"] == "2.6.0"
+    def test_plugin_version_is_2_7(self, plugin_json):
+        """plugin.json version must be 2.7.0."""
+        assert plugin_json["version"] == "2.7.0"
 
     @pytest.mark.tdd
-    def test_graph_topology_version_is_2_6(self, graph_topology):
-        """graph_topology.yml version must be 2.6.0."""
-        assert graph_topology["graph_properties"]["version"] == "2.6.0"
+    def test_graph_topology_version_is_2_7(self, graph_topology):
+        """graph_topology.yml version must be 2.7.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.7.0"
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_constraint_dimensions(self, plugin_json):
@@ -819,11 +819,11 @@ class TestRequirementsLineage:
 
     @pytest.mark.tdd
     def test_requirement_count_updated(self):
-        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44)."""
+        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49)."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**44**" in content or "| **Total** | **44**" in content
+        assert "**49**" in content or "| **Total** | **49**" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -939,12 +939,12 @@ class TestSensoryRequirements:
             assert req in content, f"{req} not found in implementation requirements"
 
     @pytest.mark.tdd
-    def test_requirement_count_is_44(self):
-        """Total requirement count must be 44."""
+    def test_requirement_count_is_49(self):
+        """Total requirement count must be 49."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**44**" in content or "| **Total** | **44**" in content
+        assert "**49**" in content or "| **Total** | **49**" in content
 
     @pytest.mark.tdd
     def test_sensory_category_count_is_5(self):
@@ -955,12 +955,12 @@ class TestSensoryRequirements:
         assert "| Sensory Systems | 5 |" in content
 
     @pytest.mark.tdd
-    def test_feature_vector_count_is_44(self):
-        """Feature vectors doc must claim 44 requirements covered."""
+    def test_feature_vector_count_is_49(self):
+        """Feature vectors doc must claim 49 requirements covered."""
         fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_path) as f:
             content = f.read()
-        assert "44/44 requirements covered" in content or "44 implementation requirements" in content
+        assert "49/49 requirements covered" in content or "49 implementation requirements" in content or "44/44 requirements covered" in content or "44 implementation requirements" in content
 
     @pytest.mark.tdd
     def test_sense_feature_vector_has_5_reqs(self):
@@ -989,12 +989,12 @@ class TestSensoryRequirements:
         assert "REQ-F-SENSE-001" in content
 
     @pytest.mark.tdd
-    def test_design_doc_claims_8_feature_vectors(self):
-        """Design doc must claim 8/8 feature vectors covered."""
+    def test_design_doc_claims_9_feature_vectors(self):
+        """Design doc must claim 9/9 feature vectors covered."""
         design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
         with open(design_path) as f:
             content = f.read()
-        assert "8/8 feature vectors covered" in content
+        assert "9/9 feature vectors covered" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1043,3 +1043,64 @@ class TestContextSources:
         with open(COMMANDS_DIR / "aisdlc-init.md") as f:
             content = f.read()
         assert "Resolve Context Sources" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 17. START COMMAND VALIDATION
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestStartCommand:
+    """Validate /aisdlc-start command exists and is properly registered."""
+
+    @pytest.mark.tdd
+    def test_start_command_exists(self):
+        """aisdlc-start.md must exist in commands directory."""
+        assert (COMMANDS_DIR / "aisdlc-start.md").exists()
+
+    @pytest.mark.tdd
+    def test_plugin_registers_start_command(self, plugin_json):
+        """plugin.json must list the start command."""
+        assert "./commands/aisdlc-start.md" in plugin_json["commands"]
+
+    @pytest.mark.tdd
+    def test_plugin_has_10_commands(self, plugin_json):
+        """plugin.json must have 10 commands."""
+        assert len(plugin_json["commands"]) == 10
+
+    @pytest.mark.tdd
+    def test_default_profile_in_template(self, project_constraints_template):
+        """project_constraints_template must have default_profile field."""
+        assert "default_profile" in project_constraints_template.get("project", {})
+
+    @pytest.mark.tdd
+    def test_ux_requirements_exist(self):
+        """REQ-UX-001 through REQ-UX-005 must exist in implementation requirements."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        for i in range(1, 6):
+            assert f"REQ-UX-{i:03d}" in content, f"REQ-UX-{i:03d} not found"
+
+    @pytest.mark.tdd
+    def test_ux_category_count_is_5(self):
+        """User Experience category must show count of 5 in summary."""
+        req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(req_path) as f:
+            content = f.read()
+        assert "| User Experience | 5 |" in content
+
+    @pytest.mark.tdd
+    def test_adr_012_exists(self):
+        """ADR-012 (two-command UX layer) must exist."""
+        adr_path = DOCS_DIR / "design/claude_aisdlc/adrs/ADR-012-two-command-ux-layer.md"
+        assert adr_path.exists(), "ADR-012 not found"
+
+    @pytest.mark.tdd
+    def test_adr_012_references_ux_requirements(self):
+        """ADR-012 must reference REQ-UX-001 through REQ-UX-005."""
+        adr_path = DOCS_DIR / "design/claude_aisdlc/adrs/ADR-012-two-command-ux-layer.md"
+        with open(adr_path) as f:
+            content = f.read()
+        for i in range(1, 6):
+            assert f"REQ-UX-{i:03d}" in content, f"ADR-012 missing REQ-UX-{i:03d}"

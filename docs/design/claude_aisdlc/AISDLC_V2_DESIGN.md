@@ -1,9 +1,9 @@
-# AI SDLC — Claude Code Implementation Design (v2.6)
+# AI SDLC — Claude Code Implementation Design (v2.7)
 
 **Version**: 2.0.0
 **Date**: 2026-02-20
 **Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.0.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.6.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
 ---
@@ -27,11 +27,12 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 - Stage-specific skills → evaluator + constructor composition per edge
 - Fixed topology → configurable graph in Context[]
 
-**What v2.0.0 adds** (from spec v2.6.0):
+**What v2.0.0 adds** (from spec v2.7.0):
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
 - Constraint dimension taxonomy at the design edge
 - Event sourcing as the formal execution model
 - Methodology self-observation via TELEM signals
+- Two-command UX layer: Start (routing) + Status (observability)
 
 ---
 
@@ -646,6 +647,112 @@ agent_classification:
     Respond with: classification, severity, recommended_action
 ```
 
+### 1.9 Two-Command UX Layer (ADR-012)
+
+**Implements**: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
+
+The methodology exposes 9 commands. UX gap analysis identified this as the primary adoption barrier. Two verbs replace the 9-command learning curve: **Status** ("Where am I?") and **Start** ("Go."). The 9 commands remain as a power-user escape hatch.
+
+#### 1.9.1 State Machine
+
+Start detects project state from the workspace filesystem and event log (never from a stored variable — consistent with §1.5 Event Sourcing). Eight states:
+
+| State | Detection | Action |
+|-------|-----------|--------|
+| `UNINITIALISED` | No `.ai-workspace/` directory | Delegate to `/aisdlc-init` |
+| `NEEDS_CONSTRAINTS` | `project_constraints.yml` has unresolved mandatory dimensions | Prompt for constraint dimensions |
+| `NEEDS_INTENT` | No intent file or empty intent | Prompt for intent description |
+| `NO_FEATURES` | Intent exists but no feature vectors in `features/active/` | Delegate to `/aisdlc-spawn` |
+| `IN_PROGRESS` | Active features with unconverged edges | Select feature + edge, delegate to `/aisdlc-iterate` |
+| `ALL_CONVERGED` | All active features fully converged | Delegate to `/aisdlc-release` or suggest `/aisdlc-gaps` |
+| `ALL_BLOCKED` | All features blocked (spawn dependency, human review) | Surface blockers, suggest `/aisdlc-review` or `/aisdlc-spawn` |
+| `STUCK` | Feature with δ unchanged for 3+ iterations | Surface stuck features, suggest spawn discovery or human review |
+
+State transitions delegate to existing commands — Start does not duplicate their logic.
+
+#### 1.9.2 Progressive Init
+
+When state is `UNINITIALISED`, Start runs a 5-question progressive init:
+
+1. **Project name** (auto-detect from directory or `package.json`/`pyproject.toml`)
+2. **Project kind** (application / library / service / data-pipeline)
+3. **Language** (auto-detect from existing files)
+4. **Test runner** (auto-detect from config files — `pytest.ini`, `jest.config.*`, `build.sbt`)
+5. **Intent description** (one sentence — what are you building?)
+
+From these 5 inputs, Start:
+- Delegates to `/aisdlc-init` with detected values
+- Infers a default profile (application → standard, library → full, data-pipeline → standard)
+- Defers constraint dimensions until the `requirements→design` edge
+
+#### 1.9.3 Deferred Constraint Prompting
+
+At the `requirements→design` edge (and only then), Start prompts for unresolved mandatory constraint dimensions:
+
+- **ecosystem_compatibility**: language, version, runtime, frameworks (pre-populated from init detection)
+- **deployment_target**: platform, cloud provider, environment tiers
+- **security_model**: authentication, authorisation, data protection
+- **build_system**: tool, module structure, CI integration
+
+Advisory dimensions are mentioned but not required. This implements REQ-UX-002 (progressive disclosure).
+
+#### 1.9.4 Feature Selection Algorithm
+
+When multiple features are active (state `IN_PROGRESS`), Start selects the highest-priority actionable feature:
+
+1. **Time-boxed spawns** — urgency (approaching or expired time box)
+2. **Closest-to-complete** — reduce WIP (fewest unconverged edges remaining)
+3. **Feature priority** — from feature vector `priority` field
+4. **Most recently touched** — from last event timestamp
+
+User can override with `--feature "REQ-F-*"`.
+
+#### 1.9.5 Edge Determination Algorithm
+
+Given a selected feature, Start determines the next edge:
+
+1. Load active profile's graph (which edges are included)
+2. Walk edges in topological order
+3. Skip converged edges
+4. Skip edges not in the active profile
+5. Return the first unconverged, non-skipped edge
+
+For co-evolution edges (code↔unit_tests), both sides are presented as a single unit.
+
+#### 1.9.6 Auto-Mode Loop
+
+With `--auto` flag, Start loops: select feature → determine edge → delegate to iterate → check convergence → repeat. Loop pauses at:
+
+- **Human gates**: edges where `human_required: true` (e.g., requirements→design)
+- **Spawn decisions**: when iterate recommends spawning a sub-vector
+- **Stuck detection**: when δ unchanged for 3+ iterations
+- **Profile time-box expiry**: when the feature's time box expires
+
+#### 1.9.7 Status Enhancements
+
+Status is enhanced with:
+
+- **Step 0: State Detection** — compute and display current project state (same algorithm as Start)
+- **Project Rollup** — aggregate edge convergence counts across all features
+- **"You Are Here" indicators** — compact graph path per feature: `intent ✓ → req ✓ → design ✓ → code ● → tests ● → uat ○`
+- **Signals** — unactioned `intent_raised` events surfaced as pending signals
+- **"What Start Would Do"** — preview of next action Start would take
+- **`--health` flag** — workspace health check: event log integrity, feature vector consistency, orphaned spawns, stuck detection
+
+#### 1.9.8 Recovery Logic
+
+When state detection finds inconsistencies (REQ-UX-005), Start offers guided recovery:
+
+| Issue | Detection | Recovery |
+|-------|-----------|----------|
+| Corrupted event log | Malformed JSON lines | Offer to truncate at last valid line |
+| Missing feature vectors | Event log references features with no `.yml` | Offer to regenerate from events |
+| Orphaned spawns | Child vectors with no parent reference | Offer to link or archive |
+| Stuck features | δ unchanged 3+ iterations | Suggest spawn discovery or human review |
+| Unresolved constraints | Mandatory dimensions empty at design edge | Prompt for values |
+
+All recovery is non-destructive — Start never silently deletes user data.
+
 ---
 
 ## 2. Component Design
@@ -1113,6 +1220,7 @@ validation_enabled: true  # Tooling parses tag format, not comment syntax
 | `/aisdlc-trace` | Show trajectory for a REQ key | Navigate feature graph |
 | `/aisdlc-gaps` | Test gap analysis | Compare REQ keys vs tests |
 | `/aisdlc-release` | Create release with REQ coverage | Generate release manifest |
+| `/aisdlc-start` | State-driven routing entry point | Detect state, select feature/edge, delegate |
 | `/aisdlc-init` | Scaffold new project | Create workspace structure |
 
 #### Plugin Delivery
@@ -1132,6 +1240,7 @@ claude-code/.claude-plugin/plugins/aisdlc-methodology/
 ├── agents/
 │   └── aisdlc-iterate.md        # The ONE agent
 ├── commands/
+│   ├── aisdlc-start.md
 │   ├── aisdlc-iterate.md
 │   ├── aisdlc-status.md
 │   ├── aisdlc-checkpoint.md
@@ -1224,7 +1333,7 @@ What Phase 2 adds:
 | 42→11 skills | Edge parameterisation configs (YAML) |
 | stages_config.yml (1,273 lines) | graph_topology.yml + edge_params/ (~200 lines) |
 | Fixed 7-stage pipeline | Configurable graph in Context[] |
-| 9 commands | 9 commands (different operations) |
+| 9 commands | 10 commands (9 power-user + Start routing layer) |
 | .ai-workspace with task focus | .ai-workspace with graph/context/features/tasks |
 
 ### What Carries Forward
@@ -1262,6 +1371,7 @@ What Phase 2 adds:
 - **ADR-008**: Universal Iterate Agent (single agent, edge-parameterised)
 - **ADR-009**: Graph Topology as Configuration (YAML-based, extensible)
 - **ADR-010**: Spec Reproducibility (canonical serialisation, content-addressable hashing)
+- **ADR-012**: Two-Command UX Layer (Start routing + Status observability)
 
 ---
 
@@ -1277,8 +1387,9 @@ What Phase 2 adds:
 | REQ-F-TOOL-001 | §2.6 Developer Tooling | Designed |
 | REQ-F-LIFE-001 | §3 Lifecycle Closure | Designed (Phase 2 scope) |
 | REQ-F-SENSE-001 | §1.8 Sensory Service | Designed |
+| REQ-F-UX-001 | §1.9 Two-Command UX Layer | Designed |
 
-**8/8 feature vectors covered.**
+**9/9 feature vectors covered.**
 
 ---
 
@@ -1300,7 +1411,7 @@ Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
 ## References
 
 - [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.6.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 44 implementation requirements (v3.4.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 49 implementation requirements (v3.5.0)
 - [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
 - [AISDLC_IMPLEMENTATION_DESIGN.md](AISDLC_IMPLEMENTATION_DESIGN.md) — Prior v1.x design (superseded)
 - [adrs/ADR-001-claude-code-as-mvp-platform.md](adrs/ADR-001-claude-code-as-mvp-platform.md) — Platform choice (carried forward)

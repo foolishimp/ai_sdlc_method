@@ -23,6 +23,7 @@
 project:
   name: "{project_name}"
   version: "0.1.0"
+  default_profile: standard        # standard | full | poc | spike | hotfix | minimal
 
 # ═══════════════════════════════════════════════════════════════════════
 # CONTEXT SOURCES (Layer 3 — external AD collections)
