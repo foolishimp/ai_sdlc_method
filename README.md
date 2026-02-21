@@ -135,12 +135,12 @@ ai_sdlc_method/
 
 ## Status
 
-**Version**: 2.1 (Asset Graph Model)
+**Version**: 2.5.0 (Asset Graph Model — Project Genesis)
 
-- Spec: Complete (formal system, projections, invariants)
+- Spec: Complete (formal system, projections, invariants, consciousness loop, processing regimes)
 - Design: Complete (Claude Code binding, ADRs)
-- Code: Phase 1a (configs, iterate agent, commands — no executable engine)
-- Tests: Not started
+- Code: Phase 1a (configs, iterate agent, 9 commands, 2 hooks — no executable engine)
+- Tests: 259 tests (config validation + BDD methodology)
 - UAT / CI/CD / Telemetry: Not started
 
 **v1.x preserved at tag `v1.x-final`** — recoverable via `git checkout v1.x-final`

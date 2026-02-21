@@ -6,6 +6,8 @@
 # Records edge context so the Stop hook can verify protocol completion.
 #
 # Implements: Protocol enforcement (Layer 1 — Engine)
+# Processing regime: REFLEX (§4.3) — fires unconditionally at prompt
+# boundary, no judgment required.
 # ============================================================================
 
 set -euo pipefail
@@ -24,10 +26,32 @@ if [ ! -d "$WORKSPACE" ]; then
   exit 0
 fi
 
+# -----------------------------------------------------------------------
+# Build valid asset type list from graph topology (topology-aware)
+# Checks workspace copy first (project override), then plugin source.
+# -----------------------------------------------------------------------
+TOPOLOGY=""
+if [ -f "$WORKSPACE/graph/graph_topology.yml" ]; then
+  TOPOLOGY="$WORKSPACE/graph/graph_topology.yml"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/config/graph_topology.yml" ]; then
+  TOPOLOGY="${CLAUDE_PLUGIN_ROOT}/config/graph_topology.yml"
+fi
+
+if [ -n "$TOPOLOGY" ]; then
+  # Extract asset type keys: lines matching "^  <word>:" under asset_types section
+  # These are the valid node names for edge parsing
+  ASSET_TYPES=$(awk '/^asset_types:/{found=1; next} found && /^[^ ]/{exit} found && /^  [a-z_]+:/{gsub(/^  |:.*/, ""); print}' "$TOPOLOGY" 2>/dev/null | paste -sd'|' - || true)
+fi
+
+# Fallback: if topology parse failed or file not found, use known defaults
+if [ -z "${ASSET_TYPES:-}" ]; then
+  ASSET_TYPES="intent|requirements|design|module_decomp|basis_projections|code|unit_tests|uat_tests|test_cases|cicd|running_system|telemetry"
+fi
+
 # Extract edge from the prompt (best-effort parse)
 # Matches patterns like: --edge "intent→requirements" or --edge "design→code"
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
-EDGE=$(echo "$PROMPT" | grep -oE '(intent|requirements|design|module_decomp|basis_projections|code|unit_tests|uat_tests|test_cases|cicd|running_system|telemetry)[→↔](intent|requirements|design|module_decomp|basis_projections|code|unit_tests|uat_tests|test_cases|cicd|running_system|telemetry)' | head -1)
+EDGE=$(echo "$PROMPT" | grep -oE "(${ASSET_TYPES})[→↔](${ASSET_TYPES})" 2>/dev/null | head -1 || true)
 
 if [ -z "$EDGE" ]; then
   # Could not parse edge — don't set context, allow through

@@ -48,17 +48,17 @@ Four primitives. One operation. The rest is parameterisation.
 | Document | Purpose |
 |----------|---------|
 | [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | Canonical methodology — the 4 primitives, ontology grounding |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 32 implementation requirements derived from the model |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 39 implementation requirements derived from the model |
 | [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) | Parent theory |
 
 ---
 
 ## Current Status
 
-**Asset Graph Model (v2.1)**: Complete — replaces v1.x 7-stage pipeline
-**Implementation Requirements (v3.1)**: Complete — 32 requirements, 9 critical
-**Tooling (Claude Code plugins)**: Partial — agents, workspace, commands exist from v1.x, need realignment to graph model
-**Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) — needs update for v2.1
+**Asset Graph Model (v2.5)**: Complete — consciousness loop, processing regimes, protocol hooks
+**Implementation Requirements (v3.2)**: Complete — 39 requirements, 10 critical
+**Tooling (Claude Code plugins)**: Phase 1a — iterate agent, 9 commands, 2 hooks, configurable graph
+**Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) — CDME dogfood (5/5 edges converged)
 
 ---
 
@@ -68,3 +68,4 @@ Four primitives. One operation. The rest is parameterisation.
 - **v1.2** (2025-11): 7-stage pipeline model, 47 implementation requirements, ~4,400 lines across 4 methodology docs
 - **v2.0** (2026-02): Asset Graph Model — 4 primitives, 1 operation, ontology-grounded. Prior version tagged `v2.0`.
 - **v2.1** (2026-02): Revised framing — composite vectors, zoomable graph, scale-dependent assurance, 3-param iterate(). ~570-line canonical doc replaces 4,400 lines. 32 implementation requirements replace 47.
+- **v2.5** (2026-02): Consciousness loop, two processing regimes (conscious/reflex), protocol enforcement hooks, event sourcing, signal classification. 39 implementation requirements.

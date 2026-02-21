@@ -11,6 +11,11 @@
 # Deterministic). This hook adds protocol enforcement — a deterministic
 # check that iterate()'s mandatory side effects were completed.
 #
+# Processing regime: REFLEX (§4.3) — fires unconditionally at every stop
+# boundary. This is the autonomic nervous system verifying that the
+# mandatory reflexes (event emission, feature vector update, STATUS
+# regeneration) actually fired during the edge traversal.
+#
 # Implements: Protocol enforcement (Layer 1 — Engine)
 # ============================================================================
 
@@ -120,10 +125,12 @@ fi
 # (Filter by event type to avoid false blocks from spec_modified or other event types)
 # -----------------------------------------------------------------------
 if [ -f "$EVENTS_FILE" ]; then
-  LAST_EDGE_EVENT=$(grep '"iteration_completed"' "$EVENTS_FILE" | tail -1)
-  if [ -z "$LAST_EDGE_EVENT" ]; then
-    # No edge_iteration_completed event at all — check the latest event as fallback
-    LAST_EDGE_EVENT=$(tail -1 "$EVENTS_FILE")
+  LAST_EDGE_EVENT=$(grep '"iteration_completed"' "$EVENTS_FILE" 2>/dev/null || true)
+  if [ -n "$LAST_EDGE_EVENT" ]; then
+    LAST_EDGE_EVENT=$(echo "$LAST_EDGE_EVENT" | tail -1)
+  else
+    # No iteration_completed event — check the latest event as fallback
+    LAST_EDGE_EVENT=$(tail -1 "$EVENTS_FILE" 2>/dev/null || true)
   fi
   HAS_FINDINGS=$(echo "$LAST_EDGE_EVENT" | jq 'has("source_findings")' 2>/dev/null || echo "false")
   HAS_GAPS=$(echo "$LAST_EDGE_EVENT" | jq 'has("process_gaps")' 2>/dev/null || echo "false")

@@ -386,7 +386,7 @@ class TestReqKeyCoverage:
         fv_file = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_file) as f:
             content = f.read()
-        assert "35/35 requirements covered" in content or "No orphans" in content
+        assert "39/39 requirements covered" in content or "No orphans" in content
 
     @pytest.mark.tdd
     def test_commands_reference_req_keys(self):
@@ -662,14 +662,14 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_3(self, plugin_json):
-        """plugin.json version must be 2.3.0."""
-        assert plugin_json["version"] == "2.3.0"
+    def test_plugin_version_is_2_5(self, plugin_json):
+        """plugin.json version must be 2.5.0."""
+        assert plugin_json["version"] == "2.5.0"
 
     @pytest.mark.tdd
-    def test_graph_topology_version_is_2_3(self, graph_topology):
-        """graph_topology.yml version must be 2.3.0."""
-        assert graph_topology["graph_properties"]["version"] == "2.3.0"
+    def test_graph_topology_version_is_2_5(self, graph_topology):
+        """graph_topology.yml version must be 2.5.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.5.0"
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_constraint_dimensions(self, plugin_json):
