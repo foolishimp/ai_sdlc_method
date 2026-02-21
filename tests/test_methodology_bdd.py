@@ -1680,3 +1680,51 @@ class TestSensoryServiceArchitecture:
         with open(spec_path) as f:
             content = f.read()
         assert "Service-hosted" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 25: Context Sources — URI-Based External AD Collections
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestContextSourcesInSpec:
+    """
+    GIVEN the context sources feature (URI-based external AD collections)
+    WHEN we check spec, design, init command, and iterate agent
+    THEN context sources are defined, documented, and wired through.
+
+    Validates: REQ-CTX-001, REQ-CTX-002
+    """
+
+    @pytest.mark.bdd
+    def test_spec_defines_context_sources(self):
+        """AI_SDLC_ASSET_GRAPH_MODEL.md must mention context sources in §2.8."""
+        spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "Context sources" in content
+        assert "URI references" in content or "uri" in content.lower()
+
+    @pytest.mark.bdd
+    def test_design_defines_context_sources(self):
+        """AISDLC_V2_DESIGN.md must describe context source resolution."""
+        design_path = DOCS_DIR / "design/claude_aisdlc/AISDLC_V2_DESIGN.md"
+        with open(design_path) as f:
+            content = f.read()
+        assert "context_sources" in content
+        assert "standards/" in content
+
+    @pytest.mark.bdd
+    def test_iterate_agent_scans_standards_dir(self):
+        """aisdlc-iterate.md must mention context/standards/ directory."""
+        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+            content = f.read()
+        assert "context/standards/" in content
+
+    @pytest.mark.bdd
+    def test_init_resolves_context_sources(self):
+        """aisdlc-init.md must have Step 4b for resolving context sources."""
+        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+            content = f.read()
+        assert "Step 4b" in content
+        assert "Resolve Context Sources" in content

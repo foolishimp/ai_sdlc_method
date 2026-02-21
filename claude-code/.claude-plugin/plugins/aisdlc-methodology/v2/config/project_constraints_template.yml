@@ -25,6 +25,42 @@ project:
   version: "0.1.0"
 
 # ═══════════════════════════════════════════════════════════════════════
+# CONTEXT SOURCES (Layer 3 — external AD collections)
+# ═══════════════════════════════════════════════════════════════════════
+# URI references to external Architecture Decision collections.
+# /aisdlc-init resolves these and copies files into .ai-workspace/context/.
+# The iterate agent discovers context files by scanning those directories —
+# no agent changes needed, files just need to land there.
+#
+# Supported URI schemes (v1):
+#   file:///absolute/path/to/collection/
+#   /absolute/path/to/collection/        (shorthand for file://)
+#   ../relative/path/to/collection/      (relative to project root)
+#
+# Each source maps to a context subdirectory (scope):
+#   adrs, data_models, templates, policy, standards
+#
+# Sources are copied, not symlinked — enabling offline use and
+# content-addressable hashing for spec reproducibility.
+
+context_sources: []
+  # - uri: "/path/to/org-standards/engineering"
+  #   scope: templates
+  #   description: "Org-wide engineering standards and patterns"
+  #
+  # - uri: "../shared/security-policy"
+  #   scope: policy
+  #   description: "Security compliance Architecture Decisions"
+  #
+  # - uri: "/path/to/team/python-templates"
+  #   scope: templates
+  #   description: "Python project templates and exemplars"
+  #
+  # - uri: "/path/to/platform/adrs"
+  #   scope: adrs
+  #   description: "Platform-level architectural decisions"
+
+# ═══════════════════════════════════════════════════════════════════════
 # LANGUAGE & RUNTIME
 # ═══════════════════════════════════════════════════════════════════════
 

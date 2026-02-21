@@ -1,7 +1,7 @@
 {
   "name": "aisdlc-methodology-v2",
-  "version": "2.5.0",
-  "description": "AI SDLC Asset Graph Model v2.5 — universal iterate agent, edge-parameterised graph, constraint dimensions, event sourcing, projection profiles, methodology self-observation, traceability validation, protocol enforcement hooks, build decomposition (module decomposition + basis projections), consciousness loop (spec as absorbing boundary, intent events, spec change events, Hamiltonian shift dynamics). 1 agent, 9 commands, 2 hooks, configurable YAML topology.",
+  "version": "2.6.0",
+  "description": "AI SDLC Asset Graph Model v2.6 — universal iterate agent, edge-parameterised graph, constraint dimensions, event sourcing, projection profiles, methodology self-observation, traceability validation, protocol enforcement hooks, three processing phases (reflex/affect/conscious), sensory systems (interoception/exteroception), consciousness loop (spec as absorbing boundary, intent events, spec change events, Hamiltonian shift dynamics), context sources. 1 agent, 9 commands, 2 hooks, configurable YAML topology.",
   "author": {
     "name": "foolishimp"
   },

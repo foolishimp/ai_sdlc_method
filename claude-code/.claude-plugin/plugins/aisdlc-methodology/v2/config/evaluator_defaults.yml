@@ -1,5 +1,5 @@
 # AI SDLC — Evaluator Defaults
-# Version: 2.5.0
+# Version: 2.6.0
 # Reference: AISDLC_IMPLEMENTATION_REQUIREMENTS.md REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003
 #
 # Defines the three evaluator types and their default behaviour.
@@ -12,6 +12,7 @@ evaluator_types:
   human:
     type: human
     processing_phase: conscious
+    processing_phases: [conscious]
     description: "Human judgment — approval, rejection, or refinement guidance"
     mechanism: |
       Present the current asset candidate to the user.
@@ -25,7 +26,8 @@ evaluator_types:
 
   agent:
     type: agent
-    processing_phase: conscious    # Also operates at affect phase for signal classification/triage
+    processing_phase: conscious
+    processing_phases: [conscious, affect]    # Deliberative + signal classification/triage
     description: "LLM-based assessment — coherence, completeness, gap analysis"
     mechanism: |
       Assess the current asset candidate against:
@@ -44,6 +46,7 @@ evaluator_types:
   deterministic:
     type: deterministic
     processing_phase: reflex
+    processing_phases: [reflex]
     description: "Automated checks — tests, schemas, linters, format validators"
     mechanism: |
       Run or invoke automated validation:

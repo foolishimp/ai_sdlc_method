@@ -662,14 +662,14 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_5(self, plugin_json):
-        """plugin.json version must be 2.5.0."""
-        assert plugin_json["version"] == "2.5.0"
+    def test_plugin_version_is_2_6(self, plugin_json):
+        """plugin.json version must be 2.6.0."""
+        assert plugin_json["version"] == "2.6.0"
 
     @pytest.mark.tdd
-    def test_graph_topology_version_is_2_5(self, graph_topology):
-        """graph_topology.yml version must be 2.5.0."""
-        assert graph_topology["graph_properties"]["version"] == "2.5.0"
+    def test_graph_topology_version_is_2_6(self, graph_topology):
+        """graph_topology.yml version must be 2.6.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.6.0"
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_constraint_dimensions(self, plugin_json):
@@ -869,6 +869,33 @@ class TestProcessingPhases:
                 f"evaluator '{name}' has invalid processing_phase '{phase}'"
 
     @pytest.mark.tdd
+    def test_all_evaluator_types_have_processing_phases_list(self, evaluator_defaults):
+        """Every evaluator type must declare a processing_phases list field."""
+        for name, evtype in evaluator_defaults["evaluator_types"].items():
+            assert "processing_phases" in evtype, \
+                f"evaluator '{name}' missing processing_phases list field"
+            assert isinstance(evtype["processing_phases"], list), \
+                f"evaluator '{name}' processing_phases must be a list"
+
+    @pytest.mark.tdd
+    def test_agent_spans_conscious_and_affect(self, evaluator_defaults):
+        """Agent evaluator must declare both conscious and affect processing phases."""
+        agent = evaluator_defaults["evaluator_types"]["agent"]
+        phases = agent["processing_phases"]
+        assert "conscious" in phases, "agent missing conscious in processing_phases"
+        assert "affect" in phases, "agent missing affect in processing_phases"
+
+    @pytest.mark.tdd
+    def test_affect_phase_has_evaluator(self, evaluator_defaults):
+        """At least one evaluator must include 'affect' in its processing_phases."""
+        found = False
+        for name, evtype in evaluator_defaults["evaluator_types"].items():
+            if "affect" in evtype.get("processing_phases", []):
+                found = True
+                break
+        assert found, "no evaluator is tagged with processing_phases containing 'affect'"
+
+    @pytest.mark.tdd
     def test_processing_phases_section_exists(self, evaluator_defaults):
         """evaluator_defaults.yml must have a processing_phases section."""
         assert "processing_phases" in evaluator_defaults
@@ -968,3 +995,51 @@ class TestSensoryRequirements:
         with open(design_path) as f:
             content = f.read()
         assert "8/8 feature vectors covered" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 16. CONTEXT SOURCES VALIDATION
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestContextSources:
+    """Context sources (URI-based external AD collections) must be defined in template."""
+
+    @pytest.mark.tdd
+    def test_template_has_context_sources_field(self, project_constraints_template):
+        """project_constraints_template.yml must contain context_sources."""
+        assert "context_sources" in project_constraints_template
+
+    @pytest.mark.tdd
+    def test_context_sources_is_list(self, project_constraints_template):
+        """context_sources parsed value must be a list."""
+        assert isinstance(project_constraints_template["context_sources"], list)
+
+    @pytest.mark.tdd
+    def test_context_sources_default_empty(self, project_constraints_template):
+        """Default template must have empty context_sources list."""
+        assert project_constraints_template["context_sources"] == []
+
+    @pytest.mark.tdd
+    def test_context_source_entry_schema(self):
+        """Commented examples must show uri, scope, description fields."""
+        with open(CONFIG_DIR / "project_constraints_template.yml") as f:
+            raw = f.read()
+        assert "uri:" in raw
+        assert "scope:" in raw
+        assert "description:" in raw
+
+    @pytest.mark.tdd
+    def test_valid_scopes_documented(self):
+        """Template comments must mention adrs, data_models, templates, policy, standards."""
+        with open(CONFIG_DIR / "project_constraints_template.yml") as f:
+            raw = f.read()
+        for scope in ("adrs", "data_models", "templates", "policy", "standards"):
+            assert scope in raw, f"scope '{scope}' not documented in template"
+
+    @pytest.mark.tdd
+    def test_init_documents_context_sources_step(self):
+        """aisdlc-init.md must contain 'Resolve Context Sources' step."""
+        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+            content = f.read()
+        assert "Resolve Context Sources" in content

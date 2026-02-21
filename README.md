@@ -146,7 +146,7 @@ ai_sdlc_method/
 │           └── ADR-010 (spec reproducibility)
 ├── claude-code/.../v2/                  # IMPLEMENTATION (Claude Code)
 │   ├── agents/aisdlc-iterate.md         #   The ONE agent
-│   ├── commands/ (8 commands)           #   /aisdlc-* slash commands
+│   ├── commands/ (9 commands)           #   /aisdlc-* slash commands
 │   └── config/                          #   Graph + edge parameterisations
 │       ├── graph_topology.yml
 │       ├── evaluator_defaults.yml
@@ -175,12 +175,12 @@ ai_sdlc_method/
 
 ## Status
 
-**Version**: 2.5.0 (Asset Graph Model — Project Genesis)
+**Version**: 2.6.0 (Asset Graph Model — Project Genesis)
 
-- Spec: Complete (formal system, projections, invariants, consciousness loop, processing regimes)
+- Spec: Complete (formal system, projections, invariants, consciousness loop, processing phases, sensory systems)
 - Design: Complete (Claude Code binding, ADRs)
 - Code: Phase 1a (configs, iterate agent, 9 commands, 2 hooks — no executable engine)
-- Tests: 259 tests (config validation + BDD methodology)
+- Tests: 297 tests (config validation + BDD methodology)
 - UAT / CI/CD / Telemetry: Not started
 
 **v1.x preserved at tag `v1.x-final`** — recoverable via `git checkout v1.x-final`

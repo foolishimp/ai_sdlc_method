@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-**ai_sdlc_method** defines a formal system for AI-augmented software development — the **Asset Graph Model** (v2.5).
+**ai_sdlc_method** defines a formal system for AI-augmented software development — the **Asset Graph Model** (v2.6).
 
 ### The Model
 
@@ -56,7 +56,7 @@ ai_sdlc_method/
 │   │   ├── INTENT.md                      #   Business intent
 │   │   ├── AI_SDLC_ASSET_GRAPH_MODEL.md   #   Formal system (4 primitives)
 │   │   ├── PROJECTIONS_AND_INVARIANTS.md   #   Projections, vector types
-│   │   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # 32 implementation reqs
+│   │   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # 44 implementation reqs
 │   │   ├── FEATURE_VECTORS.md             #   Feature decomposition
 │   │   └── presentations/*.pdf            #   PDF versions (via md2pdf)
 │   └── design/claude_aisdlc/              # DESIGN (Claude Code binding)
@@ -67,7 +67,7 @@ ai_sdlc_method/
 │           └── ADR-010-spec-reproducibility.md
 ├── claude-code/.../v2/                    # IMPLEMENTATION (Claude Code)
 │   ├── agents/aisdlc-iterate.md           #   The ONE agent
-│   ├── commands/ (8 commands)             #   /aisdlc-* slash commands
+│   ├── commands/ (9 commands)             #   /aisdlc-* slash commands
 │   └── config/
 │       ├── graph_topology.yml             #   Default SDLC graph
 │       ├── evaluator_defaults.yml         #   Evaluator types

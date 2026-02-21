@@ -1,6 +1,6 @@
 # AI SDLC — Default Graph Topology
-# Version: 2.5.0
-# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md (v2.5.0)
+# Version: 2.6.0
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md (v2.6.0)
 #
 # This file defines the asset types and admissible transitions for the
 # default SDLC graph. Projects can extend or modify this topology.
@@ -329,4 +329,4 @@ graph_properties:
   cyclic: true         # Feedback loop: telemetry → intent
   extensible: true     # Add new asset types/transitions via YAML
   zoomable: true       # Any edge can expand into a sub-graph
-  version: "2.5.0"
+  version: "2.6.0"

@@ -1,15 +1,15 @@
-# AI SDLC Methodology Plugin — v2.5 (Asset Graph Model — Project Genesis)
+# AI SDLC Methodology Plugin — v2.6 (Asset Graph Model — Project Genesis)
 
 ## What Changed from v1.x
 
-| Aspect | v1.x | v2.5 |
+| Aspect | v1.x | v2.6 |
 |--------|------|------|
 | Model | 7-stage pipeline | Asset graph with typed transitions |
 | Agents | 7 (one per stage) | 1 (universal iterate agent) |
 | Skills | 11 consolidated | Edge parameterisations (YAML) |
 | Topology | Hard-coded in agents | Configurable YAML (`graph_topology.yml`) |
 | Iteration | Per-stage feedback loops | Universal `iterate(Asset, Context[], Evaluators)` |
-| Commands | 9 | 8 (different operations) |
+| Commands | 9 | 9 (different operations) |
 | Reproducibility | Not addressed | Content-addressable context manifest |
 
 ## Structure
@@ -26,7 +26,8 @@ v2/
 │   ├── aisdlc-review.md           # Human evaluator review point
 │   ├── aisdlc-trace.md            # REQ key trajectory through graph
 │   ├── aisdlc-gaps.md             # Test gap analysis
-│   └── aisdlc-release.md          # Release with REQ coverage
+│   ├── aisdlc-release.md          # Release with REQ coverage
+│   └── aisdlc-spawn.md            # Spawn feature/spike/hotfix vector
 ├── config/
 │   ├── graph_topology.yml         # Default asset types + transitions
 │   ├── evaluator_defaults.yml     # Human/Agent/Deterministic defaults
@@ -40,7 +41,7 @@ v2/
 │       ├── design_code.yml
 │       ├── design_tests.yml
 │       └── feedback_loop.yml
-├── plugin.json                    # Plugin metadata (v2.5.0)
+├── plugin.json                    # Plugin metadata (v2.6.0)
 └── README.md                      # This file
 ```
 

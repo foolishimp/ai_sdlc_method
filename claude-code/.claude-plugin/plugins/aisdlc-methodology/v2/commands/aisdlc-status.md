@@ -3,7 +3,7 @@
 Display the current state of all feature vectors and their trajectories through the graph.
 
 <!-- Implements: REQ-TOOL-002, REQ-FEAT-002 -->
-<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.5.0 §7.5 Event Sourcing, §7.6 Self-Observation -->
+<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.6.0 §7.5 Event Sourcing, §7.6 Self-Observation -->
 
 ## Usage
 

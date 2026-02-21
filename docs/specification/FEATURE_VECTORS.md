@@ -129,7 +129,7 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 - Intent events as first-class objects (`intent_raised` with causal chain)
 - Signal source classification (7 types: gap, test_failure, refactoring, source_finding, process_gap, runtime_feedback, ecosystem)
 - Spec change events (`spec_modified` with trigger traceability, feedback loop detection)
-- Protocol enforcement hooks (mandatory side effects verified at every iteration boundary — reflex regime)
+- Protocol enforcement hooks (mandatory side effects verified at every iteration boundary — reflex phase)
 
 **Dependencies**: REQ-F-ENGINE-001.|code⟩, REQ-F-TRACE-001.|code⟩ (needs graph + REQ key propagation)
 

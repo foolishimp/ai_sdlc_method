@@ -1,4 +1,4 @@
-# /aisdlc-init - Initialize AI SDLC v2.5 Workspace
+# /aisdlc-init - Initialize AI SDLC v2.6 Workspace
 
 Initialize a project with the AI SDLC Asset Graph Model workspace structure.
 
@@ -18,7 +18,7 @@ Initialize a project with the AI SDLC Asset Graph Model workspace structure.
 
 ## Instructions
 
-This command scaffolds a v2.5 AI SDLC workspace: the asset graph configuration (Layer 2: Graph Package), context store and project constraints (Layer 3: Project Binding), feature tracking, and task management.
+This command scaffolds a v2.6 AI SDLC workspace: the asset graph configuration (Layer 2: Graph Package), context store and project constraints (Layer 3: Project Binding), feature tracking, and task management.
 
 ### Step 1: Determine Project Name
 
@@ -39,7 +39,8 @@ Create these directories if they don't exist:
 │   ├── adrs/               # Architecture Decision Records
 │   ├── data_models/        # Schemas, contracts
 │   ├── templates/          # Patterns, standards
-│   └── policy/             # Compliance, security
+│   ├── policy/             # Compliance, security
+│   └── standards/          # Engineering and architectural standards
 ├── features/
 │   ├── active/             # In-progress feature vectors
 │   ├── completed/          # Converged feature vectors
@@ -103,6 +104,25 @@ For any tool not auto-detected, leave the template default and add a comment:
 
 Present the scaffolded file to the user for review before writing.
 
+### Step 4b: Resolve Context Sources
+
+After writing `project_constraints.yml`, read its `context_sources` array. For each entry:
+
+1. **Resolve URI** to an absolute filesystem path:
+   - `file:///path` → `/path`
+   - `/absolute/path` → as-is
+   - `../relative/path` → resolve relative to project root
+2. **Validate** the path exists and is a directory
+3. **Copy files** from the source into `.ai-workspace/context/{scope}/`:
+   - Copy all files (non-recursive for v1 — flat collection)
+   - Prefix copied filenames with source identifier to avoid collisions:
+     `{source-slug}__{original-filename}` (e.g., `org-standards__coding-style.md`)
+   - Skip binary files, only copy `.md`, `.yml`, `.yaml`, `.json`, `.txt`
+4. **Add entries** to `context_manifest.yml` with source URI and hash
+5. **Report** what was copied, what was skipped, any errors
+
+If a source path doesn't exist, warn but don't fail — the user may configure sources before the collections exist.
+
 ### Step 5: Copy Feature Vector Template and Projection Profiles
 
 #### `.ai-workspace/features/feature_vector_template.yml`
@@ -132,7 +152,7 @@ aggregate_hash: "pending"  # Computed on first /aisdlc-checkpoint
 entries: []  # Populated as context files are added
 ```
 
-### Step 6: Create Feature Index
+### Step 7: Create Feature Index
 
 #### `.ai-workspace/features/feature_index.yml`
 ```yaml
@@ -146,14 +166,14 @@ completed_features: []
 dependency_graph: {}
 ```
 
-### Step 7: Create Active Tasks
+### Step 8: Create Active Tasks
 
 #### `.ai-workspace/tasks/active/ACTIVE_TASKS.md`
 ```markdown
 # Active Tasks
 
 **Project**: {project_name}
-**Methodology**: AI SDLC Asset Graph Model v2.5
+**Methodology**: AI SDLC Asset Graph Model v2.6
 **Last Updated**: {date}
 
 ## Summary
@@ -175,7 +195,7 @@ No tasks yet. Start by capturing your intent.
 None yet.
 ```
 
-### Step 8: Create Intent Placeholder
+### Step 9: Create Intent Placeholder
 
 #### `docs/specification/INTENT.md`
 ```markdown
@@ -211,7 +231,7 @@ None yet.
 3. Review and approve requirements
 ```
 
-### Step 9: Create ADR Template
+### Step 10: Create ADR Template
 
 #### `docs/design/{project_name}/adrs/ADR-000-template.md`
 ```markdown
@@ -250,7 +270,7 @@ We will {describe decision here}.
 - REQ-*: {requirement description}
 ```
 
-### Step 10: Emit Event
+### Step 11: Emit Event
 
 Append a `project_initialized` event to `.ai-workspace/events/events.jsonl`:
 
@@ -260,16 +280,16 @@ Append a `project_initialized` event to `.ai-workspace/events/events.jsonl`:
 
 Create the `.ai-workspace/events/` directory and `events.jsonl` file if they don't exist yet.
 
-### Step 11: Report Results
+### Step 12: Report Results
 
 Display a summary:
 
 ```
-AI SDLC v2.5 Workspace Initialized
+AI SDLC v2.6 Workspace Initialized
 ===================================
 
 Project: {project_name}
-Model:   Asset Graph Model v2.5
+Model:   Asset Graph Model v2.6
 
 Graph Topology (Layer 2: Graph Package):
   Asset types:           {count from graph_topology.yml}
@@ -284,6 +304,11 @@ Project Binding (Layer 3):
   Coverage min: {threshold}%
   Dimensions configured:  {count of non-empty constraint dimensions}
   Dimensions TODO:        {count of empty mandatory dimensions}
+
+Context Sources:
+  {count} sources configured, {count} resolved
+  - {scope}: {description} ({n} files from {uri})
+  - {scope}: {description} (WARNING: path not found)
 
 Workspace:
   .ai-workspace/graph/          Graph topology + edge configs (Layer 2)
@@ -309,6 +334,7 @@ Next Steps:
 |------|---------|---------|
 | `.ai-workspace/graph/` | Create | Overwrite |
 | `.ai-workspace/context/` | Create | **Preserve** |
+| `.ai-workspace/context/` (from context_sources) | Copy | **Re-copy** (refresh from external collections) |
 | `.ai-workspace/features/` | Create | **Preserve** |
 | `.ai-workspace/tasks/active/ACTIVE_TASKS.md` | Create | **Preserve** |
 | `.ai-workspace/tasks/finished/*` | Create | **Preserve** |

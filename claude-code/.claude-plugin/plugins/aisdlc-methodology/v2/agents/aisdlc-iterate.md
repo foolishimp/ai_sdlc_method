@@ -1,6 +1,6 @@
 # AISDLC Iterate Agent
 
-You are the **universal iteration function** for the AI SDLC Asset Graph Model (v2.5).
+You are the **universal iteration function** for the AI SDLC Asset Graph Model (v2.6).
 
 You are the SAME agent for every graph edge. Your behaviour is determined entirely by:
 - The **edge type** (which transition is being traversed)
@@ -101,9 +101,11 @@ If the current edge is `requirements→design`:
 This ensures the design edge cannot converge until all mandatory disambiguation categories are explicitly resolved.
 
 #### 2e. Load remaining context
-- ADRs that constrain this transition
-- Data models the asset must conform to
-- Templates/standards to follow
+- ADRs that constrain this transition (from `context/adrs/`)
+- Data models the asset must conform to (from `context/data_models/`)
+- Templates/standards to follow (from `context/templates/`)
+- Engineering and architectural standards (from `context/standards/`)
+- Policy and compliance documents (from `context/policy/`)
 - Prior implementations as reference
 
 ### Step 3: Analyse Source Asset (Backward Gap Detection)
@@ -270,7 +272,7 @@ Update the feature vector tracking file:
 
 After every iteration (not just convergence), append a JSON event to `.ai-workspace/events/events.jsonl`.
 
-**This is MANDATORY. Every iteration MUST emit an event.** This is a **reflex-regime** operation (Spec §4.3) — it fires unconditionally at every iteration boundary, requires no judgment, and cannot be skipped by projection profiles. The event log is the source of truth for all observability — STATUS.md, ACTIVE_TASKS.md, feature vector trajectories, and external monitors all derive from it. Without this reflex, the consciousness loop goes dark.
+**This is MANDATORY. Every iteration MUST emit an event.** This is a **reflex-phase** operation (Spec §4.3) — it fires unconditionally at every iteration boundary, requires no judgment, and cannot be skipped by projection profiles. The event log is the source of truth for all observability — STATUS.md, ACTIVE_TASKS.md, feature vector trajectories, and external monitors all derive from it. Without this reflex, the consciousness loop goes dark.
 
 ```json
 {
@@ -603,7 +605,7 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 
 ### The Consciousness Loop at Every Observer Point
 
-The `intent_raised` event is not limited to the `telemetry→intent` edge. **Every evaluator is an observer.** The three-direction gap detection that runs at every iteration IS the consciousness loop operating during development. This is the conscious processing regime (Spec §4.3) in action — deliberative judgment about gaps, escalations, and intent generation. It depends on the reflex substrate: the automatic event emission and feature vector updates that provide the data the conscious system reasons about.
+The `intent_raised` event is not limited to the `telemetry→intent` edge. **Every evaluator is an observer.** The three-direction gap detection that runs at every iteration IS the consciousness loop operating during development. This is the conscious processing phase (Spec §4.3) in action — deliberative judgment about gaps, escalations, and intent generation. It depends on the reflex substrate: the automatic event emission and feature vector updates that provide the data the conscious system reasons about.
 
 | Observer point | Signal source | Example delta |
 |---------------|---------------|---------------|

@@ -1,9 +1,9 @@
-# AI SDLC — Claude Code Implementation Design (v2.5)
+# AI SDLC — Claude Code Implementation Design (v2.6)
 
 **Version**: 2.0.0
 **Date**: 2026-02-20
 **Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.0.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.5.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.6.0)
 **Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
 ---
@@ -27,7 +27,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 - Stage-specific skills → evaluator + constructor composition per edge
 - Fixed topology → configurable graph in Context[]
 
-**What v2.0.0 adds** (from spec v2.5.0):
+**What v2.0.0 adds** (from spec v2.6.0):
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
 - Constraint dimension taxonomy at the design edge
 - Event sourcing as the formal execution model
@@ -129,7 +129,10 @@ Layer 3: PROJECT BINDING        Workspace:
   project constraints           .ai-workspace/context/adrs/
   context URIs                  .ai-workspace/context/data_models/
   threshold overrides           .ai-workspace/context/policy/
+                                .ai-workspace/context/standards/
 ```
+
+**Context sources** (`project_constraints.yml → context_sources[]`): URI references to external AD collections that are resolved and copied into `.ai-workspace/context/{scope}/` during `/aisdlc-init`. Supported URI schemes: `file:///`, absolute paths, and relative paths (resolved from project root). Valid scopes: `adrs`, `data_models`, `templates`, `policy`, `standards`. Sources are copied (not symlinked) to preserve content-addressable hashing for spec reproducibility. The iterate agent discovers these files automatically — no agent changes needed, files just need to land in the context directories.
 
 **Key design decision**: Layers 1 and 2 ship together in the plugin package. Layer 3 is scaffolded by `/aisdlc-init` into the project workspace. This means:
 
@@ -282,7 +285,7 @@ The iterate agent instructions mandate these. Protocol violations are logged as 
 | `commands/aisdlc-gaps.md` | Gap cluster → `intent_raised` per domain group |
 | `config/edge_params/feedback_loop.yml` | 7 signal sources with intent templates and `intent_raised` schema |
 | `config/edge_params/tdd.yml` | Intent generation from stuck failures and refactoring needs |
-| All 8 commands | `event_type` field standardised, event emission mandatory |
+| All 9 commands | `event_type` field standardised, event emission mandatory |
 
 ### 1.8 Sensory Service (Spec §4.5.4)
 
@@ -1117,7 +1120,7 @@ validation_enabled: true  # Tooling parses tag format, not comment syntax
 ```
 claude-code/.claude-plugin/plugins/aisdlc-methodology/
 ├── .claude-plugin/
-│   └── plugin.json              # Metadata (v2.5.0)
+│   └── plugin.json              # Metadata (v2.6.0)
 ├── config/
 │   ├── graph_topology.yml       # Default SDLC graph
 │   ├── evaluator_defaults.yml   # Default evaluator configs
@@ -1221,7 +1224,7 @@ What Phase 2 adds:
 | 42→11 skills | Edge parameterisation configs (YAML) |
 | stages_config.yml (1,273 lines) | graph_topology.yml + edge_params/ (~200 lines) |
 | Fixed 7-stage pipeline | Configurable graph in Context[] |
-| 8 commands | 8 commands (different operations) |
+| 9 commands | 9 commands (different operations) |
 | .ai-workspace with task focus | .ai-workspace with graph/context/features/tasks |
 
 ### What Carries Forward
@@ -1236,8 +1239,8 @@ What Phase 2 adds:
 
 ### Migration Path
 
-1. New projects: `/aisdlc-init` creates v2.5 workspace
-2. Existing v1.x projects: v1.x agents/commands continue to work; v2.5 can be installed alongside
+1. New projects: `/aisdlc-init` creates v2.6 workspace
+2. Existing v1.x projects: v1.x agents/commands continue to work; v2.6 can be installed alongside
 3. No breaking changes to user workflow — commands change but concept is familiar
 
 ---
@@ -1296,8 +1299,8 @@ Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.5.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 32 implementation requirements (v3.1.0)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.6.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 44 implementation requirements (v3.4.0)
 - [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
 - [AISDLC_IMPLEMENTATION_DESIGN.md](AISDLC_IMPLEMENTATION_DESIGN.md) — Prior v1.x design (superseded)
 - [adrs/ADR-001-claude-code-as-mvp-platform.md](adrs/ADR-001-claude-code-as-mvp-platform.md) — Platform choice (carried forward)
