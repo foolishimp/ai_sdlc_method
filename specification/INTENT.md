@@ -48,7 +48,7 @@ Four primitives. One operation. The rest is parameterisation.
 | Document | Purpose |
 |----------|---------|
 | [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | Canonical methodology — the 4 primitives, ontology grounding |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 55 implementation requirements derived from the model |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 58 implementation requirements derived from the model |
 | [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) | Parent theory |
 
 ---
@@ -56,7 +56,7 @@ Four primitives. One operation. The rest is parameterisation.
 ## Current Status
 
 **Asset Graph Model (v2.8)**: Complete — multi-agent coordination, two-command UX, gradient unification, processing phases, sensory systems, protocol hooks
-**Implementation Requirements (v3.7)**: Complete — 55 requirements, 10 critical
+**Implementation Requirements (v3.8)**: Complete — 58 requirements, 10 critical
 **Tooling (Claude Code plugins)**: Phase 1a — iterate agent, 10 commands, 2 hooks, configurable graph
 **Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) — CDME dogfood (5/5 edges converged)
 
@@ -71,4 +71,4 @@ Four primitives. One operation. The rest is parameterisation.
 - **v2.5** (2026-02): Consciousness loop, protocol enforcement hooks, event sourcing, signal classification. 39 implementation requirements.
 - **v2.6** (2026-02): Three processing phases (reflex/affect/conscious), two sensory systems (interoception/exteroception), affect triage pipeline, context sources. 44 implementation requirements.
 - **v2.7** (2026-02): Two-command UX layer (Start + Status), §11 User Experience requirements (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery). 49 implementation requirements.
-- **v2.8** (2026-02): Multi-agent coordination, §12 Coordination requirements (agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based authority). 55 implementation requirements. Gradient unification (homeostasis + consciousness → single `delta(state, constraints) → work` at every scale). Synthesised from Gemini Genesis and Codex Genesis design proposals.
+- **v2.8** (2026-02): Multi-agent coordination, §12 Coordination requirements (agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based authority). 58 implementation requirements. Gradient unification (homeostasis + consciousness → single `delta(state, constraints) → work` at every scale). Observer agents (dev, CI/CD, ops) close the abiogenesis loop. Synthesised from Gemini Genesis and Codex Genesis design proposals.

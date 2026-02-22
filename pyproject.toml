@@ -18,4 +18,6 @@ testpaths = ["imp_claude/tests"]
 markers = [
     "tdd: TDD unit tests — deterministic config validation",
     "bdd: BDD acceptance tests — methodology workflow validation",
+    "uat: UAT integration tests — end-to-end methodology validation",
+    "e2e: E2E convergence tests — headless Claude drives full methodology (slow, requires Claude CLI)",
 ]

@@ -45,7 +45,7 @@ class TestReqKeyCoverage:
         fv_file = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_file) as f:
             content = f.read()
-        assert "55/55 requirements covered" in content or "No orphans" in content
+        assert "58/58 requirements covered" in content or "No orphans" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -77,11 +77,11 @@ class TestRequirementsLineage:
 
     @pytest.mark.tdd
     def test_requirement_count_updated(self):
-        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55)."""
+        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55, now 58)."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**55**" in content or "| **Total** | **55**" in content
+        assert "**58**" in content or "| **Total** | **58**" in content
 
     @pytest.mark.bdd
     def test_consciousness_loop_reqs_exist_in_spec(self):
@@ -114,12 +114,12 @@ class TestSensoryRequirements:
             assert req in content, f"{req} not found in implementation requirements"
 
     @pytest.mark.tdd
-    def test_requirement_count_is_55(self):
-        """Total requirement count must be 55."""
+    def test_requirement_count_is_58(self):
+        """Total requirement count must be 58."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**55**" in content or "| **Total** | **55**" in content
+        assert "**58**" in content or "| **Total** | **58**" in content
 
     @pytest.mark.tdd
     def test_sensory_category_count_is_5(self):
@@ -130,12 +130,12 @@ class TestSensoryRequirements:
         assert "| Sensory Systems | 5 |" in content
 
     @pytest.mark.tdd
-    def test_feature_vector_count_is_55(self):
-        """Feature vectors doc must claim 55 requirements covered."""
+    def test_feature_vector_count_is_58(self):
+        """Feature vectors doc must claim 58 requirements covered."""
         fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_path) as f:
             content = f.read()
-        assert "55/55 requirements covered" in content or "55 implementation requirements" in content
+        assert "58/58 requirements covered" in content or "58 implementation requirements" in content
 
     @pytest.mark.tdd
     def test_sense_feature_vector_has_5_reqs(self):

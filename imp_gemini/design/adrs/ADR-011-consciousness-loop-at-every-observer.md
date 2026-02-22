@@ -1,41 +1,39 @@
-# ADR-011: Consciousness Loop at Every Observer Point
+# ADR-011: The Gradient and Spec Review at Every Observer Point
 
 **Status**: Accepted
 **Date**: 2026-02-21
 **Deciders**: Methodology Author
-**Requirements**: REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+**Requirements**: REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009
 **Extends**: ADR-008 (Universal Iterate Agent)
 
 ---
 
 ## Context
 
-The formal specification (§7.7) defines the consciousness loop as a reflexive structure: the system observes itself, modifies its own specification, and observes the consequences of that modification. The spec also defines `intent_raised` (§7.7.2) and `spec_modified` (§7.7.3) as first-class events, and protocol enforcement hooks (§7.8) as mandatory side effects.
+The formal specification (v2.7.0, §7.1) defines **The Gradient** (`delta(state, constraints) → work`) as the unified operation applied everywhere. The "consciousness loop" is reframed as this gradient operating at progressively larger scales.
 
-However, the consciousness loop was implicitly scoped to the `telemetry→intent` edge — production monitoring feeding back to new development work. This left a gap: **during development**, every evaluator is already an observer, and the three-direction gap detection (backward/forward/inward) already detects deltas at every iteration. These development-time observations were being handled ad-hoc (escalate upstream, keep iterating) rather than formally entering the intent system.
+Every evaluator is an observer of the gradient. The three-direction gap detection (backward/forward/inward) detects deltas at the iteration scale. Spec Review (`REQ-LIFE-009`) detects deltas at the workspace-spec scale.
 
-The insight: the consciousness loop is not a single edge. It is a **structural property that emerges at every observer point**. The three evaluator types (human, agent, deterministic) running at every edge of the graph are observers. When they detect a delta that cannot be resolved within the current iteration scope, that delta is a signal that should become an intent.
+The insight: The gradient is not a single edge. It is a **structural property that emerges at every observer point**. When any evaluator detects a non-zero gradient that cannot be resolved locally, that delta is a signal that should become an intent.
 
 ### The Problem
 
-Without formal intent capture from development-time observations:
-1. **Test failures that reveal requirement gaps** are worked around with assumptions, not formally tracked
-2. **Refactoring needs** decay into TODO comments instead of entering the graph as feature vectors
-3. **Source finding escalations** are reported to the human but not event-logged for telemetry analysis
-4. **Process gaps** (missing evaluators, vague criteria) are noted in iteration reports but not fed back as methodology improvement intents
-5. **Gap analysis** (`/aisdlc-gaps`) finds coverage holes but doesn't generate actionable intents from them
+Without formal intent capture from all gradient observer points:
+1. **Local iteration work** stays isolated, losing the causal chain to larger scale goals.
+2. **Refactoring needs** (irreducible iteration deltas) are lost.
+3. **Spec Review deltas** (workspace-spec misalignment) are handled ad-hoc.
 
 ### Options Considered
 
-1. **Production-only consciousness loop** — keep `intent_raised` on the `telemetry→intent` edge only. Development-time observations stay ad-hoc.
-2. **Development + production consciousness loop** — every observer point can emit `intent_raised`. Seven signal sources classified uniformly.
+1. **Production-only feedback** — keep `intent_raised` on the production edge only.
+2. **Unified Gradient Feedback (The Decision)** — every observer point can emit `intent_raised` based on gradient detection.
 3. **Automatic intent generation** — observers emit intents without human review.
 
 ---
 
 ## Decision
 
-**Every observer point in the iterate agent can emit `intent_raised` events. Seven signal source types are recognised. Human review is required before intents spawn feature vectors. The same mechanism operates during development and production.**
+**Every observer point in the iterate agent can emit `intent_raised` events when a non-zero gradient is detected. Seven signal source types are recognised. Spec Review is implemented as a stateless gradient check against the workspace.**
 
 The signal sources are:
 

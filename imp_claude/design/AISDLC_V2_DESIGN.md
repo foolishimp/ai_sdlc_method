@@ -2,7 +2,7 @@
 
 **Version**: 2.0.0
 **Date**: 2026-02-20
-**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.6.0)
+**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.7.0)
 **Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
@@ -860,6 +860,170 @@ A project may have one design with multiple agents, or multiple designs each wit
 
 ---
 
+### 1.11 Observer Agents (Spec §7.1, §7.2, §7.6)
+
+**Implements**: REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012
+
+Three observer agents close the right side of the abiogenesis loop: `act → emit event → observe → judge → feed back`. Each observer is a markdown agent spec — the same delivery mechanism as the iterate agent (§2.3). No new infrastructure. Claude reads the agent spec and executes it, just as it reads `aisdlc-iterate.md` today.
+
+Each observer is a **Markov object**: it reads its inputs (event log, build artifacts, telemetry), emits events, and has no shared mutable state. The event log IS the mailbox (actor model). Observers run in parallel — zero inner product between them because they read different signal sources and write non-conflicting event types.
+
+#### 1.11.1 Observer Architecture
+
+```
+                          ┌──────────────────────┐
+                          │     Event Log         │
+                          │   events.jsonl        │
+                          └───┬──────┬──────┬─────┘
+                              │      │      │
+                    ┌─────────┘      │      └─────────┐
+                    │                │                  │
+                    ▼                ▼                  ▼
+          ┌─────────────┐  ┌──────────────┐  ┌─────────────┐
+          │ Dev Observer │  │ CI/CD        │  │ Ops Observer │
+          │ Agent        │  │ Observer     │  │ Agent        │
+          │              │  │ Agent        │  │              │
+          │ Reads:       │  │ Reads:       │  │ Reads:       │
+          │ • events.jsonl│  │ • build logs │  │ • telemetry  │
+          │ • features/  │  │ • test results│ │ • metrics    │
+          │ • STATUS.md  │  │ • coverage   │  │ • alerts     │
+          │ • spec       │  │ • deploy log │  │ • SLA data   │
+          └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+                 │                 │                   │
+                 ▼                 ▼                   ▼
+          observer_signal    observer_signal     observer_signal
+          → events.jsonl     → events.jsonl      → events.jsonl
+                 │                 │                   │
+                 └────────┬────────┘───────────────────┘
+                          ▼
+                  Human reviews draft intents
+                  (approve → new vector / dismiss)
+```
+
+#### 1.11.2 Dev Observer Agent
+
+**Trigger**: Hooks after `iteration_completed`, `edge_converged`, `release_created`, `gaps_validated` events.
+
+**Inputs**: `events.jsonl`, `features/active/*.yml`, `STATUS.md`, `specification/`
+
+**Algorithm**:
+1. Read latest workspace state (feature vectors, convergence status, event log tail)
+2. Read spec (requirements, feature vectors, constraint surface)
+3. Compute delta: what spec asserts vs what workspace contains
+4. Classify non-zero deltas by signal source (gap, discovery, ecosystem, optimisation, user, TELEM)
+5. For each significant delta, generate draft `intent_raised` event
+6. Present to human for approval
+
+**Output event schema**:
+```yaml
+event_type: observer_signal
+observer_id: dev_observer
+timestamp: ISO-8601
+signal_source: gap | discovery | TELEM
+delta_description: "3 REQ keys in spec have no test coverage"
+affected_req_keys: ["REQ-LIFE-010", "REQ-LIFE-011", "REQ-LIFE-012"]
+severity: high | medium | low
+recommended_action: "Spawn feature vector or iterate on code↔unit_tests"
+draft_intents: [{...}]  # optional — pre-formed intent_raised events
+```
+
+**Delivery**: `agents/aisdlc-dev-observer.md` — markdown agent spec.
+
+#### 1.11.3 CI/CD Observer Agent
+
+**Trigger**: Hooks after CI/CD pipeline completion (post-push, post-merge).
+
+**Inputs**: Build logs, test results, coverage reports, deployment status.
+
+**Algorithm**:
+1. Read build/test results from CI/CD output
+2. Map failures to REQ keys via `Implements:` / `Validates:` tags
+3. Compute delta: expected green vs actual red, coverage thresholds
+4. Generate draft intents for regressions, coverage drops, deployment failures
+5. Present to human for approval
+
+**Output event schema**:
+```yaml
+event_type: observer_signal
+observer_id: cicd_observer
+timestamp: ISO-8601
+signal_source: test_failure | process_gap
+build_status: pass | fail
+failing_req_keys: ["REQ-F-AUTH-001"]
+coverage_delta: -3.2  # percentage point change
+severity: critical | high | medium
+recommended_action: "Fix failing tests for REQ-F-AUTH-001"
+draft_intents: [{...}]
+```
+
+**Delivery**: `agents/aisdlc-cicd-observer.md` — markdown agent spec.
+
+#### 1.11.4 Ops Observer Agent
+
+**Trigger**: Scheduled (configurable interval) or on monitoring alert.
+
+**Inputs**: Production telemetry — latency, error rates, resource utilisation, incident reports.
+
+**Algorithm**:
+1. Read production telemetry (metrics endpoints, log aggregation, alert API)
+2. Correlate anomalies with REQ keys via `req=` structured logging tags
+3. Compute delta: running system vs spec constraints (SLAs, performance envelopes)
+4. Consume interoceptive signals from REQ-SENSE-001 as additional input
+5. Generate draft intents for SLA breaches, performance regressions, resource trends
+6. Present to human for approval
+
+**Output event schema**:
+```yaml
+event_type: observer_signal
+observer_id: ops_observer
+timestamp: ISO-8601
+signal_source: runtime_feedback
+metric_deltas:
+  - metric: p99_latency_ms
+    current: 450
+    threshold: 200
+    req_key: REQ-NFR-PERF-001
+severity: critical | high | medium
+recommended_action: "Investigate latency regression on REQ-NFR-PERF-001"
+draft_intents: [{...}]
+```
+
+**Delivery**: `agents/aisdlc-ops-observer.md` — markdown agent spec.
+
+#### 1.11.5 Integration with Existing Systems
+
+| Observer | Integrates with | How |
+|----------|----------------|-----|
+| Dev observer | §1.7 (Gradient at Spec Scale) | Operationalises spec review — same `delta(workspace, spec) → intents` |
+| Dev observer | §1.5 (Event Sourcing) | Reads and writes to events.jsonl |
+| CI/CD observer | §1.3 (Graph Topology) | Observes code→cicd→running_system edges |
+| CI/CD observer | §1.4 (REQ Key Traceability) | Maps failures back to REQ keys |
+| Ops observer | §1.8 (Sensory Service) | Consumes interoceptive/exteroceptive signals |
+| Ops observer | §1.7.2 (Signal Sources) | Produces `runtime_feedback` signals |
+| All observers | §1.10 (Multi-Agent) | Each observer is a Markov object with agent_id |
+
+#### 1.11.6 ADR
+
+**ADR-014: Observer Agents as Markdown Specs**
+
+**Context**: The abiogenesis loop requires observers that watch events, compute deltas, and feed back intents. Options: (a) executable code (Python/TypeScript service), (b) MCP server extension, (c) markdown agent specs.
+
+**Decision**: Markdown agent specs — same delivery as the iterate agent.
+
+**Rationale**:
+- Claude already reads markdown agent specs and executes them. No new infrastructure.
+- Observers are Markov objects — stateless functions from inputs to events. They don't need persistent runtime.
+- Hooks trigger the observer after relevant events. The hook invokes Claude with the observer agent spec.
+- Consistent with ADR-008 (Universal Iterate Agent) — one mechanism for all agents.
+
+**Consequences**:
+- Observers are as testable as the iterate agent (spec validation + BDD scenarios)
+- No additional deployment, no separate process, no MCP server for observers
+- Latency: observer runs after hook fires, adds ~seconds to post-iteration processing
+- Composable: new observers can be added by dropping a new markdown file into `agents/`
+
+---
+
 ## 2. Component Design
 
 ### 2.1 Asset Graph Engine (REQ-F-ENGINE-001)
@@ -1396,7 +1560,7 @@ imp_claude/code/.claude-plugin/plugins/aisdlc-methodology/
 
 ## 3. Lifecycle Closure
 
-**Implements**: REQ-LIFE-001 through REQ-LIFE-008, REQ-INTENT-003
+**Implements**: REQ-LIFE-001 through REQ-LIFE-012, REQ-INTENT-003
 
 ### Phase 1 — Gradient Mechanics (REQ-LIFE-005 through REQ-LIFE-009)
 
@@ -1428,6 +1592,16 @@ What Phase 2 adds:
 - Production homeostasis checks (SLA monitoring, drift detection)
 - Eco-intent generation (ecosystem change detection)
 - Production feedback loop automation (telemetry → new intent via `runtime_feedback` and `ecosystem` signal sources)
+
+### Phase 2a — Observer Agents (REQ-LIFE-010 through REQ-LIFE-012)
+
+Three observer agents close the abiogenesis loop. Each is a markdown agent spec (ADR-014) triggered by hooks:
+
+- **Dev observer** (REQ-LIFE-010) — `delta(workspace, spec) → intents`. Triggered after iterate/converge events. Operationalises the spec review (REQ-LIFE-009) as an automated agent.
+- **CI/CD observer** (REQ-LIFE-011) — `delta(build_state, quality_spec) → intents`. Triggered after CI/CD pipeline completion. Maps build failures back to REQ keys.
+- **Ops observer** (REQ-LIFE-012) — `delta(running_system, spec) → intents`. Triggered on schedule/alert. Consumes sensory signals and production telemetry.
+
+See §1.11 for detailed design and ADR-014 for the architectural decision. All observers are Markov objects (actor model — event log is the mailbox).
 
 ---
 
@@ -1481,6 +1655,7 @@ What Phase 2 adds:
 - **ADR-010**: Spec Reproducibility (canonical serialisation, content-addressable hashing)
 - **ADR-012**: Two-Command UX Layer (Start routing + Status observability)
 - **ADR-013**: Multi-Agent Coordination (event-sourced claims, inbox/serialiser, role-based authority)
+- **ADR-014**: Observer Agents as Markdown Specs (dev, CI/CD, ops — Markov objects closing abiogenesis loop)
 
 ---
 

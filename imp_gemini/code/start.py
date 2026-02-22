@@ -12,8 +12,14 @@ def main():
         print("Starting Progressive Init...")
         # Delegating to init logic (future iteration)
     elif current_state == ProjectState.IN_PROGRESS:
-        print("Orchestrating iteration for closest-to-complete feature...")
-        # Selection logic (future iteration)
+        feature = state_mgr.get_next_actionable_feature()
+        if feature:
+            edge = state_mgr.get_next_edge(feature)
+            print(f"Feature: {feature.get('feature')} \"{feature.get('title')}\"")
+            print(f"Next Edge: {edge}")
+            print(f"Delegating to /aisdlc-iterate --edge \"{edge}\" --feature \"{feature.get('feature')}\"")
+        else:
+            print("No actionable features found in IN_PROGRESS state.")
     elif current_state == ProjectState.STUCK:
         print("ALERT: Project is STUCK. Iteration delta is unchanged.")
         print("Recommended Action: Spawn a discovery vector or request human review.")

@@ -1,8 +1,8 @@
 # AI SDLC — Project Genesis: Feature Vector Decomposition
 
-**Version**: 1.6.0
+**Version**: 1.7.0
 **Date**: 2026-02-21
-**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.7.0)
+**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.8.0)
 **Method**: Asset Graph Model §6.4 (Task Planning as Trajectory Optimisation)
 
 ---
@@ -115,7 +115,7 @@ TDD, BDD, ADR, and code tagging configurations for common graph edges.
 
 CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
-**Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009, REQ-INTENT-003
+**Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009, REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012, REQ-INTENT-003
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩ → |uat⟩
 
@@ -131,6 +131,10 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 - Spec change events (`spec_modified` with trigger traceability, feedback loop detection)
 - Protocol enforcement hooks (mandatory side effects verified at every iteration boundary — reflex phase)
 - Spec review as gradient check (`delta(workspace, spec) → intents` — stateless, idempotent, affect-triaged)
+- Dev observer agent: markdown agent spec triggered by hooks, watches events.jsonl, computes delta(workspace, spec) → intents
+- CI/CD observer agent: markdown agent spec triggered after pipeline completion, maps build failures to REQ keys
+- Ops observer agent: markdown agent spec on schedule/alert, reads production telemetry, correlates with REQ keys
+- All observers are Markov objects: read inputs, emit events, no shared mutable state (actor model — event log is mailbox)
 
 **Dependencies**: REQ-F-ENGINE-001.|code⟩, REQ-F-TRACE-001.|code⟩ (needs graph + REQ key propagation)
 
@@ -156,7 +160,7 @@ Continuous interoceptive and exteroceptive monitoring with affect triage pipelin
 - Monitor health: meta-monitoring (senses that sensing has failed)
 - Monitor/telemetry separation: Genesis produces events (sensing), genesis_monitor consumes telemetry (observing)
 
-**Dependencies**: REQ-F-LIFE-001.|code⟩ (needs consciousness loop and event sourcing), REQ-F-EVAL-001.|code⟩ (affect triage uses evaluator pattern)
+**Dependencies**: REQ-F-LIFE-001.|code⟩ (needs gradient mechanics and event sourcing), REQ-F-EVAL-001.|code⟩ (affect triage uses evaluator pattern)
 
 ---
 
@@ -257,7 +261,7 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
 - ENGINE.|design⟩ < CTX.|code⟩ (context needs engine interface)
 - EVAL.|code⟩ < EDGE.|code⟩ (edge params configure evaluators)
 - TRACE.|code⟩ < LIFE.|code⟩ (lifecycle needs REQ key propagation)
-- LIFE.|code⟩ + EVAL.|code⟩ < SENSE.|code⟩ (sensory systems need consciousness loop + evaluator pattern)
+- LIFE.|code⟩ + EVAL.|code⟩ < SENSE.|code⟩ (sensory systems need gradient mechanics + evaluator pattern)
 - ENGINE.|design⟩ + TRACE.|design⟩ < TOOL.|code⟩ (tooling wraps both)
 
 ---
@@ -324,6 +328,9 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-LIFE-007 | REQ-F-LIFE-001 |
 | REQ-LIFE-008 | REQ-F-LIFE-001 |
 | REQ-LIFE-009 | REQ-F-LIFE-001 |
+| REQ-LIFE-010 | REQ-F-LIFE-001 |
+| REQ-LIFE-011 | REQ-F-LIFE-001 |
+| REQ-LIFE-012 | REQ-F-LIFE-001 |
 | REQ-SENSE-001 | REQ-F-SENSE-001 |
 | REQ-SENSE-002 | REQ-F-SENSE-001 |
 | REQ-SENSE-003 | REQ-F-SENSE-001 |
@@ -340,7 +347,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-COORD-004 | REQ-F-COORD-001 |
 | REQ-COORD-005 | REQ-F-COORD-001 |
 
-**55/55 requirements covered. No orphans.**
+**58/58 requirements covered. No orphans.**
 
 ---
 
@@ -353,11 +360,11 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-CTX-001 | 3 | 1b | ENGINE |
 | REQ-F-TRACE-001 | 5 | 1b | ENGINE, CTX |
 | REQ-F-EDGE-001 | 4 | 1c | EVAL |
-| REQ-F-LIFE-001 | 10 | 2 | ENGINE, TRACE |
+| REQ-F-LIFE-001 | 13 | 2 | ENGINE, TRACE |
 | REQ-F-SENSE-001 | 5 | 3 | LIFE, EVAL |
 | REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
 | REQ-F-UX-001 | 5 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
-| **Total** | **55** | | |
+| **Total** | **58** | | |
 
-10 feature vectors. 55 implementation requirements. Full coverage. Critical path: ENGINE design.
+10 feature vectors. 58 implementation requirements. Full coverage. Critical path: ENGINE design.

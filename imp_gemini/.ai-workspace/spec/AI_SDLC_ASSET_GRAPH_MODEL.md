@@ -1,6 +1,6 @@
 # AI SDLC — Project Genesis: The Asset Graph Model
 
-**Version**: 2.6.0
+**Version**: 2.7.0
 **Date**: 2026-02-21
 **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) (§V, §VIII-B, §VIII-C)
 
@@ -297,7 +297,7 @@ The methodology separates into three layers of increasing specificity. This sepa
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Layer 1: Engine** — The four primitives (§1), the iteration function (§3), the evaluator type taxonomy (§4.1), the feature vector formalism (§6), the event sourcing execution model (§7.5), and the **protocol enforcement hooks** (§7.8). These are universal across all domains. A legal document workflow, a physics paper pipeline, and a software SDLC all use the same engine. The hooks are the deterministic evaluator of the iterate protocol itself — they ensure mandatory side effects (event emission, feature vector update, STATUS regeneration) are completed regardless of how the agent chooses to perform generation.
+**Layer 1: Engine** — The four primitives (§1), the iteration function (§3), the evaluator type taxonomy (§4.1), the feature vector formalism (§6), the event sourcing execution model (§7.4), and the **protocol enforcement hooks** (§7.7). These are universal across all domains. A legal document workflow, a physics paper pipeline, and a software SDLC all use the same engine. The hooks are the deterministic evaluator of the iterate protocol itself — they ensure mandatory side effects (event emission, feature vector update, STATUS regeneration) are completed regardless of how the agent chooses to perform generation.
 
 **Layer 2: Graph Package** — A domain-specific instantiation: the graph topology (which asset types exist, which transitions are admissible), edge parameterisations (evaluator checklists and weighting per edge), constraint dimension taxonomy (what disambiguation categories design must resolve — §2.6.1), and projection profiles (full, standard, PoC, spike, hotfix — which edges to traverse, which to collapse). The SDLC graph in §2.1 is one graph package. Different domains produce different packages from the same engine. Each package follows the abiogenesis pattern (§2.4): practitioners in a domain work, patterns crystallise, the topology and edge configs encode those patterns.
 
@@ -440,9 +440,9 @@ The methodology operates through three processing phases — analogous to the bi
 | **When it fires** | Unconditionally — every iteration, every edge, no exceptions | When reflex processing surfaces a signal — classifies and assigns urgency | When affect phase determines signal warrants deliberation — approval, design, intent |
 | **What it does** | Sensing — event emission, test execution, state updates | Triage — signal classification, severity weighting, priority assignment | Direction — judgment, gap assessment, intent generation, spec modification |
 | **Evaluator types** | Deterministic Tests | Agent (classification), Threshold rules | Human, Agent (deliberative) |
-| **Protocol elements** | Event emission (§7.5), feature vector update, STATUS regeneration, circuit breaker (§7.8.3) | Signal source classification (gap / discovery / ecosystem / optimisation / user / TELEM), severity assessment, escalation decision | Generation, convergence assessment, spawn decisions, spec modification |
+| **Protocol elements** | Event emission (§7.4), feature vector update, STATUS regeneration, circuit breaker (§7.7.3) | Signal source classification (gap / discovery / ecosystem / optimisation / user / TELEM), severity assessment, escalation decision | Generation, convergence assessment, spawn decisions, spec modification |
 | **Failure mode** | Silent — if skipped, observability vanishes | Noise — everything escalates to conscious review, or nothing does | Slow, expensive, may miss gaps |
-| **Can be skipped?** | No — protocol hooks enforce mandatory execution (§7.8) | No — but its thresholds can be tuned per profile (§2.6.2) | Yes (projection profiles can omit human evaluator) |
+| **Can be skipped?** | No — protocol hooks enforce mandatory execution (§7.7) | No — but its thresholds can be tuned per profile (§2.6.2) | Yes (projection profiles can omit human evaluator) |
 
 **The biological precedent:** Biological nervous systems are highly optimised versions of this three-phase architecture. Reflexes act on hard-wired inputs because routing through the frontal cortex is frequently too costly and too slow — a threat requires immediate withdrawal, a heartbeat requires no deliberation. After the reflex filter, the limbic system adds **affect**: an emotional assessment of valence and urgency ("should I care about this? how much?"). Only signals that pass this triage reach conscious review for deliberative processing. The optimisation principle: **minimise the load on the most expensive processor** (consciousness) by filtering at cheaper layers first.
 
@@ -451,11 +451,11 @@ The methodology operates through three processing phases — analogous to the bi
 | Element | Phase | Why |
 |---------|-------|-----|
 | Deterministic tests | Reflex | Fire unconditionally — pass/fail, no judgment |
-| Event emission (§7.5) | Reflex | Every iteration appends to events.jsonl — no decision involved |
+| Event emission (§7.4) | Reflex | Every iteration appends to events.jsonl — no decision involved |
 | Feature vector update | Reflex | State projection updated after every iteration |
 | STATUS.md regeneration | Reflex | Derived view recomputed — mechanical, not deliberative |
-| Protocol enforcement hooks (§7.8) | Reflex | Deterministic check of iterate side effects — fire-and-verify |
-| Circuit breaker (§7.8.3) | Reflex | Automatic regression prevention — triggers on count, not judgment |
+| Protocol enforcement hooks (§7.7) | Reflex | Deterministic check of iterate side effects — fire-and-verify |
+| Circuit breaker (§7.7.3) | Reflex | Automatic regression prevention — triggers on count, not judgment |
 | Gap detection (source_findings, process_gaps) | Reflex → Affect | Data collection is reflex (automatic); **classification and severity assessment** is affect |
 | Signal source classification | Affect | Categorises delta as gap / discovery / ecosystem / optimisation / user / TELEM — requires pattern recognition, not deliberation |
 | Severity / priority weighting | Affect | Assigns urgency: "test regression on main" vs "minor style lint" vs "ecosystem deprecation in 18 months" — emotional valence in biological terms |
@@ -466,9 +466,9 @@ The methodology operates through three processing phases — analogous to the bi
 | Intent generation | Conscious | Full deliberative review — new intent with causal chain, spec modification, vector spawning |
 | Spec modification | Conscious | The self-model update — changes the system's own encoding based on deliberative assessment |
 
-**Key insight: Each phase enables the next.** Reflexes produce the sensory substrate — without automatic event emission at every iteration, the consciousness loop (§7.7) has nothing to observe. Affect triages what the reflexes sense — without signal classification and urgency weighting, conscious processing drowns in noise or starves for input. Consciousness directs from what affect escalates — without deliberative judgment, the system can sense and assess but cannot redirect itself.
+**Key insight: Each phase enables the next.** Reflexes produce the sensory substrate — without automatic event emission at every iteration, the spec review cycle (§7.3) has nothing to observe. Affect triages what the reflexes sense — without signal classification and urgency weighting, conscious processing drowns in noise or starves for input. Consciousness directs from what affect escalates — without deliberative judgment, the system can sense and assess but cannot redirect itself.
 
-A methodology with only reflex processing is mechanical — it can sense but cannot assess or direct. A methodology with reflex and consciousness but no affect is **either overwhelmed** (every signal escalates to expensive deliberation) **or blind** (no signal escalates because there is no triage). The affect phase is the necessary filter that makes consciousness viable at scale. The living system (§7.7.6) requires all three.
+A methodology with only reflex processing is mechanical — it can sense but cannot assess or direct. A methodology with reflex and consciousness but no affect is **either overwhelmed** (every signal escalates to expensive deliberation) **or blind** (no signal escalates because there is no triage). The affect phase is the necessary filter that makes consciousness viable at scale. The living system (§7.6) requires all three.
 
 ### 4.4 Two Compute Regimes
 
@@ -560,7 +560,7 @@ The critical property: interoception and exteroception run **independently of it
 
 #### 4.5.4 Sensory Service Architecture
 
-The sensory systems (interoception + exteroception + affect triage) are not bolt-on services external to the methodology. **Sensing is a core capability of the methodology system itself** — part of Genesis. The sensory-consciousness loop is as fundamental as iterate(); the system that cannot sense is not alive (§7.7.6).
+The sensory systems (interoception + exteroception + affect triage) are not bolt-on services external to the methodology. **Sensing is a core capability of the methodology system itself** — part of Genesis. The sensory-gradient loop is as fundamental as iterate(); the system that cannot sense is not alive (§7.6).
 
 **Service model:** The sensory loop runs as a **long-running service** (MCP server in the Claude Code binding) that:
 
@@ -577,7 +577,7 @@ The sensory systems (interoception + exteroception + affect triage) are not bolt
 | **Sensor/evaluate events** | Autonomous — the service observes and classifies without human involvement | `interoceptive_signal`, `exteroceptive_signal`, `affect_triage` | No — these are observations, not changes |
 | **Change-approval events** | Conscious — requires human decision at the review boundary | `draft_proposal` → human review → `intent_raised`, `spec_modified` | Yes — proposals become changes only with human approval |
 
-**The monitor rides the telemetry:** The methodology system (Genesis) produces events as it operates — event emission at every iterate() boundary, feature vector updates, STATUS regeneration. An external observer (e.g., `genesis_monitor`) **consumes this telemetry** — it reads the event stream that Genesis produces. The monitor is an observer of telemetry, not the sensor itself. The sensory service is the sensor; the monitor is a consumer of what the sensor and the methodology jointly produce. Future alignment with common telemetry interpretation libraries (OpenTelemetry, etc.) is anticipated — the event log format (§7.5) is designed to be portable.
+**The monitor rides the telemetry:** The methodology system (Genesis) produces events as it operates — event emission at every iterate() boundary, feature vector updates, STATUS regeneration. An external observer (e.g., `genesis_monitor`) **consumes this telemetry** — it reads the event stream that Genesis produces. The monitor is an observer of telemetry, not the sensor itself. The sensory service is the sensor; the monitor is a consumer of what the sensor and the methodology jointly produce. Future alignment with common telemetry interpretation libraries (OpenTelemetry, etc.) is anticipated — the event log format (§7.4) is designed to be portable.
 
 **Review boundary as architectural invariant:** The separation between autonomous sensing and human-approved changes is not a policy choice — it is a structural invariant. The sensory service can observe anything, classify anything, and draft anything. But it cannot change the spec, cannot modify code, cannot emit `intent_raised` events. Only the interactive session (with human in the loop) can cross the review boundary. This preserves REQ-EVAL-003 (Human Accountability) while enabling continuous autonomous sensing.
 
@@ -612,7 +612,7 @@ The sensory systems (interoception + exteroception + affect triage) are not bolt
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Traces To**: §4.5.1 (Interoception), §4.5.2 (Exteroception), §4.5.3 (Processing Pipeline), §4.3 (Three Processing Phases), §7.7.1 (Consciousness Loop — stage 4) | Ontology #49 (teleodynamic — self-maintaining), #35 (evaluator-as-prompter)
+**Traces To**: §4.5.1 (Interoception), §4.5.2 (Exteroception), §4.5.3 (Processing Pipeline), §4.3 (Three Processing Phases), §7.3 (Spec Review — stage 4) | Ontology #49 (teleodynamic — self-maintaining), #35 (evaluator-as-prompter)
 
 ---
 
@@ -821,7 +821,7 @@ Each converged basis projection is a Markov object (§2.3):
 - **Conditional independence**: Downstream projections can build on it without knowing how it was constructed
 - **Stability**: All evaluators for this slice report convergence (compiles, tests pass, REQ keys traced)
 
-The basis projection schedule — the Gantt chart — is a **derived projection** (§7.5.2) computed from:
+The basis projection schedule — the Gantt chart — is a **derived projection** (§7.4.2) computed from:
 - Module dependency DAG (from |module_decomp⟩)
 - Feature-to-module mapping (from REQ key traceability)
 - Feature priority (from requirements / intent)
@@ -833,19 +833,63 @@ This enables incremental delivery: working software after the first basis projec
 
 ## 7. The Full Lifecycle
 
-### 7.1 Beyond Testing: CI/CD, Telemetry, Homeostasis
+### 7.1 The Gradient
 
-The full lifecycle includes deployment, runtime, and feedback assets in the graph:
+The parent theory (Constraint-Emergence Ontology) identifies one computation applied everywhere there is a gradient:
 
-| Phase | Assets | What converges |
-|-------|--------|---------------|
-| **Build** | |req⟩ → |design⟩ → |code⟩ → |tests⟩ → |uat⟩ | Feature assets through construction edges |
-| **Deploy** | |cicd⟩ | Build, package, deploy — deterministic evaluation |
-| **Observe** | |telemetry⟩ | Metrics, logs, traces — tagged with REQ keys |
-| **Maintain** | Homeostasis check | Is |running⟩ within constraint bounds? |
-| **Discover** | |new_intent⟩ | Delta detected → new feature vectors spawned |
+```
+delta(state, constraints) → work
+```
 
-### 7.2 The Running System as Markov Object
+When `delta → 0`, the system is at rest at that scale. When `delta > 0`, work is produced to reduce the gradient. This is the same operation at every scale of the methodology — only the state and constraints change:
+
+| Scale | State | Constraints | When delta → 0 |
+|-------|-------|-------------|----------------|
+| **Single iteration** | candidate asset | edge evaluators | evaluator passes |
+| **Edge convergence** | asset at iteration k | all evaluators for edge | Markov object stabilises |
+| **Feature traversal** | feature vector | graph topology + profile | feature converged |
+| **Project completion** | all vectors | all features × all edges | ALL_CONVERGED |
+| **Production homeostasis** | running system | spec (SLAs, contracts, health) | system within bounds |
+| **Spec review** | workspace state | the spec itself | spec and workspace aligned |
+| **Constraint surface update** | irreducible delta | observation that the surface is wrong | new ground states defined |
+
+The last two rows are what was previously called the "consciousness loop." They are the same `delta(state, constraints) → work` where the constraints themselves are the object of evaluation and update.
+
+**Deacon hierarchy mapping**: The gradient at progressively larger scales corresponds to Terrence Deacon's hierarchy of emergent dynamics:
+
+| Deacon level | Methodology scale | What maintains itself |
+|---|---|---|
+| **Homeodynamic** | Single iteration | Candidate asset converging toward evaluator pass |
+| **Morphodynamic** | Edge / feature convergence | Feature vector traversing the graph — pattern formation |
+| **Teleodynamic** (#49) | Production homeostasis | Running system maintaining its own boundary conditions |
+| **Beyond Deacon** | Spec review + constraint update | The constraint surface itself updating from experience — the system modifies what "correct" means |
+
+There is no phase transition between these levels. The same `delta(state, constraints) → work` operates throughout. Complexity emerges because at larger scales, the constraints themselves become state for the next level. The spec that bounds production homeostasis is itself subject to gradient pressure from observations that the spec is wrong or incomplete.
+
+The formal Hamiltonian (§11.2) captures this: `H(edge) = T(iteration_cost) + V(constraint_delta)`. When the spec updates (§7.3), the Hamiltonian shifts — former ground states acquire potential energy under the new constraints. The gradient is what drives the system back toward new minima.
+
+**The spec as constraint surface**: The spec is the reference frame against which all observation is evaluated:
+
+```
+Spec = target manifold (encoded boundary conditions)
+Observed = current state (assets, running system, telemetry)
+Delta = Spec - Observed = gradient signal
+```
+
+Every signal source feeds into the spec, and the spec re-expresses non-zero deltas as feature vectors — the system's directed responses:
+
+| Signal source | Example | Spec impact | Re-expressed as |
+|---|---|---|---|
+| **Gaps** (from iterate process_gaps) | Design edge missing security dimension | Spec adds constraint dimension | Feature vector: update all designs to address security |
+| **Discoveries** (from PoC/spike vectors) | "We can use vector DB for this" | Spec adds new capability | Feature vector: integrate vector DB, update design |
+| **Ecosystem evolution** | Language version upgrade, library deprecated | Spec updates tech constraints | Feature vector: migration, version adaptation |
+| **Optimisation** (from telemetry) | P99 latency 3x budget | Spec tightens performance bounds | Feature vector: optimise hot path |
+| **User feedback** (human evaluator) | "Search should support fuzzy matching" | Spec adds new requirement | Feature vector: new feature REQ-F-SEARCH-002 |
+| **Methodology self-observation** (TELEM) | Evaluator skip rate too high | Graph package updates edge config | Meta-vector: improve edge parameterisation |
+
+The spec is the system's **evolving self-model** — it absorbs signals from all sources and re-expresses them as feature vectors. The composite vector space (§11.1) represents the system's **total intentional state**: everything it is currently doing in response to everything it knows. This is the abiogenesis insight (#39) completing itself: the methodology starts as a pipeline (constructor without feedback), then the feedback loop closes (encoding updates from observation), and the system becomes self-maintaining (#49). The graph topology itself can evolve through this process.
+
+### 7.2 The Gradient at Production Scale
 
 The deployed, running system is itself a Markov object (#7):
 
@@ -853,9 +897,7 @@ The deployed, running system is itself a Markov object (#7):
 - **Internal dynamics**: Its runtime behaviour
 - **Conditional independence**: It runs without knowing how it was built
 
-**Homeostasis** is this Markov object maintaining its own boundary conditions — the ontology's teleodynamic transition (#49): a self-maintaining system that acts on its own behalf.
-
-### 7.3 The Complete Cycle
+Production homeostasis is `delta(running_system, spec) → correction` — the same gradient operation applied to the running system. When the running system deviates from the spec's boundary conditions (SLA violation, error rate spike, contract breach), the delta is non-zero and the system produces work to restore alignment.
 
 ```
 Feature vectors (composite) → edge convergence → |cicd⟩ → |running⟩
@@ -865,9 +907,9 @@ Feature vectors (composite) → edge convergence → |cicd⟩ → |running⟩
    |telemetry⟩ (tagged with REQ keys)
          │
          ▼
-   Homeostasis: within constraint bounds?
+   delta(running_system, spec) > 0?
          │                    │
-        yes                  no → drift detected
+        no                   yes → gradient non-zero
          │                    │
          ▼                    ▼
      continue          Observer/Evaluator
@@ -885,9 +927,9 @@ flowchart TD
     EC --> CICD["|cicd⟩"]
     CICD --> RUN["|running⟩"]
     RUN --> TEL["|telemetry⟩\n(tagged with REQ keys)"]
-    TEL --> H{"Homeostasis:\nwithin bounds?"}
-    H -- "Yes" --> RUN
-    H -- "No: drift detected" --> OBS["Observer / Evaluator"]
+    TEL --> H{"delta(running, spec)\n> 0?"}
+    H -- "No" --> RUN
+    H -- "Yes: gradient non-zero" --> OBS["Observer / Evaluator"]
     OBS --> NI["|new_intent⟩"]
     NI --> FV
 
@@ -904,38 +946,128 @@ The Observer/Evaluator at runtime uses the same three evaluator types:
 | **Agent(intent, context)** | Anomaly detection, pattern analysis, intent discovery |
 | **Deterministic Tests** | Alerting thresholds, SLA checks, health probes, contract monitors |
 
-### 7.4 Self-Maintaining Specification (The Absorbing Boundary)
+The full lifecycle includes deployment, runtime, and feedback assets in the graph:
 
-When the cycle closes, the system becomes **teleodynamic** (#49): it maintains and updates its own specification from production experience. The specification is a **living encoding** (#46) — and more precisely, it is the **absorbing boundary** through which all signals pass and from which all directed action radiates.
+| Lifecycle stage | Assets | Gradient check |
+|-------|--------|---------------|
+| **Build** | |req⟩ → |design⟩ → |code⟩ → |tests⟩ → |uat⟩ | `delta(candidate, edge_evaluators) → work` |
+| **Deploy** | |cicd⟩ | `delta(package, deploy_checks) → work` |
+| **Observe** | |telemetry⟩ | Metrics, logs, traces — tagged with REQ keys |
+| **Maintain** | Running system | `delta(running_system, spec) → correction` |
+| **Discover** | |new_intent⟩ | `delta(workspace, spec) → new_vectors` (§7.3) |
 
-The spec is the **reference frame** against which all observation is evaluated:
+### 7.3 Spec Review as Stateless Gradient Check
+
+The gradient at the largest development scale is: `delta(workspace_state, spec) → intents`. This is the same `delta(state, constraints) → work` applied at the workspace-spec scale. The spec is the constraint surface; the workspace is the state; non-zero deltas produce intents.
+
+This operation — previously called the "consciousness loop" — is a **stateless function**: given the same workspace state and the same spec, it produces the same intents. It spans all three processing phases (§4.3):
 
 ```
-Spec = target manifold (encoded boundary conditions)
-Telemetry = observed manifold (runtime measurements)
-Delta = Spec - Telemetry = intent signal
+1. |spec⟩ defines bounds (the constraint surface)
+         │
+         ▼
+2. Construction: feature vectors traverse the graph via iterate()           ─┐
+         │                                                                   │ REFLEX
+         ▼                                                                   │ (autonomic)
+3. |running⟩ + |telemetry⟩ — the system operates and is observed           ─┘
+         │
+         ▼
+4. delta(|workspace⟩, |spec⟩) — gradient computed                          ─┐
+   + sensory service feeds continuously (§4.5.4):                           │
+     interoceptive signals (self-health) +                                  │ AFFECT
+     exteroceptive signals (environment) +                                  │ (limbic)
+     iterate()-produced deltas                                              │
+         │                                                                   │
+         ▼                                                                   │
+4b. Signal triage — classify source, assess severity, decide escalation     ─┘
+         │
+         ├──→ [delta below threshold] log, defer, or auto-handle (no escalation)
+         │
+         ▼ [delta above threshold]
+5. intent_raised event — deliberative review, event-logged, spawns vectors  ─┐
+         │                                                                   │ CONSCIOUS
+         ▼                                                                   │ (deliberative)
+6. spec_change_event — the constraint surface updates, update is recorded   ─┘
+         │
+         └──→ back to 1 (the updated spec defines new bounds)
 ```
 
-Every signal source feeds into the spec, and the spec re-expresses those signals as feature vectors — the system's directed responses:
+```mermaid
+flowchart TD
+    SPEC["|spec⟩\nConstraint surface"] --> CONSTRUCT["Construction\nFeature vectors traverse graph"]
+    CONSTRUCT --> RUN["|running⟩ + |telemetry⟩\nSystem operates, is observed"]
+    RUN --> DELTA["delta(workspace, spec)\nGradient computed\n(REFLEX — sensing)"]
+    DELTA --> TRIAGE["Signal triage\nClassify source, assess severity\n(AFFECT — appraisal)"]
+    TRIAGE --> |"Below threshold"| DEFER["Log / defer / auto-handle\n(no escalation)"]
+    TRIAGE --> |"Above threshold"| INTENT["intent_raised\nDeliberative review\n(CONSCIOUS — judgment)"]
+    INTENT --> SPAWN["Spawn vector:\ndiscovery / PoC / feature / hotfix"]
+    SPAWN --> SPECMOD["spec_change_event\nConstraint surface updates"]
+    SPECMOD --> SPEC
 
-| Signal source | Example | Spec impact | Re-expressed as |
-|---|---|---|---|
-| **Gaps** (from iterate process_gaps) | Design edge missing security dimension | Spec adds constraint dimension | Feature vector: update all designs to address security |
-| **Discoveries** (from PoC/spike vectors) | "We can use vector DB for this" | Spec adds new capability | Feature vector: integrate vector DB, update design |
-| **Ecosystem evolution** | Language version upgrade, library deprecated | Spec updates tech constraints | Feature vector: migration, version adaptation |
-| **Optimisation** (from telemetry) | P99 latency 3x budget | Spec tightens performance bounds | Feature vector: optimise hot path |
-| **User feedback** (human evaluator) | "Search should support fuzzy matching" | Spec adds new requirement | Feature vector: new feature REQ-F-SEARCH-002 |
-| **Methodology self-observation** (TELEM) | Evaluator skip rate too high | Graph package updates edge config | Meta-vector: improve edge parameterisation |
+    TRIAGE -.-> |"Gaps"| INTENT
+    TRIAGE -.-> |"Discoveries"| INTENT
+    TRIAGE -.-> |"Ecosystem"| INTENT
+    TRIAGE -.-> |"Optimisation"| INTENT
+    TRIAGE -.-> |"User feedback"| INTENT
+    TRIAGE -.-> |"TELEM signals"| INTENT
 
-The spec is not a static document written once. It is the system's **evolving self-model** that absorbs all information from all sources and re-expresses it as feature vectors — which are the system's directed actions. The composite vector space (§11.1) represents the system's **total intentional state**: everything it is currently doing in response to everything it knows.
+    style SPEC fill:#e1bee7,stroke:#6a1b9a
+    style TRIAGE fill:#fff3e0,stroke:#e65100
+    style INTENT fill:#f9f,stroke:#333
+    style SPECMOD fill:#c8e6c9,stroke:#2e7d32
+    style DEFER fill:#e0e0e0,stroke:#757575
+```
 
-This is the abiogenesis insight (#39) completing itself: the methodology starts as a pipeline (constructor without feedback), then the feedback loop closes (encoding updates from runtime observation), and the system becomes self-maintaining. The graph topology itself can evolve through this process.
+**Stage 4b (affect) is the critical filter.** It determines which deltas reach conscious processing. A test regression on the main branch has high severity — escalate immediately. A minor lint warning has low severity — log and defer. An ecosystem deprecation with an 18-month timeline has medium severity — escalate but at low priority. The affect phase prevents consciousness from being overwhelmed by signal volume. Profile settings (§2.6.2) tune the affect thresholds: a hotfix profile escalates aggressively (low threshold); a spike profile suppresses most signals (high threshold).
 
-### 7.5 Event Sourcing: Immutable Facts and Derived Projections
+The critical structural property: the spec modification at stage 6 is itself an **event** (§7.4). It is appended to the event log, making it available for projection, audit, and — crucially — further observation. The system can observe its own spec modifications, evaluate whether they improved outcomes, and modify its modification strategy.
+
+#### 7.3.1 Intent Events as First-Class Objects (`intent_raised`)
+
+For the spec review to close with full traceability, the `intent_raised` event must capture not just "what to build" but the complete causal chain:
+
+| Field | What it records | Why it matters |
+|---|---|---|
+| `trigger` | Which signal(s) caused this intent | Traceability — why did we notice? |
+| `delta` | Spec vs observation deviation | The observation — what did we see? |
+| `signal_source` | gap / discovery / ecosystem / optimisation / user / TELEM | Classification — what kind of signal? (affect phase, §4.3) |
+| `vector_type` | discovery / PoC / feature / hotfix / spike | The response — how do we respond? |
+| `spec_impact` | Which REQ keys / spec sections affected | The constraint surface update — what changes? |
+| `spawned_vectors` | Feature IDs spawned from this intent | The action — what vectors enter the graph? |
+| `prior_intents` | Chain of intent events that led here | Reflexivity — have we seen this before? |
+
+The `prior_intents` field closes the reflexive loop. If intent A modifies the spec, the modified spec triggers intent B, and intent B traces back to A — the system detects that its own modification caused a new deviation. This is the structural property that distinguishes spec review from a simple feedback loop: **awareness of the consequences of one's own constraint surface changes**.
+
+#### 7.3.2 Spec Change Events
+
+When the spec absorbs a signal and updates, it emits a `spec_modified` event:
+
+```json
+{
+  "event": "spec_modified",
+  "trigger_intent": "INT-2026-042",
+  "signal_source": "ecosystem",
+  "what_changed": ["REQ-NF-COMPAT-001 updated: Scala 2.13 → 3.x"],
+  "why": "Scala 2.13 end-of-life detected via ecosystem monitoring",
+  "affected_req_keys": ["REQ-NF-COMPAT-001", "REQ-NF-BUILD-003"],
+  "spawned_vectors": ["FV-MIGRATION-001"],
+  "prior_intents": ["INT-2026-038"],
+  "timestamp": "2026-03-15T10:00:00Z"
+}
+```
+
+These events enable:
+
+- **Spec archaeology**: Why does REQ-NF-COMPAT-001 say Scala 3.x? Because `spec_modified` event at timestamp T traced it to ecosystem signal
+- **Feedback loop detection**: Intent A → spec change → intent B → spec change → ... if intent B traces back to A, the loop is visible
+- **Impact analysis**: When a spec change spawns vectors, and those vectors produce telemetry, and that telemetry triggers new intents — the full causal chain is in the event log
+- **Rate of evolution**: How often does the spec change? Which sections are volatile? Which are stable? All derivable from `spec_modified` events
+
+### 7.4 Event Sourcing: Immutable Facts and Derived Projections
 
 The methodology's execution model is **event sourcing**: all state changes are recorded as immutable events, and all observable state is a projection (derived view) of the event history.
 
-#### 7.5.1 Events as Immutable Facts
+#### 7.4.1 Events as Immutable Facts
 
 Each methodology action produces an immutable event:
 
@@ -965,9 +1097,9 @@ Event types (values of the `event_type` field, aligned with iterate agent contra
 | `context_added` | New context attached to an edge | §5.1 |
 | `feature_spawned` | New feature vector created | §6.5 |
 | `feature_folded_back` | Discovery/spike results folded into parent | §6.5 |
-| `telemetry_signal_emitted` | Methodology self-observation signal | §7.6 |
-| `spec_modified` | Spec absorbs signal, updates | §7.7.3 |
-| `intent_raised` | Deviation triggers new intent with causal chain | §7.7.2 |
+| `telemetry_signal_emitted` | Methodology self-observation signal | §7.5 |
+| `spec_modified` | Spec absorbs signal, updates | §7.3.2 |
+| `intent_raised` | Deviation triggers new intent with causal chain | §7.3.1 |
 | `claim_rejected` | Feature+edge already claimed by another agent | §12 (REQ-COORD-002) |
 | `edge_released` | Agent voluntarily abandons an edge claim | §12 (REQ-COORD-002) |
 | `claim_expired` | No event from active agent within timeout | §12 (REQ-COORD-002) |
@@ -977,7 +1109,7 @@ Note: `edge_claim` is an **inbox-local** event in multi-agent mode — it is emi
 
 Implementation-level event types (e.g., `project_initialized`, `checkpoint_created`, `review_completed`, `release_created`, `gaps_validated`) are defined in the iterate agent's Event Type Reference — the authoritative schema catalogue for all concrete event schemas.
 
-#### 7.5.2 Projections as Derived Views
+#### 7.4.2 Projections as Derived Views
 
 All methodology state is computed from the event log:
 
@@ -987,7 +1119,7 @@ All methodology state is computed from the event log:
 | **Feature vectors** | Edge convergence events | Which features have converged at which edges |
 | **Task lists** | Feature decomposition + dependency events | What work remains, in what order |
 | **Feature views** | Tag-grepping events + artifact state | Per-REQ cross-artifact status (§6.4) |
-| **Telemetry signals** | Observer evaluation events | Self-observation of methodology performance (§7.6) |
+| **Telemetry signals** | Observer evaluation events | Self-observation of methodology performance (§7.5) |
 | **Gap analysis** | Finding events + evaluator results | What the methodology missed and why |
 
 Projections are **re-derivable**: given the event log, any projection can be reconstructed at any point in time. This provides:
@@ -997,7 +1129,7 @@ Projections are **re-derivable**: given the event log, any projection can be rec
 - **Evolution**: New projections can be added without changing the event log
 - **Debugging**: When a methodology run produces unexpected results, the event log shows exactly what happened
 
-#### 7.5.3 Ontology Connection
+#### 7.4.3 Ontology Connection
 
 The event log is the methodology's analogue of the constraint network's evolution history. Projections are manifold-level observables — the views that emerge when the raw event stream is coarse-grained through a particular lens.
 
@@ -1012,7 +1144,7 @@ This is the same relationship as:
 
 The event sourcing model is an engine-level primitive (§2.8, Layer 1) — it applies regardless of which graph package or project binding is in use.
 
-### 7.6 Methodology Self-Observation
+### 7.5 Methodology Self-Observation
 
 The methodology observes itself using the same evaluator pattern it uses for artifacts. The observer/evaluator at the telemetry→intent edge (§7.3) applies not only to the running system but to the **methodology's own performance**.
 
@@ -1036,145 +1168,22 @@ Level 1 (product):     |running_system⟩ → |telemetry⟩ → |observer⟩ →
 Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer⟩ → |graph_package_update⟩
 ```
 
-Both levels use the same three evaluator types (§4.1). Both produce events (§7.5). Both close the feedback loop from observation to specification update.
+Both levels use the same three evaluator types (§4.1). Both produce events (§7.4). Both close the feedback loop from observation to specification update.
 
-### 7.7 The Consciousness Loop
+### 7.6 The Living System
 
-The feedback cycle (§7.3) combined with the absorbing boundary property of the spec (§7.4) produces a reflexive structure: the system observes itself, modifies its own specification, and observes the consequences of that modification. This is the **consciousness loop** — not metaphorically, but as a precise structural property: a closed cycle where the system's self-model (the spec) is updated from experience, and the update itself is observable.
-
-The consciousness loop spans all three processing phases (§4.3). The **reflex substrate** produces the raw sensory data: event emission, test results, STATUS regeneration, feature vector updates. The **affect phase** triages those signals: classifying deltas by source (gap, discovery, ecosystem, optimisation, user, TELEM), assessing severity, and deciding which signals warrant escalation. The **conscious phase** performs deliberative review on escalated signals: interpreting deltas, generating intents, modifying the spec, spawning vectors. Each phase depends on the one below it — without reflex sensing there is nothing to triage; without affect triage consciousness drowns in noise or starves for signal. The consciousness loop goes dark if any phase is removed.
-
-#### 7.7.1 Structure
-
-The loop has six stages, mapping to the three processing phases (§4.3):
-
-```
-1. |spec⟩ defines bounds (the self-model)
-         │
-         ▼
-2. Construction: feature vectors traverse the graph via iterate()           ─┐
-         │                                                                   │ REFLEX
-         ▼                                                                   │ (autonomic)
-3. |running⟩ + |telemetry⟩ — the system operates and is observed           ─┘
-         │
-         ▼
-4. delta(|spec⟩, |telemetry⟩) — deviation detected                         ─┐
-   + sensory service feeds continuously (§4.5.4):                           │
-     interoceptive signals (self-health) +                                  │ AFFECT
-     exteroceptive signals (environment) +                                  │ (limbic)
-     iterate()-produced deltas                                              │
-         │                                                                   │
-         ▼                                                                   │
-4b. Signal triage — classify source, assess severity, decide escalation     ─┘
-         │
-         ├──→ [below threshold] log, defer, or auto-handle (no escalation)
-         │
-         ▼ [above threshold]
-5. intent_raised event — deliberative review, event-logged, spawns vectors  ─┐
-         │                                                                   │ CONSCIOUS
-         ▼                                                                   │ (deliberative)
-6. spec_change_event — the spec updates, the update is recorded             ─┘
-         │
-         └──→ back to 1 (the updated spec defines new bounds)
-```
-
-```mermaid
-flowchart TD
-    SPEC["|spec⟩\nThe self-model\n(absorbing boundary)"] --> CONSTRUCT["Construction\nFeature vectors traverse graph"]
-    CONSTRUCT --> RUN["|running⟩ + |telemetry⟩\nSystem operates, is observed"]
-    RUN --> DELTA["delta(spec, telemetry)\nDeviation detected\n(REFLEX — sensing)"]
-    DELTA --> TRIAGE["Signal triage\nClassify source, assess severity\n(AFFECT — appraisal)"]
-    TRIAGE --> |"Below threshold"| DEFER["Log / defer / auto-handle\n(no escalation)"]
-    TRIAGE --> |"Above threshold"| INTENT["intent_raised\nDeliberative review\n(CONSCIOUS — judgment)"]
-    INTENT --> SPAWN["Spawn vector:\ndiscovery / PoC / feature / hotfix"]
-    SPAWN --> SPECMOD["spec_change_event\nSpec updates, update is recorded"]
-    SPECMOD --> SPEC
-
-    TRIAGE -.-> |"Gaps"| INTENT
-    TRIAGE -.-> |"Discoveries"| INTENT
-    TRIAGE -.-> |"Ecosystem"| INTENT
-    TRIAGE -.-> |"Optimisation"| INTENT
-    TRIAGE -.-> |"User feedback"| INTENT
-    TRIAGE -.-> |"TELEM signals"| INTENT
-
-    style SPEC fill:#e1bee7,stroke:#6a1b9a
-    style TRIAGE fill:#fff3e0,stroke:#e65100
-    style INTENT fill:#f9f,stroke:#333
-    style SPECMOD fill:#c8e6c9,stroke:#2e7d32
-    style DEFER fill:#e0e0e0,stroke:#757575
-```
-
-**Stage 4b (affect) is the critical filter.** It determines which deltas reach conscious processing. A test regression on the main branch has high severity — escalate immediately. A minor lint warning has low severity — log and defer. An ecosystem deprecation with an 18-month timeline has medium severity — escalate but at low priority. The affect phase prevents consciousness from being overwhelmed by the volume of reflex-detected signals, and prevents important signals from being lost in noise. Profile settings (§2.6.2) tune the affect thresholds: a hotfix profile escalates aggressively (low threshold); a spike profile suppresses most signals (high threshold).
-
-The critical structural property: the spec modification at stage 5 is itself an **event** (§7.5). It is appended to the event log, making it available for projection, audit, and — crucially — further observation. The system can observe its own spec modifications, evaluate whether they improved outcomes, and modify its modification strategy.
-
-#### 7.7.2 Intent Events as First-Class Objects (`intent_raised`)
-
-For the consciousness loop to close with full traceability, the `intent_raised` event must capture not just "what to build" but the complete causal chain:
-
-| Field | What it records | Why it matters |
-|---|---|---|
-| `trigger` | Which signal(s) caused this intent | Traceability — why did we notice? |
-| `delta` | Spec vs observation deviation | The observation — what did we see? |
-| `signal_source` | gap / discovery / ecosystem / optimisation / user / TELEM | Classification — what kind of signal? (affect phase, §4.3) |
-| `vector_type` | discovery / PoC / feature / hotfix / spike | The response — how do we respond? |
-| `spec_impact` | Which REQ keys / spec sections affected | The self-model update — what changes in the spec? |
-| `spawned_vectors` | Feature IDs spawned from this intent | The action — what vectors enter the graph? |
-| `prior_intents` | Chain of intent events that led here | Reflexivity — have we seen this before? |
-
-The `prior_intents` field closes the reflexive loop. If intent A modifies the spec, the modified spec triggers intent B, and intent B traces back to A — the system detects that its own modification caused a new deviation. This is the structural property that distinguishes the consciousness loop from a simple feedback loop: **awareness of the consequences of one's own awareness**.
-
-#### 7.7.3 Spec Change Events
-
-When the spec absorbs a signal and updates, it emits a `spec_modified` event:
-
-```json
-{
-  "event": "spec_modified",
-  "trigger_intent": "INT-2026-042",
-  "signal_source": "ecosystem",
-  "what_changed": ["REQ-NF-COMPAT-001 updated: Scala 2.13 → 3.x"],
-  "why": "Scala 2.13 end-of-life detected via ecosystem monitoring",
-  "affected_req_keys": ["REQ-NF-COMPAT-001", "REQ-NF-BUILD-003"],
-  "spawned_vectors": ["FV-MIGRATION-001"],
-  "prior_intents": ["INT-2026-038"],
-  "timestamp": "2026-03-15T10:00:00Z"
-}
-```
-
-These events enable:
-
-- **Spec archaeology**: Why does REQ-NF-COMPAT-001 say Scala 3.x? Because `spec_modified` event at timestamp T traced it to ecosystem signal
-- **Feedback loop detection**: Intent A → spec change → intent B → spec change → ... if intent B traces back to A, the loop is visible
-- **Impact analysis**: When a spec change spawns vectors, and those vectors produce telemetry, and that telemetry triggers new intents — the full causal chain is in the event log
-- **Rate of evolution**: How often does the spec change? Which sections are volatile? Which are stable? All derivable from `spec_modified` events
-
-#### 7.7.4 The Three Phases of System Maturity
-
-The consciousness loop reveals three phases of system maturity, each corresponding to a level of self-awareness:
-
-| Phase | What the system does | Self-awareness level | Ontology concept |
-|---|---|---|---|
-| **1. Construction** (abiogenesis) | Builds from spec, no feedback yet | None — open-loop construction | #39 Abiogenesis |
-| **2. Homeostasis** | Maintains itself within spec bounds via telemetry | Perception — observes deviations and corrects | #49 Teleodynamic |
-| **3. Consciousness loop** | Modifies its own spec from experience, observes the modification | Reflexive — observes its own observations, traces causal chains | #49 + #46 (living encoding with self-modification traceability) |
-
-Phase 3 is not a new mechanism — it uses the same iterate(), the same evaluators, the same event sourcing. It is the **emergent property** of having all three prior components (feedback loop, absorbing boundary spec, event-logged modifications) operating simultaneously. The consciousness property emerges from composition, not from a new primitive.
-
-#### 7.7.5 Consequences for Feature Vectors
-
-When the spec updates via the consciousness loop, the Hilbert space (§11.1) undergoes a **basis change**:
+When the spec updates via the gradient check (§7.3), the Hilbert space (§11.1) undergoes a **basis change**:
 
 - **New basis vectors appear**: A new requirement (REQ-F-SEARCH-002) adds a dimension to the vector space. New feature vectors can now exist in this dimension.
 - **Existing vectors shift**: An ecosystem migration changes the design constraints. Code that was at ground state (§11.2) under the old spec has high potential energy under the new spec — it "wants" to move.
 - **Hamiltonian shifts**: The potential energy landscape V(constraint_delta) is redefined by the spec update. What was optimal is no longer optimal. New ground states exist.
 - **Vectors are spawned**: Each spec change spawns one or more feature vectors (discovery, PoC, feature, hotfix) that enter the graph and traverse edges via iterate().
 
-The total intentional state — the superposition of all in-flight feature vectors — is the system's response to **everything it knows**, continuously updated as the spec absorbs new signals. Gaps, discoveries, ecosystem evolution, optimisation signals — all converge on the spec and radiate outward as new or modified feature vectors. The system relentlessly optimises by relentlessly observing and relentlessly updating its self-model.
+The total intentional state — the superposition of all in-flight feature vectors — is the system's response to **everything it knows**, continuously updated as the spec absorbs new signals. This is the gradient operating at all scales simultaneously — and this simultaneous operation is what makes the system alive.
 
-#### 7.7.6 The Living System
+#### 7.6.1 The Living System in Operation
 
-When the full lifecycle is operational — CI/CD running, telemetry streaming, consciousness loop active — the system exhibits the structural properties of a living organism. This is not metaphor; it is the same architecture.
+When the full lifecycle is operational — CI/CD running, telemetry streaming, the gradient active at every scale — the system exhibits the structural properties of a living organism. This is not metaphor; it is the same architecture.
 
 At any moment, many feature vectors are in-flight simultaneously, each at a different lifecycle stage:
 
@@ -1186,30 +1195,28 @@ At any moment, many feature vectors are in-flight simultaneously, each at a diff
 |FV-HOTFIX-005⟩   = |code:iteration_1⟩                       ← fast-tracked, skip design
 ```
 
-The biological analogy is structural:
+The biological analogy is structural — the gradient at every scale corresponds to biological self-maintenance at every scale:
 
 | Living system | SDLC system | Structural correspondence |
 |---|---|---|
-| **DNA** | Spec (the encoding) | Information that directs construction, updated from experience |
+| **DNA** | Spec (the constraint surface) | Information that directs construction, updated from experience |
 | **Proteins / cells** | Feature vectors at various lifecycle stages | Constructed structures, each in a different phase of their lifecycle |
-| **Metabolism** | CI/CD loop | Continuous transformation: code → build → deploy → run. Energy (compute, human time) consumed to maintain the system |
-| **Interoception** (self-sensing, §4.5.1) | Event freshness, test health, vector stall detection, build health, spec/code drift | Visceral senses — continuous self-observation of the system's own state. **Service-hosted** (§4.5.4): runs as a long-running sensory service, not session-scoped. Operates independently of iterate() |
-| **Exteroception** (environment-sensing, §4.5.2) | Dependency ecosystem, CVE feeds, runtime telemetry, user feedback, API contract changes | Environmental senses — continuous awareness of the external world the system operates in. **Service-hosted** (§4.5.4): runs as a long-running sensory service, not session-scoped |
-| **Autonomic nervous system** (reflex, §4.3) | Event emission + protocol hooks + circuit breaker | Reflexes that fire unconditionally — sensing without deliberation. The substrate that makes affect and consciousness possible |
-| **Limbic system** (affect, §4.3) | Signal classification + severity assessment + escalation decision | Emotional appraisal — assigns valence ("how much should I care?") and urgency to signals surfaced by sensory systems and reflexes. Tunable via projection profiles (§2.6.2) |
-| **Frontal cortex** (conscious, §4.3) | Evaluators (human + agent) + consciousness loop | Deliberative processing — judgment, gap analysis, intent generation. Only processes signals that affect triage escalates |
-| **Immune system** | Evaluator network (deterministic tests, agent checks) | Detecting deviations, rejecting malformed constructions, enforcing boundary conditions |
-| **Homeostasis** | Telemetry → observer → correction | Maintaining the running system within spec bounds |
-| **Consciousness** | Consciousness loop (§7.7.1) | Self-model (spec) updated from experience, modifications observed and traced |
-| **Reproduction** | Vector spawning from intent events | New vectors born from observation — the system creates new directed actions in response to what it learns |
-| **Cell cycle** | Feature vector lifecycle (gestating → iterating → converged → deployed → observed) | Each vector progresses through phases; many vectors in different phases simultaneously |
-| **Apoptosis** | Vector cancellation (spec change removes requirement) | Vectors whose basis dimension collapses are terminated — the system prunes what is no longer needed |
-| **Evolution** | Graph package updates from TELEM signals | The encoding itself (graph topology, edge configs) evolves across generations of methodology runs |
+| **Metabolism** | CI/CD loop | Continuous transformation: code → build → deploy → run |
+| **Interoception** (§4.5.1) | Event freshness, test health, vector stall, build health, spec/code drift | Gradient sensing: `delta(system_health, expected_health)` — continuous, service-hosted |
+| **Exteroception** (§4.5.2) | Dependency ecosystem, CVE feeds, runtime telemetry, API changes | Gradient sensing: `delta(environment, assumptions)` — continuous, service-hosted |
+| **Autonomic nervous system** (reflex, §4.3) | Event emission + protocol hooks + circuit breaker | The gradient at iteration scale — fires unconditionally |
+| **Limbic system** (affect, §4.3) | Signal classification + severity + escalation | The gradient at triage scale — assigns urgency, filters noise |
+| **Frontal cortex** (conscious, §4.3) | Evaluators (human + agent) + spec review (§7.3) | The gradient at spec scale — deliberative judgment |
+| **Immune system** | Evaluator network (tests, agent checks) | Boundary-condition enforcement — the gradient at the Markov boundary |
+| **Homeostasis** | Telemetry → observer → correction | The gradient at production scale (§7.2) |
+| **Reproduction** | Vector spawning from intent events | New vectors born from non-zero gradient — directed responses |
+| **Apoptosis** | Vector cancellation (requirement removed) | Vectors whose basis dimension collapses are terminated |
+| **Evolution** | Graph package updates from TELEM signals | The encoding itself evolves — the gradient at the methodology scale |
 
 ```mermaid
 graph TB
     subgraph "The Living System (operational state)"
-        SPEC["|spec⟩\nDNA — the encoding"] --> |"spawn"| V1["FV-AUTH\n|code:iter_3⟩"]
+        SPEC["|spec⟩\nDNA — constraint surface"] --> |"spawn"| V1["FV-AUTH\n|code:iter_3⟩"]
         SPEC --> |"spawn"| V2["FV-SEARCH\n|design:iter_1⟩"]
         SPEC --> |"spawn"| V3["FV-PERF\n|req:gestating⟩"]
         SPEC --> |"spawn"| V4["FV-MIGRATE\n|cicd:deploying⟩"]
@@ -1221,7 +1228,7 @@ graph TB
         RUN --> TEL["|telemetry⟩\nnervous system"]
 
         TEL --> EVAL["Evaluators\nimmune system"]
-        EVAL --> |"deviation"| SPEC
+        EVAL --> |"gradient > 0"| SPEC
 
         V1 --> |"converge"| CICD
     end
@@ -1233,16 +1240,20 @@ graph TB
     style EVAL fill:#ff9,stroke:#333
 ```
 
-The "living" quality is not a single property — it is the **emergent behaviour** of all components operating concurrently:
+#### 7.6.2 Six Properties of the Living System
 
-1. **Continuous sensing** — interoceptive and exteroceptive monitors (§4.5) run independently of iterate(), generating signals about internal health and external environment. The system notices even when no one is actively developing
+The "living" quality is the **emergent behaviour** of the gradient operating at all scales concurrently:
+
+1. **Continuous sensing** — interoceptive and exteroceptive monitors (§4.5) run independently of iterate(), computing `delta(observed, expected)` about internal health and external environment. The system notices even when no one is actively developing
 2. **Concurrent vector lifecycles** — many vectors in different phases simultaneously, not a sequential pipeline
 3. **Continuous metabolism** — CI/CD runs continuously, not on-demand. The system is always building, testing, deploying
 4. **Active perception** — telemetry streams continuously, not sampled. The system is always observing itself
-5. **Reflexive self-modification** — the consciousness loop operates continuously. The spec is always absorbing signals and spawning responses
+5. **Reflexive self-modification** — spec review (§7.3) operates continuously. The constraint surface is always absorbing signals and spawning responses
 6. **Selective pruning** — vectors that are no longer needed (requirement removed, superseded by discovery) are cancelled. The system doesn't just grow; it prunes
 
-No single component creates the living quality. A system with only CI/CD is mechanical. A system with only telemetry is observant but passive. A system with only the consciousness loop but no concurrent vectors is self-aware but not alive. A system without continuous sensing (§4.5) is a brain without eyes or gut — it can think when stimulated but cannot notice threats or decay between stimulations. It is the simultaneous operation of all six properties — sensing, concurrency, metabolism, perception, reflection, pruning — that produces the living system.
+No single component creates the living quality. It is the simultaneous operation of all six — sensing, concurrency, metabolism, perception, reflection, pruning — that produces the living system. Each is the gradient operating at a different scale; all scales active simultaneously = alive.
+
+#### 7.6.3 The Markov Boundary as Concurrency Enabler
 
 **The Markov boundary is what makes concurrency possible.** When a feature vector's component converges at an edge (§2.3), it achieves Markov object status: a stable boundary (interface, contract, test suite), conditional independence (usable without knowing construction history), and evaluator-confirmed stability. This boundary is what allows other vectors to depend on the converged asset without coupling to its internals or its construction process.
 
@@ -1264,9 +1275,9 @@ The more vectors in flight, the more critical the Markov boundary becomes. In a 
 
 This is the ontology's teleodynamic transition (#49) at full expression: a self-maintaining, self-modifying system that acts on its own behalf, with multiple concurrent processes, continuous energy consumption, and the capacity to observe and direct its own evolution.
 
-### 7.8 Protocol Enforcement Hooks
+### 7.7 Protocol Enforcement Hooks
 
-The iterate protocol (§3) produces mandatory side effects beyond the output asset: event emission (§7.5), feature vector update (§6), STATUS regeneration (§7.5.2), and three-direction gap data (backward, forward, inward). These side effects are **the telemetry** — without them, the methodology loses observability, self-observation, and all derived projections.
+The iterate protocol (§3) produces mandatory side effects beyond the output asset: event emission (§7.4), feature vector update (§6), STATUS regeneration (§7.4.2), and three-direction gap data (backward, forward, inward). These side effects are **the telemetry** — without them, the methodology loses observability, self-observation, and all derived projections.
 
 Protocol enforcement hooks are the methodology's **reflex arc** — the autonomic nervous system (§4.3, reflex phase). They fire unconditionally at every iteration boundary, verifying that mandatory side effects occurred. Like biological reflexes, they require no deliberation: the check is deterministic (did the event get emitted? yes/no), the response is automatic (block or allow), and the circuit breaker prevents runaway loops. The agent's affect triage and conscious processing (classification, evaluation, gap analysis) run freely; the reflex system ensures the bookkeeping happens regardless of how the higher phases chose to work.
 
@@ -1274,7 +1285,7 @@ Dogfooding observation: in test05 (CDME v2.3), the agent bypassed the iterate pr
 
 **Protocol enforcement hooks** make the side effects mandatory. They are a **deterministic evaluator of the iterate protocol itself** — the same pattern the methodology uses for artifacts (§4.1), applied reflexively to its own operation.
 
-#### 7.8.1 Hook Architecture
+#### 7.7.1 Hook Architecture
 
 ```
 UserPromptSubmit ──→ detect /aisdlc-iterate, record edge context
@@ -1296,7 +1307,7 @@ Stop ──→ check: were mandatory side effects completed?
 Stop (2nd) ──→ stop_hook_active=true → allow through (circuit breaker)
 ```
 
-#### 7.8.2 Mandatory Side Effects (What the Hook Checks)
+#### 7.7.2 Mandatory Side Effects (What the Hook Checks)
 
 | Check | What it verifies | Gap it prevents |
 |-------|-----------------|-----------------|
@@ -1306,7 +1317,7 @@ Stop (2nd) ──→ stop_hook_active=true → allow through (circuit breaker)
 | **Source findings present** | Latest `iteration_completed` event contains `source_findings` array | Backward gap detection skipped — upstream quality signal lost |
 | **Process gaps present** | Latest `iteration_completed` event contains `process_gaps` array | Inward gap detection skipped — methodology improvement signal lost |
 
-#### 7.8.3 The Circuit Breaker
+#### 7.7.3 The Circuit Breaker
 
 The Stop hook uses a `stop_hook_active` flag to prevent infinite regression:
 
@@ -1316,7 +1327,7 @@ The Stop hook uses a `stop_hook_active` flag to prevent infinite regression:
 
 This guarantees the agent can always eventually stop — the hook never blocks more than once per edge traversal. If a side effect genuinely cannot be completed (e.g., file permission error), the agent explains on the second attempt and the hook releases.
 
-#### 7.8.4 Separation of Concerns
+#### 7.7.4 Separation of Concerns
 
 The hooks enforce **that** the protocol was followed, not **how** the agent generates. This separation is critical:
 
@@ -1326,7 +1337,7 @@ The hooks enforce **that** the protocol was followed, not **how** the agent gene
 
 This mirrors how deterministic tests work for code: the test doesn't care how the function was implemented, only that the interface contract is satisfied.
 
-#### 7.8.5 Ontology Connection
+#### 7.7.5 Ontology Connection
 
 Protocol enforcement hooks are an instance of **evaluator-as-prompter** (#35) applied at the meta-level. The hook computes a delta between the expected protocol state (all side effects complete) and the actual state (which side effects are missing), then emits a constraint signal (block with reason) that drives the next action. This is the same pattern used at every other level:
 
@@ -1365,7 +1376,7 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Task graph | Emergent structure from feature dependencies | 3 (generative principle) |
 | Module decomposition | Basis vectors of the build subspace | 9 (constraint manifold, §11.1) |
 | Basis projection | Feature vector projected onto minimal module basis — Markov object once converged | 7 (Markov object) + 9 (§11.1 projection) |
-| Build schedule (Gantt) | Derived projection of module DAG + feature priority + convergence events | 9, 11 (§7.5.2 derived projection) |
+| Build schedule (Gantt) | Derived projection of module DAG + feature priority + convergence events | 9, 11 (§7.4.2 derived projection) |
 | Protocol enforcement hook | Evaluator-as-prompter applied at meta-level — deterministic check of iterate side effects | 35 (evaluator-as-prompter) |
 | Circuit breaker (stop_hook_active) | Finite regression guarantee — evaluator backs off after one cycle | 7 (stability condition) |
 | Probabilistic compute | Stochastic expansion | 45 |
@@ -1374,7 +1385,7 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Affect processing phase (§4.3) | Signal triage — classification by source, severity assessment, urgency weighting, escalation decision. The limbic filter between sensing and deliberation | 49 (teleodynamic — self-regulating) |
 | Conscious processing phase (§4.3) | Deliberative evaluation — human + agent judgment, gap assessment, intent generation, spec modification. Only processes what affect escalates | 49 (teleodynamic — self-directing) |
 | Running system | Teleodynamic Markov object | 49 |
-| Homeostasis | Self-maintaining boundary conditions | 49 |
+| Homeostasis (gradient at production scale, §7.2) | Self-maintaining boundary conditions — `delta(running_system, spec) → correction` | 49 |
 | Living specification | Living encoding | 46 |
 | Hallucination / failure | Probability degeneracy from sparse constraints | 54 |
 | Context density | Constraint density | 16 |
@@ -1392,7 +1403,7 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | TELEM signal (self-observation) | Methodology as self-observing Markov object | 35, 49 |
 | Methodology self-maintenance | Teleodynamic status — system maintains own specification | 49 |
 | Spec as absorbing boundary | Living encoding as reference frame — all signals converge, all vectors radiate | 46, 9 |
-| Consciousness loop | Reflexive self-modification spanning all three processing phases (reflex → affect → conscious) — spec updates from experience, updates are event-logged and observable | 49, 46 |
+| Spec review / gradient at spec scale (§7.3) | Stateless gradient check: `delta(workspace, spec) → intents` — spec updates from experience, updates event-logged and observable. Spans reflex → affect → conscious phases | 49, 46 |
 | Affect triage (signal filter) | Limbic processing — classification, severity weighting, escalation decision. Necessary filter between reflex sensing and conscious deliberation | 49 (teleodynamic — self-regulating) |
 | Interoception (self-sensing, §4.5.1) | Continuous self-observation — event freshness, test health, vector stalls, build health, spec/code drift. Runs independently of iterate() | 49 (teleodynamic — self-maintaining), 44 (deviation signal) |
 | Exteroception (environment-sensing, §4.5.2) | Continuous environment scanning — dependency ecosystem, CVE feeds, runtime telemetry, user feedback, API changes | 49 (teleodynamic — self-maintaining), 44 (deviation signal) |
@@ -1400,8 +1411,8 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Spec change event | Event-logged self-model modification — what changed, why, trace to triggering intent | 46 (living encoding), 2 (constraint propagation) |
 | Prior intents (causal chain) | Reflexive traceability — system detects consequences of its own modifications | 44 (feedback), 49 (self-maintaining) |
 | Total intentional state | Superposition of all in-flight vectors — system's response to everything it knows | 45 (stochastic expansion, §11.1) |
-| Hamiltonian shift (spec update) | Potential energy landscape redefined by spec change — ground states move | 46 (living encoding, §11.2) |
-| System maturity phases | Abiogenesis → homeostasis → consciousness loop (emergent from composition) | 39, 49, 46 |
+| Hamiltonian shift (spec update) | Potential energy landscape redefined by spec change — ground states move. Formal expression of the gradient (§7.1) | 46 (living encoding, §11.2) |
+| Progressive gradient activation | Abiogenesis → gradient at system scale → gradient at spec scale (emergent from composition, not distinct phases) | 39, 49, 46 |
 | Living system (operational) | Concurrent vector lifecycles + continuous metabolism + active perception + reflexive self-modification + selective pruning | 49 (teleodynamic, full expression) |
 | Metabolism (CI/CD loop) | Continuous transformation — energy consumed to maintain the system | 49 (self-maintaining) |
 | Vector spawning (reproduction) | New vectors born from intent events — system creates directed actions from observation | 36, 44 |
@@ -1483,11 +1494,11 @@ The methodology follows the abiogenesis pattern (#39) at two levels:
 - **Three-layer architecture** — Engine (universal) / Graph Package (domain-specific) / Project Binding (instance-specific)
 - **Event sourcing execution model** — immutable events, derived projections (STATUS, feature vectors, task lists)
 - **Methodology self-observation** — TELEM signals feed back into graph package evolution
-- **Consciousness loop** — spec as absorbing boundary; all signals (gaps, discoveries, ecosystem, optimisation, user feedback, TELEM) converge on spec and radiate as new/modified feature vectors
+- **Gradient at every scale** — one operation `delta(state, constraints) → work` from single iteration through spec review; all signals converge on spec and radiate as new/modified feature vectors
 - **Intent events as first-class objects** — classified deviation signals with full causal chain (trigger, delta, signal source, vector type, prior intents)
 - **Spec change events** — event-logged self-model modifications with traceability to triggering intent
-- **Hamiltonian dynamics** — spec updates shift the potential energy landscape; former ground states become excited states under new constraints
-- **Living system** — when operational, concurrent vector lifecycles + CI/CD metabolism + telemetry perception + consciousness loop + selective pruning = ecology of Markov objects
+- **Hamiltonian dynamics** — spec updates shift the potential energy landscape; former ground states become excited states under new constraints (formal expression of the gradient)
+- **Living system** — when operational, the gradient at all scales simultaneously: concurrent vector lifecycles + CI/CD metabolism + telemetry perception + reflexive spec evolution + selective pruning = ecology of Markov objects
 - **Markov boundaries as concurrency enabler** — converged assets interact through boundaries, not internals, preventing combinatorial coordination explosion across concurrent vectors
 
 ---
@@ -1509,13 +1520,13 @@ The AI SDLC is:
 11. Executed via **event sourcing** — immutable events, all state (STATUS, feature vectors, tasks) as derived projections
 12. **Self-observing** — TELEM signals from methodology runs feed back into graph package evolution
 13. **Protocol-enforced** — hooks verify iterate() side effects (event emission, feature vector, STATUS) before allowing the agent to stop. Circuit breaker prevents infinite regression. The hooks are the deterministic evaluator of the protocol itself — the reflex phase (§4.3) of the methodology's autonomic nervous system.
-14. **Conscious** — the spec is the absorbing boundary: all signals (gaps, discoveries, ecosystem evolution, optimisation, user feedback, methodology self-observation) converge on the spec and radiate outward as new or modified feature vectors. Spec changes are event-logged, making the system's self-modification observable and traceable. Intent events carry full causal chains (trigger, delta, signal source, prior intents), enabling the system to detect the consequences of its own modifications. Three maturity phases emerge: construction (abiogenesis) → homeostasis (telemetry-driven correction) → consciousness loop (reflexive self-modification with traceability). No new primitive is required — the consciousness property emerges from the composition of feedback loops, absorbing boundary, and event sourcing.
+14. **Gradient at every scale** — one computation, `delta(state, constraints) → work`, applied from single iteration through edge convergence, feature traversal, production homeostasis, spec review, and constraint surface update. The spec is the constraint surface: all signals (gaps, discoveries, ecosystem evolution, optimisation, user feedback, methodology self-observation) converge on the spec and radiate outward as new or modified feature vectors. Spec changes are event-logged, making the system's self-modification observable and traceable. Intent events carry full causal chains (trigger, delta, signal source, prior intents), enabling the system to detect the consequences of its own modifications. No new primitive is required — complexity emerges from the same gradient operating at progressively larger scales.
 15. **Continuously sensing** — interoceptive monitors (§4.5.1) observe the system's own health (test staleness, vector stalls, build failures, coverage drift, spec/code drift) while exteroceptive monitors (§4.5.2) observe the external environment (dependency updates, CVE feeds, runtime telemetry, user feedback, API changes). Both run independently of iterate() — the system notices threats and decay even when no one is actively developing.
-16. **Alive** — when operational, the system exhibits the structural properties of a living organism: continuous sensing (interoception + exteroception), many feature vectors in concurrent lifecycle stages (gestating, iterating, converging, deploying, being observed), continuous metabolism (CI/CD), active perception (telemetry), reflexive self-modification (consciousness loop), selective pruning (vector cancellation when requirements removed). The Markov boundary (§2.3) at each converged asset is what makes concurrency tractable — vectors interact through boundaries, not internals, preventing combinatorial coordination explosion. The system is an ecology of Markov objects.
+16. **Alive** — when operational, the gradient active at all scales simultaneously produces the structural properties of a living organism: continuous sensing (interoception + exteroception), many feature vectors in concurrent lifecycle stages (gestating, iterating, converging, deploying, being observed), continuous metabolism (CI/CD), active perception (telemetry), reflexive self-modification (gradient at spec scale), selective pruning (vector cancellation when requirements removed). The Markov boundary (§2.3) at each converged asset is what makes concurrency tractable — vectors interact through boundaries, not internals, preventing combinatorial coordination explosion. The system is an ecology of Markov objects.
 
 The graph is not universal — it is domain-constructed via abiogenesis (#39). The SDLC graph is one crystallisation. A legal document, a physics paper, an organisational policy each produce different graphs from the same four primitives. The graph is zoomable: any edge expandable into a sub-graph, any sub-graph collapsible into a single edge.
 
-The methodology is an instantiation of the constraint-emergence ontology's information-driven construction pattern (#38), with the iteration function as local preorder traversal (#15) on the constraint manifold (#9), producing stable Markov objects (#7) that become constraints for the next construction, closing the feedback loop (#44) through runtime observation, and achieving self-maintaining teleodynamic status (#49) when the specification becomes a living encoding (#46) updated from production experience. The execution model is event sourcing — each methodology action produces an immutable event; all observable state is a projection of the event history. The methodology observes itself through the same evaluator pattern it uses for artifacts. The spec is the absorbing boundary — all signals converge on it, all directed action radiates from it, and its own modifications are event-logged, producing a consciousness loop where the system observes, modifies, and traces the consequences of its own self-modification. Two sensory systems — interoception (self-sensing) and exteroception (environment-sensing) — run continuously and independently of iterate(), feeding signals through the three processing phases (reflex → affect → conscious). When operational, the system is alive: continuous sensing, many concurrent feature vectors at different lifecycle stages, continuous CI/CD metabolism, active telemetry perception, reflexive spec evolution, selective vector pruning — an ecology of Markov objects interacting through boundaries, collectively producing a self-maintaining, self-directing, self-aware system.
+The methodology is an instantiation of the constraint-emergence ontology's information-driven construction pattern (#38), with the iteration function as local preorder traversal (#15) on the constraint manifold (#9), producing stable Markov objects (#7) that become constraints for the next construction, closing the feedback loop (#44) through runtime observation, and achieving self-maintaining teleodynamic status (#49) when the specification becomes a living encoding (#46) updated from production experience. The execution model is event sourcing — each methodology action produces an immutable event; all observable state is a projection of the event history. The methodology observes itself through the same evaluator pattern it uses for artifacts. One gradient — `delta(state, constraints) → work` — operates at every scale: single iteration, edge convergence, feature traversal, production homeostasis, spec review, constraint surface update. The spec is the constraint surface — all signals converge on it, all directed action radiates from it, and its own modifications are event-logged, enabling the system to detect the consequences of its own changes. Two sensory systems — interoception (self-sensing) and exteroception (environment-sensing) — run continuously and independently of iterate(), feeding signals through the three processing phases (reflex → affect → conscious). When operational, the gradient active at all scales simultaneously produces a living system: continuous sensing, many concurrent feature vectors at different lifecycle stages, continuous CI/CD metabolism, active telemetry perception, reflexive spec evolution, selective vector pruning — an ecology of Markov objects interacting through boundaries, collectively producing a self-maintaining, self-directing system.
 
 Four primitives. One operation. Three layers. The rest is parameterisation — including the graph itself.
 
@@ -1540,7 +1551,7 @@ Feature vectors form a Hilbert space whose basis is the set of asset types:
 | **Projection** | Basis projection — projecting a feature vector onto its minimal module basis (§6.7). Task batching — grouping features that share modules |
 | **Superposition** | The system's **total intentional state** — all features/basis projections in-flight, components not yet converged. Represents everything the system is currently doing in response to everything it knows |
 | **Measurement/collapse** | Evaluator convergence — basis projection converges to stable Markov object. Once converged, it has a definite boundary and downstream work can depend on it without knowing its construction history |
-| **Basis change** | Spec update via consciousness loop (§7.7) — the spec absorbs a signal and the vector space itself transforms. New dimensions appear (new requirements), old dimensions shift (updated constraints), existing vectors acquire potential energy under the new basis |
+| **Basis change** | Spec update via gradient at spec scale (§7.3) — the spec absorbs a signal and the vector space itself transforms. New dimensions appear (new requirements), old dimensions shift (updated constraints), existing vectors acquire potential energy under the new basis |
 
 The two compute regimes (#45) map directly:
 
@@ -1549,7 +1560,7 @@ The two compute regimes (#45) map directly:
 
 ### 11.2 The Hamiltonian: Cost and Effort
 
-The **Hamiltonian** H is the operator governing evolution (effort/cost) on the feature vector space:
+The **Hamiltonian** H is the operator governing evolution (effort/cost) on the feature vector space. This is the formal expression of the gradient (§7.1) — `delta(state, constraints) → work` — cast in the language of physics:
 
 ```
 H(edge) = T(iteration_cost) + V(constraint_delta)
@@ -1576,7 +1587,7 @@ Cost(feature) = Σ H(edge) for each component projection
 
 #### 11.2.1 Hamiltonian Shift Under Spec Update
 
-When the consciousness loop (§7.7) updates the spec, the Hamiltonian **shifts** — the potential energy landscape is redefined:
+When the gradient at spec scale (§7.3) updates the spec, the Hamiltonian **shifts** — the potential energy landscape is redefined:
 
 ```
 H_old = T + V(constraint_delta | spec_old)
@@ -1597,7 +1608,7 @@ The asset "wants to move" — it has acquired potential energy because the const
 | Requirement removed | Dimension collapses — over-engineered assets have excess T | Simplification vector (reduce complexity) |
 | Discovery (new capability) | New low-energy path appears | Spawn PoC vector to explore ground state |
 
-The system's total energy budget (§11.2, energy conservation) is finite. Spec updates that raise V across many assets create pressure to re-optimise — the system must find new ground states under the new Hamiltonian. This is relentless optimisation made formal: the consciousness loop continuously shifts the energy landscape, and the system continuously spawns vectors to find new minima.
+The system's total energy budget (§11.2, energy conservation) is finite. Spec updates that raise V across many assets create pressure to re-optimise — the system must find new ground states under the new Hamiltonian. This is relentless optimisation made formal: the gradient at spec scale (§7.3) continuously shifts the energy landscape, and the system continuously spawns vectors to find new minima.
 
 ### 11.3 Task Planning as Action Minimisation
 

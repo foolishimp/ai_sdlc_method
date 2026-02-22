@@ -135,6 +135,11 @@ Four insights from v2.1 that should propagate to the constraint-emergence ontolo
 
 ## Recently Completed
 
+- **REQ-F-LIFE-001**: code→uat_tests CONVERGED (2026-02-22T19:30:00Z) — 44 UAT integration tests, 2 iterations, 7/7 evaluators pass. Asset: imp_claude/tests/test_integration_uat.py
+- **REQ-F-LIFE-001**: code↔unit_tests CONVERGED (2026-02-22T19:00:00Z) — 26 BDD observer tests, 2 iterations. Asset: imp_claude/tests/test_methodology_bdd.py
+- **REQ-F-LIFE-001**: design→code CONVERGED (2026-02-22T18:45:00Z) — 3 observer agent specs, 2 iterations. Assets: agents/aisdlc-{dev,cicd,ops}-observer.md
+- **REQ-F-LIFE-001**: requirements→design CONVERGED (2026-02-22T18:30:00Z) — §1.11 + ADR-014, 3 iterations
+- **REQ-F-LIFE-001**: intent→requirements CONVERGED (2026-02-22T18:10:00Z) — REQ-LIFE-010..012, 2 iterations
 - **Task #36**: Automated Traceability Validation (2026-02-20) — 3-layer checks, traceability.yml, enhanced /aisdlc-gaps
 - **Task #32**: Projection Profiles and Vector Type Support (2026-02-20) — 6 profiles, spawn command, extended convergence, time-boxing
 - **Task #38**: Review and Refine v2.1 Spec (2026-02-20) — 4 docs updated, 3 new reqs, PDFs regenerated

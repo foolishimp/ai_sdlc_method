@@ -1,6 +1,6 @@
 # AI SDLC — Project Genesis: Implementation Requirements
 
-**Version**: 3.7.0
+**Version**: 3.8.0
 **Date**: 2026-02-21
 **Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
@@ -487,6 +487,70 @@ The system shall support stateless review of workspace state against the spec, c
 - Stateless and idempotent: same state + same spec = same intents
 
 **Traces To**: Asset Graph Model §7.1 (The Gradient), §7.3 (Spec Review) | Ontology #36 (delta/intent), #49 (teleodynamic)
+
+---
+
+### REQ-LIFE-010: Development Observer Agent
+
+**Priority**: High | **Phase**: 2
+
+The system shall provide a development observer agent — a markdown agent spec executed by the AI assistant — that watches the workspace event stream and computes `delta(workspace_state, spec) → intents` after iterate/converge events. This closes the right side of the abiogenesis loop: act → emit event → observe → judge → feed back.
+
+**Acceptance Criteria**:
+- Implemented as a markdown agent spec (same delivery as iterate agent — no executable code beyond the spec)
+- Triggered by hooks after `iteration_completed`, `edge_converged`, `release_created`, and `gaps_validated` events
+- Reads events.jsonl, feature vector state, convergence status, and telemetry signals
+- Computes delta against the spec: what spec asserts vs what workspace contains
+- Classifies non-zero deltas by signal source (gap, discovery, ecosystem, optimisation, user, TELEM)
+- Emits `observer_signal` events with: observer_id, signal_source, delta_description, severity, recommended_action
+- Markov object: reads inputs (event log), emits events, no shared mutable state — event log is the mailbox
+- Draft intents presented to human for approval (actor model — no autonomous spec modification)
+- Idempotent: same workspace state + same spec = same observations
+
+**Traces To**: Asset Graph Model §7.1 (The Gradient), §7.3 (Spec Review), §7.6 (The Living System) | Ontology #49 (teleodynamic — self-maintaining), #36 (delta/intent)
+
+---
+
+### REQ-LIFE-011: CI/CD Observer Agent
+
+**Priority**: High | **Phase**: 2
+
+The system shall provide a CI/CD observer agent — a markdown agent spec executed by the AI assistant — that watches build and test results after push events and computes `delta(build_state, quality_spec) → intents`. This is the gradient at the build/deploy scale.
+
+**Acceptance Criteria**:
+- Implemented as a markdown agent spec (same delivery as iterate agent)
+- Triggered by hooks after CI/CD pipeline completion (build success/failure, test results available)
+- Reads build logs, test results, coverage reports, and deployment status
+- Computes delta against quality constraints: expected green vs actual red, coverage thresholds, deployment health
+- Maps build failures back to REQ keys via `Implements:` / `Validates:` tags in failing code/tests
+- Emits `observer_signal` events with: observer_id=`cicd_observer`, build_status, failing_req_keys, coverage_delta
+- Generates draft `intent_raised` events for test gaps, build regressions, and coverage drops
+- Markov object: reads build artifacts, emits events, no shared mutable state
+- Can trigger automatic rollback intents when deployment health checks fail (draft only — human approves)
+
+**Traces To**: Asset Graph Model §7.1 (The Gradient), §7.2 (Gradient at Production Scale) | Ontology #44 (deviation signal), #49 (teleodynamic)
+
+---
+
+### REQ-LIFE-012: Ops Observer Agent
+
+**Priority**: High | **Phase**: 2
+
+The system shall provide an ops observer agent — a markdown agent spec executed by the AI assistant — that watches production telemetry and computes `delta(running_system, spec) → intents`. This is the gradient at the operational scale — runtime homeostasis.
+
+**Acceptance Criteria**:
+- Implemented as a markdown agent spec (same delivery as iterate agent)
+- Triggered on schedule (configurable interval) or on alert from monitoring infrastructure
+- Reads production telemetry: latency percentiles, error rates, resource utilisation, incident reports
+- Computes delta against spec constraints: SLA targets, performance envelopes, resource bounds
+- Correlates telemetry anomalies with REQ keys via `req=` structured logging tags
+- Emits `observer_signal` events with: observer_id=`ops_observer`, metric_deltas, affected_req_keys, severity
+- Generates draft `intent_raised` events for: SLA breaches, performance regressions, resource exhaustion trends
+- Markov object: reads telemetry streams, emits events, no shared mutable state
+- Integrates with interoceptive signals (REQ-SENSE-001) — ops observer is a higher-level consumer of sensory data
+- Stateless: same telemetry snapshot + same spec = same observations
+
+**Traces To**: Asset Graph Model §7.1 (The Gradient), §7.2 (Gradient at Production Scale), §7.6 (The Living System) | Ontology #49 (teleodynamic), #44 (deviation signal), #7 (Markov object)
 
 ---
 
@@ -995,19 +1059,19 @@ Agent roles SHALL define which edge types an agent may converge autonomously. Co
 | Evaluators | 3 | 2 | 1 | 0 |
 | Context | 2 | 0 | 1 | 1 |
 | Feature Vectors | 3 | 1 | 2 | 0 |
-| Full Lifecycle | 9 | 2 | 7 | 0 |
+| Full Lifecycle | 12 | 2 | 10 | 0 |
 | Sensory Systems | 5 | 0 | 4 | 1 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
 | Tooling | 10 | 0 | 6 | 4 |
 | User Experience | 5 | 0 | 3 | 2 |
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
-| **Total** | **55** | **10** | **35** | **11** |
+| **Total** | **58** | **10** | **38** | **11** |
 
 ### Phase 1 (Core Graph Engine): 39 requirements
 Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery).
 
-### Phase 2 (Full Lifecycle + Coordination): 16 requirements
-Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority.
+### Phase 2 (Full Lifecycle + Coordination): 19 requirements
+Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority.
 
 ---
 

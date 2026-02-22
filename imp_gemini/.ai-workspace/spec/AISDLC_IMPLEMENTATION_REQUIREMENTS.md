@@ -1,6 +1,6 @@
 # AI SDLC — Project Genesis: Implementation Requirements
 
-**Version**: 3.6.0
+**Version**: 3.7.0
 **Date**: 2026-02-21
 **Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
@@ -86,7 +86,7 @@ The system shall generate intents automatically when ecosystem changes are detec
 - Generate INT-ECO-* intents with ecosystem context
 - Feed into graph as new feature vectors
 
-**Traces To**: Asset Graph Model §7.3 (Complete Cycle) | Ontology #44 (deviation signal)
+**Traces To**: Asset Graph Model §7.2 (Gradient at Production Scale) | Ontology #44 (deviation signal)
 
 ---
 
@@ -343,7 +343,7 @@ Deployment shall be a first-class iterative graph transition, not an external af
 - Iteration: failed deployment retries with evaluator feedback
 - Release manifests list feature vector IDs (REQ keys)
 
-**Traces To**: Asset Graph Model §7.1 (Beyond Testing)
+**Traces To**: Asset Graph Model §7.2 (Gradient at Production Scale) | Ontology #49 (teleodynamic)
 
 ---
 
@@ -359,7 +359,7 @@ The running system shall be monitored as a Markov object maintaining its boundar
 - Evaluators at runtime: Deterministic Tests (alerting, SLA checks, health probes), Agent (anomaly detection), Human (incident response)
 - Drift detection generates deviation signals (#44)
 
-**Traces To**: Asset Graph Model §7.2 (Running System as Markov Object), §7.3 (Complete Cycle) | Ontology #49 (teleodynamic), #44 (deviation signal)
+**Traces To**: Asset Graph Model §7.2 (Gradient at Production Scale) | Ontology #49 (teleodynamic), #44 (deviation signal)
 
 ---
 
@@ -375,7 +375,7 @@ Runtime deviations shall generate new intents that re-enter the asset graph as n
 - New intents enter graph as new feature vectors
 - The specification becomes a living encoding (#46) — updated from runtime observation
 
-**Traces To**: Asset Graph Model §7.4 (Self-Maintaining Specification) | Ontology #46 (living encoding), #49 (teleodynamic)
+**Traces To**: Asset Graph Model §7.1 (The Gradient — spec as constraint surface), §7.3 (Spec Review) | Ontology #46 (living encoding), #49 (teleodynamic)
 
 ---
 
@@ -399,7 +399,7 @@ Runtime telemetry shall carry REQ keys as structured fields, enabling per-featur
 
 **Priority**: Critical | **Phase**: 1
 
-Every observer point that detects a non-trivial delta shall emit an `intent_raised` event with full causal chain. The consciousness loop (§7.7) operates at every evaluator, not only the telemetry→intent production edge.
+Every observer point that detects a non-trivial delta shall emit an `intent_raised` event with full causal chain. The gradient (§7.1) operates at every evaluator, not only the telemetry→intent production edge.
 
 **Acceptance Criteria**:
 - `intent_raised` event emitted to `events.jsonl` whenever an observer detects a delta warranting action beyond the current iteration
@@ -408,7 +408,7 @@ Every observer point that detects a non-trivial delta shall emit an `intent_rais
 - Signal sources classified as one of: `gap`, `test_failure`, `refactoring`, `source_finding`, `process_gap`, `runtime_feedback`, `ecosystem`
 - Human presented with generated intent for decision (create feature vector, acknowledge, or dismiss)
 
-**Traces To**: Asset Graph Model §7.7.2 (Intent Events as First-Class Objects) | Ontology #49 (teleodynamic — self-maintaining), #46 (living encoding)
+**Traces To**: Asset Graph Model §7.3.1 (Intent Events as First-Class Objects) | Ontology #49 (teleodynamic — self-maintaining), #46 (living encoding)
 
 ---
 
@@ -427,7 +427,7 @@ All observations that feed back into the intent system shall be classified by si
 - TDD iterate emits `intent_raised` with `signal_source: "test_failure"` when same check fails > 3 iterations
 - TDD iterate emits `intent_raised` with `signal_source: "refactoring"` when structural debt exceeds current scope
 
-**Traces To**: Asset Graph Model §7.4 (Self-Maintaining Specification — signal sources table), §7.6 (Methodology Self-Observation) | Ontology #44 (deviation signal)
+**Traces To**: Asset Graph Model §7.1 (The Gradient — signal sources table), §7.5 (Methodology Self-Observation) | Ontology #44 (deviation signal)
 
 ---
 
@@ -444,7 +444,7 @@ When the specification absorbs a signal and updates, a `spec_modified` event sha
 - Feedback loop detection: if intent A → spec change → intent B → spec change, and intent B traces back to A via `prior_intents`, the cycle is visible in the event log
 - Rate of evolution derivable: which spec sections are volatile vs stable
 
-**Traces To**: Asset Graph Model §7.7.3 (Spec Change Events) | Ontology #46 (living encoding — spec updates from experience)
+**Traces To**: Asset Graph Model §7.3.2 (Spec Change Events) | Ontology #46 (living encoding — spec updates from experience)
 
 ---
 
@@ -466,7 +466,27 @@ Every `iterate()` invocation shall enforce mandatory side effects. Skipping even
 - Protocol violations reported as `process_gap` with type `PROTOCOL_VIOLATION`
 - Hooks are classified as reflex processing phase (§4.3) — they fire unconditionally and require no deliberative judgment
 
-**Traces To**: Asset Graph Model §7.8 (Protocol Enforcement Hooks), §4.3 (Three Processing Phases) | Ontology #49 (teleodynamic — boundary maintenance)
+**Traces To**: Asset Graph Model §7.7 (Protocol Enforcement Hooks), §4.3 (Three Processing Phases) | Ontology #49 (teleodynamic — boundary maintenance)
+
+---
+
+### REQ-LIFE-009: Spec Review as Gradient Check
+
+**Priority**: High | **Phase**: 1
+
+The system shall support stateless review of workspace state against the spec, computing deltas and generating intents where the gradient is non-zero. This is `delta(state, constraints) → work` applied at the workspace-spec scale.
+
+**Acceptance Criteria**:
+- Invocable on demand and after any completion event (feature convergence, release, gap validation)
+- Reads workspace snapshot: feature vectors, event log, convergence status, telemetry signals
+- Computes delta against spec: what spec asserts vs what workspace contains
+- Classifies non-zero deltas by signal source (gap, discovery, ecosystem, optimisation, user, TELEM)
+- Applies affect triage (§4.3): severity assessment, escalation decision
+- Generates draft `intent_raised` events with full causal chain (trigger, delta, signal_source, vector_type, prior_intents)
+- Draft intents presented to human for approval (create vector, acknowledge, dismiss)
+- Stateless and idempotent: same state + same spec = same intents
+
+**Traces To**: Asset Graph Model §7.1 (The Gradient), §7.3 (Spec Review) | Ontology #36 (delta/intent), #49 (teleodynamic)
 
 ---
 
@@ -699,7 +719,7 @@ Versioning and distribution capabilities.
 - Release tagging
 - Feature vector coverage summary in release notes
 
-**Traces To**: Asset Graph Model §7.1 (CI/CD as graph asset) | Ontology #7 (Markov object — stable boundary for release)
+**Traces To**: Asset Graph Model §7.2 (Gradient at Production Scale — CI/CD as graph asset) | Ontology #7 (Markov object — stable boundary for release)
 
 ---
 
@@ -809,7 +829,7 @@ The system shall detect project state and route to the appropriate action withou
 - Single entry point routes to correct action (init, constraint capture, intent authoring, iterate, review, spawn, gaps, release)
 - State derived from workspace filesystem + event log — never from stored "current state" variable
 
-**Traces To**: Asset Graph Model §7.5 (Event Sourcing — state derived, not stored) | Ontology #2 (constraint propagation — state computed from constraints)
+**Traces To**: Asset Graph Model §7.4 (Event Sourcing — state derived, not stored) | Ontology #2 (constraint propagation — state computed from constraints)
 
 ---
 
@@ -843,7 +863,7 @@ The system shall provide a project-level status view that aggregates across all 
 - Preview of what state-driven routing would do next
 - Workspace health check: event log integrity, feature vector consistency, orphaned spawns, stuck detection
 
-**Traces To**: Asset Graph Model §7.6 (Self-Observation) | Ontology #15 (trajectory observation — observing the system's own trajectories)
+**Traces To**: Asset Graph Model §7.5 (Self-Observation) | Ontology #15 (trajectory observation — observing the system's own trajectories)
 
 ---
 
@@ -875,7 +895,7 @@ The system shall detect and guide recovery from inconsistent workspace states wi
 - Non-destructive: never silently delete user data; always ask before overwrite
 - Workspace rebuildable from event log (event sourcing guarantee)
 
-**Traces To**: Asset Graph Model §7.5 (Event Sourcing — views reconstructible from events) | Ontology #7 (Markov object — stable boundary enables recovery)
+**Traces To**: Asset Graph Model §7.4 (Event Sourcing — views reconstructible from events) | Ontology #7 (Markov object — stable boundary enables recovery)
 
 ---
 
@@ -893,7 +913,7 @@ Every event emitted by an agent SHALL include an `agent_id` field (unique per ag
 - Agent role registry is a simple YAML list; no role hierarchy or inheritance required
 - Agent identity is self-declared, not centrally assigned — the event log is the source of truth for which agents have participated
 
-**Traces To**: Asset Graph Model §7.5 (Event Sourcing — every event carries full provenance) | Ontology #7 (Markov object — agent boundary is its emitted events)
+**Traces To**: Asset Graph Model §7.4 (Event Sourcing — every event carries full provenance) | Ontology #7 (Markov object — agent boundary is its emitted events)
 
 ---
 
@@ -912,7 +932,7 @@ Feature/edge assignment SHALL be managed entirely through the event log. No lock
 - No lock files, lease files, or filesystem-level locking mechanisms
 - Inbox directories (if used for staging) are non-authoritative write buffers — their contents are transient and may be discarded without data loss once processed into the event log
 
-**Traces To**: Asset Graph Model §7.5 (Event Sourcing — single source of truth), §7.7.6 (Markov boundary — agents interact through converged assets, not internal state) | Ontology #8 (Markov blanket — conditional independence through boundaries)
+**Traces To**: Asset Graph Model §7.4 (Event Sourcing — single source of truth), §7.6.3 (Markov boundary — agents interact through converged assets, not internal state) | Ontology #8 (Markov blanket — conditional independence through boundaries)
 
 ---
 
@@ -929,7 +949,7 @@ Agent working state (drafts, reasoning traces, session context) SHALL be isolate
 - Agent-private state is ephemeral: if an agent crashes, only its emitted events persist; its working state may be discarded
 - Spec mutations (changes to requirements) always require human evaluator approval regardless of agent role
 
-**Traces To**: Asset Graph Model §7.7.6 (Markov boundary — converged boundary is the interaction surface), §2.6 (Spec/Design boundary — spec is the constraint surface, not a working document) | Ontology #7 (Markov object stability), #40 (encoded representation)
+**Traces To**: Asset Graph Model §7.6.3 (Markov boundary — converged boundary is the interaction surface), §2.6 (Spec/Design boundary — spec is the constraint surface, not a working document) | Ontology #7 (Markov object stability), #40 (encoded representation)
 
 ---
 
@@ -961,7 +981,7 @@ Agent roles SHALL define which edge types an agent may converge autonomously. Co
 - Human evaluator authority is universal — a human may converge any edge
 - Role definitions are project-configurable, not hard-coded
 
-**Traces To**: Asset Graph Model §4 (Evaluators — convergence as composition of evaluator types), §7.7.6 (Markov boundary — authority scoping is a boundary property) | Ontology #7 (Markov object — boundary defines what passes through)
+**Traces To**: Asset Graph Model §4 (Evaluators — convergence as composition of evaluator types), §7.6.3 (Markov boundary — authority scoping is a boundary property) | Ontology #7 (Markov object — boundary defines what passes through)
 
 ---
 
@@ -975,21 +995,21 @@ Agent roles SHALL define which edge types an agent may converge autonomously. Co
 | Evaluators | 3 | 2 | 1 | 0 |
 | Context | 2 | 0 | 1 | 1 |
 | Feature Vectors | 3 | 1 | 2 | 0 |
-| Full Lifecycle | 8 | 2 | 6 | 0 |
+| Full Lifecycle | 9 | 2 | 7 | 0 |
 | Sensory Systems | 5 | 0 | 4 | 1 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
 | Tooling | 10 | 0 | 6 | 4 |
 | User Experience | 5 | 0 | 3 | 2 |
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
-| **Total** | **54** | **10** | **34** | **11** |
+| **Total** | **55** | **10** | **35** | **11** |
 
-### Phase 1 (Core Graph Engine): 38 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, consciousness loop mechanics (intent events, signal classification, spec change events, protocol enforcement), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery).
+### Phase 1 (Core Graph Engine): 39 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery).
 
 ### Phase 2 (Full Lifecycle + Coordination): 16 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority.
 
 ---
 
-**Traces To**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) — every requirement anchored to a specific section.
+**Traces To**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0) — every requirement anchored to a specific section.
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) — concept numbers (#N) throughout.

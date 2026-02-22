@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "claude-code-runner": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@steipete/claude-code-mcp"
+      ]
+    }
+  }
+}

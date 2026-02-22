@@ -2626,3 +2626,213 @@ class TestMultiAgentCoordinationAcceptanceCriteria:
         # ADR-013 lists 5 options
         assert "Filesystem Mutex" in content or "lock files" in content.lower()
         assert "Inbox" in content or "inbox" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 18. OBSERVER AGENTS (REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestObserverAgents:
+    """
+    GIVEN the observer agent feature (dev, CI/CD, ops observers)
+    WHEN each REQ-LIFE-010..012 acceptance criterion is checked
+    THEN agent markdown specs exist with required content.
+
+    Validates: REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012
+    """
+
+    OBSERVER_AGENTS = [
+        "aisdlc-dev-observer.md",
+        "aisdlc-cicd-observer.md",
+        "aisdlc-ops-observer.md",
+    ]
+
+    # ─── Agent spec existence ─────────────────────────────────────────
+
+    @pytest.mark.bdd
+    @pytest.mark.parametrize("agent_file", OBSERVER_AGENTS)
+    def test_observer_agent_exists(self, agent_file):
+        """Each observer agent markdown spec must exist."""
+        assert (AGENTS_DIR / agent_file).exists(), f"Missing agent spec: {agent_file}"
+
+    # ─── REQ-LIFE-010: Dev Observer ───────────────────────────────────
+
+    @pytest.mark.bdd
+    def test_dev_observer_implements_req(self):
+        """Dev observer must declare Implements: REQ-LIFE-010."""
+        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-010" in content
+
+    @pytest.mark.bdd
+    def test_dev_observer_is_stateless(self):
+        """Dev observer must declare itself stateless."""
+        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+            content = f.read()
+        assert "stateless" in content.lower()
+
+    @pytest.mark.bdd
+    def test_dev_observer_is_markov_object(self):
+        """Dev observer must declare itself a Markov object."""
+        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+            content = f.read()
+        assert "markov" in content.lower()
+
+    @pytest.mark.bdd
+    def test_dev_observer_reads_events(self):
+        """Dev observer must read events.jsonl."""
+        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+            content = f.read()
+        assert "events.jsonl" in content
+
+    @pytest.mark.bdd
+    def test_dev_observer_emits_observer_signal(self):
+        """Dev observer must emit observer_signal events."""
+        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+            content = f.read()
+        assert "observer_signal" in content
+
+    @pytest.mark.bdd
+    def test_dev_observer_draft_only(self):
+        """Dev observer must present draft intents (not auto-apply)."""
+        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+            content = f.read()
+        assert "draft" in content.lower()
+        assert "human" in content.lower()
+
+    @pytest.mark.bdd
+    def test_dev_observer_classifies_signals(self):
+        """Dev observer must classify deltas by signal source."""
+        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+            content = f.read()
+        for source in ["gap", "discovery", "ecosystem", "TELEM"]:
+            assert source in content, f"Missing signal source: {source}"
+
+    # ─── REQ-LIFE-011: CI/CD Observer ─────────────────────────────────
+
+    @pytest.mark.bdd
+    def test_cicd_observer_implements_req(self):
+        """CI/CD observer must declare Implements: REQ-LIFE-011."""
+        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-011" in content
+
+    @pytest.mark.bdd
+    def test_cicd_observer_maps_failures_to_req_keys(self):
+        """CI/CD observer must map build failures to REQ keys."""
+        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+            content = f.read()
+        assert "Implements:" in content or "Validates:" in content
+        assert "REQ" in content
+
+    @pytest.mark.bdd
+    def test_cicd_observer_reads_build_results(self):
+        """CI/CD observer must read build/test results."""
+        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+            content = f.read()
+        assert "build" in content.lower()
+        assert "test" in content.lower()
+
+    @pytest.mark.bdd
+    def test_cicd_observer_is_markov_object(self):
+        """CI/CD observer must declare itself a Markov object."""
+        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+            content = f.read()
+        assert "markov" in content.lower()
+
+    @pytest.mark.bdd
+    def test_cicd_observer_emits_observer_signal(self):
+        """CI/CD observer must emit observer_signal events."""
+        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+            content = f.read()
+        assert "observer_signal" in content
+
+    # ─── REQ-LIFE-012: Ops Observer ───────────────────────────────────
+
+    @pytest.mark.bdd
+    def test_ops_observer_implements_req(self):
+        """Ops observer must declare Implements: REQ-LIFE-012."""
+        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-012" in content
+
+    @pytest.mark.bdd
+    def test_ops_observer_reads_telemetry(self):
+        """Ops observer must read production telemetry."""
+        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+            content = f.read()
+        assert "telemetry" in content.lower()
+        assert "latency" in content.lower() or "error" in content.lower()
+
+    @pytest.mark.bdd
+    def test_ops_observer_correlates_req_keys(self):
+        """Ops observer must correlate telemetry with REQ keys via req= tags."""
+        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+            content = f.read()
+        assert "req=" in content
+
+    @pytest.mark.bdd
+    def test_ops_observer_consumes_sensory_signals(self):
+        """Ops observer must consume interoceptive signals from REQ-SENSE-001."""
+        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+            content = f.read()
+        assert "interoceptive" in content.lower() or "SENSE-001" in content
+
+    @pytest.mark.bdd
+    def test_ops_observer_is_markov_object(self):
+        """Ops observer must declare itself a Markov object."""
+        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+            content = f.read()
+        assert "markov" in content.lower()
+
+    @pytest.mark.bdd
+    def test_ops_observer_emits_observer_signal(self):
+        """Ops observer must emit observer_signal events."""
+        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+            content = f.read()
+        assert "observer_signal" in content
+
+    # ─── Cross-cutting: Design doc references ─────────────────────────
+
+    @pytest.mark.bdd
+    def test_design_has_observer_section(self):
+        """Design doc must have §1.11 Observer Agents section."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "Observer Agents" in content
+        assert "1.11" in content
+
+    @pytest.mark.bdd
+    def test_design_has_adr_014(self):
+        """Design doc must reference ADR-014 for observer agents."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "ADR-014" in content
+
+    @pytest.mark.bdd
+    def test_design_lifecycle_includes_observers(self):
+        """Design §3 Lifecycle Closure must reference REQ-LIFE-010..012."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-010" in content
+        assert "REQ-LIFE-011" in content
+        assert "REQ-LIFE-012" in content
+
+    @pytest.mark.bdd
+    def test_requirements_have_observer_reqs(self):
+        """Implementation requirements must contain REQ-LIFE-010, 011, 012."""
+        with open(SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-010" in content
+        assert "REQ-LIFE-011" in content
+        assert "REQ-LIFE-012" in content
+
+    @pytest.mark.bdd
+    def test_feature_vectors_include_observer_reqs(self):
+        """Feature vectors must list REQ-LIFE-010, 011, 012 in REQ-F-LIFE-001."""
+        with open(SPEC_DIR / "FEATURE_VECTORS.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-010" in content
+        assert "REQ-LIFE-011" in content
+        assert "REQ-LIFE-012" in content

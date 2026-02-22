@@ -79,7 +79,6 @@ class StateManager:
         for feat_file in self.features_dir.glob("*.yml"):
             with open(feat_file, "r") as f:
                 try:
-                    # Skip the '---' if present
                     content = f.read()
                     if content.startswith("---"):
                         content = content[3:]
@@ -89,3 +88,42 @@ class StateManager:
                 except Exception:
                     continue
         return features
+
+    def get_next_actionable_feature(self):
+        active_features = self.get_active_features()
+        if not active_features:
+            return None
+        
+        # Closest-to-complete algorithm:
+        # 1. Count converged edges per feature
+        # 2. Sort descending
+        def count_converged(feat):
+            traj = feat.get("trajectory", {})
+            return sum(1 for p in traj.values() if p.get("status") == "converged")
+        
+        sorted_features = sorted(active_features, key=count_converged, reverse=True)
+        # Return the first one that isn't fully converged
+        for feat in sorted_features:
+            if feat.get("status") != "converged":
+                return feat
+        return None
+
+    def get_next_edge(self, feature):
+        traj = feature.get("trajectory", {})
+        
+        # Topological walk based on graph_topology.yml (hardcoded for bootstrap)
+        edges = [
+            ("intent", "requirements"),
+            ("requirements", "design"),
+            ("design", "code"),
+            ("code", "unit_tests")
+        ]
+        
+        for source, target in edges:
+            # Note: feature yml uses target phase name as the key
+            # Mapping: requirements -> requirements, design -> design, etc.
+            phase = target
+            if traj.get(phase, {}).get("status") != "converged":
+                return f"{source}→{target}"
+        
+        return None

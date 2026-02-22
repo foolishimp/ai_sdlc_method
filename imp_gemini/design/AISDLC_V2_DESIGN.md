@@ -1,31 +1,18 @@
-# AI SDLC — Claude Code Implementation Design (v2.8)
+# AI SDLC — Gemini Genesis Implementation Design (v2.8)
 
 **Version**: 2.0.0
-**Date**: 2026-02-20
-**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.0.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
-**Platform**: Claude Code (ADR-001 — carried forward from v1.x)
+**Date**: 2026-02-21
+**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.5.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
+**Platform**: Gemini CLI (ADR-GG-001)
 
 ---
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 8 feature vectors defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Gemini CLI. It covers all 10 feature vectors defined in FEATURE_VECTORS.md.
 
-**Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
-
-**What carries forward from v1.x**:
-- Claude Code as platform (ADR-001)
-- Plugin delivery mechanism
-- Workspace file structure (adapted)
-- Slash commands (adapted)
-- Markdown-first approach
-
-**What changes**:
-- 7 stage agents → 1 iterate engine with edge parameterisations
-- Linear pipeline → graph with admissible transitions
-- Stage-specific skills → evaluator + constructor composition per edge
-- Fixed topology → configurable graph in Context[]
+**Key shift from v1.x**: The v1.x design had 7 stage-specific agents. The v2.1+ model uses a universal `iterate` engine parameterised per edge.
 
 **What v2.0.0 adds** (from spec v2.7.0):
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
@@ -33,6 +20,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 - Event sourcing as the formal execution model
 - Methodology self-observation via TELEM signals
 - Two-command UX layer: Start (routing) + Status (observability)
+- The Gradient: Spec review as a stateless gradient check
 
 ---
 

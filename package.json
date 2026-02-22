@@ -1,0 +1,14 @@
+{
+  "name": "ai-sdlc-method",
+  "version": "2.9.0",
+  "private": true,
+  "description": "AI SDLC Asset Graph Model — methodology and tooling",
+  "scripts": {
+    "setup:mcp": "echo 'MCP server installed via dependencies'",
+    "test": "python -m pytest imp_claude/tests/ -v -m 'not e2e'",
+    "test:e2e": "python -m pytest imp_claude/tests/e2e/ -v -m e2e -s"
+  },
+  "dependencies": {
+    "@steipete/claude-code-mcp": "^1.10.12"
+  }
+}

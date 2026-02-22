@@ -1,8 +1,8 @@
 # AI SDLC — Project Genesis: Feature Vector Decomposition
 
-**Version**: 1.5.0
+**Version**: 1.6.0
 **Date**: 2026-02-21
-**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.6.0)
+**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.7.0)
 **Method**: Asset Graph Model §6.4 (Task Planning as Trajectory Optimisation)
 
 ---
@@ -115,7 +115,7 @@ TDD, BDD, ADR, and code tagging configurations for common graph edges.
 
 CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
-**Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-INTENT-003
+**Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009, REQ-INTENT-003
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩ → |uat⟩
 
@@ -130,6 +130,7 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 - Signal source classification (7 types: gap, test_failure, refactoring, source_finding, process_gap, runtime_feedback, ecosystem)
 - Spec change events (`spec_modified` with trigger traceability, feedback loop detection)
 - Protocol enforcement hooks (mandatory side effects verified at every iteration boundary — reflex phase)
+- Spec review as gradient check (`delta(workspace, spec) → intents` — stateless, idempotent, affect-triaged)
 
 **Dependencies**: REQ-F-ENGINE-001.|code⟩, REQ-F-TRACE-001.|code⟩ (needs graph + REQ key propagation)
 
@@ -322,6 +323,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-LIFE-006 | REQ-F-LIFE-001 |
 | REQ-LIFE-007 | REQ-F-LIFE-001 |
 | REQ-LIFE-008 | REQ-F-LIFE-001 |
+| REQ-LIFE-009 | REQ-F-LIFE-001 |
 | REQ-SENSE-001 | REQ-F-SENSE-001 |
 | REQ-SENSE-002 | REQ-F-SENSE-001 |
 | REQ-SENSE-003 | REQ-F-SENSE-001 |
@@ -338,7 +340,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-COORD-004 | REQ-F-COORD-001 |
 | REQ-COORD-005 | REQ-F-COORD-001 |
 
-**54/54 requirements covered. No orphans.**
+**55/55 requirements covered. No orphans.**
 
 ---
 
@@ -351,11 +353,11 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-CTX-001 | 3 | 1b | ENGINE |
 | REQ-F-TRACE-001 | 5 | 1b | ENGINE, CTX |
 | REQ-F-EDGE-001 | 4 | 1c | EVAL |
-| REQ-F-LIFE-001 | 9 | 2 | ENGINE, TRACE |
+| REQ-F-LIFE-001 | 10 | 2 | ENGINE, TRACE |
 | REQ-F-SENSE-001 | 5 | 3 | LIFE, EVAL |
 | REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
 | REQ-F-UX-001 | 5 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
-| **Total** | **54** | | |
+| **Total** | **55** | | |
 
-10 feature vectors. 54 implementation requirements. Full coverage. Critical path: ENGINE design.
+10 feature vectors. 55 implementation requirements. Full coverage. Critical path: ENGINE design.
