@@ -2,7 +2,7 @@
 
 Initialize a project with the AI SDLC Asset Graph Model workspace structure.
 
-<!-- Implements: REQ-TOOL-002 (Developer Workspace), REQ-TOOL-007 (Project Scaffolding) -->
+<!-- Implements: REQ-TOOL-002 (Developer Workspace), REQ-TOOL-007 (Project Scaffolding), REQ-INTENT-001 (Intent Capture), REQ-INTENT-002 (Intent as Spec) -->
 
 ## Usage
 

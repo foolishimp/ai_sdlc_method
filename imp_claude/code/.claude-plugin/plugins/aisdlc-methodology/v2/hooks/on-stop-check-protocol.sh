@@ -16,7 +16,7 @@
 # mandatory reflexes (event emission, feature vector update, STATUS
 # regeneration) actually fired during the edge traversal.
 #
-# Implements: Protocol enforcement (Layer 1 — Engine)
+# Implements: REQ-TOOL-006 (Methodology Hooks), REQ-LIFE-008 (Protocol Enforcement Hooks), Protocol enforcement (Layer 1 — Engine)
 # ============================================================================
 
 set -euo pipefail

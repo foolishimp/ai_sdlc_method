@@ -1,5 +1,5 @@
 # Edge Parameterisation: Traceability Validation
-# Implements: REQ-TOOL-005 (Test Gap Analysis), REQ-TOOL-009 (Feature Views)
+# Implements: REQ-TOOL-005 (Test Gap Analysis), REQ-TOOL-009 (Feature Views), REQ-LIFE-004 (Feature Lineage in Telemetry)
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §6.3, §6.4
 #
 # Cross-cutting concern: validates REQ key coverage across the asset graph.

@@ -1022,6 +1022,154 @@ draft_intents: [{...}]
 - Latency: observer runs after hook fires, adds ~seconds to post-iteration processing
 - Composable: new observers can be added by dropping a new markdown file into `agents/`
 
+### 1.12 Telemetry as Functor Product (ADR-017, Spec §4.5, §7.5)
+
+**Implements**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-005
+
+#### The Paradigm
+
+Operational telemetry and self-monitoring are constitutive properties of a product, not deferred capabilities. A product that does not monitor itself is not yet a product.
+
+Every product (including Genesis) has:
+1. **Spec** — features and operational parameters
+2. **Traceability** — REQ keys threading through build artifacts
+3. **Operational telemetry** — the product emits structured events as it operates
+4. **Monitors** — interoceptive and exteroceptive, deployed as part of the product
+5. **Feedback loop** — telemetry feeds back as new intent
+
+Genesis is a product builder AND a product. It complies to the same paradigm it enforces on products it builds. Products built by Genesis comply to this paradigm.
+
+#### Telemetry as Functor
+
+The telemetry system is not a bolt-on. It is another **functor product**: a spec-level definition of what to monitor, encoded into technology-specific implementations via the same functor mechanism (ADR-017) that maps product specs to code.
+
+```
+Telemetry Spec (WHAT to monitor — tech-agnostic)
+    │
+    │  F_telemetry: Spec → Implementation
+    │
+    ├── imp_claude/  → events.jsonl + hooks + workspace_state.py + sensory_monitors.yml
+    ├── imp_gemini/  → (their monitoring stack)
+    └── imp_codex/   → (their monitoring stack)
+```
+
+The telemetry functor uses the same functional units as the primary product functor, rendered through the same three categories (F_D, F_P, F_H):
+
+| Functional Unit | Telemetry Role | Claude Encoding (F_D / F_P / F_H) |
+|----------------|---------------|-----------------------------------|
+| **Sense** | Monitors detect signals | F_D: `workspace_state.py` pure functions, file watchers, `pip-audit` / F_P: LLM anomaly detection / F_H: human notices something |
+| **Classify** | Affect triage | F_D: `affect_triage.yml` rules / F_P: LLM classifies ambiguous signals / F_H: human triages manually |
+| **Evaluate** | Convergence check on telemetry | F_D: threshold comparisons / F_P: LLM coherence review / F_H: human judgment |
+| **Emit** | Events to log | F_D: append to `events.jsonl` — always deterministic (category-fixed) |
+| **Route** | Escalation decision | F_D: rule-based severity routing / F_P: LLM context-sensitive routing / F_H: human decides (category-fixed at review boundary) |
+| **Propose** | Homeostatic response | F_D: template-driven proposals / F_P: Claude headless drafts intent/diff / F_H: human writes proposal |
+
+#### Genesis Self-Monitoring: Claude Encoding
+
+Genesis already has operational telemetry. The encoding maps to existing artifacts:
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     TELEMETRY PRODUCT (Claude Encoding)                    │
+│                                                                           │
+│  SENSE (F_D)                                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ workspace_state.py (23 pure functions)                            │    │
+│  │  detect_stuck_features()     → INTRO-002                         │    │
+│  │  detect_corrupted_events()   → INTRO-007                         │    │
+│  │  detect_orphaned_spawns()    → REQ-UX-005                        │    │
+│  │  detect_missing_feature_vectors() → INTRO-006                    │    │
+│  │  get_unactioned_escalations() → signal tracking                  │    │
+│  │  compute_aggregated_view()   → INTRO-004 (staleness)             │    │
+│  ├──────────────────────────────────────────────────────────────────┤    │
+│  │ hooks (reflex phase — fires unconditionally)                      │    │
+│  │  on-iterate-start.sh  → protocol injection                       │    │
+│  │  on-stop-check-protocol.sh → 4 mandatory side effects            │    │
+│  ├──────────────────────────────────────────────────────────────────┤    │
+│  │ sensory_monitors.yml (config — schedule + thresholds)             │    │
+│  │  7 interoceptive monitors (INTRO-001..007)                        │    │
+│  │  4 exteroceptive monitors (EXTRO-001..004)                        │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+│  CLASSIFY + ROUTE (F_D → η_D→P → F_P)                                   │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ affect_triage.yml (14 rules, 6 profile thresholds)                │    │
+│  │  classify_tolerance_breach() in workspace_state.py                │    │
+│  │  Rule-based (F_D) → Agent-classified for ambiguous (F_P)         │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+│  EMIT (F_D — category-fixed)                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ events.jsonl — 13+ event types, append-only                       │    │
+│  │  interoceptive_signal, exteroceptive_signal                       │    │
+│  │  affect_triage, draft_proposal                                    │    │
+│  │  telemetry_signal_emitted (TELEM-*)                               │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+│  EVALUATE + PROPOSE (F_P → η_P→H → F_H)                                 │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ Observer agents (markdown specs — ADR-014)                        │    │
+│  │  aisdlc-dev-observer.md   → delta(workspace, spec) → intents     │    │
+│  │  aisdlc-cicd-observer.md  → delta(build, quality) → intents      │    │
+│  │  aisdlc-ops-observer.md   → delta(running, spec) → intents       │    │
+│  ├──────────────────────────────────────────────────────────────────┤    │
+│  │ Review boundary (F_H — category-fixed)                            │    │
+│  │  MCP tools: /sensory-status, /sensory-proposals, /sensory-approve │    │
+│  │  Human approves/dismisses all workspace modifications             │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+│  FEEDBACK (telemetry → new intent)                                       │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ intent_raised events with signal_source classification            │    │
+│  │  7 signal sources → intent templates in feedback_loop.yml         │    │
+│  │  prior_intents chain → reflexive loop detection                   │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Operational Status: What's Wired vs What's Not
+
+The building blocks exist. The gap is wiring, not building.
+
+| Component | Built | Wired | What to wire |
+|-----------|:-----:|:-----:|-------------|
+| Event log (13 types, 99 events) | ✓ | ✓ | Add REQ keys to TELEM signals; enforce `source_findings`/`process_gaps` in all iteration events |
+| Protocol hooks (iterate-start, stop-check) | ✓ | ✓ | Already operational |
+| Pure function monitors (23 in workspace_state.py) | ✓ | — | Add session-start hook that invokes monitors, emits `interoceptive_signal` events |
+| Sensory monitor config (11 monitors) | ✓ | — | Build thin runner script; schedule via hooks |
+| Affect triage config (14 rules) | ✓ | — | Build rule-matching pipeline that reads signals, emits `affect_triage` events |
+| Observer agents (3 markdown specs) | ✓ | — | Add hook after `edge_converged` that invokes dev-observer agent |
+| Review boundary (5 MCP tools) | ✓ | — | Build MCP server exposing sensory tools |
+| Feedback loop (7 signal sources) | ✓ | partial | `gap` source operational; wire remaining 6 sources |
+
+#### Wiring Priority (Phase 1a telemetry)
+
+Zero new code — connect existing pieces:
+
+1. **Hook: dev-observer after convergence** — Add to `hooks.json`: fire `aisdlc-dev-observer.md` after `edge_converged` events. Closes the abiogenesis loop.
+2. **Hook: health check at session start** — Invoke `detect_stuck_features()`, `detect_corrupted_events()`, `detect_orphaned_spawns()` on workspace open. Emit `interoceptive_signal` events.
+3. **Schema discipline** — Add `affected_req_keys` to all `telemetry_signal_emitted` events. Enforce non-empty `source_findings` and `process_gaps` arrays in iteration events.
+4. **Run exteroceptive monitors** — `pip-audit` and `npm audit` as periodic scripts. Genesis has real dependencies to monitor.
+
+Light integration (Phase 1b telemetry):
+
+5. **Sensory runner script** — Read `sensory_monitors.yml`, invoke matching pure functions or shell commands, emit typed signal events.
+6. **Affect triage evaluator** — Read signal events, apply `affect_triage.yml` rules, emit `affect_triage` events with escalation decisions.
+7. **MCP sensory service** — Expose `/sensory-status`, `/sensory-proposals`, `/sensory-approve`, `/sensory-dismiss` as MCP tools.
+
+#### Products Built by Genesis
+
+Products built using Genesis inherit the same telemetry functor structure. The `code→cicd→running_system→telemetry→intent` edges in the graph topology are not "Genesis features" — they are the product's own telemetry lifecycle:
+
+| Graph Edge | Product's Telemetry Role |
+|-----------|-------------------------|
+| `code→cicd` | Product builds with instrumentation |
+| `cicd→running_system` | Product deploys with monitors |
+| `running_system→telemetry` | Product emits REQ-key-tagged telemetry |
+| `telemetry→intent` | Product's telemetry feeds back as new intent |
+
+The edge parameterisations for these edges are the **product's telemetry encoding spec**. When Genesis iterates on these edges, it is helping the product define and implement its own monitoring — not Genesis's monitoring. Genesis monitors itself; the product monitors itself. Same paradigm, same functor, different instantiations.
+
 ---
 
 ## 2. Component Design
@@ -1575,23 +1723,29 @@ See §1.7 for detailed design and ADR-011 for the architectural decision.
 
 - **Spec review as gradient check** (REQ-LIFE-009) — stateless `delta(workspace, spec) → intents`, invocable on demand or after completion events.
 
-### Phase 2 — Production Lifecycle (REQ-LIFE-001 through REQ-LIFE-004)
+### Phase 1b — Telemetry Wiring (REQ-LIFE-001 through REQ-LIFE-004)
 
-The production lifecycle features (CI/CD edge, runtime telemetry, production homeostasis, eco-intent) are Phase 2. The graph topology already includes these transitions — the engine supports them. Phase 2 adds the constructor and evaluator implementations for these edges.
+Telemetry is not a future phase — it is a constitutive property of being a product (§1.12). The building blocks are all built; Phase 1b wires them.
 
-What Phase 1 delivers:
-- Graph topology includes CI/CD → Running System → Telemetry → New Intent edges
-- Feature vectors can be traced through these edges (status: pending)
-- The iterate agent can be manually invoked on these edges
-- **Spec review as gradient check** (REQ-LIFE-009) — stateless review of workspace state against spec, generating intents where delta is non-zero
-- **Development-time gradient fully operational** — all signal sources except `runtime_feedback` and `ecosystem` are active
+**Genesis self-monitoring (already operational):**
+- Event log with 13+ event types — this IS operational telemetry
+- Protocol enforcement hooks — reflex-phase mandatory side effects
+- 23 pure functions in `workspace_state.py` — monitor implementations
+- TELEM signals — self-observation at methodology scale
 
-What Phase 2 adds:
-- Automated CI/CD evaluators (build/deploy checks)
-- Telemetry integration (REQ key tagging in monitoring)
-- Production homeostasis checks (SLA monitoring, drift detection)
-- Eco-intent generation (ecosystem change detection)
-- Production feedback loop automation (telemetry → new intent via `runtime_feedback` and `ecosystem` signal sources)
+**Genesis self-monitoring (to wire):**
+- Hook dev-observer after `edge_converged` events (closes abiogenesis loop)
+- Hook health checks at session start (invoke pure function monitors)
+- Run `pip-audit`/`npm audit` for exteroceptive monitoring
+- Sensory runner script that reads `sensory_monitors.yml` and invokes monitors on schedule
+
+**Product telemetry (when products traverse production edges):**
+- `code→cicd` — product builds with instrumentation (CI/CD evaluators)
+- `cicd→running_system` — product deploys with monitors
+- `running_system→telemetry` — product emits REQ-key-tagged telemetry
+- `telemetry→intent` — product telemetry feeds back as new intent via `runtime_feedback` and `ecosystem` signal sources
+
+The graph topology already includes these edges. The iterate agent can traverse them. What Phase 1b adds is the wiring that makes Genesis eat its own dog food — the same telemetry paradigm Genesis enforces on products, applied to itself.
 
 ### Phase 2a — Observer Agents (REQ-LIFE-010 through REQ-LIFE-012)
 
@@ -1663,40 +1817,45 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 
 | Feature Vector | Design Section | Status |
 |---------------|---------------|--------|
-| REQ-F-ENGINE-001 | §2.1 Asset Graph Engine | Designed |
-| REQ-F-EVAL-001 | §2.2 Evaluator Framework | Designed |
-| REQ-F-CTX-001 | §2.3 Context Management | Designed |
-| REQ-F-TRACE-001 | §2.4 Feature Vector Traceability | Designed |
-| REQ-F-EDGE-001 | §2.5 Edge Parameterisations | Designed |
-| REQ-F-TOOL-001 | §2.6 Developer Tooling | Designed |
-| REQ-F-LIFE-001 | §3 Lifecycle Closure | Designed (Phase 2 scope) |
-| REQ-F-SENSE-001 | §1.8 Sensory Service | Designed |
-| REQ-F-UX-001 | §1.9 Two-Command UX Layer | Designed |
-| REQ-F-COORD-001 | §1.10 Multi-Agent Coordination | Designed |
+| REQ-F-ENGINE-001 | §2.1 Asset Graph Engine | Converged to UAT (28 tests) |
+| REQ-F-EVAL-001 | §2.2 Evaluator Framework | Converged to UAT (16 tests) |
+| REQ-F-CTX-001 | §2.3 Context Management | Converged to UAT (12 tests) |
+| REQ-F-TRACE-001 | §2.4 Feature Vector Traceability | Converged to UAT (18 tests) |
+| REQ-F-EDGE-001 | §2.5 Edge Parameterisations | Converged to UAT (16 tests) |
+| REQ-F-TOOL-001 | §2.6 Developer Tooling | Converged to UAT (24 tests, 1 xfail) |
+| REQ-F-LIFE-001 | §3 Lifecycle Closure, §1.12 Telemetry | Converged to UAT (118 tests) |
+| REQ-F-SENSE-001 | §1.8 Sensory Service | Converged to UAT (39 tests) |
+| REQ-F-UX-001 | §1.9 Two-Command UX Layer | Converged to UAT (63 tests, 2 xfail) |
+| REQ-F-COORD-001 | §1.10 Multi-Agent Coordination | Converged to UAT (40 tests) |
+| REQ-F-SUPV-001 | §1.12 Telemetry Functor, ADR-017 | Converged to UAT (14 tests) |
 
-**10/10 feature vectors covered.**
+**11/11 feature vectors covered. 735 tests passing, 3 xfail.**
 
 ---
 
 ## 7. Implementation Priority
 
-Per FEATURE_VECTORS.md task graph:
+Per FEATURE_VECTORS.md task graph, updated to reflect telemetry-as-constitutive:
 
 ```
-Phase 1a: Implement graph engine (asset types, transitions, iterate agent)
-Phase 1b: Implement evaluator configs ∥ context store ∥ feature tracking
-Phase 1c: Implement edge params (TDD/BDD/ADR) + tooling commands
-Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
+Phase 1a: ✓ COMPLETE — graph engine, configs, edge params, commands, UAT tests (735 passing)
+Phase 1b: Wire telemetry — connect existing monitors, hooks, observer agents (§1.12)
+Phase 1c: Executable iterate() — runtime engine from iterate agent spec
+Phase 1d: Executable commands — 10 commands as executable agents, not markdown specs
+Phase 2:  Product telemetry edges — CI/CD, running system, production homeostasis
 ```
 
-**First deliverable**: The iterate agent + graph topology config + /aisdlc-init command. This bootstraps everything else.
+**Key paradigm shift**: Telemetry is not Phase 2. Phase 1b wires Genesis's own self-monitoring using building blocks already built in Phase 1a. Phase 2 is when *products built by Genesis* traverse production telemetry edges — which is a different instantiation of the same functor.
+
+**Next deliverable**: Wire the dev-observer hook after `edge_converged` events. Zero new code — just a hook entry that closes the abiogenesis loop.
 
 ---
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.7.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 55 implementation requirements (v3.7.0)
-- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.6.0)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.8.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 63 implementation requirements (v3.11.0)
+- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.8.0, 11 vectors)
+- [ADR-017](adrs/ADR-017-functor-based-execution-model.md) — Functor-based execution model (telemetry encoding)
 - Prior v1.x design (AISDLC_IMPLEMENTATION_DESIGN.md) — superseded, recoverable at tag `v1.x-final`
 - ADR-001 (claude-code-as-mvp-platform) — v1.x platform choice, carried forward as standing decision

@@ -1,5 +1,5 @@
 # Edge Parameterisation: Telemetry → Intent (Feedback Loop)
-# Implements: REQ-LIFE-003, REQ-INTENT-003
+# Implements: REQ-LIFE-003, REQ-LIFE-005, REQ-INTENT-003
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §7.3, §7.6, §7.7
 #
 # KEY INSIGHT: The consciousness loop occurs at EVERY observer point,

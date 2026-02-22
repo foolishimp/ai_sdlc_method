@@ -6,6 +6,31 @@
 
 ---
 
+## 0. What the Methodology Is
+
+The methodology is not the commands, the configurations, the event schemas, or the tooling. Those are implementations — emergence within constraints. **The methodology is the constraints themselves.**
+
+Specifically, the methodology is:
+
+| Element | What it defines | Example |
+|---------|----------------|---------|
+| **Constraints** | What must be true for any valid instance | Every edge has at least one evaluator; every iterate produces an event |
+| **Invariants** | What must survive any valid transformation | The four primitives (Graph, Iterate, Evaluators, Spec+Context) — see §1 |
+| **Symmetries** | What transformations preserve the invariants | Functor renderings F_D ↔ F_P ↔ F_H (§2.9); natural transformations between encodings |
+| **Projections** | How the same invariants produce different instances at different scales | full → standard → spike → minimal (Projections doc §3) |
+
+Any implementation that satisfies these constraints is a valid instantiation of the methodology. The slash commands are one valid emergence. A manual process that maintains the same invariants is another. A different toolchain that preserves the same symmetries is another. The constraints define the possibility space; the implementation fills it.
+
+This follows directly from the Constraint-Emergence Ontology (§V, §VIII-B): constraints bound the space of possible structures, and structure emerges within those bounds. The methodology does not prescribe how to build software — it defines the constraints under which valid software construction occurs, and any process that satisfies those constraints is a valid methodology instance.
+
+**The formal system is a generator of valid methodologies** (Projections doc §8), not a single methodology. What it generates depends on which projection is applied, which encoding is chosen, and which technology binds the functional units. The generator itself — the constraints, invariants, symmetries, and projections — is what this document specifies.
+
+**Telemetry is constitutive, not deferred.** A product that does not monitor itself is not yet a product. Every valid methodology instance includes operational telemetry and self-monitoring as part of the product from day one — not as a phase to be added later. The event log, the sensory monitors, the feedback loop are not features of the tooling; they are constraints of the methodology. A methodology instance without self-observation violates the IntentEngine invariant (Projections doc §2.4): if every edge traversal must produce a classified observation, then the system must be capable of observation, which requires sensing, which requires telemetry.
+
+This applies recursively: Genesis (the methodology tooling) is itself a product, and must comply to the same constraints it defines for products it builds.
+
+---
+
 ## 1. Overview
 
 The AI SDLC is an instance of the information-driven construction pattern (ontology concept #38): **encoded representation → constructor → constructed structure**. This document formalises the methodology as an **asset graph** with a **universal iteration function**.
@@ -19,7 +44,7 @@ The entire methodology reduces to four primitives:
 | **Evaluators** | Convergence test — when is iteration done | #35 Evaluator-as-prompter |
 | **Spec + Context** | Constraint surface — what bounds construction | #40 Encoded representation + #9 |
 
-Everything else — stages, agents, TDD, BDD — is parameterisation of these four primitives for specific graph edges.
+Everything else — stages, agents, TDD, BDD, commands, configurations — is parameterisation of these four primitives for specific graph edges. They are emergence within the constraints the primitives define, not the methodology itself.
 
 **The graph is not universal.** The SDLC graph (Intent → Requirements → Design → Code → Tests → ...) is one domain-specific instantiation. A legal document, a physics paper, an organisational policy each have different graphs. The graph topology is itself constructed — it is Context[], not a law of nature. The four primitives are universal; the graph is parameterised.
 
@@ -314,6 +339,71 @@ This separation is itself an instance of the ontology's construction pattern (#3
 | **Construction context** (specific constraints of this instance) | Project Binding |
 
 The three-layer separation explains why the same methodology can produce radically different outcomes in different domains: the engine is invariant, the graph package captures domain expertise, and the project binding captures local constraints. Changing the graph package changes the domain. Changing the project binding changes the project. The engine never changes.
+
+### 2.9 Functors: Spec + Encoding
+
+The three-layer model (§2.8) separates what is universal from what is domain-specific from what is instance-specific. But there is a deeper pattern: **a methodology instance is a functor** — a spec composed with an encoding.
+
+```
+Functor(Spec, Encoding) → Executable Methodology
+```
+
+A **spec** defines functional units — what the system does, expressed as typed assets, admissible transitions, evaluator slots, and convergence criteria. A spec is technology-agnostic, platform-agnostic, and encoding-agnostic. It is the **domain** of the functor.
+
+An **encoding** maps each functional unit to an execution category — how each unit is rendered in a specific context. The three execution categories (from §4.1, §4.4) are:
+
+| Category | Symbol | Rendering |
+|----------|--------|-----------|
+| Deterministic | F_D | Computable, repeatable, verifiable. Tests, builds, schema validation. |
+| Probabilistic | F_P | LLM/agent under constraints. Code generation, gap analysis, design synthesis. |
+| Human | F_H | Judgment, approval, domain evaluation. Spec review, intent authoring, acceptance. |
+
+The encoding is the **design-level binding** — it assigns each functional unit in the spec to one of these categories. The encoding lives in Layer 2 (Graph Package) and Layer 3 (Project Binding), never in Layer 1 (Engine).
+
+**Projections are functors.** Each named profile (full, standard, PoC, spike, hotfix) is a different encoding of the same spec:
+
+| Profile | Encoding strategy | What changes |
+|---------|------------------|--------------|
+| **full** | Maximum explicit rendering — all units encoded, all categories active | Every functional unit has an explicit execution category |
+| **standard** | Balanced — key units explicit, routine units collapsed | Some F_P units collapsed into their parent edge |
+| **poc** | Minimal — only hypothesis-critical units encoded | Most F_H gates removed, rapid F_P iteration |
+| **hotfix** | Emergency — only fix-critical units encoded, F_D dominant | F_H reduced to single approval gate, F_P minimal |
+
+**Zoom is an encoding operation.** When an edge is zoomed in (§2.5), implicit functional units become explicit — each gets its own encoding (execution category). When zoomed out, those units' encodings collapse back into the encapsulating edge. The zoom operation does not change the spec; it changes which spec units have explicit encodings.
+
+```
+Zoomed out:   design ═══════════════════════════► code
+              (single encoding: F_P)
+
+Zoomed in:    design → module_decomp → basis_projections → code_per_module
+              (F_P)    (F_P)           (F_P + F_H)          (F_P + F_D)
+                                        ↑ human waypoint     ↑ tests
+```
+
+The spec defines `module_decomp` and `basis_projections` as functional units regardless of zoom level. The encoding determines whether they are **explicit** (each has its own execution category and convergence criteria) or **implicit** (their computation is subsumed by the encapsulating edge's rendering).
+
+**Multiple implementations per spec (§2.7) are multiple functors from the same domain.** The spec is shared; each implementation applies a different encoding:
+
+```
+Spec: REQ-F-AUTH-001 (functional units defined)
+  ├── Encoding_Claude:  F_P(Claude) + F_D(pytest) + F_H(CLI review)
+  ├── Encoding_Gemini:  F_P(Gemini) + F_D(jest)   + F_H(web review)
+  └── Encoding_Codex:   F_P(Codex)  + F_D(cargo)  + F_H(PR review)
+```
+
+Same spec, three functors, three executable methodologies. The engine (Layer 1) provides the functor composition machinery. The graph package (Layer 2) provides the functional unit definitions. The project binding (Layer 3) provides the concrete encoding values.
+
+**Natural transformation between encodings.** When the IntentEngine (§4.6) escalates — ambiguity exceeds the current category's capacity — it performs a **natural transformation** η from one encoding to another:
+
+```
+η: F_D → F_P    (test failure → agent investigation)
+η: F_P → F_H    (agent stuck → human review)
+η: F_H → F_D    (human approves → deterministic deployment)
+```
+
+The escalation chain F_D → F_P → F_H and the delegation chain F_H → F_P → F_D are natural transformations between functors. The IntentEngine's ambiguity classification (§4.6.2) determines which transformation fires. The affect system (§4.3) modulates the transformation threshold — a hotfix profile has a lower η threshold (escalates faster), while a spike profile has a higher one (tolerates more ambiguity before escalating).
+
+This functor formalism explains why the four primitives are sufficient: **Graph** defines the domain, **Iterate** is the functor application, **Evaluators** classify which transformation fires, and **Spec + Context** is the constraint surface that the encoding must satisfy. No fifth primitive is needed because the functor is a composition law over the existing four, not an addition to them.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Present the current asset candidate for human review and approval.
 
-<!-- Implements: REQ-EVAL-001 (Human Evaluator) -->
+<!-- Implements: REQ-EVAL-001 (Human Evaluator), REQ-LIFE-009 (Spec Review as Gradient Check), REQ-UX-006 (Human Gate Awareness) -->
 
 ## Usage
 

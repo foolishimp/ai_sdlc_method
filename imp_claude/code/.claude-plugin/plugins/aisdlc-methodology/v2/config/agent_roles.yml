@@ -1,5 +1,5 @@
 # Agent Role Registry — Multi-Agent Coordination
-# Implements: REQ-COORD-001, REQ-COORD-005
+# Implements: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-COORD-005
 # Reference: AISDLC_V2_DESIGN.md §1.10.4, ADR-013
 #
 # Maps agent roles to convergence authority. Each role defines which

@@ -1,4 +1,6 @@
 # Validates: REQ-ITER-001, REQ-ITER-002, REQ-EVAL-003, REQ-TOOL-002, REQ-TOOL-007, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+# Validates: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
+# Validates: REQ-INTENT-001, REQ-INTENT-002
 """BDD acceptance tests — methodology workflow coherence validation.
 
 These tests validate that the methodology's components compose correctly:

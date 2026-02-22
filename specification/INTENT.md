@@ -56,7 +56,7 @@ Four primitives. One operation. The rest is parameterisation.
 ## Current Status
 
 **Asset Graph Model (v2.8)**: Complete — multi-agent coordination, two-command UX, gradient unification, processing phases, sensory systems, protocol hooks
-**Implementation Requirements (v3.10)**: Complete — 60 requirements, 10 critical
+**Implementation Requirements (v3.11)**: Complete — 62 requirements, 10 critical
 **Tooling (e.g. Claude Code plugins)**: Phase 1a — iterate agent, 10 commands, 2 hooks, configurable graph
 **Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) — CDME dogfood (5/5 edges converged)
 

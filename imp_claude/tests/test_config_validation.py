@@ -881,12 +881,12 @@ class TestSensoryRequirements:
         assert "REQ-F-SENSE-001" in content
 
     @pytest.mark.tdd
-    def test_design_doc_claims_10_feature_vectors(self):
-        """Design doc must claim 10/10 feature vectors covered."""
+    def test_design_doc_claims_all_feature_vectors(self):
+        """Design doc must claim all feature vectors covered (11 including SUPV-001)."""
         design_path = DESIGN_DIR / "AISDLC_V2_DESIGN.md"
         with open(design_path) as f:
             content = f.read()
-        assert "10/10 feature vectors covered" in content
+        assert "11/11 feature vectors covered" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════

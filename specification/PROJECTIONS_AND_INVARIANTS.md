@@ -98,6 +98,26 @@ What projections cannot change:
 
 This strengthens the existing invariant that "every edge has at least one evaluator" (§2.2): not only must every edge have an evaluator, but every edge traversal must produce a classified observation (observer) with a typed output (evaluator), and the output must route through the ambiguity classification. This is what it means for the four primitives to compose into a universal processing unit.
 
+### 2.5 Projections as Functors
+
+A projection is a functor: `Functor(Spec, Encoding) → Executable Methodology` (Asset Graph Model §2.9).
+
+The spec defines the functional units (typed assets, admissible transitions, evaluator slots). The encoding maps each unit to an execution category (F_D deterministic, F_P probabilistic, F_H human). Different encodings of the same spec produce different projections — each a valid methodology instance.
+
+This explains why the five things that can vary (§2.2) are precisely the encoding parameters:
+
+| Varies | Encoding dimension |
+|--------|-------------------|
+| Graph size | Which functional units have explicit encodings (zoom level) |
+| Evaluator composition | Which execution category renders each evaluator slot |
+| Convergence criteria | What δ < ε means in each category |
+| Context density | How many constraints the encoding must satisfy |
+| Iteration depth | How many functor applications before timeout |
+
+And why the four things that cannot vary are the functor's preconditions — without a graph there is no domain, without iteration there is no application, without evaluation there is no classification, without context there is no constraint surface. Remove any one and the functor is undefined.
+
+Named profiles (§3.2) are named encodings. Zoom operations (Asset Graph Model §2.5) are encoding refinements — making implicit functional units explicit. The natural transformation η between categories (F_D → F_P → F_H) is the IntentEngine's escalation mechanism — the functor adapts its encoding when ambiguity exceeds the current category's capacity.
+
 ---
 
 ## 3. Projections
