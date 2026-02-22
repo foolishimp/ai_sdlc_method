@@ -1,6 +1,7 @@
-# Validates: REQ-TOOL-001, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+# Validates: REQ-TOOL-001, REQ-TOOL-010, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
 # Validates: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
 # Validates: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-COORD-005
+# Validates: REQ-SUPV-001, REQ-SUPV-002
 """Spec-level validation tests.
 
 These tests validate the specification documents (technology-agnostic).
@@ -77,11 +78,11 @@ class TestRequirementsLineage:
 
     @pytest.mark.tdd
     def test_requirement_count_updated(self):
-        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55, now 58, now 59, now 60)."""
+        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55, now 58, now 59, now 60, now 62, now 63)."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**60**" in content or "| **Total** | **60**" in content
+        assert "**63**" in content or "| **Total** | **63**" in content
 
     @pytest.mark.bdd
     def test_consciousness_loop_reqs_exist_in_spec(self):
@@ -114,12 +115,12 @@ class TestSensoryRequirements:
             assert req in content, f"{req} not found in implementation requirements"
 
     @pytest.mark.tdd
-    def test_requirement_count_is_60(self):
-        """Total requirement count must be 60."""
+    def test_requirement_count_is_63(self):
+        """Total requirement count must be 63."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**60**" in content or "| **Total** | **60**" in content
+        assert "**63**" in content or "| **Total** | **63**" in content
 
     @pytest.mark.tdd
     def test_sensory_category_count_is_5(self):
@@ -130,12 +131,12 @@ class TestSensoryRequirements:
         assert "| Sensory Systems | 5 |" in content
 
     @pytest.mark.tdd
-    def test_feature_vector_count_is_60(self):
-        """Feature vectors doc must claim 60 requirements covered."""
+    def test_feature_vector_count_is_63(self):
+        """Feature vectors doc must claim 63 requirements covered."""
         fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_path) as f:
             content = f.read()
-        assert "60/60 requirements covered" in content or "60 implementation requirements" in content
+        assert "63/63 requirements covered" in content or "63 implementation requirements" in content
 
     @pytest.mark.tdd
     def test_sense_feature_vector_has_5_reqs(self):
@@ -276,20 +277,20 @@ class TestUXRequirements:
 
     @pytest.mark.tdd
     def test_ux_requirements_exist(self):
-        """REQ-UX-001 through REQ-UX-005 must exist in implementation requirements."""
+        """REQ-UX-001 through REQ-UX-007 must exist in implementation requirements."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        for i in range(1, 6):
+        for i in range(1, 8):
             assert f"REQ-UX-{i:03d}" in content, f"REQ-UX-{i:03d} not found"
 
     @pytest.mark.tdd
-    def test_ux_category_count_is_5(self):
-        """User Experience category must show count of 5 in summary."""
+    def test_ux_category_count_is_7(self):
+        """User Experience category must show count of 7 in summary."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "| User Experience | 5 |" in content
+        assert "| User Experience | 7 |" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════

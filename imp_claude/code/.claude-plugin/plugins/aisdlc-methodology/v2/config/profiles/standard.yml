@@ -51,6 +51,22 @@ context:
     - templates
     - policy
 
+# Encoding: functor encoding per §2.9
+encoding:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  functional_units:
+    evaluate:    F_D
+    construct:   F_P
+    classify:    F_D
+    route:       F_H
+    propose:     F_P
+    sense:       F_D
+    emit:        F_D                 # category-fixed
+    decide:      F_H                 # category-fixed
+  edge_overrides: {}
+
 # Iteration budget
 iteration:
   budget: per_sprint    # bounded by sprint cadence

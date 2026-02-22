@@ -19,7 +19,7 @@ Decompose INT-AISDLC-001 (AI SDLC Methodology Implementation) into feature vecto
 
 The core graph topology, iteration function, and convergence/promotion mechanism.
 
-**Satisfies**: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-ITER-001, REQ-ITER-002
+**Satisfies**: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-ITER-001, REQ-ITER-002, REQ-ITER-003
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -190,9 +190,9 @@ Plugin architecture, workspace, commands, release, test gap analysis, hooks, sca
 
 ### REQ-F-UX-001: User Experience
 
-Two-command UX layer: state-driven routing (Start), project-wide observability (Status), progressive disclosure, automatic feature/edge selection, recovery and self-healing.
+Two-command UX layer: state-driven routing (Start), project-wide observability (Status), progressive disclosure, automatic feature/edge selection, recovery and self-healing, human gate awareness (escalation notification), edge zoom management.
 
-**Satisfies**: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
+**Satisfies**: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005, REQ-UX-006, REQ-UX-007
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -202,6 +202,8 @@ Two-command UX layer: state-driven routing (Start), project-wide observability (
 - Project-wide observability: "you are here" indicators, cross-feature rollup, signals, health
 - Automatic feature/edge selection: priority-based selection, topological edge walk
 - Recovery and self-healing: detect and guide recovery from inconsistent workspace states
+- Human gate awareness: escalation notification channels, pending review queue, zero-query awareness via status
+- Edge zoom management: expand edges to sub-graphs, collapse sub-graphs, selective zoom with mandatory waypoints
 
 **Dependencies**: REQ-F-TOOL-001.|design⟩ (UX layer wraps tooling commands), REQ-F-ENGINE-001.|design⟩ (state detection reads graph)
 
@@ -322,6 +324,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-GRAPH-003 | REQ-F-ENGINE-001 |
 | REQ-ITER-001 | REQ-F-ENGINE-001 |
 | REQ-ITER-002 | REQ-F-ENGINE-001 |
+| REQ-ITER-003 | REQ-F-ENGINE-001 |
 | REQ-EVAL-001 | REQ-F-EVAL-001 |
 | REQ-EVAL-002 | REQ-F-EVAL-001 |
 | REQ-EVAL-003 | REQ-F-EVAL-001 |
@@ -366,6 +369,8 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-UX-003 | REQ-F-UX-001 |
 | REQ-UX-004 | REQ-F-UX-001 |
 | REQ-UX-005 | REQ-F-UX-001 |
+| REQ-UX-006 | REQ-F-UX-001 |
+| REQ-UX-007 | REQ-F-UX-001 |
 | REQ-COORD-001 | REQ-F-COORD-001 |
 | REQ-COORD-002 | REQ-F-COORD-001 |
 | REQ-COORD-003 | REQ-F-COORD-001 |
@@ -374,7 +379,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-SUPV-001 | REQ-F-SUPV-001 |
 | REQ-SUPV-002 | REQ-F-SUPV-001 |
 
-**60/60 requirements covered. No orphans.**
+**63/63 requirements covered. No orphans.**
 
 ---
 
@@ -382,7 +387,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 
 | Feature Vector | Impl Reqs | Phase | Dependencies |
 |---------------|-----------|-------|-------------|
-| REQ-F-ENGINE-001 | 5 | 1a | None |
+| REQ-F-ENGINE-001 | 6 | 1a | None |
 | REQ-F-EVAL-001 | 3 | 1b | ENGINE |
 | REQ-F-CTX-001 | 3 | 1b | ENGINE |
 | REQ-F-TRACE-001 | 5 | 1b | ENGINE, CTX |
@@ -390,9 +395,9 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-LIFE-001 | 13 | 2 | ENGINE, TRACE |
 | REQ-F-SENSE-001 | 5 | 3 | LIFE, EVAL |
 | REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
-| REQ-F-UX-001 | 5 | 1c | TOOL, ENGINE |
+| REQ-F-UX-001 | 7 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
 | REQ-F-SUPV-001 | 2 | 1b | ENGINE, EVAL |
-| **Total** | **60** | | |
+| **Total** | **63** | | |
 
-11 feature vectors. 60 implementation requirements. Full coverage. Critical path: ENGINE design.
+11 feature vectors. 63 implementation requirements. Full coverage. Critical path: ENGINE design.

@@ -68,42 +68,49 @@ checklist:
 
   - name: "has_context"
     type: agent
+    functional_unit: evaluate
     criterion: "ADR has a Context section explaining the forces at play and the problem being addressed."
     source: default
     required: true
 
   - name: "has_decision"
     type: agent
+    functional_unit: evaluate
     criterion: "ADR has a clear Decision section stating what was decided in 'We will...' form."
     source: default
     required: true
 
   - name: "has_rationale"
     type: agent
+    functional_unit: evaluate
     criterion: "ADR has a Rationale section explaining WHY this decision over alternatives."
     source: default
     required: true
 
   - name: "alternatives_documented"
     type: agent
+    functional_unit: evaluate
     criterion: "At least 2 alternatives are documented with reasons for rejection."
     source: default
     required: true
 
   - name: "traces_to_requirements"
     type: agent
+    functional_unit: evaluate
     criterion: "ADR references specific REQ-* keys it addresses in the Requirements field."
     source: default
     required: true
 
   - name: "consequences_documented"
     type: agent
+    functional_unit: evaluate
     criterion: "ADR documents positive consequences, negative consequences, and mitigations."
     source: default
     required: true
 
   - name: "human_approves_decision"
     type: human
+    functional_unit: evaluate
     criterion: "Human confirms the architectural decision is sound and the rationale is convincing."
     source: default
     required: true

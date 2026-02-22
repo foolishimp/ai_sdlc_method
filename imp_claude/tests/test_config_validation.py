@@ -1062,3 +1062,107 @@ class TestMultiAgentCoordination:
             content = f.read()
         assert "edge_claim" in content
         assert "claim_rejected" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 19. FUNCTOR ENCODING VALIDATION (Spec §2.9, ADR-017)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestFunctorEncoding:
+    """Validate functor encoding sections in profiles, edge params, and feature vector template."""
+
+    VALID_FUNCTIONAL_UNITS = {
+        "evaluate", "construct", "classify", "route",
+        "propose", "sense", "emit", "decide",
+    }
+    VALID_CATEGORIES = {"F_D", "F_P", "F_H"}
+    VALID_VALENCE = {"high", "medium", "low"}
+    VALID_MODE = {"headless", "interactive", "autopilot"}
+    # Category-fixed units: emit is always F_D, decide is always F_H
+    CATEGORY_FIXED = {"emit": "F_D", "decide": "F_H"}
+
+    @pytest.mark.tdd
+    def test_all_profiles_have_encoding_section(self, all_profiles):
+        """Every profile must have an encoding section."""
+        for name, profile in all_profiles.items():
+            assert "encoding" in profile, f"profile '{name}' missing encoding section"
+
+    @pytest.mark.tdd
+    def test_profile_encoding_has_required_fields(self, all_profiles):
+        """Each profile encoding needs strategy, mode, valence, functional_units."""
+        for name, profile in all_profiles.items():
+            enc = profile["encoding"]
+            for field in ("strategy", "mode", "valence", "functional_units"):
+                assert field in enc, f"profile '{name}' encoding missing '{field}'"
+
+    @pytest.mark.tdd
+    def test_profile_functional_units_are_valid(self, all_profiles):
+        """All 8 functional units must be defined with valid categories."""
+        for name, profile in all_profiles.items():
+            units = profile["encoding"]["functional_units"]
+            actual_units = set(units.keys())
+            missing = self.VALID_FUNCTIONAL_UNITS - actual_units
+            assert not missing, f"profile '{name}' missing functional units: {missing}"
+            for unit, category in units.items():
+                assert category in self.VALID_CATEGORIES, \
+                    f"profile '{name}' unit '{unit}' has invalid category '{category}'"
+
+    @pytest.mark.tdd
+    def test_category_fixed_units_correct(self, all_profiles):
+        """emit must always be F_D, decide must always be F_H."""
+        for name, profile in all_profiles.items():
+            units = profile["encoding"]["functional_units"]
+            for unit, expected_cat in self.CATEGORY_FIXED.items():
+                assert units[unit] == expected_cat, \
+                    f"profile '{name}' category-fixed unit '{unit}' must be {expected_cat}, got {units[unit]}"
+
+    @pytest.mark.tdd
+    def test_profile_valence_valid(self, all_profiles):
+        """Profile valence must be high, medium, or low."""
+        for name, profile in all_profiles.items():
+            assert profile["encoding"]["valence"] in self.VALID_VALENCE, \
+                f"profile '{name}' has invalid valence '{profile['encoding']['valence']}'"
+
+    @pytest.mark.tdd
+    def test_profile_mode_valid(self, all_profiles):
+        """Profile mode must be headless, interactive, or autopilot."""
+        for name, profile in all_profiles.items():
+            assert profile["encoding"]["mode"] in self.VALID_MODE, \
+                f"profile '{name}' has invalid mode '{profile['encoding']['mode']}'"
+
+    @pytest.mark.tdd
+    def test_edge_params_functional_unit_valid(self, all_edge_configs):
+        """functional_unit values in edge param checklists must be valid."""
+        valid_units = {"evaluate", "construct", "classify", "route",
+                       "propose", "sense", "emit", "decide"}
+        for cfg_name, config in all_edge_configs.items():
+            for section_key in ("checklist", "source_analysis"):
+                if section_key not in config:
+                    continue
+                items = config[section_key]
+                if not isinstance(items, list):
+                    # traceability.yml has layer_* dicts
+                    continue
+                for item in items:
+                    if isinstance(item, dict) and "functional_unit" in item:
+                        assert item["functional_unit"] in valid_units, \
+                            f"{cfg_name} check '{item.get('name', '?')}' has invalid functional_unit '{item['functional_unit']}'"
+
+    @pytest.mark.tdd
+    def test_feature_vector_template_functor_optional(self, feature_vector_template):
+        """Feature vector template functor section must exist with required fields."""
+        assert "functor" in feature_vector_template
+        functor = feature_vector_template["functor"]
+        for field in ("encoding_source", "mode", "valence", "overrides"):
+            assert field in functor, f"functor missing '{field}'"
+
+    @pytest.mark.tdd
+    def test_feature_vector_template_escalations(self, feature_vector_template):
+        """Each trajectory entry must have an escalations list."""
+        traj = feature_vector_template["trajectory"]
+        for asset in ("requirements", "design", "code", "unit_tests", "uat_tests"):
+            assert "escalations" in traj[asset], \
+                f"trajectory '{asset}' missing escalations field"
+            assert isinstance(traj[asset]["escalations"], list), \
+                f"trajectory '{asset}' escalations must be a list"

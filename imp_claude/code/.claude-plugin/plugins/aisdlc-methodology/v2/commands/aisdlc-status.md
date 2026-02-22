@@ -8,7 +8,7 @@ Display the current state of all feature vectors and their trajectories through 
 ## Usage
 
 ```
-/aisdlc-status [--feature "REQ-F-*"] [--verbose] [--gantt] [--health]
+/aisdlc-status [--feature "REQ-F-*"] [--verbose] [--gantt] [--health] [--functor]
 ```
 
 | Option | Description |
@@ -18,6 +18,7 @@ Display the current state of all feature vectors and their trajectories through 
 | `--verbose` | Show iteration history and evaluator details |
 | `--gantt` | Show Mermaid Gantt chart of feature build schedule |
 | `--health` | Run workspace health check (event log integrity, orphaned spawns, stuck detection) |
+| `--functor` | Show functor encoding registry, per-unit categories, and escalation history |
 
 ## Instructions
 
@@ -61,6 +62,7 @@ Project Rollup:
   Edges converged: 12/20 (60%)
   Features:  1 converged, 2 in-progress, 0 blocked, 0 stuck
   Signals:   1 unactioned intent_raised
+  Functor:   standard/interactive/medium — 0 overrides, 2 η
 
 Active Features:
   REQ-F-AUTH-001  "User authentication"      design→code (iter 3)
@@ -268,6 +270,53 @@ Generated: {ISO timestamp}
 3. The file is viewable in VS Code with Mermaid preview extensions, or renderable to PDF via `md2pdf .ai-workspace/STATUS.md`
 
 **Important**: The status command always OVERWRITES `STATUS.md` — it is a derived snapshot, not a log. The source of truth is `events/events.jsonl`.
+
+### Functor Encoding View (--functor)
+
+Show the functor encoding registry for all active features. Reads each feature vector's `functor:` section and the profile encoding.
+
+```
+Functor Encoding — {project_name}
+===================================
+
+Profile Encoding: standard
+  Strategy:  balanced
+  Mode:      interactive
+  Valence:   medium (η threshold)
+
+Functional Unit Registry:
+┌──────────────┬──────────┬────────────────────────────────────────┐
+│ Unit         │ Category │ Notes                                  │
+├──────────────┼──────────┼────────────────────────────────────────┤
+│ evaluate     │ F_D      │ deterministic tests                    │
+│ construct    │ F_P      │ agent-generated                        │
+│ classify     │ F_D      │ deterministic classification           │
+│ route        │ F_H      │ human-directed                         │
+│ propose      │ F_P      │ agent-proposed                         │
+│ sense        │ F_D      │ deterministic sensing                  │
+│ emit         │ F_D      │ category-fixed (always deterministic)  │
+│ decide       │ F_H      │ category-fixed (always human)          │
+└──────────────┴──────────┴────────────────────────────────────────┘
+
+Feature Overrides:
+  REQ-F-AUTH-001: route → F_D (override: emergency path)
+
+Escalation History (η):
+┌────────────────────┬──────────┬──────────────┬─────┬─────┬─────────────────────┐
+│ Feature            │ Edge     │ Unit         │ From│ To  │ Trigger             │
+├────────────────────┼──────────┼──────────────┼─────┼─────┼─────────────────────┤
+│ REQ-F-AUTH-001     │ code↔tests│ evaluate    │ F_D │ F_H │ stuck delta 4 iters │
+│ REQ-F-API-001      │ req→design│ route      │ F_H │ F_P │ pattern clear        │
+└────────────────────┴──────────┴──────────────┴─────┴─────┴─────────────────────┘
+
+Summary: 2 escalations across 2 features, 0 active overrides
+```
+
+Data sources:
+- Profile encoding: from `.ai-workspace/profiles/{profile}.yml` or `v2/config/profiles/{profile}.yml`
+- Feature overrides: from each feature vector's `functor.overrides` field
+- Escalation history: from each feature vector trajectory's `escalations` arrays
+- Event log: `encoding_escalated` events in `events.jsonl`
 
 ### Health Check View (--health)
 

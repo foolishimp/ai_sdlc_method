@@ -39,17 +39,22 @@ This command is the primary workflow action. It invokes the iterate agent on a s
    - **Apply evaluator overrides**: profile evaluators compose on top of edge defaults
    - **Apply convergence rules**: profile strictness, human_required_on_all_edges
    - **Apply context density**: profile determines which context elements are required/optional
-5. Build the **effective checklist** (composition algorithm from the iterate agent):
+5. **Load encoding table** (functor encoding from profile + feature overrides):
+   - Load `encoding` section from the profile (strategy, mode, valence, functional_units)
+   - Apply feature vector `functor.overrides` on top (feature-specific unit→category mappings)
+   - The encoding table maps each functional unit (evaluate, construct, classify, route, propose, sense, emit, decide) to a category (F_D, F_P, F_H)
+   - Record the active encoding in the feature vector's `functor` section
+6. Build the **effective checklist** (composition algorithm from the iterate agent):
    - Start with edge checklist (from edge config)
    - Resolve `$variable` references from project_constraints.yml
    - Apply profile evaluator overrides (if profile loaded)
    - Apply `threshold_overrides` from feature.constraints
    - Append `acceptance_criteria` from feature.constraints
    - Append `additional_checks` from feature.constraints
-6. Load remaining Context[] from the resolved tenant context directory (ADRs, models, policy)
+7. Load remaining Context[] from the resolved tenant context directory (ADRs, models, policy)
    - Respect profile context density: `minimal` loads only project_constraints, `full` loads everything
-7. Record the current context hash for spec reproducibility
-8. **Check time-box** (if feature vector has `time_box.enabled: true`):
+8. Record the current context hash for spec reproducibility
+9. **Check time-box** (if feature vector has `time_box.enabled: true`):
    - Calculate remaining time from `time_box.started` + `time_box.duration`
    - If expired, trigger fold-back convergence (see Step 4)
 
@@ -121,10 +126,22 @@ The agent performs three directions of gap detection:
      "context_hash": "{sha256:...}",
      "profile": "{profile name}",
      "vector_type": "{feature|discovery|spike|poc|hotfix}",
+     "encoding": {
+       "strategy": "{profile encoding strategy}",
+       "mode": "{headless|interactive|autopilot}",
+       "valence": "{high|medium|low}",
+       "active_units": {"evaluate": "F_D", "construct": "F_P", "...": "..."}
+     },
      "delta": {count of failing required checks},
      "next_edge": "{next available transition, if converged}"
    }
    ```
+
+   **On encoding escalation**: if a functional unit's encoding changes during iteration (e.g., deterministic check fails and escalates to human), emit an `encoding_escalated` event:
+   ```json
+   {"event_type": "encoding_escalated", "timestamp": "{ISO 8601}", "project": "{project name}", "data": {"feature": "{REQ-F-*}", "edge": "{source}→{target}", "iteration": {n}, "functional_unit": "{unit}", "from_category": "{F_D|F_P|F_H}", "to_category": "{F_D|F_P|F_H}", "trigger": "{reason}"}}
+   ```
+   Also record the escalation in the feature vector trajectory's `escalations` array.
 
    **On convergence**: also emit an `edge_converged` event:
    ```json
@@ -206,6 +223,7 @@ DELTA:    {count of failing required checks}
 STATUS:   {CONVERGED | CONVERGED_QUESTION_ANSWERED | TIME_BOX_EXPIRED | ITERATING | BLOCKED | SPAWN_REQUESTED}
 VECTOR:   {feature | discovery | spike | poc | hotfix}
 PROFILE:  {profile name, if configured}
+ENCODING: {strategy}/{mode}/{valence} — {override_count} overrides, {η_count} η
 TIME_BOX: {remaining duration, if configured}
 NEXT:     {suggested action}
 

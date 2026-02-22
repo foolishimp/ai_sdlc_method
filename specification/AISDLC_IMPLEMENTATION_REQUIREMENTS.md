@@ -1,6 +1,6 @@
 # AI SDLC — Project Genesis: Implementation Requirements
 
-**Version**: 3.10.0
+**Version**: 3.11.0
 **Date**: 2026-02-22
 **Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
@@ -190,6 +190,23 @@ The system shall promote candidates to the next asset type only upon evaluator c
 - Non-convergence after max iterations raises to human evaluator
 
 **Traces To**: Asset Graph Model §3.3 (Convergence) | Ontology #7 (stability condition)
+
+---
+
+### REQ-ITER-003: Functor Encoding Tracking
+
+**Priority**: Medium | **Phase**: 2
+
+The system shall track the functor encoding for each feature vector — mapping 8 functional units (Evaluate, Construct, Classify, Route, Propose, Sense, Emit, Decide) to rendering categories (F_D, F_P, F_H) — and record encoding escalations (natural transformation η) when a functional unit changes category during iteration.
+
+**Acceptance Criteria**:
+- Profile encoding section defines strategy, mode, valence, and per-unit category mappings
+- Feature vectors carry a `functor` section with encoding_source, mode, valence, and overrides
+- Each trajectory entry supports an `escalations` array recording category changes
+- Category-fixed units enforced: Emit is always F_D, Decide is always F_H
+- `encoding_escalated` events emitted when η fires
+
+**Traces To**: Asset Graph Model §2.9 (Functors), ADR-017 (Functor-Based Execution Model)
 
 ---
 
@@ -964,6 +981,61 @@ The system shall detect and guide recovery from inconsistent workspace states wi
 
 ---
 
+### REQ-UX-006: Human Gate Awareness
+
+**Priority**: High | **Phase**: 1
+
+The system shall ensure that users are made aware of events requiring their approval or judgment through multiple, configurable notification channels. When an IntentEngine escalates (ambiguity persistent/unbounded), the escalation must reach a human — it must never be silently deferred or lost.
+
+**Acceptance Criteria**:
+- Escalation events (`escalate` output from any IntentEngine level) are surfaced to the user through at least one active notification channel
+- In interactive mode (CLI session): escalations displayed inline with clear visual distinction (not buried in output)
+- In async/service mode (sensory service, CI/CD, multi-agent): escalations written to a **pending review queue** in `.ai-workspace/reviews/pending/` as structured YAML files
+- `/aisdlc-status` always shows count of pending escalations and their summary (zero-query awareness)
+- `/aisdlc-start` checks pending escalations before feature selection — escalations take priority over iteration
+- Notification channels are configurable per project (in `project_constraints.yml` under `notification_channels:`):
+  - `inline` (default): display in current session
+  - `review_queue`: write to pending review queue (always active as fallback)
+  - Future extensible: webhook, email, Slack (platform-specific implementation)
+- Each pending escalation includes: source IntentEngine level, triggering signal, affected feature/edge/REQ keys, timestamp, recommended action
+- Escalations that remain unactioned for a configurable threshold (default: 3 iterations of the affected feature) are re-surfaced with elevated urgency
+- No escalation is silently dropped — the review queue is the guarantee of delivery
+
+**Traces To**: Asset Graph Model §4.6.3 (`escalate` output type), §4.3 (conscious processing phase requires human), §4.5.4 (review boundary) | Ontology #23 (scale-dependent observation — human is the observer at conscious scale)
+
+---
+
+### REQ-UX-007: Edge Zoom Management
+
+**Priority**: High | **Phase**: 1
+
+The system shall provide a user experience for expanding any graph edge into a sub-graph (zoom in), collapsing a sub-graph back into a single edge (zoom out), and managing the lifecycle of intermediate nodes created by zoom. The zoom UX enables the user to decompose complex edges without losing traceability or graph integrity.
+
+**Acceptance Criteria**:
+- User can request zoom on any edge: `/aisdlc-zoom --edge "design→code" --level in|out|selective`
+- **Zoom in**: creates intermediate asset types as new nodes between source and target. The system:
+  - Proposes intermediate node types based on edge type and project context (e.g., `design→code` proposes `module_decomp → basis_projections → code_per_module`)
+  - Each intermediate node gets its own asset type entry in the workspace graph topology (`.ai-workspace/graph/graph_topology.yml`)
+  - Each new sub-edge inherits parent edge's evaluator types but can be overridden
+  - Intent for the zoom (why this decomposition) is captured and traced to the parent edge
+  - Sub-edge parameterisation files created in `.ai-workspace/graph/edges/`
+- **Zoom out**: collapses sub-graph back to a single edge. The system:
+  - Verifies all intermediate nodes are converged (or explicitly abandoned)
+  - Archives intermediate assets (not deleted — available for audit)
+  - Restores original edge with convergence state reflecting sub-graph completion
+- **Selective zoom**: retains specific intermediate nodes as mandatory waypoints while collapsing others
+  - User selects which intermediates to retain
+  - Retained intermediates become explicit convergence checkpoints
+  - Collapsed intermediates treated as internal to the encapsulating edge
+- Zoom operations emit events (`graph_zoom_in`, `graph_zoom_out`, `graph_zoom_selective`) with full before/after topology
+- Feature vectors traversing a zoomed edge see the sub-graph topology — their trajectory expands to include intermediate nodes
+- Zoom is reversible and auditable — the event log preserves the full zoom history
+- Zoom does not violate graph invariants: the graph remains directed, typed, and all edges have evaluators
+
+**Traces To**: Asset Graph Model §2.5 (Graph Scaling — zoom levels, selective zoom, build decomposition) | Ontology #23 (scale-dependent observation — zoom is choosing the observation scale)
+
+---
+
 ## 12. Multi-Agent Coordination
 
 ### REQ-COORD-001: Agent Identity
@@ -1095,7 +1167,7 @@ Every constraint in the system — spec requirements, design bindings, edge eval
 |----------|-------|----------|------|--------|
 | Intent & Spec | 4 | 1 | 2 | 1 |
 | Asset Graph | 3 | 2 | 1 | 0 |
-| Iteration Engine | 2 | 2 | 0 | 0 |
+| Iteration Engine | 3 | 2 | 0 | 1 |
 | Evaluators | 3 | 2 | 1 | 0 |
 | Context | 2 | 0 | 1 | 1 |
 | Feature Vectors | 3 | 1 | 2 | 0 |
@@ -1103,16 +1175,16 @@ Every constraint in the system — spec requirements, design bindings, edge eval
 | Sensory Systems | 5 | 0 | 4 | 1 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
 | Tooling | 10 | 0 | 6 | 4 |
-| User Experience | 5 | 0 | 3 | 2 |
+| User Experience | 7 | 0 | 5 | 2 |
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
 | Supervision (IntentEngine) | 2 | 0 | 2 | 0 |
-| **Total** | **60** | **10** | **40** | **11** |
+| **Total** | **63** | **10** | **42** | **12** |
 
-### Phase 1 (Core Graph Engine): 41 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery), supervision (IntentEngine interface, constraint tolerances).
+### Phase 1 (Core Graph Engine): 43 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances).
 
-### Phase 2 (Full Lifecycle + Coordination): 19 requirements
-Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority.
+### Phase 2 (Full Lifecycle + Coordination): 20 requirements
+Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking.
 
 ---
 
