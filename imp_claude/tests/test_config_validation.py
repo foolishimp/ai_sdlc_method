@@ -634,9 +634,9 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_7(self, plugin_json):
-        """plugin.json version must be 2.7.0."""
-        assert plugin_json["version"] == "2.7.0"
+    def test_plugin_version_is_2_8(self, plugin_json):
+        """plugin.json version must be 2.8.0."""
+        assert plugin_json["version"] == "2.8.0"
 
     @pytest.mark.tdd
     def test_graph_topology_version_is_2_7(self, graph_topology):
@@ -644,9 +644,10 @@ class TestVersionConsistency:
         assert graph_topology["graph_properties"]["version"] == "2.7.0"
 
     @pytest.mark.tdd
-    def test_plugin_description_mentions_constraint_dimensions(self, plugin_json):
-        """Plugin description should mention constraint dimensions."""
-        assert "constraint dimensions" in plugin_json["description"]
+    def test_plugin_description_mentions_event_sourcing_or_iterate(self, plugin_json):
+        """Plugin description should mention core methodology concepts."""
+        desc = plugin_json["description"]
+        assert "event sourcing" in desc or "iterate" in desc
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_event_sourcing(self, plugin_json):
@@ -956,9 +957,9 @@ class TestStartCommand:
         assert "./commands/aisdlc-start.md" in plugin_json["commands"]
 
     @pytest.mark.tdd
-    def test_plugin_has_10_commands(self, plugin_json):
-        """plugin.json must have 10 commands."""
-        assert len(plugin_json["commands"]) == 10
+    def test_plugin_has_13_commands(self, plugin_json):
+        """plugin.json must have 13 commands."""
+        assert len(plugin_json["commands"]) == 13
 
     @pytest.mark.tdd
     def test_default_profile_in_template(self, project_constraints_template):

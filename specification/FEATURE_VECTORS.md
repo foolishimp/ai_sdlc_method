@@ -168,7 +168,7 @@ Continuous interoceptive and exteroceptive monitoring with affect triage pipelin
 
 Plugin architecture, workspace, commands, release, test gap analysis, hooks, scaffolding, snapshots.
 
-**Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010
+**Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-TOOL-011
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -350,6 +350,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-TOOL-008 | REQ-F-TOOL-001 |
 | REQ-TOOL-009 | REQ-F-TOOL-001 |
 | REQ-TOOL-010 | REQ-F-TOOL-001 |
+| REQ-TOOL-011 | REQ-F-TOOL-001 |
 | REQ-LIFE-004 | REQ-F-LIFE-001 |
 | REQ-LIFE-005 | REQ-F-LIFE-001 |
 | REQ-LIFE-006 | REQ-F-LIFE-001 |
@@ -379,7 +380,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-SUPV-001 | REQ-F-SUPV-001 |
 | REQ-SUPV-002 | REQ-F-SUPV-001 |
 
-**63/63 requirements covered. No orphans.**
+**64/64 requirements covered. No orphans.**
 
 ---
 
@@ -398,6 +399,6 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-UX-001 | 7 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
 | REQ-F-SUPV-001 | 2 | 1b | ENGINE, EVAL |
-| **Total** | **63** | | |
+| **Total** | **64** | | |
 
-11 feature vectors. 63 implementation requirements. Full coverage. Critical path: ENGINE design.
+11 feature vectors. 64 implementation requirements. Full coverage. Critical path: ENGINE design.

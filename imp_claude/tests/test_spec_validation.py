@@ -78,11 +78,11 @@ class TestRequirementsLineage:
 
     @pytest.mark.tdd
     def test_requirement_count_updated(self):
-        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55, now 58, now 59, now 60, now 62, now 63)."""
+        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55, now 58, now 59, now 60, now 62, now 63, now 64)."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**63**" in content or "| **Total** | **63**" in content
+        assert "**64**" in content or "| **Total** | **64**" in content
 
     @pytest.mark.bdd
     def test_consciousness_loop_reqs_exist_in_spec(self):
@@ -115,12 +115,12 @@ class TestSensoryRequirements:
             assert req in content, f"{req} not found in implementation requirements"
 
     @pytest.mark.tdd
-    def test_requirement_count_is_63(self):
-        """Total requirement count must be 63."""
+    def test_requirement_count_is_64(self):
+        """Total requirement count must be 64."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**63**" in content or "| **Total** | **63**" in content
+        assert "**64**" in content or "| **Total** | **64**" in content
 
     @pytest.mark.tdd
     def test_sensory_category_count_is_5(self):
@@ -131,12 +131,12 @@ class TestSensoryRequirements:
         assert "| Sensory Systems | 5 |" in content
 
     @pytest.mark.tdd
-    def test_feature_vector_count_is_63(self):
-        """Feature vectors doc must claim 63 requirements covered."""
+    def test_feature_vector_count_is_64(self):
+        """Feature vectors doc must claim 64 requirements covered."""
         fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_path) as f:
             content = f.read()
-        assert "63/63 requirements covered" in content or "63 implementation requirements" in content
+        assert "64/64 requirements covered" in content or "64 implementation requirements" in content
 
     @pytest.mark.tdd
     def test_sense_feature_vector_has_5_reqs(self):

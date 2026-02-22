@@ -1,7 +1,7 @@
 # AI SDLC — Project Genesis: Implementation Requirements
 
-**Version**: 3.11.0
-**Date**: 2026-02-22
+**Version**: 3.12.0
+**Date**: 2026-02-23
 **Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
 
@@ -898,6 +898,25 @@ The system shall enforce the Spec/Design boundary — requirements (WHAT) must b
 
 ---
 
+### REQ-TOOL-011: Installability
+
+**Priority**: High | **Phase**: 1
+
+The methodology tooling shall be installable into any project directory via a single platform-appropriate command. A methodology that cannot be installed cannot be used — installability is constitutive, not optional.
+
+**Acceptance Criteria**:
+- Single-command installation from a remote source (e.g., `curl ... | python3 -`, `pip install`, `npm install`, or platform equivalent)
+- Installation creates the workspace structure (`.ai-workspace/`, configs, event log) and registers methodology commands/agents
+- Installation is idempotent — re-running preserves existing work (events, feature vectors, user artifacts)
+- Installation emits a `project_initialized` event on first run
+- Offline/air-gapped installation supported via local source path
+- Installation verifiable — a version/health command confirms successful setup
+- Uninstallation leaves user artifacts intact (events, specs, code) — only removes tooling scaffolding
+
+**Traces To**: Asset Graph Model §0 (Genesis is a product — products must be deployable) | Ontology #39 (abiogenesis — the methodology must bootstrap itself into existence within a project)
+
+---
+
 ## 11. User Experience
 
 ### REQ-UX-001: State-Driven Routing
@@ -1174,14 +1193,14 @@ Every constraint in the system — spec requirements, design bindings, edge eval
 | Full Lifecycle | 12 | 2 | 10 | 0 |
 | Sensory Systems | 5 | 0 | 4 | 1 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
-| Tooling | 10 | 0 | 6 | 4 |
+| Tooling | 11 | 0 | 7 | 4 |
 | User Experience | 7 | 0 | 5 | 2 |
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
 | Supervision (IntentEngine) | 2 | 0 | 2 | 0 |
-| **Total** | **63** | **10** | **42** | **12** |
+| **Total** | **64** | **10** | **43** | **12** |
 
-### Phase 1 (Core Graph Engine): 43 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances).
+### Phase 1 (Core Graph Engine): 44 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances).
 
 ### Phase 2 (Full Lifecycle + Coordination): 20 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking.
