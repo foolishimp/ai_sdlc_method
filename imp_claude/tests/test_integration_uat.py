@@ -1,6 +1,6 @@
 # Validates: REQ-TOOL-005, REQ-TOOL-009, REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012
 # Validates: REQ-FEAT-001, REQ-FEAT-002, REQ-FEAT-003
-# Validates: REQ-TRACE-001, REQ-TRACE-002, REQ-TRACE-003
+# Validates: REQ-EDGE-004, REQ-INTENT-004
 """UAT / Integration tests — end-to-end methodology validation.
 
 These tests validate cross-artifact consistency, traceability chains,

@@ -1,4 +1,5 @@
-# Validates: REQ-TOOL-001 through REQ-TOOL-010
+# Validates: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005
+# Validates: REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010
 """UC-08: Developer Tooling — 24 scenarios.
 
 Tests plugin architecture, workspace structure, workflow commands,

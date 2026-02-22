@@ -1,4 +1,6 @@
-# Validates: REQ-LIFE-001 through REQ-LIFE-012, REQ-INTENT-003
+# Validates: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005
+# Validates: REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009, REQ-LIFE-010
+# Validates: REQ-LIFE-011, REQ-LIFE-012, REQ-INTENT-003
 """UC-06: Full Lifecycle Closure — 33 scenarios.
 
 Tests CI/CD as graph edge, telemetry/homeostasis, feedback loop closure,
