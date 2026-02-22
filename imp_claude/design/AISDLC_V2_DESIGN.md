@@ -2,15 +2,15 @@
 
 **Version**: 2.0.0
 **Date**: 2026-02-20
-**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.7.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
+**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.8.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
 **Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
 ---
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 10 feature vectors defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 11 feature vectors defined in FEATURE_VECTORS.md.
 
 **Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
 

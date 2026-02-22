@@ -95,7 +95,7 @@ All 63 implementation requirements mapped to use case clusters and scenario coun
 | REQ-SUPV-001 | IntentEngine Interface | UC-11 | 7 |
 | REQ-SUPV-002 | Constraint Tolerances | UC-11 | 7 |
 
-**Total: 63 REQ keys, 211 scenarios.**
+**Total: 64 REQ keys, 220 scenarios.**
 
 ---
 
@@ -3104,9 +3104,9 @@ Extends IN_PROGRESS with:
 | UC-09: User Experience | REQ-F-UX-001 | 7 | 33 | 27 | 6 |
 | UC-10: Multi-Agent Coordination | REQ-F-COORD-001 | 5 | 16 | 15 | 1 |
 | UC-11: IntentEngine / Supervision | REQ-F-SUPV-001 | 2 | 14 | 14 | 0 |
-| **Total** | **11 vectors** | **63** | **220** | **184** | **36** |
+| **Total** | **11 vectors** | **64** | **220** | **184** | **36** |
 
-**220 scenarios. 63 REQ keys. 100% coverage. 184 genuinely new functional scenarios.**
+**220 scenarios. 64 REQ keys. 100% coverage. 184 genuinely new functional scenarios.**
 
 ---
 
