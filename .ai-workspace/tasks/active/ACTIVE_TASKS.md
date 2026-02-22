@@ -5,30 +5,46 @@
 
 ---
 
-## Next: Actor Model Review and Deterministic Code Backing (gates v3.0)
+## Resolved: Actor Model Review and Deterministic Code Backing (gates v3.0)
+
+**Priority**: High
+**Status**: Resolved — ADR-017
+**Release Target**: 3.0
+
+**Description**:
+Review the actor model (IntentEngine, sensory service, iterate agent, coordination serialiser) and decide which flows become deterministic code-backed vs. remain agent-driven. This is the architectural decision that gates v3.0.
+
+**Resolution**: [ADR-017: Functor-Based Execution Model](../../imp_claude/design/adrs/ADR-017-functor-based-execution-model.md)
+
+The boundary between deterministic and probabilistic is not a static line — it is a **functor composition** parameterised by execution mode and affect valence. Each functional unit (evaluate, construct, classify, route, propose, sense) has three renderings: F_D (deterministic), F_P (probabilistic), F_H (human). The natural transformation η re-renders units between categories when ambiguity exceeds the current category's capacity. The starting functor determines the execution mode (headless = start F_D, interactive = start F_H). Valence controls escalation sensitivity per profile (hotfix = high, standard = medium, spike = low).
+
+**Key Questions — Answered**:
+1. ~~Which flows are deterministic?~~ → All units start F_D where ambiguity = 0 (Rendering Table)
+2. ~~Which flows are probabilistic?~~ → Same units, rendered F_P when ambiguity > 0 (Rendering Table)
+3. ~~Where is the boundary?~~ → The natural transformation η — a runtime threshold, not a static line
+4. ~~What is the runtime architecture?~~ → Iterate agent + functor dispatch table (no new process model)
+5. ~~How do tolerances wire to monitors?~~ → F_D(Sense) → η_D→P → F_P(Classify) → intent
+
+**Depends On**: All spec work complete (v3.0.0-beta.1)
+
+---
+
+## Next: Functor Execution Model Implementation (post ADR-017)
 
 **Priority**: High
 **Status**: Not Started
 **Release Target**: 3.0
 
 **Description**:
-Review the actor model (IntentEngine, sensory service, iterate agent, coordination serialiser) and decide which flows become deterministic code-backed vs. remain agent-driven. This is the architectural decision that gates v3.0.
+Implement the configuration and test scaffolding from ADR-017.
 
-**Key Questions**:
-1. Which IntentEngine flows (reflex, affect, escalate routing) should be deterministic code (guaranteed behaviour, testable, fast)?
-2. Which flows remain probabilistic/agent-driven (require LLM classification, context-sensitive)?
-3. Where is the boundary between the deterministic engine and the agent layer?
-4. What is the runtime architecture? (event loop, message passing, process model)
-5. How do constraint tolerances (REQ-SUPV-002) get wired to monitors in code?
+**Tasks**:
+1. Add `mode` (headless | interactive | auto) and `valence` (high | medium | low) to project binding schema (`project_constraints.yml`)
+2. Add `valence` field to feature vector affect schema
+3. Annotate existing edge configs with starting-functor comments
+4. Design integration tests for escalation paths (η_D→P and η_P→H)
 
-**Context**:
-- Spec §4.6 defines IntentEngine as composition law: observer → evaluator → typed_output
-- Spec §4.6.9 defines constraint tolerances as the mechanism producing delta
-- ADR-014 binds IntentEngine to Claude Code (currently config-only, no engine code)
-- ADR-016 binds tolerances to design-level monitoring
-- The decision: which parts of this become a runtime engine vs. remaining as agent-interpreted config
-
-**Depends On**: All spec work complete (v3.0.0-beta.1)
+**Depends On**: ADR-017 accepted
 
 ---
 

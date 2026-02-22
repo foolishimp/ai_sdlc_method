@@ -63,7 +63,7 @@ ai_sdlc_method/
 ├── imp_claude/                             # Claude Code implementation
 │   ├── design/
 │   │   ├── AISDLC_V2_DESIGN.md
-│   │   └── adrs/                           #   ADR-008 through ADR-013
+│   │   └── adrs/                           #   ADR-008 through ADR-017
 │   ├── code/
 │   │   └── .claude-plugin/plugins/aisdlc-methodology/v2/
 │   │       ├── agents/
@@ -117,7 +117,7 @@ ai_sdlc_method/
 | Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 60 platform-agnostic reqs |
 | Feature Vectors | specification/FEATURE_VECTORS.md | Feature decomposition |
 | Claude Design | imp_claude/design/AISDLC_V2_DESIGN.md | Claude Code implementation |
-| Claude ADRs | imp_claude/design/adrs/ADR-008..016 | 9 ADRs, fully cross-referenced |
+| Claude ADRs | imp_claude/design/adrs/ADR-008..017 | 10 ADRs, fully cross-referenced |
 | Iterate Agent | imp_claude/code/.../v2/agents/aisdlc-iterate.md | The universal agent |
 | Graph Topology | imp_claude/code/.../v2/config/graph_topology.yml | 10 asset types, 10 transitions |
 | Gemini Design | imp_gemini/design/GEMINI_GENESIS_DESIGN.md | Gemini CLI implementation |
@@ -133,14 +133,14 @@ ai_sdlc_method/
 |-------|--------|
 | Intent | Complete |
 | Spec | Complete (formal system, IntentEngine §4.6, constraint tolerances §4.6.9, projections, invariants, UX, sensory systems) |
-| Design | Complete (Claude: ADRs 008-016, Gemini: ADRs GG-001-008, Codex: ADR-CG-001) |
+| Design | Complete (Claude: ADRs 008-017, Gemini: ADRs GG-001-008, Codex: ADR-CG-001) |
 | Code | Phase 1a (Claude: configs, iterate agent, 10 commands — no executable engine) |
 | Tests | 502 tests (Claude: spec validation + implementation), 22 E2E |
 | UAT | Not started |
 | CI/CD | Not started |
 | Telemetry | Not started |
 
-**Next**: Actor model review — which flows become deterministic code-backed (gates v3.0)
+**Next**: Functor execution model implementation — mode/valence config, affect schema, escalation tests (post ADR-017)
 
 **v1.x preserved at tag `v1.x-final`** — `git checkout v1.x-final`
 
