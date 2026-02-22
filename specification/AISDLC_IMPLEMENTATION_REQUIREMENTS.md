@@ -1,7 +1,7 @@
 # AI SDLC — Project Genesis: Implementation Requirements
 
-**Version**: 3.8.0
-**Date**: 2026-02-21
+**Version**: 3.10.0
+**Date**: 2026-02-22
 **Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
 
@@ -19,7 +19,7 @@ Platform-agnostic implementation requirements for tooling that delivers the AI S
 
 `REQ-{CATEGORY}-{SEQ}[.MAJOR.MINOR.PATCH]`
 
-Categories: `INTENT`, `GRAPH`, `ITER`, `EVAL`, `CTX`, `FEAT`, `LIFE`, `EDGE`, `TOOL`, `UX`, `COORD`
+Categories: `INTENT`, `GRAPH`, `ITER`, `EVAL`, `CTX`, `FEAT`, `LIFE`, `EDGE`, `TOOL`, `UX`, `COORD`, `SUPV`
 
 Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaking). No version suffix = current.
 
@@ -39,6 +39,7 @@ Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaki
 10. [Tooling](#10-tooling) — Plugins, workspace, commands
 11. [User Experience](#11-user-experience) — State-driven routing, progressive disclosure, observability
 12. [Multi-Agent Coordination](#12-multi-agent-coordination) — Agent identity, event-sourced assignment, work isolation
+13. [Supervision (IntentEngine)](#13-supervision-intentengine) — Universal observer/evaluator composition law
 
 ---
 
@@ -423,7 +424,7 @@ All observations that feed back into the intent system shall be classified by si
 - Each signal source has an intent template in the feedback loop edge configuration
 - Signal source recorded in every `intent_raised` event
 - Development-time signals (gap, test_failure, refactoring, source_finding, process_gap) use the same mechanism as production signals (runtime_feedback, ecosystem)
-- `/aisdlc-gaps` emits `intent_raised` with `signal_source: "gap"` for each gap cluster
+- Gap analysis operation emits `intent_raised` with `signal_source: "gap"` for each gap cluster
 - TDD iterate emits `intent_raised` with `signal_source: "test_failure"` when same check fails > 3 iterations
 - TDD iterate emits `intent_raised` with `signal_source: "refactoring"` when structural debt exceeds current scope
 
@@ -458,7 +459,7 @@ Every `iterate()` invocation shall enforce mandatory side effects. Skipping even
 - After every iteration, the following side effects are mandatory:
   1. Event emitted to `events.jsonl`
   2. Feature vector state updated
-  3. STATUS.md regenerated (or marked stale)
+  3. Project state view regenerated (or marked stale)
   4. `source_findings` array present in the event (may be empty)
   5. `process_gaps` array present in the event (may be empty)
 - Detection mechanism: verify side effects occurred after each iteration
@@ -494,10 +495,10 @@ The system shall support stateless review of workspace state against the spec, c
 
 **Priority**: High | **Phase**: 2
 
-The system shall provide a development observer agent — a markdown agent spec executed by the AI assistant — that watches the workspace event stream and computes `delta(workspace_state, spec) → intents` after iterate/converge events. This closes the right side of the abiogenesis loop: act → emit event → observe → judge → feed back.
+The system shall provide a development observer agent — an agent specification executed by the AI assistant — that watches the workspace event stream and computes `delta(workspace_state, spec) → intents` after iterate/converge events. This closes the right side of the abiogenesis loop: act → emit event → observe → judge → feed back.
 
 **Acceptance Criteria**:
-- Implemented as a markdown agent spec (same delivery as iterate agent — no executable code beyond the spec)
+- Specified as an agent behaviour model (same delivery as iterate agent — no executable code beyond the specification)
 - Triggered by hooks after `iteration_completed`, `edge_converged`, `release_created`, and `gaps_validated` events
 - Reads events.jsonl, feature vector state, convergence status, and telemetry signals
 - Computes delta against the spec: what spec asserts vs what workspace contains
@@ -515,10 +516,10 @@ The system shall provide a development observer agent — a markdown agent spec 
 
 **Priority**: High | **Phase**: 2
 
-The system shall provide a CI/CD observer agent — a markdown agent spec executed by the AI assistant — that watches build and test results after push events and computes `delta(build_state, quality_spec) → intents`. This is the gradient at the build/deploy scale.
+The system shall provide a CI/CD observer agent — an agent specification executed by the AI assistant — that watches build and test results after push events and computes `delta(build_state, quality_spec) → intents`. This is the gradient at the build/deploy scale.
 
 **Acceptance Criteria**:
-- Implemented as a markdown agent spec (same delivery as iterate agent)
+- Specified as an agent behaviour model (same delivery as iterate agent)
 - Triggered by hooks after CI/CD pipeline completion (build success/failure, test results available)
 - Reads build logs, test results, coverage reports, and deployment status
 - Computes delta against quality constraints: expected green vs actual red, coverage thresholds, deployment health
@@ -536,10 +537,10 @@ The system shall provide a CI/CD observer agent — a markdown agent spec execut
 
 **Priority**: High | **Phase**: 2
 
-The system shall provide an ops observer agent — a markdown agent spec executed by the AI assistant — that watches production telemetry and computes `delta(running_system, spec) → intents`. This is the gradient at the operational scale — runtime homeostasis.
+The system shall provide an ops observer agent — an agent specification executed by the AI assistant — that watches production telemetry and computes `delta(running_system, spec) → intents`. This is the gradient at the operational scale — runtime homeostasis.
 
 **Acceptance Criteria**:
-- Implemented as a markdown agent spec (same delivery as iterate agent)
+- Specified as an agent behaviour model (same delivery as iterate agent)
 - Triggered on schedule (configurable interval) or on alert from monitoring infrastructure
 - Reads production telemetry: latency percentiles, error rates, resource utilisation, incident reports
 - Computes delta against spec constraints: SLA targets, performance envelopes, resource bounds
@@ -562,11 +563,11 @@ These requirements specify continuous observation capabilities that run independ
 
 **Priority**: High | **Phase**: 2
 
-The system shall continuously observe its own health state, independent of iterate() calls, and generate signals when internal conditions deviate from expected bounds. Monitoring runs within a long-running sensory service (MCP server), not as a slash command.
+The system shall continuously observe its own health state, independent of iterate() calls, and generate signals when internal conditions deviate from expected bounds. Monitoring runs within a long-running sensory service, not as a per-request on-demand invocation.
 
 **Acceptance Criteria**:
-- Monitors run within a long-running sensory service (MCP server in Claude Code binding), on a configurable schedule (default: daily) or on workspace open, not only during iterate()
-- Minimum interoceptive monitors (INTRO-001 through INTRO-007): event freshness, feature vector stall, test health, STATUS freshness, build health, spec/code drift, event log integrity
+- Monitors run within a long-running sensory service, on a configurable schedule (default: daily) or on workspace open, not only during iterate()
+- Minimum interoceptive monitors (INTRO-001 through INTRO-007): event freshness, feature vector stall, test health, state view freshness, build health, spec/code drift, event log integrity
 - Each monitor produces a typed signal with: monitor_id, observation_timestamp, metric_value, threshold, severity (info/warning/critical)
 - Signals feed into the affect triage pipeline (§4.3, §4.5.4) — not directly to conscious review
 - Interoceptive signals logged to events.jsonl as `interoceptive_signal` event type
@@ -582,10 +583,10 @@ The system shall continuously observe its own health state, independent of itera
 
 **Priority**: High | **Phase**: 2
 
-The system shall continuously observe the external environment and generate signals when external conditions affect the project. Monitoring runs within the sensory service (MCP server), not as a slash command.
+The system shall continuously observe the external environment and generate signals when external conditions affect the project. Monitoring runs within the sensory service, not as a per-request on-demand invocation.
 
 **Acceptance Criteria**:
-- Monitors run within the sensory service (MCP server), on a configurable schedule (default: daily) or on workspace open
+- Monitors run within the sensory service, on a configurable schedule (default: daily) or on workspace open
 - Minimum exteroceptive monitors (EXTRO-001 through EXTRO-004): dependency freshness, CVE scanning, runtime telemetry deviation, API contract changes
 - Each monitor produces a typed signal with: monitor_id, observation_timestamp, external_source, finding, severity
 - Signals feed into the affect triage pipeline (§4.3, §4.5.4) for classification and escalation
@@ -606,12 +607,12 @@ Signals from interoceptive and exteroceptive monitors shall pass through an affe
 
 **Acceptance Criteria**:
 - Every sensory signal passes through affect triage before escalation to conscious phase
-- Triage is tiered: rule-based classification (fast, pattern-matching) first; agent-classified (Claude headless) only for signals that don't match any rule
+- Triage is tiered: rule-based classification (fast, pattern-matching) first; agent-classified (probabilistic agent) only for signals that don't match any rule
 - Triage assigns: signal_source classification (gap / ecosystem / vulnerability / staleness / drift / runtime_deviation), severity (info / warning / critical), recommended_action (defer / log / escalate)
 - Escalation thresholds configurable per profile: hotfix profile has low threshold (escalate aggressively), spike profile has high threshold (suppress most)
 - Below-threshold signals logged but not escalated — available for batch review
-- Above-threshold signals generate draft proposals via Claude headless (draft only — no file modifications)
-- Draft proposals surfaced to human via the review boundary (MCP tool interface, REQ-SENSE-005)
+- Above-threshold signals generate draft proposals via probabilistic agent evaluation (draft only — no file modifications)
+- Draft proposals surfaced to human via the review boundary (tool interface, REQ-SENSE-005)
 - Triage decisions logged to events.jsonl as `affect_triage` event type (signal_id, classification, severity, escalation_decision)
 
 **Traces To**: Asset Graph Model §4.3 (Three Processing Phases — affect), §4.5.3 (Sensory Systems and Processing Pipeline), §4.5.4 (Sensory Service Architecture) | Ontology #49 (teleodynamic — self-regulating)
@@ -640,10 +641,10 @@ Interoceptive and exteroceptive monitors shall be configurable per project and p
 
 **Priority**: High | **Phase**: 2
 
-The sensory service shall expose an MCP tool interface (the review boundary) that separates autonomous sensing from human-approved changes. Draft proposals generated by the sensory service shall only become workspace modifications after human approval through the interactive session.
+The sensory service shall expose a tool interface (the review boundary) that separates autonomous sensing from human-approved changes. Draft proposals generated by the sensory service shall only become workspace modifications after human approval through the interactive session.
 
 **Acceptance Criteria**:
-- Sensory service exposes MCP tools for: viewing monitor status, listing pending proposals, approving proposals, dismissing proposals
+- Sensory service exposes tool interface for: viewing monitor status, listing pending proposals, approving proposals, dismissing proposals
 - Draft proposals include full context: triggering signal, triage classification, proposed action (intent, diff, or spec modification)
 - Approved proposals are applied by the interactive session (not the sensory service) — the service cannot modify workspace files
 - Dismissed proposals are logged with reason for future learning
@@ -858,7 +859,7 @@ The system shall generate per-feature cross-artifact status reports by searching
 - Feature views generated by searching tag format (`Implements: REQ-*`, `Validates: REQ-*`, `req="REQ-*"`) across all artifacts
 - Coverage summary: N of M stages tagged for each feature
 - Missing stages flagged (e.g., "REQ-F-AUTH-001: no telemetry tagging")
-- Feature views invocable on demand (e.g., `/aisdlc-trace`)
+- Feature views invocable on demand (e.g., trace command for a given REQ key)
 
 **Traces To**: Asset Graph Model §6.4 (Feature Views) | Ontology #15 (trajectory observation)
 
@@ -1049,6 +1050,45 @@ Agent roles SHALL define which edge types an agent may converge autonomously. Co
 
 ---
 
+## 13. Supervision (IntentEngine)
+
+### REQ-SUPV-001: IntentEngine Interface
+
+**Priority**: High | **Phase**: 1
+
+Every actor implementation (agents, monitors, hooks, observers) shall expose the IntentEngine interface: `observer → evaluator → typed_output(reflex.log | specEventLog | escalate)`, parameterised by intent+affect. This is not a fifth primitive — it is the composition law by which the four primitives (Graph, Iterate, Evaluators, Spec+Context) compose into a universal processing unit at every edge and every scale.
+
+**Acceptance Criteria**:
+- Every edge traversal produces a classified observation (observer output) and a typed routing decision (evaluator output)
+- The evaluator classifies ambiguity into exactly one of three regimes: zero (reflex), bounded nonzero (probabilistic disambiguation), persistent (escalate to higher consciousness)
+- The typed output is exactly one of: `reflex.log` (fire-and-forget event), `specEventLog` (deferred intent for further processing), `escalate` (push to higher consciousness level)
+- The three output types map to existing event types in `events.jsonl` — no new event types required
+- Affect (urgency, valence) is carried as input alongside intent and propagates through chained IntentEngine invocations
+- The IntentEngine pattern applies at every scale: single iteration, edge convergence, feature traversal, sensory monitoring, production homeostasis, spec review
+- Level N's `escalate` output becomes Level N+1's reflex input (consciousness-as-relative)
+- Level N's `reflex.log` is invisible to Level N+1 (handled at origin)
+
+**Traces To**: Asset Graph Model §4.6 (The IntentEngine), §4.6.2 (Ambiguity Classification), §4.6.3 (Three Output Types), §4.6.6 (Consciousness as Relative) | Ontology #49 (teleodynamic — fractal self-repair), #23 (scale-dependent observation), #9 (constraint manifold — ambiguity as constraint density)
+
+### REQ-SUPV-002: Constraint Tolerances
+
+**Priority**: High | **Phase**: 1
+
+Every constraint in the system — spec requirements, design bindings, edge evaluator thresholds, operational SLAs — shall have an associated measurable tolerance. Tolerances are the mechanism that produces `delta > 0` in the gradient (`delta(state, constraints) → work`). Without tolerances, the sensory system has nothing to measure, the IntentEngine has nothing to classify, and the gradient is undefined. A constraint without a tolerance is inert.
+
+**Acceptance Criteria**:
+- Every constraint surface (spec, design, edge config, operational) expresses constraints as measurable thresholds, not qualitative assertions
+- Sensory monitors (§4.5) use tolerances as their evaluation criteria — the monitor observes a metric, the tolerance defines the threshold, the IntentEngine classifies the delta
+- Tolerance breach produces a classified signal: within bounds (reflex.log), drifting (specEventLog — optimization intent deferred), breached (escalate — corrective intent raised)
+- Design-level technology bindings (protocol choices, runtime selections, service models) declare tolerances for performance, cost, and fitness — breaches trigger optimization intents
+- Tolerances exist at every scale of the gradient: iteration, edge, feature, production, spec review, design binding
+- Tolerance pressure (complexity/cost breach → simplify) balances escalation pressure (ambiguity → add structure) to produce graph topology equilibrium
+- A constraint without a declared tolerance is flagged by gap analysis as incomplete
+
+**Traces To**: Asset Graph Model §4.6.9 (Constraint Tolerances), §7.1 (The Gradient), §4.5 (Sensory Systems) | Ontology #49 (teleodynamic self-maintenance — tolerances enable self-repair), #9 (constraint manifold — tolerances make the manifold measurable)
+
+---
+
 ## Requirement Summary
 
 | Category | Count | Critical | High | Medium |
@@ -1065,15 +1105,16 @@ Agent roles SHALL define which edge types an agent may converge autonomously. Co
 | Tooling | 10 | 0 | 6 | 4 |
 | User Experience | 5 | 0 | 3 | 2 |
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
-| **Total** | **58** | **10** | **38** | **11** |
+| Supervision (IntentEngine) | 2 | 0 | 2 | 0 |
+| **Total** | **60** | **10** | **40** | **11** |
 
-### Phase 1 (Core Graph Engine): 39 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery).
+### Phase 1 (Core Graph Engine): 41 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling, gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery), supervision (IntentEngine interface, constraint tolerances).
 
 ### Phase 2 (Full Lifecycle + Coordination): 19 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority.
 
 ---
 
-**Traces To**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0) — every requirement anchored to a specific section.
+**Traces To**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0) — every requirement anchored to a specific section.
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) — concept numbers (#N) throughout.

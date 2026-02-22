@@ -96,6 +96,8 @@ Dynamic agent generation adds complexity without benefit. Claude Code loads the 
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §3 (The Iteration Function)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §3 (The Iteration Function), §4.6 (IntentEngine)
 - [AISDLC_V2_DESIGN.md](../AISDLC_V2_DESIGN.md) §2.1 (Asset Graph Engine)
 - [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-ITER-001, REQ-ITER-002
+- [ADR-014](ADR-014-intentengine-binding.md) — IntentEngine Binding (the iterate agent IS the IntentEngine; this ADR maps observer→evaluator→typed_output to iterate() invocations)
+- [ADR-015](ADR-015-sensory-service-technology-binding.md) — Sensory Service Technology Binding (sensory signals feed into iterate() as additional context)

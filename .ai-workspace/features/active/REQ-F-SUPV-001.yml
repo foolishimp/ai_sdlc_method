@@ -1,0 +1,50 @@
+feature: REQ-F-SUPV-001
+title: IntentEngine Formalization
+intent: INT-AISDLC-001
+vector_type: feature
+profile: full
+status: converged
+created: "2026-02-22T10:00:00Z"
+updated: "2026-02-22T10:30:00Z"
+
+description: |
+  Universal observer/evaluator composition law: IntentEngine(intent+affect) =
+  observer → evaluator → typed_output(reflex.log | specEventLog | escalate).
+  Fractal processing on every edge, ambiguity classification as routing criterion,
+  three exhaustive output types, chaining with affect propagation,
+  consciousness-as-relative. Not a fifth primitive — a composition law over the
+  existing four (Graph, Iterate, Evaluators, Spec+Context).
+
+requirements:
+  - REQ-SUPV-001
+  - REQ-SUPV-002
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+  design:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-22T10:00:00Z"
+    converged_at: "2026-02-22T10:15:00Z"
+    evaluator_results:
+      agent_architecture: pass
+      agent_reqs_traced: pass
+  code:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-22T10:15:00Z"
+    converged_at: "2026-02-22T10:25:00Z"
+    evaluator_results:
+      agent_spec_content: pass
+  unit_tests:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-22T10:20:00Z"
+    converged_at: "2026-02-22T10:30:00Z"
+    evaluator_results:
+      deterministic_pytest: pass
+      agent_req_coverage: pass

@@ -548,14 +548,14 @@ class TestMethodologySelfConsistency:
         assert status_file.exists(), "STATUS.md does not exist"
 
     @pytest.mark.uat
-    def test_ten_active_feature_vectors(self):
-        """There must be exactly 10 active feature vectors."""
+    def test_eleven_active_feature_vectors(self):
+        """There must be exactly 11 active feature vectors."""
         vectors = list(FEATURES_DIR.glob("*.yml"))
-        assert len(vectors) == 10, f"Expected 10 active vectors, got {len(vectors)}"
+        assert len(vectors) == 11, f"Expected 11 active vectors, got {len(vectors)}"
 
     @pytest.mark.uat
     def test_all_features_converged(self):
-        """All 10 features must be in converged state (post-release validation)."""
+        """All 11 features must be in converged state (post-release validation)."""
         vectors = _load_all_feature_vectors()
         non_converged = [
             fid for fid, v in vectors.items()

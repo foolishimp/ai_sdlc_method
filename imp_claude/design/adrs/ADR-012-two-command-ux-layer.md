@@ -81,3 +81,5 @@ This is consistent with the spec principle that the 4 primitives are universal �
 - [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §7.5 (Event Sourcing), §7.6 (Self-Observation)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (preserved by this ADR)
 - [ADR-009](ADR-009-graph-topology-as-configuration.md) — Graph Topology as Configuration (Start reads topology)
+- [ADR-014](ADR-014-intentengine-binding.md) — IntentEngine Binding (Start routing is affect-aware; Status surfaces IntentEngine state)
+- [ADR-015](ADR-015-sensory-service-technology-binding.md) — Sensory Service Technology Binding (Status surfaces sensory signals and proposals)

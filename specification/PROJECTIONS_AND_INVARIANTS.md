@@ -80,6 +80,24 @@ In lighter projections, traceability may be coarser (e.g., "this code came from 
 
 **Feature views** (Asset Graph Model §6.4) are the observable manifestation of traceability: grepping for a REQ key across all artifacts produces a per-feature status report. In a full projection, the feature view shows all stages. In a lighter projection, the view shows fewer stages — but the REQ key still threads through whatever assets exist. Feature views degrade gracefully with projection: fewer stages, same key.
 
+### 2.4 IntentEngine as Projection-Invariant
+
+The IntentEngine (Asset Graph Model §4.6) — `observer → evaluator → typed_output(reflex.log | specEventLog | escalate)` — is **projection-invariant**: the same structure operates in every valid projection. It is not a fifth invariant but a composition law over the existing four: given any graph with iterate and evaluators bounded by spec+context, the IntentEngine pattern necessarily emerges at every edge.
+
+What projections tune:
+- **Ambiguity thresholds**: A hotfix profile has aggressive escalation (low tolerance for nonzero ambiguity). A spike profile tolerates more ambiguity before escalating to conscious review.
+- **Affect weights**: A full profile weights all signal sources equally. A minimal profile may suppress ecosystem signals entirely.
+- **Observer depth**: A full projection runs all interoceptive + exteroceptive monitors. A spike runs only the monitors relevant to the experiment.
+
+What projections cannot change:
+- **The observer/evaluator structure**: Every edge traversal is an IntentEngine invocation. No unobserved computation.
+- **The three output types**: Every IntentEngine produces exactly one of `reflex.log`, `specEventLog`, or `escalate`. There is no fourth category.
+- **Ambiguity as routing criterion**: Zero → reflex, bounded → iterate, persistent → escalate. The classification may be coarser in lighter projections (e.g., binary pass/fail instead of multi-evaluator delta), but the three-way routing survives.
+
+**Candidate invariant**: *Every edge traversal is an IntentEngine invocation. No unobserved computation.*
+
+This strengthens the existing invariant that "every edge has at least one evaluator" (§2.2): not only must every edge have an evaluator, but every edge traversal must produce a classified observation (observer) with a typed output (evaluator), and the output must route through the ambiguity classification. This is what it means for the four primitives to compose into a universal processing unit.
+
 ---
 
 ## 3. Projections

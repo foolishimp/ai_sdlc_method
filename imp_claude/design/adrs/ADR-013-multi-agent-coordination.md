@@ -175,8 +175,9 @@ Note: `edge_claim` is **inbox-local** — it never appears in the canonical even
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §6.7 (Basis Projections), §7.5 (Event Sourcing), §7.7.6 (Markov Boundaries)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.6 (IntentEngine), §6.7 (Basis Projections), §7.5 (Event Sourcing), §7.7.6 (Markov Boundaries)
 - [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) §12 (Multi-Agent Coordination)
 - [GEMINI_GENESIS_DESIGN.md](../../../imp_gemini/design/GEMINI_GENESIS_DESIGN.md) — agent registry, cross-agent signals, "Immutability over Mutexes" framing
 - [ADR-GG-006](../../../imp_gemini/design/adrs/ADR-GG-006-multi-tenant-workspace.md) — design-level multi-tenancy (complementary concern)
+- [ADR-014](ADR-014-intentengine-binding.md) — IntentEngine Binding (role-based evaluator authority maps to ambiguity classification; `claim_rejected` and `convergence_escalated` are affect-phase signals)
 - Codex Genesis handoff draft — inbox/serialiser, review-gated promotion

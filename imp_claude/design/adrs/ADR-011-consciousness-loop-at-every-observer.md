@@ -119,3 +119,12 @@ Each `intent_raised` event carries:
 - **REQ-LIFE-006**: Signal source classification — 7 types covering all observer points
 - **REQ-LIFE-007**: Spec change events — `spec_modified` with traceability
 - **REQ-LIFE-008**: Protocol enforcement hooks — mandatory side effects after every iteration
+
+---
+
+## References
+
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.6 (IntentEngine), §7.7 (Consciousness Loop)
+- [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (extended by this ADR)
+- [ADR-014](ADR-014-intentengine-binding.md) — IntentEngine Binding (signal sources are affect-phase observers; ambiguity classification determines escalation)
+- [ADR-015](ADR-015-sensory-service-technology-binding.md) — Sensory Service Technology Binding (continuous background signal generation feeds the consciousness loop)

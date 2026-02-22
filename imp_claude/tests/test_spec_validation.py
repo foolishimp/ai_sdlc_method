@@ -77,11 +77,11 @@ class TestRequirementsLineage:
 
     @pytest.mark.tdd
     def test_requirement_count_updated(self):
-        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55, now 58)."""
+        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55, now 58, now 59, now 60)."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**58**" in content or "| **Total** | **58**" in content
+        assert "**60**" in content or "| **Total** | **60**" in content
 
     @pytest.mark.bdd
     def test_consciousness_loop_reqs_exist_in_spec(self):
@@ -114,12 +114,12 @@ class TestSensoryRequirements:
             assert req in content, f"{req} not found in implementation requirements"
 
     @pytest.mark.tdd
-    def test_requirement_count_is_58(self):
-        """Total requirement count must be 58."""
+    def test_requirement_count_is_60(self):
+        """Total requirement count must be 60."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**58**" in content or "| **Total** | **58**" in content
+        assert "**60**" in content or "| **Total** | **60**" in content
 
     @pytest.mark.tdd
     def test_sensory_category_count_is_5(self):
@@ -130,12 +130,12 @@ class TestSensoryRequirements:
         assert "| Sensory Systems | 5 |" in content
 
     @pytest.mark.tdd
-    def test_feature_vector_count_is_58(self):
-        """Feature vectors doc must claim 58 requirements covered."""
+    def test_feature_vector_count_is_60(self):
+        """Feature vectors doc must claim 60 requirements covered."""
         fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_path) as f:
             content = f.read()
-        assert "58/58 requirements covered" in content or "58 implementation requirements" in content
+        assert "60/60 requirements covered" in content or "60 implementation requirements" in content
 
     @pytest.mark.tdd
     def test_sense_feature_vector_has_5_reqs(self):
@@ -172,7 +172,7 @@ class TestSensoryRequirements:
         assert idx > 0, "REQ-SENSE-005 section heading not found"
         section = content[idx:idx + 1000]
         assert "Review Boundary" in section
-        assert "MCP" in section or "mcp" in section
+        assert "tool interface" in section
 
     @pytest.mark.bdd
     def test_feature_vector_references_req_sense_005(self):
@@ -376,12 +376,12 @@ class TestFormalSpecContent:
         assert "4.5.4 Sensory Service Architecture" in content
 
     @pytest.mark.bdd
-    def test_spec_defines_mcp_service_model(self):
-        """Spec §4.5.4 must define MCP server as the service model."""
+    def test_spec_defines_long_running_service_model(self):
+        """Spec §4.5.4 must define the sensory service as a long-running service."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "MCP server" in content or "MCP Server" in content
+        assert "long-running service" in content
 
     @pytest.mark.bdd
     def test_spec_defines_review_boundary(self):

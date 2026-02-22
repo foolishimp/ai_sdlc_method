@@ -1,8 +1,8 @@
 # AI SDLC — Project Genesis: Feature Vector Decomposition
 
-**Version**: 1.7.0
-**Date**: 2026-02-21
-**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.8.0)
+**Version**: 1.8.0
+**Date**: 2026-02-22
+**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.9.0)
 **Method**: Asset Graph Model §6.4 (Task Planning as Trajectory Optimisation)
 
 ---
@@ -142,19 +142,19 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
 ### REQ-F-SENSE-001: Sensory Systems
 
-Continuous interoceptive and exteroceptive monitoring with affect triage pipeline, running as a long-running MCP service with review boundary for draft-only autonomy.
+Continuous interoceptive and exteroceptive monitoring with affect triage pipeline, running as a long-running service with review boundary for draft-only autonomy.
 
 **Satisfies**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
-- Sensory service architecture: long-running MCP server with workspace watcher, monitor scheduler, affect triage
+- Sensory service architecture: long-running service with workspace watcher, monitor scheduler, affect triage
 - Interoceptive monitor framework (INTRO-001..007): event freshness, vector stall detection, test health, STATUS freshness, build health, spec/code drift, event log integrity
 - Exteroceptive monitor framework (EXTRO-001..004): dependency freshness, CVE scanning, runtime telemetry deviation, API contract changes
 - Affect triage pipeline: rule-based + agent-classified (tiered), severity weighting, escalation decision, profile-tunable thresholds
-- Homeostatic responses: Claude headless generates draft proposals only (no file modifications)
-- Review boundary: MCP tool interface separates autonomous sensing from human-approved changes
+- Homeostatic responses: probabilistic agent generates draft proposals only (no file modifications)
+- Review boundary: tool interface separates autonomous sensing from human-approved changes
 - New event types: `interoceptive_signal`, `exteroceptive_signal`, `affect_triage`, `draft_proposal` in events.jsonl
 - Monitor registry: configurable per project and per projection profile (`sensory_monitors.yml`, `affect_triage.yml`)
 - Monitor health: meta-monitoring (senses that sensing has failed)
@@ -227,6 +227,29 @@ Event-sourced agent coordination: agent identity, feature assignment via claims,
 
 ---
 
+### REQ-F-SUPV-001: IntentEngine Formalization
+
+The universal observer/evaluator composition law — fractal processing on every edge, ambiguity classification, three output types, chaining with affect propagation, consciousness-as-relative.
+
+**Satisfies**: REQ-SUPV-001, REQ-SUPV-002
+
+**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- IntentEngine interface: `observer → evaluator → typed_output(reflex.log | specEventLog | escalate)` parameterised by intent+affect
+- Ambiguity classification: zero (reflex), bounded nonzero (probabilistic), persistent (escalate) — maps to three evaluator types
+- Three output types exhaustively classify all possible observation outcomes — mapped to existing event types
+- Observer/evaluator on every edge: every edge traversal is an IntentEngine invocation, producing classified observation + typed output
+- Chaining: one unit's output becomes next unit's intent+affect — the supervision hierarchy
+- Affect propagation: urgency/valence carried forward and transformed at each level
+- Consciousness-as-relative: Level N's escalate = Level N+1's reflex; Level N's reflex.log invisible to Level N+1
+- Fractal application table: single iteration → edge → feature → sensory → production → spec review
+- Constraint tolerances: every constraint has a measurable threshold; tolerances make the gradient operational; breach → optimization intent
+
+**Dependencies**: REQ-F-ENGINE-001.|design⟩ (IntentEngine composes over the four primitives), REQ-F-EVAL-001.|design⟩ (ambiguity classification maps to evaluator types)
+
+---
+
 ## Dependency Graph
 
 ```
@@ -235,6 +258,8 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
     ├──→ REQ-F-EVAL-001 (Evaluator Framework)
     │        │
     │        ├──→ REQ-F-EDGE-001 (Edge Parameterisations)
+    │        │
+    │        ├──→ REQ-F-SUPV-001 (IntentEngine Formalization) ←── also depends on ENGINE
     │        │
     │        └──→ REQ-F-SENSE-001 (Sensory Systems) ←── also depends on LIFE-001
     │
@@ -346,8 +371,10 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-COORD-003 | REQ-F-COORD-001 |
 | REQ-COORD-004 | REQ-F-COORD-001 |
 | REQ-COORD-005 | REQ-F-COORD-001 |
+| REQ-SUPV-001 | REQ-F-SUPV-001 |
+| REQ-SUPV-002 | REQ-F-SUPV-001 |
 
-**58/58 requirements covered. No orphans.**
+**60/60 requirements covered. No orphans.**
 
 ---
 
@@ -365,6 +392,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
 | REQ-F-UX-001 | 5 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
-| **Total** | **58** | | |
+| REQ-F-SUPV-001 | 2 | 1b | ENGINE, EVAL |
+| **Total** | **60** | | |
 
-10 feature vectors. 58 implementation requirements. Full coverage. Critical path: ENGINE design.
+11 feature vectors. 60 implementation requirements. Full coverage. Critical path: ENGINE design.
