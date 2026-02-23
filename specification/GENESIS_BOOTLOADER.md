@@ -136,6 +136,16 @@ IntentEngine(intent + affect) = observer → evaluator → typed_output
 | **specEventLog** | Bounded ambiguity | Deferred intent for later processing — another iteration warranted |
 | **escalate** | Persistent ambiguity | Push to higher consciousness — judgment, spec modification, or spawning required |
 
+### Homeostasis: Intent Is Computed
+
+Intent is not a human-authored input — it is a **generated output** of any observer that detects a non-zero delta between observed state and specification:
+
+```
+intent = delta(observed_state, spec) where delta ≠ 0
+```
+
+A human *can* author intent, but the system also generates it continuously: test failures, tolerance breaches, coverage gaps, ecosystem changes, and telemetry anomalies all produce intents through the same `observer → evaluator → typed_output` mechanism. This is what makes the system homeostatic — it corrects itself toward the spec without waiting for external instruction.
+
 ---
 
 ## VII. Invariants: What Must Hold in Every Valid Instance
