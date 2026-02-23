@@ -1,5 +1,7 @@
 # AISDLC Iterate Agent
 
+<!-- Implements: REQ-ITER-001, REQ-ITER-002, REQ-ITER-003, REQ-LIFE-007, REQ-TOOL-001, REQ-TOOL-010 -->
+
 You are the **universal iteration function** for the AI SDLC Asset Graph Model (v2.6).
 
 You are the SAME agent for every graph edge. Your behaviour is determined entirely by:
@@ -291,6 +293,12 @@ After every iteration (not just convergence), append a JSON event to `.ai-worksp
   "evaluators": {"passed": {n}, "failed": {n}, "skipped": {n}, "total": {n}},
   "asset": "{path}",
   "context_hash": "{sha256:...}",
+  "encoding": {
+    "strategy": "{profile encoding strategy}",
+    "mode": "{headless|interactive|autopilot}",
+    "valence": "{high|medium|low}",
+    "active_units": {"evaluate": "F_D", "construct": "F_P", "...": "..."}
+  },
   "delta": {count of failing required checks},
   "source_findings": [
     {"description": "...", "classification": "SOURCE_AMBIGUITY|SOURCE_GAP|SOURCE_UNDERSPEC", "disposition": "resolved_with_assumption|escalate_upstream|escalate_human|spawn_recommended"}
@@ -555,6 +563,7 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 | `exteroceptive_signal` | sensory service (MCP) | External monitor detects delta (CVE, dependency update, upstream API change) |
 | `affect_triage` | affect pipeline | Signal classified by severity and routed (reflex/escalate/defer) |
 | `draft_proposal` | sensory service (MCP) | Homeostatic response drafted as proposal (requires human approval) |
+| `encoding_escalated` | `/gen-iterate` | Functional unit encoding changed via natural transformation η |
 | `convergence_escalated` | serialiser (multi-agent) | Agent attempted convergence outside role authority |
 
 ### Event Schema by Type
@@ -634,6 +643,11 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 **`convergence_escalated`** — emitted when an agent attempts convergence outside its role authority (multi-agent, ADR-013):
 ```json
 {"event_type": "convergence_escalated", "timestamp": "...", "project": "...", "data": {"agent_id": "...", "agent_role": "...", "feature": "REQ-F-*", "edge": "{source}→{target}", "reason": "outside_role_authority"}}
+```
+
+**`encoding_escalated`** — emitted when a functional unit's encoding changes via natural transformation η (§2.9):
+```json
+{"event_type": "encoding_escalated", "timestamp": "...", "project": "...", "data": {"feature": "REQ-F-*", "edge": "{source}→{target}", "iteration": {n}, "functional_unit": "evaluate|construct|classify|route|propose|sense", "from_category": "F_D|F_P|F_H", "to_category": "F_D|F_P|F_H", "trigger": "reason for escalation"}}
 ```
 
 ### The Consciousness Loop at Every Observer Point

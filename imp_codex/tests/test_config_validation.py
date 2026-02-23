@@ -634,9 +634,9 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_7(self, plugin_json):
-        """plugin.json version must be 2.7.0."""
-        assert plugin_json["version"] == "2.7.0"
+    def test_plugin_version_is_2_8(self, plugin_json):
+        """plugin.json version must be 2.8.0."""
+        assert plugin_json["version"] == "2.8.0"
 
     @pytest.mark.tdd
     def test_graph_topology_version_is_2_7(self, graph_topology):
@@ -644,9 +644,10 @@ class TestVersionConsistency:
         assert graph_topology["graph_properties"]["version"] == "2.7.0"
 
     @pytest.mark.tdd
-    def test_plugin_description_mentions_constraint_dimensions(self, plugin_json):
-        """Plugin description should mention constraint dimensions."""
-        assert "constraint dimensions" in plugin_json["description"]
+    def test_plugin_description_mentions_event_sourcing_or_iterate(self, plugin_json):
+        """Plugin description should mention core methodology concepts."""
+        desc = plugin_json["description"]
+        assert "event sourcing" in desc or "iterate" in desc
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_event_sourcing(self, plugin_json):
@@ -881,12 +882,12 @@ class TestSensoryRequirements:
         assert "REQ-F-SENSE-001" in content
 
     @pytest.mark.tdd
-    def test_design_doc_claims_10_feature_vectors(self):
-        """Design doc must claim 10/10 feature vectors covered."""
+    def test_design_doc_claims_all_feature_vectors(self):
+        """Design doc must claim all feature vectors covered (11 including SUPV-001)."""
         design_path = DESIGN_DIR / "AISDLC_V2_DESIGN.md"
         with open(design_path) as f:
             content = f.read()
-        assert "10/10 feature vectors covered" in content
+        assert "11/11 feature vectors covered" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -956,9 +957,9 @@ class TestStartCommand:
         assert "./commands/gen-start.md" in plugin_json["commands"]
 
     @pytest.mark.tdd
-    def test_plugin_has_10_commands(self, plugin_json):
-        """plugin.json must have 10 commands."""
-        assert len(plugin_json["commands"]) == 10
+    def test_plugin_has_13_commands(self, plugin_json):
+        """plugin.json must have 13 commands."""
+        assert len(plugin_json["commands"]) == 13
 
     @pytest.mark.tdd
     def test_default_profile_in_template(self, project_constraints_template):
@@ -1062,3 +1063,107 @@ class TestMultiAgentCoordination:
             content = f.read()
         assert "edge_claim" in content
         assert "claim_rejected" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 19. FUNCTOR ENCODING VALIDATION (Spec §2.9, ADR-017)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestFunctorEncoding:
+    """Validate functor encoding sections in profiles, edge params, and feature vector template."""
+
+    VALID_FUNCTIONAL_UNITS = {
+        "evaluate", "construct", "classify", "route",
+        "propose", "sense", "emit", "decide",
+    }
+    VALID_CATEGORIES = {"F_D", "F_P", "F_H"}
+    VALID_VALENCE = {"high", "medium", "low"}
+    VALID_MODE = {"headless", "interactive", "autopilot"}
+    # Category-fixed units: emit is always F_D, decide is always F_H
+    CATEGORY_FIXED = {"emit": "F_D", "decide": "F_H"}
+
+    @pytest.mark.tdd
+    def test_all_profiles_have_encoding_section(self, all_profiles):
+        """Every profile must have an encoding section."""
+        for name, profile in all_profiles.items():
+            assert "encoding" in profile, f"profile '{name}' missing encoding section"
+
+    @pytest.mark.tdd
+    def test_profile_encoding_has_required_fields(self, all_profiles):
+        """Each profile encoding needs strategy, mode, valence, functional_units."""
+        for name, profile in all_profiles.items():
+            enc = profile["encoding"]
+            for field in ("strategy", "mode", "valence", "functional_units"):
+                assert field in enc, f"profile '{name}' encoding missing '{field}'"
+
+    @pytest.mark.tdd
+    def test_profile_functional_units_are_valid(self, all_profiles):
+        """All 8 functional units must be defined with valid categories."""
+        for name, profile in all_profiles.items():
+            units = profile["encoding"]["functional_units"]
+            actual_units = set(units.keys())
+            missing = self.VALID_FUNCTIONAL_UNITS - actual_units
+            assert not missing, f"profile '{name}' missing functional units: {missing}"
+            for unit, category in units.items():
+                assert category in self.VALID_CATEGORIES, \
+                    f"profile '{name}' unit '{unit}' has invalid category '{category}'"
+
+    @pytest.mark.tdd
+    def test_category_fixed_units_correct(self, all_profiles):
+        """emit must always be F_D, decide must always be F_H."""
+        for name, profile in all_profiles.items():
+            units = profile["encoding"]["functional_units"]
+            for unit, expected_cat in self.CATEGORY_FIXED.items():
+                assert units[unit] == expected_cat, \
+                    f"profile '{name}' category-fixed unit '{unit}' must be {expected_cat}, got {units[unit]}"
+
+    @pytest.mark.tdd
+    def test_profile_valence_valid(self, all_profiles):
+        """Profile valence must be high, medium, or low."""
+        for name, profile in all_profiles.items():
+            assert profile["encoding"]["valence"] in self.VALID_VALENCE, \
+                f"profile '{name}' has invalid valence '{profile['encoding']['valence']}'"
+
+    @pytest.mark.tdd
+    def test_profile_mode_valid(self, all_profiles):
+        """Profile mode must be headless, interactive, or autopilot."""
+        for name, profile in all_profiles.items():
+            assert profile["encoding"]["mode"] in self.VALID_MODE, \
+                f"profile '{name}' has invalid mode '{profile['encoding']['mode']}'"
+
+    @pytest.mark.tdd
+    def test_edge_params_functional_unit_valid(self, all_edge_configs):
+        """functional_unit values in edge param checklists must be valid."""
+        valid_units = {"evaluate", "construct", "classify", "route",
+                       "propose", "sense", "emit", "decide"}
+        for cfg_name, config in all_edge_configs.items():
+            for section_key in ("checklist", "source_analysis"):
+                if section_key not in config:
+                    continue
+                items = config[section_key]
+                if not isinstance(items, list):
+                    # traceability.yml has layer_* dicts
+                    continue
+                for item in items:
+                    if isinstance(item, dict) and "functional_unit" in item:
+                        assert item["functional_unit"] in valid_units, \
+                            f"{cfg_name} check '{item.get('name', '?')}' has invalid functional_unit '{item['functional_unit']}'"
+
+    @pytest.mark.tdd
+    def test_feature_vector_template_functor_optional(self, feature_vector_template):
+        """Feature vector template functor section must exist with required fields."""
+        assert "functor" in feature_vector_template
+        functor = feature_vector_template["functor"]
+        for field in ("encoding_source", "mode", "valence", "overrides"):
+            assert field in functor, f"functor missing '{field}'"
+
+    @pytest.mark.tdd
+    def test_feature_vector_template_escalations(self, feature_vector_template):
+        """Each trajectory entry must have an escalations list."""
+        traj = feature_vector_template["trajectory"]
+        for asset in ("requirements", "design", "code", "unit_tests", "uat_tests"):
+            assert "escalations" in traj[asset], \
+                f"trajectory '{asset}' missing escalations field"
+            assert isinstance(traj[asset]["escalations"], list), \
+                f"trajectory '{asset}' escalations must be a list"

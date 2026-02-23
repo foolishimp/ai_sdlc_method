@@ -1,5 +1,5 @@
 # Edge Parameterisation: Traceability Validation
-# Implements: REQ-TOOL-005 (Test Gap Analysis), REQ-TOOL-009 (Feature Views)
+# Implements: REQ-TOOL-005 (Test Gap Analysis), REQ-TOOL-009 (Feature Views), REQ-LIFE-004 (Feature Lineage in Telemetry)
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §6.3, §6.4
 #
 # Cross-cutting concern: validates REQ key coverage across the asset graph.
@@ -29,6 +29,7 @@ layer_1_req_coverage:
 
   - name: "req_tags_in_code"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Every production code file has at least one 'Implements: REQ-*' tag"
     command: |
       # Find code files without Implements tags
@@ -44,6 +45,7 @@ layer_1_req_coverage:
 
   - name: "req_tags_in_tests"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Every test file has at least one 'Validates: REQ-*' tag"
     command: |
       MISSING=$(find tests/ test/ spec/ -name 'test_*.py' -o -name '*.test.js' -o -name '*.test.ts' -o -name '*_test.go' -o -name '*_test.rs' 2>/dev/null | while read f; do
@@ -57,6 +59,7 @@ layer_1_req_coverage:
 
   - name: "req_tags_valid_format"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All REQ tags follow the format: (Implements|Validates): REQ-{TYPE}-{DOMAIN}-{SEQ}"
     command: |
       # Extract all tags, check format
@@ -69,6 +72,7 @@ layer_1_req_coverage:
 
   - name: "req_keys_exist_in_spec"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Every REQ key referenced in code (Implements: REQ-*) and tests
       (Validates: REQ-*) exists in the requirements specification.
@@ -86,6 +90,7 @@ layer_2_test_gaps:
 
   - name: "all_req_keys_have_tests"
     type: agent
+    functional_unit: evaluate
     criterion: |
       For every REQ key defined in the requirements specification:
       1. Grep tests/ for "Validates: {REQ_KEY}"
@@ -103,6 +108,7 @@ layer_2_test_gaps:
 
   - name: "test_to_req_ratio"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Each functional REQ key (REQ-F-*) should have at least 2 tests:
       one happy-path, one error-path. Report the ratio.
@@ -120,6 +126,7 @@ layer_3_telemetry_gaps:
 
   - name: "code_req_keys_have_telemetry"
     type: agent
+    functional_unit: evaluate
     criterion: |
       For every REQ key tagged in code (Implements: REQ-*):
       1. Search for telemetry references: req="REQ-*" or req='REQ-*' in
@@ -141,6 +148,7 @@ layer_3_telemetry_gaps:
 
   - name: "telemetry_tag_format"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All telemetry REQ tags use structured format: req=\"REQ-*\" or req='REQ-*'"
     command: |
       # Find telemetry references with incorrect format

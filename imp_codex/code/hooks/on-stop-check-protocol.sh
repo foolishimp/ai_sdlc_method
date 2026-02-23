@@ -2,7 +2,7 @@
 # ============================================================================
 # on-stop-check-protocol.sh — Stop hook for iterate protocol enforcement
 #
-# Fires when Codex attempts to stop responding. If an edge traversal is
+# Fires when Claude attempts to stop responding. If an edge traversal is
 # in progress, verifies that all mandatory side effects were completed.
 # Blocks if incomplete; allows on second attempt (stop_hook_active=true).
 #
@@ -16,7 +16,7 @@
 # mandatory reflexes (event emission, feature vector update, STATUS
 # regeneration) actually fired during the edge traversal.
 #
-# Implements: Protocol enforcement (Layer 1 — Engine)
+# Implements: REQ-TOOL-006 (Methodology Hooks), REQ-LIFE-008 (Protocol Enforcement Hooks), Protocol enforcement (Layer 1 — Engine)
 # ============================================================================
 
 set -euo pipefail

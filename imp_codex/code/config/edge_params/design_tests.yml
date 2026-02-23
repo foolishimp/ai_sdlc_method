@@ -36,6 +36,7 @@ checklist:
 
   - name: "covers_component_interactions"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Test cases cover interactions BETWEEN components, not individual function behaviour.
       Each design component boundary has at least one integration test.
@@ -44,6 +45,7 @@ checklist:
 
   - name: "covers_error_paths"
     type: agent
+    functional_unit: evaluate
     criterion: |
       For each component interaction, tests include:
       - At least one positive (expected) path
@@ -54,12 +56,14 @@ checklist:
 
   - name: "req_tags_present"
     type: agent
+    functional_unit: evaluate
     criterion: "Every test case has '# Validates: REQ-*' linking to the requirement it verifies."
     source: default
     required: true
 
   - name: "tests_are_independent"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Each test case can run in isolation — no ordering dependencies between tests.
       Setup and teardown are self-contained within each test case.
@@ -68,12 +72,14 @@ checklist:
 
   - name: "all_design_components_covered"
     type: agent
+    functional_unit: evaluate
     criterion: "Every component in the design specification has at least one test case exercising it."
     source: default
     required: true
 
   - name: "valid_test_syntax"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Test files parse without syntax errors."
     command: "$tools.test_runner.command --collect-only"
     pass_criterion: "exit code 0"
@@ -82,6 +88,7 @@ checklist:
 
   - name: "tests_execute"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All test cases execute successfully."
     command: "$tools.test_runner.command $tools.test_runner.args"
     pass_criterion: "$tools.test_runner.pass_criterion"
@@ -90,6 +97,7 @@ checklist:
 
   - name: "human_approves_coverage"
     type: human
+    functional_unit: evaluate
     criterion: "Human confirms test cases cover the critical integration points identified in design."
     source: default
     required: true

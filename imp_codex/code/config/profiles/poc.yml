@@ -45,6 +45,22 @@ context:
   optional_elements:
     - adrs                       # relevant prior decisions only
 
+# Encoding: functor encoding per §2.9
+encoding:
+  strategy: hypothesis_minimal
+  mode: interactive
+  valence: low
+  functional_units:
+    evaluate:    F_P                 # agent-assessed, no F_H gates except final
+    construct:   F_P
+    classify:    F_D
+    route:       F_H
+    propose:     F_P
+    sense:       F_D
+    emit:        F_D                 # category-fixed
+    decide:      F_H                 # category-fixed
+  edge_overrides: {}
+
 # Iteration budget
 iteration:
   budget: time_boxed

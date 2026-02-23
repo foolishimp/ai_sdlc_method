@@ -49,6 +49,22 @@ context:
     - incident_details           # error logs, stack traces, reproduction steps
     - affected_code              # files/functions involved
 
+# Encoding: functor encoding per §2.9
+encoding:
+  strategy: emergency
+  mode: interactive
+  valence: high
+  functional_units:
+    evaluate:    F_D                 # deterministic-dominant for speed
+    construct:   F_P
+    classify:    F_D
+    route:       F_D                 # fixed emergency path
+    propose:     F_P
+    sense:       F_D
+    emit:        F_D                 # category-fixed
+    decide:      F_H                 # category-fixed
+  edge_overrides: {}
+
 # Iteration budget
 iteration:
   budget: time_boxed

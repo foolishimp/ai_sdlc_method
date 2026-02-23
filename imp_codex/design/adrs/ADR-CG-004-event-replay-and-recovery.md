@@ -18,7 +18,7 @@ Use **event replay as canonical recovery**:
 1. `events.jsonl` is append-only and authoritative.
 2. STATUS and feature trajectories are re-derived from events when stale or missing.
 3. Checkpoints are immutable snapshots that accelerate restore but do not supersede event history.
-4. Recovery tooling (`aisdlc_restore`) supports:
+4. Recovery tooling (`/gen-checkpoint` + replay workflows) supports:
    - checkpoint restore for fast continuity,
    - full event replay for authoritative reconstruction.
 

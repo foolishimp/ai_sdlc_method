@@ -33,7 +33,7 @@ Codex runtime primitives differ from Claude and Gemini:
 
 Key mappings:
 
-- Slash command intent -> `aisdlc_*` orchestration routines invoked via Codex tooling.
+- Slash command intent -> `/gen-*` orchestration routines invoked via Codex tooling.
 - Universal iterate agent -> universal iterate orchestrator that reads edge config and drives tools.
 - Deterministic evaluators -> shell/test/lint/schema commands under explicit convergence policy.
 - Human review -> explicit review boundary in conversation before promote/converge on human-required edges.

@@ -22,6 +22,11 @@ COMMANDS_DIR = PLUGIN_ROOT / "commands"
 AGENTS_DIR = PLUGIN_ROOT / "agents"
 
 
+def pytest_ignore_collect(collection_path, config):  # pragma: no cover
+    """Prevent archived e2e artifacts from being collected as tests."""
+    return "imp_codex/tests/e2e/runs/" in str(collection_path)
+
+
 
 def load_yaml(path: pathlib.Path) -> dict:
     """Load a YAML file, returning parsed dict. Merges multiple documents."""

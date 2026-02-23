@@ -1,6 +1,7 @@
-# Validates: REQ-TOOL-001, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+# Validates: REQ-TOOL-001, REQ-TOOL-010, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
 # Validates: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
 # Validates: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-COORD-005
+# Validates: REQ-SUPV-001, REQ-SUPV-002
 """Spec-level validation tests.
 
 These tests validate the specification documents (technology-agnostic).
@@ -45,7 +46,7 @@ class TestReqKeyCoverage:
         fv_file = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_file) as f:
             content = f.read()
-        assert "54/54 requirements covered" in content or "No orphans" in content
+        assert "58/58 requirements covered" in content or "No orphans" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -77,11 +78,11 @@ class TestRequirementsLineage:
 
     @pytest.mark.tdd
     def test_requirement_count_updated(self):
-        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54)."""
+        """Total requirement count should reflect additions (was 35, now 39, now 43, now 44, now 49, now 54, now 55, now 58, now 59, now 60, now 62, now 63, now 64)."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**54**" in content or "| **Total** | **54**" in content
+        assert "**64**" in content or "| **Total** | **64**" in content
 
     @pytest.mark.bdd
     def test_consciousness_loop_reqs_exist_in_spec(self):
@@ -114,12 +115,12 @@ class TestSensoryRequirements:
             assert req in content, f"{req} not found in implementation requirements"
 
     @pytest.mark.tdd
-    def test_requirement_count_is_54(self):
-        """Total requirement count must be 54."""
+    def test_requirement_count_is_64(self):
+        """Total requirement count must be 64."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "**54**" in content or "| **Total** | **54**" in content
+        assert "**64**" in content or "| **Total** | **64**" in content
 
     @pytest.mark.tdd
     def test_sensory_category_count_is_5(self):
@@ -130,12 +131,12 @@ class TestSensoryRequirements:
         assert "| Sensory Systems | 5 |" in content
 
     @pytest.mark.tdd
-    def test_feature_vector_count_is_54(self):
-        """Feature vectors doc must claim 54 requirements covered."""
+    def test_feature_vector_count_is_64(self):
+        """Feature vectors doc must claim 64 requirements covered."""
         fv_path = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(fv_path) as f:
             content = f.read()
-        assert "54/54 requirements covered" in content or "54 implementation requirements" in content
+        assert "64/64 requirements covered" in content or "64 implementation requirements" in content
 
     @pytest.mark.tdd
     def test_sense_feature_vector_has_5_reqs(self):
@@ -172,7 +173,7 @@ class TestSensoryRequirements:
         assert idx > 0, "REQ-SENSE-005 section heading not found"
         section = content[idx:idx + 1000]
         assert "Review Boundary" in section
-        assert "MCP" in section or "mcp" in section
+        assert "tool interface" in section
 
     @pytest.mark.bdd
     def test_feature_vector_references_req_sense_005(self):
@@ -194,7 +195,7 @@ class TestMultiAgentCoordination:
     NOTE — Design-stage coverage only (Phase 1a):
     These tests verify that spec documents define the coordination
     requirements correctly. Implementation-specific tests (ADR validation,
-    design doc checks) are in imp_codex/tests/.
+    design doc checks) are in imp_claude/tests/.
     """
 
     COORD_REQS = ["REQ-COORD-001", "REQ-COORD-002", "REQ-COORD-003",
@@ -276,20 +277,20 @@ class TestUXRequirements:
 
     @pytest.mark.tdd
     def test_ux_requirements_exist(self):
-        """REQ-UX-001 through REQ-UX-005 must exist in implementation requirements."""
+        """REQ-UX-001 through REQ-UX-007 must exist in implementation requirements."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        for i in range(1, 6):
+        for i in range(1, 8):
             assert f"REQ-UX-{i:03d}" in content, f"REQ-UX-{i:03d} not found"
 
     @pytest.mark.tdd
-    def test_ux_category_count_is_5(self):
-        """User Experience category must show count of 5 in summary."""
+    def test_ux_category_count_is_7(self):
+        """User Experience category must show count of 7 in summary."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "| User Experience | 5 |" in content
+        assert "| User Experience | 7 |" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -376,12 +377,12 @@ class TestFormalSpecContent:
         assert "4.5.4 Sensory Service Architecture" in content
 
     @pytest.mark.bdd
-    def test_spec_defines_mcp_service_model(self):
-        """Spec §4.5.4 must define MCP server as the service model."""
+    def test_spec_defines_long_running_service_model(self):
+        """Spec §4.5.4 must define the sensory service as a long-running service."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "MCP server" in content or "MCP Server" in content
+        assert "long-running service" in content
 
     @pytest.mark.bdd
     def test_spec_defines_review_boundary(self):
@@ -422,7 +423,7 @@ class TestFormalSpecContent:
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Service-hosted" in content
+        assert "service-hosted" in content.lower()
 
     @pytest.mark.bdd
     def test_spec_defines_context_sources(self):

@@ -2,20 +2,20 @@
 
 **Version**: 2.0.0
 **Date**: 2026-02-20
-**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.0.0)
+**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.8.0)
 **Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
-**Platform**: Codex Runtime (ADR-CG-001 — carried forward from v1.x)
+**Platform**: Claude Code (ADR-001 — carried forward from v1.x)
 
 ---
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Codex Runtime. It covers all 10 feature vectors defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 11 feature vectors defined in FEATURE_VECTORS.md.
 
 **Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
 
 **What carries forward from v1.x**:
-- Codex Runtime as platform (ADR-CG-001)
+- Claude Code as platform (ADR-001)
 - Plugin delivery mechanism
 - Workspace file structure (adapted)
 - Slash commands (adapted)
@@ -27,7 +27,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 - Stage-specific skills → evaluator + constructor composition per edge
 - Fixed topology → configurable graph in Context[]
 
-**What v2.0.0 adds** (from spec v2.7.0):
+**What v2.0.0 adds** (from spec v2.8.0):
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
 - Constraint dimension taxonomy at the design edge
 - Event sourcing as the formal execution model
@@ -90,9 +90,9 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 │  ├── tasks/           Task management (active, completed)            │
 │  └── snapshots/       Session recovery (immutable checkpoints)       │
 │                                                                      │
-│  imp_codex/code/                                                     │
-│  ├── commands/        Command specs                                  │
-│  └── plugin.json      Codex binding metadata                         │
+│  .claude/                                                            │
+│  ├── commands/        Slash commands                                  │
+│  └── settings.json    Plugin configuration                           │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -100,7 +100,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 
 The v1.x design had separate agents for each stage. The v2.1 design has:
 
-- **One iterate() implementation** — a Codex Runtime agent that takes (asset, context, evaluators) and produces the next candidate
+- **One iterate() implementation** — a Claude Code agent that takes (asset, context, evaluators) and produces the next candidate
 - **Edge parameterisation configs** — YAML files that define: which evaluators, which constructors, what convergence criteria
 - **The graph topology** — a YAML config defining asset types and admissible transitions
 
@@ -108,7 +108,7 @@ The agent IS the iterate() function. It reads the edge parameterisation to know 
 
 ### 1.3 Conceptual Model: Three Instantiation Layers (Spec §2.8)
 
-The spec defines three conceptual layers. Here is how they map to the Codex Runtime implementation:
+The spec defines three conceptual layers. Here is how they map to the Claude Code implementation:
 
 ```
 Spec Layer                    Implementation
@@ -152,7 +152,7 @@ The Requirements → Design edge is the most consequential transition. The spec 
 
 Unresolved mandatory dimensions are checklist failures — they block convergence. This directly addresses the dogfooding finding: 5/7 build bugs were in dimensions the design left implicit.
 
-### 1.5 Event Sourcing Execution Model (Spec §7.5)
+### 1.5 Event Sourcing Execution Model (Spec §7.4)
 
 All methodology state changes are recorded as immutable events in `.ai-workspace/events/events.jsonl`. All observable state (STATUS.md, feature vectors, task lists) is a derived projection.
 
@@ -173,7 +173,7 @@ All methodology commands emit events. The event log is the sole integration cont
 
 This is an engine-level primitive (Layer 1) — it applies regardless of graph package.
 
-### 1.6 Methodology Self-Observation (Spec §7.6)
+### 1.6 Methodology Self-Observation (Spec §7.5)
 
 The methodology observes itself through the same evaluator pattern it uses for artifacts:
 
@@ -184,13 +184,13 @@ Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer�
 
 TELEM signals are emitted by the iterate agent as `process_gaps` in each event. The `/gen-status` command aggregates these into the Self-Reflection section of STATUS.md. Over time, persistent process gaps become candidates for graph package updates (new evaluator checks, refined constraint dimensions, additional context guidance).
 
-### 1.7 Consciousness Loop at Every Observer Point (Spec §7.7, ADR-011)
+### 1.7 Gradient at Spec Scale (Spec §7.1, §7.3, ADR-011)
 
-**Implements**: REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+**Implements**: REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009
 
-The consciousness loop is not a single edge (telemetry→intent). It is a structural property that emerges at **every observer point**. Every evaluator running at every edge is an observer. When an observer detects a delta that cannot be resolved within the current iteration scope, that delta becomes a formal `intent_raised` event.
+The gradient — `delta(state, constraints) → work` — operates at every scale (Spec §7.1). At the spec scale, this becomes: `delta(workspace_state, spec) → intents`. Every evaluator running at every edge is an observer. When an observer detects a delta that cannot be resolved within the current iteration scope, that delta becomes a formal `intent_raised` event.
 
-The consciousness loop spans all three processing phases (Spec §4.3). The **reflex phase** produces the sensory substrate: event emission, feature vector updates, and STATUS regeneration fire unconditionally at every iteration boundary. The **affect phase** triages those signals: classifying deltas by source (gap, discovery, ecosystem, optimisation, user, TELEM), assessing severity, and deciding which signals warrant escalation. The **conscious phase** performs deliberative review on escalated signals: interpreting deltas, generating intents, modifying the spec, spawning vectors. Protocol enforcement hooks (§1.7.4) are the mechanism that guarantees the reflex substrate operates — they are the methodology's autonomic nervous system.
+The gradient at spec scale spans all three processing phases (Spec §4.3). The **reflex phase** produces the sensory substrate: event emission, feature vector updates, and STATUS regeneration fire unconditionally at every iteration boundary. The **affect phase** triages those signals: classifying deltas by source (gap, discovery, ecosystem, optimisation, user, TELEM), assessing severity, and deciding which signals warrant escalation. The **conscious phase** performs deliberative review on escalated signals: interpreting deltas, generating intents, modifying the spec, spawning vectors. Protocol enforcement hooks (§1.7.4) are the mechanism that guarantees the reflex substrate operates — they are the methodology's autonomic nervous system.
 
 #### 1.7.1 Signal Flow
 
@@ -265,7 +265,7 @@ intent_raised event
 
 The `prior_intents` field on both events enables reflexive loop detection:
 - If intent A → spec change → new delta → intent B, and B traces back to A, the system detects its own modification caused a new deviation
-- This distinguishes the consciousness loop from a simple feedback loop: awareness of the consequences of one's own awareness
+- This distinguishes spec review from a simple feedback loop: awareness of the consequences of one's own constraint surface changes
 
 #### 1.7.4 Protocol Enforcement
 
@@ -283,7 +283,7 @@ The iterate agent instructions mandate these. Protocol violations are logged as 
 
 | File | What was added |
 |---|---|
-| `agents/gen-iterate.md` | Event Type Reference (16 command/coordination types), consciousness loop observer table, `intent_raised` emission from backward/inward gap detection |
+| `agents/gen-iterate.md` | Event Type Reference (16 command/coordination types), gradient observer table, `intent_raised` emission from backward/inward gap detection |
 | `commands/gen-iterate.md` | Stuck delta detection (>3 iterations), refactoring signal, source escalation → `intent_raised` |
 | `commands/gen-gaps.md` | Gap cluster → `intent_raised` per domain group |
 | `config/edge_params/feedback_loop.yml` | 7 signal sources with intent templates and `intent_raised` schema |
@@ -860,6 +860,318 @@ A project may have one design with multiple agents, or multiple designs each wit
 
 ---
 
+### 1.11 Observer Agents (Spec §7.1, §7.2, §7.6)
+
+**Implements**: REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012
+
+Three observer agents close the right side of the abiogenesis loop: `act → emit event → observe → judge → feed back`. Each observer is a markdown agent spec — the same delivery mechanism as the iterate agent (§2.3). No new infrastructure. Claude reads the agent spec and executes it, just as it reads `gen-iterate.md` today.
+
+Each observer is a **Markov object**: it reads its inputs (event log, build artifacts, telemetry), emits events, and has no shared mutable state. The event log IS the mailbox (actor model). Observers run in parallel — zero inner product between them because they read different signal sources and write non-conflicting event types.
+
+#### 1.11.1 Observer Architecture
+
+```
+                          ┌──────────────────────┐
+                          │     Event Log         │
+                          │   events.jsonl        │
+                          └───┬──────┬──────┬─────┘
+                              │      │      │
+                    ┌─────────┘      │      └─────────┐
+                    │                │                  │
+                    ▼                ▼                  ▼
+          ┌─────────────┐  ┌──────────────┐  ┌─────────────┐
+          │ Dev Observer │  │ CI/CD        │  │ Ops Observer │
+          │ Agent        │  │ Observer     │  │ Agent        │
+          │              │  │ Agent        │  │              │
+          │ Reads:       │  │ Reads:       │  │ Reads:       │
+          │ • events.jsonl│  │ • build logs │  │ • telemetry  │
+          │ • features/  │  │ • test results│ │ • metrics    │
+          │ • STATUS.md  │  │ • coverage   │  │ • alerts     │
+          │ • spec       │  │ • deploy log │  │ • SLA data   │
+          └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+                 │                 │                   │
+                 ▼                 ▼                   ▼
+          observer_signal    observer_signal     observer_signal
+          → events.jsonl     → events.jsonl      → events.jsonl
+                 │                 │                   │
+                 └────────┬────────┘───────────────────┘
+                          ▼
+                  Human reviews draft intents
+                  (approve → new vector / dismiss)
+```
+
+#### 1.11.2 Dev Observer Agent
+
+**Trigger**: Hooks after `iteration_completed`, `edge_converged`, `release_created`, `gaps_validated` events.
+
+**Inputs**: `events.jsonl`, `features/active/*.yml`, `STATUS.md`, `specification/`
+
+**Algorithm**:
+1. Read latest workspace state (feature vectors, convergence status, event log tail)
+2. Read spec (requirements, feature vectors, constraint surface)
+3. Compute delta: what spec asserts vs what workspace contains
+4. Classify non-zero deltas by signal source (gap, discovery, ecosystem, optimisation, user, TELEM)
+5. For each significant delta, generate draft `intent_raised` event
+6. Present to human for approval
+
+**Output event schema**:
+```yaml
+event_type: observer_signal
+observer_id: dev_observer
+timestamp: ISO-8601
+signal_source: gap | discovery | TELEM
+delta_description: "3 REQ keys in spec have no test coverage"
+affected_req_keys: ["REQ-LIFE-010", "REQ-LIFE-011", "REQ-LIFE-012"]
+severity: high | medium | low
+recommended_action: "Spawn feature vector or iterate on code↔unit_tests"
+draft_intents: [{...}]  # optional — pre-formed intent_raised events
+```
+
+**Delivery**: `agents/gen-dev-observer.md` — markdown agent spec.
+
+#### 1.11.3 CI/CD Observer Agent
+
+**Trigger**: Hooks after CI/CD pipeline completion (post-push, post-merge).
+
+**Inputs**: Build logs, test results, coverage reports, deployment status.
+
+**Algorithm**:
+1. Read build/test results from CI/CD output
+2. Map failures to REQ keys via `Implements:` / `Validates:` tags
+3. Compute delta: expected green vs actual red, coverage thresholds
+4. Generate draft intents for regressions, coverage drops, deployment failures
+5. Present to human for approval
+
+**Output event schema**:
+```yaml
+event_type: observer_signal
+observer_id: cicd_observer
+timestamp: ISO-8601
+signal_source: test_failure | process_gap
+build_status: pass | fail
+failing_req_keys: ["REQ-F-AUTH-001"]
+coverage_delta: -3.2  # percentage point change
+severity: critical | high | medium
+recommended_action: "Fix failing tests for REQ-F-AUTH-001"
+draft_intents: [{...}]
+```
+
+**Delivery**: `agents/gen-cicd-observer.md` — markdown agent spec.
+
+#### 1.11.4 Ops Observer Agent
+
+**Trigger**: Scheduled (configurable interval) or on monitoring alert.
+
+**Inputs**: Production telemetry — latency, error rates, resource utilisation, incident reports.
+
+**Algorithm**:
+1. Read production telemetry (metrics endpoints, log aggregation, alert API)
+2. Correlate anomalies with REQ keys via `req=` structured logging tags
+3. Compute delta: running system vs spec constraints (SLAs, performance envelopes)
+4. Consume interoceptive signals from REQ-SENSE-001 as additional input
+5. Generate draft intents for SLA breaches, performance regressions, resource trends
+6. Present to human for approval
+
+**Output event schema**:
+```yaml
+event_type: observer_signal
+observer_id: ops_observer
+timestamp: ISO-8601
+signal_source: runtime_feedback
+metric_deltas:
+  - metric: p99_latency_ms
+    current: 450
+    threshold: 200
+    req_key: REQ-NFR-PERF-001
+severity: critical | high | medium
+recommended_action: "Investigate latency regression on REQ-NFR-PERF-001"
+draft_intents: [{...}]
+```
+
+**Delivery**: `agents/gen-ops-observer.md` — markdown agent spec.
+
+#### 1.11.5 Integration with Existing Systems
+
+| Observer | Integrates with | How |
+|----------|----------------|-----|
+| Dev observer | §1.7 (Gradient at Spec Scale) | Operationalises spec review — same `delta(workspace, spec) → intents` |
+| Dev observer | §1.5 (Event Sourcing) | Reads and writes to events.jsonl |
+| CI/CD observer | §1.3 (Graph Topology) | Observes code→cicd→running_system edges |
+| CI/CD observer | §1.4 (REQ Key Traceability) | Maps failures back to REQ keys |
+| Ops observer | §1.8 (Sensory Service) | Consumes interoceptive/exteroceptive signals |
+| Ops observer | §1.7.2 (Signal Sources) | Produces `runtime_feedback` signals |
+| All observers | §1.10 (Multi-Agent) | Each observer is a Markov object with agent_id |
+
+#### 1.11.6 ADR
+
+**ADR-014: Observer Agents as Markdown Specs**
+
+**Context**: The abiogenesis loop requires observers that watch events, compute deltas, and feed back intents. Options: (a) executable code (Python/TypeScript service), (b) MCP server extension, (c) markdown agent specs.
+
+**Decision**: Markdown agent specs — same delivery as the iterate agent.
+
+**Rationale**:
+- Claude already reads markdown agent specs and executes them. No new infrastructure.
+- Observers are Markov objects — stateless functions from inputs to events. They don't need persistent runtime.
+- Hooks trigger the observer after relevant events. The hook invokes Claude with the observer agent spec.
+- Consistent with ADR-008 (Universal Iterate Agent) — one mechanism for all agents.
+
+**Consequences**:
+- Observers are as testable as the iterate agent (spec validation + BDD scenarios)
+- No additional deployment, no separate process, no MCP server for observers
+- Latency: observer runs after hook fires, adds ~seconds to post-iteration processing
+- Composable: new observers can be added by dropping a new markdown file into `agents/`
+
+### 1.12 Telemetry as Functor Product (ADR-017, Spec §4.5, §7.5)
+
+**Implements**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-005
+
+#### The Paradigm
+
+Operational telemetry and self-monitoring are constitutive properties of a product, not deferred capabilities. A product that does not monitor itself is not yet a product.
+
+Every product (including Genesis) has:
+1. **Spec** — features and operational parameters
+2. **Traceability** — REQ keys threading through build artifacts
+3. **Operational telemetry** — the product emits structured events as it operates
+4. **Monitors** — interoceptive and exteroceptive, deployed as part of the product
+5. **Feedback loop** — telemetry feeds back as new intent
+
+Genesis is a product builder AND a product. It complies to the same paradigm it enforces on products it builds. Products built by Genesis comply to this paradigm.
+
+#### Telemetry as Functor
+
+The telemetry system is not a bolt-on. It is another **functor product**: a spec-level definition of what to monitor, encoded into technology-specific implementations via the same functor mechanism (ADR-017) that maps product specs to code.
+
+```
+Telemetry Spec (WHAT to monitor — tech-agnostic)
+    │
+    │  F_telemetry: Spec → Implementation
+    │
+    ├── imp_codex/  → events.jsonl + hooks + workspace_state.py + sensory_monitors.yml
+    ├── imp_gemini/  → (their monitoring stack)
+    └── imp_codex/   → (their monitoring stack)
+```
+
+The telemetry functor uses the same functional units as the primary product functor, rendered through the same three categories (F_D, F_P, F_H):
+
+| Functional Unit | Telemetry Role | Claude Encoding (F_D / F_P / F_H) |
+|----------------|---------------|-----------------------------------|
+| **Sense** | Monitors detect signals | F_D: `workspace_state.py` pure functions, file watchers, `pip-audit` / F_P: LLM anomaly detection / F_H: human notices something |
+| **Classify** | Affect triage | F_D: `affect_triage.yml` rules / F_P: LLM classifies ambiguous signals / F_H: human triages manually |
+| **Evaluate** | Convergence check on telemetry | F_D: threshold comparisons / F_P: LLM coherence review / F_H: human judgment |
+| **Emit** | Events to log | F_D: append to `events.jsonl` — always deterministic (category-fixed) |
+| **Route** | Escalation decision | F_D: rule-based severity routing / F_P: LLM context-sensitive routing / F_H: human decides (category-fixed at review boundary) |
+| **Propose** | Homeostatic response | F_D: template-driven proposals / F_P: Claude headless drafts intent/diff / F_H: human writes proposal |
+
+#### Genesis Self-Monitoring: Claude Encoding
+
+Genesis already has operational telemetry. The encoding maps to existing artifacts:
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     TELEMETRY PRODUCT (Claude Encoding)                    │
+│                                                                           │
+│  SENSE (F_D)                                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ workspace_state.py (23 pure functions)                            │    │
+│  │  detect_stuck_features()     → INTRO-002                         │    │
+│  │  detect_corrupted_events()   → INTRO-007                         │    │
+│  │  detect_orphaned_spawns()    → REQ-UX-005                        │    │
+│  │  detect_missing_feature_vectors() → INTRO-006                    │    │
+│  │  get_unactioned_escalations() → signal tracking                  │    │
+│  │  compute_aggregated_view()   → INTRO-004 (staleness)             │    │
+│  ├──────────────────────────────────────────────────────────────────┤    │
+│  │ hooks (reflex phase — fires unconditionally)                      │    │
+│  │  on-iterate-start.sh  → protocol injection                       │    │
+│  │  on-stop-check-protocol.sh → 4 mandatory side effects            │    │
+│  ├──────────────────────────────────────────────────────────────────┤    │
+│  │ sensory_monitors.yml (config — schedule + thresholds)             │    │
+│  │  7 interoceptive monitors (INTRO-001..007)                        │    │
+│  │  4 exteroceptive monitors (EXTRO-001..004)                        │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+│  CLASSIFY + ROUTE (F_D → η_D→P → F_P)                                   │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ affect_triage.yml (14 rules, 6 profile thresholds)                │    │
+│  │  classify_tolerance_breach() in workspace_state.py                │    │
+│  │  Rule-based (F_D) → Agent-classified for ambiguous (F_P)         │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+│  EMIT (F_D — category-fixed)                                             │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ events.jsonl — 13+ event types, append-only                       │    │
+│  │  interoceptive_signal, exteroceptive_signal                       │    │
+│  │  affect_triage, draft_proposal                                    │    │
+│  │  telemetry_signal_emitted (TELEM-*)                               │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+│  EVALUATE + PROPOSE (F_P → η_P→H → F_H)                                 │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ Observer agents (markdown specs — ADR-014)                        │    │
+│  │  gen-dev-observer.md   → delta(workspace, spec) → intents     │    │
+│  │  gen-cicd-observer.md  → delta(build, quality) → intents      │    │
+│  │  gen-ops-observer.md   → delta(running, spec) → intents       │    │
+│  ├──────────────────────────────────────────────────────────────────┤    │
+│  │ Review boundary (F_H — category-fixed)                            │    │
+│  │  MCP tools: /sensory-status, /sensory-proposals, /sensory-approve │    │
+│  │  Human approves/dismisses all workspace modifications             │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                           │
+│  FEEDBACK (telemetry → new intent)                                       │
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │ intent_raised events with signal_source classification            │    │
+│  │  7 signal sources → intent templates in feedback_loop.yml         │    │
+│  │  prior_intents chain → reflexive loop detection                   │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Operational Status: What's Wired vs What's Not
+
+The building blocks exist. The gap is wiring, not building.
+
+| Component | Built | Wired | What to wire |
+|-----------|:-----:|:-----:|-------------|
+| Event log (13 types, 99 events) | ✓ | ✓ | Add REQ keys to TELEM signals; enforce `source_findings`/`process_gaps` in all iteration events |
+| Protocol hooks (iterate-start, stop-check) | ✓ | ✓ | Already operational |
+| Pure function monitors (23 in workspace_state.py) | ✓ | — | Add session-start hook that invokes monitors, emits `interoceptive_signal` events |
+| Sensory monitor config (11 monitors) | ✓ | — | Build thin runner script; schedule via hooks |
+| Affect triage config (14 rules) | ✓ | — | Build rule-matching pipeline that reads signals, emits `affect_triage` events |
+| Observer agents (3 markdown specs) | ✓ | — | Add hook after `edge_converged` that invokes dev-observer agent |
+| Review boundary (5 MCP tools) | ✓ | — | Build MCP server exposing sensory tools |
+| Feedback loop (7 signal sources) | ✓ | partial | `gap` source operational; wire remaining 6 sources |
+
+#### Wiring Priority (Phase 1a telemetry)
+
+Zero new code — connect existing pieces:
+
+1. **Hook: dev-observer after convergence** — Add to `hooks.json`: fire `gen-dev-observer.md` after `edge_converged` events. Closes the abiogenesis loop.
+2. **Hook: health check at session start** — Invoke `detect_stuck_features()`, `detect_corrupted_events()`, `detect_orphaned_spawns()` on workspace open. Emit `interoceptive_signal` events.
+3. **Schema discipline** — Add `affected_req_keys` to all `telemetry_signal_emitted` events. Enforce non-empty `source_findings` and `process_gaps` arrays in iteration events.
+4. **Run exteroceptive monitors** — `pip-audit` and `npm audit` as periodic scripts. Genesis has real dependencies to monitor.
+
+Light integration (Phase 1b telemetry):
+
+5. **Sensory runner script** — Read `sensory_monitors.yml`, invoke matching pure functions or shell commands, emit typed signal events.
+6. **Affect triage evaluator** — Read signal events, apply `affect_triage.yml` rules, emit `affect_triage` events with escalation decisions.
+7. **MCP sensory service** — Expose `/sensory-status`, `/sensory-proposals`, `/sensory-approve`, `/sensory-dismiss` as MCP tools.
+
+#### Products Built by Genesis
+
+Products built using Genesis inherit the same telemetry functor structure. The `code→cicd→running_system→telemetry→intent` edges in the graph topology are not "Genesis features" — they are the product's own telemetry lifecycle:
+
+| Graph Edge | Product's Telemetry Role |
+|-----------|-------------------------|
+| `code→cicd` | Product builds with instrumentation |
+| `cicd→running_system` | Product deploys with monitors |
+| `running_system→telemetry` | Product emits REQ-key-tagged telemetry |
+| `telemetry→intent` | Product's telemetry feeds back as new intent |
+
+The edge parameterisations for these edges are the **product's telemetry encoding spec**. When Genesis iterates on these edges, it is helping the product define and implement its own monitoring — not Genesis's monitoring. Genesis monitors itself; the product monitors itself. Same paradigm, same functor, different instantiations.
+
+---
+
 ## 2. Component Design
 
 ### 2.1 Asset Graph Engine (REQ-F-ENGINE-001)
@@ -971,10 +1283,10 @@ transitions:
 
 #### The iterate() Agent
 
-In Codex Runtime, the iterate() function IS a single agent — the universal constructor. It reads the edge parameterisation to know its role.
+In Claude Code, the iterate() function IS a single agent — the universal constructor. It reads the edge parameterisation to know its role.
 
 ```markdown
-<!-- imp_codex/code/agents/gen-iterate.md -->
+<!-- .claude/agents/gen-iterate.md -->
 # AISDLC Iterate Agent
 
 You are the universal iteration function for the AI SDLC Asset Graph Model.
@@ -1113,7 +1425,7 @@ The iterate agent ALWAYS presents work for human review on edges where `human_re
 ```
 .ai-workspace/context/
 ├── adrs/                    # Architecture Decision Records
-│   ├── ADR-CG-001-platform.md
+│   ├── ADR-001-platform.md
 │   └── ...
 ├── data_models/             # Schemas, contracts
 ├── templates/               # Code patterns, standards
@@ -1134,7 +1446,7 @@ timestamp: "2026-02-19T10:30:00Z"
 hash: "sha256:a1b2c3d4..."  # Hash of canonical serialisation
 
 entries:
-  - path: "adrs/ADR-CG-001-platform.md"
+  - path: "adrs/ADR-001-platform.md"
     hash: "sha256:..."
     type: adr
 
@@ -1191,7 +1503,7 @@ status: in_progress
 trajectory:
   requirements:
     status: converged
-    asset: "specification/auth_requirements.md"
+    asset: "docs/requirements/auth_requirements.md"
     converged_at: "2026-02-19T10:00:00Z"
 
   design:
@@ -1331,8 +1643,9 @@ validation_enabled: true  # Tooling parses tag format, not comment syntax
 #### Plugin Delivery
 
 ```
-imp_codex/code/
-├── plugin.json                  # Metadata (v2.8.0)
+imp_codex/code/.claude-plugin/plugins/gen-methodology/
+├── .claude-plugin/
+│   └── plugin.json              # Metadata (v2.6.0)
 ├── config/
 │   ├── graph_topology.yml       # Default SDLC graph
 │   ├── evaluator_defaults.yml   # Default evaluator configs
@@ -1353,10 +1666,8 @@ imp_codex/code/
 │   ├── gen-gaps.md
 │   ├── gen-release.md
 │   └── gen-init.md
-└── hooks/
-    ├── hooks.json
-    ├── on-iterate-start.sh
-    └── on-stop-check-protocol.sh
+└── docs/
+    └── methodology_reference.md  # Quick reference
 ```
 
 #### Workspace Structure (Scaffolded by /gen-init)
@@ -1397,11 +1708,11 @@ imp_codex/code/
 
 ## 3. Lifecycle Closure
 
-**Implements**: REQ-LIFE-001 through REQ-LIFE-008, REQ-INTENT-003
+**Implements**: REQ-LIFE-001 through REQ-LIFE-012, REQ-INTENT-003
 
-### Phase 1 — Consciousness Loop Mechanics (REQ-LIFE-005 through REQ-LIFE-008)
+### Phase 1 — Gradient Mechanics (REQ-LIFE-005 through REQ-LIFE-009)
 
-The consciousness loop at every observer point is Phase 1. The iterate agent, commands, and edge configs already implement:
+The gradient at spec scale is Phase 1. The iterate agent, commands, and edge configs already implement:
 
 - **`intent_raised` events** (REQ-LIFE-005) — emitted when any observer detects a delta warranting action beyond current iteration scope. Seven signal sources classified (REQ-LIFE-006).
 - **`spec_modified` events** (REQ-LIFE-007) — emitted when specification absorbs a signal and updates. `prior_intents` chain enables reflexive loop detection.
@@ -1410,22 +1721,41 @@ The consciousness loop at every observer point is Phase 1. The iterate agent, co
 
 See §1.7 for detailed design and ADR-011 for the architectural decision.
 
-### Phase 2 — Production Lifecycle (REQ-LIFE-001 through REQ-LIFE-004)
+- **Spec review as gradient check** (REQ-LIFE-009) — stateless `delta(workspace, spec) → intents`, invocable on demand or after completion events.
 
-The production lifecycle features (CI/CD edge, runtime telemetry, production homeostasis, eco-intent) are Phase 2. The graph topology already includes these transitions — the engine supports them. Phase 2 adds the constructor and evaluator implementations for these edges.
+### Phase 1b — Telemetry Wiring (REQ-LIFE-001 through REQ-LIFE-004)
 
-What Phase 1 delivers:
-- Graph topology includes CI/CD → Running System → Telemetry → New Intent edges
-- Feature vectors can be traced through these edges (status: pending)
-- The iterate agent can be manually invoked on these edges
-- **Development-time consciousness loop fully operational** — all signal sources except `runtime_feedback` and `ecosystem` are active
+Telemetry is not a future phase — it is a constitutive property of being a product (§1.12). The building blocks are all built; Phase 1b wires them.
 
-What Phase 2 adds:
-- Automated CI/CD evaluators (build/deploy checks)
-- Telemetry integration (REQ key tagging in monitoring)
-- Production homeostasis checks (SLA monitoring, drift detection)
-- Eco-intent generation (ecosystem change detection)
-- Production feedback loop automation (telemetry → new intent via `runtime_feedback` and `ecosystem` signal sources)
+**Genesis self-monitoring (already operational):**
+- Event log with 13+ event types — this IS operational telemetry
+- Protocol enforcement hooks — reflex-phase mandatory side effects
+- 23 pure functions in `workspace_state.py` — monitor implementations
+- TELEM signals — self-observation at methodology scale
+
+**Genesis self-monitoring (to wire):**
+- Hook dev-observer after `edge_converged` events (closes abiogenesis loop)
+- Hook health checks at session start (invoke pure function monitors)
+- Run `pip-audit`/`npm audit` for exteroceptive monitoring
+- Sensory runner script that reads `sensory_monitors.yml` and invokes monitors on schedule
+
+**Product telemetry (when products traverse production edges):**
+- `code→cicd` — product builds with instrumentation (CI/CD evaluators)
+- `cicd→running_system` — product deploys with monitors
+- `running_system→telemetry` — product emits REQ-key-tagged telemetry
+- `telemetry→intent` — product telemetry feeds back as new intent via `runtime_feedback` and `ecosystem` signal sources
+
+The graph topology already includes these edges. The iterate agent can traverse them. What Phase 1b adds is the wiring that makes Genesis eat its own dog food — the same telemetry paradigm Genesis enforces on products, applied to itself.
+
+### Phase 2a — Observer Agents (REQ-LIFE-010 through REQ-LIFE-012)
+
+Three observer agents close the abiogenesis loop. Each is a markdown agent spec (ADR-014) triggered by hooks:
+
+- **Dev observer** (REQ-LIFE-010) — `delta(workspace, spec) → intents`. Triggered after iterate/converge events. Operationalises the spec review (REQ-LIFE-009) as an automated agent.
+- **CI/CD observer** (REQ-LIFE-011) — `delta(build_state, quality_spec) → intents`. Triggered after CI/CD pipeline completion. Maps build failures back to REQ keys.
+- **Ops observer** (REQ-LIFE-012) — `delta(running_system, spec) → intents`. Triggered on schedule/alert. Consumes sensory signals and production telemetry.
+
+See §1.11 for detailed design and ADR-014 for the architectural decision. All observers are Markov objects (actor model — event log is the mailbox).
 
 ---
 
@@ -1435,17 +1765,17 @@ What Phase 2 adds:
 
 | v1.x | v2.1 |
 |------|------|
-| 7 agent files (one per stage) | 1 agent file (gen-iterate.md) |
+| 7 agent files (one per stage) | 4 agent files (iterate + 3 observers) |
 | 42→11 skills | Edge parameterisation configs (YAML) |
 | stages_config.yml (1,273 lines) | graph_topology.yml + edge_params/ (~200 lines) |
 | Fixed 7-stage pipeline | Configurable graph in Context[] |
-| 9 commands | 10 commands (9 power-user + Start routing layer) |
+| 9 commands | 13 commands (12 power-user + Start routing layer) |
 | .ai-workspace with task focus | .ai-workspace with graph/context/features/tasks |
 
 ### What Carries Forward
 
-- Codex Runtime as platform (ADR-CG-001)
-- Plugin delivery mechanism (code/)
+- Claude Code as platform (ADR-001)
+- Plugin delivery mechanism (.claude-plugin/)
 - Markdown-first approach
 - Workspace under .ai-workspace/
 - ACTIVE_TASKS.md for task tracking
@@ -1463,7 +1793,7 @@ What Phase 2 adds:
 ## 5. ADR Disposition
 
 ### Carried Forward (still valid)
-- **ADR-CG-001**: Codex Runtime as MVP Platform
+- **ADR-001**: Claude Code as MVP Platform
 - **ADR-002**: Commands for Workflow Integration (commands change, mechanism same)
 - **ADR-006**: Plugin Configuration and Discovery
 
@@ -1479,6 +1809,7 @@ What Phase 2 adds:
 - **ADR-010**: Spec Reproducibility (canonical serialisation, content-addressable hashing)
 - **ADR-012**: Two-Command UX Layer (Start routing + Status observability)
 - **ADR-013**: Multi-Agent Coordination (event-sourced claims, inbox/serialiser, role-based authority)
+- **ADR-014**: Observer Agents as Markdown Specs (dev, CI/CD, ops — Markov objects closing abiogenesis loop)
 
 ---
 
@@ -1486,40 +1817,45 @@ What Phase 2 adds:
 
 | Feature Vector | Design Section | Status |
 |---------------|---------------|--------|
-| REQ-F-ENGINE-001 | §2.1 Asset Graph Engine | Designed |
-| REQ-F-EVAL-001 | §2.2 Evaluator Framework | Designed |
-| REQ-F-CTX-001 | §2.3 Context Management | Designed |
-| REQ-F-TRACE-001 | §2.4 Feature Vector Traceability | Designed |
-| REQ-F-EDGE-001 | §2.5 Edge Parameterisations | Designed |
-| REQ-F-TOOL-001 | §2.6 Developer Tooling | Designed |
-| REQ-F-LIFE-001 | §3 Lifecycle Closure | Designed (Phase 2 scope) |
-| REQ-F-SENSE-001 | §1.8 Sensory Service | Designed |
-| REQ-F-UX-001 | §1.9 Two-Command UX Layer | Designed |
-| REQ-F-COORD-001 | §1.10 Multi-Agent Coordination | Designed |
+| REQ-F-ENGINE-001 | §2.1 Asset Graph Engine | Converged to UAT (28 tests) |
+| REQ-F-EVAL-001 | §2.2 Evaluator Framework | Converged to UAT (16 tests) |
+| REQ-F-CTX-001 | §2.3 Context Management | Converged to UAT (12 tests) |
+| REQ-F-TRACE-001 | §2.4 Feature Vector Traceability | Converged to UAT (18 tests) |
+| REQ-F-EDGE-001 | §2.5 Edge Parameterisations | Converged to UAT (16 tests) |
+| REQ-F-TOOL-001 | §2.6 Developer Tooling | Converged to UAT (24 tests, 1 xfail) |
+| REQ-F-LIFE-001 | §3 Lifecycle Closure, §1.12 Telemetry | Converged to UAT (118 tests) |
+| REQ-F-SENSE-001 | §1.8 Sensory Service | Converged to UAT (39 tests) |
+| REQ-F-UX-001 | §1.9 Two-Command UX Layer | Converged to UAT (63 tests, 2 xfail) |
+| REQ-F-COORD-001 | §1.10 Multi-Agent Coordination | Converged to UAT (40 tests) |
+| REQ-F-SUPV-001 | §1.12 Telemetry Functor, ADR-017 | Converged to UAT (14 tests) |
 
-**10/10 feature vectors covered.**
+**11/11 feature vectors covered. 735 tests passing, 3 xfail.**
 
 ---
 
 ## 7. Implementation Priority
 
-Per FEATURE_VECTORS.md task graph:
+Per FEATURE_VECTORS.md task graph, updated to reflect telemetry-as-constitutive:
 
 ```
-Phase 1a: Implement graph engine (asset types, transitions, iterate agent)
-Phase 1b: Implement evaluator configs ∥ context store ∥ feature tracking
-Phase 1c: Implement edge params (TDD/BDD/ADR) + tooling commands
-Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
+Phase 1a: ✓ COMPLETE — graph engine, configs, edge params, commands, UAT tests (735 passing)
+Phase 1b: Wire telemetry — connect existing monitors, hooks, observer agents (§1.12)
+Phase 1c: Executable iterate() — runtime engine from iterate agent spec
+Phase 1d: Executable commands — 13 commands as executable agents, not markdown specs
+Phase 2:  Product telemetry edges — CI/CD, running system, production homeostasis
 ```
 
-**First deliverable**: The iterate agent + graph topology config + /gen-init command. This bootstraps everything else.
+**Key paradigm shift**: Telemetry is not Phase 2. Phase 1b wires Genesis's own self-monitoring using building blocks already built in Phase 1a. Phase 2 is when *products built by Genesis* traverse production telemetry edges — which is a different instantiation of the same functor.
+
+**Next deliverable**: Wire the dev-observer hook after `edge_converged` events. Zero new code — just a hook entry that closes the abiogenesis loop.
 
 ---
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.6.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 54 implementation requirements (v3.6.0)
-- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.8.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 63 implementation requirements (v3.11.0)
+- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.8.0, 11 vectors)
+- [ADR-017](adrs/ADR-017-functor-based-execution-model.md) — Functor-based execution model (telemetry encoding)
 - Prior v1.x design (AISDLC_IMPLEMENTATION_DESIGN.md) — superseded, recoverable at tag `v1.x-final`
-- ADR-CG-001 (claude-code-as-mvp-platform) — v1.x platform choice, carried forward as standing decision
+- ADR-001 (claude-code-as-mvp-platform) — v1.x platform choice, carried forward as standing decision

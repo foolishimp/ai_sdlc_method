@@ -1,79 +1,88 @@
-# AI SDLC Methodology Plugin — Codex Binding (Asset Graph Model — Project Genesis)
+# AI SDLC Methodology Plugin — v2.8 (Asset Graph Model — Project Genesis)
 
 ## What Changed from v1.x
 
-| Aspect | v1.x | v2.7 |
+| Aspect | v1.x | v2.8 |
 |--------|------|------|
 | Model | 7-stage pipeline | Asset graph with typed transitions |
-| Agents | 7 (one per stage) | 1 (universal iterate agent) |
+| Agents | 7 (one per stage) | 4 (1 iterate + 3 observers) |
 | Skills | 11 consolidated | Edge parameterisations (YAML) |
 | Topology | Hard-coded in agents | Configurable YAML (`graph_topology.yml`) |
 | Iteration | Per-stage feedback loops | Universal `iterate(Asset, Context[], Evaluators)` |
-| Commands | 9 | 10 (2 primary + 8 advanced) |
-| UX | Learn 9 commands | Two verbs: Start ("Go.") + Status ("Where am I?") |
+| Commands | 9 | 13 (2 primary + 11 advanced) |
+| Hooks | ad hoc | 4 formal hooks (iterate/start/stop/post-event) |
+| UX | Learn 9 commands | Two verbs: Start (`/gen-start`) + Status (`/gen-status`) |
 | Reproducibility | Not addressed | Content-addressable context manifest |
 
 ## Structure
 
-```
-v2/
+```text
+code/
 ├── agents/
-│   └── gen-iterate.md          # THE one agent (universal iterate function)
+│   ├── gen-iterate.md
+│   ├── gen-dev-observer.md
+│   ├── gen-cicd-observer.md
+│   └── gen-ops-observer.md
 ├── commands/
-│   ├── gen-start.md            # State-driven routing (the "Go" verb)
-│   ├── gen-init.md             # Scaffold workspace
-│   ├── gen-iterate.md          # Invoke iterate() on an edge
-│   ├── gen-status.md           # Feature vector progress (the "Where am I?" verb)
-│   ├── gen-checkpoint.md       # Session snapshot + context hash
-│   ├── gen-review.md           # Human evaluator review point
-│   ├── gen-trace.md            # REQ key trajectory through graph
-│   ├── gen-gaps.md             # Test gap analysis
-│   ├── gen-release.md          # Release with REQ coverage
-│   └── gen-spawn.md            # Spawn feature/spike/hotfix vector
+│   ├── gen-start.md
+│   ├── gen-status.md
+│   ├── gen-init.md
+│   ├── gen-iterate.md
+│   ├── gen-spawn.md
+│   ├── gen-checkpoint.md
+│   ├── gen-review.md
+│   ├── gen-spec-review.md
+│   ├── gen-escalate.md
+│   ├── gen-zoom.md
+│   ├── gen-trace.md
+│   ├── gen-gaps.md
+│   └── gen-release.md
+├── hooks/
+│   ├── hooks.json
+│   ├── on-iterate-start.sh
+│   ├── on-stop-check-protocol.sh
+│   ├── on-edge-converged.sh
+│   └── on-session-start.sh
 ├── config/
-│   ├── graph_topology.yml         # Default asset types + transitions
-│   ├── evaluator_defaults.yml     # Human/Agent/Deterministic defaults
-│   └── edge_params/               # Per-edge parameterisations
-│       ├── tdd.yml                # Code ↔ Tests (TDD co-evolution)
-│       ├── bdd.yml                # Design → UAT Tests (BDD)
-│       ├── adr.yml                # Requirements → Design (ADR generation)
-│       ├── code_tagging.yml       # Cross-cutting REQ key tagging
-│       ├── intent_requirements.yml
-│       ├── requirements_design.yml
-│       ├── design_code.yml
-│       ├── design_tests.yml
-│       └── feedback_loop.yml
-├── plugin.json                    # Plugin metadata (v2.7.0)
-└── README.md                      # This file
+│   ├── graph_topology.yml
+│   ├── evaluator_defaults.yml
+│   ├── intentengine_config.yml
+│   ├── affect_triage.yml
+│   ├── sensory_monitors.yml
+│   ├── agent_roles.yml
+│   ├── feature_vector_template.yml
+│   ├── project_constraints_template.yml
+│   ├── edge_params/
+│   └── profiles/
+├── plugin.json
+└── README.md
 ```
 
-## Quick Start (Two Commands)
+## Quick Start
 
 ```bash
-# Just two verbs — Start figures out what to do:
-/gen-start              # Detects state, initializes if needed, iterates
-/gen-status             # Shows where you are across all features
+/gen-start
+/gen-status
 ```
 
-Start handles everything: project init, feature creation, edge selection, iteration. It detects your project state and routes to the right action automatically.
-
-## Advanced (9 Power-User Commands)
+## Advanced Commands
 
 ```bash
-/gen-init               # Scaffold workspace manually
+/gen-init
 /gen-iterate --edge "intent→requirements" --feature "REQ-F-MYFEATURE-001"
-/gen-iterate --edge "requirements→design" --feature "REQ-F-MYFEATURE-001"
-/gen-iterate --edge "code↔unit_tests" --feature "REQ-F-MYFEATURE-001"
-/gen-spawn --type feature   # Create a new feature vector
-/gen-checkpoint         # Save session snapshot
-/gen-review             # Human evaluator review point
-/gen-trace              # Trace REQ keys across artifacts
-/gen-gaps               # Check traceability coverage
-/gen-release            # Create versioned release
+/gen-spawn --type feature
+/gen-checkpoint
+/gen-review
+/gen-spec-review --feature "REQ-F-*" --edge "requirements→design"
+/gen-escalate
+/gen-zoom --edge "design→code"
+/gen-trace
+/gen-gaps
+/gen-release
 ```
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology
-- [CODEX_GENESIS_DESIGN.md](../design/CODEX_GENESIS_DESIGN.md) — Codex implementation design
-- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature decomposition
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md)
+- [AISDLC_V2_DESIGN.md](../design/AISDLC_V2_DESIGN.md)
+- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md)

@@ -40,6 +40,22 @@ context:
     - prior_implementations
     - graph_topology
 
+# Encoding: functor encoding per §2.9
+encoding:
+  strategy: maximum_explicit
+  mode: interactive
+  valence: high
+  functional_units:
+    evaluate:    F_D
+    construct:   F_P
+    classify:    F_D
+    route:       F_H
+    propose:     F_P
+    sense:       F_D
+    emit:        F_D                 # category-fixed
+    decide:      F_H                 # category-fixed
+  edge_overrides: {}
+
 # Iteration budget
 iteration:
   budget: unlimited     # converge or escalate

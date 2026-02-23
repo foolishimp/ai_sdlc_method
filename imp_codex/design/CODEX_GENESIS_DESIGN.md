@@ -1,7 +1,7 @@
-# AI SDLC - Codex Genesis Implementation Design (v1.0)
+# AI SDLC - Codex Genesis Implementation Design (v1.1)
 
-**Version**: 1.0.0  
-**Date**: 2026-02-21  
+**Version**: 1.1.0  
+**Date**: 2026-02-23  
 **Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)  
 **Reference Implementation**: [AISDLC_V2_DESIGN.md](../../imp_claude/design/AISDLC_V2_DESIGN.md)  
 **Platform**: Codex (tool-calling coding agent runtime)
@@ -16,7 +16,7 @@ Primary objective: preserve methodology semantics and feature coverage while map
 
 Core objectives:
 
-1. **Reference parity**: Maintain feature-level compatibility with Claude v2.8 design (all 10 feature vectors).
+1. **Reference parity**: Maintain feature-level compatibility with Claude v2.8 design (all 11 feature vectors).
 2. **Native binding**: Map iterate/evaluator/context/tooling to Codex primitives without changing the Asset Graph model.
 3. **Spec-first control**: Keep disambiguation at intent/spec/design layers; use code/runtime observability as secondary unblock and validation controls.
 
@@ -29,7 +29,7 @@ Core objectives:
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        USER (Developer)                            │
-│             Natural language requests / aisdlc command intents     │
+│               Natural language requests / /gen command intents       │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
                            ▼
@@ -80,7 +80,7 @@ Core objectives:
 | Concept | Claude Reference | Codex Genesis |
 | :--- | :--- | :--- |
 | Iterate engine | `gen-iterate.md` universal agent | Universal orchestration routine that reads edge configs and drives tool calls |
-| Commands | `/gen-*` slash commands | `aisdlc_*` executable workflows invoked through `exec_command` or routed from natural language |
+| Commands | `/gen-*` slash commands | `/gen-*` workflows invoked from Codex sessions (natural language routed to command specs) |
 | Context | `.ai-workspace/context/*` | Same file-based context model; Codex reads workspace directly |
 | Deterministic evaluators | Tests/linters/hooks from commands | Same evaluators via shell tools and scripts |
 | Human review | `/gen-review` command | Explicit review turn before promote/converge on human-required edges |
@@ -155,7 +155,7 @@ Codex Genesis preserves REQ-key lineage:
 - Code/test tags:
   - `Implements: REQ-*`
   - `Validates: REQ-*`
-- `aisdlc_trace` projection generated from event log + feature files
+- `/gen-trace` projection generated from event log + feature files
 
 ### 2.5 Edge Parameterisations (REQ-F-EDGE-001)
 
@@ -176,16 +176,19 @@ Codex-specific change is execution surface only (tool calls), not edge semantics
 
 | Operation | Codex Genesis Entry | Purpose |
 | :--- | :--- | :--- |
-| Initialize workspace | `aisdlc_init` | Scaffold graph/context/features/events |
-| Route next step | `aisdlc_start` | State-driven edge and feature selection |
-| Iterate edge | `aisdlc_iterate --edge --feature` | Execute universal iterate |
-| Review artifact | `aisdlc_review` | Human evaluator boundary |
-| Status | `aisdlc_status [--feature] [--health]` | Project and feature observability |
-| Checkpoint | `aisdlc_checkpoint` | Immutable snapshot |
-| Restore | `aisdlc_restore --checkpoint/--reconstruct` | Recovery via snapshot or event replay |
-| Trace | `aisdlc_trace --req` | REQ trajectory reconstruction |
-| Gaps | `aisdlc_gaps` | Coverage and process gap analysis |
-| Release | `aisdlc_release` | REQ coverage release manifest |
+| Initialize workspace | `/gen-init` | Scaffold graph/context/features/events |
+| Route next step | `/gen-start` | State-driven edge and feature selection |
+| Iterate edge | `/gen-iterate --edge --feature` | Execute universal iterate |
+| Review artifact | `/gen-review` | Human evaluator boundary |
+| Spec-boundary review | `/gen-spec-review` | Gradient check for spec transitions |
+| Escalation queue | `/gen-escalate` | Process queued supervisory signals |
+| Graph zoom | `/gen-zoom` | Focused edge-level visibility |
+| Status | `/gen-status [--feature] [--health]` | Project and feature observability |
+| Checkpoint | `/gen-checkpoint` | Immutable snapshot |
+| Trace | `/gen-trace --req` | REQ trajectory reconstruction |
+| Gaps | `/gen-gaps` | Coverage and process gap analysis |
+| Release | `/gen-release` | REQ coverage release manifest |
+| Spawn | `/gen-spawn` | Create feature/discovery/spike/hotfix vectors |
 
 ---
 
@@ -204,8 +207,10 @@ This section is the explicit parity contract.
 | REQ-F-LIFE-001 | Claude §3 | Codex §4 | Aligned |
 | REQ-F-SENSE-001 | Claude §1.8 | Codex §4.2 | Aligned (phased) |
 | REQ-F-UX-001 | Claude §1.9 | Codex §4.3 | Aligned |
+| REQ-F-SUPV-001 | Claude §1.9, §2.6 | Codex §2.6, §4.3 | Aligned |
+| REQ-F-COORD-001 | Claude §1.10 | Codex §4.4 + ADR-013 | Aligned |
 
-**10/10 feature vectors aligned with Claude reference implementation.**
+**11/11 feature vectors aligned with Claude reference implementation.**
 
 ---
 
@@ -222,7 +227,7 @@ Phase model mirrors Claude:
 
 Codex sessions are interactive and task-scoped. Sensory monitoring is implemented with two modes:
 
-1. **Foreground sensing** on `aisdlc_status --health` and `aisdlc_start`.
+1. **Foreground sensing** on `/gen-status --health` and `/gen-start`.
 2. **Optional daemonized watcher** launched via shell tooling for teams that need continuous sensing.
 
 Both modes emit the same event types into `events.jsonl` and preserve the same review boundary: sensors create proposals, humans approve intent creation.
@@ -231,32 +236,20 @@ Both modes emit the same event types into `events.jsonl` and preserve the same r
 
 Codex Genesis preserves the UX pattern:
 
-- `aisdlc_start`: routing layer.
-- `aisdlc_status`: observability layer.
+- `/gen-start`: routing layer.
+- `/gen-status`: observability layer.
 
 Progressive disclosure is retained: newcomers use start/status, power users invoke direct operations.
 
 ---
 
-## 5. Implementation Plan
+## 5. Implementation Baseline
 
-### Phase 1 - Parity Core
+### Completed Baseline
 
-1. Scaffold `codex` tenant in `.ai-workspace/`.
-2. Implement `aisdlc_init`, `aisdlc_start`, `aisdlc_iterate`, `aisdlc_status`.
-3. Enforce mandatory iterate side effects and event schema parity.
-
-### Phase 2 - Recovery and Governance
-
-1. Implement `aisdlc_checkpoint` and `aisdlc_restore` (event replay reconstruction).
-2. Implement `aisdlc_trace`, `aisdlc_gaps`, `aisdlc_release`.
-3. Add context manifest freshness checks and protocol enforcement hooks.
-
-### Phase 3 - Sensory and Homeostasis
-
-1. Add `aisdlc_sense` monitor pipeline and proposal queue.
-2. Integrate review boundary for sensory proposals.
-3. Add TELEM trend projection in `STATUS.md`.
+1. Codex plugin surface aligned to v2.8 reference: 13 commands, observer agents, 4-hook workflow, and full config set.
+2. Iterate protocol, event schema, and derived projections aligned with central spec and Claude reference semantics.
+3. Codex test suite aligned to current shared specification and passing.
 
 ---
 

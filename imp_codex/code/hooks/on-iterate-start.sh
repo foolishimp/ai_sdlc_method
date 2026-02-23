@@ -5,7 +5,7 @@
 # Fires when user submits a prompt containing "gen-iterate".
 # Records edge context so the Stop hook can verify protocol completion.
 #
-# Implements: Protocol enforcement (Layer 1 — Engine)
+# Implements: REQ-TOOL-006 (Methodology Hooks), Protocol enforcement (Layer 1 — Engine)
 # Processing regime: REFLEX (§4.3) — fires unconditionally at prompt
 # boundary, no judgment required.
 # ============================================================================
@@ -70,7 +70,7 @@ else
   echo "0" > "$WORKSPACE/.edge_events_baseline"
 fi
 
-# Inject context for Codex — stdout goes to the agent
+# Inject context for Claude — stdout goes to the agent
 cat <<EOF
 Edge traversal started: $EDGE
 Protocol requirements (enforced by Stop hook):

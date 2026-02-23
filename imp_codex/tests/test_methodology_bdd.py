@@ -1,4 +1,6 @@
 # Validates: REQ-ITER-001, REQ-ITER-002, REQ-EVAL-003, REQ-TOOL-002, REQ-TOOL-007, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+# Validates: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
+# Validates: REQ-INTENT-001, REQ-INTENT-002
 """BDD acceptance tests — methodology workflow coherence validation.
 
 These tests validate that the methodology's components compose correctly:
@@ -1383,12 +1385,12 @@ class TestADR011Lineage:
             assert req in content, f"ADR-011 missing reference to {req}"
 
     @pytest.mark.bdd
-    def test_design_references_consciousness_loop(self):
-        """Design document must reference consciousness loop mechanics."""
+    def test_design_references_gradient_at_spec_scale(self):
+        """Design document must reference gradient at spec scale (was consciousness loop)."""
         design_path = DESIGN_DIR / "AISDLC_V2_DESIGN.md"
         with open(design_path) as f:
             content = f.read()
-        assert "Consciousness Loop" in content or "consciousness loop" in content
+        assert "Gradient at Spec Scale" in content or "gradient at spec scale" in content.lower()
         assert "ADR-011" in content
 
     @pytest.mark.bdd
@@ -2420,3 +2422,419 @@ class TestSensorySystemsAcceptanceCriteria:
         assert "observation event" in content.lower() or \
             "sensor/evaluate" in content.lower() or \
             "observation-only" in content.lower()
+
+
+class TestMultiAgentCoordinationAcceptanceCriteria:
+    """
+    GIVEN the multi-agent coordination feature (claims, roles, isolation, parallelism)
+    WHEN each REQ-COORD acceptance criterion is checked
+    THEN config files, design doc, and ADR contain required content.
+
+    Validates: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003,
+               REQ-COORD-004, REQ-COORD-005
+    """
+
+    # ─── REQ-COORD-001: Agent Identity ──────────────────────────────
+
+    @pytest.mark.bdd
+    def test_agent_roles_config_exists(self):
+        """agent_roles.yml must exist in config directory."""
+        assert (CONFIG_DIR / "agent_roles.yml").exists()
+
+    @pytest.mark.bdd
+    def test_roles_registry_defined(self):
+        """Config must define at least 3 agent roles."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        roles = config.get("roles", {})
+        assert len(roles) >= 3, \
+            f"Expected at least 3 roles, got {len(roles)}: {list(roles.keys())}"
+
+    @pytest.mark.bdd
+    def test_single_agent_defaults(self):
+        """Single-agent mode must default to agent_id 'primary' and role 'full_stack'."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        defaults = config.get("single_agent_defaults", {})
+        assert defaults.get("agent_id") == "primary"
+        assert defaults.get("agent_role") == "full_stack"
+
+    @pytest.mark.bdd
+    def test_full_stack_role_covers_all_edges(self):
+        """full_stack role must have converge_edges: [all] for backward compat."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        full_stack = config.get("roles", {}).get("full_stack", {})
+        edges = full_stack.get("converge_edges", [])
+        assert "all" in edges, \
+            f"full_stack must have 'all' in converge_edges, got {edges}"
+
+    @pytest.mark.bdd
+    def test_each_role_has_description(self):
+        """Every role must have a description."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        for name, role in config.get("roles", {}).items():
+            assert "description" in role, f"Role {name} missing description"
+
+    @pytest.mark.bdd
+    def test_design_doc_covers_agent_identity(self):
+        """Design document must cover agent identity with agent_id and agent_role."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "agent_id" in content
+        assert "agent_role" in content
+
+    # ─── REQ-COORD-002: Feature Assignment via Events ───────────────
+
+    @pytest.mark.bdd
+    def test_claim_protocol_defined(self):
+        """Config must define claim protocol settings."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        protocol = config.get("claim_protocol", {})
+        assert "stale_claim_timeout" in protocol, "Missing stale_claim_timeout"
+        assert "inbox" in protocol, "Missing inbox configuration"
+        assert "serialiser" in protocol, "Missing serialiser configuration"
+
+    @pytest.mark.bdd
+    def test_inbox_is_non_authoritative(self):
+        """Inbox must be documented as non-authoritative write buffer."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "non-authoritative" in content.lower()
+
+    @pytest.mark.bdd
+    def test_no_lock_files(self):
+        """Design must explicitly state no lock files, no mutex."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "no lock files" in content.lower() or \
+            "no lock" in content.lower()
+
+    @pytest.mark.bdd
+    def test_exactly_one_writer_invariant(self):
+        """Design must state exactly-one-writer invariant for events.jsonl."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "exactly one writer" in content.lower() or \
+            "single-writer" in content.lower() or \
+            "single writer" in content.lower()
+
+    @pytest.mark.bdd
+    def test_event_types_for_coordination(self):
+        """Design must define coordination event types (edge_claim, claim_rejected, etc)."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        for event_type in ["edge_claim", "claim_rejected", "edge_released",
+                           "claim_expired", "convergence_escalated"]:
+            assert event_type in content, \
+                f"Missing coordination event type: {event_type}"
+
+    # ─── REQ-COORD-003: Work Isolation ──────────────────────────────
+
+    @pytest.mark.bdd
+    def test_work_isolation_configured(self):
+        """Config must define work isolation paths (drafts, scratch)."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        isolation = config.get("work_isolation", {})
+        assert "drafts_path_template" in isolation
+        assert "scratch_path_template" in isolation
+
+    @pytest.mark.bdd
+    def test_agent_state_is_ephemeral(self):
+        """Config must mark agent state as ephemeral."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        isolation = config.get("work_isolation", {})
+        assert isolation.get("ephemeral") is True
+
+    @pytest.mark.bdd
+    def test_promotion_requires_evaluators(self):
+        """Promotion from agent-private to shared state requires evaluator gate."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        isolation = config.get("work_isolation", {})
+        promotion = isolation.get("promotion_requires", [])
+        assert "all_evaluators_pass" in promotion
+
+    @pytest.mark.bdd
+    def test_spec_mutations_require_human(self):
+        """Spec mutations must always require human evaluator approval."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        authority = config.get("authority", {})
+        assert authority.get("spec_mutation_requires_human") is True
+
+    # ─── REQ-COORD-004: Markov-Aligned Parallelism ──────────────────
+
+    @pytest.mark.bdd
+    def test_parallelism_uses_inner_product(self):
+        """Config must define inner product-based routing strategy."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        parallelism = config.get("parallelism", {})
+        assert parallelism.get("routing_strategy") == "inner_product"
+
+    @pytest.mark.bdd
+    def test_zero_inner_product_allows_parallel(self):
+        """Zero inner product features must be freely assignable."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        parallelism = config.get("parallelism", {})
+        assert "assign_freely" in str(parallelism.get("zero_inner_product", ""))
+
+    @pytest.mark.bdd
+    def test_nonzero_inner_product_warns(self):
+        """Non-zero inner product features must trigger sequencing warning."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        parallelism = config.get("parallelism", {})
+        action = str(parallelism.get("nonzero_inner_product", ""))
+        assert "warn" in action or "sequential" in action
+
+    @pytest.mark.bdd
+    def test_design_doc_covers_inner_product_routing(self):
+        """Design document must explain inner product-based agent routing."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "inner product" in content.lower()
+        assert "orthogonal" in content.lower() or "zero inner product" in content.lower()
+
+    # ─── REQ-COORD-005: Role-Based Evaluator Authority ──────────────
+
+    @pytest.mark.bdd
+    def test_roles_have_converge_edges(self):
+        """Each role must define converge_edges listing permitted edge types."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        for name, role in config.get("roles", {}).items():
+            assert "converge_edges" in role, \
+                f"Role {name} missing converge_edges"
+
+    @pytest.mark.bdd
+    def test_outside_authority_triggers_escalation(self):
+        """Convergence outside authority must trigger escalation."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        authority = config.get("authority", {})
+        assert authority.get("outside_authority_action") == "escalate"
+
+    @pytest.mark.bdd
+    def test_human_authority_is_universal(self):
+        """Human evaluator authority must be universal (may converge any edge)."""
+        config = load_yaml(CONFIG_DIR / "agent_roles.yml")
+        authority = config.get("authority", {})
+        assert authority.get("human_authority") == "universal"
+
+    @pytest.mark.bdd
+    def test_adr_013_exists(self):
+        """ADR-013 must exist for multi-agent coordination decision."""
+        assert (DESIGN_DIR / "adrs" / "ADR-013-multi-agent-coordination.md").exists()
+
+    @pytest.mark.bdd
+    def test_adr_013_has_alternatives(self):
+        """ADR-013 must consider alternatives (at least 3 options)."""
+        with open(DESIGN_DIR / "adrs" / "ADR-013-multi-agent-coordination.md") as f:
+            content = f.read()
+        assert "Options Considered" in content or "Alternatives" in content
+        # ADR-013 lists 5 options
+        assert "Filesystem Mutex" in content or "lock files" in content.lower()
+        assert "Inbox" in content or "inbox" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 18. OBSERVER AGENTS (REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestObserverAgents:
+    """
+    GIVEN the observer agent feature (dev, CI/CD, ops observers)
+    WHEN each REQ-LIFE-010..012 acceptance criterion is checked
+    THEN agent markdown specs exist with required content.
+
+    Validates: REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012
+    """
+
+    OBSERVER_AGENTS = [
+        "gen-dev-observer.md",
+        "gen-cicd-observer.md",
+        "gen-ops-observer.md",
+    ]
+
+    # ─── Agent spec existence ─────────────────────────────────────────
+
+    @pytest.mark.bdd
+    @pytest.mark.parametrize("agent_file", OBSERVER_AGENTS)
+    def test_observer_agent_exists(self, agent_file):
+        """Each observer agent markdown spec must exist."""
+        assert (AGENTS_DIR / agent_file).exists(), f"Missing agent spec: {agent_file}"
+
+    # ─── REQ-LIFE-010: Dev Observer ───────────────────────────────────
+
+    @pytest.mark.bdd
+    def test_dev_observer_implements_req(self):
+        """Dev observer must declare Implements: REQ-LIFE-010."""
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-010" in content
+
+    @pytest.mark.bdd
+    def test_dev_observer_is_stateless(self):
+        """Dev observer must declare itself stateless."""
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
+            content = f.read()
+        assert "stateless" in content.lower()
+
+    @pytest.mark.bdd
+    def test_dev_observer_is_markov_object(self):
+        """Dev observer must declare itself a Markov object."""
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
+            content = f.read()
+        assert "markov" in content.lower()
+
+    @pytest.mark.bdd
+    def test_dev_observer_reads_events(self):
+        """Dev observer must read events.jsonl."""
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
+            content = f.read()
+        assert "events.jsonl" in content
+
+    @pytest.mark.bdd
+    def test_dev_observer_emits_observer_signal(self):
+        """Dev observer must emit observer_signal events."""
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
+            content = f.read()
+        assert "observer_signal" in content
+
+    @pytest.mark.bdd
+    def test_dev_observer_draft_only(self):
+        """Dev observer must present draft intents (not auto-apply)."""
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
+            content = f.read()
+        assert "draft" in content.lower()
+        assert "human" in content.lower()
+
+    @pytest.mark.bdd
+    def test_dev_observer_classifies_signals(self):
+        """Dev observer must classify deltas by signal source."""
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
+            content = f.read()
+        for source in ["gap", "discovery", "ecosystem", "TELEM"]:
+            assert source in content, f"Missing signal source: {source}"
+
+    # ─── REQ-LIFE-011: CI/CD Observer ─────────────────────────────────
+
+    @pytest.mark.bdd
+    def test_cicd_observer_implements_req(self):
+        """CI/CD observer must declare Implements: REQ-LIFE-011."""
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-011" in content
+
+    @pytest.mark.bdd
+    def test_cicd_observer_maps_failures_to_req_keys(self):
+        """CI/CD observer must map build failures to REQ keys."""
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
+            content = f.read()
+        assert "Implements:" in content or "Validates:" in content
+        assert "REQ" in content
+
+    @pytest.mark.bdd
+    def test_cicd_observer_reads_build_results(self):
+        """CI/CD observer must read build/test results."""
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
+            content = f.read()
+        assert "build" in content.lower()
+        assert "test" in content.lower()
+
+    @pytest.mark.bdd
+    def test_cicd_observer_is_markov_object(self):
+        """CI/CD observer must declare itself a Markov object."""
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
+            content = f.read()
+        assert "markov" in content.lower()
+
+    @pytest.mark.bdd
+    def test_cicd_observer_emits_observer_signal(self):
+        """CI/CD observer must emit observer_signal events."""
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
+            content = f.read()
+        assert "observer_signal" in content
+
+    # ─── REQ-LIFE-012: Ops Observer ───────────────────────────────────
+
+    @pytest.mark.bdd
+    def test_ops_observer_implements_req(self):
+        """Ops observer must declare Implements: REQ-LIFE-012."""
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-012" in content
+
+    @pytest.mark.bdd
+    def test_ops_observer_reads_telemetry(self):
+        """Ops observer must read production telemetry."""
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
+            content = f.read()
+        assert "telemetry" in content.lower()
+        assert "latency" in content.lower() or "error" in content.lower()
+
+    @pytest.mark.bdd
+    def test_ops_observer_correlates_req_keys(self):
+        """Ops observer must correlate telemetry with REQ keys via req= tags."""
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
+            content = f.read()
+        assert "req=" in content
+
+    @pytest.mark.bdd
+    def test_ops_observer_consumes_sensory_signals(self):
+        """Ops observer must consume interoceptive signals from REQ-SENSE-001."""
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
+            content = f.read()
+        assert "interoceptive" in content.lower() or "SENSE-001" in content
+
+    @pytest.mark.bdd
+    def test_ops_observer_is_markov_object(self):
+        """Ops observer must declare itself a Markov object."""
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
+            content = f.read()
+        assert "markov" in content.lower()
+
+    @pytest.mark.bdd
+    def test_ops_observer_emits_observer_signal(self):
+        """Ops observer must emit observer_signal events."""
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
+            content = f.read()
+        assert "observer_signal" in content
+
+    # ─── Cross-cutting: Design doc references ─────────────────────────
+
+    @pytest.mark.bdd
+    def test_design_has_observer_section(self):
+        """Design doc must have §1.11 Observer Agents section."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "Observer Agents" in content
+        assert "1.11" in content
+
+    @pytest.mark.bdd
+    def test_design_has_adr_014(self):
+        """Design doc must reference ADR-014 for observer agents."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "ADR-014" in content
+
+    @pytest.mark.bdd
+    def test_design_lifecycle_includes_observers(self):
+        """Design §3 Lifecycle Closure must reference REQ-LIFE-010..012."""
+        with open(DESIGN_DIR / "AISDLC_V2_DESIGN.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-010" in content
+        assert "REQ-LIFE-011" in content
+        assert "REQ-LIFE-012" in content
+
+    @pytest.mark.bdd
+    def test_requirements_have_observer_reqs(self):
+        """Implementation requirements must contain REQ-LIFE-010, 011, 012."""
+        with open(SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-010" in content
+        assert "REQ-LIFE-011" in content
+        assert "REQ-LIFE-012" in content
+
+    @pytest.mark.bdd
+    def test_feature_vectors_include_observer_reqs(self):
+        """Feature vectors must list REQ-LIFE-010, 011, 012 in REQ-F-LIFE-001."""
+        with open(SPEC_DIR / "FEATURE_VECTORS.md") as f:
+            content = f.read()
+        assert "REQ-LIFE-010" in content
+        assert "REQ-LIFE-011" in content
+        assert "REQ-LIFE-012" in content

@@ -49,6 +49,7 @@ checklist:
 
   - name: "valid_tag_format"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All tags match the format: (Implements|Validates): REQ-{TYPE}-{DOMAIN}-{SEQ}"
     command: "grep -rPn '(Implements|Validates):\\s+REQ-' src/ tests/ || true"
     pass_criterion: "All tags match regex: (Implements|Validates):\\s+REQ-[A-Z]+-[A-Z]+-\\d+"
@@ -57,24 +58,28 @@ checklist:
 
   - name: "valid_req_references"
     type: agent
+    functional_unit: evaluate
     criterion: "All REQ keys referenced in tags exist in the requirements document."
     source: default
     required: true
 
   - name: "code_files_tagged"
     type: agent
+    functional_unit: evaluate
     criterion: "Every production code file has at least one '# Implements: REQ-*' tag."
     source: default
     required: true
 
   - name: "test_files_tagged"
     type: agent
+    functional_unit: evaluate
     criterion: "Every test file has at least one '# Validates: REQ-*' tag."
     source: default
     required: true
 
   - name: "commit_messages_tagged"
     type: agent
+    functional_unit: evaluate
     criterion: "Commit messages reference at least one REQ key via 'Implements: REQ-*'."
     source: default
     required: true

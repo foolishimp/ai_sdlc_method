@@ -1,4 +1,5 @@
 # AI SDLC — Evaluator Defaults
+# Implements: REQ-EVAL-002 (Evaluator Composition Per Edge), REQ-EVAL-003 (Human Accountability)
 # Version: 2.6.0
 # Reference: AISDLC_IMPLEMENTATION_REQUIREMENTS.md REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003
 #

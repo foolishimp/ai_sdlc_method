@@ -47,6 +47,22 @@ context:
     - adrs                       # relevant prior decisions only
     - prior_implementations      # relevant existing code
 
+# Encoding: functor encoding per §2.9
+encoding:
+  strategy: exploration
+  mode: interactive
+  valence: low
+  functional_units:
+    evaluate:    F_P                 # agent-assessed, exploration-driven
+    construct:   F_P
+    classify:    F_D
+    route:       F_P                 # agent picks route in exploration
+    propose:     F_P
+    sense:       F_D
+    emit:        F_D                 # category-fixed
+    decide:      F_H                 # category-fixed
+  edge_overrides: {}
+
 # Iteration budget
 iteration:
   budget: time_boxed

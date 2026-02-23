@@ -1,5 +1,5 @@
 # Affect Triage Pipeline Configuration
-# Implements: REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
+# Implements: REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-LIFE-006
 # Reference: AISDLC_V2_DESIGN.md §1.8.4, §1.8.5, §1.8.6
 #
 # Tiered triage: rule-based classification first (fast, pattern-matching),

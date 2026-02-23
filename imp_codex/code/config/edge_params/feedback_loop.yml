@@ -1,5 +1,5 @@
 # Edge Parameterisation: Telemetry → Intent (Feedback Loop)
-# Implements: REQ-LIFE-003, REQ-INTENT-003
+# Implements: REQ-LIFE-003, REQ-LIFE-005, REQ-INTENT-003
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §7.3, §7.6, §7.7
 #
 # KEY INSIGHT: The consciousness loop occurs at EVERY observer point,
@@ -163,6 +163,7 @@ checklist:
 
   - name: "telemetry_tagged_with_req_keys"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Telemetry data includes REQ-* key tags linking metrics to requirements."
     command: "grep -r 'REQ-' telemetry/ monitoring/ || true"
     pass_criterion: "REQ key references found in telemetry configuration"
@@ -171,6 +172,7 @@ checklist:
 
   - name: "deviation_quantified"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The deviation from expected behaviour is quantified with:
       - What metric deviated
@@ -182,6 +184,7 @@ checklist:
 
   - name: "root_cause_identified"
     type: agent
+    functional_unit: classify
     criterion: |
       A root cause analysis traces the deviation back to:
       - The specific code path or component
@@ -192,12 +195,14 @@ checklist:
 
   - name: "affected_requirements_traced"
     type: agent
+    functional_unit: classify
     criterion: "All REQ keys affected by the deviation are identified and listed."
     source: default
     required: true
 
   - name: "priority_appropriate"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The generated intent priority matches the severity:
       - SLA violation → Critical
@@ -209,6 +214,7 @@ checklist:
 
   - name: "intent_well_formed"
     type: agent
+    functional_unit: propose
     criterion: |
       The generated intent follows the INT-{SEQ} template with:
       source, priority, triggered_by, affected_requirements, description.
@@ -217,12 +223,14 @@ checklist:
 
   - name: "human_warrants_action"
     type: human
+    functional_unit: evaluate
     criterion: "Human confirms the deviation warrants a new intent (not noise or transient)."
     source: default
     required: true
 
   - name: "human_confirms_priority"
     type: human
+    functional_unit: evaluate
     criterion: "Human confirms the priority assignment for the generated intent."
     source: default
     required: true
@@ -230,6 +238,7 @@ checklist:
   # ─── Traceability checks (composed from traceability.yml Layer 3) ──
   - name: "code_req_keys_have_telemetry"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Every REQ key in code (Implements: REQ-*) has corresponding
       telemetry tagging (req="REQ-*"). Telemetry gaps mean features
@@ -240,6 +249,7 @@ checklist:
 
   - name: "telemetry_tag_format"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All telemetry REQ tags use structured format: req=\"REQ-*\""
     source: traceability
     required: true

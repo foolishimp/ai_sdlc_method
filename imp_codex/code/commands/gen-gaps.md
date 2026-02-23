@@ -32,7 +32,7 @@ Collect all REQ keys from the specification:
 
 ```bash
 # Primary source: requirements specification
-grep -n "REQ-" specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md 2>/dev/null
+grep -n "REQ-" specification/requirements.md specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md 2>/dev/null
 
 # Secondary source: feature vector files
 grep -rn "feature:" .ai-workspace/features/active/ 2>/dev/null
