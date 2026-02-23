@@ -398,6 +398,38 @@ def validate_req_key_consistency(
     )
 
 
+def validate_multi_iteration_convergence(
+    events: list[dict], edge: str, feature: str,
+) -> None:
+    """Verify that an edge took multiple iterations to converge.
+
+    Proves iterate() handles real failures, not just 1-shot convergence.
+    Also checks delta progression (should decrease to 0).
+    """
+    iterations = [
+        e for e in events
+        if e.get("event_type") == "iteration_completed"
+        and e.get("edge") == edge
+        and e.get("feature") == feature
+    ]
+    assert len(iterations) > 1, (
+        f"{feature}:{edge} converged in {len(iterations)} iteration(s), "
+        f"expected > 1 for genuine convergence proof."
+    )
+
+    # Check delta progression
+    deltas = [it.get("delta") for it in iterations if it.get("delta") is not None]
+    if deltas:
+        assert deltas[0] > 0, (
+            f"First iteration delta is {deltas[0]}, expected > 0 "
+            f"(pre-conditions should guarantee initial failure)."
+        )
+        assert deltas[-1] == 0, (
+            f"Final iteration delta is {deltas[-1]}, expected 0. "
+            f"Delta progression: {deltas}"
+        )
+
+
 def validate_event_feature_consistency(
     events: list[dict], expected_features: set[str]
 ) -> None:

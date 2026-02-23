@@ -13,10 +13,10 @@ Usage:
     python -m imp_claude.tests.e2e.analyse_run imp_claude/tests/e2e/runs/e2e_2.8.0_*_0003
 
 Exit codes:
-    0 = homeostatic chain verified (failures observed → intents raised)
+    0 = homeostatic loop working (VERIFIED: cross-edge, or CORRECTED: within-edge)
     1 = no failures observed (trivial convergence — loop untested)
-    2 = failures observed but no intent raised (loop broken)
-    3 = analysis error
+    2 = failures observed but no correction at all (loop broken)
+    3 = analysis error or partial
 """
 
 import json
@@ -200,41 +200,79 @@ def analyse_homeostatic_chain(events: list[dict]) -> dict[str, Any]:
                     f"{e.get('edge', '?')} iter {e.get('iteration', '?')}"
                 )
 
-    # Check for delta reduction after intent
-    corrections = []
+    # Check for within-edge correction: failure on iteration N, delta=0 on
+    # a later iteration of the SAME edge. This is the iterate() loop working.
+    edge_corrections = []
+    edge_deltas: dict[str, list[tuple[int, int]]] = defaultdict(list)
+    for e in events:
+        if e.get("event_type") == "iteration_completed":
+            edge = e.get("edge", "?")
+            iteration = e.get("iteration", 0)
+            delta = e.get("delta")
+            if delta is not None:
+                edge_deltas[edge].append((iteration, delta))
+
+    for edge, deltas in edge_deltas.items():
+        deltas.sort()
+        if len(deltas) >= 2 and deltas[0][1] > 0 and deltas[-1][1] == 0:
+            edge_corrections.append({
+                "edge": edge,
+                "initial_delta": deltas[0][1],
+                "final_delta": deltas[-1][1],
+                "iterations": len(deltas),
+                "delta_curve": [d for _, d in deltas],
+            })
+
+    has_within_edge_correction = bool(edge_corrections)
+
+    # Check for cross-edge correction via intent_raised
+    intent_corrections = []
     if intent_raised:
         for intent in intent_raised:
             intent_ts = intent.get("timestamp", "")
-            # Look for subsequent iterations with reduced delta
             for e in events:
                 if (e.get("event_type") == "iteration_completed"
                         and e.get("timestamp", "") > intent_ts
                         and e.get("delta", 999) < 999):
-                    corrections.append({
+                    intent_corrections.append({
                         "intent": intent.get("data", {}).get("intent_id", "?"),
                         "subsequent_delta": e.get("delta"),
                         "edge": e.get("edge"),
                     })
                     break
 
-    # Determine chain status
+    # Determine chain status (5 levels, most complete first)
+    #
+    # VERIFIED:  failure → intent_raised → cross-edge correction (full loop)
+    # CORRECTED: failure → within-edge delta reduction → convergence (iterate works)
+    # PARTIAL:   intent_raised emitted but no subsequent correction observed
+    # BROKEN:    failures detected but no correction of any kind
+    # UNTESTED:  no failures observed at all
     if not has_failures:
         chain_status = "UNTESTED"
         chain_message = ("No failures observed — all edges converged trivially. "
                         "The homeostatic loop was never exercised.")
-    elif has_failures and not intent_raised:
-        chain_status = "BROKEN"
-        chain_message = ("Failures observed but no intent_raised event emitted. "
-                        "The homeostatic loop detected a delta but did not close.")
-    elif has_failures and intent_raised and corrections:
+    elif has_failures and intent_raised and intent_corrections:
         chain_status = "VERIFIED"
-        chain_message = ("Homeostatic chain verified: failure → intent_raised → "
-                        f"correction. {len(intent_raised)} intent(s) raised, "
-                        f"{len(corrections)} correction(s) observed.")
+        chain_message = ("Full homeostatic chain verified: failure → intent_raised → "
+                        f"cross-edge correction. {len(intent_raised)} intent(s) raised, "
+                        f"{len(intent_corrections)} correction(s) observed.")
     elif has_failures and intent_raised:
         chain_status = "PARTIAL"
         chain_message = ("Failures observed and intent_raised emitted, but no "
                         "subsequent correction detected in delta progression.")
+    elif has_failures and has_within_edge_correction:
+        chain_status = "CORRECTED"
+        edges_fixed = [c["edge"] for c in edge_corrections]
+        chain_message = (
+            f"Within-edge homeostasis verified: failure detected → iterate() "
+            f"corrected → delta reduced to 0. Edges corrected: {edges_fixed}. "
+            f"No intent_raised needed (deficiency was within current edge scope)."
+        )
+    elif has_failures:
+        chain_status = "BROKEN"
+        chain_message = ("Failures observed but no correction of any kind — "
+                        "neither within-edge delta reduction nor intent_raised.")
     else:
         chain_status = "UNKNOWN"
         chain_message = "Unable to determine chain status."
@@ -245,6 +283,8 @@ def analyse_homeostatic_chain(events: list[dict]) -> dict[str, Any]:
         "has_failures": has_failures,
         "failure_count": len(failure_evidence),
         "failure_evidence": failure_evidence[:20],  # cap for readability
+        "has_within_edge_correction": has_within_edge_correction,
+        "edge_corrections": edge_corrections,
         "intent_raised_count": len(intent_raised),
         "intents": [
             {
@@ -255,7 +295,7 @@ def analyse_homeostatic_chain(events: list[dict]) -> dict[str, Any]:
             }
             for e in intent_raised
         ],
-        "corrections": corrections,
+        "intent_corrections": intent_corrections,
     }
 
 
@@ -332,6 +372,7 @@ def print_report(run_dir: pathlib.Path, events: list[dict]) -> int:
     print(f"{'─'*70}")
     status_icons = {
         "VERIFIED": "[PASS]",
+        "CORRECTED": "[PASS]",
         "PARTIAL": "[WARN]",
         "BROKEN": "[FAIL]",
         "UNTESTED": "[SKIP]",
@@ -346,15 +387,21 @@ def print_report(run_dir: pathlib.Path, events: list[dict]) -> int:
         for ev in chain['failure_evidence'][:10]:
             print(f"    - {ev}")
 
+    if chain['edge_corrections']:
+        print(f"\n  Within-edge corrections ({len(chain['edge_corrections'])}):")
+        for corr in chain['edge_corrections']:
+            print(f"    - {corr['edge']}: delta {corr['delta_curve']} "
+                  f"({corr['iterations']} iterations)")
+
     if chain['intents']:
         print(f"\n  Intents raised ({chain['intent_raised_count']}):")
         for intent in chain['intents']:
             print(f"    - {intent['id']}: {intent['trigger']} "
                   f"(source={intent['signal_source']}, severity={intent['severity']})")
 
-    if chain['corrections']:
-        print(f"\n  Corrections observed:")
-        for corr in chain['corrections']:
+    if chain['intent_corrections']:
+        print(f"\n  Cross-edge corrections:")
+        for corr in chain['intent_corrections']:
             print(f"    - After {corr['intent']}: delta→{corr['subsequent_delta']} "
                   f"on {corr['edge']}")
 
@@ -364,7 +411,7 @@ def print_report(run_dir: pathlib.Path, events: list[dict]) -> int:
     print(f"{'='*70}\n")
 
     # Return exit code
-    if chain['chain_status'] == "VERIFIED":
+    if chain['chain_status'] in ("VERIFIED", "CORRECTED"):
         return 0
     elif chain['chain_status'] == "UNTESTED":
         return 1

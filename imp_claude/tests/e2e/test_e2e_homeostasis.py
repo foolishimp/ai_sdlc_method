@@ -36,7 +36,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from imp_claude.tests.e2e.conftest import (
+from conftest import (
     CONFIG_DIR,
     COMMANDS_DIR,
     AGENTS_DIR,
@@ -56,7 +56,7 @@ from imp_claude.tests.e2e.conftest import (
     _get_plugin_version,
     _persist_run,
 )
-from imp_claude.tests.e2e.analyse_run import (
+from analyse_run import (
     load_events as analyse_load_events,
     analyse_iterations,
     analyse_failure_observability,
@@ -536,6 +536,15 @@ def homeostasis_project_dir(tmp_path_factory) -> pathlib.Path:
     The converter.py has bugs in celsius_to_fahrenheit and fahrenheit_to_celsius.
     The tests will fail until the formulas are corrected.
     Run `pytest tests/ -v` to see the failures.
+
+    ## Iterate Protocol
+
+    When running /gen-iterate on code↔unit_tests:
+    1. FIRST: Run pytest on the existing code AS-IS and record failures
+    2. Emit iteration_completed with delta > 0 showing which checks failed
+    3. THEN fix the code to make tests pass
+    4. Run pytest again and emit iteration_completed with delta = 0
+    The RED phase must be observable in the event log before the GREEN phase.
     """))
     (project_dir / "pyproject.toml").write_text(TEST_PROJECT_PYPROJECT)
 
@@ -568,10 +577,22 @@ def homeostasis_result(homeostasis_project_dir: pathlib.Path) -> pathlib.Path:
     meta_dir = project_dir / ".e2e-meta"
     meta_dir.mkdir(exist_ok=True)
 
-    # Focused prompt: iterate on code↔unit_tests only
+    # Focused prompt: iterate on code↔unit_tests with evaluate-first protocol.
+    # CRITICAL: The agent must evaluate the EXISTING code FIRST (run tests,
+    # record delta > 0, emit iteration event), THEN fix and re-evaluate.
+    # Without this, the agent reads the buggy code, fixes it in its head,
+    # and reports delta=0 on iteration 1 — bypassing observable failure.
     prompt = (
         '/gen-iterate --feature "REQ-F-CONV-001" --edge "code↔unit_tests" '
-        '--auto'
+        '--auto\n\n'
+        'IMPORTANT: You MUST evaluate the existing code AS-IS before making '
+        'any changes. Run pytest on the current src/converter.py first. '
+        'The code has known bugs. Record the test failures as iteration 1 '
+        'with delta > 0 and emit the iteration_completed event showing the '
+        'failures. Only THEN fix the code and run iteration 2. '
+        'Do NOT fix the code before the first evaluation — that defeats '
+        'the purpose of the iterate protocol. The TDD RED phase must be '
+        'observable in the event log as a non-zero delta iteration.'
     )
 
     print(f"\n{'='*60}")

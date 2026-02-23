@@ -17,8 +17,8 @@ import pathlib
 
 import pytest
 
-from imp_claude.tests.e2e.conftest import skip_no_claude
-from imp_claude.tests.e2e.validators import (
+from conftest import skip_no_claude
+from validators import (
     extract_req_tags,
     find_python_files,
     load_events,
