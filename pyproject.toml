@@ -15,6 +15,7 @@ test = [
 
 [tool.pytest.ini_options]
 testpaths = ["imp_claude/tests"]
+norecursedirs = ["imp_claude/tests/e2e/runs"]
 markers = [
     "tdd: TDD unit tests — deterministic config validation",
     "bdd: BDD acceptance tests — methodology workflow validation",

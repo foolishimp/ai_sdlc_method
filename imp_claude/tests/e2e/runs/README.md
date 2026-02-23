@@ -41,7 +41,8 @@ Each archived run contains the full project tree:
     stdout.log                   # Claude stdout
     stderr.log                   # Claude stderr
     meta.json                    # Run metadata (returncode, elapsed, timed_out)
-    run_manifest.json            # Archive metadata (version, timestamp, source)
+    run_manifest.json            # Archive metadata (version, timestamp, test counts)
+    test_results.json            # Per-test pass/fail/error with durations and messages
 ```
 
 ## Genesis Monitor Discovery

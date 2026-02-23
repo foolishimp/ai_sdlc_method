@@ -37,9 +37,11 @@ COMMANDS_DIR = PLUGIN_ROOT / "commands"
 AGENTS_DIR = PLUGIN_ROOT / "agents"
 RUNS_DIR = pathlib.Path(__file__).parent / "runs"
 
-# Module-level state: archive path set by converged_project fixture,
-# read by pytest_sessionfinish to write test results into the archive.
+# Module-level state set by converged_project fixture,
+# consumed by pytest_sessionfinish for deferred archival.
 _archive_path: pathlib.Path | None = None
+_project_dir: pathlib.Path | None = None
+_fixture_failed: bool = False
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -58,7 +60,8 @@ def _get_plugin_version() -> str:
 def _compute_run_dir(failed: bool = False) -> pathlib.Path:
     """Compute next runs/<version>_<datetime>_<seq> path.
 
-    Sequence = max existing sequence number + 1 (monotonic even after cleanup).
+    Sequence assignment is race-safe: we attempt os.mkdir in a retry loop
+    so concurrent e2e invocations cannot collide on the same sequence.
     Failed runs get FAILED_ prefix.
     """
     import re
@@ -73,11 +76,19 @@ def _compute_run_dir(failed: bool = False) -> pathlib.Path:
             m = seq_pattern.search(d.name)
             if m:
                 max_seq = max(max_seq, int(m.group(1)))
-    seq = max_seq + 1
 
     prefix = "e2e_FAILED_" if failed else "e2e_"
-    name = f"{prefix}{version}_{ts}_{seq:04d}"
-    return RUNS_DIR / name
+    # Retry loop: atomic mkdir guarantees no two runners claim the same seq
+    for attempt in range(max_seq + 1, max_seq + 100):
+        candidate = RUNS_DIR / f"{prefix}{version}_{ts}_{attempt:04d}"
+        try:
+            candidate.mkdir()  # atomic — fails if exists
+            return candidate
+        except FileExistsError:
+            continue
+    # Fallback (should never reach here)
+    seq = max_seq + 1
+    return RUNS_DIR / f"{prefix}{version}_{ts}_{seq:04d}"
 
 
 def _persist_run(source_dir: pathlib.Path, failed: bool = False) -> pathlib.Path | None:
@@ -89,6 +100,8 @@ def _persist_run(source_dir: pathlib.Path, failed: bool = False) -> pathlib.Path
     """
     try:
         dest = _compute_run_dir(failed=failed)
+        # _compute_run_dir creates dest via atomic mkdir; copytree needs it absent
+        dest.rmdir()
         shutil.copytree(
             source_dir, dest,
             ignore=shutil.ignore_patterns(".git", "__pycache__"),
@@ -860,9 +873,11 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
     if missing_edges:
         print(f"E2E: Missing edges: {missing_edges}", flush=True)
 
-    global _archive_path
+    global _archive_path, _project_dir, _fixture_failed
+    _project_dir = project_dir
 
     if result.timed_out and not converged_edges:
+        _fixture_failed = True
         _archive_path = _persist_run(project_dir, failed=True)
         pytest.fail(
             f"Claude killed (wall timeout) after {result.elapsed:.0f}s "
@@ -876,6 +891,7 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
               f"proceeding with validation.", flush=True)
 
     if result.returncode != 0 and not result.timed_out and not converged_edges:
+        _fixture_failed = True
         _archive_path = _persist_run(project_dir, failed=True)
         pytest.fail(
             f"Claude exited with code {result.returncode} "
@@ -885,8 +901,8 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
             f"Full logs: {meta_dir}"
         )
 
-    # Archive now; pytest_sessionfinish writes test_results.json into it later.
-    _archive_path = _persist_run(project_dir, failed=False)
+    # Archival deferred to pytest_sessionfinish so the directory name
+    # reflects the final test verdict (e2e_ vs e2e_FAILED_).
     return project_dir
 
 
@@ -895,37 +911,63 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
 # ═══════════════════════════════════════════════════════════════════════
 
 def pytest_sessionfinish(session, exitstatus):
-    """Write test results into the run archive for forensic analysis.
+    """Archive run and write test results for forensic analysis.
 
-    Called by pytest after all tests complete. Produces test_results.json
-    with per-test pass/fail/skip status, durations, and failure messages.
+    Called by pytest after all tests complete. For non-fixture-failure runs,
+    this is where archival happens so the directory name reflects the final
+    test verdict (e2e_ vs e2e_FAILED_).
     """
-    if _archive_path is None or not _archive_path.exists():
-        return
+    global _archive_path
 
-    # Only capture e2e tests (not the full suite)
+    # Collect e2e test results (setup + call phase reports)
     e2e_items = [item for item in session.items
                  if "e2e" in item.nodeid]
     results = []
     for item in e2e_items:
-        report = item.stash.get(_test_report_key, None)
-        if report is None:
-            results.append({"nodeid": item.nodeid, "outcome": "unknown"})
-        else:
+        setup_report = item.stash.get(_setup_report_key, None)
+        call_report = item.stash.get(_test_report_key, None)
+
+        # Setup failure = fixture crashed (e.g. convergence failed)
+        if setup_report and setup_report.failed:
             entry = {
                 "nodeid": item.nodeid,
-                "outcome": report.outcome,
-                "duration": round(report.duration, 3),
+                "outcome": "error",
+                "phase": "setup",
             }
-            if report.failed and report.longreprtext:
-                entry["message"] = report.longreprtext[:2000]
+            if setup_report.longreprtext:
+                entry["message"] = setup_report.longreprtext[:2000]
             results.append(entry)
+        elif call_report is not None:
+            entry = {
+                "nodeid": item.nodeid,
+                "outcome": call_report.outcome,
+                "duration": round(call_report.duration, 3),
+            }
+            if call_report.failed and call_report.longreprtext:
+                entry["message"] = call_report.longreprtext[:2000]
+            results.append(entry)
+        else:
+            results.append({"nodeid": item.nodeid, "outcome": "unknown"})
+
+    any_failures = (
+        exitstatus != 0
+        or any(r["outcome"] in ("failed", "error") for r in results)
+    )
+
+    # Deferred archival: archive now with correct failed= flag.
+    # (Fixture-failure paths already archived with failed=True.)
+    if _archive_path is None and _project_dir is not None:
+        _archive_path = _persist_run(_project_dir, failed=any_failures)
+
+    if _archive_path is None or not _archive_path.exists():
+        return
 
     summary = {
         "exit_status": exitstatus,
         "total": len(results),
         "passed": sum(1 for r in results if r["outcome"] == "passed"),
         "failed": sum(1 for r in results if r["outcome"] == "failed"),
+        "error": sum(1 for r in results if r["outcome"] == "error"),
         "skipped": sum(1 for r in results if r["outcome"] == "skipped"),
         "tests": results,
     }
@@ -942,6 +984,7 @@ def pytest_sessionfinish(session, exitstatus):
             manifest = json.loads(manifest_path.read_text())
             manifest["tests_passed"] = summary["passed"]
             manifest["tests_failed"] = summary["failed"]
+            manifest["tests_error"] = summary["error"]
             manifest["tests_total"] = summary["total"]
             manifest["exit_status"] = exitstatus
             manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
@@ -953,14 +996,17 @@ def pytest_sessionfinish(session, exitstatus):
           f"→ {meta_dir / 'test_results.json'}", flush=True)
 
 
-# Stash key for storing per-test reports
+# Stash keys for storing per-test reports
 _test_report_key = pytest.StashKey()
+_setup_report_key = pytest.StashKey()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Capture test call-phase reports for pytest_sessionfinish."""
+    """Capture setup and call phase reports for pytest_sessionfinish."""
     outcome = yield
     report = outcome.get_result()
-    if report.when == "call":
+    if report.when == "setup":
+        item.stash[_setup_report_key] = report
+    elif report.when == "call":
         item.stash[_test_report_key] = report
