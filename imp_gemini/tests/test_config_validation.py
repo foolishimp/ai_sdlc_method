@@ -642,14 +642,14 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_7(self, plugin_json):
-        """plugin.json version must be 2.7.0."""
-        assert plugin_json["version"] == "2.7.0"
+    def test_plugin_version_is_2_8(self, plugin_json):
+        """plugin.json version must be 2.8.0."""
+        assert plugin_json["version"] == "2.8.0"
 
     @pytest.mark.tdd
-    def test_graph_topology_version_is_2_7(self, graph_topology):
-        """graph_topology.yml version must be 2.7.0."""
-        assert graph_topology["graph_properties"]["version"] == "2.7.0"
+    def test_graph_topology_version_is_2_8(self, graph_topology):
+        """graph_topology.yml version must be 2.8.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.8.0"
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_constraint_dimensions(self, plugin_json):
@@ -889,12 +889,12 @@ class TestSensoryRequirements:
         assert "REQ-F-SENSE-001" in content
 
     @pytest.mark.tdd
-    def test_design_doc_claims_10_feature_vectors(self):
-        """Design doc must claim 10/10 feature vectors covered."""
+    def test_design_doc_claims_11_feature_vectors(self):
+        """Design doc must claim 11 feature vectors covered."""
         design_path = DESIGN_DIR / "AISDLC_V2_DESIGN.md"
         with open(design_path) as f:
             content = f.read()
-        assert "10/10 feature vectors covered" in content
+        assert "11 feature vectors covered" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -964,9 +964,9 @@ class TestStartCommand:
         assert "./commands/gen-start.md" in plugin_json["commands"]
 
     @pytest.mark.tdd
-    def test_plugin_has_10_commands(self, plugin_json):
-        """plugin.json must have 10 commands."""
-        assert len(plugin_json["commands"]) == 10
+    def test_plugin_has_13_commands(self, plugin_json):
+        """plugin.json must have 13 commands."""
+        assert len(plugin_json["commands"]) == 13
 
     @pytest.mark.tdd
     def test_default_profile_in_template(self, project_constraints_template):

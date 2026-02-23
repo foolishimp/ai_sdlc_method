@@ -68,4 +68,4 @@ The Tool will:
 ## References
 
 - [GEMINI_GENESIS_DESIGN.md](../GEMINI_GENESIS_DESIGN.md) §1.3
-- [ADR-008: Universal Iterate Agent](../../claude_aisdlc/adrs/ADR-008-universal-iterate-agent.md)
+- [ADR-008: Universal Iterate Agent](ADR-008-universal-iterate-agent.md)

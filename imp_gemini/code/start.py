@@ -9,8 +9,17 @@ def main():
     print(f"Detected State: {current_state.value}")
     
     if current_state == ProjectState.UNINITIALISED:
-        print("Starting Progressive Init...")
-        # Delegating to init logic (future iteration)
+        print("Project UNINITIALISED.")
+        print("Recommended Action: Run /gen-init to scaffold the workspace.")
+    elif current_state == ProjectState.NEEDS_CONSTRAINTS:
+        print("Project NEEDS_CONSTRAINTS.")
+        print("Recommended Action: Configure .ai-workspace/gemini_genesis/project_constraints.yml")
+    elif current_state == ProjectState.NEEDS_INTENT:
+        print("Project NEEDS_INTENT.")
+        print("Recommended Action: Define your goal in .ai-workspace/spec/INTENT.md")
+    elif current_state == ProjectState.NO_FEATURES:
+        print("Project has NO_FEATURES.")
+        print("Recommended Action: Run /gen-spawn --type feature to start a new feature vector.")
     elif current_state == ProjectState.IN_PROGRESS:
         feature = state_mgr.get_next_actionable_feature()
         if feature:
@@ -22,10 +31,13 @@ def main():
             print("No actionable features found in IN_PROGRESS state.")
     elif current_state == ProjectState.STUCK:
         print("ALERT: Project is STUCK. Iteration delta is unchanged.")
-        print("Recommended Action: Spawn a discovery vector or request human review.")
+        print("Recommended Action: Run /gen-escalate to human or spawn a discovery vector.")
     elif current_state == ProjectState.ALL_CONVERGED:
         print("Project ALL_CONVERGED. 🎉")
-        print("Recommended Action: Run gen_status --gantt then gen_release.")
+        print("Recommended Action: Run /gen-status --gantt then /gen-release.")
+    elif current_state == ProjectState.ALL_BLOCKED:
+        print("Project ALL_BLOCKED. ✗")
+        print("Recommended Action: Check dependencies in feature vector files.")
     else:
         print(f"Next step for {current_state.value} not yet implemented.")
 

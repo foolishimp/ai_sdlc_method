@@ -3,7 +3,7 @@
 State-machine controller that detects project state and delegates to the appropriate command. Two verbs replace the 9-command learning curve: **Start** ("Go.") and **Status** ("Where am I?").
 
 <!-- Implements: REQ-UX-001, REQ-UX-002, REQ-UX-004, REQ-UX-005 -->
-<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.7.0 §7.5 Event Sourcing, ADR-012 -->
+<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.8.0 §7.5 Event Sourcing, ADR-012 -->
 
 ## Usage
 

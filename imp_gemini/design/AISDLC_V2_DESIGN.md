@@ -1,20 +1,20 @@
 # AI SDLC — Gemini Genesis Implementation Design (v2.8)
 
 **Version**: 2.0.0
-**Date**: 2026-02-21
-**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.5.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.7.0)
+**Date**: 2026-02-23
+**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.8.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
 **Platform**: Gemini CLI (ADR-GG-001)
 
 ---
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Gemini CLI. It covers all 10 feature vectors defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Gemini CLI. It covers all 11 feature vectors defined in FEATURE_VECTORS.md.
 
 **Key shift from v1.x**: The v1.x design had 7 stage-specific agents. The v2.1+ model uses a universal `iterate` engine parameterised per edge.
 
-**What v2.0.0 adds** (from spec v2.7.0):
+**What v2.0.0 adds** (from spec v2.8.0):
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
 - Constraint dimension taxonomy at the design edge
 - Event sourcing as the formal execution model
@@ -1483,8 +1483,9 @@ What Phase 2 adds:
 | REQ-F-SENSE-001 | §1.8 Sensory Service | Designed |
 | REQ-F-UX-001 | §1.9 Two-Command UX Layer | Designed |
 | REQ-F-COORD-001 | §1.10 Multi-Agent Coordination | Designed |
+| REQ-F-SUPV-001 | §1.8 Supervision | Designed |
 
-**10/10 feature vectors covered.**
+**11/11 feature vectors covered.**
 
 ---
 
@@ -1505,8 +1506,8 @@ Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.6.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 54 implementation requirements (v3.6.0)
-- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.0.0)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.8.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 64 implementation requirements (v3.12.0)
+- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.8.0)
 - Prior v1.x design (AISDLC_IMPLEMENTATION_DESIGN.md) — superseded, recoverable at tag `v1.x-final`
 - ADR-001 (claude-code-as-mvp-platform) — v1.x platform choice, carried forward as standing decision

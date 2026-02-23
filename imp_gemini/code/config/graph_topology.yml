@@ -329,4 +329,4 @@ graph_properties:
   cyclic: true         # Feedback loop: telemetry → intent
   extensible: true     # Add new asset types/transitions via YAML
   zoomable: true       # Any edge can expand into a sub-graph
-  version: "2.7.0"
+  version: "2.8.0"

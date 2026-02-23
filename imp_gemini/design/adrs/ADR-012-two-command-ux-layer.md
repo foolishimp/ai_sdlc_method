@@ -61,5 +61,5 @@ Key changes:
 ## References
 
 - [GEMINI_GENESIS_DESIGN.md](../GEMINI_GENESIS_DESIGN.md) §1.1
-- [gen-start.md](../../../claude-code/.claude-plugin/plugins/gen-methodology/v2/commands/gen-start.md)
-- [gen-status.md](../../../claude-code/.claude-plugin/plugins/gen-methodology/v2/commands/gen-status.md)
+- [gen-start.md](../../code/commands/gen-start.md)
+- [gen-status.md](../../code/commands/gen-status.md)

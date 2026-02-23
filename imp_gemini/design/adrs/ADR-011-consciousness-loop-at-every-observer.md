@@ -10,7 +10,7 @@
 
 ## Context
 
-The formal specification (v2.7.0, §7.1) defines **The Gradient** (`delta(state, constraints) → work`) as the unified operation applied everywhere. The "consciousness loop" is reframed as this gradient operating at progressively larger scales.
+The formal specification (v2.8.0, §7.1) defines **The Gradient** (`delta(state, constraints) → work`) as the unified operation applied everywhere. The "consciousness loop" is reframed as this gradient operating at progressively larger scales.
 
 Every evaluator is an observer of the gradient. The three-direction gap detection (backward/forward/inward) detects deltas at the iteration scale. Spec Review (`REQ-LIFE-009`) detects deltas at the workspace-spec scale.
 
@@ -108,6 +108,8 @@ Each `intent_raised` event carries:
 - `/gen-gaps` already finds coverage holes. The change adds `intent_raised` emission per gap cluster.
 - The TDD edge config (`tdd.yml`) already has refactor guidance. The change adds intent generation for structural debt and stuck deltas.
 - Protocol enforcement hooks (REQ-LIFE-008) are new — they ensure `iterate()` can't skip event emission silently.
+- Spec Review (`REQ-LIFE-009`) is implemented as `/gen-spec-review` command.
+- Observer agents (REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012) are implemented as background scripts triggered by PostEvent hooks.
 
 ---
 

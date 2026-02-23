@@ -69,4 +69,4 @@ Workflow:
 ## References
 
 - [GEMINI_GENESIS_DESIGN.md](../GEMINI_GENESIS_DESIGN.md) §2.3
-- [AISDLC_V2_DESIGN.md](../../claude_aisdlc/AISDLC_V2_DESIGN.md) §1.8 (Sensory Service)
+- [AISDLC_V2_DESIGN.md](../AISDLC_V2_DESIGN.md) §1.8 (Sensory Service)

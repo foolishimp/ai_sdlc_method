@@ -1,8 +1,8 @@
-# AI SDLC Methodology Plugin — v2.7 (Asset Graph Model — Project Genesis)
+# AI SDLC Methodology Plugin — v2.8 (Asset Graph Model — Project Genesis)
 
 ## What Changed from v1.x
 
-| Aspect | v1.x | v2.7 |
+| Aspect | v1.x | v2.8 |
 |--------|------|------|
 | Model | 7-stage pipeline | Asset graph with typed transitions |
 | Agents | 7 (one per stage) | 1 (universal iterate agent) |
@@ -16,9 +16,12 @@
 ## Structure
 
 ```
-v2/
+code/
 ├── agents/
-│   └── gen-iterate.md          # THE one agent (universal iterate function)
+│   ├── gen-iterate.md          # THE one agent (universal iterate function)
+│   ├── gen-dev-observer.md     # Dev observer agent
+│   ├── gen-cicd-observer.md    # CI/CD observer agent
+│   └── gen-ops-observer.md     # Ops observer agent
 ├── commands/
 │   ├── gen-start.md            # State-driven routing (the "Go" verb)
 │   ├── gen-init.md             # Scaffold workspace
@@ -26,6 +29,9 @@ v2/
 │   ├── gen-status.md           # Feature vector progress (the "Where am I?" verb)
 │   ├── gen-checkpoint.md       # Session snapshot + context hash
 │   ├── gen-review.md           # Human evaluator review point
+│   ├── gen-spec-review.md      # Spec-boundary review
+│   ├── gen-escalate.md         # Escalation queue management
+│   ├── gen-zoom.md             # Graph zoom (in/out)
 │   ├── gen-trace.md            # REQ key trajectory through graph
 │   ├── gen-gaps.md             # Test gap analysis
 │   ├── gen-release.md          # Release with REQ coverage
@@ -33,6 +39,7 @@ v2/
 ├── config/
 │   ├── graph_topology.yml         # Default asset types + transitions
 │   ├── evaluator_defaults.yml     # Human/Agent/Deterministic defaults
+│   ├── intentengine_config.yml    # IntentEngine parameters
 │   └── edge_params/               # Per-edge parameterisations
 │       ├── tdd.yml                # Code ↔ Tests (TDD co-evolution)
 │       ├── bdd.yml                # Design → UAT Tests (BDD)
@@ -43,7 +50,7 @@ v2/
 │       ├── design_code.yml
 │       ├── design_tests.yml
 │       └── feedback_loop.yml
-├── plugin.json                    # Plugin metadata (v2.7.0)
+├── plugin.json                    # Plugin metadata (v2.8.0)
 └── README.md                      # This file
 ```
 

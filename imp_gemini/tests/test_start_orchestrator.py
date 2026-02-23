@@ -15,7 +15,8 @@ def test_start_delegates_to_init_when_uninitialised(capsys):
         
         # Assert
         captured = capsys.readouterr()
-        assert "Starting Progressive Init..." in captured.out
+        assert "Project UNINITIALISED." in captured.out
+        assert "Recommended Action: Run /gen-init" in captured.out
 
 def test_start_orchestrates_iteration_when_in_progress(capsys):
     # Arrange

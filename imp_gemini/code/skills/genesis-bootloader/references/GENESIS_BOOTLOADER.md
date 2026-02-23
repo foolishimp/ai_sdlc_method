@@ -1,23 +1,3 @@
-# GEMINI Context - Continuation
-
-## Origin
-This session is a continuation of the conversation from the `constraint_emergence_ontology` workspace.
-
-## Objective
-Working within `imp_gemini` to refine and expand its implementation.
-
-## Mandates
-- **Scope:** Work is strictly limited to the `imp_gemini` directory.
-- **Reference:** Use `/Users/jim/src/apps/ai_sdlc_method/imp_claude` as a reference implementation.
-- **Specification:** Adhere to the `ai_sdlc_method` specification.
-- **History:** This implementation was originally built from an earlier specification and the `imp_claude` reference.
-
-## Immediate Next Steps
-- Analyze the current state of `imp_gemini`.
-- Identify gaps or improvements based on the latest specifications/reference.
-- Proceed with implementation and validation.
-
-<!-- GENESIS_BOOTLOADER_START -->
 # Genesis Bootloader: LLM Constraint Context for the AI SDLC
 
 **Version**: 1.0.0
@@ -155,18 +135,6 @@ IntentEngine(intent + affect) = observer → evaluator → typed_output
 | **reflex.log** | Ambiguity = 0 | Fire-and-forget event — action taken, logged, done |
 | **specEventLog** | Bounded ambiguity | Deferred intent for later processing — another iteration warranted |
 | **escalate** | Persistent ambiguity | Push to higher consciousness — judgment, spec modification, or spawning required |
-
-### Homeostasis: Intent Is Computed
-
-Intent is not a human-authored input — it is a **generated output** of any observer that detects a non-zero delta between observed state and specification:
-
-```
-intent = delta(observed_state, spec) where delta ≠ 0
-```
-
-A human *can* author intent, but the system also generates it continuously: test failures, tolerance breaches, coverage gaps, ecosystem changes, and telemetry anomalies all produce intents through the same `observer → evaluator → typed_output` mechanism. This is what makes the system homeostatic — it corrects itself toward the spec without waiting for external instruction.
-
-Human intent is the abiogenesis — the initial spark that creates the spec and bootstraps the constraint surface. Once the system has a specification, interoceptive monitors (self-observation: tests, convergence, coverage), and exteroceptive monitors (environment-observation: ecosystem, runtime, telemetry), it becomes self-sustaining and self-evolving. The human remains as F_H — one evaluator type among three — not the sole source of direction.
 
 ---
 
@@ -352,5 +320,3 @@ The commands, configurations, and tooling are valid emergences from these constr
 *Foundation: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) — constraints bound possibility; structure emerges within those bounds.*
 *Formal system: [AI SDLC Asset Graph Model v2.8](AI_SDLC_ASSET_GRAPH_MODEL.md) — four primitives, one operation.*
 *Projections: [Projections and Invariants](PROJECTIONS_AND_INVARIANTS.md) — the generator of valid methodologies.*
-
-<!-- GENESIS_BOOTLOADER_END -->

@@ -69,4 +69,4 @@ Workflow:
 ## References
 
 - [GEMINI_GENESIS_DESIGN.md](../GEMINI_GENESIS_DESIGN.md) §2.4
-- [ADR-011: Consciousness Loop at Every Observer](../../claude_aisdlc/adrs/ADR-011-consciousness-loop-at-every-observer.md)
+- [ADR-011: Consciousness Loop at Every Observer](ADR-011-consciousness-loop-at-every-observer.md)

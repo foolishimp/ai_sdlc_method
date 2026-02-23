@@ -75,5 +75,5 @@ Gemini CLI is an interactive agent. Using its native tool calling and background
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../.ai-workspace/spec/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems)
 - [ADR-014](ADR-014-intentengine-binding.md) — IntentEngine Binding

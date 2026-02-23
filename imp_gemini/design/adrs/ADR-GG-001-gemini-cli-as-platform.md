@@ -73,5 +73,5 @@ Key mappings:
 ## References
 
 - [GEMINI_GENESIS_DESIGN.md](../GEMINI_GENESIS_DESIGN.md)
-- [AISDLC_V2_DESIGN.md](../../claude_aisdlc/AISDLC_V2_DESIGN.md)
+- [AISDLC_V2_DESIGN.md](../AISDLC_V2_DESIGN.md)
 - [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md)

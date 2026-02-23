@@ -93,6 +93,6 @@ affect:
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../.ai-workspace/spec/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.6 (IntentEngine)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.6 (IntentEngine)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent
 - [ADR-009](ADR-009-graph-topology-as-configuration.md) — Graph Topology as Configuration
