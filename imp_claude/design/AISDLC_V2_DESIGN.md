@@ -1765,11 +1765,11 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 
 | v1.x | v2.1 |
 |------|------|
-| 7 agent files (one per stage) | 1 agent file (gen-iterate.md) |
+| 7 agent files (one per stage) | 4 agent files (iterate + 3 observers) |
 | 42→11 skills | Edge parameterisation configs (YAML) |
 | stages_config.yml (1,273 lines) | graph_topology.yml + edge_params/ (~200 lines) |
 | Fixed 7-stage pipeline | Configurable graph in Context[] |
-| 9 commands | 10 commands (9 power-user + Start routing layer) |
+| 9 commands | 13 commands (12 power-user + Start routing layer) |
 | .ai-workspace with task focus | .ai-workspace with graph/context/features/tasks |
 
 ### What Carries Forward
@@ -1841,7 +1841,7 @@ Per FEATURE_VECTORS.md task graph, updated to reflect telemetry-as-constitutive:
 Phase 1a: ✓ COMPLETE — graph engine, configs, edge params, commands, UAT tests (735 passing)
 Phase 1b: Wire telemetry — connect existing monitors, hooks, observer agents (§1.12)
 Phase 1c: Executable iterate() — runtime engine from iterate agent spec
-Phase 1d: Executable commands — 10 commands as executable agents, not markdown specs
+Phase 1d: Executable commands — 13 commands as executable agents, not markdown specs
 Phase 2:  Product telemetry edges — CI/CD, running system, production homeostasis
 ```
 

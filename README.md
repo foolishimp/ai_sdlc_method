@@ -149,7 +149,7 @@ ai_sdlc_method/
 │
 ├── imp_claude/                             # Claude Code implementation
 │   ├── design/                             #   AISDLC_V2_DESIGN.md + ADRs 008-013
-│   ├── code/                               #   Plugin: 1 agent, 10 commands, configs
+│   ├── code/                               #   Plugin: 4 agents, 13 commands, 4 hooks
 │   └── tests/                              #   326 tests (spec validation + implementation)
 │
 ├── imp_gemini/                             # Gemini Genesis implementation
@@ -191,7 +191,7 @@ ai_sdlc_method/
 
 - Spec: Complete (formal system, projections, invariants, consciousness loop, processing phases, sensory systems, UX)
 - Design: Complete (Claude ADRs 008-013, Gemini ADRs GG-001-008, Codex ADR-CG-001)
-- Code: Phase 1a (Claude: configs, iterate agent, 10 commands, 2 hooks — no executable engine)
+- Code: Phase 1a (Claude: configs, 4 agents, 13 commands, 4 hooks — no executable engine)
 - Tests: 326 tests (Claude implementation — spec validation + implementation tests)
 - UAT / CI/CD / Telemetry: Not started
 
