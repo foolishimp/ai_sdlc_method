@@ -1317,28 +1317,32 @@ class TestEventTypeCompleteness:
     """
     GIVEN the event type reference in the iterate agent
     WHEN listing all event types
-    THEN all 20 event types are documented with schemas.
+    THEN all 25 event types are documented with schemas.
 
-    Validates: REQ-LIFE-005, REQ-LIFE-007, REQ-SENSE-001, REQ-SENSE-002, REQ-COORD-003
+    Validates: REQ-LIFE-005, REQ-LIFE-007, REQ-SENSE-001, REQ-SENSE-002, REQ-COORD-003, REQ-SUPV-003
     """
 
     REQUIRED_EVENT_TYPES = {
-        # Core methodology events (12)
+        # Core methodology events (13)
         "project_initialized", "iteration_completed", "edge_started",
         "edge_converged", "spawn_created", "spawn_folded_back",
         "checkpoint_created", "review_completed", "gaps_validated",
         "release_created", "intent_raised", "spec_modified",
+        "encoding_escalated",
         # Sensory/affect events (4)
         "interoceptive_signal", "exteroceptive_signal",
         "affect_triage", "draft_proposal",
         # Multi-agent coordination events (4)
         "claim_rejected", "edge_released",
         "claim_expired", "convergence_escalated",
+        # Failure observability events (4) — REQ-SUPV-003
+        "evaluator_detail", "command_error",
+        "health_checked", "iteration_abandoned",
     }
 
     @pytest.mark.bdd
     def test_all_event_types_in_agent_reference(self):
-        """Iterate agent must document all 20 event types."""
+        """Iterate agent must document all 25 event types."""
         with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         for event_type in self.REQUIRED_EVENT_TYPES:
@@ -1356,7 +1360,107 @@ class TestEventTypeCompleteness:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# SCENARIO 22: ADR-011 Consciousness Loop Lineage
+# SCENARIO 22: Failure Observability (REQ-SUPV-003)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestFailureObservability:
+    """
+    GIVEN the homeostasis model requires observable failures
+    WHEN the system encounters evaluator failures, command errors, health issues, or session abandonment
+    THEN structured failure events are emitted so the LLM evaluator can compute delta and design improvements.
+
+    Validates: REQ-SUPV-003 (Failure Observability)
+    """
+
+    FAILURE_EVENT_TYPES = {
+        "evaluator_detail", "command_error",
+        "health_checked", "iteration_abandoned",
+    }
+
+    @pytest.mark.bdd
+    def test_failure_event_types_in_agent_reference(self):
+        """All 4 failure event types must be in the iterate agent Event Type Reference."""
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
+            content = f.read()
+        for event_type in self.FAILURE_EVENT_TYPES:
+            assert event_type in content, \
+                f"Failure event type '{event_type}' missing from iterate agent"
+
+    @pytest.mark.bdd
+    def test_failure_event_schemas_defined(self):
+        """Each failure event type must have a JSON schema in the iterate agent."""
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
+            content = f.read()
+        for event_type in self.FAILURE_EVENT_TYPES:
+            # Schema entries use the pattern: **`event_type`** or "event_type": "type_name"
+            assert f'"{event_type}"' in content, \
+                f"No schema found for failure event '{event_type}'"
+
+    @pytest.mark.bdd
+    def test_evaluator_detail_wired_into_iterate_command(self):
+        """gen-iterate command must emit evaluator_detail on check failure."""
+        with open(COMMANDS_DIR / "gen-iterate.md") as f:
+            content = f.read()
+        assert "evaluator_detail" in content, \
+            "gen-iterate command does not reference evaluator_detail event"
+
+    @pytest.mark.bdd
+    def test_evaluator_detail_has_consecutive_failures(self):
+        """evaluator_detail schema must track consecutive failure count for pattern detection."""
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
+            content = f.read()
+        assert "consecutive_failures" in content, \
+            "evaluator_detail missing consecutive_failures field"
+
+    @pytest.mark.bdd
+    def test_health_checked_wired_into_status_command(self):
+        """gen-status --health must emit health_checked event."""
+        with open(COMMANDS_DIR / "gen-status.md") as f:
+            content = f.read()
+        assert "health_checked" in content, \
+            "gen-status command does not reference health_checked event"
+
+    @pytest.mark.bdd
+    def test_command_error_has_error_categories(self):
+        """command_error schema must classify errors by category."""
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
+            content = f.read()
+        assert "error_category" in content, \
+            "command_error missing error_category field"
+
+    @pytest.mark.bdd
+    def test_iteration_abandoned_has_gap_detection(self):
+        """iteration_abandoned schema must include gap detection fields."""
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
+            content = f.read()
+        assert "gap_seconds" in content, \
+            "iteration_abandoned missing gap_seconds field"
+        assert "detected_by" in content, \
+            "iteration_abandoned missing detected_by field"
+
+    @pytest.mark.bdd
+    def test_req_supv_003_in_spec(self):
+        """REQ-SUPV-003 must exist in the implementation requirements."""
+        spec_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        with open(spec_path) as f:
+            content = f.read()
+        assert "REQ-SUPV-003" in content, \
+            "REQ-SUPV-003 (Failure Observability) missing from spec"
+        assert "Failure Observability" in content
+
+    @pytest.mark.bdd
+    def test_failure_events_feed_homeostatic_loop(self):
+        """Failure events must be documented as inputs to the intent generation pipeline."""
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
+            content = f.read()
+        # The agent must state that failure events can generate intents
+        assert "REQ-SUPV-003" in content, \
+            "Iterate agent does not reference REQ-SUPV-003"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 23: ADR-011 Consciousness Loop Lineage
 # ═══════════════════════════════════════════════════════════════════════
 
 

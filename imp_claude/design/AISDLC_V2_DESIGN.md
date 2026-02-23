@@ -165,7 +165,7 @@ events/events.jsonl           ──►  STATUS.md           (Gantt, telemetry, 
                               ──►  gap analysis         (findings aggregated across edges)
 ```
 
-Event types (20): `project_initialized`, `iteration_completed`, `edge_started`, `edge_converged`, `spawn_created`, `spawn_folded_back`, `checkpoint_created`, `review_completed`, `gaps_validated`, `release_created`, `intent_raised`, `spec_modified`, `interoceptive_signal`, `exteroceptive_signal`, `affect_triage`, `draft_proposal`, `claim_rejected`, `edge_released`, `claim_expired`, `convergence_escalated`.
+Event types (25): `project_initialized`, `iteration_completed`, `edge_started`, `edge_converged`, `spawn_created`, `spawn_folded_back`, `checkpoint_created`, `review_completed`, `gaps_validated`, `release_created`, `intent_raised`, `spec_modified`, `encoding_escalated`, `interoceptive_signal`, `exteroceptive_signal`, `affect_triage`, `draft_proposal`, `claim_rejected`, `edge_released`, `claim_expired`, `convergence_escalated`, `evaluator_detail`, `command_error`, `health_checked`, `iteration_abandoned`.
 
 Note: `edge_claim` is an inbox-local event in multi-agent mode (ADR-013) — it never appears in the canonical event log. The serialiser transforms it into `edge_started` (granted) or `claim_rejected` (conflict).
 
