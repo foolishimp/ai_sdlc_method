@@ -14,6 +14,7 @@ import subprocess
 import textwrap
 import threading
 import time
+from datetime import datetime, timezone
 
 import pytest
 
@@ -34,6 +35,83 @@ PLUGIN_ROOT = (
 CONFIG_DIR = PLUGIN_ROOT / "config"
 COMMANDS_DIR = PLUGIN_ROOT / "commands"
 AGENTS_DIR = PLUGIN_ROOT / "agents"
+RUNS_DIR = pathlib.Path(__file__).parent / "runs"
+
+# Module-level state: archive path set by converged_project fixture,
+# read by pytest_sessionfinish to write test results into the archive.
+_archive_path: pathlib.Path | None = None
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN ARCHIVE HELPERS
+# ═══════════════════════════════════════════════════════════════════════
+
+def _get_plugin_version() -> str:
+    """Read version from plugin.json. Falls back to 'unknown'."""
+    try:
+        data = json.loads((PLUGIN_ROOT / "plugin.json").read_text())
+        return data.get("version", "unknown")
+    except (OSError, json.JSONDecodeError):
+        return "unknown"
+
+
+def _compute_run_dir(failed: bool = False) -> pathlib.Path:
+    """Compute next runs/<version>_<datetime>_<seq> path.
+
+    Sequence = max existing sequence number + 1 (monotonic even after cleanup).
+    Failed runs get FAILED_ prefix.
+    """
+    import re
+    version = _get_plugin_version()
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+
+    seq_pattern = re.compile(r"_(\d{4})$")
+    max_seq = 0
+    for d in RUNS_DIR.iterdir():
+        if d.is_dir() and not d.name.startswith("."):
+            m = seq_pattern.search(d.name)
+            if m:
+                max_seq = max(max_seq, int(m.group(1)))
+    seq = max_seq + 1
+
+    prefix = "FAILED_" if failed else ""
+    name = f"{prefix}{version}_{ts}_{seq:04d}"
+    return RUNS_DIR / name
+
+
+def _persist_run(source_dir: pathlib.Path, failed: bool = False) -> pathlib.Path | None:
+    """Copy project dir to runs/ archive. Best-effort — warns on failure.
+
+    Excludes .git and __pycache__ directories.
+    Writes run_manifest.json into the archive's .e2e-meta/ directory.
+    Returns the archive path on success, None on failure.
+    """
+    try:
+        dest = _compute_run_dir(failed=failed)
+        shutil.copytree(
+            source_dir, dest,
+            ignore=shutil.ignore_patterns(".git", "__pycache__"),
+        )
+        # Write manifest
+        meta_dir = dest / ".e2e-meta"
+        meta_dir.mkdir(exist_ok=True)
+        manifest = {
+            "version": _get_plugin_version(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "source_dir": str(source_dir),
+            "failed": failed,
+        }
+        (meta_dir / "run_manifest.json").write_text(
+            json.dumps(manifest, indent=2) + "\n"
+        )
+        status = "FAILED" if failed else "OK"
+        print(f"E2E: Archived run ({status}) → {dest}", flush=True)
+        return dest
+    except Exception as exc:
+        print(f"E2E: WARNING — failed to archive run: {exc}", flush=True)
+        return None
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # CONTENT TEMPLATES
@@ -413,13 +491,12 @@ def _copy_agents(dest_dir: pathlib.Path) -> None:
 
 
 def _write_initial_event(events_file: pathlib.Path, project_name: str) -> None:
-    from datetime import datetime, timezone
     event = {
         "event_type": "project_initialized",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "project": project_name,
         "profile": "standard",
-        "version": "2.8.0",
+        "version": _get_plugin_version(),
     }
     events_file.parent.mkdir(parents=True, exist_ok=True)
     with open(events_file, "w") as f:
@@ -636,8 +713,6 @@ def run_claude_headless(
 @pytest.fixture(scope="session")
 def e2e_project_dir(tmp_path_factory) -> pathlib.Path:
     """Create a fully scaffolded test project for Claude to converge."""
-    from datetime import datetime, timezone
-
     project_dir = tmp_path_factory.mktemp("temperature-converter")
     timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -784,7 +859,10 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
     if missing_edges:
         print(f"E2E: Missing edges: {missing_edges}", flush=True)
 
+    global _archive_path
+
     if result.timed_out and not converged_edges:
+        _archive_path = _persist_run(project_dir, failed=True)
         pytest.fail(
             f"Claude killed (wall timeout) after {result.elapsed:.0f}s "
             f"with no convergence artifacts.\n"
@@ -797,6 +875,7 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
               f"proceeding with validation.", flush=True)
 
     if result.returncode != 0 and not result.timed_out and not converged_edges:
+        _archive_path = _persist_run(project_dir, failed=True)
         pytest.fail(
             f"Claude exited with code {result.returncode} "
             f"after {result.elapsed:.0f}s with no convergence artifacts.\n"
@@ -805,4 +884,79 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
             f"Full logs: {meta_dir}"
         )
 
+    # Archive now; pytest_sessionfinish writes test_results.json into it later.
+    _archive_path = _persist_run(project_dir, failed=False)
     return project_dir
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TEST RESULTS CAPTURE
+# ═══════════════════════════════════════════════════════════════════════
+
+def pytest_sessionfinish(session, exitstatus):
+    """Write test results into the run archive for forensic analysis.
+
+    Called by pytest after all tests complete. Produces test_results.json
+    with per-test pass/fail/skip status, durations, and failure messages.
+    """
+    if _archive_path is None or not _archive_path.exists():
+        return
+
+    results = []
+    for item in session.items:
+        report = item.stash.get(_test_report_key, None)
+        if report is None:
+            results.append({"nodeid": item.nodeid, "outcome": "unknown"})
+        else:
+            entry = {
+                "nodeid": item.nodeid,
+                "outcome": report.outcome,
+                "duration": round(report.duration, 3),
+            }
+            if report.failed and report.longreprtext:
+                entry["message"] = report.longreprtext[:2000]
+            results.append(entry)
+
+    summary = {
+        "exit_status": exitstatus,
+        "total": len(results),
+        "passed": sum(1 for r in results if r["outcome"] == "passed"),
+        "failed": sum(1 for r in results if r["outcome"] == "failed"),
+        "skipped": sum(1 for r in results if r["outcome"] == "skipped"),
+        "tests": results,
+    }
+
+    meta_dir = _archive_path / ".e2e-meta"
+    meta_dir.mkdir(exist_ok=True)
+    (meta_dir / "test_results.json").write_text(
+        json.dumps(summary, indent=2) + "\n"
+    )
+    # Update run_manifest with final verdict
+    manifest_path = meta_dir / "run_manifest.json"
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text())
+            manifest["tests_passed"] = summary["passed"]
+            manifest["tests_failed"] = summary["failed"]
+            manifest["tests_total"] = summary["total"]
+            manifest["exit_status"] = exitstatus
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    status = "PASS" if exitstatus == 0 else "FAIL"
+    print(f"E2E: Test results ({status}: {summary['passed']}/{summary['total']}) "
+          f"→ {meta_dir / 'test_results.json'}", flush=True)
+
+
+# Stash key for storing per-test reports
+_test_report_key = pytest.StashKey()
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Capture test call-phase reports for pytest_sessionfinish."""
+    outcome = yield
+    report = outcome.get_result()
+    if report.when == "call":
+        item.stash[_test_report_key] = report

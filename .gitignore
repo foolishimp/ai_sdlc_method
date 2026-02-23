@@ -64,3 +64,7 @@ package-lock.json
 .ai-workspace/session/history/
 
 # Keep in git: templates, config, finished tasks, todo list, active tasks
+
+# E2E run archive (generated artifacts, not committed)
+imp_claude/tests/e2e/runs/
+!imp_claude/tests/e2e/runs/README.md

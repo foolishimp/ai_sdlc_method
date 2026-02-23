@@ -160,6 +160,44 @@ Typical run: ~$2-3, ~3-8 minutes for 4 edges.
    - Generated code (5): source files, test files, Implements/Validates tags, tests pass
    - Consistency (3): cross-artifact traceability, REQ key coverage
 
+## Run Archive
+
+Every e2e run is automatically archived to `imp_claude/tests/e2e/runs/` for historical analysis. This directory is git-ignored.
+
+### Naming Convention
+
+```
+runs/<version>_<YYYYMMDDTHHMMSS>_<NNNN>/        # successful
+runs/FAILED_<version>_<YYYYMMDDTHHMMSS>_<NNNN>/  # failed
+```
+
+Version comes from `plugin.json`, datetime is UTC, sequence is a global counter.
+
+### Viewing Runs
+
+```bash
+# List all archived runs
+ls -lt imp_claude/tests/e2e/runs/
+
+# Inspect a specific run's events
+cat imp_claude/tests/e2e/runs/2.8.0_20260223T143000_0001/.ai-workspace/events/events.jsonl | python -m json.tool --no-ensure-ascii
+
+# View in Genesis Monitor
+genesis-monitor --watch-dir imp_claude/tests/e2e/runs/
+```
+
+### Cleanup
+
+```bash
+# Remove all archived runs
+rm -rf imp_claude/tests/e2e/runs/*/
+
+# Remove only failed runs
+rm -rf imp_claude/tests/e2e/runs/FAILED_*/
+```
+
+See `imp_claude/tests/e2e/runs/README.md` for full details.
+
 ## Troubleshooting
 
 **All 22 tests SKIPPED:**
