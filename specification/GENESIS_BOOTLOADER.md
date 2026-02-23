@@ -146,6 +146,8 @@ intent = delta(observed_state, spec) where delta ≠ 0
 
 A human *can* author intent, but the system also generates it continuously: test failures, tolerance breaches, coverage gaps, ecosystem changes, and telemetry anomalies all produce intents through the same `observer → evaluator → typed_output` mechanism. This is what makes the system homeostatic — it corrects itself toward the spec without waiting for external instruction.
 
+Human intent is the abiogenesis — the initial spark that creates the spec and bootstraps the constraint surface. Once the system has a specification, interoceptive monitors (self-observation: tests, convergence, coverage), and exteroceptive monitors (environment-observation: ecosystem, runtime, telemetry), it becomes self-sustaining and self-evolving. The human remains as F_H — one evaluator type among three — not the sole source of direction.
+
 ---
 
 ## VII. Invariants: What Must Hold in Every Valid Instance
