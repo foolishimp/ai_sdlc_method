@@ -75,7 +75,7 @@ def _compute_run_dir(failed: bool = False) -> pathlib.Path:
                 max_seq = max(max_seq, int(m.group(1)))
     seq = max_seq + 1
 
-    prefix = "FAILED_" if failed else ""
+    prefix = "e2e_FAILED_" if failed else "e2e_"
     name = f"{prefix}{version}_{ts}_{seq:04d}"
     return RUNS_DIR / name
 
@@ -428,14 +428,15 @@ TEST_PROJECT_PYPROJECT = textwrap.dedent("""\
 # ═══════════════════════════════════════════════════════════════════════
 
 def _clean_env() -> dict[str, str]:
-    """Return env dict with CLAUDECODE unset (allows nested invocation).
+    """Return env dict with Claude nesting guards removed.
 
-    The claude CLI checks for CLAUDECODE in the environment and refuses to
+    The claude CLI checks for several environment variables and refuses to
     start if set (nesting guard). When running e2e tests from within a Claude
-    Code session, we must strip this variable.
+    Code session, we must strip all of them.
     """
     env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
+    for key in ["CLAUDECODE", "CLAUDE_CODE_SSE_PORT", "CLAUDE_CODE_ENTRYPOINT"]:
+        env.pop(key, None)
     return env
 
 
@@ -902,8 +903,11 @@ def pytest_sessionfinish(session, exitstatus):
     if _archive_path is None or not _archive_path.exists():
         return
 
+    # Only capture e2e tests (not the full suite)
+    e2e_items = [item for item in session.items
+                 if "e2e" in item.nodeid]
     results = []
-    for item in session.items:
+    for item in e2e_items:
         report = item.stash.get(_test_report_key, None)
         if report is None:
             results.append({"nodeid": item.nodeid, "outcome": "unknown"})

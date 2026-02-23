@@ -6,10 +6,11 @@ Persistent archive of headless Claude convergence runs. Each run is a full copy 
 
 ```
 runs/
-  <version>_<YYYYMMDDTHHMMSS>_<NNNN>/      # successful run
-  FAILED_<version>_<YYYYMMDDTHHMMSS>_<NNNN>/  # failed run
+  e2e_<version>_<YYYYMMDDTHHMMSS>_<NNNN>/         # successful run
+  e2e_FAILED_<version>_<YYYYMMDDTHHMMSS>_<NNNN>/   # failed run
 ```
 
+- **e2e_** prefix: groups runs visually in Genesis Monitor alongside real projects
 - **version**: from `plugin.json` (e.g. `2.8.0`)
 - **datetime**: UTC compact ISO 8601
 - **sequence**: 4-digit global counter across all versions
@@ -18,9 +19,9 @@ Example:
 
 ```
 runs/
-  2.8.0_20260223T143000_0001/
-  2.8.0_20260224T091500_0002/
-  FAILED_2.8.0_20260225T120000_0003/
+  e2e_2.8.0_20260223T143000_0001/
+  e2e_2.8.0_20260224T091500_0002/
+  e2e_FAILED_2.8.0_20260225T120000_0003/
 ```
 
 ## Per-Run Directory Structure
@@ -62,7 +63,7 @@ Runs are git-ignored. To reclaim disk space:
 rm -rf imp_claude/tests/e2e/runs/*/
 
 # Remove only failed runs
-rm -rf imp_claude/tests/e2e/runs/FAILED_*/
+rm -rf imp_claude/tests/e2e/runs/e2e_FAILED_*/
 
 # Remove runs older than 7 days
 find imp_claude/tests/e2e/runs/ -maxdepth 1 -type d -mtime +7 -exec rm -rf {} +

@@ -167,11 +167,11 @@ Every e2e run is automatically archived to `imp_claude/tests/e2e/runs/` for hist
 ### Naming Convention
 
 ```
-runs/<version>_<YYYYMMDDTHHMMSS>_<NNNN>/        # successful
-runs/FAILED_<version>_<YYYYMMDDTHHMMSS>_<NNNN>/  # failed
+runs/e2e_<version>_<YYYYMMDDTHHMMSS>_<NNNN>/         # successful
+runs/e2e_FAILED_<version>_<YYYYMMDDTHHMMSS>_<NNNN>/   # failed
 ```
 
-Version comes from `plugin.json`, datetime is UTC, sequence is a global counter.
+The `e2e_` prefix groups runs together in Genesis Monitor alongside real projects. Version comes from `plugin.json`, datetime is UTC, sequence is a global counter.
 
 ### Viewing Runs
 
@@ -180,7 +180,7 @@ Version comes from `plugin.json`, datetime is UTC, sequence is a global counter.
 ls -lt imp_claude/tests/e2e/runs/
 
 # Inspect a specific run's events
-cat imp_claude/tests/e2e/runs/2.8.0_20260223T143000_0001/.ai-workspace/events/events.jsonl | python -m json.tool --no-ensure-ascii
+cat imp_claude/tests/e2e/runs/e2e_2.8.0_20260223T143000_0001/.ai-workspace/events/events.jsonl | python -m json.tool --no-ensure-ascii
 
 # View in Genesis Monitor
 genesis-monitor --watch-dir imp_claude/tests/e2e/runs/
@@ -193,7 +193,7 @@ genesis-monitor --watch-dir imp_claude/tests/e2e/runs/
 rm -rf imp_claude/tests/e2e/runs/*/
 
 # Remove only failed runs
-rm -rf imp_claude/tests/e2e/runs/FAILED_*/
+rm -rf imp_claude/tests/e2e/runs/e2e_FAILED_*/
 ```
 
 See `imp_claude/tests/e2e/runs/README.md` for full details.
