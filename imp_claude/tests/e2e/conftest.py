@@ -8,6 +8,7 @@ Uses subprocess with wall timeout and budget cap (--max-budget-usd).
 import json
 import os
 import pathlib
+import signal
 import shutil
 import subprocess
 import textwrap
@@ -452,6 +453,30 @@ class ClaudeRunResult:
         return ""
 
 
+def _kill_process_group(proc: subprocess.Popen) -> None:
+    """Kill an entire process group (parent + all children).
+
+    Uses SIGTERM first (graceful), then SIGKILL after 5s if still alive.
+    Falls back to proc.kill() if process group operations fail.
+    """
+    try:
+        pgid = os.getpgid(proc.pid)
+        os.killpg(pgid, signal.SIGTERM)
+        # Give 5s for graceful shutdown
+        for _ in range(50):
+            if proc.poll() is not None:
+                return
+            time.sleep(0.1)
+        # Still alive — force kill the group
+        os.killpg(pgid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        # Process already gone, or not a group leader — fall back
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+
+
 def run_claude_headless(
     project_dir: pathlib.Path,
     prompt: str,
@@ -459,12 +484,19 @@ def run_claude_headless(
     model: str = "sonnet",
     max_budget_usd: float = 5.00,
     wall_timeout: float = 1800.0,
+    stall_timeout: float = 300.0,
     log_dir: pathlib.Path | None = None,
 ) -> ClaudeRunResult:
-    """Run claude -p with wall timeout and budget cap.
+    """Run claude -p with wall timeout, stall detection, and budget cap.
 
-    Note: claude -p buffers all output until completion, so stall detection
-    based on output bytes doesn't work. We rely on --max-budget-usd + wall_timeout.
+    Safeguards (layered):
+      1. --max-budget-usd: hard cap enforced by Claude CLI
+      2. wall_timeout: absolute wall-clock limit (default 30 min)
+      3. stall_timeout: kill if no file activity in project for N seconds (default 5 min)
+         Monitors events.jsonl, stderr.log, and all project files — so code generation
+         that doesn't produce events still counts as activity.
+      4. Process group kill: SIGTERM → SIGKILL the entire process tree (no orphans)
+
     Strips CLAUDECODE env var to allow nested invocation.
     """
     if log_dir is None:
@@ -485,35 +517,116 @@ def run_claude_headless(
     env = _clean_env()
     start = time.time()
     timed_out = False
+    stall_killed = False
+
+    def _project_fingerprint(directory: pathlib.Path) -> tuple[float, int]:
+        """Return (latest_mtime, total_file_count) for key project locations.
+
+        Checks directories where Claude writes artifacts: src/, tests/,
+        specification/, .ai-workspace/events/, .ai-workspace/features/.
+        Skips .git, .e2e-meta, __pycache__ to avoid false positives.
+        Cheap: only stats ~3 sentinel dirs + their immediate children.
+        """
+        latest = 0.0
+        count = 0
+        sentinel_dirs = [
+            directory / "src",
+            directory / "tests",
+            directory / "specification",
+            directory / ".ai-workspace" / "events",
+            directory / ".ai-workspace" / "features",
+            directory / ".ai-workspace" / "agents",
+        ]
+        for d in sentinel_dirs:
+            if not d.exists():
+                continue
+            try:
+                # Check the directory itself (mtime changes when files added/removed)
+                mt = d.stat().st_mtime
+                if mt > latest:
+                    latest = mt
+                # Check immediate children only (not recursive)
+                for child in d.iterdir():
+                    count += 1
+                    try:
+                        mt = child.stat().st_mtime
+                        if mt > latest:
+                            latest = mt
+                    except OSError:
+                        continue
+            except OSError:
+                continue
+        return latest, count
 
     with open(stdout_log, "w") as f_out, open(stderr_log, "w") as f_err:
+        # start_new_session=True makes the subprocess a process group leader,
+        # so _kill_process_group can kill it + all children (MCP servers, etc.)
         proc = subprocess.Popen(
             cmd, cwd=str(project_dir),
             stdout=f_out, stderr=f_err,
             text=True, env=env,
+            start_new_session=True,
         )
 
         def watchdog():
-            nonlocal timed_out
+            nonlocal timed_out, stall_killed
+            last_activity = time.time()
+            last_mtime, last_count = _project_fingerprint(project_dir)
+            last_stderr_size = 0
+
             while proc.poll() is None:
                 time.sleep(10)
-                if time.time() - start > wall_timeout:
+                now = time.time()
+
+                # Check wall timeout
+                if now - start > wall_timeout:
                     timed_out = True
-                    proc.kill()
+                    print(f"E2E: Wall timeout ({wall_timeout:.0f}s) — killing process group",
+                          flush=True)
+                    _kill_process_group(proc)
+                    return
+
+                # Check activity: project files modified, new files, or stderr growth
+                cur_mtime, cur_count = _project_fingerprint(project_dir)
+                try:
+                    cur_stderr = stderr_log.stat().st_size
+                except OSError:
+                    cur_stderr = 0
+
+                activity = (cur_mtime > last_mtime
+                            or cur_count != last_count
+                            or cur_stderr > last_stderr_size)
+                if activity:
+                    last_mtime = cur_mtime
+                    last_count = cur_count
+                    last_stderr_size = cur_stderr
+                    last_activity = now
+                elif now - last_activity > stall_timeout:
+                    stall_killed = True
+                    timed_out = True
+                    elapsed_so_far = now - start
+                    print(f"E2E: Stall detected — no file activity for {stall_timeout:.0f}s "
+                          f"(elapsed {elapsed_so_far:.0f}s) — killing process group",
+                          flush=True)
+                    _kill_process_group(proc)
                     return
 
         watcher = threading.Thread(target=watchdog, daemon=True)
         watcher.start()
         proc.wait()
-        watcher.join(timeout=5)
+        watcher.join(timeout=10)
 
     elapsed = time.time() - start
-    return ClaudeRunResult(
+    result = ClaudeRunResult(
         returncode=proc.returncode,
         elapsed=elapsed,
         timed_out=timed_out,
         log_dir=log_dir,
     )
+    if stall_killed:
+        # Annotate for downstream reporting
+        result.stall_killed = True
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -651,15 +764,18 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
     )
 
     # Save meta
+    stall_killed = getattr(result, "stall_killed", False)
     (meta_dir / "meta.json").write_text(json.dumps({
         "returncode": result.returncode,
         "elapsed_seconds": round(result.elapsed, 1),
         "timed_out": result.timed_out,
+        "stall_killed": stall_killed,
         "prompt": prompt,
     }, indent=2))
 
     print(f"\nE2E: Claude finished in {result.elapsed:.0f}s "
-          f"(rc={result.returncode}, timed_out={result.timed_out})", flush=True)
+          f"(rc={result.returncode}, timed_out={result.timed_out}"
+          f"{', stall_killed=True' if stall_killed else ''})", flush=True)
 
     # Check which edges converged
     converged_edges = _count_converged_edges(project_dir)
