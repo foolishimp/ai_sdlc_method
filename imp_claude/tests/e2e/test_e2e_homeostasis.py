@@ -27,6 +27,7 @@ Run:
     pytest imp_claude/tests/e2e/test_e2e_homeostasis.py -v -m e2e -s
 """
 
+import importlib.util
 import json
 import pathlib
 import shutil
@@ -36,33 +37,44 @@ from datetime import datetime, timezone
 
 import pytest
 
-from conftest import (
-    CONFIG_DIR,
-    COMMANDS_DIR,
-    AGENTS_DIR,
-    PLUGIN_ROOT,
-    RUNS_DIR,
-    INTENT_MD,
-    PROJECT_CONSTRAINTS_YML,
-    TEST_PROJECT_CLAUDE_MD,
-    TEST_PROJECT_PYPROJECT,
-    run_claude_headless,
-    skip_no_claude,
-    _clean_env,
-    _copy_config_files,
-    _copy_profile_files,
-    _copy_commands,
-    _copy_agents,
-    _get_plugin_version,
-    _persist_run,
-)
-from analyse_run import (
-    load_events as analyse_load_events,
-    analyse_iterations,
-    analyse_failure_observability,
-    analyse_homeostatic_chain,
-    print_report,
-)
+
+# ── E2E sibling-module imports ────────────────────────────────────────
+# pytest auto-discovers conftest.py and caches the parent's conftest module,
+# so bare `from conftest import` resolves to imp_claude/tests/conftest.py
+# instead of the e2e-local one. We force-load from the e2e directory.
+def _load_sibling(name: str):
+    path = pathlib.Path(__file__).parent / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(f"e2e_{name}", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+_conftest = _load_sibling("conftest")
+CONFIG_DIR = _conftest.CONFIG_DIR
+COMMANDS_DIR = _conftest.COMMANDS_DIR
+AGENTS_DIR = _conftest.AGENTS_DIR
+PLUGIN_ROOT = _conftest.PLUGIN_ROOT
+RUNS_DIR = _conftest.RUNS_DIR
+INTENT_MD = _conftest.INTENT_MD
+PROJECT_CONSTRAINTS_YML = _conftest.PROJECT_CONSTRAINTS_YML
+TEST_PROJECT_CLAUDE_MD = _conftest.TEST_PROJECT_CLAUDE_MD
+TEST_PROJECT_PYPROJECT = _conftest.TEST_PROJECT_PYPROJECT
+run_claude_headless = _conftest.run_claude_headless
+skip_no_claude = _conftest.skip_no_claude
+_clean_env = _conftest._clean_env
+_copy_config_files = _conftest._copy_config_files
+_copy_profile_files = _conftest._copy_profile_files
+_copy_commands = _conftest._copy_commands
+_copy_agents = _conftest._copy_agents
+_get_plugin_version = _conftest._get_plugin_version
+_persist_run = _conftest._persist_run
+
+_analyse = _load_sibling("analyse_run")
+analyse_load_events = _analyse.load_events
+analyse_iterations = _analyse.analyse_iterations
+analyse_failure_observability = _analyse.analyse_failure_observability
+analyse_homeostatic_chain = _analyse.analyse_homeostatic_chain
+print_report = _analyse.print_report
 
 
 # ═══════════════════════════════════════════════════════════════════════

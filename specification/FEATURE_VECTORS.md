@@ -168,10 +168,7 @@ Continuous interoceptive and exteroceptive monitoring with affect triage pipelin
 
 Plugin architecture, workspace, commands, release, test gap analysis, hooks, scaffolding, snapshots.
 
-**Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-TOOL-011
-| REQ-TOOL-012 | REQ-F-BOOT-001 | | |
-| REQ-TOOL-013 | REQ-F-BOOT-001 | | |
-| REQ-TOOL-014 | REQ-F-BOOT-001 | | |
+**Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-TOOL-011, REQ-TOOL-012, REQ-TOOL-013, REQ-TOOL-014
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -355,9 +352,9 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-TOOL-009 | REQ-F-TOOL-001 |
 | REQ-TOOL-010 | REQ-F-TOOL-001 |
 | REQ-TOOL-011 | REQ-F-TOOL-001 |
-| REQ-TOOL-012 | REQ-F-BOOT-001 | | |
-| REQ-TOOL-013 | REQ-F-BOOT-001 | | |
-| REQ-TOOL-014 | REQ-F-BOOT-001 | | |
+| REQ-TOOL-012 | REQ-F-TOOL-001 |
+| REQ-TOOL-013 | REQ-F-TOOL-001 |
+| REQ-TOOL-014 | REQ-F-TOOL-001 |
 | REQ-LIFE-004 | REQ-F-LIFE-001 |
 | REQ-LIFE-005 | REQ-F-LIFE-001 |
 | REQ-LIFE-006 | REQ-F-LIFE-001 |

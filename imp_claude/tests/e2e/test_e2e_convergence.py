@@ -13,32 +13,46 @@ Run:
     pytest imp_claude/tests/e2e/ -v -m e2e -s
 """
 
+import importlib.util
 import pathlib
 
 import pytest
 
-from conftest import skip_no_claude
-from validators import (
-    extract_req_tags,
-    find_python_files,
-    load_events,
-    load_feature_vector,
-    validate_all_edges_converged,
-    validate_code_traceability,
-    validate_delta_decreases_to_zero,
-    validate_evaluator_counts,
-    validate_event_common_fields,
-    validate_event_feature_consistency,
-    validate_feature_vector_converged,
-    validate_feature_vector_required_fields,
-    validate_generated_tests_pass,
-    validate_iteration_sequences,
-    validate_req_key_consistency,
-    validate_required_event_types,
-    validate_timestamps_monotonic,
-    validate_trajectory_timestamps,
-    validate_requirements_populated,
-)
+
+# ── E2E sibling-module imports ────────────────────────────────────────
+# pytest auto-discovers conftest.py and caches the parent's conftest module,
+# so bare `from conftest import` resolves to imp_claude/tests/conftest.py
+# instead of the e2e-local one. We force-load from the e2e directory.
+def _load_sibling(name: str):
+    path = pathlib.Path(__file__).parent / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(f"e2e_{name}", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+_conftest = _load_sibling("conftest")
+skip_no_claude = _conftest.skip_no_claude
+
+_v = _load_sibling("validators")
+extract_req_tags = _v.extract_req_tags
+find_python_files = _v.find_python_files
+load_events = _v.load_events
+load_feature_vector = _v.load_feature_vector
+validate_all_edges_converged = _v.validate_all_edges_converged
+validate_code_traceability = _v.validate_code_traceability
+validate_delta_decreases_to_zero = _v.validate_delta_decreases_to_zero
+validate_evaluator_counts = _v.validate_evaluator_counts
+validate_event_common_fields = _v.validate_event_common_fields
+validate_event_feature_consistency = _v.validate_event_feature_consistency
+validate_feature_vector_converged = _v.validate_feature_vector_converged
+validate_feature_vector_required_fields = _v.validate_feature_vector_required_fields
+validate_generated_tests_pass = _v.validate_generated_tests_pass
+validate_iteration_sequences = _v.validate_iteration_sequences
+validate_req_key_consistency = _v.validate_req_key_consistency
+validate_required_event_types = _v.validate_required_event_types
+validate_timestamps_monotonic = _v.validate_timestamps_monotonic
+validate_trajectory_timestamps = _v.validate_trajectory_timestamps
+validate_requirements_populated = _v.validate_requirements_populated
 
 FEATURE_ID = "REQ-F-CONV-001"
 REQUIRED_REQS = {"REQ-F-CONV-001", "REQ-F-CONV-002"}
