@@ -932,8 +932,8 @@ class TestContextSources:
 
     @pytest.mark.tdd
     def test_init_documents_context_sources_step(self):
-        """aisdlc-init.md must contain 'Resolve Context Sources' step."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        """gen-init.md must contain 'Resolve Context Sources' step."""
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "Resolve Context Sources" in content
 
@@ -944,17 +944,17 @@ class TestContextSources:
 
 
 class TestStartCommand:
-    """Validate /aisdlc-start command exists and is properly registered."""
+    """Validate /gen-start command exists and is properly registered."""
 
     @pytest.mark.tdd
     def test_start_command_exists(self):
-        """aisdlc-start.md must exist in commands directory."""
-        assert (COMMANDS_DIR / "aisdlc-start.md").exists()
+        """gen-start.md must exist in commands directory."""
+        assert (COMMANDS_DIR / "gen-start.md").exists()
 
     @pytest.mark.tdd
     def test_plugin_registers_start_command(self, plugin_json):
         """plugin.json must list the start command."""
-        assert "./commands/aisdlc-start.md" in plugin_json["commands"]
+        assert "./commands/gen-start.md" in plugin_json["commands"]
 
     @pytest.mark.tdd
     def test_plugin_has_13_commands(self, plugin_json):

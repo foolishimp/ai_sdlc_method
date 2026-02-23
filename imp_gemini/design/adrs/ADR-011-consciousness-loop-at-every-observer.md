@@ -39,7 +39,7 @@ The signal sources are:
 
 | Signal Source | Observer Point | When |
 |---|---|---|
-| `gap` | `/aisdlc-gaps` | Traceability validation finds uncovered REQ keys |
+| `gap` | `/gen-gaps` | Traceability validation finds uncovered REQ keys |
 | `test_failure` | Forward evaluation (TDD) | Same check fails > 3 iterations, or test reveals upstream deficiency |
 | `refactoring` | TDD refactor phase | Structural debt exceeds current feature scope |
 | `source_finding` | Backward evaluation | Source asset ambiguous/missing, `escalate_upstream` disposition |
@@ -103,9 +103,9 @@ Each `intent_raised` event carries:
 
 ### Implementation Notes
 
-- The iterate agent (`aisdlc-iterate.md`) already has three-direction gap detection. The change adds `intent_raised` emission when deltas warrant it.
+- The iterate agent (`gen-iterate.md`) already has three-direction gap detection. The change adds `intent_raised` emission when deltas warrant it.
 - The feedback loop edge config (`feedback_loop.yml`) already had 2 sources. The change adds 5 development-time sources with intent templates.
-- `/aisdlc-gaps` already finds coverage holes. The change adds `intent_raised` emission per gap cluster.
+- `/gen-gaps` already finds coverage holes. The change adds `intent_raised` emission per gap cluster.
 - The TDD edge config (`tdd.yml`) already has refactor guidance. The change adds intent generation for structural debt and stuck deltas.
 - Protocol enforcement hooks (REQ-LIFE-008) are new — they ensure `iterate()` can't skip event emission silently.
 

@@ -2,7 +2,7 @@
   "hooks": {
     "UserPromptSubmit": [
       {
-        "matcher": "aisdlc-iterate",
+        "matcher": "gen-iterate",
         "hooks": [
           {
             "type": "command",

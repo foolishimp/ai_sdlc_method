@@ -1,5 +1,5 @@
 # AI SDLC Method — Project Graph Topology
-# Derived from: claude-code/.claude-plugin/plugins/aisdlc-methodology/v2/config/graph_topology.yml
+# Derived from: claude-code/.claude-plugin/plugins/gen-methodology/v2/config/graph_topology.yml
 # Version: 2.5.0
 
 asset_types:

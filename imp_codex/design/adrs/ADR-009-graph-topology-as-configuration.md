@@ -79,7 +79,7 @@ JSON Schema is more precise but less readable for LLMs. The iterate agent needs 
 
 ### Mitigation
 
-- `/aisdlc-init` generates valid default topology from the plugin's templates
+- `/gen-init` generates valid default topology from the plugin's templates
 - The iterate agent includes instructions to validate topology before proceeding
 - A deterministic evaluator can be added for topology validation (check referential integrity)
 

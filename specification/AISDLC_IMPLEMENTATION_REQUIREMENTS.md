@@ -1010,8 +1010,8 @@ The system shall ensure that users are made aware of events requiring their appr
 - Escalation events (`escalate` output from any IntentEngine level) are surfaced to the user through at least one active notification channel
 - In interactive mode (CLI session): escalations displayed inline with clear visual distinction (not buried in output)
 - In async/service mode (sensory service, CI/CD, multi-agent): escalations written to a **pending review queue** in `.ai-workspace/reviews/pending/` as structured YAML files
-- `/aisdlc-status` always shows count of pending escalations and their summary (zero-query awareness)
-- `/aisdlc-start` checks pending escalations before feature selection — escalations take priority over iteration
+- `/gen-status` always shows count of pending escalations and their summary (zero-query awareness)
+- `/gen-start` checks pending escalations before feature selection — escalations take priority over iteration
 - Notification channels are configurable per project (in `project_constraints.yml` under `notification_channels:`):
   - `inline` (default): display in current session
   - `review_queue`: write to pending review queue (always active as fallback)
@@ -1031,7 +1031,7 @@ The system shall ensure that users are made aware of events requiring their appr
 The system shall provide a user experience for expanding any graph edge into a sub-graph (zoom in), collapsing a sub-graph back into a single edge (zoom out), and managing the lifecycle of intermediate nodes created by zoom. The zoom UX enables the user to decompose complex edges without losing traceability or graph integrity.
 
 **Acceptance Criteria**:
-- User can request zoom on any edge: `/aisdlc-zoom --edge "design→code" --level in|out|selective`
+- User can request zoom on any edge: `/gen-zoom --edge "design→code" --level in|out|selective`
 - **Zoom in**: creates intermediate asset types as new nodes between source and target. The system:
   - Proposes intermediate node types based on edge type and project context (e.g., `design→code` proposes `module_decomp → basis_projections → code_per_module`)
   - Each intermediate node gets its own asset type entry in the workspace graph topology (`.ai-workspace/graph/graph_topology.yml`)

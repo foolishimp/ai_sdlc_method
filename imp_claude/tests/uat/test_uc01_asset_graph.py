@@ -207,7 +207,7 @@ class TestIterateFunction:
         edge config provides the parameterisation for that signature.
         """
         # 1. Validate the iterate agent spec documents the 3-input signature
-        iterate_spec = AGENTS_DIR / "aisdlc-iterate.md"
+        iterate_spec = AGENTS_DIR / "gen-iterate.md"
         assert iterate_spec.exists(), "Iterate agent spec must exist"
         spec_text = iterate_spec.read_text()
 
@@ -524,7 +524,7 @@ class TestFunctorEncoding:
         assert "full" in thresholds, "Must have full profile threshold"
 
         # 3. Validate the encoding_escalated event is documented in the iterate spec
-        iterate_spec = AGENTS_DIR / "aisdlc-iterate.md"
+        iterate_spec = AGENTS_DIR / "gen-iterate.md"
         spec_text = iterate_spec.read_text()
         assert "encoding_escalated" in spec_text, (
             "Iterate agent spec must document encoding_escalated event type"

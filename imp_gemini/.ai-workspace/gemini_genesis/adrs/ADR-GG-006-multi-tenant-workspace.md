@@ -62,7 +62,7 @@ Updated Workspace Structure:
 ### Positive
 
 -   **Parallel Realization**: Multiple teams or agents can work on different design implementations in the same repository simultaneously.
--   **Clean Migration**: Moving from one design to another is as simple as creating a new tenant directory and running `/aisdlc-init --design <new>`.
+-   **Clean Migration**: Moving from one design to another is as simple as creating a new tenant directory and running `/gen-init --design <new>`.
 
 ### Negative
 

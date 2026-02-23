@@ -9,7 +9,7 @@
 
 ## Context
 
-The AI SDLC methodology exposes 9 slash commands (`/aisdlc-init`, `/aisdlc-iterate`, `/aisdlc-spawn`, `/aisdlc-status`, `/aisdlc-checkpoint`, `/aisdlc-review`, `/aisdlc-trace`, `/aisdlc-gaps`, `/aisdlc-release`). To use these effectively, the user must know:
+The AI SDLC methodology exposes 9 slash commands (`/gen-init`, `/gen-iterate`, `/gen-spawn`, `/gen-status`, `/gen-checkpoint`, `/gen-review`, `/gen-trace`, `/gen-gaps`, `/gen-release`). To use these effectively, the user must know:
 
 1. Which command to invoke
 2. The edge syntax (`--edge "requirements→design"`)
@@ -21,14 +21,14 @@ Dogfooding (CDME test04) confirmed this is the primary adoption barrier. New use
 
 ## Decision
 
-Add `/aisdlc-start` as a **state-machine controller** that detects project state and delegates to existing commands. Enhance `/aisdlc-status` with **project-wide observability**, "you are here" indicators, and health checks.
+Add `/gen-start` as a **state-machine controller** that detects project state and delegates to existing commands. Enhance `/gen-status` with **project-wide observability**, "you are here" indicators, and health checks.
 
 The two verbs are:
 
 | Command | Question it answers | Role |
 |---------|-------------------|------|
-| `/aisdlc-status` | "Where am I?" | Observability — project-wide state, per-feature trajectory, signals, health |
-| `/aisdlc-start` | "Go." | Routing — detect state, select feature, determine edge, delegate to iterate/init/spawn/review |
+| `/gen-status` | "Where am I?" | Observability — project-wide state, per-feature trajectory, signals, health |
+| `/gen-start` | "Go." | Routing — detect state, select feature, determine edge, delegate to iterate/init/spawn/review |
 
 Existing 9 commands remain as **power-user escape hatch**. Start delegates to them; it does not replace them.
 

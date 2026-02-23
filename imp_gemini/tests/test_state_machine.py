@@ -19,6 +19,8 @@ def test_detect_needs_intent(tmp_path):
     # Arrange: Create .ai-workspace but no INTENT.md
     workspace = tmp_path / ".ai-workspace"
     workspace.mkdir()
+    (workspace / "gemini_genesis").mkdir()
+    (workspace / "gemini_genesis" / "project_constraints.yml").write_text("project:\n  name: test")
     (workspace / "spec").mkdir()
     state_mgr = StateManager(workspace_root=str(workspace))
     
@@ -32,6 +34,8 @@ def test_detect_stuck(tmp_path):
     # Arrange: Create .ai-workspace, INTENT.md, features, and STUCK events
     workspace = tmp_path / ".ai-workspace"
     workspace.mkdir()
+    (workspace / "gemini_genesis").mkdir()
+    (workspace / "gemini_genesis" / "project_constraints.yml").write_text("project:\n  name: test")
     (workspace / "spec").mkdir()
     (workspace / "spec" / "INTENT.md").write_text("Intent content")
     (workspace / "features").mkdir()
@@ -42,9 +46,9 @@ def test_detect_stuck(tmp_path):
     
     # 3 iterations with same delta=5
     stuck_events = [
-        {"event_type": "iteration_completed", "feature": "REQ-F-TEST-001", "delta": 5},
-        {"event_type": "iteration_completed", "feature": "REQ-F-TEST-001", "delta": 5},
-        {"event_type": "iteration_completed", "feature": "REQ-F-TEST-001", "delta": 5}
+        {"event_type": "iteration_completed", "feature": "REQ-F-TEST-001", "edge": "intent→requirements", "delta": 5},
+        {"event_type": "iteration_completed", "feature": "REQ-F-TEST-001", "edge": "intent→requirements", "delta": 5},
+        {"event_type": "iteration_completed", "feature": "REQ-F-TEST-001", "edge": "intent→requirements", "delta": 5}
     ]
     with open(events_file, "w") as f:
         for e in stuck_events:
@@ -62,6 +66,8 @@ def test_detect_all_converged(tmp_path):
     # Arrange: Create .ai-workspace, INTENT.md, and CONVERGED features
     workspace = tmp_path / ".ai-workspace"
     workspace.mkdir()
+    (workspace / "gemini_genesis").mkdir()
+    (workspace / "gemini_genesis" / "project_constraints.yml").write_text("project:\n  name: test")
     (workspace / "spec").mkdir()
     (workspace / "spec" / "INTENT.md").write_text("Intent content")
     (workspace / "features").mkdir()

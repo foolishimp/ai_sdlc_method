@@ -18,6 +18,7 @@ description: |
 source_analysis:
 
   - name: "design_ambiguities_identified"
+    functional_unit: sense
     criterion: |
       Read the design document and identify every component or interface that is
       ambiguous from a CODE perspective — unclear method signatures, unspecified
@@ -26,6 +27,7 @@ source_analysis:
     required: true
 
   - name: "design_gaps_for_code"
+    functional_unit: sense
     criterion: |
       Identify information the design SHOULD specify for code generation but doesn't —
       missing configuration loading, unspecified persistence layer, implied but
@@ -41,24 +43,28 @@ checklist:
 
   - name: "code_matches_design"
     type: agent
+    functional_unit: evaluate
     criterion: "Code implements the component interfaces and structure defined in the design document."
     source: default
     required: true
 
   - name: "req_tags_present"
     type: agent
+    functional_unit: evaluate
     criterion: "Every code file has '# Implements: REQ-*' tags for the requirements it satisfies."
     source: default
     required: true
 
   - name: "follows_coding_standards"
     type: agent
+    functional_unit: evaluate
     criterion: "Code follows $standards.style_guide, $standards.docstrings, and $standards.type_hints policies."
     source: default
     required: true
 
   - name: "compiles_or_parses"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Code compiles/parses without syntax errors"
     source: default
     required: true
@@ -67,6 +73,7 @@ checklist:
 
   - name: "lint_passes"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Linter reports zero violations"
     source: default
     required: true
@@ -75,6 +82,7 @@ checklist:
 
   - name: "type_check"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Type checker reports zero errors"
     source: default
     required: "$tools.type_checker.required"
@@ -84,18 +92,23 @@ checklist:
 # ─── Traceability checks (composed from traceability.yml Layer 1) ────
   - name: "req_tags_in_code"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Every production code file has at least one 'Implements: REQ-*' tag"
     source: traceability
     required: true
 
   - name: "req_tags_valid_format"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All REQ tags follow format: (Implements|Validates): REQ-{TYPE}-{DOMAIN}-{SEQ}"
     source: traceability
     required: true
 
 convergence:
   rule: "all_required_checks_pass"
+  max_iterations: 5
+  stuck_threshold: 3
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # CONTEXT GUIDANCE

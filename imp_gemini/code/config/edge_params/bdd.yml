@@ -49,6 +49,7 @@ checklist:
 
   - name: "scenarios_cover_all_requirements"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Every functional REQ key in scope has at least one Gherkin scenario.
       Minimum 1 scenario per REQ-F-* key.
@@ -57,6 +58,7 @@ checklist:
 
   - name: "business_language_only"
     type: agent
+    functional_unit: evaluate
     criterion: |
       All scenarios use business language a non-technical stakeholder understands.
       NO technical terms: API, HTTP, JSON, database, endpoint, query.
@@ -66,6 +68,7 @@ checklist:
 
   - name: "given_when_then_structure"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Every scenario follows Given/When/Then structure.
       Each step is clear and specific.
@@ -75,12 +78,14 @@ checklist:
 
   - name: "req_tags_present"
     type: agent
+    functional_unit: evaluate
     criterion: "Every Feature block has a '# Validates: REQ-*' tag."
     source: default
     required: true
 
   - name: "positive_and_negative_paths"
     type: agent
+    functional_unit: evaluate
     criterion: |
       For each REQ key, scenarios cover:
       - At least one positive (happy) path
@@ -90,18 +95,23 @@ checklist:
 
   - name: "human_approves_language"
     type: human
+    functional_unit: evaluate
     criterion: "Business stakeholder confirms scenarios are in accessible language"
     source: default
     required: true
 
   - name: "human_approves_coverage"
     type: human
+    functional_unit: evaluate
     criterion: "Business stakeholder confirms all expected behaviours are covered"
     source: default
     required: true
 
 convergence:
   rule: "all_required_checks_pass"
+  max_iterations: 5
+  stuck_threshold: 3
+
 
 agent_guidance: |
   When generating BDD scenarios:

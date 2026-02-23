@@ -23,7 +23,7 @@ Without formal intent capture from development-time observations:
 2. **Refactoring needs** decay into TODO comments instead of entering the graph as feature vectors
 3. **Source finding escalations** are reported to the human but not event-logged for telemetry analysis
 4. **Process gaps** (missing evaluators, vague criteria) are noted in iteration reports but not fed back as methodology improvement intents
-5. **Gap analysis** (`/aisdlc-gaps`) finds coverage holes but doesn't generate actionable intents from them
+5. **Gap analysis** (`/gen-gaps`) finds coverage holes but doesn't generate actionable intents from them
 
 ### Options Considered
 
@@ -41,7 +41,7 @@ The signal sources are:
 
 | Signal Source | Observer Point | When |
 |---|---|---|
-| `gap` | `/aisdlc-gaps` | Traceability validation finds uncovered REQ keys |
+| `gap` | `/gen-gaps` | Traceability validation finds uncovered REQ keys |
 | `test_failure` | Forward evaluation (TDD) | Same check fails > 3 iterations, or test reveals upstream deficiency |
 | `refactoring` | TDD refactor phase | Structural debt exceeds current feature scope |
 | `source_finding` | Backward evaluation | Source asset ambiguous/missing, `escalate_upstream` disposition |
@@ -105,9 +105,9 @@ Each `intent_raised` event carries:
 
 ### Implementation Notes
 
-- The iterate agent (`aisdlc-iterate.md`) already has three-direction gap detection. The change adds `intent_raised` emission when deltas warrant it.
+- The iterate agent (`gen-iterate.md`) already has three-direction gap detection. The change adds `intent_raised` emission when deltas warrant it.
 - The feedback loop edge config (`feedback_loop.yml`) already had 2 sources. The change adds 5 development-time sources with intent templates.
-- `/aisdlc-gaps` already finds coverage holes. The change adds `intent_raised` emission per gap cluster.
+- `/gen-gaps` already finds coverage holes. The change adds `intent_raised` emission per gap cluster.
 - The TDD edge config (`tdd.yml`) already has refactor guidance. The change adds intent generation for structural debt and stuck deltas.
 - Protocol enforcement hooks (REQ-LIFE-008) are new — they ensure `iterate()` can't skip event emission silently.
 

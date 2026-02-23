@@ -66,6 +66,7 @@ cycle: "red → green → refactor → commit → red"
 source_analysis:
 
   - name: "code_testability_issues"
+    functional_unit: sense
     criterion: |
       Analyse the existing code for testability issues — tight coupling,
       hidden dependencies, global state, side effects in constructors.
@@ -74,6 +75,7 @@ source_analysis:
     required: true
 
   - name: "design_test_gaps"
+    functional_unit: sense
     criterion: |
       Identify requirements in the design that have no obvious test strategy —
       NFRs that need integration tests, data quality rules that need
@@ -95,6 +97,7 @@ checklist:
   # ─── Deterministic checks ───────────────────────────────────────────
   - name: "tests_pass"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All tests pass"
     source: default
     required: true
@@ -103,6 +106,7 @@ checklist:
 
   - name: "coverage_meets_threshold"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Test coverage >= $thresholds.test_coverage_minimum"
     source: default
     required: true
@@ -111,6 +115,7 @@ checklist:
 
   - name: "lint_passes"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Linter reports zero violations"
     source: default
     required: true
@@ -119,6 +124,7 @@ checklist:
 
   - name: "format_check"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Code is properly formatted"
     source: default
     required: true
@@ -127,6 +133,7 @@ checklist:
 
   - name: "type_check"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Type checker reports zero errors"
     source: default
     required: "$tools.type_checker.required"
@@ -136,6 +143,7 @@ checklist:
   # ─── Agent checks ──────────────────────────────────────────────────
   - name: "req_tags_present"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Every code file has "# Implements: REQ-*" tag.
       Every test file has "# Validates: REQ-*" tag.
@@ -145,14 +153,16 @@ checklist:
 
   - name: "all_req_keys_covered"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Every REQ key in scope for this feature has at least one test
-      that references it with "# Validates: REQ-*".
+      that references it with "# Validates: REQ-*.
     source: default
     required: true
 
   - name: "code_quality"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Code follows $standards.style_guide.
       Functions focused (< $thresholds.max_function_lines lines).
@@ -164,6 +174,7 @@ checklist:
 
   - name: "test_quality"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Tests follow $standards.test_structure pattern.
       Tests are independent (no ordering dependencies).
@@ -176,18 +187,21 @@ checklist:
   # Layer 1: REQ tag coverage (required)
   - name: "req_tags_in_code"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Every production code file has at least one 'Implements: REQ-*' tag"
     source: traceability
     required: true
 
   - name: "req_tags_in_tests"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Every test file has at least one 'Validates: REQ-*' tag"
     source: traceability
     required: true
 
   - name: "req_tags_valid_format"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All REQ tags follow format: (Implements|Validates): REQ-{TYPE}-{DOMAIN}-{SEQ}"
     source: traceability
     required: true
@@ -195,6 +209,7 @@ checklist:
   # Layer 2: Test gap analysis (required)
   - name: "all_req_keys_have_tests"
     type: agent
+    functional_unit: evaluate
     criterion: "Every REQ key in scope has at least one test with 'Validates: REQ-*' tag"
     source: traceability
     required: true
@@ -202,6 +217,7 @@ checklist:
   # ─── Test data strategy ──────────────────────────────────────────────
   - name: "test_data_strategy"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Tests use representative test data — either generated or fixture-based.
       Data generators (if any) are tagged with the REQ keys they exercise.
@@ -214,6 +230,7 @@ checklist:
   # Layer 3: Telemetry gap analysis (advisory at TDD stage)
   - name: "code_req_keys_have_telemetry"
     type: agent
+    functional_unit: evaluate
     criterion: "REQ keys in code have corresponding telemetry tagging (req=\"REQ-*\")"
     source: traceability
     required: false
@@ -229,9 +246,12 @@ checklist:
 
 convergence:
   rule: "all_required_checks_pass"
+  max_iterations: 5        # escalate to human after 5 non-converging iterations
+  stuck_threshold: 3       # emit intent_raised after 3 iterations with same delta
   description: |
     This edge converges when every check in the effective checklist
     where required=true reports PASS.
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # AGENT GUIDANCE

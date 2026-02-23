@@ -79,11 +79,11 @@ Core objectives:
 
 | Concept | Claude Reference | Codex Genesis |
 | :--- | :--- | :--- |
-| Iterate engine | `aisdlc-iterate.md` universal agent | Universal orchestration routine that reads edge configs and drives tool calls |
-| Commands | `/aisdlc-*` slash commands | `aisdlc_*` executable workflows invoked through `exec_command` or routed from natural language |
+| Iterate engine | `gen-iterate.md` universal agent | Universal orchestration routine that reads edge configs and drives tool calls |
+| Commands | `/gen-*` slash commands | `aisdlc_*` executable workflows invoked through `exec_command` or routed from natural language |
 | Context | `.ai-workspace/context/*` | Same file-based context model; Codex reads workspace directly |
 | Deterministic evaluators | Tests/linters/hooks from commands | Same evaluators via shell tools and scripts |
-| Human review | `/aisdlc-review` command | Explicit review turn before promote/converge on human-required edges |
+| Human review | `/gen-review` command | Explicit review turn before promote/converge on human-required edges |
 | Event log | `.ai-workspace/events/events.jsonl` | Same append-only contract, shared across implementations |
 
 ### 1.3 Universal Iterate Orchestration (Codex)

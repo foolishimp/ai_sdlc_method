@@ -52,7 +52,7 @@ class TestEvaluatorTypes:
         behaviour: presentation of work, candidate review, decision recording,
         and the prohibition of auto-approval.
         """
-        iterate_spec = (AGENTS_DIR / "aisdlc-iterate.md").read_text()
+        iterate_spec = (AGENTS_DIR / "gen-iterate.md").read_text()
 
         # The spec must document: presenting the candidate to the human
         assert "present" in iterate_spec.lower(), (

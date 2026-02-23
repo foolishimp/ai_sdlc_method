@@ -27,7 +27,7 @@ PLUGIN_ROOT = (
     / "code"
     / ".claude-plugin"
     / "plugins"
-    / "aisdlc-methodology"
+    / "gen-methodology"
     / "v2"
 )
 CONFIG_DIR = PLUGIN_ROOT / "config"
@@ -638,7 +638,7 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
     meta_dir = project_dir / ".e2e-meta"
     meta_dir.mkdir(exist_ok=True)
 
-    prompt = '/aisdlc-start --auto --feature "REQ-F-CONV-001"'
+    prompt = '/gen-start --auto --feature "REQ-F-CONV-001"'
 
     print(f"\n{'='*60}")
     print(f"E2E: Starting headless Claude (subprocess + watchdog)")

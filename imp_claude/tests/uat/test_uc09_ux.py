@@ -177,8 +177,8 @@ class TestProgressiveDisclosure:
 
     # UC-09-10 | Validates: REQ-UX-002 | Fixture: CLEAN
     def test_init_requires_five_or_fewer_inputs(self, clean_workspace):
-        """aisdlc-init command spec requires ≤5 inputs."""
-        init_cmd = CONFIG_DIR.parent / "commands" / "aisdlc-init.md"
+        """gen-init command spec requires ≤5 inputs."""
+        init_cmd = CONFIG_DIR.parent / "commands" / "gen-init.md"
         if init_cmd.exists():
             content = init_cmd.read_text()
             # The init command should mention auto-detection of key fields
@@ -346,8 +346,8 @@ class TestFeatureSelection:
     # UC-09-21 | Validates: REQ-UX-004 | Fixture: command spec
     def test_manual_feature_edge_override(self):
         """--feature and --edge flags are documented in the start command spec."""
-        start_cmd = COMMANDS_DIR / "aisdlc-start.md"
-        assert start_cmd.exists(), "aisdlc-start.md command spec must exist"
+        start_cmd = COMMANDS_DIR / "gen-start.md"
+        assert start_cmd.exists(), "gen-start.md command spec must exist"
         content = start_cmd.read_text()
 
         # The spec must document --feature and --edge override options

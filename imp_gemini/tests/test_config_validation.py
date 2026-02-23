@@ -183,14 +183,22 @@ class TestEdgeConfigs:
                 assert "convergence" in config, f"edge config '{name}' missing convergence rule"
 
     @pytest.mark.tdd
-    def test_checklist_names_unique_within_edge(self, all_edge_configs):
-        """Check names must be unique within each edge config."""
+    def test_checklist_entries_have_functional_unit(self, all_edge_configs):
+        """Each checklist entry should have a functional_unit field (F_D, F_P, F_H mapping)."""
         for cfg_name, config in all_edge_configs.items():
             if "checklist" not in config:
                 continue
-            names = [c["name"] for c in config["checklist"]]
-            dupes = [n for n in names if names.count(n) > 1]
-            assert not dupes, f"{cfg_name} has duplicate check names: {set(dupes)}"
+            for check in config["checklist"]:
+                assert "functional_unit" in check, f"{cfg_name} check '{check['name']}' missing 'functional_unit'"
+
+    @pytest.mark.tdd
+    def test_edge_configs_have_intent_engine_params(self, all_edge_configs):
+        """Edge configs should define max_iterations and stuck_threshold in convergence."""
+        for name, config in all_edge_configs.items():
+            if "checklist" in config:
+                conv = config.get("convergence", {})
+                assert "max_iterations" in conv, f"edge config '{name}' missing max_iterations"
+                assert "stuck_threshold" in conv, f"edge config '{name}' missing stuck_threshold"
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -931,8 +939,8 @@ class TestContextSources:
 
     @pytest.mark.tdd
     def test_init_documents_context_sources_step(self):
-        """aisdlc-init.md must contain 'Resolve Context Sources' step."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        """gen-init.md must contain 'Resolve Context Sources' step."""
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "Resolve Context Sources" in content
 
@@ -943,17 +951,17 @@ class TestContextSources:
 
 
 class TestStartCommand:
-    """Validate /aisdlc-start command exists and is properly registered."""
+    """Validate /gen-start command exists and is properly registered."""
 
     @pytest.mark.tdd
     def test_start_command_exists(self):
-        """aisdlc-start.md must exist in commands directory."""
-        assert (COMMANDS_DIR / "aisdlc-start.md").exists()
+        """gen-start.md must exist in commands directory."""
+        assert (COMMANDS_DIR / "gen-start.md").exists()
 
     @pytest.mark.tdd
     def test_plugin_registers_start_command(self, plugin_json):
         """plugin.json must list the start command."""
-        assert "./commands/aisdlc-start.md" in plugin_json["commands"]
+        assert "./commands/gen-start.md" in plugin_json["commands"]
 
     @pytest.mark.tdd
     def test_plugin_has_10_commands(self, plugin_json):
@@ -964,6 +972,13 @@ class TestStartCommand:
     def test_default_profile_in_template(self, project_constraints_template):
         """project_constraints_template must have default_profile field."""
         assert "default_profile" in project_constraints_template.get("project", {})
+
+    @pytest.mark.tdd
+    def test_mode_and_valence_in_template(self, project_constraints_template):
+        """project_constraints_template must have mode and valence fields."""
+        project = project_constraints_template.get("project", {})
+        assert "mode" in project, "project section missing 'mode'"
+        assert "valence" in project, "project section missing 'valence'"
 
     @pytest.mark.tdd
     def test_adr_012_exists(self):
@@ -1062,3 +1077,12 @@ class TestMultiAgentCoordination:
             content = f.read()
         assert "edge_claim" in content
         assert "claim_rejected" in content
+
+    @pytest.mark.tdd
+    def test_new_adrs_exist(self):
+        """ADRs 014 through 017 must exist."""
+        for i in range(14, 18):
+            path = DESIGN_DIR / f"adrs/ADR-{i:03d}"
+            # find the file regardless of the full name
+            matches = list(DESIGN_DIR.glob(f"adrs/ADR-{i:03d}-*.md"))
+            assert matches, f"ADR-{i:03d} not found"

@@ -1,0 +1,60 @@
+{
+  "name": "gen-methodology-v2",
+  "version": "2.8.0",
+  "description": "AI SDLC Asset Graph Model v2.8 — universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, methodology self-observation, protocol enforcement hooks, three processing phases (reflex/affect/conscious), sensory systems, IntentEngine. 5 agents, 13 commands, 4 hooks, configurable YAML topology.",
+  "author": {
+    "name": "foolishimp"
+  },
+  "license": "MIT",
+  "keywords": [
+    "methodology",
+    "ai-sdlc",
+    "asset-graph",
+    "iterate",
+    "tdd",
+    "bdd",
+    "traceability",
+    "evaluators",
+    "context",
+    "convergence",
+    "event-sourcing",
+    "intentengine"
+  ],
+  "homepage": "https://github.com/foolishimp/ai_sdlc_method",
+  "commands": [
+    "./commands/gen-start.md",
+    "./commands/gen-init.md",
+    "./commands/gen-iterate.md",
+    "./commands/gen-spawn.md",
+    "./commands/gen-status.md",
+    "./commands/gen-checkpoint.md",
+    "./commands/gen-review.md",
+    "./commands/gen-spec-review.md",
+    "./commands/gen-escalate.md",
+    "./commands/gen-zoom.md",
+    "./commands/gen-trace.md",
+    "./commands/gen-gaps.md",
+    "./commands/gen-release.md"
+  ],
+  "agents": [
+    "./agents/gen-iterate.md",
+    "./agents/gen-dev-observer.md",
+    "./agents/gen-cicd-observer.md",
+    "./agents/gen-ops-observer.md"
+  ],
+  "hooks": [
+    "./hooks/hooks.json"
+  ],
+  "config": [
+    "./config/graph_topology.yml",
+    "./config/evaluator_defaults.yml",
+    "./config/intentengine_config.yml",
+    "./config/affect_triage.yml",
+    "./config/sensory_monitors.yml",
+    "./config/agent_roles.yml",
+    "./config/feature_vector_template.yml",
+    "./config/project_constraints_template.yml",
+    "./config/edge_params/",
+    "./config/profiles/"
+  ]
+}

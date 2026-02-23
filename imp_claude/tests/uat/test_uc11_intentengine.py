@@ -240,7 +240,7 @@ class TestIntentEngineInterface:
         - observers: agent_roles defines the observer role
         """
         # 1. Iterate agent exists
-        iterate_agent = AGENTS_DIR / "aisdlc-iterate.md"
+        iterate_agent = AGENTS_DIR / "gen-iterate.md"
         assert iterate_agent.exists(), (
             f"Iterate agent not found at {iterate_agent}"
         )

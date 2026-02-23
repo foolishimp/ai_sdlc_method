@@ -1,5 +1,5 @@
 # Feature Vector Template
-# Scaffolded by /aisdlc-iterate on first iteration for a feature
+# Scaffolded by /gen-iterate on first iteration for a feature
 # Reference: FEATURE_VECTORS.md, AI_SDLC_ASSET_GRAPH_MODEL.md §6
 #
 # Each feature vector tracks one REQ-F-* key's trajectory through the graph.
@@ -21,7 +21,7 @@ updated: "{timestamp}"
 # ═══════════════════════════════════════════════════════════════════════
 # TIME BOX (optional — for spike, poc, discovery, hotfix vectors)
 # ═══════════════════════════════════════════════════════════════════════
-# Set by /aisdlc-spawn or manually. Profile defaults apply if not set.
+# Set by /gen-spawn or manually. Profile defaults apply if not set.
 
 time_box:
   enabled: false

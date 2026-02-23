@@ -238,7 +238,7 @@ constraint_dimensions:
 #   constructor:   who produces the next candidate
 #   edge_config:   path to edge parameterisation file (optional)
 #                  In plugin source: relative to config/ (includes edge_params/ prefix)
-#                  In workspace: /aisdlc-init strips the prefix — paths are relative
+#                  In workspace: /gen-init strips the prefix — paths are relative
 #                  to .ai-workspace/graph/edges/
 
 transitions:

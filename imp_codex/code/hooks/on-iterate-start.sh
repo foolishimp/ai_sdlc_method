@@ -1,8 +1,8 @@
 #!/bin/bash
 # ============================================================================
-# on-iterate-start.sh — UserPromptSubmit hook for /aisdlc-iterate
+# on-iterate-start.sh — UserPromptSubmit hook for /gen-iterate
 #
-# Fires when user submits a prompt containing "aisdlc-iterate".
+# Fires when user submits a prompt containing "gen-iterate".
 # Records edge context so the Stop hook can verify protocol completion.
 #
 # Implements: Protocol enforcement (Layer 1 — Engine)

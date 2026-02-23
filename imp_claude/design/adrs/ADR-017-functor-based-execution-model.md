@@ -119,7 +119,7 @@ F_H(Route) → human picks feature/edge
                           F_P(Evaluate) → results surface to F_H
 ```
 
-Maximum control. The human directs everything, delegates construction to the agent, and deterministic tests validate. This is the current `/aisdlc-iterate` flow — human invokes, agent constructs, tests evaluate.
+Maximum control. The human directs everything, delegates construction to the agent, and deterministic tests validate. This is the current `/gen-iterate` flow — human invokes, agent constructs, tests evaluate.
 
 **Autopilot mode (start F_D → valence-controlled escalation):**
 
@@ -268,7 +268,7 @@ The functor model maps to the ontology's formal programme:
 - **No new code required** — the functor model is a design interpretation of existing config structures. Edge YAML evaluator sections, profiles, convergence thresholds already encode functor assignments.
 - **Unified execution model** — headless, interactive, and autopilot are not three different architectures. They are three starting conditions for the same functor composition.
 - **Composable** — valence can be tuned per edge, per profile, per project. A single project can have hotfix-valence edges (design review) and spike-valence edges (exploratory code).
-- **Observable** — the affect field in the feature vector already records urgency and escalation count. Adding `valence` makes the functor control signal explicit and visible in `/aisdlc-status`.
+- **Observable** — the affect field in the feature vector already records urgency and escalation count. Adding `valence` makes the functor control signal explicit and visible in `/gen-status`.
 - **Future-proof** — when the engine becomes executable code (post v3.0), the functor dispatch becomes a literal dispatch table. The conceptual model maps directly to implementation.
 
 ### Negative

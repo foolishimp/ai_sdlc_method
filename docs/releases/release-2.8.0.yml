@@ -115,8 +115,8 @@ config_artifacts:
   - project_constraints_template.yml
 
 command_specs:
-  - 1 agent (aisdlc-iterate.md)
-  - 10 commands (aisdlc-start, status, iterate, spawn, gaps, release, review, checkpoint, trace, init)
+  - 1 agent (gen-iterate.md)
+  - 10 commands (gen-start, status, iterate, spawn, gaps, release, review, checkpoint, trace, init)
   - 2 hooks (on-iterate-start.sh, on-stop-check-protocol.sh)
 
 implementations:
@@ -149,7 +149,7 @@ changelog:
     - "Universal iterate agent — 1 agent for all edges"
     - "Graph topology as configuration — 10 asset types, 10 transitions"
     - "9 edge parameterisations (TDD, BDD, ADR, code tagging, etc.)"
-    - "Two-command UX — /aisdlc-start + /aisdlc-status replace 9 commands"
+    - "Two-command UX — /gen-start + /gen-status replace 9 commands"
     - "Three processing phases (reflex/affect/conscious)"
     - "Two sensory systems (interoception + exteroception)"
     - "Consciousness loop at every observer"

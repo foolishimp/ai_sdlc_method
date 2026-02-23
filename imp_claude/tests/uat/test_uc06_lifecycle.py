@@ -541,7 +541,7 @@ class TestSignalClassification:
             project="uat-test-project",
             data={
                 "intent_id": "INT-GAP-001",
-                "trigger": "/aisdlc-gaps Layer 2 found 3 uncovered REQ keys",
+                "trigger": "/gen-gaps Layer 2 found 3 uncovered REQ keys",
                 "delta": "3 REQ keys without test coverage",
                 "signal_source": "gap",
                 "vector_type": "feature",
@@ -850,7 +850,7 @@ class TestProtocolEnforcement:
             "Stop hook must allow exit when circuit breaker fires"
 
         # Validate circuit breaker is documented in iterate agent
-        iterate_agent = PLUGIN_ROOT / "agents" / "aisdlc-iterate.md"
+        iterate_agent = PLUGIN_ROOT / "agents" / "gen-iterate.md"
         assert iterate_agent.exists()
         agent_content = iterate_agent.read_text()
 

@@ -48,12 +48,12 @@ Created 3 ADRs:
 
 ### Phase 4: Implementation Phase 1a (commit ecced4f)
 
-Implemented in `claude-code/.claude-plugin/plugins/aisdlc-methodology/v2/`:
+Implemented in `claude-code/.claude-plugin/plugins/gen-methodology/v2/`:
 - `config/graph_topology.yml` — 10 asset types, 10 transitions
 - `config/evaluator_defaults.yml` — 3 evaluator types
 - `config/edge_params/*.yml` — 9 edge parameterisation configs (tdd, bdd, adr, intent_requirements, requirements_design, design_code, design_tests, feedback_loop, code_tagging)
-- `agents/aisdlc-iterate.md` — Universal iterate agent
-- `commands/aisdlc-*.md` — 8 commands (init, iterate, feature, status, checkpoint, graph, context, help)
+- `agents/gen-iterate.md` — Universal iterate agent
+- `commands/gen-*.md` — 8 commands (init, iterate, feature, status, checkpoint, graph, context, help)
 
 ### Phase 5: Constraint Binding Templates (commit 0685ad9, +1,092/-263 lines)
 
@@ -62,8 +62,8 @@ Closed the gap between abstract evaluators and concrete checks:
 - `config/feature_vector_template.yml` (NEW) — template with constraints section
 - Updated all 9 edge configs with structured evaluator checklists using `$variable` references
 - Updated iterate agent with 7-step checklist composition algorithm
-- Updated /aisdlc-init with auto-detection scaffolding
-- Updated /aisdlc-iterate with effective checklist construction
+- Updated /gen-init with auto-detection scaffolding
+- Updated /gen-iterate with effective checklist construction
 
 4-layer composition: evaluator_defaults → edge checklist (with $variable refs) → project_constraints → feature acceptance_criteria
 
@@ -91,8 +91,8 @@ Created **PROJECTIONS_AND_INVARIANTS.md** addressing 6 identified gaps:
 | `v2/config/project_constraints_template.yml` | | Project tools/thresholds/standards |
 | `v2/config/feature_vector_template.yml` | | Feature vector template with constraints |
 | `v2/config/edge_params/*.yml` | 9 files | Structured evaluator checklists |
-| `v2/agents/aisdlc-iterate.md` | | Universal iterate agent |
-| `v2/commands/aisdlc-*.md` | 8 files | Graph-aware commands |
+| `v2/agents/gen-iterate.md` | | Universal iterate agent |
+| `v2/commands/gen-*.md` | 8 files | Graph-aware commands |
 | `v2/design/*.md` | 3 files | ADRs 008, 009, 010 |
 
 ## Commits

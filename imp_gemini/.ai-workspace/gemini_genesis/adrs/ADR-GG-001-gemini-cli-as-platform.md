@@ -21,7 +21,7 @@ Gemini CLI provides a different set of primitives than Claude Code:
 
 ### Options Considered
 
-1.  **Direct Port of Claude Commands**: Implement `/aisdlc-*` style commands as shell scripts.
+1.  **Direct Port of Claude Commands**: Implement `/gen-*` style commands as shell scripts.
 2.  **Gemini-Native Tooling**: Implement operations as Gemini Tools and Sub-agents.
 3.  **Hybrid Approach**: Use shell scripts for low-level file ops, but Gemini-native tools for high-level methodology transitions.
 

@@ -10,7 +10,7 @@
 
 ## Context
 
-The Asset Graph Model defines a universal iteration function `iterate(Asset, Context[], Evaluators)`. In Claude Code (ADR-008), this is implemented as a single, large markdown-based agent (`aisdlc-iterate.md`) that reads edge configuration and switches personas.
+The Asset Graph Model defines a universal iteration function `iterate(Asset, Context[], Evaluators)`. In Claude Code (ADR-008), this is implemented as a single, large markdown-based agent (`gen-iterate.md`) that reads edge configuration and switches personas.
 
 Gemini CLI offers a native **Sub-agent** architecture, which allows a main orchestrator to delegate tasks to specialized experts. We need to decide how to map the universal iteration function to this architecture.
 

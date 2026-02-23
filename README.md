@@ -98,7 +98,7 @@ claude plugin add foolishimp/ai_sdlc_method
 ### 2. Initialize your project workspace
 
 ```
-/aisdlc-init
+/gen-init
 ```
 
 This scaffolds the asset graph configuration, context store, project constraints, feature tracking, and task management directories.
@@ -106,8 +106,8 @@ This scaffolds the asset graph configuration, context store, project constraints
 ### 3. Start working (two commands)
 
 ```
-/aisdlc-start            # Detects state, selects feature/edge, iterates — "Go."
-/aisdlc-status           # Project-wide state, "you are here", signals — "Where am I?"
+/gen-start            # Detects state, selects feature/edge, iterates — "Go."
+/gen-status           # Project-wide state, "you are here", signals — "Where am I?"
 ```
 
 Start handles everything: init, feature creation, edge selection, iteration. It detects your project state and routes to the right action automatically.
@@ -115,13 +115,13 @@ Start handles everything: init, feature creation, edge selection, iteration. It 
 ### Advanced (9 power-user commands)
 
 ```
-/aisdlc-iterate          # Advance an asset along a specific edge
-/aisdlc-spawn            # Spawn a new feature/spike/hotfix vector
-/aisdlc-trace            # Trace REQ keys across artifacts
-/aisdlc-gaps             # Find traceability gaps
-/aisdlc-checkpoint       # Save current progress
-/aisdlc-review           # Review an asset for promotion
-/aisdlc-release          # Prepare a release
+/gen-iterate          # Advance an asset along a specific edge
+/gen-spawn            # Spawn a new feature/spike/hotfix vector
+/gen-trace            # Trace REQ keys across artifacts
+/gen-gaps             # Find traceability gaps
+/gen-checkpoint       # Save current progress
+/gen-review           # Review an asset for promotion
+/gen-release          # Prepare a release
 ```
 
 ### Reading the spec (no tooling needed)

@@ -70,8 +70,8 @@ This is the canonical end-to-end scenario. A developer takes a project from noth
 | # | User Action | System Response | REQ Keys | Gap Status |
 |---|-------------|-----------------|----------|------------|
 | 1 | **Install Genesis** — single command installs methodology tooling into a development environment | Tooling available, version verifiable, commands/agents/configs loaded | REQ-TOOL-001 | GAP-001 |
-| 2 | **Start in empty directory** — `genesis start` (or `/aisdlc-start`) | Progressive init: detect project name, language, test runner. Ask 5 questions. Create `.ai-workspace/`, write `project_constraints.yml` (mandatory dimensions deferred), emit `project_initialized` event. | REQ-UX-001, REQ-UX-002, REQ-TOOL-003 | COVERED (spec: `/aisdlc-start` Step 1, `/aisdlc-init`) |
-| 3 | **Describe intent** — "I want to build a REST API for task management with user authentication" | Write `specification/INTENT.md` with structured template. Emit `intent_raised` event with `INT-001`. State transitions to `NO_FEATURES`. | REQ-INTENT-001, REQ-INTENT-002, REQ-LIFE-005 | COVERED (spec: `/aisdlc-start` Step 3) |
+| 2 | **Start in empty directory** — `genesis start` (or `/gen-start`) | Progressive init: detect project name, language, test runner. Ask 5 questions. Create `.ai-workspace/`, write `project_constraints.yml` (mandatory dimensions deferred), emit `project_initialized` event. | REQ-UX-001, REQ-UX-002, REQ-TOOL-003 | COVERED (spec: `/gen-start` Step 1, `/gen-init`) |
+| 3 | **Describe intent** — "I want to build a REST API for task management with user authentication" | Write `specification/INTENT.md` with structured template. Emit `intent_raised` event with `INT-001`. State transitions to `NO_FEATURES`. | REQ-INTENT-001, REQ-INTENT-002, REQ-LIFE-005 | COVERED (spec: `/gen-start` Step 3) |
 | 4 | **System creates feature vectors** — `genesis start` (auto-continues) | Parse intent, propose feature decomposition (e.g., REQ-F-AUTH-001, REQ-F-TASK-001, REQ-F-API-001). Create feature vector files in `features/active/`. Emit `spawn_created` events. State transitions to `IN_PROGRESS`. | REQ-FEAT-001, REQ-FEAT-002, REQ-FEAT-003, REQ-TOOL-004 | GAP-002 |
 | 5 | **Iterate intent→requirements** — `genesis start` (selects closest-to-complete feature, determines edge) | Load intent, generate structured requirements with REQ-F-* and REQ-NFR-* keys. Run evaluator checklist (completeness, format, gap check). Present for human review via gradient check (completeness, fidelity, boundary). Human approves. Edge converges. Emit `iteration_completed`, `edge_converged` events. | REQ-ITER-001, REQ-ITER-002, REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003, REQ-GRAPH-002 | GAP-003 |
 | 6 | **Iterate requirements→design** — `genesis start` (next unconverged edge) | Prompt for mandatory constraint dimensions (ecosystem, deployment, security, build). Generate ADRs binding technology decisions. Produce design document with `Implements: REQ-*` tags. Run gradient check. Human approves. Edge converges. | REQ-CTX-001, REQ-CTX-002, REQ-EDGE-003, REQ-UX-002, REQ-EVAL-003 | GAP-003 |
@@ -87,16 +87,16 @@ This is the canonical end-to-end scenario. A developer takes a project from noth
 - `events.jsonl` contains complete audit trail
 - Feature vector trajectories show REQ key traceability from intent to telemetry
 - `genesis-monitor` displays full Gantt, convergence, and consciousness loop
-- `/aisdlc-gaps` reports Layer 1 (tags) and Layer 2 (tests) at 100%
-- `/aisdlc-status` shows `ALL_CONVERGED` state
+- `/gen-gaps` reports Layer 1 (tags) and Layer 2 (tests) at 100%
+- `/gen-status` shows `ALL_CONVERGED` state
 
 ### Gaps
 
 | Gap ID | Description | Impact | Drives |
 |--------|-------------|--------|--------|
 | GAP-001 | **No installability requirement.** REQ-TOOL-001 says "tooling exists" but doesn't require that the tooling be installable via a single command into any project. v1.x had this (curl installer + marketplace registration) but the v2 spec dropped it. A methodology that cannot be installed into a project is not usable — installability is a spec-level constraint, not a design detail. | Step 1 has no spec backing. Users must manually configure IDE settings and copy files. | New REQ key (e.g., REQ-TOOL-011: "Tooling must be installable into any project directory via a single platform-appropriate command. Installation must be idempotent, preserve existing work, and emit a `project_initialized` event.") |
-| GAP-002 | **No automated feature decomposition from intent.** `/aisdlc-spawn` creates one feature at a time. No agent parses intent into multiple feature proposals automatically. | Step 4 requires manual feature creation — workable but not the seamless UX this scenario describes. | REQ-FEAT-001, REQ-UX-001. Consider: should `/aisdlc-start` in `NO_FEATURES` state offer "auto-decompose intent into features"? |
-| GAP-003 | **No executable orchestration engine.** The iterate agent (`aisdlc-iterate.md`), commands, and hooks are specification-grade markdown + YAML. There is no runtime that executes `iterate(Asset, Context[], Evaluators) → Asset'` as a function call. The "system response" column describes intended behaviour, not current behaviour. | Steps 5-10 require a human-in-the-loop manually invoking `/aisdlc-start` in an IDE with the specs loaded as context. The agent interprets the specs and acts accordingly — but this is F_P (probabilistic) execution of what should be F_D (deterministic) orchestration. | Central gap. Addressed by Phase 2 of implementation. Two paths: (a) build a Python runtime engine that reads configs and orchestrates, or (b) accept that the LLM-as-runtime IS the engine (F_P encoding) and focus on making the specs precise enough that any LLM can execute them reliably. Path (b) is the current de facto architecture. |
+| GAP-002 | **No automated feature decomposition from intent.** `/gen-spawn` creates one feature at a time. No agent parses intent into multiple feature proposals automatically. | Step 4 requires manual feature creation — workable but not the seamless UX this scenario describes. | REQ-FEAT-001, REQ-UX-001. Consider: should `/gen-start` in `NO_FEATURES` state offer "auto-decompose intent into features"? |
+| GAP-003 | **No executable orchestration engine.** The iterate agent (`gen-iterate.md`), commands, and hooks are specification-grade markdown + YAML. There is no runtime that executes `iterate(Asset, Context[], Evaluators) → Asset'` as a function call. The "system response" column describes intended behaviour, not current behaviour. | Steps 5-10 require a human-in-the-loop manually invoking `/gen-start` in an IDE with the specs loaded as context. The agent interprets the specs and acts accordingly — but this is F_P (probabilistic) execution of what should be F_D (deterministic) orchestration. | Central gap. Addressed by Phase 2 of implementation. Two paths: (a) build a Python runtime engine that reads configs and orchestrates, or (b) accept that the LLM-as-runtime IS the engine (F_P encoding) and focus on making the specs precise enough that any LLM can execute them reliably. Path (b) is the current de facto architecture. |
 | GAP-004 | **genesis_monitor schema drift.** The monitor (v2.5) recognises 9 event types. Current methodology (v2.8/3.0) emits 12+ types. Field structures have drifted for `edge_converged` (expects `convergence_time`, gets `iteration` + `convergence_type`) and `iteration_completed` (expects flat evaluator map, gets nested object). 4 new event types (`edge_started`, `exteroceptive_signal`, `gaps_validated`, `release_created`) render as raw untyped JSON. | Dashboard displays incomplete/degraded information. Not broken (graceful fallback) but not showing full methodology state. | genesis_monitor upgrade. ~2-3h estimated. Add 4 event types, update 3 field extractors. |
 
 ### Invariant Checks
@@ -133,11 +133,11 @@ Methodology completeness: 18% of this scenario executable today
 
 | # | User Action | System Response | REQ Keys | Gap Status |
 |---|-------------|-----------------|----------|------------|
-| 1 | **Open project** — `cd my-project && genesis start` | SessionStart hook fires: validate event log integrity, check feature vector consistency, detect staleness. Report health status. | REQ-UX-005, REQ-TOOL-002 | COVERED (spec: `on-session-start.sh`, `/aisdlc-start` Step 0) |
-| 2 | **State detection** — (automatic, part of start) | Detect state: `IN_PROGRESS`. Display: 3 features, 1 converged, 1 at code↔tests, 1 at requirements. Show "you are here" indicators. Select closest-to-complete feature. | REQ-UX-001, REQ-UX-003, REQ-GRAPH-003 | COVERED (spec: `/aisdlc-start` Step 5, `/aisdlc-status`) |
-| 3 | **Check status for detail** — `genesis status` (or `/aisdlc-status`) | Show feature trajectories with convergence markers (checkmark/dot/circle). Project rollup: edges converged, features by status, unactioned signals. Gantt chart. | REQ-TOOL-002, REQ-TOOL-009, REQ-UX-003 | COVERED (spec: `/aisdlc-status`) |
+| 1 | **Open project** — `cd my-project && genesis start` | SessionStart hook fires: validate event log integrity, check feature vector consistency, detect staleness. Report health status. | REQ-UX-005, REQ-TOOL-002 | COVERED (spec: `on-session-start.sh`, `/gen-start` Step 0) |
+| 2 | **State detection** — (automatic, part of start) | Detect state: `IN_PROGRESS`. Display: 3 features, 1 converged, 1 at code↔tests, 1 at requirements. Show "you are here" indicators. Select closest-to-complete feature. | REQ-UX-001, REQ-UX-003, REQ-GRAPH-003 | COVERED (spec: `/gen-start` Step 5, `/gen-status`) |
+| 3 | **Check status for detail** — `genesis status` (or `/gen-status`) | Show feature trajectories with convergence markers (checkmark/dot/circle). Project rollup: edges converged, features by status, unactioned signals. Gantt chart. | REQ-TOOL-002, REQ-TOOL-009, REQ-UX-003 | COVERED (spec: `/gen-status`) |
 | 4 | **Resume iteration** — (automatic from step 1, or `genesis start` again) | Load feature context (prior events, evaluator history, context hash). Resume iteration on the selected edge. Asset state is reconstructed from events, not from memory. | REQ-UX-004, REQ-GRAPH-003 | GAP-003 |
-| 5 | **Check what's blocking** — if features are blocked, user sees why | Display blocked features with reasons (spawn dependency, pending human review). Recommend unblocking action. | REQ-UX-005, REQ-SUPV-001 | COVERED (spec: `/aisdlc-start` Step 8, `/aisdlc-escalate`) |
+| 5 | **Check what's blocking** — if features are blocked, user sees why | Display blocked features with reasons (spawn dependency, pending human review). Recommend unblocking action. | REQ-UX-005, REQ-SUPV-001 | COVERED (spec: `/gen-start` Step 8, `/gen-escalate`) |
 
 ### Gaps
 
@@ -165,8 +165,8 @@ Methodology completeness: 18% of this scenario executable today
 
 | # | User Action | System Response | REQ Keys | Gap Status |
 |---|-------------|-----------------|----------|------------|
-| 1 | **Start** — `genesis start` | State detection: `STUCK`. Display stuck feature with delta history and failing checks. | REQ-UX-005, REQ-SUPV-001 | COVERED (spec: `/aisdlc-start` Step 7) |
-| 2 | **View escalation queue** — `genesis escalate` (or `/aisdlc-escalate`) | Build queue from events: 1 stuck feature (critical), 0 tolerance breaches, 0 unactioned intents. Display with context and recommended actions. | REQ-SUPV-001, REQ-SUPV-002 | COVERED (spec: `/aisdlc-escalate` Steps 1-2) |
+| 1 | **Start** — `genesis start` | State detection: `STUCK`. Display stuck feature with delta history and failing checks. | REQ-UX-005, REQ-SUPV-001 | COVERED (spec: `/gen-start` Step 7) |
+| 2 | **View escalation queue** — `genesis escalate` (or `/gen-escalate`) | Build queue from events: 1 stuck feature (critical), 0 tolerance breaches, 0 unactioned intents. Display with context and recommended actions. | REQ-SUPV-001, REQ-SUPV-002 | COVERED (spec: `/gen-escalate` Steps 1-2) |
 | 3 | **Choose: spawn discovery vector** — user selects option 1 | Emit `intent_raised` (trigger: stuck_escalation). Create discovery vector: REQ-F-SPIKE-AUTH-001 with `parent: REQ-F-AUTH-001`. Discovery vector uses `spike` profile (reduced convergence). Emit `spawn_created`. | REQ-FEAT-002, REQ-LIFE-005, REQ-FEAT-003 | GAP-003 |
 | 4 | **Investigate via spike** — `genesis start` (routes to discovery vector) | Discovery vector iterates: investigate root cause (e.g., test is checking wrong module path, or requirement is ambiguous). Produce spike report. Spike converges. | REQ-ITER-003 | GAP-003 |
 | 5 | **Fold back findings** — discovery vector completes | Fold spike outputs back to parent feature. Update parent's context with findings. Emit `spawn_folded_back`. Resume parent iteration with new context. Delta decreases. | REQ-FEAT-002, REQ-LIFE-005 | GAP-003 |
@@ -199,10 +199,10 @@ Methodology completeness: 18% of this scenario executable today
 
 | # | User Action | System Response | REQ Keys | Gap Status |
 |---|-------------|-----------------|----------|------------|
-| 1 | **Start** — `genesis start` | State: `IN_PROGRESS`. Feature selection: REQ-F-DB-001 (closest-to-complete AND blocks REQ-F-API-001). Display dependency graph. | REQ-UX-004, REQ-FEAT-002 | COVERED (spec: `/aisdlc-start` Step 5a) |
+| 1 | **Start** — `genesis start` | State: `IN_PROGRESS`. Feature selection: REQ-F-DB-001 (closest-to-complete AND blocks REQ-F-API-001). Display dependency graph. | REQ-UX-004, REQ-FEAT-002 | COVERED (spec: `/gen-start` Step 5a) |
 | 2 | **Complete DB schema** — iterate through `design→code`, `code↔unit_tests` | DB feature converges. Emit `edge_converged` for each edge. PostEvent hook fires dev-observer. | REQ-ITER-001, REQ-ITER-002 | GAP-003 |
-| 3 | **Dependency unblocks** — `genesis start` (re-routes) | REQ-F-API-001 dependency resolved. Feature selection shifts: now either API (dependency just resolved) or UI (independent, also close to complete). System explains routing decision. | REQ-FEAT-002, REQ-FEAT-003 | COVERED (spec: `/aisdlc-start` Step 5a priority tiers) |
-| 4 | **Status check** — `genesis status` | Show: DB converged, API unblocked and in-progress, UI in-progress. Gantt shows parallel tracks. "You are here" shows three features at different positions. | REQ-TOOL-002, REQ-UX-003 | COVERED (spec: `/aisdlc-status`) |
+| 3 | **Dependency unblocks** — `genesis start` (re-routes) | REQ-F-API-001 dependency resolved. Feature selection shifts: now either API (dependency just resolved) or UI (independent, also close to complete). System explains routing decision. | REQ-FEAT-002, REQ-FEAT-003 | COVERED (spec: `/gen-start` Step 5a priority tiers) |
+| 4 | **Status check** — `genesis status` | Show: DB converged, API unblocked and in-progress, UI in-progress. Gantt shows parallel tracks. "You are here" shows three features at different positions. | REQ-TOOL-002, REQ-UX-003 | COVERED (spec: `/gen-status`) |
 | 5 | **Multi-agent coordination** — (if multi-agent enabled) | Each feature claims edges via event-sourced assignment. No two agents work the same edge. Work isolation via separate staging areas. | REQ-COORD-001 through REQ-COORD-005 | GAP-006 |
 
 ### Gaps
@@ -232,9 +232,9 @@ Methodology completeness: 18% of this scenario executable today
 
 | # | User Action | System Response | REQ Keys | Gap Status |
 |---|-------------|-----------------|----------|------------|
-| 1 | **Auto-mode pauses** — `genesis start --auto` reaches human gate | Auto-mode detects `human_required: true` on `requirements→design`. Pauses. Announces: "Human gate: requirements→design requires spec-boundary review." | REQ-UX-006, REQ-EVAL-003 | COVERED (spec: `/aisdlc-start` Step 9) |
-| 2 | **Invoke spec review** — `genesis spec-review --feature REQ-F-AUTH-001 --edge requirements→design` | Load source (requirements) and target (design). Run gradient check: completeness (REQ key mapping), fidelity (intent preservation), boundary (no spec-level violations in design). Present structured review. | REQ-EVAL-003, REQ-EDGE-003 | COVERED (spec: `/aisdlc-spec-review` Steps 2-3) |
-| 3 | **Reviewer finds gap** — "REQ-F-AUTH-002 has no design binding" | Completeness gradient shows 4/5 REQ keys covered (80%). Fidelity shows REQ-F-AUTH-003 weakened ("error handling requirement softened"). Boundary clean. | REQ-CTX-001 | COVERED (spec: `/aisdlc-spec-review` Step 2a) |
+| 1 | **Auto-mode pauses** — `genesis start --auto` reaches human gate | Auto-mode detects `human_required: true` on `requirements→design`. Pauses. Announces: "Human gate: requirements→design requires spec-boundary review." | REQ-UX-006, REQ-EVAL-003 | COVERED (spec: `/gen-start` Step 9) |
+| 2 | **Invoke spec review** — `genesis spec-review --feature REQ-F-AUTH-001 --edge requirements→design` | Load source (requirements) and target (design). Run gradient check: completeness (REQ key mapping), fidelity (intent preservation), boundary (no spec-level violations in design). Present structured review. | REQ-EVAL-003, REQ-EDGE-003 | COVERED (spec: `/gen-spec-review` Steps 2-3) |
+| 3 | **Reviewer finds gap** — "REQ-F-AUTH-002 has no design binding" | Completeness gradient shows 4/5 REQ keys covered (80%). Fidelity shows REQ-F-AUTH-003 weakened ("error handling requirement softened"). Boundary clean. | REQ-CTX-001 | COVERED (spec: `/gen-spec-review` Step 2a) |
 | 4 | **Reviewer chooses: Refine** — provides specific feedback | Record decision in feature vector: `human.decision: refined`, feedback text, gradient scores. Emit `review_completed` event. Edge does NOT converge — returns to iterate with feedback as context. | REQ-EVAL-003, REQ-LIFE-005 | GAP-003 |
 | 5 | **Design iterates with feedback** — `genesis start` | Iterate agent reads previous feedback from feature vector. Produces revised design addressing gaps. Re-runs gradient check. Delta decreases. | REQ-ITER-001, REQ-ITER-002 | GAP-003 |
 | 6 | **Second review — approve** | All gradients pass. Reviewer approves. Edge converges. Emit `review_completed` + `edge_converged`. | REQ-EVAL-003, REQ-ITER-002 | GAP-003 |
@@ -265,8 +265,8 @@ Methodology completeness: 18% of this scenario executable today
 
 | # | User Action | System Response | REQ Keys | Gap Status |
 |---|-------------|-----------------|----------|------------|
-| 1 | **Recognise uncertainty** — developer decides to spike | User invokes: `genesis spawn --type spike --parent REQ-F-ML-001 --reason feasibility` | REQ-FEAT-002, REQ-TOOL-004 | COVERED (spec: `/aisdlc-spawn`) |
-| 2 | **Spike created** — system switches profile | Create spike vector with `spike` profile (code + unit_tests only, relaxed convergence, time-boxed). Parent feature paused at `design→code`. Emit `spawn_created`. | REQ-FEAT-001, REQ-ITER-003 | COVERED (spec: `/aisdlc-spawn`, feature vector template) |
+| 1 | **Recognise uncertainty** — developer decides to spike | User invokes: `genesis spawn --type spike --parent REQ-F-ML-001 --reason feasibility` | REQ-FEAT-002, REQ-TOOL-004 | COVERED (spec: `/gen-spawn`) |
+| 2 | **Spike created** — system switches profile | Create spike vector with `spike` profile (code + unit_tests only, relaxed convergence, time-boxed). Parent feature paused at `design→code`. Emit `spawn_created`. | REQ-FEAT-001, REQ-ITER-003 | COVERED (spec: `/gen-spawn`, feature vector template) |
 | 3 | **Spike iterates** — `genesis start` routes to spike | Spike uses reduced graph: skip intent→requirements→design, go straight to code↔unit_tests. Evaluate feasibility: does the ML approach work? Time-box: 4 hours. | REQ-FEAT-003, REQ-ITER-001 | GAP-003 |
 | 4 | **Spike concludes** — time-box expires or converges | Spike produces: feasibility report, prototype code, go/no-go recommendation. Emit `iteration_completed` with spike metadata. | REQ-ITER-002 | GAP-003 |
 | 5 | **Fold back to parent** — `genesis fold-back` (or automatic) | Fold spike outputs into parent context. If go: parent resumes with prototype as starting point. If no-go: parent's design pivots (emits `intent_raised` for alternative approach). Emit `spawn_folded_back`. | REQ-FEAT-002, REQ-LIFE-005 | GAP-003 |
@@ -276,7 +276,7 @@ Methodology completeness: 18% of this scenario executable today
 | Gap ID | Description | Impact | Drives |
 |--------|-------------|--------|--------|
 | GAP-003 | No executable engine | Steps 3-5 require orchestration | Phase 2 |
-| GAP-007 | **No fold-back command.** `/aisdlc-spawn` creates vectors but there is no `/aisdlc-fold-back` command to merge spike outputs back to the parent. The iterate agent spec mentions fold-back conceptually but no command implements it. | Spike lifecycle is incomplete — creation without completion. | New command: `/aisdlc-fold-back`. Add to commands/. Update graph_topology.yml if needed. |
+| GAP-007 | **No fold-back command.** `/gen-spawn` creates vectors but there is no `/gen-fold-back` command to merge spike outputs back to the parent. The iterate agent spec mentions fold-back conceptually but no command implements it. | Spike lifecycle is incomplete — creation without completion. | New command: `/gen-fold-back`. Add to commands/. Update graph_topology.yml if needed. |
 
 ### Invariant Checks
 
@@ -301,7 +301,7 @@ Methodology completeness: 18% of this scenario executable today
 | 1 | **Anomaly detected** — auth endpoint latency spikes, p99 > 500ms (threshold: 200ms) | Exteroceptive monitor detects tolerance breach on REQ-F-AUTH-001. Emit `exteroceptive_signal` event with `severity: high`. | REQ-SENSE-001, REQ-SUPV-002 | GAP-008 |
 | 2 | **IntentEngine classifies signal** — automatic | Signal classified: `bounded_nonzero` ambiguity (known requirement, unknown root cause). Output: `spec_event_log` (needs investigation, not immediate reflex). Emit `affect_triage` event. | REQ-SUPV-001, REQ-LIFE-006 | GAP-003 |
 | 3 | **Intent raised** — automatic | Emit `intent_raised`: trigger=runtime_feedback, delta="REQ-F-AUTH-001 p99 latency 523ms exceeds 200ms threshold", signal_source=exteroceptive, severity=high. | REQ-LIFE-005, REQ-INTENT-003 | GAP-003 |
-| 4 | **Developer sees intent** — `genesis status` or `genesis escalate` | Escalation queue shows: 1 high-severity item. Unactioned intent from runtime telemetry. Recommended action: spawn hotfix or discovery vector. | REQ-SUPV-001, REQ-LIFE-003 | COVERED (spec: `/aisdlc-escalate`, `/aisdlc-status`) |
+| 4 | **Developer sees intent** — `genesis status` or `genesis escalate` | Escalation queue shows: 1 high-severity item. Unactioned intent from runtime telemetry. Recommended action: spawn hotfix or discovery vector. | REQ-SUPV-001, REQ-LIFE-003 | COVERED (spec: `/gen-escalate`, `/gen-status`) |
 | 5 | **Spawn hotfix** — developer chooses to spawn hotfix vector | Create hotfix vector: REQ-F-HOTFIX-AUTH-001, profile `hotfix` (code + unit_tests + cicd only). Emit `spawn_created`. | REQ-FEAT-002, REQ-LIFE-005 | GAP-003 |
 | 6 | **Hotfix iterates and deploys** — `genesis start --auto` | Hotfix vector traverses code↔tests→cicd. Minimal edges, fast convergence. Deploy fix. Verify telemetry returns to normal. | REQ-ITER-001, REQ-LIFE-001 | GAP-003 |
 | 7 | **Loop closes** — telemetry confirms fix | Telemetry shows p99 back to 150ms. Exteroceptive monitor confirms tolerance restored. Hotfix vector converges. Fold back to parent if applicable. | REQ-LIFE-002, REQ-LIFE-003 | GAP-003, GAP-008 |
@@ -334,7 +334,7 @@ Consolidated gap registry across all scenarios. Each gap appears once; scenarios
 | GAP-004 | genesis_monitor schema drift (v2.5 → v2.8/3.0) | SC-001 | Medium | genesis_monitor upgrade |
 | GAP-005 | No automated root-cause investigation for stuck features | SC-003 | Low | Spike profile diagnostic heuristics |
 | GAP-006 | Multi-agent coordination is spec-only | SC-004 | Low | Phase 3 (post-engine) |
-| GAP-007 | No fold-back command | SC-006 | Medium | New `/aisdlc-fold-back` command |
+| GAP-007 | No fold-back command | SC-006 | Medium | New `/gen-fold-back` command |
 | GAP-008 | No runtime telemetry integration | SC-007 | Medium | REQ-SENSE-001 scope clarification |
 
 ### Gap Impact Matrix

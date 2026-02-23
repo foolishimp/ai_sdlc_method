@@ -178,8 +178,8 @@ class TestWorkflowCommands:
     # UC-08-08 | Validates: REQ-TOOL-003 | Fixture: IN_PROGRESS
     def test_status_command_exists(self):
         """Status command markdown exists."""
-        status_cmd = COMMANDS_DIR / "aisdlc-status.md"
-        assert status_cmd.exists(), "aisdlc-status command should exist"
+        status_cmd = COMMANDS_DIR / "gen-status.md"
+        assert status_cmd.exists(), "gen-status command should exist"
 
 
 # ===================================================================
@@ -194,8 +194,8 @@ class TestReleaseManagement:
     def test_release_with_semver(self):
         """Release command produces semver-versioned release."""
         # Validate the release command spec documents semver usage
-        release_cmd = COMMANDS_DIR / "aisdlc-release.md"
-        assert release_cmd.exists(), "aisdlc-release command should exist"
+        release_cmd = COMMANDS_DIR / "gen-release.md"
+        assert release_cmd.exists(), "gen-release command should exist"
 
         content = release_cmd.read_text()
 
@@ -249,7 +249,7 @@ class TestReleaseManagement:
         assert len(restored["features_included"]) == 2
 
         # Also validate the release command spec documents manifest coverage
-        release_cmd = COMMANDS_DIR / "aisdlc-release.md"
+        release_cmd = COMMANDS_DIR / "gen-release.md"
         content = release_cmd.read_text()
         assert "coverage" in content.lower(), (
             "Release command should document coverage in manifest"
@@ -262,8 +262,8 @@ class TestReleaseManagement:
     def test_release_git_tag(self):
         """Release creates git tag pointing to manifest commit."""
         # Validate the release command spec documents git tagging
-        release_cmd = COMMANDS_DIR / "aisdlc-release.md"
-        assert release_cmd.exists(), "aisdlc-release command should exist"
+        release_cmd = COMMANDS_DIR / "gen-release.md"
+        assert release_cmd.exists(), "gen-release command should exist"
 
         content = release_cmd.read_text()
 
@@ -287,8 +287,8 @@ class TestGapAnalysis:
     # UC-08-12 | Validates: REQ-TOOL-005 | Fixture: IN_PROGRESS
     def test_gap_analysis_command_exists(self):
         """Gap analysis command markdown exists."""
-        gaps_cmd = COMMANDS_DIR / "aisdlc-gaps.md"
-        assert gaps_cmd.exists(), "aisdlc-gaps command should exist"
+        gaps_cmd = COMMANDS_DIR / "gen-gaps.md"
+        assert gaps_cmd.exists(), "gen-gaps command should exist"
 
     # UC-08-13 | Validates: REQ-TOOL-005 | Fixture: IN_PROGRESS
     @pytest.mark.xfail(reason="Requires LLM-based semantic analysis", strict=False)
@@ -362,7 +362,7 @@ class TestMethodologyHooks:
         assert len(hooks) >= 1, "hooks.json should define at least one hook category"
 
         # Check for iterate-related hooks (edge transition hooks)
-        # UserPromptSubmit with aisdlc-iterate matcher fires on edge transitions
+        # UserPromptSubmit with gen-iterate matcher fires on edge transitions
         has_edge_hook = False
         for category, hook_list in hooks.items():
             if not isinstance(hook_list, list):
@@ -395,8 +395,8 @@ class TestProjectScaffolding:
     # UC-08-17 | Validates: REQ-TOOL-007 | Fixture: CLEAN
     def test_scaffolding_command_exists(self):
         """Init command for scaffolding exists."""
-        init_cmd = COMMANDS_DIR / "aisdlc-init.md"
-        assert init_cmd.exists(), "aisdlc-init command should exist"
+        init_cmd = COMMANDS_DIR / "gen-init.md"
+        assert init_cmd.exists(), "gen-init command should exist"
 
     # UC-08-18 | Validates: REQ-TOOL-007 | Fixture: CLEAN
     def test_templates_available(self):

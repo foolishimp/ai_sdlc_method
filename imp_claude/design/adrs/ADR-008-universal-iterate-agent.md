@@ -31,7 +31,7 @@ We need to decide how to implement this in Claude Code, where agents are markdow
 
 ## Decision
 
-**We will use a single iterate agent (`aisdlc-iterate.md`) that reads edge parameterisation from YAML config files to determine its behaviour.**
+**We will use a single iterate agent (`gen-iterate.md`) that reads edge parameterisation from YAML config files to determine its behaviour.**
 
 The agent has no hard-coded knowledge of "stages". It reads:
 - The edge type (which transition is being traversed)
@@ -80,7 +80,7 @@ Dynamic agent generation adds complexity without benefit. Claude Code loads the 
 
 - Structure the iterate agent with clear sections: "How You Work", "Evaluator Types", "Key Constraint"
 - Edge configs include `guidance` fields with edge-specific prompting hints
-- The `/aisdlc-review` command provides human checkpoints for quality assurance
+- The `/gen-review` command provides human checkpoints for quality assurance
 
 ---
 

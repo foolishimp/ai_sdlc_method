@@ -1,8 +1,10 @@
 # Implements: REQ-F-BOOT-001
 import os
 import json
+import yaml
 from enum import Enum
 from pathlib import Path
+from . import workspace_state
 
 class ProjectState(Enum):
     UNINITIALISED = "UNINITIALISED"
@@ -16,114 +18,25 @@ class ProjectState(Enum):
 
 class StateManager:
     def __init__(self, workspace_root: str = ".ai-workspace"):
+        # workspace_root here is actually the .ai-workspace dir
         self.workspace_root = Path(workspace_root)
-        self.events_file = self.workspace_root / "events" / "events.jsonl"
-        self.features_dir = self.workspace_root / "features" / "active"
-
-    def _get_events(self):
-        if not self.events_file.exists():
-            return []
-        events = []
-        with open(self.events_file, "r") as f:
-            for line in f:
-                try:
-                    events.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-        return events
+        # project_root is the parent
+        self.project_root = self.workspace_root.parent if self.workspace_root.name == ".ai-workspace" else self.workspace_root
 
     def get_current_state(self) -> ProjectState:
-        if not self.workspace_root.exists():
-            return ProjectState.UNINITIALISED
-
-        intent_file = self.workspace_root / "spec" / "INTENT.md"
-        if not intent_file.exists() or intent_file.stat().st_size == 0:
-            return ProjectState.NEEDS_INTENT
-
-        if not self.features_dir.exists() or not any(self.features_dir.iterdir()):
-            return ProjectState.NO_FEATURES
-
-        events = self._get_events()
-        
-        # Stuck detection: Check if last 3 iterations for any feature have same delta
-        feature_deltas = {}
-        for event in events:
-            if event.get("event_type") == "iteration_completed":
-                feat = event.get("feature")
-                delta = event.get("delta")
-                if feat not in feature_deltas:
-                    feature_deltas[feat] = []
-                feature_deltas[feat].append(delta)
-        
-        for feat, deltas in feature_deltas.items():
-            if len(deltas) >= 3 and len(set(deltas[-3:])) == 1:
-                return ProjectState.STUCK
-
-        active_features = self.get_active_features()
-        if active_features:
-            all_converged = True
-            for feat in active_features:
-                if feat.get("status") != "converged":
-                    all_converged = False
-                    break
-            if all_converged:
-                return ProjectState.ALL_CONVERGED
-
-        return ProjectState.IN_PROGRESS
+        state_str = workspace_state.detect_workspace_state(self.project_root)
+        return ProjectState(state_str)
 
     def get_active_features(self):
-        if not self.features_dir.exists():
-            return []
-        import yaml
-        features = []
-        for feat_file in self.features_dir.glob("*.yml"):
-            with open(feat_file, "r") as f:
-                try:
-                    content = f.read()
-                    if content.startswith("---"):
-                        content = content[3:]
-                    data = yaml.safe_load(content)
-                    if data:
-                        features.append(data)
-                except Exception:
-                    continue
-        return features
+        return workspace_state.get_active_features(self.workspace_root)
 
     def get_next_actionable_feature(self):
-        active_features = self.get_active_features()
-        if not active_features:
-            return None
-        
-        # Closest-to-complete algorithm:
-        # 1. Count converged edges per feature
-        # 2. Sort descending
-        def count_converged(feat):
-            traj = feat.get("trajectory", {})
-            return sum(1 for p in traj.values() if p.get("status") == "converged")
-        
-        sorted_features = sorted(active_features, key=count_converged, reverse=True)
-        # Return the first one that isn't fully converged
-        for feat in sorted_features:
-            if feat.get("status") != "converged":
-                return feat
-        return None
+        features = self.get_active_features()
+        return workspace_state.select_next_feature(features)
 
     def get_next_edge(self, feature):
-        traj = feature.get("trajectory", {})
-        
-        # Topological walk based on graph_topology.yml (hardcoded for bootstrap)
-        edges = [
-            ("intent", "requirements"),
-            ("requirements", "design"),
-            ("design", "code"),
-            ("code", "unit_tests")
-        ]
-        
-        for source, target in edges:
-            # Note: feature yml uses target phase name as the key
-            # Mapping: requirements -> requirements, design -> design, etc.
-            phase = target
-            if traj.get(phase, {}).get("status") != "converged":
-                return f"{source}→{target}"
-        
-        return None
+        # Need to load topology
+        topology_path = Path(__file__).parent.parent / "config" / "graph_topology.yml"
+        with open(topology_path, "r") as f:
+            topology = yaml.safe_load(f)
+        return workspace_state.get_next_edge(feature, topology)

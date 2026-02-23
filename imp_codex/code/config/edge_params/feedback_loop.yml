@@ -74,13 +74,13 @@ sources:
   gap_analysis:
     signal_source: gap
     description: "Traceability validation finds coverage holes"
-    trigger: "Test gaps, telemetry gaps, REQ tag coverage failures from /aisdlc-gaps"
+    trigger: "Test gaps, telemetry gaps, REQ tag coverage failures from /gen-gaps"
     intent_template: |
       ## INT-{SEQ}: Close {gap_type} gap for {REQ keys}
 
       **Source**: gap
       **Priority**: {High if test gap, Medium if telemetry gap}
-      **Triggered By**: /aisdlc-gaps — {layer} validation found {count} uncovered REQ keys
+      **Triggered By**: /gen-gaps — {layer} validation found {count} uncovered REQ keys
       **Affected Requirements**: {list of REQ keys without coverage}
       **Description**: {What's missing and why it matters}
       **Signal**: TELEM-{NNN}: {gap_type} gap — {count} REQ keys without {coverage_type}
@@ -262,7 +262,7 @@ agent_guidance: |
 
   Signal source priority for intent generation:
   - runtime_feedback, test_failure: ALWAYS generate intent
-  - gap (from /aisdlc-gaps): generate intent for each uncovered REQ key cluster
+  - gap (from /gen-gaps): generate intent for each uncovered REQ key cluster
   - refactoring: generate intent when debt exceeds current scope
   - source_finding: generate intent when escalate_upstream disposition
   - process_gap: generate intent during dogfood; log as TELEM signal otherwise

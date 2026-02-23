@@ -133,7 +133,7 @@ The review boundary is implemented as **MCP tools** exposed by the sensory servi
 - Interactive — proposals are presented with full context in the conversational interface
 - Actionable — approval triggers immediate application by the interactive session
 - Auditable — all approve/dismiss actions emit events to `events.jsonl`
-- Consistent — same UX pattern as `/aisdlc-*` commands
+- Consistent — same UX pattern as `/gen-*` commands
 
 ---
 

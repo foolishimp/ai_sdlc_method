@@ -433,8 +433,8 @@ class TestObserverIntegration:
     @pytest.mark.uat
     def test_dev_observer_references_valid_event_types(self):
         """Dev observer must reference event types that exist in the iterate agent."""
-        iterate_content = _read_file(AGENTS_DIR / "aisdlc-iterate.md")
-        observer_content = _read_file(AGENTS_DIR / "aisdlc-dev-observer.md")
+        iterate_content = _read_file(AGENTS_DIR / "gen-iterate.md")
+        observer_content = _read_file(AGENTS_DIR / "gen-dev-observer.md")
         # Observer must reference events that the iterate agent emits
         for event_type in ["iteration_completed", "edge_converged"]:
             assert event_type in observer_content, \
@@ -444,7 +444,7 @@ class TestObserverIntegration:
     @pytest.mark.uat
     def test_dev_observer_signal_sources_are_valid(self):
         """Dev observer's signal sources must be from the defined set."""
-        content = _read_file(AGENTS_DIR / "aisdlc-dev-observer.md")
+        content = _read_file(AGENTS_DIR / "gen-dev-observer.md")
         # Extract signal sources mentioned
         mentioned = set(re.findall(r'`(\w+)`', content))
         signal_sources_in_doc = mentioned & self.VALID_SIGNAL_SOURCES
@@ -454,28 +454,28 @@ class TestObserverIntegration:
     @pytest.mark.uat
     def test_cicd_observer_reads_req_tags(self):
         """CI/CD observer must read Implements:/Validates: tags to map failures."""
-        content = _read_file(AGENTS_DIR / "aisdlc-cicd-observer.md")
+        content = _read_file(AGENTS_DIR / "gen-cicd-observer.md")
         assert "Implements:" in content
         assert "Validates:" in content
 
     @pytest.mark.uat
     def test_ops_observer_integrates_with_sensory(self):
         """Ops observer must consume sensory signals (interoceptive/exteroceptive)."""
-        content = _read_file(AGENTS_DIR / "aisdlc-ops-observer.md")
+        content = _read_file(AGENTS_DIR / "gen-ops-observer.md")
         assert "interoceptive" in content.lower()
         assert "exteroceptive" in content.lower()
 
     @pytest.mark.uat
     def test_all_observers_emit_observer_signal(self):
         """All 3 observers must emit observer_signal event type."""
-        for agent in ["aisdlc-dev-observer.md", "aisdlc-cicd-observer.md", "aisdlc-ops-observer.md"]:
+        for agent in ["gen-dev-observer.md", "gen-cicd-observer.md", "gen-ops-observer.md"]:
             content = _read_file(AGENTS_DIR / agent)
             assert "observer_signal" in content, f"{agent} doesn't emit observer_signal"
 
     @pytest.mark.uat
     def test_all_observers_are_read_only(self):
         """All observers must declare they do not modify files."""
-        for agent in ["aisdlc-dev-observer.md", "aisdlc-cicd-observer.md", "aisdlc-ops-observer.md"]:
+        for agent in ["gen-dev-observer.md", "gen-cicd-observer.md", "gen-ops-observer.md"]:
             content = _read_file(AGENTS_DIR / agent)
             assert "NOT" in content and ("modify" in content.lower() or "read-only" in content.lower()), \
                 f"{agent} doesn't clearly state it's read-only"
@@ -603,9 +603,9 @@ class TestAbiogenesisLoop:
     @pytest.mark.uat
     def test_observer_agents_bridge_the_gap(self):
         """Observer agents must exist to close the loop between events and intents."""
-        assert (AGENTS_DIR / "aisdlc-dev-observer.md").exists()
-        assert (AGENTS_DIR / "aisdlc-cicd-observer.md").exists()
-        assert (AGENTS_DIR / "aisdlc-ops-observer.md").exists()
+        assert (AGENTS_DIR / "gen-dev-observer.md").exists()
+        assert (AGENTS_DIR / "gen-cicd-observer.md").exists()
+        assert (AGENTS_DIR / "gen-ops-observer.md").exists()
 
     @pytest.mark.uat
     def test_feedback_loop_config_exists(self):

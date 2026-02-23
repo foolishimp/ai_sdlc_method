@@ -2512,7 +2512,7 @@ Given an IntentEngine escalation during sensory service processing (async mode)
 When the escalation occurs outside an interactive session
 Then the escalation is written to .ai-workspace/reviews/pending/ as structured YAML
 And the YAML includes: source level, triggering signal, affected features, timestamp
-And the next /aisdlc-status displays the pending count
+And the next /gen-status displays the pending count
 ```
 
 ### UC-09-30: Zoom in expands edge to sub-graph

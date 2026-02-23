@@ -17,7 +17,7 @@ def main():
             edge = state_mgr.get_next_edge(feature)
             print(f"Feature: {feature.get('feature')} \"{feature.get('title')}\"")
             print(f"Next Edge: {edge}")
-            print(f"Delegating to /aisdlc-iterate --edge \"{edge}\" --feature \"{feature.get('feature')}\"")
+            print(f"Delegating to /gen-iterate --edge \"{edge}\" --feature \"{feature.get('feature')}\"")
         else:
             print("No actionable features found in IN_PROGRESS state.")
     elif current_state == ProjectState.STUCK:
@@ -25,7 +25,7 @@ def main():
         print("Recommended Action: Spawn a discovery vector or request human review.")
     elif current_state == ProjectState.ALL_CONVERGED:
         print("Project ALL_CONVERGED. 🎉")
-        print("Recommended Action: Run aisdlc_status --gantt then aisdlc_release.")
+        print("Recommended Action: Run gen_status --gantt then gen_release.")
     else:
         print(f"Next step for {current_state.value} not yet implemented.")
 

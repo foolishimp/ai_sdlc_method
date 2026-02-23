@@ -109,7 +109,7 @@ From within a Claude Code session, ask Claude to:
 2. Drive convergence via MCP:
    ```
    Use claude_code tool with workFolder=/tmp/e2e-temperature-converter
-   to run /aisdlc-start --auto --feature "REQ-F-CONV-001"
+   to run /gen-start --auto --feature "REQ-F-CONV-001"
    ```
 
 3. Run validators:
@@ -152,7 +152,7 @@ Typical run: ~$2-3, ~3-8 minutes for 4 edges.
    - All 10 methodology commands in `.claude/commands/`
    - Human evaluators overridden to agent-only
 
-2. **Runs** headless Claude with `/aisdlc-start --auto --feature "REQ-F-CONV-001"`
+2. **Runs** headless Claude with `/gen-start --auto --feature "REQ-F-CONV-001"`
 
 3. **Validates** 22 checks across 4 categories:
    - Events (9): file exists, valid JSON, required types, timestamps, edge convergence

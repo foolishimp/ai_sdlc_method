@@ -8,8 +8,8 @@ created: "2026-02-21T14:00:00Z"
 updated: "2026-02-22T06:15:00Z"
 
 description: |
-  Two-command UX layer: /aisdlc-start (state-driven routing) and
-  /aisdlc-status (full observability). Start detects project state,
+  Two-command UX layer: /gen-start (state-driven routing) and
+  /gen-status (full observability). Start detects project state,
   selects features, delegates to iterate. Status shows progress,
   Gantt chart, process telemetry, self-reflection. Progressive init
   with ≤5 questions. Deferred constraint dimensions to design edge.

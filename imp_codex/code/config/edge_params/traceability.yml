@@ -4,7 +4,7 @@
 #
 # Cross-cutting concern: validates REQ key coverage across the asset graph.
 # These checks are COMPOSED INTO other edge checklists or run standalone
-# via /aisdlc-gaps. They formalise the grep-based feature views into
+# via /gen-gaps. They formalise the grep-based feature views into
 # evaluator checks with pass/fail criteria.
 
 ---
@@ -165,7 +165,7 @@ layer_3_telemetry_gaps:
 # code→cicd             | required| required| required
 # telemetry→intent      | —       | —       | required
 #
-# The /aisdlc-gaps command runs all 3 layers as a standalone report.
+# The /gen-gaps command runs all 3 layers as a standalone report.
 
 convergence:
   rule: "all_required_checks_pass"
@@ -178,7 +178,7 @@ agent_guidance: |
   4. Grep telemetry/logging for req="REQ-*" — build telemetry coverage map
   5. Cross-reference: spec → code → tests → telemetry
   6. Report gaps at each layer
-  7. Suggest /aisdlc-iterate commands to close each gap
+  7. Suggest /gen-iterate commands to close each gap
 
   The grep patterns are:
   - Code:      grep -rn "Implements: REQ-" src/ lib/ app/

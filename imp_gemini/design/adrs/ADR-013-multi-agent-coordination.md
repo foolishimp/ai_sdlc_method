@@ -109,7 +109,7 @@ Convergence outside authority → `convergence_escalated` event → held for hum
 
 ### Markov-Aligned Parallelism
 
-`/aisdlc-start` in multi-agent mode uses the inner product (spec §6.7) to route agents:
+`/gen-start` in multi-agent mode uses the inner product (spec §6.7) to route agents:
 
 - **Zero inner product** (no shared modules): freely assign to parallel agents
 - **Non-zero inner product** (shared modules): warn, suggest sequential ordering

@@ -32,7 +32,7 @@ from conftest import (
 
 class TestInitWorkflow:
     """
-    GIVEN the /aisdlc-init command and plugin configs
+    GIVEN the /gen-init command and plugin configs
     WHEN a user initializes a new project
     THEN all required workspace directories and files are scaffolded.
     """
@@ -40,7 +40,7 @@ class TestInitWorkflow:
     @pytest.mark.bdd
     def test_init_command_references_all_scaffold_dirs(self):
         """Init command must describe all workspace directories."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         expected_dirs = [
             "graph/", "edges/", "context/", "adrs/",
@@ -54,28 +54,28 @@ class TestInitWorkflow:
     @pytest.mark.bdd
     def test_init_copies_graph_topology(self):
         """Init must copy graph_topology.yml to workspace."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "graph_topology.yml" in content
 
     @pytest.mark.bdd
     def test_init_copies_edge_configs(self):
         """Init must copy edge_params/ to workspace."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "edge_params/" in content
 
     @pytest.mark.bdd
     def test_init_copies_profiles(self):
         """Init must copy profiles/ to workspace."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "profiles/" in content
 
     @pytest.mark.bdd
     def test_init_scaffolds_project_constraints(self):
         """Init must scaffold project_constraints.yml with auto-detection."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "project_constraints" in content
         assert "auto-detect" in content.lower() or "detect" in content.lower()
@@ -83,7 +83,7 @@ class TestInitWorkflow:
     @pytest.mark.bdd
     def test_init_creates_intent_placeholder(self):
         """Init must create specification/INTENT.md placeholder."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "INTENT.md" in content
 
@@ -134,7 +134,7 @@ class TestEdgeTraversal:
     @pytest.mark.bdd
     def test_iterate_agent_covers_all_edge_types(self):
         """The iterate agent must have guidance for all pre-CI/CD edge patterns."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         expected_patterns = [
             "Intent → Requirements",
@@ -227,13 +227,13 @@ class TestSpawnFoldBack:
 
     @pytest.mark.bdd
     def test_spawn_command_exists(self):
-        """The /aisdlc-spawn command must exist."""
-        assert (COMMANDS_DIR / "aisdlc-spawn.md").exists()
+        """The /gen-spawn command must exist."""
+        assert (COMMANDS_DIR / "gen-spawn.md").exists()
 
     @pytest.mark.bdd
     def test_spawn_command_supports_vector_types(self):
         """Spawn command must support discovery, spike, poc, hotfix types."""
-        with open(COMMANDS_DIR / "aisdlc-spawn.md") as f:
+        with open(COMMANDS_DIR / "gen-spawn.md") as f:
             content = f.read()
         for vtype in ("discovery", "spike", "poc", "hotfix"):
             assert vtype in content, f"spawn command missing vector type: {vtype}"
@@ -241,7 +241,7 @@ class TestSpawnFoldBack:
     @pytest.mark.bdd
     def test_spawn_command_defines_fold_back(self):
         """Spawn command must describe the fold-back process."""
-        with open(COMMANDS_DIR / "aisdlc-spawn.md") as f:
+        with open(COMMANDS_DIR / "gen-spawn.md") as f:
             content = f.read()
         assert "fold-back" in content.lower() or "fold_back" in content.lower()
         assert "Context[]" in content or "context" in content.lower()
@@ -263,7 +263,7 @@ class TestSpawnFoldBack:
     @pytest.mark.bdd
     def test_iterate_agent_detects_spawn_opportunities(self):
         """Iterate agent must document spawn detection."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "Spawn" in content or "spawn" in content
         assert "Discovery" in content or "discovery" in content
@@ -284,7 +284,7 @@ class TestExtendedConvergence:
     @pytest.mark.bdd
     def test_iterate_agent_supports_extended_convergence(self):
         """Iterate agent must define extended convergence model."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "question_answered" in content
         assert "time_box_expired" in content
@@ -292,7 +292,7 @@ class TestExtendedConvergence:
     @pytest.mark.bdd
     def test_iterate_command_supports_extended_convergence(self):
         """Iterate command must handle extended convergence in results."""
-        with open(COMMANDS_DIR / "aisdlc-iterate.md") as f:
+        with open(COMMANDS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "CONVERGED_QUESTION_ANSWERED" in content
         assert "TIME_BOX_EXPIRED" in content
@@ -326,7 +326,7 @@ class TestExtendedConvergence:
 class TestTraceabilityPipeline:
     """
     GIVEN the traceability validation system
-    WHEN running /aisdlc-gaps
+    WHEN running /gen-gaps
     THEN all 3 layers (REQ tags, test gaps, telemetry gaps) are checked.
     """
 
@@ -346,7 +346,7 @@ class TestTraceabilityPipeline:
     @pytest.mark.bdd
     def test_gaps_command_supports_layers(self):
         """Gaps command must support --layer flag."""
-        with open(COMMANDS_DIR / "aisdlc-gaps.md") as f:
+        with open(COMMANDS_DIR / "gen-gaps.md") as f:
             content = f.read()
         assert "--layer" in content
         assert "Layer 1" in content
@@ -407,7 +407,7 @@ class TestMethodologySelfConsistency:
     @pytest.mark.bdd
     def test_iterate_agent_references_req_keys(self):
         """Iterate agent must reference REQ key discipline."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "Implements: REQ-" in content
         assert "Validates: REQ-" in content
@@ -445,7 +445,7 @@ class TestTaskUpdateOnConvergence:
     @pytest.mark.bdd
     def test_iterate_command_mandates_task_update(self):
         """Iterate command must include task log update as a derived view."""
-        with open(COMMANDS_DIR / "aisdlc-iterate.md") as f:
+        with open(COMMANDS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "Task log" in content or "ACTIVE_TASKS.md" in content
         assert "ACTIVE_TASKS.md" in content
@@ -453,14 +453,14 @@ class TestTaskUpdateOnConvergence:
     @pytest.mark.bdd
     def test_iterate_agent_mandates_task_update(self):
         """Iterate agent must include task tracking step."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "Update Task Tracking" in content or "Step 5a" in content
 
     @pytest.mark.bdd
     def test_iterate_report_includes_task_log(self):
         """Iteration report format must include TASK LOG line."""
-        with open(COMMANDS_DIR / "aisdlc-iterate.md") as f:
+        with open(COMMANDS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "TASK LOG" in content
 
@@ -482,21 +482,21 @@ class TestTaskUpdateOnConvergence:
 class TestGanttChartSupport:
     """
     GIVEN a project with feature vectors that have trajectory timestamps
-    WHEN the user runs /aisdlc-status --gantt
+    WHEN the user runs /gen-status --gantt
     THEN a Mermaid Gantt chart is generated showing the build schedule.
     """
 
     @pytest.mark.bdd
     def test_status_command_has_gantt_flag(self):
         """Status command must support --gantt flag."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "--gantt" in content
 
     @pytest.mark.bdd
     def test_status_command_documents_gantt_format(self):
         """Status command must specify Mermaid Gantt output format."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "gantt" in content.lower()
         assert "mermaid" in content.lower()
@@ -504,7 +504,7 @@ class TestGanttChartSupport:
     @pytest.mark.bdd
     def test_status_command_maps_status_to_gantt_states(self):
         """Status command must define mapping from trajectory status to Gantt task states."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         for state in (":done", ":active", ":crit"):
             assert state in content, f"Gantt state '{state}' not documented"
@@ -512,14 +512,14 @@ class TestGanttChartSupport:
     @pytest.mark.bdd
     def test_status_command_has_phase_summary(self):
         """Status command must include phase completion summary table."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Phase Completion Summary" in content
 
     @pytest.mark.bdd
     def test_status_gantt_writes_to_file(self):
         """Gantt output must be written to .ai-workspace/STATUS.md, not terminal."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "STATUS.md" in content
         assert "Write" in content or "write" in content
@@ -529,7 +529,7 @@ class TestGanttChartSupport:
     @pytest.mark.bdd
     def test_status_includes_process_telemetry(self):
         """STATUS.md must include a Process Telemetry section with structured observations."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Process Telemetry" in content
         for subsection in ("Convergence Pattern", "Traceability Coverage", "Constraint Surface"):
@@ -538,7 +538,7 @@ class TestGanttChartSupport:
     @pytest.mark.bdd
     def test_status_includes_self_reflection(self):
         """STATUS.md must include Self-Reflection section that feeds back to new Intent."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Self-Reflection" in content
         assert "Feedback" in content or "feedback" in content
@@ -561,7 +561,7 @@ class TestTelemetryLoop:
     @pytest.mark.bdd
     def test_iterate_command_emits_event(self):
         """Iterate command must emit an event to events.jsonl on every iteration."""
-        with open(COMMANDS_DIR / "aisdlc-iterate.md") as f:
+        with open(COMMANDS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "events.jsonl" in content
         assert "append-only" in content.lower()
@@ -569,7 +569,7 @@ class TestTelemetryLoop:
     @pytest.mark.bdd
     def test_iterate_command_updates_derived_views(self):
         """Iterate command must update all derived views after emitting event."""
-        with open(COMMANDS_DIR / "aisdlc-iterate.md") as f:
+        with open(COMMANDS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "STATUS.md" in content
         assert "ACTIVE_TASKS.md" in content
@@ -578,7 +578,7 @@ class TestTelemetryLoop:
     @pytest.mark.bdd
     def test_iterate_agent_emits_event(self):
         """Iterate agent must emit an event to events.jsonl."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "events.jsonl" in content
         assert "append-only" in content.lower()
@@ -586,7 +586,7 @@ class TestTelemetryLoop:
     @pytest.mark.bdd
     def test_iterate_agent_updates_derived_views(self):
         """Iterate agent must update derived views after emitting event."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "STATUS.md" in content
         assert "Step 5b" in content
@@ -594,7 +594,7 @@ class TestTelemetryLoop:
     @pytest.mark.bdd
     def test_status_command_documents_event_sourcing(self):
         """Status command must document the event sourcing architecture."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "event sourcing" in content.lower() or "Event Sourcing" in content
         assert "events.jsonl" in content
@@ -603,7 +603,7 @@ class TestTelemetryLoop:
     @pytest.mark.bdd
     def test_status_command_has_event_schema(self):
         """Status command must define the event JSON schema."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Event Schema" in content
         assert "iteration_completed" in content
@@ -611,9 +611,9 @@ class TestTelemetryLoop:
     @pytest.mark.bdd
     def test_views_derivable_from_events(self):
         """All views must be documented as reconstructable from events alone."""
-        with open(COMMANDS_DIR / "aisdlc-iterate.md") as f:
+        with open(COMMANDS_DIR / "gen-iterate.md") as f:
             iterate_content = f.read()
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             status_content = f.read()
         # Both specs must state that views derive from events
         assert "reconstructed from" in iterate_content.lower() or "derived" in iterate_content.lower()
@@ -622,9 +622,9 @@ class TestTelemetryLoop:
     @pytest.mark.bdd
     def test_telemetry_loop_closes(self):
         """The self-reflection section must reference the feedback→Intent loop."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             status_content = f.read()
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             agent_content = f.read()
         # Status spec defines the telemetry loop
         assert "telemetry loop" in status_content.lower() or "Telemetry" in status_content
@@ -647,7 +647,7 @@ class TestThreeDirectionGapDetection:
     @pytest.mark.bdd
     def test_agent_has_source_analysis_step(self):
         """Iterate agent must have a source analysis step (backward gap detection)."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "SOURCE_AMBIGUITY" in content
         assert "SOURCE_GAP" in content
@@ -656,7 +656,7 @@ class TestThreeDirectionGapDetection:
     @pytest.mark.bdd
     def test_agent_has_process_evaluation_step(self):
         """Iterate agent must have a process evaluation step (inward gap detection)."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "PROCESS_GAP" in content
         assert "EVALUATOR_MISSING" in content
@@ -665,7 +665,7 @@ class TestThreeDirectionGapDetection:
     @pytest.mark.bdd
     def test_iteration_report_has_three_sections(self):
         """Iteration report must include source analysis, checklist, and process gaps."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "SOURCE ANALYSIS" in content or "Source Analysis" in content
         assert "CHECKLIST RESULTS" in content
@@ -674,7 +674,7 @@ class TestThreeDirectionGapDetection:
     @pytest.mark.bdd
     def test_event_schema_captures_all_gap_types(self):
         """Event schema must include source_findings and process_gaps."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "source_findings" in content
         assert "process_gaps" in content
@@ -752,7 +752,7 @@ class TestThreeDirectionGapDetection:
 
 class TestConstraintDimensionInitialization:
     """
-    GIVEN the /aisdlc-init command
+    GIVEN the /gen-init command
     WHEN a user initializes a new project
     THEN constraint dimensions are auto-detected and scaffolded in project_constraints.yml.
     """
@@ -760,35 +760,35 @@ class TestConstraintDimensionInitialization:
     @pytest.mark.bdd
     def test_init_references_constraint_dimensions(self):
         """Init command must reference constraint dimensions."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "constraint_dimensions" in content or "Constraint" in content
 
     @pytest.mark.bdd
     def test_init_auto_detects_ecosystem_language(self):
         """Init must auto-detect ecosystem_compatibility.language."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "ecosystem_compatibility" in content or "language" in content.lower()
 
     @pytest.mark.bdd
     def test_init_auto_detects_build_system(self):
         """Init must auto-detect build_system.tool."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "build_system" in content or "build" in content.lower()
 
     @pytest.mark.bdd
     def test_init_marks_undetected_dimensions_todo(self):
         """Init must mark undetected mandatory dimensions as TODO."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "TODO" in content
 
     @pytest.mark.bdd
     def test_init_report_shows_dimension_status(self):
         """Init report must show constraint dimension configuration status."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         # Report should show how many dimensions are configured vs TODO
         assert "Dimensions" in content or "dimensions" in content
@@ -796,7 +796,7 @@ class TestConstraintDimensionInitialization:
     @pytest.mark.bdd
     def test_init_report_shows_three_layer_structure(self):
         """Init report must show the three-layer structure (Graph Package + Project Binding)."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "Layer 2" in content or "Graph Package" in content
         assert "Layer 3" in content or "Project Binding" in content
@@ -854,7 +854,7 @@ class TestConstraintDimensionConvergence:
     @pytest.mark.bdd
     def test_iterate_agent_loads_constraint_dimensions(self):
         """Iterate agent must load constraint dimensions at design edge."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "constraint dimension" in content.lower() or "constraint_dimensions" in content
 
@@ -983,7 +983,7 @@ class TestConstraintDimensionADRs:
 
 class TestStatusConstraintDimensions:
     """
-    GIVEN the /aisdlc-status command with --feature flag
+    GIVEN the /gen-status command with --feature flag
     WHEN displaying detailed feature status
     THEN constraint dimension resolution status is shown.
     """
@@ -991,28 +991,28 @@ class TestStatusConstraintDimensions:
     @pytest.mark.bdd
     def test_status_shows_constraint_dimensions_section(self):
         """Detailed status view must show Constraint Dimensions section."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Constraint Dimensions" in content
 
     @pytest.mark.bdd
     def test_status_shows_resolved_indicator(self):
         """Status must show resolution indicators (resolved/advisory)."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "resolved" in content.lower()
 
     @pytest.mark.bdd
     def test_status_links_dimensions_to_adrs(self):
         """Status must show which ADR resolved each dimension."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "ADR-" in content
 
     @pytest.mark.bdd
     def test_status_shows_advisory_acknowledgement(self):
         """Status must show advisory dimensions with acknowledgement status."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "advisory" in content.lower()
 
@@ -1035,42 +1035,42 @@ class TestConsciousnessLoopIntentRaised:
     @pytest.mark.bdd
     def test_iterate_agent_has_intent_raised_event_type(self):
         """Iterate agent Event Type Reference must include intent_raised."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "intent_raised" in content
 
     @pytest.mark.bdd
     def test_intent_raised_has_prior_intents_field(self):
         """intent_raised event must include prior_intents for reflexive loop detection."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "prior_intents" in content
 
     @pytest.mark.bdd
     def test_intent_raised_has_signal_source_field(self):
         """intent_raised event must include signal_source classification."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "signal_source" in content
 
     @pytest.mark.bdd
     def test_intent_raised_has_affected_req_keys(self):
         """intent_raised event must include affected_req_keys."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "affected_req_keys" in content
 
     @pytest.mark.bdd
     def test_intent_raised_has_edge_context(self):
         """intent_raised event must include edge_context."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "edge_context" in content
 
     @pytest.mark.bdd
     def test_backward_gap_can_trigger_intent(self):
         """Backward gap detection (source findings) must be able to trigger intent_raised."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         # Source findings that escalate should generate intent
         assert "source_finding" in content
@@ -1079,7 +1079,7 @@ class TestConsciousnessLoopIntentRaised:
     @pytest.mark.bdd
     def test_inward_gap_can_trigger_intent(self):
         """Inward gap detection (process gaps) must be able to trigger intent_raised."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "process_gap" in content
         assert "intent_raised" in content
@@ -1087,14 +1087,14 @@ class TestConsciousnessLoopIntentRaised:
     @pytest.mark.bdd
     def test_iterate_command_stuck_delta_triggers_intent(self):
         """Iterate command must detect stuck deltas (>3 iterations) and emit intent_raised."""
-        with open(COMMANDS_DIR / "aisdlc-iterate.md") as f:
+        with open(COMMANDS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "stuck delta" in content.lower() or "3 iterations" in content
 
     @pytest.mark.bdd
     def test_consciousness_loop_documented_in_agent(self):
         """Iterate agent must document that consciousness loop operates at every observer."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "every observer" in content.lower() or "Every Observer" in content
 
@@ -1144,15 +1144,15 @@ class TestSignalSourceClassification:
     @pytest.mark.bdd
     def test_iterate_agent_lists_all_signal_sources(self):
         """Iterate agent Event Type Reference must list all signal source types."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         for source in self.REQUIRED_SIGNAL_SOURCES:
             assert source in content, f"Signal source {source} not in iterate agent"
 
     @pytest.mark.bdd
     def test_gaps_command_emits_gap_signal(self):
-        """/aisdlc-gaps must emit intent_raised with signal_source: gap."""
-        with open(COMMANDS_DIR / "aisdlc-gaps.md") as f:
+        """/gen-gaps must emit intent_raised with signal_source: gap."""
+        with open(COMMANDS_DIR / "gen-gaps.md") as f:
             content = f.read()
         assert "intent_raised" in content
         assert "gap" in content
@@ -1198,28 +1198,28 @@ class TestSpecChangeEvents:
     @pytest.mark.bdd
     def test_iterate_agent_has_spec_modified_event_type(self):
         """Iterate agent Event Type Reference must include spec_modified."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "spec_modified" in content
 
     @pytest.mark.bdd
     def test_spec_modified_has_trigger_intent(self):
         """spec_modified event must include trigger_intent field."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "trigger_intent" in content
 
     @pytest.mark.bdd
     def test_spec_modified_has_what_changed(self):
         """spec_modified event must include what_changed field."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "what_changed" in content
 
     @pytest.mark.bdd
     def test_spec_modified_has_prior_intents(self):
         """spec_modified event must include prior_intents for loop detection."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         # Both intent_raised and spec_modified should have prior_intents
         assert content.count("prior_intents") >= 2
@@ -1227,7 +1227,7 @@ class TestSpecChangeEvents:
     @pytest.mark.bdd
     def test_reflexive_loop_detection_documented(self):
         """Documentation must explain how prior_intents enables reflexive loop detection."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "reflexive" in content.lower() or "loop detection" in content.lower()
 
@@ -1249,28 +1249,28 @@ class TestProtocolEnforcementHooks:
     @pytest.mark.bdd
     def test_iterate_agent_mandates_event_emission(self):
         """Iterate agent must explicitly mandate event emission as non-optional."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "MANDATORY" in content or "mandatory" in content
 
     @pytest.mark.bdd
     def test_iterate_agent_requires_source_findings_in_event(self):
         """Every iteration event must include source_findings array."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "source_findings" in content
 
     @pytest.mark.bdd
     def test_iterate_agent_requires_process_gaps_in_event(self):
         """Every iteration event must include process_gaps array."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "process_gaps" in content
 
     @pytest.mark.bdd
     def test_circuit_breaker_prevents_infinite_regression(self):
         """Protocol enforcement must have a circuit breaker mechanism."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             agent = f.read()
         with open(EDGE_PARAMS_DIR / "feedback_loop.yml") as f:
             feedback = f.read()
@@ -1281,11 +1281,11 @@ class TestProtocolEnforcementHooks:
 
     @pytest.mark.bdd
     def test_all_commands_emit_events(self):
-        """Every /aisdlc-* command must emit events to events.jsonl."""
+        """Every /gen-* command must emit events to events.jsonl."""
         event_emitting_commands = [
-            "aisdlc-init.md", "aisdlc-iterate.md", "aisdlc-spawn.md",
-            "aisdlc-checkpoint.md", "aisdlc-review.md", "aisdlc-gaps.md",
-            "aisdlc-release.md",
+            "gen-init.md", "gen-iterate.md", "gen-spawn.md",
+            "gen-checkpoint.md", "gen-review.md", "gen-gaps.md",
+            "gen-release.md",
         ]
         for cmd_name in event_emitting_commands:
             with open(COMMANDS_DIR / cmd_name) as f:
@@ -1303,7 +1303,7 @@ class TestProtocolEnforcementHooks:
                 # (process_gaps use "type" for gap classification — that's fine)
                 pass  # Field standardisation verified by presence of event_type
 
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             agent = f.read()
         assert "event_type" in agent
 
@@ -1339,7 +1339,7 @@ class TestEventTypeCompleteness:
     @pytest.mark.bdd
     def test_all_event_types_in_agent_reference(self):
         """Iterate agent must document all 20 event types."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         for event_type in self.REQUIRED_EVENT_TYPES:
             assert event_type in content, f"Event type {event_type} missing from agent"
@@ -1418,7 +1418,7 @@ class TestProcessingPhasesInImpl:
     @pytest.mark.bdd
     def test_iterate_agent_references_phases(self):
         """Iterate agent must reference the three processing phases."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "processing phase" in content.lower() or "processing_phase" in content
         assert "conscious" in content.lower()
@@ -1541,15 +1541,15 @@ class TestContextSourcesInImpl:
 
     @pytest.mark.bdd
     def test_iterate_agent_scans_standards_dir(self):
-        """aisdlc-iterate.md must mention context/standards/ directory."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        """gen-iterate.md must mention context/standards/ directory."""
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "context/standards/" in content
 
     @pytest.mark.bdd
     def test_init_resolves_context_sources(self):
-        """aisdlc-init.md must have Step 4b for resolving context sources."""
-        with open(COMMANDS_DIR / "aisdlc-init.md") as f:
+        """gen-init.md must have Step 4b for resolving context sources."""
+        with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "Step 4b" in content
         assert "Resolve Context Sources" in content
@@ -1572,7 +1572,7 @@ class TestTwoCommandUX:
     @pytest.mark.bdd
     def test_status_has_state_detection(self):
         """Status command must have Step 0 state detection."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Step 0" in content
         assert "State Detection" in content
@@ -1580,28 +1580,28 @@ class TestTwoCommandUX:
     @pytest.mark.bdd
     def test_status_has_you_are_here(self):
         """Status command must show 'You Are Here' indicators."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "You Are Here" in content
 
     @pytest.mark.bdd
     def test_status_has_what_start_would_do(self):
         """Status command must preview what Start would do."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Start would" in content or "What Start Would Do" in content
 
     @pytest.mark.bdd
     def test_status_has_health_flag(self):
         """Status command must support --health flag."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "--health" in content
 
     @pytest.mark.bdd
     def test_start_defines_state_machine(self):
         """Start command must define 8 states in the state machine."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         for state in ("UNINITIALISED", "NEEDS_CONSTRAINTS", "NEEDS_INTENT",
                        "NO_FEATURES", "IN_PROGRESS", "ALL_CONVERGED",
@@ -1610,15 +1610,15 @@ class TestTwoCommandUX:
 
     @pytest.mark.bdd
     def test_start_delegates_to_iterate(self):
-        """Start command must delegate to /aisdlc-iterate."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        """Start command must delegate to /gen-iterate."""
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
-        assert "/aisdlc-iterate" in content
+        assert "/gen-iterate" in content
 
     @pytest.mark.bdd
     def test_start_has_progressive_init(self):
         """Start command must implement progressive init with ≤5 questions."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "Progressive Init" in content
         assert "Project name" in content
@@ -1627,7 +1627,7 @@ class TestTwoCommandUX:
     @pytest.mark.bdd
     def test_start_has_deferred_constraints(self):
         """Start command must defer constraint dimensions to design edge."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "Deferred Constraint" in content or "deferred" in content.lower()
         assert "requirements→design" in content
@@ -1661,7 +1661,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_routes_to_action_per_state(self):
         """Each state must route to a specific action (init, iterate, etc.)."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         # Each state maps to a numbered step
         for action in ("Progressive Init", "Constraint Prompting",
@@ -1673,7 +1673,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_state_derived_not_stored(self):
         """State must be derived from workspace, never stored."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "derived" in content.lower()
         assert "pure read" in content.lower() or "never stored" in content.lower()
@@ -1681,7 +1681,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_auto_mode_loop(self):
         """Start must support --auto mode with pause conditions."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "--auto" in content
         # Must pause at human gates, spawn decisions, stuck, time-box
@@ -1693,7 +1693,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_init_five_questions(self):
         """Progressive init must capture exactly 5 inputs."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         for question in ("Project name", "Project kind", "Language",
                          "Test runner", "Intent description"):
@@ -1702,7 +1702,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_auto_detection(self):
         """Progressive init must auto-detect from project files."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "Auto-detect" in content or "auto-detect" in content.lower()
         # Must mention config file detection
@@ -1712,7 +1712,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_project_kind_to_profile_mapping(self):
         """Project kind must map to default profile."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "application" in content
         assert "standard" in content
@@ -1723,7 +1723,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_status_has_project_rollup(self):
         """Status must show cross-feature rollup with edge counts."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Project Rollup" in content or "Rollup" in content
         assert "converged" in content.lower()
@@ -1731,7 +1731,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_status_has_gantt_support(self):
         """Status must support --gantt flag with Mermaid diagram."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "--gantt" in content
         assert "mermaid" in content.lower() or "Mermaid" in content
@@ -1739,7 +1739,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_status_has_process_telemetry(self):
         """Status must include process telemetry section."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Process Telemetry" in content
         assert "Convergence Pattern" in content
@@ -1747,14 +1747,14 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_status_has_self_reflection(self):
         """Status must include self-reflection / feedback-to-intent section."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Self-Reflection" in content or "Feedback" in content
 
     @pytest.mark.bdd
     def test_status_has_signals(self):
         """Status must surface unactioned intent_raised events as signals."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "intent_raised" in content
         assert "signal" in content.lower()
@@ -1762,7 +1762,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_status_event_sourcing_documented(self):
         """Status must document event sourcing architecture."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "Event Sourcing" in content
         assert "events.jsonl" in content
@@ -1773,7 +1773,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_feature_selection_priority_tiers(self):
         """Start must document feature selection priority tiers."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         for tier in ("time-box", "closest-to-complete", "priority", "recently touched"):
             assert tier.lower() in content.lower(), f"Selection missing tier: {tier}"
@@ -1781,7 +1781,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_edge_determination_algorithm(self):
         """Start must document edge determination via topological walk."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "topological" in content.lower()
         assert "unconverged" in content.lower()
@@ -1790,7 +1790,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_user_override_flags(self):
         """Start must support --feature and --edge override flags."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "--feature" in content
         assert "--edge" in content
@@ -1798,7 +1798,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_coevolution_edge_handling(self):
         """Start must present co-evolution edges as a single unit."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "co-evolution" in content.lower() or "code↔unit_tests" in content
 
@@ -1807,7 +1807,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_recovery_scenarios(self):
         """Start must detect and handle recovery scenarios."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         for scenario in ("Corrupted event log", "Missing feature vectors",
                          "Orphaned spawns", "Stuck features"):
@@ -1817,14 +1817,14 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_start_non_destructive_recovery(self):
         """Recovery must be non-destructive — never silently delete."""
-        with open(COMMANDS_DIR / "aisdlc-start.md") as f:
+        with open(COMMANDS_DIR / "gen-start.md") as f:
             content = f.read()
         assert "non-destructive" in content.lower() or "never silently delete" in content.lower()
 
     @pytest.mark.bdd
     def test_status_health_check_comprehensive(self):
         """Health check must cover event log, vectors, spawns, convergence, constraints."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         for check in ("Event Log", "Feature Vector", "Orphaned",
                       "Convergence", "Constraint"):
@@ -1834,7 +1834,7 @@ class TestTwoCommandUXAcceptanceCriteria:
     @pytest.mark.bdd
     def test_status_views_rebuildable_from_events(self):
         """Status must document that views are reconstructible from event stream."""
-        with open(COMMANDS_DIR / "aisdlc-status.md") as f:
+        with open(COMMANDS_DIR / "gen-status.md") as f:
             content = f.read()
         assert "reconstruct" in content.lower() or "regenerat" in content.lower() or \
             "replay" in content.lower()
@@ -1859,12 +1859,12 @@ class TestDeveloperToolingAcceptanceCriteria:
 
     @pytest.mark.bdd
     def test_all_ten_commands_exist(self):
-        """All 10 /aisdlc-* commands must exist as markdown specs."""
+        """All 10 /gen-* commands must exist as markdown specs."""
         expected = [
-            "aisdlc-checkpoint.md", "aisdlc-gaps.md", "aisdlc-init.md",
-            "aisdlc-iterate.md", "aisdlc-release.md", "aisdlc-review.md",
-            "aisdlc-spawn.md", "aisdlc-start.md", "aisdlc-status.md",
-            "aisdlc-trace.md",
+            "gen-checkpoint.md", "gen-gaps.md", "gen-init.md",
+            "gen-iterate.md", "gen-release.md", "gen-review.md",
+            "gen-spawn.md", "gen-start.md", "gen-status.md",
+            "gen-trace.md",
         ]
         for cmd in expected:
             assert (COMMANDS_DIR / cmd).exists(), f"Command missing: {cmd}"
@@ -1872,7 +1872,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_all_commands_have_usage_and_instructions(self):
         """Every command spec must have Usage and Instructions sections."""
-        for cmd_file in sorted(COMMANDS_DIR.glob("aisdlc-*.md")):
+        for cmd_file in sorted(COMMANDS_DIR.glob("gen-*.md")):
             with open(cmd_file) as f:
                 content = f.read()
             assert "## Usage" in content, f"{cmd_file.name} missing ## Usage"
@@ -1882,7 +1882,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_all_commands_reference_req_keys(self):
         """Every command spec must reference at least one REQ-* key."""
-        for cmd_file in sorted(COMMANDS_DIR.glob("aisdlc-*.md")):
+        for cmd_file in sorted(COMMANDS_DIR.glob("gen-*.md")):
             with open(cmd_file) as f:
                 content = f.read()
             assert "REQ-" in content, f"{cmd_file.name} missing REQ-* reference"
@@ -1892,7 +1892,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_release_command_supports_semver(self):
         """Release command must support semantic versioning."""
-        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+        with open(COMMANDS_DIR / "gen-release.md") as f:
             content = f.read()
         assert "semver" in content.lower() or "semantic version" in content.lower()
         assert "--version" in content
@@ -1900,21 +1900,21 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_release_command_generates_changelog(self):
         """Release command must generate changelog from git log."""
-        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+        with open(COMMANDS_DIR / "gen-release.md") as f:
             content = f.read()
         assert "changelog" in content.lower() or "Changelog" in content
 
     @pytest.mark.bdd
     def test_release_command_checks_coverage(self):
         """Release command must validate REQ key coverage before release."""
-        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+        with open(COMMANDS_DIR / "gen-release.md") as f:
             content = f.read()
-        assert "coverage" in content.lower() or "/aisdlc-gaps" in content
+        assert "coverage" in content.lower() or "/gen-gaps" in content
 
     @pytest.mark.bdd
     def test_release_command_emits_event(self):
         """Release command must emit release_created event."""
-        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+        with open(COMMANDS_DIR / "gen-release.md") as f:
             content = f.read()
         assert "release_created" in content
 
@@ -1969,7 +1969,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_checkpoint_command_computes_context_hash(self):
         """Checkpoint must compute SHA-256 context hash."""
-        with open(COMMANDS_DIR / "aisdlc-checkpoint.md") as f:
+        with open(COMMANDS_DIR / "gen-checkpoint.md") as f:
             content = f.read()
         assert "sha256" in content.lower() or "SHA-256" in content
         assert "context_hash" in content or "Context Hash" in content
@@ -1977,7 +1977,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_checkpoint_creates_immutable_snapshot(self):
         """Checkpoint must create an immutable snapshot file."""
-        with open(COMMANDS_DIR / "aisdlc-checkpoint.md") as f:
+        with open(COMMANDS_DIR / "gen-checkpoint.md") as f:
             content = f.read()
         assert "snapshot" in content.lower()
         assert "immutable" in content.lower()
@@ -1985,7 +1985,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_checkpoint_captures_feature_states(self):
         """Checkpoint must capture all feature vector states."""
-        with open(COMMANDS_DIR / "aisdlc-checkpoint.md") as f:
+        with open(COMMANDS_DIR / "gen-checkpoint.md") as f:
             content = f.read()
         assert "feature_states" in content or "feature" in content.lower()
         assert "git_ref" in content or "git" in content.lower()
@@ -1993,7 +1993,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_checkpoint_emits_event(self):
         """Checkpoint must emit checkpoint_created event."""
-        with open(COMMANDS_DIR / "aisdlc-checkpoint.md") as f:
+        with open(COMMANDS_DIR / "gen-checkpoint.md") as f:
             content = f.read()
         assert "checkpoint_created" in content
 
@@ -2002,7 +2002,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_trace_command_supports_bidirectional(self):
         """Trace command must support forward, backward, and both directions."""
-        with open(COMMANDS_DIR / "aisdlc-trace.md") as f:
+        with open(COMMANDS_DIR / "gen-trace.md") as f:
             content = f.read()
         assert "forward" in content.lower()
         assert "backward" in content.lower()
@@ -2011,7 +2011,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_trace_command_shows_cross_artifact_status(self):
         """Trace must show REQ key status across spec, design, code, tests."""
-        with open(COMMANDS_DIR / "aisdlc-trace.md") as f:
+        with open(COMMANDS_DIR / "gen-trace.md") as f:
             content = f.read()
         for stage in ("Intent", "Requirements", "Design", "Code", "Test"):
             assert stage.lower() in content.lower(), \
@@ -2020,7 +2020,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_gaps_command_supports_three_layers(self):
         """Gaps command must support 3 traceability layers."""
-        with open(COMMANDS_DIR / "aisdlc-gaps.md") as f:
+        with open(COMMANDS_DIR / "gen-gaps.md") as f:
             content = f.read()
         assert "Layer 1" in content or "REQ Tag Coverage" in content
         assert "Layer 2" in content or "Test Gap" in content
@@ -2030,7 +2030,7 @@ class TestDeveloperToolingAcceptanceCriteria:
     @pytest.mark.bdd
     def test_gaps_command_reports_severity(self):
         """Gaps command must report gap severity and recommended actions."""
-        with open(COMMANDS_DIR / "aisdlc-gaps.md") as f:
+        with open(COMMANDS_DIR / "gen-gaps.md") as f:
             content = f.read()
         assert "severity" in content.lower() or "Severity" in content
 
@@ -2093,7 +2093,7 @@ class TestFullLifecycleAcceptanceCriteria:
     @pytest.mark.bdd
     def test_release_command_lists_feature_vectors(self):
         """Release command must include feature vector IDs in release notes."""
-        with open(COMMANDS_DIR / "aisdlc-release.md") as f:
+        with open(COMMANDS_DIR / "gen-release.md") as f:
             content = f.read()
         assert "REQ" in content
         assert "feature" in content.lower()
@@ -2183,7 +2183,7 @@ class TestFullLifecycleAcceptanceCriteria:
     @pytest.mark.bdd
     def test_iterate_agent_documents_ecosystem_intent(self):
         """Iterate agent must document ecosystem-triggered intent generation."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "ecosystem" in content.lower()
 
@@ -2200,7 +2200,7 @@ class TestFullLifecycleAcceptanceCriteria:
     @pytest.mark.bdd
     def test_consciousness_loop_operates_at_every_observer(self):
         """Agent must state consciousness loop operates at every observer."""
-        with open(AGENTS_DIR / "aisdlc-iterate.md") as f:
+        with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         assert "every observer" in content.lower() or \
             "consciousness loop" in content.lower()
@@ -2645,9 +2645,9 @@ class TestObserverAgents:
     """
 
     OBSERVER_AGENTS = [
-        "aisdlc-dev-observer.md",
-        "aisdlc-cicd-observer.md",
-        "aisdlc-ops-observer.md",
+        "gen-dev-observer.md",
+        "gen-cicd-observer.md",
+        "gen-ops-observer.md",
     ]
 
     # ─── Agent spec existence ─────────────────────────────────────────
@@ -2663,42 +2663,42 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_dev_observer_implements_req(self):
         """Dev observer must declare Implements: REQ-LIFE-010."""
-        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
             content = f.read()
         assert "REQ-LIFE-010" in content
 
     @pytest.mark.bdd
     def test_dev_observer_is_stateless(self):
         """Dev observer must declare itself stateless."""
-        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
             content = f.read()
         assert "stateless" in content.lower()
 
     @pytest.mark.bdd
     def test_dev_observer_is_markov_object(self):
         """Dev observer must declare itself a Markov object."""
-        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
             content = f.read()
         assert "markov" in content.lower()
 
     @pytest.mark.bdd
     def test_dev_observer_reads_events(self):
         """Dev observer must read events.jsonl."""
-        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
             content = f.read()
         assert "events.jsonl" in content
 
     @pytest.mark.bdd
     def test_dev_observer_emits_observer_signal(self):
         """Dev observer must emit observer_signal events."""
-        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
             content = f.read()
         assert "observer_signal" in content
 
     @pytest.mark.bdd
     def test_dev_observer_draft_only(self):
         """Dev observer must present draft intents (not auto-apply)."""
-        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
             content = f.read()
         assert "draft" in content.lower()
         assert "human" in content.lower()
@@ -2706,7 +2706,7 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_dev_observer_classifies_signals(self):
         """Dev observer must classify deltas by signal source."""
-        with open(AGENTS_DIR / "aisdlc-dev-observer.md") as f:
+        with open(AGENTS_DIR / "gen-dev-observer.md") as f:
             content = f.read()
         for source in ["gap", "discovery", "ecosystem", "TELEM"]:
             assert source in content, f"Missing signal source: {source}"
@@ -2716,14 +2716,14 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_cicd_observer_implements_req(self):
         """CI/CD observer must declare Implements: REQ-LIFE-011."""
-        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
             content = f.read()
         assert "REQ-LIFE-011" in content
 
     @pytest.mark.bdd
     def test_cicd_observer_maps_failures_to_req_keys(self):
         """CI/CD observer must map build failures to REQ keys."""
-        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
             content = f.read()
         assert "Implements:" in content or "Validates:" in content
         assert "REQ" in content
@@ -2731,7 +2731,7 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_cicd_observer_reads_build_results(self):
         """CI/CD observer must read build/test results."""
-        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
             content = f.read()
         assert "build" in content.lower()
         assert "test" in content.lower()
@@ -2739,14 +2739,14 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_cicd_observer_is_markov_object(self):
         """CI/CD observer must declare itself a Markov object."""
-        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
             content = f.read()
         assert "markov" in content.lower()
 
     @pytest.mark.bdd
     def test_cicd_observer_emits_observer_signal(self):
         """CI/CD observer must emit observer_signal events."""
-        with open(AGENTS_DIR / "aisdlc-cicd-observer.md") as f:
+        with open(AGENTS_DIR / "gen-cicd-observer.md") as f:
             content = f.read()
         assert "observer_signal" in content
 
@@ -2755,14 +2755,14 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_ops_observer_implements_req(self):
         """Ops observer must declare Implements: REQ-LIFE-012."""
-        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
             content = f.read()
         assert "REQ-LIFE-012" in content
 
     @pytest.mark.bdd
     def test_ops_observer_reads_telemetry(self):
         """Ops observer must read production telemetry."""
-        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
             content = f.read()
         assert "telemetry" in content.lower()
         assert "latency" in content.lower() or "error" in content.lower()
@@ -2770,28 +2770,28 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_ops_observer_correlates_req_keys(self):
         """Ops observer must correlate telemetry with REQ keys via req= tags."""
-        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
             content = f.read()
         assert "req=" in content
 
     @pytest.mark.bdd
     def test_ops_observer_consumes_sensory_signals(self):
         """Ops observer must consume interoceptive signals from REQ-SENSE-001."""
-        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
             content = f.read()
         assert "interoceptive" in content.lower() or "SENSE-001" in content
 
     @pytest.mark.bdd
     def test_ops_observer_is_markov_object(self):
         """Ops observer must declare itself a Markov object."""
-        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
             content = f.read()
         assert "markov" in content.lower()
 
     @pytest.mark.bdd
     def test_ops_observer_emits_observer_signal(self):
         """Ops observer must emit observer_signal events."""
-        with open(AGENTS_DIR / "aisdlc-ops-observer.md") as f:
+        with open(AGENTS_DIR / "gen-ops-observer.md") as f:
             content = f.read()
         assert "observer_signal" in content
 

@@ -15,7 +15,7 @@ We need a Codex-native orchestration pattern that preserves graph semantics and 
 
 ## Decision
 
-Use a **single orchestrator routine** (`aisdlc-iterate`) that:
+Use a **single orchestrator routine** (`gen-iterate`) that:
 
 1. Loads edge config from `.ai-workspace/graph/edges/{edge_config}`.
 2. Resolves context from tenant-first paths (`.ai-workspace/codex/context/` then `.ai-workspace/context/`).

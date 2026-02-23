@@ -36,4 +36,4 @@ def test_start_orchestrates_iteration_when_in_progress(capsys):
         captured = capsys.readouterr()
         assert "Feature: REQ-F-AUTH-001 \"User authentication\"" in captured.out
         assert "Next Edge: requirements→design" in captured.out
-        assert "Delegating to /aisdlc-iterate --edge \"requirements→design\"" in captured.out
+        assert "Delegating to /gen-iterate --edge \"requirements→design\"" in captured.out

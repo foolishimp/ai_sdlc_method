@@ -1288,7 +1288,7 @@ Dogfooding observation: in test05 (CDME v2.3), the agent bypassed the iterate pr
 #### 7.7.1 Hook Architecture
 
 ```
-UserPromptSubmit ──→ detect /aisdlc-iterate, record edge context
+UserPromptSubmit ──→ detect /gen-iterate, record edge context
          │
     (agent works — free to generate however it chooses)
          │

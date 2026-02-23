@@ -34,10 +34,10 @@ v2.1 (Asset Graph Model) replaced the v1.x 7-stage pipeline with 4 primitives an
 
 **v1.x scope**: 17 sprint tasks to create Roo-specific modes, rules, installers, memory bank templates for the 7-stage model.
 
-**Why superseded**: Roo's "custom modes" map to v2.1 edge configs, not stage-specific agents. The installer concept (scaffolding a workspace) survives as `/aisdlc-init`. The rule files (REQ tagging, feedback protocol, workspace safeguards) are now edge parameterisations and project constraints.
+**Why superseded**: Roo's "custom modes" map to v2.1 edge configs, not stage-specific agents. The installer concept (scaffolding a workspace) survives as `/gen-init`. The rule files (REQ tagging, feedback protocol, workspace safeguards) are now edge parameterisations and project constraints.
 
 **Carry-forward**:
-- **Workspace safeguards** — the concept of protecting user work during framework updates is orthogonal to methodology version. Worth noting in v2.1 `/aisdlc-init --force` behaviour (already partially addressed).
+- **Workspace safeguards** — the concept of protecting user work during framework updates is orthogonal to methodology version. Worth noting in v2.1 `/gen-init --force` behaviour (already partially addressed).
 - **Memory bank pattern** — Roo's persistent context files map to v2.1's `.ai-workspace/context/` directory. Already covered.
 
 ---
@@ -52,7 +52,7 @@ v2.1 (Asset Graph Model) replaced the v1.x 7-stage pipeline with 4 primitives an
 
 | v1.x Work Unit | v2.1 Equivalent | Status | Worth Exploring? |
 |---------------|-----------------|--------|-----------------|
-| WU-001 Intent Capture | `/aisdlc-iterate --edge "intent→requirements"` | Covered by iterate agent | No — already in v2.1 |
+| WU-001 Intent Capture | `/gen-iterate --edge "intent→requirements"` | Covered by iterate agent | No — already in v2.1 |
 | WU-003 Eco-Intent Generation | See Task #12 analysis below | Not covered | **Yes** — as feedback loop edge |
 | WU-005 Stage Transitions | Graph topology transitions | Covered | No — v2.1 graph topology |
 | WU-007 Bidirectional Feedback | Cyclic graph edges | Covered | No — first-class in v2.1 |
@@ -76,13 +76,13 @@ v2.1 (Asset Graph Model) replaced the v1.x 7-stage pipeline with 4 primitives an
 
 **Why superseded**: v2.1 commands are graph-aware and platform-agnostic. The concept of platform-specific command layers is replaced by the universal iterate agent reading edge configs.
 
-**Carry-forward**: None. The workspace installer concept survives as `/aisdlc-init`.
+**Carry-forward**: None. The workspace installer concept survives as `/gen-init`.
 
 ---
 
 ### Task #13: Release Management Command — CLOSED (Carry forward to v2.1)
 
-**v1.x scope**: Repurpose `/aisdlc-release` for framework versioning, changelog generation, git tagging.
+**v1.x scope**: Repurpose `/gen-release` for framework versioning, changelog generation, git tagging.
 
 **Why not superseded**: Release management is orthogonal to methodology version. You still need to version, tag, and release the framework.
 
@@ -116,7 +116,7 @@ v2.1 (Asset Graph Model) replaced the v1.x 7-stage pipeline with 4 primitives an
 | #30 Roo Parity | **Closed — Superseded** | Workspace safeguards already in v2.1 |
 | #26 Claude Code Impl | **Closed — Superseded** | Automated traceability validation, test gap analysis, homeostasis model |
 | #14 Codex Commands | **Closed — Superseded** | None |
-| #13 Release Management | **Closed — Carry forward** | Add `/aisdlc-release` to v2.1 backlog (low priority) |
+| #13 Release Management | **Closed — Carry forward** | Add `/gen-release` to v2.1 backlog (low priority) |
 | #12 Ecosystem E(t) | **Closed — Reframe** | E(t) as Context[] + feedback loop edge. Valuable concept, needs v2.1 design. |
 
 ### Items worth exploring in v2.1 (informed by v1.x):
@@ -125,5 +125,5 @@ v2.1 (Asset Graph Model) replaced the v1.x 7-stage pipeline with 4 primitives an
 2. **Test gap analysis** — deterministic evaluator comparing REQ keys in requirements vs tests
 3. **Homeostasis model** — formalise as feedback loop edge config
 4. **Ecosystem E(t) tracking** — E(t) as Context[], ecosystem changes as feedback loop spawning Eco-Intents
-5. **Release management** — `/aisdlc-release` command (orthogonal to methodology, low priority)
+5. **Release management** — `/gen-release` command (orthogonal to methodology, low priority)
 6. **LLM-specific prompting** — different LLM families may need different Context[] for optimal iterate performance

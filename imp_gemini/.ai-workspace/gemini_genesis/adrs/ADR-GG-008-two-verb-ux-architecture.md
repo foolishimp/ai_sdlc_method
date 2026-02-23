@@ -11,7 +11,7 @@
 
 The Asset Graph Model v2.6/v2.7 introduced significant complexity, expanding the methodology to 9+ commands. Dogfooding revealed that this created a high cognitive load for users who had to manually decide which command to run at each stage.
 
-The Claude Code implementation (ADR-012) collapsed this complexity into two primary verbs: `/aisdlc-start` and `/aisdlc-status`. We need to adapt this "autopilot" UX for the Gemini Genesis implementation.
+The Claude Code implementation (ADR-012) collapsed this complexity into two primary verbs: `/gen-start` and `/gen-status`. We need to adapt this "autopilot" UX for the Gemini Genesis implementation.
 
 ### Options Considered
 
@@ -61,5 +61,5 @@ Key changes:
 ## References
 
 - [GEMINI_GENESIS_DESIGN.md](../GEMINI_GENESIS_DESIGN.md) §1.1
-- [aisdlc-start.md](../../../claude-code/.claude-plugin/plugins/aisdlc-methodology/v2/commands/aisdlc-start.md)
-- [aisdlc-status.md](../../../claude-code/.claude-plugin/plugins/aisdlc-methodology/v2/commands/aisdlc-status.md)
+- [gen-start.md](../../../claude-code/.claude-plugin/plugins/gen-methodology/v2/commands/gen-start.md)
+- [gen-status.md](../../../claude-code/.claude-plugin/plugins/gen-methodology/v2/commands/gen-status.md)

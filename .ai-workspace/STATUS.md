@@ -152,7 +152,7 @@ gantt
 | 2026-02-22 | REQ-ITER-003: Functor Encoding Tracking | 63rd requirement (was 62) |
 | 2026-02-22 | Functor encoding in profiles, edge params, feature vector template | 107 functional_unit annotations, 6 profile encodings |
 | 2026-02-22 | encoding_escalated event type (20th) | Event sourcing expanded |
-| 2026-02-22 | --functor view in /aisdlc-status | Functor registry visibility |
+| 2026-02-22 | --functor view in /gen-status | Functor registry visibility |
 | 2026-02-22 | 9 new TestFunctorEncoding tests | 502 → 511 tests |
 
 ## Next Actions

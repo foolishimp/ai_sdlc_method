@@ -72,6 +72,7 @@ document_structure:
 source_analysis:
 
   - name: "intent_ambiguities_identified"
+    functional_unit: sense
     criterion: |
       Read the intent document and identify every ambiguous statement —
       terms with multiple interpretations, undefined domain concepts,
@@ -80,6 +81,7 @@ source_analysis:
     required: true
 
   - name: "intent_gaps_identified"
+    functional_unit: sense
     criterion: |
       Identify information the intent SHOULD contain but doesn't —
       missing user types, unstated non-functional needs, implied but
@@ -88,6 +90,7 @@ source_analysis:
     required: true
 
   - name: "intent_speculative_content_flagged"
+    functional_unit: sense
     criterion: |
       Identify content in the intent that is research-oriented,
       speculative, or exploratory (e.g., "investigate whether X is feasible").
@@ -105,24 +108,28 @@ checklist:
 
   - name: "all_intent_aspects_covered"
     type: agent
+    functional_unit: evaluate
     criterion: "Every problem/opportunity described in the intent has at least one requirement."
     source: default
     required: true
 
   - name: "requirements_are_testable"
     type: agent
+    functional_unit: evaluate
     criterion: "Each requirement can be verified by a deterministic test or human observation."
     source: default
     required: true
 
   - name: "acceptance_criteria_specific"
     type: agent
+    functional_unit: evaluate
     criterion: "Each requirement has specific, measurable acceptance criteria (not vague)."
     source: default
     required: true
 
   - name: "no_ambiguous_language"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Requirements must not use: "should", "might", "could", "appropriate", "reasonable".
       Use "must" or "shall" for mandatory behaviour. Use "may" for explicitly optional behaviour.
@@ -131,18 +138,21 @@ checklist:
 
   - name: "correct_key_format"
     type: agent
+    functional_unit: evaluate
     criterion: "All REQ keys follow REQ-{TYPE}-{DOMAIN}-{SEQ} format with valid types (F, NFR, DATA, BR)."
     source: default
     required: true
 
   - name: "traces_to_intent"
     type: agent
+    functional_unit: evaluate
     criterion: "Every requirement has 'Traces To: INT-*' linking to the originating intent."
     source: default
     required: true
 
   - name: "no_compound_requirements"
     type: agent
+    functional_unit: evaluate
     criterion: "No requirement uses 'and' to combine multiple behaviours — split into separate keys."
     source: default
     required: true
@@ -151,6 +161,7 @@ checklist:
 
   - name: "document_has_required_sections"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The requirements document contains ALL required sections from document_structure:
       Overview, Terminology, Functional Requirements, Non-Functional Requirements,
@@ -160,6 +171,7 @@ checklist:
 
   - name: "terminology_defines_domain_terms"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The Terminology section defines every domain-specific term used in the requirements.
       No term should appear in a requirement without a precise definition in the glossary.
@@ -168,6 +180,7 @@ checklist:
 
   - name: "success_criteria_measurable"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The Success Criteria section contains measurable, observable outcomes
       tied to specific REQ keys. "The system works" is not a success criterion.
@@ -177,6 +190,7 @@ checklist:
 
   - name: "diagrams_present"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The document includes at least one Mermaid diagram showing the domain model,
       data flow, or system context. Diagrams clarify what prose alone cannot.
@@ -187,6 +201,7 @@ checklist:
 
   - name: "acceptance_criteria_bound_to_feature"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The most critical REQ keys (all Critical priority, at least 3 High priority)
       are bound as acceptance_criteria entries in the feature vector's
@@ -199,18 +214,23 @@ checklist:
 
   - name: "human_validates_completeness"
     type: human
+    functional_unit: evaluate
     criterion: "Human confirms all expected requirements are present (nothing missing, nothing out of scope)."
     source: default
     required: true
 
   - name: "human_validates_priorities"
     type: human
+    functional_unit: evaluate
     criterion: "Human confirms priority assignments (critical/high/medium) are correct."
     source: default
     required: true
 
 convergence:
   rule: "all_required_checks_pass"
+  max_iterations: 5
+  stuck_threshold: 3
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # CONTEXT GUIDANCE

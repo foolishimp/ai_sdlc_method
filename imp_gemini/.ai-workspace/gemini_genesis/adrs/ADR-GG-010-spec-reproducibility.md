@@ -36,7 +36,7 @@ The approach:
 - **Canonical serialisation**: sorted directory traversal, deterministic YAML/markdown rendering, UTF-8 normalisation
 - **Hash function**: SHA-256 of the canonical byte sequence
 - **Manifest file**: `.ai-workspace/context/context_manifest.yml` listing each context entry with its individual hash and the aggregate hash
-- **Recording**: each `/aisdlc-checkpoint` and each `/aisdlc-iterate` invocation records the context hash in the feature vector state
+- **Recording**: each `/gen-checkpoint` and each `/gen-iterate` invocation records the context hash in the feature vector state
 - **Immutability**: context versions are append-only; mutation produces a new version with a new hash
 
 ---
@@ -107,7 +107,7 @@ A full content-addressable object store (like git's internal model) adds impleme
 ### Mitigation
 
 - Start with text files only (markdown, YAML) — defer binary file handling
-- The `/aisdlc-checkpoint` command always regenerates the manifest
+- The `/gen-checkpoint` command always regenerates the manifest
 - The iterate agent checks manifest freshness before proceeding
 - Document the canonical serialisation algorithm in the methodology reference
 

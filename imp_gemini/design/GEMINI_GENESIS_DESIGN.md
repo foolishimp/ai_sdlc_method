@@ -43,14 +43,14 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        USER (Developer)                              │
-│                   /aisdlc-* commands                                 │
+│                   /gen-* commands                                 │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      COMMAND LAYER                                   │
 │  Slash commands that invoke the engine for specific operations       │
-│  /aisdlc-iterate  /aisdlc-status  /aisdlc-checkpoint  ...          │
+│  /gen-iterate  /gen-status  /gen-checkpoint  ...          │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
                            ▼
@@ -114,7 +114,7 @@ The spec defines three conceptual layers. Here is how they map to the Claude Cod
 Spec Layer                    Implementation
 ──────────                    ──────────────
 Layer 1: ENGINE (universal)   Plugin root:
-  4 primitives                  agents/aisdlc-iterate.md     (the ONE agent)
+  4 primitives                  agents/gen-iterate.md     (the ONE agent)
   iterate() + evaluator types   config/evaluator_defaults.yml (evaluator taxonomy)
   event sourcing                commands/*.md                 (workflow operations)
                                 config/feature_vector_template.yml
@@ -133,9 +133,9 @@ Layer 3: PROJECT BINDING        Workspace:
                                 .ai-workspace/context/standards/
 ```
 
-**Context sources** (`project_constraints.yml → context_sources[]`): URI references to external AD collections that are resolved and copied into `.ai-workspace/context/{scope}/` during `/aisdlc-init`. Supported URI schemes: `file:///`, absolute paths, and relative paths (resolved from project root). Valid scopes: `adrs`, `data_models`, `templates`, `policy`, `standards`. Sources are copied (not symlinked) to preserve content-addressable hashing for spec reproducibility. The iterate agent discovers these files automatically — no agent changes needed, files just need to land in the context directories.
+**Context sources** (`project_constraints.yml → context_sources[]`): URI references to external AD collections that are resolved and copied into `.ai-workspace/context/{scope}/` during `/gen-init`. Supported URI schemes: `file:///`, absolute paths, and relative paths (resolved from project root). Valid scopes: `adrs`, `data_models`, `templates`, `policy`, `standards`. Sources are copied (not symlinked) to preserve content-addressable hashing for spec reproducibility. The iterate agent discovers these files automatically — no agent changes needed, files just need to land in the context directories.
 
-**Key design decision**: Layers 1 and 2 ship together in the plugin package. Layer 3 is scaffolded by `/aisdlc-init` into the project workspace. This means:
+**Key design decision**: Layers 1 and 2 ship together in the plugin package. Layer 3 is scaffolded by `/gen-init` into the project workspace. This means:
 
 - Upgrading the plugin (Layer 1 + 2) does not overwrite project bindings (Layer 3)
 - Different graph packages can be created by forking the `config/` directory
@@ -182,7 +182,7 @@ Level 1 (product):     |running_system⟩ → |telemetry⟩ → |observer⟩ →
 Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer⟩ → |graph_package_update⟩
 ```
 
-TELEM signals are emitted by the iterate agent as `process_gaps` in each event. The `/aisdlc-status` command aggregates these into the Self-Reflection section of STATUS.md. Over time, persistent process gaps become candidates for graph package updates (new evaluator checks, refined constraint dimensions, additional context guidance).
+TELEM signals are emitted by the iterate agent as `process_gaps` in each event. The `/gen-status` command aggregates these into the Self-Reflection section of STATUS.md. Over time, persistent process gaps become candidates for graph package updates (new evaluator checks, refined constraint dimensions, additional context guidance).
 
 ### 1.7 Consciousness Loop at Every Observer Point (Spec §7.7, ADR-011)
 
@@ -230,14 +230,14 @@ Any edge, any iteration
 ```
 
 Plus two production-time signals:
-- `/aisdlc-gaps` → `gap` signal (traceability validation)
+- `/gen-gaps` → `gap` signal (traceability validation)
 - telemetry→intent edge → `runtime_feedback` and `ecosystem` signals
 
 #### 1.7.2 Seven Signal Sources
 
 | Signal Source | Development/Production | Observer | Trigger |
 |---|---|---|---|
-| `gap` | Development | `/aisdlc-gaps` | REQ keys without test/telemetry coverage |
+| `gap` | Development | `/gen-gaps` | REQ keys without test/telemetry coverage |
 | `test_failure` | Development | Forward evaluation | Same check fails > 3 iterations |
 | `refactoring` | Development | TDD refactor phase | Structural debt exceeds current scope |
 | `source_finding` | Development | Backward evaluation | Upstream asset deficient, escalate_upstream |
@@ -283,9 +283,9 @@ The iterate agent instructions mandate these. Protocol violations are logged as 
 
 | File | What was added |
 |---|---|
-| `agents/aisdlc-iterate.md` | Event Type Reference (16 command/coordination types), consciousness loop observer table, `intent_raised` emission from backward/inward gap detection |
-| `commands/aisdlc-iterate.md` | Stuck delta detection (>3 iterations), refactoring signal, source escalation → `intent_raised` |
-| `commands/aisdlc-gaps.md` | Gap cluster → `intent_raised` per domain group |
+| `agents/gen-iterate.md` | Event Type Reference (16 command/coordination types), consciousness loop observer table, `intent_raised` emission from backward/inward gap detection |
+| `commands/gen-iterate.md` | Stuck delta detection (>3 iterations), refactoring signal, source escalation → `intent_raised` |
+| `commands/gen-gaps.md` | Gap cluster → `intent_raised` per domain group |
 | `config/edge_params/feedback_loop.yml` | 7 signal sources with intent templates and `intent_raised` schema |
 | `config/edge_params/tdd.yml` | Intent generation from stuck failures and refactoring needs |
 | All 9 commands | `event_type` field standardised, event emission mandatory |
@@ -661,13 +661,13 @@ Start detects project state from the workspace filesystem and event log (never f
 
 | State | Detection | Action |
 |-------|-----------|--------|
-| `UNINITIALISED` | No `.ai-workspace/` directory | Delegate to `/aisdlc-init` |
+| `UNINITIALISED` | No `.ai-workspace/` directory | Delegate to `/gen-init` |
 | `NEEDS_CONSTRAINTS` | `project_constraints.yml` has unresolved mandatory dimensions | Prompt for constraint dimensions |
 | `NEEDS_INTENT` | No intent file or empty intent | Prompt for intent description |
-| `NO_FEATURES` | Intent exists but no feature vectors in `features/active/` | Delegate to `/aisdlc-spawn` |
-| `IN_PROGRESS` | Active features with unconverged edges | Select feature + edge, delegate to `/aisdlc-iterate` |
-| `ALL_CONVERGED` | All active features fully converged | Delegate to `/aisdlc-release` or suggest `/aisdlc-gaps` |
-| `ALL_BLOCKED` | All features blocked (spawn dependency, human review) | Surface blockers, suggest `/aisdlc-review` or `/aisdlc-spawn` |
+| `NO_FEATURES` | Intent exists but no feature vectors in `features/active/` | Delegate to `/gen-spawn` |
+| `IN_PROGRESS` | Active features with unconverged edges | Select feature + edge, delegate to `/gen-iterate` |
+| `ALL_CONVERGED` | All active features fully converged | Delegate to `/gen-release` or suggest `/gen-gaps` |
+| `ALL_BLOCKED` | All features blocked (spawn dependency, human review) | Surface blockers, suggest `/gen-review` or `/gen-spawn` |
 | `STUCK` | Feature with δ unchanged for 3+ iterations | Surface stuck features, suggest spawn discovery or human review |
 
 State transitions delegate to existing commands — Start does not duplicate their logic.
@@ -683,7 +683,7 @@ When state is `UNINITIALISED`, Start runs a 5-question progressive init:
 5. **Intent description** (one sentence — what are you building?)
 
 From these 5 inputs, Start:
-- Delegates to `/aisdlc-init` with detected values
+- Delegates to `/gen-init` with detected values
 - Infers a default profile (application → standard, library → full, data-pipeline → standard)
 - Defers constraint dimensions until the `requirements→design` edge
 
@@ -832,7 +832,7 @@ Convergence outside authority → `convergence_escalated` event → held for hum
 
 #### 1.10.5 Markov-Aligned Parallelism
 
-`/aisdlc-start` in multi-agent mode uses the inner product (§6.7 of the spec) to route agents:
+`/gen-start` in multi-agent mode uses the inner product (§6.7 of the spec) to route agents:
 
 - **Zero inner product** (no shared modules): freely assign to parallel agents
 - **Non-zero inner product** (shared modules): warn, suggest sequential or shared-module-first ordering
@@ -974,7 +974,7 @@ transitions:
 In Claude Code, the iterate() function IS a single agent — the universal constructor. It reads the edge parameterisation to know its role.
 
 ```markdown
-<!-- .claude/agents/aisdlc-iterate.md -->
+<!-- .claude/agents/gen-iterate.md -->
 # AISDLC Iterate Agent
 
 You are the universal iteration function for the AI SDLC Asset Graph Model.
@@ -1019,7 +1019,7 @@ You do NOT have hard-coded knowledge of "stages". You read the graph configurati
 The outer loop is managed by a command or by the user invoking the iterate agent repeatedly:
 
 ```
-User invokes: /aisdlc-iterate --edge "design→code" --feature "REQ-F-AUTH-001"
+User invokes: /gen-iterate --edge "design→code" --feature "REQ-F-AUTH-001"
 
 1. Command loads:
    - Current asset (the design doc for REQ-F-AUTH-001)
@@ -1100,7 +1100,7 @@ edge_evaluators:
 
 #### Human Accountability
 
-The iterate agent ALWAYS presents work for human review on edges where `human_required: true`. On edges where `human_required: false`, the agent can auto-iterate, but the human can always intervene via `/aisdlc-review`.
+The iterate agent ALWAYS presents work for human review on edges where `human_required: true`. On edges where `human_required: false`, the agent can auto-iterate, but the human can always intervene via `/gen-review`.
 
 ---
 
@@ -1318,20 +1318,20 @@ validation_enabled: true  # Tooling parses tag format, not comment syntax
 
 | Command | Purpose | Engine Operation |
 |---------|---------|-----------------|
-| `/aisdlc-iterate` | Invoke iterate() on a specific edge | Core engine |
-| `/aisdlc-status` | Show feature vector progress | Read feature tracking |
-| `/aisdlc-checkpoint` | Save session snapshot | Create immutable checkpoint |
-| `/aisdlc-review` | Human evaluator review point | Present asset for approval |
-| `/aisdlc-trace` | Show trajectory for a REQ key | Navigate feature graph |
-| `/aisdlc-gaps` | Test gap analysis | Compare REQ keys vs tests |
-| `/aisdlc-release` | Create release with REQ coverage | Generate release manifest |
-| `/aisdlc-start` | State-driven routing entry point | Detect state, select feature/edge, delegate |
-| `/aisdlc-init` | Scaffold new project | Create workspace structure |
+| `/gen-iterate` | Invoke iterate() on a specific edge | Core engine |
+| `/gen-status` | Show feature vector progress | Read feature tracking |
+| `/gen-checkpoint` | Save session snapshot | Create immutable checkpoint |
+| `/gen-review` | Human evaluator review point | Present asset for approval |
+| `/gen-trace` | Show trajectory for a REQ key | Navigate feature graph |
+| `/gen-gaps` | Test gap analysis | Compare REQ keys vs tests |
+| `/gen-release` | Create release with REQ coverage | Generate release manifest |
+| `/gen-start` | State-driven routing entry point | Detect state, select feature/edge, delegate |
+| `/gen-init` | Scaffold new project | Create workspace structure |
 
 #### Plugin Delivery
 
 ```
-imp_claude/code/.claude-plugin/plugins/aisdlc-methodology/
+imp_claude/code/.claude-plugin/plugins/gen-methodology/
 ├── .claude-plugin/
 │   └── plugin.json              # Metadata (v2.6.0)
 ├── config/
@@ -1343,22 +1343,22 @@ imp_claude/code/.claude-plugin/plugins/aisdlc-methodology/
 │       ├── adr.yml
 │       └── code_tagging.yml
 ├── agents/
-│   └── aisdlc-iterate.md        # The ONE agent
+│   └── gen-iterate.md        # The ONE agent
 ├── commands/
-│   ├── aisdlc-start.md
-│   ├── aisdlc-iterate.md
-│   ├── aisdlc-status.md
-│   ├── aisdlc-checkpoint.md
-│   ├── aisdlc-review.md
-│   ├── aisdlc-trace.md
-│   ├── aisdlc-gaps.md
-│   ├── aisdlc-release.md
-│   └── aisdlc-init.md
+│   ├── gen-start.md
+│   ├── gen-iterate.md
+│   ├── gen-status.md
+│   ├── gen-checkpoint.md
+│   ├── gen-review.md
+│   ├── gen-trace.md
+│   ├── gen-gaps.md
+│   ├── gen-release.md
+│   └── gen-init.md
 └── docs/
     └── methodology_reference.md  # Quick reference
 ```
 
-#### Workspace Structure (Scaffolded by /aisdlc-init)
+#### Workspace Structure (Scaffolded by /gen-init)
 
 ```
 .ai-workspace/
@@ -1434,7 +1434,7 @@ What Phase 2 adds:
 
 | v1.x | v2.1 |
 |------|------|
-| 7 agent files (one per stage) | 1 agent file (aisdlc-iterate.md) |
+| 7 agent files (one per stage) | 1 agent file (gen-iterate.md) |
 | 42→11 skills | Edge parameterisation configs (YAML) |
 | stages_config.yml (1,273 lines) | graph_topology.yml + edge_params/ (~200 lines) |
 | Fixed 7-stage pipeline | Configurable graph in Context[] |
@@ -1453,7 +1453,7 @@ What Phase 2 adds:
 
 ### Migration Path
 
-1. New projects: `/aisdlc-init` creates v2.6 workspace
+1. New projects: `/gen-init` creates v2.6 workspace
 2. Existing v1.x projects: v1.x agents/commands continue to work; v2.6 can be installed alongside
 3. No breaking changes to user workflow — commands change but concept is familiar
 
@@ -1511,7 +1511,7 @@ Phase 1c: Implement edge params (TDD/BDD/ADR) + tooling commands
 Phase 2:  Implement lifecycle closure (CI/CD, telemetry, homeostasis)
 ```
 
-**First deliverable**: The iterate agent + graph topology config + /aisdlc-init command. This bootstraps everything else.
+**First deliverable**: The iterate agent + graph topology config + /gen-init command. This bootstraps everything else.
 
 ---
 

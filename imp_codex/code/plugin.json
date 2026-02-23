@@ -1,5 +1,5 @@
 {
-  "name": "aisdlc-methodology-v2",
+  "name": "gen-methodology-v2",
   "version": "2.7.0",
   "description": "AI SDLC Asset Graph Model v2.7 — two-command UX (Start + Status), universal iterate agent, edge-parameterised graph, constraint dimensions, event sourcing, projection profiles, methodology self-observation, traceability validation, protocol enforcement hooks, three processing phases (reflex/affect/conscious), sensory systems (interoception/exteroception), consciousness loop (spec as absorbing boundary, intent events, spec change events, Hamiltonian shift dynamics), context sources. 1 agent, 10 commands, 2 hooks, configurable YAML topology.",
   "author": {
@@ -20,19 +20,19 @@
   ],
   "homepage": "https://github.com/foolishimp/ai_sdlc_method",
   "commands": [
-    "./commands/aisdlc-start.md",
-    "./commands/aisdlc-init.md",
-    "./commands/aisdlc-iterate.md",
-    "./commands/aisdlc-spawn.md",
-    "./commands/aisdlc-status.md",
-    "./commands/aisdlc-checkpoint.md",
-    "./commands/aisdlc-review.md",
-    "./commands/aisdlc-trace.md",
-    "./commands/aisdlc-gaps.md",
-    "./commands/aisdlc-release.md"
+    "./commands/gen-start.md",
+    "./commands/gen-init.md",
+    "./commands/gen-iterate.md",
+    "./commands/gen-spawn.md",
+    "./commands/gen-status.md",
+    "./commands/gen-checkpoint.md",
+    "./commands/gen-review.md",
+    "./commands/gen-trace.md",
+    "./commands/gen-gaps.md",
+    "./commands/gen-release.md"
   ],
   "agents": [
-    "./agents/aisdlc-iterate.md"
+    "./agents/gen-iterate.md"
   ],
   "hooks": [
     "./hooks/hooks.json"

@@ -1,0 +1,232 @@
+# Sensory Monitor Registry
+# Implements: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-004
+# Reference: AISDLC_V2_DESIGN.md §1.8.2, §1.8.3, §1.8.8
+#
+# Defines interoceptive and exteroceptive monitors, their schedules,
+# thresholds, and profile-level overrides. Read by the sensory service
+# (MCP server) at startup.
+
+---
+
+version: "1.0.0"
+
+service:
+  start_on: workspace_open
+  stop_on: workspace_close
+  poll_interval: 60s            # fallback if inotify unavailable
+
+# ═══════════════════════════════════════════════════════════════════════
+# INTEROCEPTIVE MONITORS (REQ-SENSE-001)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Observe the system's own health state. Each monitor produces a typed
+# interoceptive_signal event. Monitors are observation-only — they do
+# not modify workspace files.
+
+monitors:
+  interoceptive:
+
+    - id: INTRO-001
+      name: event_freshness
+      description: "Time since last event in events.jsonl"
+      schedule: daily
+      trigger: on_workspace_open
+      reads:
+        - ".ai-workspace/events/events.jsonl"
+      threshold:
+        metric: days_since_last_event
+        warning: 7
+        critical: 14
+      enabled: true
+
+    - id: INTRO-002
+      name: feature_vector_stall
+      description: "In-progress vectors with no iteration for > N days"
+      schedule: daily
+      trigger: on_workspace_open
+      reads:
+        - ".ai-workspace/features/active/*.yml"
+      threshold:
+        metric: days_since_last_iteration
+        warning: 14
+        critical: 30
+      enabled: true
+
+    - id: INTRO-003
+      name: test_health
+      description: "Test coverage and flaky test rate"
+      schedule: on_change
+      trigger: on_file_change
+      watch_globs:
+        - "tests/**"
+        - "imp_*/tests/**"
+        - "src/**"
+      threshold:
+        metric: coverage_percentage
+        warning: 80
+        critical: 60
+      flaky_threshold:
+        metric: flaky_rate_percentage
+        warning: 5
+        critical: 15
+      enabled: true
+
+    - id: INTRO-004
+      name: status_freshness
+      description: "STATUS.md mtime vs events.jsonl last timestamp"
+      schedule: daily
+      trigger: on_workspace_open
+      reads:
+        - ".ai-workspace/STATUS.md"
+        - ".ai-workspace/events/events.jsonl"
+      threshold:
+        metric: status_lag_days
+        warning: 1
+        critical: 3
+      enabled: true
+
+    - id: INTRO-005
+      name: build_health
+      description: "CI/CD pass rate from build logs or API"
+      schedule: daily
+      threshold:
+        metric: failure_rate_percentage
+        warning: 20
+        critical: 50
+      window: 10   # last N builds
+      enabled: true
+
+    - id: INTRO-006
+      name: spec_code_drift
+      description: "REQ tags in code vs REQ keys in spec"
+      schedule: on_change
+      trigger: on_file_change
+      watch_globs:
+        - "src/**"
+        - "imp_*/code/**"
+        - "specification/**"
+      threshold:
+        metric: untagged_module_count
+        warning: 1
+        critical: 5
+      enabled: true
+
+    - id: INTRO-007
+      name: event_log_integrity
+      description: "Structural health of events.jsonl"
+      schedule: on_change
+      trigger: on_file_change
+      watch_globs:
+        - ".ai-workspace/events/events.jsonl"
+      checks:
+        - valid_json_lines
+        - required_fields_present
+        - no_orphan_feature_refs
+      enabled: true
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # EXTEROCEPTIVE MONITORS (REQ-SENSE-002)
+  # ═══════════════════════════════════════════════════════════════════════
+  #
+  # Observe the external environment. Each monitor produces a typed
+  # exteroceptive_signal event. Monitors are observation-only.
+
+  exteroceptive:
+
+    - id: EXTRO-001
+      name: dependency_freshness
+      description: "Check for major version updates in dependencies"
+      schedule: weekly
+      commands:
+        python: "pip list --outdated --format=json"
+        node: "npm outdated --json"
+        scala: "sbt dependencyUpdates"
+      enabled: true
+
+    - id: EXTRO-002
+      name: cve_scanning
+      description: "Scan dependencies for known vulnerabilities"
+      schedule: daily
+      commands:
+        python: "pip-audit --format=json"
+        node: "npm audit --json"
+      severity_filter: medium    # report medium and above
+      enabled: true
+
+    - id: EXTRO-003
+      name: runtime_telemetry
+      description: "Query runtime telemetry endpoints for deviation"
+      schedule: hourly
+      endpoint: "${telemetry_endpoint}"    # from project_constraints.yml
+      threshold:
+        error_rate_sigma: 2                # > baseline + 2σ
+        latency_p99_ms: "${sla_latency}"   # from project_constraints.yml
+      enabled: false    # disabled by default — requires telemetry configuration
+
+    - id: EXTRO-004
+      name: api_contract_changes
+      description: "Detect breaking changes in upstream API contracts"
+      schedule: daily
+      sources:
+        - type: openapi
+          url: "${upstream_api_spec}"       # from project_constraints.yml
+        - type: graphql
+          url: "${upstream_graphql}"
+      enabled: false    # disabled by default — requires API configuration
+
+# ═══════════════════════════════════════════════════════════════════════
+# PROFILE-LEVEL OVERRIDES (REQ-SENSE-004)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Profiles can enable/disable specific monitors and adjust thresholds.
+# These override the per-monitor defaults above.
+
+profile_overrides:
+
+  full:
+    # All monitors enabled, tightest thresholds
+    threshold_overrides: {}
+
+  standard:
+    # All monitors enabled, default thresholds
+    threshold_overrides: {}
+
+  hotfix:
+    # Suppress non-critical exteroception, tighten freshness
+    disable: [EXTRO-001, EXTRO-004]
+    threshold_overrides:
+      INTRO-001: { warning: 1, critical: 3 }
+      INTRO-002: { warning: 3, critical: 7 }
+
+  spike:
+    # All exteroception off, relax stall detection
+    disable: [EXTRO-001, EXTRO-002, EXTRO-003, EXTRO-004]
+    threshold_overrides:
+      INTRO-002: { warning: 30, critical: 60 }
+
+  poc:
+    # Reduce noise during proof-of-concept
+    disable: [EXTRO-001, EXTRO-003, EXTRO-004]
+    threshold_overrides:
+      INTRO-002: { warning: 21, critical: 45 }
+
+  minimal:
+    # Sensible defaults
+    disable: [EXTRO-003, EXTRO-004]
+    threshold_overrides: {}
+
+# ═══════════════════════════════════════════════════════════════════════
+# META-MONITORING (REQ-SENSE-004 — monitor health)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# If a monitor itself fails to run, the service generates an
+# interoceptive meta-signal — the system senses that its own sensing
+# has failed.
+
+meta_monitoring:
+  enabled: true
+  on_monitor_failure:
+    emit: interoceptive_signal
+    monitor_id: "META-001"
+    severity: warning
+    description: "Monitor {failed_monitor_id} failed to execute: {error}"

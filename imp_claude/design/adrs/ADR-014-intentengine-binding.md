@@ -47,7 +47,7 @@ The three ambiguity regimes map to the three evaluator types already in the edge
 |-----------------|---------------|---------------------|
 | **Zero** (reflex) | Deterministic Tests | `pytest`, `tsc`, `eslint`, schema validators — pass/fail, no LLM involved |
 | **Bounded nonzero** (probabilistic) | Agent(intent, context) | Claude LLM invocation with constrained context window — gap analysis, coherence check, candidate generation |
-| **Persistent** (escalate) | Human | `/aisdlc-review` or automatic escalation after `max_iterations` exceeded |
+| **Persistent** (escalate) | Human | `/gen-review` or automatic escalation after `max_iterations` exceeded |
 
 ### Ambiguity Threshold Configuration
 
@@ -97,10 +97,10 @@ Level N's `escalate` becomes Level N+1's reflex:
 | Level | Claude Code mechanism | N's escalate becomes N+1's... |
 |-------|---------------------|------------------------------|
 | Single iteration | iterate agent cycle | Input to next iteration (specEventLog) or spawn/review (escalate) |
-| Edge convergence | Edge completion in `/aisdlc-iterate` | Automatic routing to next edge by `/aisdlc-start` (reflex at feature level) |
-| Feature traversal | Feature vector state machine | Status update triggering `/aisdlc-status` health check (reflex at project level) |
+| Edge convergence | Edge completion in `/gen-iterate` | Automatic routing to next edge by `/gen-start` (reflex at feature level) |
+| Feature traversal | Feature vector state machine | Status update triggering `/gen-status` health check (reflex at project level) |
 | Sensory monitor | Sensory service signal (ADR-015) | Affect triage input — rule-based classification (reflex at triage level) |
-| Spec review | `/aisdlc-review` output | New intent entering the graph — handled as standard feature creation (reflex at project level) |
+| Spec review | `/gen-review` output | New intent entering the graph — handled as standard feature creation (reflex at project level) |
 
 ---
 
@@ -116,7 +116,7 @@ Level N's `escalate` becomes Level N+1's reflex:
 
 ### Why Explicit Affect in Feature Vector State
 
-1. **Observable** — urgency stored in feature vector state is visible in `/aisdlc-status` and in events.jsonl
+1. **Observable** — urgency stored in feature vector state is visible in `/gen-status` and in events.jsonl
 2. **Tuneable** — profiles adjust base urgency; project constraints can override
 3. **Propagates** — child vectors inherit parent affect (spawn carries urgency forward)
 
@@ -129,7 +129,7 @@ Level N's `escalate` becomes Level N+1's reflex:
 - **Zero new code** — IntentEngine binding is purely configurational, extending existing edge YAML schemas
 - **Explicit ambiguity thresholds** — `max_iterations`, `stuck_threshold`, evaluator composition are now understood as ambiguity classification boundaries, not arbitrary parameters
 - **Affect is observable** — urgency propagation is in the event log, enabling methodology self-observation (ADR-011)
-- **Consciousness-as-relative is automatic** — the existing level hierarchy (iteration → edge → feature → project) already implements this via `/aisdlc-start` routing
+- **Consciousness-as-relative is automatic** — the existing level hierarchy (iteration → edge → feature → project) already implements this via `/gen-start` routing
 
 ### Negative
 

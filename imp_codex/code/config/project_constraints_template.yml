@@ -1,5 +1,5 @@
 # Project Constraints — Context[] Element
-# Scaffolded by /aisdlc-init into .ai-workspace/{impl}/context/project_constraints.yml
+# Scaffolded by /gen-init into .ai-workspace/{impl}/context/project_constraints.yml
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §5 (Context as Constraint Surface)
 #
 # This file binds abstract evaluator types to concrete project realities.
@@ -29,7 +29,7 @@ project:
 # CONTEXT SOURCES (Layer 3 — external AD collections)
 # ═══════════════════════════════════════════════════════════════════════
 # URI references to external Architecture Decision collections.
-# /aisdlc-init resolves these and copies files into .ai-workspace/{impl}/context/.
+# /gen-init resolves these and copies files into .ai-workspace/{impl}/context/.
 # The iterate agent discovers context files by scanning those directories —
 # no agent changes needed, files just need to land there.
 #

@@ -18,18 +18,18 @@
 ```
 v2/
 ├── agents/
-│   └── aisdlc-iterate.md          # THE one agent (universal iterate function)
+│   └── gen-iterate.md          # THE one agent (universal iterate function)
 ├── commands/
-│   ├── aisdlc-start.md            # State-driven routing (the "Go" verb)
-│   ├── aisdlc-init.md             # Scaffold workspace
-│   ├── aisdlc-iterate.md          # Invoke iterate() on an edge
-│   ├── aisdlc-status.md           # Feature vector progress (the "Where am I?" verb)
-│   ├── aisdlc-checkpoint.md       # Session snapshot + context hash
-│   ├── aisdlc-review.md           # Human evaluator review point
-│   ├── aisdlc-trace.md            # REQ key trajectory through graph
-│   ├── aisdlc-gaps.md             # Test gap analysis
-│   ├── aisdlc-release.md          # Release with REQ coverage
-│   └── aisdlc-spawn.md            # Spawn feature/spike/hotfix vector
+│   ├── gen-start.md            # State-driven routing (the "Go" verb)
+│   ├── gen-init.md             # Scaffold workspace
+│   ├── gen-iterate.md          # Invoke iterate() on an edge
+│   ├── gen-status.md           # Feature vector progress (the "Where am I?" verb)
+│   ├── gen-checkpoint.md       # Session snapshot + context hash
+│   ├── gen-review.md           # Human evaluator review point
+│   ├── gen-trace.md            # REQ key trajectory through graph
+│   ├── gen-gaps.md             # Test gap analysis
+│   ├── gen-release.md          # Release with REQ coverage
+│   └── gen-spawn.md            # Spawn feature/spike/hotfix vector
 ├── config/
 │   ├── graph_topology.yml         # Default asset types + transitions
 │   ├── evaluator_defaults.yml     # Human/Agent/Deterministic defaults
@@ -51,8 +51,8 @@ v2/
 
 ```bash
 # Just two verbs — Start figures out what to do:
-/aisdlc-start              # Detects state, initializes if needed, iterates
-/aisdlc-status             # Shows where you are across all features
+/gen-start              # Detects state, initializes if needed, iterates
+/gen-status             # Shows where you are across all features
 ```
 
 Start handles everything: project init, feature creation, edge selection, iteration. It detects your project state and routes to the right action automatically.
@@ -60,16 +60,16 @@ Start handles everything: project init, feature creation, edge selection, iterat
 ## Advanced (9 Power-User Commands)
 
 ```bash
-/aisdlc-init               # Scaffold workspace manually
-/aisdlc-iterate --edge "intent→requirements" --feature "REQ-F-MYFEATURE-001"
-/aisdlc-iterate --edge "requirements→design" --feature "REQ-F-MYFEATURE-001"
-/aisdlc-iterate --edge "code↔unit_tests" --feature "REQ-F-MYFEATURE-001"
-/aisdlc-spawn --type feature   # Create a new feature vector
-/aisdlc-checkpoint         # Save session snapshot
-/aisdlc-review             # Human evaluator review point
-/aisdlc-trace              # Trace REQ keys across artifacts
-/aisdlc-gaps               # Check traceability coverage
-/aisdlc-release            # Create versioned release
+/gen-init               # Scaffold workspace manually
+/gen-iterate --edge "intent→requirements" --feature "REQ-F-MYFEATURE-001"
+/gen-iterate --edge "requirements→design" --feature "REQ-F-MYFEATURE-001"
+/gen-iterate --edge "code↔unit_tests" --feature "REQ-F-MYFEATURE-001"
+/gen-spawn --type feature   # Create a new feature vector
+/gen-checkpoint         # Save session snapshot
+/gen-review             # Human evaluator review point
+/gen-trace              # Trace REQ keys across artifacts
+/gen-gaps               # Check traceability coverage
+/gen-release            # Create versioned release
 ```
 
 ## References

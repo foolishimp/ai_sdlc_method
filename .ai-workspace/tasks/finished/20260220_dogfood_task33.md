@@ -2,7 +2,7 @@
 
 **Date**: 2026-02-20
 **Status**: Complete
-**Test Project**: `~/src/apps/aisdlc-dogfood/` (Python CLI bookmark manager)
+**Test Project**: `~/src/apps/gen-dogfood/` (Python CLI bookmark manager)
 
 ---
 
@@ -29,23 +29,23 @@ Traversed 3 edges (intent→requirements, requirements→design, design→code) 
 
 ## What Broke (Bugs Found)
 
-### BUG-1: Misnumbered Steps in aisdlc-init.md (Cosmetic)
+### BUG-1: Misnumbered Steps in gen-init.md (Cosmetic)
 
-**File**: `v2/commands/aisdlc-init.md:98-128`
+**File**: `v2/commands/gen-init.md:98-128`
 **Issue**: Two steps are both numbered "Step 5" — Feature Vector Template (line 97-99) and Feature Index (line 115-128). Steps go: 1, 2, 3, 4, 5, 5, 7, 8, 9, 10.
 **Impact**: Low — confusing but followable.
 **Fix**: Renumber Step 5 (Feature Index) to Step 6, and shift subsequent steps.
 
-### BUG-2: Directory Name Inconsistency in aisdlc-init.md
+### BUG-2: Directory Name Inconsistency in gen-init.md
 
-**File**: `v2/commands/aisdlc-init.md:53-56`
+**File**: `v2/commands/gen-init.md:53-56`
 **Issue**: Step 2 directory structure shows `docs/requirements/` but Step 8 (Intent Placeholder) creates `docs/specification/INTENT.md`. The CLAUDE.md and spec documents all use `docs/specification/`. The `docs/requirements/` path is a v1.x holdover.
 **Impact**: Medium — an implementor following the init command would create the wrong directory.
 **Fix**: Change `docs/requirements/` to `docs/specification/` in Step 2.
 
 ### BUG-3: Feature Vector Create-If-Absent Not Specified
 
-**File**: `v2/commands/aisdlc-iterate.md:33` and `v2/agents/aisdlc-iterate.md:61`
+**File**: `v2/commands/gen-iterate.md:33` and `v2/agents/gen-iterate.md:61`
 **Issue**: Both the command and agent say to "Load the feature vector" but don't specify what to do if it doesn't exist yet. On the first iteration for a new feature, no feature vector file exists.
 **Impact**: High — blocks the first iteration for any new feature.
 **Fix**: Add a step: "If the feature vector file does not exist, create it from `.ai-workspace/features/feature_vector_template.yml`, populate the feature ID, title, and intent fields, and save to `.ai-workspace/features/active/{feature}.yml`."
@@ -59,10 +59,10 @@ Traversed 3 edges (intent→requirements, requirements→design, design→code) 
 
 ### BUG-5: `$architecture.*` Variable Prefix Undefined
 
-**File**: `v2/config/edge_params/requirements_design.yml:72-74` and `v2/agents/aisdlc-iterate.md:71`
+**File**: `v2/config/edge_params/requirements_design.yml:72-74` and `v2/agents/gen-iterate.md:71`
 **Issue**: The `dependencies_sound` check references `$architecture.dependency_rules` and `$architecture.forbidden`, but the variable resolution rules in both the agent and evaluator_defaults.yml only define `$tools.*`, `$thresholds.*`, and `$standards.*`. The `$architecture.*` prefix is not listed.
 **Impact**: Medium — unresolved variables. The agent must guess the resolution or skip the check.
-**Fix**: Add `$architecture.{key} → architecture.{key}` to the resolution rules in both `evaluator_defaults.yml:80-83` and `aisdlc-iterate.md:71`.
+**Fix**: Add `$architecture.{key} → architecture.{key}` to the resolution rules in both `evaluator_defaults.yml:80-83` and `gen-iterate.md:71`.
 
 ### BUG-6: `compiles_or_parses` and `lint_passes` Are Duplicate Checks
 
@@ -95,7 +95,7 @@ Traversed 3 edges (intent→requirements, requirements→design, design→code) 
 ## Test Project Artifacts
 
 ```
-~/src/apps/aisdlc-dogfood/
+~/src/apps/gen-dogfood/
 ├── .ai-workspace/          # Full scaffold (all dirs + configs)
 │   ├── graph/              # Topology + 9 edge configs + evaluator defaults
 │   ├── context/            # project_constraints.yml, context_manifest.yml

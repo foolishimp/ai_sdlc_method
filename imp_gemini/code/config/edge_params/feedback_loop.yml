@@ -74,13 +74,13 @@ sources:
   gap_analysis:
     signal_source: gap
     description: "Traceability validation finds coverage holes"
-    trigger: "Test gaps, telemetry gaps, REQ tag coverage failures from /aisdlc-gaps"
+    trigger: "Test gaps, telemetry gaps, REQ tag coverage failures from /gen-gaps"
     intent_template: |
       ## INT-{SEQ}: Close {gap_type} gap for {REQ keys}
 
       **Source**: gap
       **Priority**: {High if test gap, Medium if telemetry gap}
-      **Triggered By**: /aisdlc-gaps — {layer} validation found {count} uncovered REQ keys
+      **Triggered By**: /gen-gaps — {layer} validation found {count} uncovered REQ keys
       **Affected Requirements**: {list of REQ keys without coverage}
       **Description**: {What's missing and why it matters}
       **Signal**: TELEM-{NNN}: {gap_type} gap — {count} REQ keys without {coverage_type}
@@ -163,6 +163,7 @@ checklist:
 
   - name: "telemetry_tagged_with_req_keys"
     type: deterministic
+    functional_unit: evaluate
     criterion: "Telemetry data includes REQ-* key tags linking metrics to requirements."
     command: "grep -r 'REQ-' telemetry/ monitoring/ || true"
     pass_criterion: "REQ key references found in telemetry configuration"
@@ -171,6 +172,7 @@ checklist:
 
   - name: "deviation_quantified"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The deviation from expected behaviour is quantified with:
       - What metric deviated
@@ -182,6 +184,7 @@ checklist:
 
   - name: "root_cause_identified"
     type: agent
+    functional_unit: evaluate
     criterion: |
       A root cause analysis traces the deviation back to:
       - The specific code path or component
@@ -192,12 +195,14 @@ checklist:
 
   - name: "affected_requirements_traced"
     type: agent
+    functional_unit: evaluate
     criterion: "All REQ keys affected by the deviation are identified and listed."
     source: default
     required: true
 
   - name: "priority_appropriate"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The generated intent priority matches the severity:
       - SLA violation → Critical
@@ -209,6 +214,7 @@ checklist:
 
   - name: "intent_well_formed"
     type: agent
+    functional_unit: evaluate
     criterion: |
       The generated intent follows the INT-{SEQ} template with:
       source, priority, triggered_by, affected_requirements, description.
@@ -217,12 +223,14 @@ checklist:
 
   - name: "human_warrants_action"
     type: human
+    functional_unit: evaluate
     criterion: "Human confirms the deviation warrants a new intent (not noise or transient)."
     source: default
     required: true
 
   - name: "human_confirms_priority"
     type: human
+    functional_unit: evaluate
     criterion: "Human confirms the priority assignment for the generated intent."
     source: default
     required: true
@@ -230,6 +238,7 @@ checklist:
   # ─── Traceability checks (composed from traceability.yml Layer 3) ──
   - name: "code_req_keys_have_telemetry"
     type: agent
+    functional_unit: evaluate
     criterion: |
       Every REQ key in code (Implements: REQ-*) has corresponding
       telemetry tagging (req="REQ-*"). Telemetry gaps mean features
@@ -240,12 +249,16 @@ checklist:
 
   - name: "telemetry_tag_format"
     type: deterministic
+    functional_unit: evaluate
     criterion: "All telemetry REQ tags use structured format: req=\"REQ-*\""
     source: traceability
     required: true
 
 convergence:
   rule: "all_required_checks_pass"
+  max_iterations: 5
+  stuck_threshold: 3
+
 
 agent_guidance: |
   The consciousness loop fires at EVERY observer point, not just production.
@@ -262,7 +275,7 @@ agent_guidance: |
 
   Signal source priority for intent generation:
   - runtime_feedback, test_failure: ALWAYS generate intent
-  - gap (from /aisdlc-gaps): generate intent for each uncovered REQ key cluster
+  - gap (from /gen-gaps): generate intent for each uncovered REQ key cluster
   - refactoring: generate intent when debt exceeds current scope
   - source_finding: generate intent when escalate_upstream disposition
   - process_gap: generate intent during dogfood; log as TELEM signal otherwise

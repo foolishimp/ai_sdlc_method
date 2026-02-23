@@ -15,7 +15,7 @@ Codex interaction is often task-scoped and foreground. The methodology requires 
 
 Support two Codex-compatible sensory modes with identical event contracts:
 
-1. **Foreground mode**: sensing pipeline runs during `aisdlc-start` and `aisdlc-status --health`.
+1. **Foreground mode**: sensing pipeline runs during `gen-start` and `gen-status --health`.
 2. **Background mode**: optional watcher process runs independent of active Codex turns.
 
 Both modes emit the same sensory and triage events (`interoceptive_signal`, `exteroceptive_signal`, `affect_triage`, `draft_proposal`) and enforce the same review boundary before spec or code promotion.

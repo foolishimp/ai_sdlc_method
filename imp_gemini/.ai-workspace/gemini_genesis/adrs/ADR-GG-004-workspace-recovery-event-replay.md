@@ -11,7 +11,7 @@
 
 The AI SDLC Asset Graph Model relies on **Event Sourcing** (`events.jsonl`) as the immutable source of truth. All other workspace artifacts (feature vector files, `STATUS.md`, `ACTIVE_TASKS.md`) are derived projections.
 
-The Claude Code implementation provides `/aisdlc-checkpoint` for snapshots, but lacks a formal "recovery" or "restore" command. This creates a gap in the "Spec Reproducibility" requirement—if a derived view is corrupted or deleted, there is no tool to reconstruct it.
+The Claude Code implementation provides `/gen-checkpoint` for snapshots, but lacks a formal "recovery" or "restore" command. This creates a gap in the "Spec Reproducibility" requirement—if a derived view is corrupted or deleted, there is no tool to reconstruct it.
 
 Gemini CLI has the ability to run sophisticated Python scripts as tools, which can manipulate the local filesystem and state.
 
