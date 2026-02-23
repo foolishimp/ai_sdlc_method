@@ -159,6 +159,24 @@ class TestVerify:
         assert result.returncode == 0
         assert "10 passed, 0 failed" in result.stdout
 
+    def test_verify_passes_on_no_workspace_install(self, clean_target):
+        clean_target.mkdir()
+        # Install plugin-only
+        subprocess.run(
+            [sys.executable, str(INSTALLER), "--target", str(clean_target), "--no-workspace"],
+            capture_output=True,
+            text=True,
+        )
+        # Verify should pass with plugin-only checks (3 checks: settings file, marketplace, plugin)
+        result = subprocess.run(
+            [sys.executable, str(INSTALLER), "verify", "--target", str(clean_target)],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, f"Verify failed on --no-workspace install: {result.stdout}"
+        assert "plugin-only" in result.stdout.lower()
+        assert "3 passed, 0 failed" in result.stdout
+
     def test_verify_fails_on_empty_dir(self, clean_target):
         clean_target.mkdir()
         result = subprocess.run(

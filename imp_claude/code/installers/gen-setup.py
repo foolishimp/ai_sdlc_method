@@ -472,8 +472,8 @@ def setup_bootloader(target: Path, dry_run: bool) -> bool:
     # Fetch bootloader content
     bootloader = fetch_bootloader()
     if not bootloader:
-        print_warn("Could not fetch GENESIS_BOOTLOADER.md — skipping CLAUDE.md update")
-        return True  # non-fatal
+        print_warn("Could not fetch GENESIS_BOOTLOADER.md — bootloader not installed")
+        return False
 
     if dry_run:
         if existing:
@@ -531,14 +531,30 @@ def cmd_verify(args) -> int:
     passed = 0
     failed = 0
 
+    # Detect install mode: if .ai-workspace/ is absent but .claude/settings.json
+    # exists, this is a --no-workspace (plugin-only) install.
+    has_workspace = (target / ".ai-workspace").is_dir()
+    has_settings = (target / ".claude" / "settings.json").exists()
+    plugin_only = has_settings and not has_workspace
+
+    if plugin_only:
+        print_info("Detected: plugin-only install (--no-workspace)")
+        print()
+
+    # Plugin checks (always)
     checks = [
         (target / ".claude" / "settings.json", "Plugin settings"),
-        (target / ".ai-workspace" / "events" / "events.jsonl", "Event log"),
-        (target / ".ai-workspace" / "features" / "active", "Feature vectors dir"),
-        (target / ".ai-workspace" / "graph" / "graph_topology.yml", "Graph topology"),
-        (target / ".ai-workspace" / "tasks" / "active" / "ACTIVE_TASKS.md", "Task tracking"),
-        (target / ".ai-workspace" / "context" / "project_constraints.yml", "Project constraints"),
     ]
+
+    # Workspace checks (only for full installs)
+    if not plugin_only:
+        checks += [
+            (target / ".ai-workspace" / "events" / "events.jsonl", "Event log"),
+            (target / ".ai-workspace" / "features" / "active", "Feature vectors dir"),
+            (target / ".ai-workspace" / "graph" / "graph_topology.yml", "Graph topology"),
+            (target / ".ai-workspace" / "tasks" / "active" / "ACTIVE_TASKS.md", "Task tracking"),
+            (target / ".ai-workspace" / "context" / "project_constraints.yml", "Project constraints"),
+        ]
 
     for path, label in checks:
         if path.exists():
@@ -548,19 +564,20 @@ def cmd_verify(args) -> int:
             print_error(f"{label}: MISSING — {path.relative_to(target)}")
             failed += 1
 
-    # Check Genesis Bootloader in CLAUDE.md
-    claude_md = target / "CLAUDE.md"
-    if claude_md.exists():
-        claude_content = claude_md.read_text()
-        if BOOTLOADER_START_MARKER in claude_content:
-            print_ok("Genesis Bootloader present in CLAUDE.md")
-            passed += 1
+    # Genesis Bootloader check (only for full installs — bootloader is part of workspace flow)
+    if not plugin_only:
+        claude_md = target / "CLAUDE.md"
+        if claude_md.exists():
+            claude_content = claude_md.read_text()
+            if BOOTLOADER_START_MARKER in claude_content:
+                print_ok("Genesis Bootloader present in CLAUDE.md")
+                passed += 1
+            else:
+                print_error("Genesis Bootloader NOT in CLAUDE.md — re-run installer")
+                failed += 1
         else:
-            print_error("Genesis Bootloader NOT in CLAUDE.md — re-run installer")
+            print_error("CLAUDE.md missing — re-run installer")
             failed += 1
-    else:
-        print_error("CLAUDE.md missing — re-run installer")
-        failed += 1
 
     # Check settings content
     settings_file = target / ".claude" / "settings.json"
@@ -588,19 +605,20 @@ def cmd_verify(args) -> int:
             print_error(f"Cannot parse settings.json: {e}")
             failed += 1
 
-    # Check events
-    events_file = target / ".ai-workspace" / "events" / "events.jsonl"
-    if events_file.exists() and events_file.stat().st_size > 0:
-        try:
-            first_line = events_file.read_text().strip().splitlines()[0]
-            evt = json.loads(first_line)
-            if evt.get("event_type") == "project_initialized":
-                print_ok(f"project_initialized event present")
-                passed += 1
-            else:
-                print_warn(f"First event is '{evt.get('event_type')}', not project_initialized")
-        except Exception:
-            print_warn("Cannot parse first event")
+    # Check events (only for full installs)
+    if not plugin_only:
+        events_file = target / ".ai-workspace" / "events" / "events.jsonl"
+        if events_file.exists() and events_file.stat().st_size > 0:
+            try:
+                first_line = events_file.read_text().strip().splitlines()[0]
+                evt = json.loads(first_line)
+                if evt.get("event_type") == "project_initialized":
+                    print_ok(f"project_initialized event present")
+                    passed += 1
+                else:
+                    print_warn(f"First event is '{evt.get('event_type')}', not project_initialized")
+            except Exception:
+                print_warn("Cannot parse first event")
 
     print()
     print("=" * 64)
