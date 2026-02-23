@@ -253,6 +253,32 @@ architecture:
     # - "Circular imports between packages"
 
 # ═══════════════════════════════════════════════════════════════════════
+# MULTI-TENANT FOLDER STRUCTURE (REQ-TOOL-012, REQ-TOOL-013)
+# ═══════════════════════════════════════════════════════════════════════
+# Controls where the design→code edge places generated source code.
+# Each design variant gets its own imp_<name>/ directory, ensuring
+# future parallel designs don't collide.
+#
+# The iterate agent reads structure.design_tenants to resolve the
+# output directory at the design→code edge. If no tenants are defined,
+# the agent uses project root (backward compatible but not recommended).
+#
+# root_code_policy:
+#   reject — design→code edge MUST resolve to imp_<name>/, fails otherwise
+#   warn   — agent warns but allows root-level code (legacy projects)
+
+structure:
+  design_tenants: []
+    # - name: "scala_spark"
+    #   output_dir: "imp_scala_spark/"
+    #   description: "Scala 2.13 + Spark 3.5 implementation"
+    #
+    # - name: "python_django"
+    #   output_dir: "imp_python_django/"
+    #   description: "Python 3.12 + Django 5.0 implementation"
+  root_code_policy: reject     # reject | warn
+
+# ═══════════════════════════════════════════════════════════════════════
 # EVALUATOR OVERRIDES
 # ═══════════════════════════════════════════════════════════════════════
 # Override edge evaluator composition or add project-specific checks.

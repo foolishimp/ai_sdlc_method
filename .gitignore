@@ -68,3 +68,5 @@ package-lock.json
 # E2E run archive (generated artifacts, not committed)
 imp_claude/tests/e2e/runs/
 !imp_claude/tests/e2e/runs/README.md
+imp_gemini/tests/e2e/runs/
+!imp_gemini/tests/e2e/runs/README.md

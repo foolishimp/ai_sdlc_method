@@ -89,6 +89,13 @@ ai_sdlc_method/
 │   ├── code/                               #   (future)
 │   └── tests/                              #   (future)
 │
+├── imp_bedrock/                            # AWS Bedrock Genesis implementation
+│   ├── design/
+│   │   ├── BEDROCK_GENESIS_DESIGN.md
+│   │   └── adrs/                           #   ADR-AB-001 through ADR-AB-008
+│   ├── code/                               #   (future)
+│   └── tests/                              #   (future)
+│
 ├── docs/
 │   └── analysis/                           # Cross-cutting analysis
 │
@@ -100,6 +107,7 @@ ai_sdlc_method/
 │   ├── claude/                             #   Claude design tenant
 │   ├── gemini/                             #   Gemini design tenant
 │   └── codex/                              #   Codex design tenant
+│   └── bedrock/                            #   Bedrock design tenant
 │
 ├── CLAUDE.md                               # This file
 └── README.md
@@ -114,14 +122,17 @@ ai_sdlc_method/
 | Intent | specification/INTENT.md | Business motivation |
 | Asset Graph Model | specification/AI_SDLC_ASSET_GRAPH_MODEL.md | Formal system, Hilbert space |
 | Projections | specification/PROJECTIONS_AND_INVARIANTS.md | Projections, vector types, spawning |
-| Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 60 platform-agnostic reqs |
+| Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 67 platform-agnostic reqs |
 | Feature Vectors | specification/FEATURE_VECTORS.md | Feature decomposition |
+| UX | specification/UX.md | User journeys, MVP features, validation scenarios |
 | Claude Design | imp_claude/design/AISDLC_V2_DESIGN.md | Claude Code implementation |
 | Claude ADRs | imp_claude/design/adrs/ADR-008..017 | 10 ADRs, fully cross-referenced |
 | Iterate Agent | imp_claude/code/.../v2/agents/gen-iterate.md | The universal agent |
 | Graph Topology | imp_claude/code/.../v2/config/graph_topology.yml | 10 asset types, 10 transitions |
 | Gemini Design | imp_gemini/design/GEMINI_GENESIS_DESIGN.md | Gemini CLI implementation |
 | Codex Design | imp_codex/design/CODEX_GENESIS_DESIGN.md | Codex implementation |
+| Bedrock Design | imp_bedrock/design/BEDROCK_GENESIS_DESIGN.md | AWS Bedrock cloud-native implementation |
+| Bedrock ADRs | imp_bedrock/design/adrs/ADR-AB-001..008 | 8 platform-specific ADRs |
 
 ---
 
