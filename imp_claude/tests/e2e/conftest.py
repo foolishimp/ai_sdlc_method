@@ -41,7 +41,6 @@ RUNS_DIR = pathlib.Path(__file__).parent / "runs"
 # consumed by pytest_sessionfinish for deferred archival.
 _archive_path: pathlib.Path | None = None
 _project_dir: pathlib.Path | None = None
-_fixture_failed: bool = False
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -100,11 +99,12 @@ def _persist_run(source_dir: pathlib.Path, failed: bool = False) -> pathlib.Path
     """
     try:
         dest = _compute_run_dir(failed=failed)
-        # _compute_run_dir creates dest via atomic mkdir; copytree needs it absent
-        dest.rmdir()
+        # dest already exists (created by atomic mkdir in _compute_run_dir);
+        # dirs_exist_ok=True writes into it without removing the claim.
         shutil.copytree(
             source_dir, dest,
             ignore=shutil.ignore_patterns(".git", "__pycache__"),
+            dirs_exist_ok=True,
         )
         # Write manifest
         meta_dir = dest / ".e2e-meta"
@@ -873,11 +873,10 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
     if missing_edges:
         print(f"E2E: Missing edges: {missing_edges}", flush=True)
 
-    global _archive_path, _project_dir, _fixture_failed
+    global _archive_path, _project_dir
     _project_dir = project_dir
 
     if result.timed_out and not converged_edges:
-        _fixture_failed = True
         _archive_path = _persist_run(project_dir, failed=True)
         pytest.fail(
             f"Claude killed (wall timeout) after {result.elapsed:.0f}s "
@@ -891,7 +890,6 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
               f"proceeding with validation.", flush=True)
 
     if result.returncode != 0 and not result.timed_out and not converged_edges:
-        _fixture_failed = True
         _archive_path = _persist_run(project_dir, failed=True)
         pytest.fail(
             f"Claude exited with code {result.returncode} "
