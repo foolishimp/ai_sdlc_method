@@ -17,7 +17,7 @@ Display the current state of all feature vectors and their trajectories through 
 | `--feature` | Show detailed status for a specific feature |
 | `--verbose` | Show iteration history and evaluator details |
 | `--gantt` | Show Mermaid Gantt chart of feature build schedule |
-| `--health` | Run workspace health check (event log integrity, orphaned spawns, stuck detection) |
+| `--health` | Run Genesis self-compliance and workspace health check (bootloader, invariants, tolerances, events, spawns, stuck detection) |
 | `--functor` | Show functor encoding registry, per-unit categories, and escalation history |
 
 ## Instructions
@@ -326,6 +326,14 @@ Run workspace health diagnostics (REQ-UX-005):
 Workspace Health — {project_name}
 ===================================
 
+Genesis Self-Compliance:
+  ✓ CLAUDE.md contains Genesis Bootloader
+  ✓ Graph topology: .ai-workspace/graph/graph_topology.yml (10 nodes, 10 edges)
+  ✓ Iterate defined: all edges have evaluator configs in edge_params/
+  ✓ Evaluators: all active edges have ≥1 evaluator (3 deterministic, 2 agent, 1 human)
+  ✓ Context: project_constraints.yml present, 4/8 mandatory dimensions resolved
+  ✗ Tolerances: 2 constraints lack measurable thresholds (performance_envelope, data_governance)
+
 Event Log:
   ✓ events.jsonl exists (342 events)
   ✓ All lines valid JSON
@@ -346,11 +354,36 @@ Constraints:
   ✓ 2/4 advisory dimensions documented
 
 Recommendations:
-  1. Fix orphaned spawn: link REQ-F-SPIKE-003 to correct parent or archive
-  2. Investigate 2 events with unknown feature IDs
+  1. Add measurable thresholds to performance_envelope and data_governance constraints
+  2. Fix orphaned spawn: link REQ-F-SPIKE-003 to correct parent or archive
+  3. Investigate 2 events with unknown feature IDs
 ```
 
 Checks performed:
+
+**Genesis Self-Compliance** (bootloader invariant verification):
+- **Bootloader presence**: CLAUDE.md contains `<!-- GENESIS_BOOTLOADER_START -->` marker — the axiom set that constrains LLM reasoning. Without the bootloader, the LLM pattern-matches templates instead of reasoning within the formal system.
+- **Invariant 1 — Graph**: `graph_topology.yml` exists and defines ≥1 node and ≥1 edge. Report node/edge counts.
+- **Invariant 2 — Iterate**: Every edge in the active graph has a corresponding evaluator config file in `edge_params/`. An edge without evaluator config means `iterate()` has no stopping condition for that transition.
+- **Invariant 3 — Evaluators**: Every active edge has at least one evaluator defined (deterministic, agent, or human). Report counts by type. An edge with zero evaluators violates the convergence invariant.
+- **Invariant 4 — Context**: `project_constraints.yml` exists and is non-empty. Report resolution status of mandatory dimensions.
+- **Tolerance check**: Scan resolved constraints for measurable thresholds. A constraint resolved as a descriptive statement without a numeric or boolean threshold is flagged as "wish, not sensor" per §VIII of the bootloader. This is advisory, not blocking.
+
+How to perform the Genesis Self-Compliance checks:
+
+1. **Bootloader presence**: Read `CLAUDE.md` in the project root. Search for the string `<!-- GENESIS_BOOTLOADER_START -->`. If missing, report failure and recommend re-running the installer.
+
+2. **Graph invariant**: Read `.ai-workspace/graph/graph_topology.yml` (or fall back to the plugin's `config/graph_topology.yml`). Parse YAML, count entries under `nodes:` and `edges:`. Both must be ≥1.
+
+3. **Iterate invariant**: For each edge in the graph topology, check that a corresponding file exists in the plugin's `config/edge_params/` directory (e.g., edge `intent→requirements` maps to `intent_requirements.yml`). List any edges without config.
+
+4. **Evaluator invariant**: For each edge_params file, parse the YAML and count evaluators under `evaluators:` or `checklist:`. Each edge must have at least one. Classify by type: entries with `type: deterministic` or `type: test` count as F_D, `type: agent` as F_P, `type: human` as F_H.
+
+5. **Context invariant**: Check `.ai-workspace/context/project_constraints.yml` exists and is non-empty. Parse it, count mandatory dimensions (those not marked `advisory`), report how many have non-placeholder values.
+
+6. **Tolerance check**: For each resolved constraint in `project_constraints.yml`, check if the value contains a measurable threshold (numeric comparisons, boolean conditions, specific versions, test counts). Descriptive-only values like `"will be addressed later"` or `"planned"` are flagged as missing tolerances. This check is advisory — it produces warnings, not failures.
+
+**Workspace health** (existing checks):
 - **Event log integrity**: valid JSON, required fields, no orphan references
 - **Feature vector consistency**: valid format, parent/child links resolve, no duplicates
 - **Orphaned spawns**: child vectors with broken parent references
