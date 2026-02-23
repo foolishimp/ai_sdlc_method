@@ -29,6 +29,9 @@ if [ ! -d "$WORKSPACE" ]; then
   exit 0
 fi
 
+# Clear session-scoped artifact tracking (ADR-CG-006)
+rm -f "$WORKSPACE/.session_assets_seen"
+
 EVENTS_FILE="$WORKSPACE/events/events.jsonl"
 ISSUES=""
 ISSUE_COUNT=0

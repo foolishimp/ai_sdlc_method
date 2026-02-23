@@ -1,6 +1,6 @@
-# Validates: REQ-ITER-001, REQ-ITER-002, REQ-EVAL-003, REQ-TOOL-002, REQ-TOOL-007, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
+# Validates: REQ-ITER-001, REQ-ITER-002, REQ-EVAL-003, REQ-TOOL-002, REQ-TOOL-006, REQ-TOOL-007, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
 # Validates: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
-# Validates: REQ-INTENT-001, REQ-INTENT-002
+# Validates: REQ-INTENT-001, REQ-INTENT-002, REQ-SENSE-006
 """BDD acceptance tests — methodology workflow coherence validation.
 
 These tests validate that the methodology's components compose correctly:
@@ -2838,3 +2838,80 @@ class TestObserverAgents:
         assert "REQ-LIFE-010" in content
         assert "REQ-LIFE-011" in content
         assert "REQ-LIFE-012" in content
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCENARIO 28: Artifact Write Observation (REQ-SENSE-006)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestArtifactWriteObservation:
+    """
+    GIVEN the PostToolUse hook for artifact write observation
+    WHEN files are written to methodology-managed directories
+    THEN artifact_modified events are emitted for real-time progress and audit.
+
+    Validates: REQ-SENSE-006, REQ-TOOL-006
+    """
+
+    HOOKS_DIR = COMMANDS_DIR.parent / "hooks"
+
+    @pytest.mark.bdd
+    def test_posttooluse_hook_registered(self):
+        """hooks.json must register a PostToolUse hook for Write|Edit."""
+        import json
+        hooks_json = self.HOOKS_DIR / "hooks.json"
+        assert hooks_json.exists(), "hooks.json missing"
+        with open(hooks_json) as f:
+            data = json.load(f)
+        assert "PostToolUse" in data["hooks"], "PostToolUse hook type not registered"
+        matchers = [h.get("matcher", "") for h in data["hooks"]["PostToolUse"]]
+        assert any("Write" in m and "Edit" in m for m in matchers), \
+            f"PostToolUse must match Write|Edit, got matchers: {matchers}"
+
+    @pytest.mark.bdd
+    def test_artifact_written_hook_exists(self):
+        """on-artifact-written.sh must exist in hooks directory."""
+        hook = self.HOOKS_DIR / "on-artifact-written.sh"
+        assert hook.exists(), "on-artifact-written.sh not found"
+
+    @pytest.mark.bdd
+    def test_artifact_written_hook_is_reflex(self):
+        """on-artifact-written.sh must operate in reflex processing regime."""
+        with open(self.HOOKS_DIR / "on-artifact-written.sh") as f:
+            content = f.read()
+        assert "REFLEX" in content or "reflex" in content, \
+            "Hook must declare reflex processing regime"
+
+    @pytest.mark.bdd
+    def test_artifact_written_hook_never_blocks(self):
+        """on-artifact-written.sh must trap errors and exit 0 (never block)."""
+        with open(self.HOOKS_DIR / "on-artifact-written.sh") as f:
+            content = f.read()
+        assert "trap" in content, "Hook must use trap for error handling"
+        assert "exit 0" in content, "Hook must exit 0 on all paths"
+
+    @pytest.mark.bdd
+    def test_artifact_written_emits_artifact_modified(self):
+        """on-artifact-written.sh must emit artifact_modified events."""
+        with open(self.HOOKS_DIR / "on-artifact-written.sh") as f:
+            content = f.read()
+        assert "artifact_modified" in content, \
+            "Hook must emit artifact_modified event type"
+
+    @pytest.mark.bdd
+    def test_artifact_written_filters_workspace_paths(self):
+        """on-artifact-written.sh must exclude .ai-workspace/ and .git/ paths."""
+        with open(self.HOOKS_DIR / "on-artifact-written.sh") as f:
+            content = f.read()
+        assert ".ai-workspace" in content, "Hook must filter .ai-workspace paths"
+        assert ".git" in content, "Hook must filter .git paths"
+
+    @pytest.mark.bdd
+    def test_artifact_written_maps_asset_types(self):
+        """on-artifact-written.sh must map directory patterns to asset types."""
+        with open(self.HOOKS_DIR / "on-artifact-written.sh") as f:
+            content = f.read()
+        for asset_type in ("requirements", "design", "code", "unit_tests"):
+            assert asset_type in content, \
+                f"Hook must map to asset type: {asset_type}"

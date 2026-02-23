@@ -268,3 +268,7 @@ See [ADR-GC-006](adrs/ADR-GC-006-multi-tenant-observability.md) for the detailed
 1. **Isolation**: Firestore root collections keyed by tenant.
 2. **Aggregability**: BigQuery sync for cross-project analysis.
 3. **Consistency**: Enforced event schema across all tenants.
+
+### OpenAPI Surface
+
+See [openapi.yaml](api/openapi.yaml) and [ADR-GC-009](adrs/ADR-GC-009-openapi-interface.md) for the formal API contract. This allows browser-based Gemini to execute methodology verbs directly via tool-calling.

@@ -1,6 +1,6 @@
 # AI SDLC — Project Genesis: Implementation Requirements
 
-**Version**: 3.12.0
+**Version**: 3.13.0
 **Date**: 2026-02-23
 **Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
@@ -670,6 +670,26 @@ The sensory service shall expose a tool interface (the review boundary) that sep
 
 **Traces To**: Asset Graph Model §4.5.4 (Sensory Service Architecture — review boundary), §4.3 (Three Processing Phases — conscious phase requires human) | Ontology #35 (evaluator-as-prompter), #49 (teleodynamic — self-regulating within boundaries)
 
+### REQ-SENSE-006: Artifact Write Observation
+
+**Priority**: High | **Phase**: 1
+
+The system shall observe all file writes to methodology-managed directories (specification, design, code, tests) and emit structured events, regardless of whether the write occurred through iterate() or direct tool invocation. This ensures observability survives optimization — as iterate() collapses to fewer steps or is bypassed entirely, the system retains visibility into what assets are being constructed, modified, and completed.
+
+**Design Principle**: Observability lives on a sliding scale from strict process adherence (full iterate protocol with evaluators) to pure invariant observation (detect that the asset appeared). This requirement ensures the invariant-observation end of the scale always functions, providing a floor of visibility that holds regardless of process compliance.
+
+**Acceptance Criteria**:
+- File writes (create or modify) to artifact directories detected via platform hook mechanism (PostToolUse or equivalent)
+- Each detected write emits an `artifact_modified` event to events.jsonl with: timestamp, file_path, asset_type (mapped from path), tool used
+- First write to a new asset type in a session emits `edge_started` with trigger `artifact_write_detected`
+- Writes to non-artifact paths (.ai-workspace/, .git/, infrastructure files) are excluded
+- The hook is observation-only — never blocks the write operation
+- The hook fails silently on error (observation failure must not block construction)
+- Multi-tenant aware: paths under imp_<name>/ mapped by subdirectory after tenant prefix
+- Events are sufficient for: real-time progress tracking, post-hoc audit, and root cause analysis
+
+**Traces To**: Asset Graph Model §7.7 (Protocol Enforcement — addresses dogfooding observation at line 1600), §4.3 (Reflex Processing Phase), §4.5.1 (Interoception — self-observation of file system mutations) | Ontology #49 (teleodynamic — boundary maintenance)
+
 ---
 
 ## 9. Edge Parameterisations
@@ -827,7 +847,7 @@ Identify test coverage gaps against feature vectors.
 Lifecycle hooks automating methodology compliance.
 
 **Acceptance Criteria**:
-- Hooks trigger on: commit, edge transition, session start
+- Hooks trigger on: commit, edge transition, session start, artifact write
 - Validate: REQ-* tags present, evaluator convergence recorded
 - Configurable per project
 
@@ -1271,16 +1291,16 @@ The system shall capture its own failures as structured events in `events.jsonl`
 | Context | 2 | 0 | 1 | 1 |
 | Feature Vectors | 3 | 1 | 2 | 0 |
 | Full Lifecycle | 12 | 2 | 10 | 0 |
-| Sensory Systems | 5 | 0 | 4 | 1 |
+| Sensory Systems | 6 | 0 | 5 | 1 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
 | Tooling | 14 | 0 | 10 | 4 |
 | User Experience | 7 | 0 | 5 | 2 |
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
 | Supervision (IntentEngine) | 3 | 0 | 3 | 0 |
-| **Total** | **68** | **10** | **46** | **12** |
+| **Total** | **69** | **10** | **47** | **12** |
 
-### Phase 1 (Core Graph Engine): 44 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances).
+### Phase 1 (Core Graph Engine): 45 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances).
 
 ### Phase 2 (Full Lifecycle + Coordination): 20 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking.

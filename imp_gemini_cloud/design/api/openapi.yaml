@@ -1,0 +1,203 @@
+openapi: 3.0.3
+info:
+  title: Gemini Cloud Genesis API
+  description: |
+    API for the AI SDLC Asset Graph Model on Google Cloud. 
+    Enables browser-based Gemini to query methodology state and trigger cloud-native iterations.
+  version: 1.0.0
+servers:
+  - url: https://api.genesis.cloud/v1
+    description: Production API Gateway
+
+paths:
+  /tenants/{tenantId}/projects/{projectId}/status:
+    get:
+      summary: Get project observability rollup (Cockpit view)
+      operationId: getProjectStatus
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: verbose
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful status report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+
+  /tenants/{tenantId}/projects/{projectId}/start:
+    post:
+      summary: Detect state and route to next actionable edge
+      operationId: startNextAction
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Suggested next action
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NextAction'
+
+  /tenants/{tenantId}/projects/{projectId}/iterate:
+    post:
+      summary: Trigger a cloud-native iteration on a graph edge
+      operationId: triggerIteration
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - edge
+                - feature
+              properties:
+                edge:
+                  type: string
+                  example: "design→code"
+                feature:
+                  type: string
+                  example: "REQ-F-AUTH-001"
+                mode:
+                  type: string
+                  enum: [headless, interactive, autopilot]
+                  default: interactive
+      responses:
+        '202':
+          description: Iteration workflow started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  executionId:
+                    type: string
+                  workflowUrl:
+                    type: string
+
+  /tenants/{tenantId}/projects/{projectId}/review:
+    post:
+      summary: Submit a human review decision (Callback)
+      operationId: submitReview
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - feature
+                - edge
+                - decision
+              properties:
+                feature:
+                  type: string
+                edge:
+                  type: string
+                decision:
+                  type: string
+                  enum: [approved, rejected, refined]
+                feedback:
+                  type: string
+      responses:
+        '200':
+          description: Review submitted successfully
+
+components:
+  schemas:
+    ProjectStatus:
+      type: object
+      properties:
+        projectName:
+          type: string
+        state:
+          type: string
+          enum: [UNINITIALISED, NEEDS_CONSTRAINTS, NEEDS_INTENT, NO_FEATURES, IN_PROGRESS, ALL_CONVERGED, STUCK, ALL_BLOCKED]
+        edgesConverged:
+          type: integer
+        totalEdges:
+          type: integer
+        activeFeatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeatureTrajectory'
+        signals:
+          type: array
+          items:
+            type: object
+            properties:
+              intentId:
+                type: string
+              trigger:
+                type: string
+
+    FeatureTrajectory:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        youAreHere:
+          type: string
+          description: "Trajectory string like ✓ → ● → ○"
+
+    NextAction:
+      type: object
+      properties:
+        state:
+          type: string
+        recommendedCommand:
+          type: string
+        reasoning:
+          type: string
+        feature:
+          type: string
+        edge:
+          type: string

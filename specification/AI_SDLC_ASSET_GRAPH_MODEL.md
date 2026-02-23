@@ -1653,7 +1653,27 @@ The hooks enforce **that** the protocol was followed, not **how** the agent gene
 
 This mirrors how deterministic tests work for code: the test doesn't care how the function was implemented, only that the interface contract is satisfied.
 
-#### 7.7.5 Ontology Connection
+#### 7.7.5 Bypass Detection and the Observability Sliding Scale
+
+The hook architecture in §7.7.1 detects iterate() invocation (UserPromptSubmit) and enforces side effects at completion (Stop). But it has a structural blind spot: if iterate() is never invoked — if the agent writes artifacts directly — the hooks never fire. The protocol enforcement is complete *within iterate()* but has no jurisdiction *outside it*.
+
+Dogfooding observation: in test05 (v2.3) and test07 (v3.0), agents bypassed iterate() entirely for speed. High-quality artifacts were produced but zero observability events were emitted. The monitors saw nothing.
+
+This reveals a design principle: **observability and process enforcement are independent concerns on a sliding scale**.
+
+```
+Strict process ◄─────────────────────────────────► Pure invariant observation
+(full iterate   (lightweight detection that
+ with evaluators,  artifacts appeared — no
+ convergence,     evaluators, no convergence
+ findings, gaps)   checks, just file-level events)
+```
+
+As agent capability increases, the optimal operating point moves right — iterate() collapses to fewer steps, eventually to a single pass. The methodology must retain observability at every point on this scale.
+
+**Implementation**: A `PostToolUse` (or equivalent) hook on file-write operations detects artifact creation outside iterate(). It emits lightweight `artifact_modified` events — sufficient for progress tracking, audit, and root cause analysis. It does not enforce iterate(), does not run evaluators, and never blocks. It is the observability floor that holds regardless of process compliance.
+
+#### 7.7.6 Ontology Connection
 
 Protocol enforcement hooks are an instance of **evaluator-as-prompter** (#35) applied at the meta-level. The hook computes a delta between the expected protocol state (all side effects complete) and the actual state (which side effects are missing), then emits a constraint signal (block with reason) that drives the next action. This is the same pattern used at every other level:
 

@@ -1,7 +1,8 @@
 {
-  "_implements": "REQ-TOOL-006 (Methodology Hooks), REQ-SENSE-001, REQ-SENSE-002, REQ-LIFE-010",
-  "_reference": "ADR-011 (Consciousness Loop), ADR-015 (Sensory Service), ADR-017 (Functor Execution)",
+  "_implements": "REQ-TOOL-006 (Methodology Hooks), REQ-SENSE-001, REQ-SENSE-002, REQ-LIFE-010, REQ-SENSE-006",
+  "_reference": "ADR-011 (Consciousness Loop), ADR-015 (Sensory Service), ADR-017 (Functor Execution), ADR-CG-006 (Artifact Write Observation)",
   "hooks": {
+    "PostToolUse": [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "${GEMINI_PLUGIN_ROOT}/hooks/on-artifact-written.sh", "statusMessage": "Observing artifact write..."}]}],
     "UserPromptSubmit": [
       {
         "matcher": "gen-iterate",

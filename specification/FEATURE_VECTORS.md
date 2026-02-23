@@ -144,7 +144,7 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
 Continuous interoceptive and exteroceptive monitoring with affect triage pipeline, running as a long-running service with review boundary for draft-only autonomy.
 
-**Satisfies**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
+**Satisfies**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-SENSE-006
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -372,6 +372,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-SENSE-003 | REQ-F-SENSE-001 |
 | REQ-SENSE-004 | REQ-F-SENSE-001 |
 | REQ-SENSE-005 | REQ-F-SENSE-001 |
+| REQ-SENSE-006 | REQ-F-SENSE-001 |
 | REQ-UX-001 | REQ-F-UX-001 |
 | REQ-UX-002 | REQ-F-UX-001 |
 | REQ-UX-003 | REQ-F-UX-001 |
@@ -388,7 +389,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-SUPV-002 | REQ-F-SUPV-001 |
 | REQ-SUPV-003 | REQ-F-SENSE-001 | | |
 
-**68/68 requirements covered. No orphans.**
+**69/69 requirements covered. No orphans.**
 
 ---
 
@@ -402,11 +403,11 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-TRACE-001 | 5 | 1b | ENGINE, CTX |
 | REQ-F-EDGE-001 | 4 | 1c | EVAL |
 | REQ-F-LIFE-001 | 13 | 2 | ENGINE, TRACE |
-| REQ-F-SENSE-001 | 6 | 3 | LIFE, EVAL |
+| REQ-F-SENSE-001 | 7 | 3 | LIFE, EVAL |
 | REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
 | REQ-F-UX-001 | 7 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
 | REQ-F-SUPV-001 | 2 | 1b | ENGINE, EVAL |
-| **Total** | **68** | | |
+| **Total** | **69** | | |
 
-11 feature vectors. 68 implementation requirements. Full coverage. Critical path: ENGINE design.
+11 feature vectors. 69 implementation requirements. Full coverage. Critical path: ENGINE design.

@@ -232,7 +232,30 @@ Codex sessions are interactive and task-scoped. Sensory monitoring is implemente
 
 Both modes emit the same event types into `events.jsonl` and preserve the same review boundary: sensors create proposals, humans approve intent creation.
 
-### 4.3 Two-Command UX Layer
+### 4.3 Artifact Write Observation (ADR-CG-006)
+
+The PostToolUse hook on `Write|Edit` provides invariant-level observability independent of the iterate protocol:
+
+| Event | Trigger | Data | Purpose |
+|-------|---------|------|---------|
+| `artifact_modified` | Every Write/Edit to artifact directory | file_path, asset_type, tool | Real-time progress, audit trail |
+| `edge_started` | First write to new asset type per session | edge (inferred), trigger: `artifact_write_detected` | Activity detection |
+
+This sits at the invariant-observation end of the observability sliding scale (§7.7.5). Path-to-asset mapping:
+
+| Directory pattern | Asset type |
+|-------------------|-----------|
+| `specification/`, `spec/` | requirements |
+| `design/`, `design/adrs/` | design |
+| `tests/e2e/`, `tests/uat/` | uat_tests |
+| `tests/*test*` | unit_tests |
+| `code/`, `src/`, `lib/` | code |
+
+Exclusions: `.ai-workspace/`, `.git/`, `node_modules/`, infrastructure files (CLAUDE.md, .gitignore, pyproject.toml, etc.)
+
+Multi-tenant: `imp_<name>/` prefix stripped before mapping.
+
+### 4.4 Two-Command UX Layer
 
 Codex Genesis preserves the UX pattern:
 
@@ -260,6 +283,7 @@ Progressive disclosure is retained: newcomers use start/status, power users invo
 - [ADR-CG-003-review-boundary-and-disambiguation.md](adrs/ADR-CG-003-review-boundary-and-disambiguation.md) - spec-first disambiguation and human gating
 - [ADR-CG-004-event-replay-and-recovery.md](adrs/ADR-CG-004-event-replay-and-recovery.md) - replay-based reconstruction and checkpoint strategy
 - [ADR-CG-005-sensory-operating-modes.md](adrs/ADR-CG-005-sensory-operating-modes.md) - foreground/background sensing with shared event contracts
+- [ADR-CG-006-artifact-write-observation.md](adrs/ADR-CG-006-artifact-write-observation.md) - PostToolUse hook for artifact write observability
 
 ---
 
