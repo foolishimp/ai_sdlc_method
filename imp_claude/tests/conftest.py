@@ -14,7 +14,7 @@ SPEC_DIR = PROJECT_ROOT / "specification"
 # Claude implementation paths
 IMP_CLAUDE = PROJECT_ROOT / "imp_claude"
 DESIGN_DIR = IMP_CLAUDE / "design"
-PLUGIN_ROOT = IMP_CLAUDE / "code/.claude-plugin/plugins/gen-methodology/v2"
+PLUGIN_ROOT = IMP_CLAUDE / "code/.claude-plugin/plugins/genisis"
 CONFIG_DIR = PLUGIN_ROOT / "config"
 EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"
 PROFILES_DIR = CONFIG_DIR / "profiles"

@@ -1643,7 +1643,7 @@ validation_enabled: true  # Tooling parses tag format, not comment syntax
 #### Plugin Delivery
 
 ```
-imp_claude/code/.claude-plugin/plugins/gen-methodology/
+imp_claude/code/.claude-plugin/plugins/genisis/
 ├── .claude-plugin/
 │   └── plugin.json              # Metadata (v2.6.0)
 ├── config/

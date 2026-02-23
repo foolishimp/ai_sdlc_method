@@ -14,12 +14,19 @@ Restart Claude Code. Done.
 
 ```
 your-project/
-├── .claude/settings.json              # Plugin config (GitHub marketplace)
+├── .claude/
+│   ├── settings.json                  # Plugin config + hook wiring
+│   └── hooks/                         # Hook scripts (self-contained)
+│       ├── on-session-start.sh        # Workspace health check
+│       ├── on-iterate-start.sh        # Edge detection + protocol injection
+│       ├── on-artifact-written.sh     # File-write observation (PostToolUse)
+│       └── on-stop-check-protocol.sh  # Mandatory side-effect enforcement
 ├── .ai-workspace/                     # v2 workspace
 │   ├── events/events.jsonl            # Event log (source of truth)
 │   ├── features/
 │   │   ├── active/                    # Feature vectors in progress
 │   │   └── completed/                 # Converged feature vectors
+│   ├── graph/graph_topology.yml       # Asset graph topology
 │   ├── context/
 │   │   └── project_constraints.yml    # Constraint dimensions
 │   ├── tasks/
@@ -27,14 +34,15 @@ your-project/
 │   │   └── finished/                  # Completed task docs
 │   ├── agents/                        # Per-agent working state
 │   └── spec/                          # Derived spec views
-└── specification/
-    └── INTENT.md                      # Intent template
+├── specification/
+│   └── INTENT.md                      # Intent template
+└── CLAUDE.md                          # Genesis Bootloader (appended)
 ```
 
 ## Verify
 
 ```bash
-python gen-setup.py verify
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 - verify
 ```
 
 Or inside Claude Code:
@@ -69,10 +77,10 @@ Two commands. That's it:
 
 ## What You Get
 
-**gen-methodology-v2** — The Asset Graph Model methodology:
+**genisis** — The Asset Graph Model methodology:
 - **1 universal iterate agent** — parameterised per edge, not hard-coded per stage
 - **13 commands** — start, status, init, iterate, spawn, review, spec-review, escalate, zoom, trace, gaps, checkpoint, release
-- **4 hooks** — protocol enforcement, stop checks, edge convergence observer, session health
+- **4 hooks** — session health, edge detection, artifact observation, stop-check enforcement
 - **Configurable graph** — YAML topology, edge params, profiles (full, standard, poc, spike, hotfix, minimal)
 - **Event sourcing** — all state derived from `events.jsonl`, never stored
 - **REQ key traceability** — from intent to telemetry
@@ -109,14 +117,14 @@ python gen-setup.py --target /path/to/project
 
 ## Manual Installation (Corporate / Air-Gapped)
 
-### Option A: GitHub marketplace
+### Option A: GitHub marketplace (commands only)
 
 Add to your project's `.claude/settings.json`:
 
 ```json
 {
   "extraKnownMarketplaces": {
-    "aisdlc": {
+    "genisis": {
       "source": {
         "source": "github",
         "repo": "foolishimp/ai_sdlc_method"
@@ -124,12 +132,14 @@ Add to your project's `.claude/settings.json`:
     }
   },
   "enabledPlugins": {
-    "gen-methodology-v2@aisdlc": true
+    "genisis@genisis": true
   }
 }
 ```
 
 Then run `/gen-init` to create the workspace.
+
+> **Note**: The marketplace delivers commands and agents but **not hooks**. For full observability (session health, artifact tracking, protocol enforcement), use the installer instead.
 
 ### Option B: Local plugin (fully offline)
 
@@ -140,7 +150,7 @@ git clone https://github.com/foolishimp/ai_sdlc_method.git /path/to/ai_sdlc_meth
 ```json
 {
   "extraKnownMarketplaces": {
-    "aisdlc": {
+    "genisis": {
       "source": {
         "source": "local",
         "path": "/path/to/ai_sdlc_method/imp_claude/code/.claude-plugin"
@@ -148,10 +158,12 @@ git clone https://github.com/foolishimp/ai_sdlc_method.git /path/to/ai_sdlc_meth
     }
   },
   "enabledPlugins": {
-    "gen-methodology-v2@aisdlc": true
+    "genisis@genisis": true
   }
 }
 ```
+
+> **Note**: Same limitation — hooks must be installed separately via the installer or by copying `.claude/hooks/` manually.
 
 ## Key Commands
 

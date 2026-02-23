@@ -28,7 +28,7 @@ import yaml
 # ── Paths ────────────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 INSTALLER = PROJECT_ROOT / "imp_claude" / "code" / "installers" / "gen-setup.py"
-PLUGIN_ROOT = PROJECT_ROOT / "imp_claude" / "code" / ".claude-plugin" / "plugins" / "gen-methodology" / "v2"
+PLUGIN_ROOT = PROJECT_ROOT / "imp_claude" / "code" / ".claude-plugin" / "plugins" / "genisis"
 CONFIG_DIR = PLUGIN_ROOT / "config"
 
 # Import workspace state utilities
@@ -157,8 +157,8 @@ class TestInstallAndVerify:
         settings = json.loads(
             (installed_project / ".claude" / "settings.json").read_text()
         )
-        assert "aisdlc" in settings["extraKnownMarketplaces"]
-        assert settings["enabledPlugins"]["gen-methodology-v2@aisdlc"] is True
+        assert "genisis" in settings["extraKnownMarketplaces"]
+        assert settings["enabledPlugins"]["genisis@genisis"] is True
 
     @pytest.mark.uat
     def test_verify_command_passes(self, installed_project):
@@ -587,6 +587,6 @@ class TestPluginIntegration:
         mkt = PROJECT_ROOT / ".claude-plugin" / "marketplace.json"
         assert mkt.exists()
         data = json.loads(mkt.read_text())
-        assert data["name"] == "aisdlc"
+        assert data["name"] == "genisis"
         plugin_names = [p["name"] for p in data["plugins"]]
-        assert "gen-methodology-v2" in plugin_names
+        assert "genisis" in plugin_names

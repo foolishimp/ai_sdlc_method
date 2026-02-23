@@ -1,1 +1,1 @@
-/Users/jim/src/apps/ai_sdlc_method/imp_claude/code/.claude-plugin/plugins/gen-methodology/v2/commands/gen-start.md
+/Users/jim/src/apps/ai_sdlc_method/imp_claude/code/.claude-plugin/plugins/genisis/commands/gen-start.md

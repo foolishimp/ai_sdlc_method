@@ -88,31 +88,30 @@ A 10-minute spike and a regulated medical device both use the same four primitiv
 
 ## Getting Started
 
-### 1. Install the Claude Code plugin
+### 1. Install (one command)
 
 ```bash
 # From your project directory
-claude plugin add foolishimp/ai_sdlc_method
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 -
 ```
 
-### 2. Initialize your project workspace
+This creates the plugin config, hook scripts, workspace, graph topology, project constraints, and Genesis Bootloader. Restart Claude Code to load the plugin.
 
+```bash
+# Verify
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 - verify
 ```
-/gen-init
-```
 
-This scaffolds the asset graph configuration, context store, project constraints, feature tracking, and task management directories.
-
-### 3. Start working (two commands)
+### 2. Start working (two commands)
 
 ```
 /gen-start            # Detects state, selects feature/edge, iterates — "Go."
 /gen-status           # Project-wide state, "you are here", signals — "Where am I?"
 ```
 
-Start handles everything: init, feature creation, edge selection, iteration. It detects your project state and routes to the right action automatically.
+`/gen-start` handles everything: init, feature creation, edge selection, iteration. It detects your project state and routes to the right action automatically.
 
-### Advanced (9 power-user commands)
+### 3. Power-user commands
 
 ```
 /gen-iterate          # Advance an asset along a specific edge
@@ -121,6 +120,9 @@ Start handles everything: init, feature creation, edge selection, iteration. It 
 /gen-gaps             # Find traceability gaps
 /gen-checkpoint       # Save current progress
 /gen-review           # Review an asset for promotion
+/gen-spec-review      # Gradient check at spec boundaries
+/gen-escalate         # View/process escalation queue
+/gen-zoom             # Zoom into/out of graph edges
 /gen-release          # Prepare a release
 ```
 
@@ -148,9 +150,10 @@ ai_sdlc_method/
 │   └── presentations/
 │
 ├── imp_claude/                             # Claude Code implementation
-│   ├── design/                             #   AISDLC_V2_DESIGN.md + ADRs 008-013
+│   ├── design/                             #   AISDLC_V2_DESIGN.md + ADRs 008-017
 │   ├── code/                               #   Plugin: 4 agents, 13 commands, 4 hooks
-│   └── tests/                              #   326 tests (spec validation + implementation)
+│   │   └── installers/gen-setup.py         #   One-command installer (curl | python3)
+│   └── tests/                              #   521+ tests (spec + implementation + installer)
 │
 ├── imp_gemini/                             # Gemini Genesis implementation
 │   ├── design/                             #   GEMINI_GENESIS_DESIGN.md + ADRs GG-001-008
@@ -158,7 +161,12 @@ ai_sdlc_method/
 │   └── tests/                              #   (future)
 │
 ├── imp_codex/                              # Codex Genesis implementation
-│   ├── design/                             #   CODEX_GENESIS_DESIGN.md + ADR-CG-001
+│   ├── design/                             #   CODEX_GENESIS_DESIGN.md + ADR-CG-001+
+│   ├── code/                               #   (future)
+│   └── tests/                              #   (future)
+│
+├── imp_bedrock/                            # AWS Bedrock Genesis implementation
+│   ├── design/                             #   BEDROCK_GENESIS_DESIGN.md + ADRs AB-001-008
 │   ├── code/                               #   (future)
 │   └── tests/                              #   (future)
 │
@@ -182,6 +190,7 @@ ai_sdlc_method/
 | [AISDLC_V2_DESIGN.md](imp_claude/design/AISDLC_V2_DESIGN.md) | Claude Code implementation design |
 | [GEMINI_GENESIS_DESIGN.md](imp_gemini/design/GEMINI_GENESIS_DESIGN.md) | Gemini Genesis implementation design |
 | [CODEX_GENESIS_DESIGN.md](imp_codex/design/CODEX_GENESIS_DESIGN.md) | Codex Genesis implementation design |
+| [BEDROCK_GENESIS_DESIGN.md](imp_bedrock/design/BEDROCK_GENESIS_DESIGN.md) | AWS Bedrock Genesis implementation design |
 
 ---
 
@@ -190,9 +199,9 @@ ai_sdlc_method/
 **Version**: 2.8.0 (Asset Graph Model — Multi-Tenant)
 
 - Spec: Complete (formal system, projections, invariants, consciousness loop, processing phases, sensory systems, UX)
-- Design: Complete (Claude ADRs 008-013, Gemini ADRs GG-001-008, Codex ADR-CG-001)
-- Code: Phase 1a (Claude: configs, 4 agents, 13 commands, 4 hooks — no executable engine)
-- Tests: 326 tests (Claude implementation — spec validation + implementation tests)
+- Design: Complete (Claude ADRs 008-017, Gemini ADRs GG-001-008, Codex ADR-CG-001+, Bedrock ADRs AB-001-008)
+- Code: Phase 1a (Claude: configs, 4 agents, 13 commands, 4 hooks, installer)
+- Tests: 521+ tests (spec + implementation + installer), 34 E2E convergence tests
 - UAT / CI/CD / Telemetry: Not started
 
 **v1.x preserved at tag `v1.x-final`** — recoverable via `git checkout v1.x-final`

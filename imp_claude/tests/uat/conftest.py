@@ -26,7 +26,7 @@ SPEC_DIR = PROJECT_ROOT / "specification"
 IMP_CLAUDE = PROJECT_ROOT / "imp_claude"
 PLUGIN_ROOT = (
     IMP_CLAUDE / "code" / ".claude-plugin" / "plugins"
-    / "gen-methodology" / "v2"
+    / "genisis"
 )
 CONFIG_DIR = PLUGIN_ROOT / "config"
 EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"

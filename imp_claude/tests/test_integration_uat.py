@@ -184,6 +184,7 @@ class TestEventLogIntegrity:
         "review_completed", "gaps_validated", "release_created",
         "interoceptive_signal", "exteroceptive_signal",
         "affect_triage", "draft_proposal", "observer_signal",
+        "artifact_modified",
         # Legacy event types (pre-v2.8 — still valid in historical log)
         "evaluator_ran", "feature_spawned", "finding_raised",
         "telemetry_signal_emitted",

@@ -50,8 +50,8 @@ class TestFreshInstall:
         settings = installed_target / ".claude" / "settings.json"
         assert settings.exists()
         data = json.loads(settings.read_text())
-        assert "aisdlc" in data["extraKnownMarketplaces"]
-        assert data["enabledPlugins"]["gen-methodology-v2@aisdlc"] is True
+        assert "genisis" in data["extraKnownMarketplaces"]
+        assert data["enabledPlugins"]["genisis@genisis"] is True
 
     def test_creates_events_jsonl(self, installed_target):
         events = installed_target / ".ai-workspace" / "events" / "events.jsonl"
@@ -85,7 +85,6 @@ class TestFreshInstall:
     def test_creates_tasks_dir(self, installed_target):
         tasks = installed_target / ".ai-workspace" / "tasks" / "active" / "ACTIVE_TASKS.md"
         assert tasks.exists()
-
 
 class TestIdempotency:
     """REQ-TOOL-011: Installation is idempotent."""

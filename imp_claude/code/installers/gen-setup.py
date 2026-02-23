@@ -24,7 +24,7 @@ Usage:
     python gen-setup.py verify
 
 What gets created:
-    .claude/settings.json          - Plugin configuration (GitHub marketplace)
+    .claude/settings.json          - Marketplace + plugin registration
     .ai-workspace/                 - v2 workspace
         events/events.jsonl        - Event log (append-only)
         features/active/           - Active feature vectors
@@ -55,9 +55,9 @@ from typing import Dict, List, Tuple
 # =============================================================================
 
 GITHUB_REPO = "foolishimp/ai_sdlc_method"
-PLUGIN_NAME = "gen-methodology-v2"
-MARKETPLACE_NAME = "aisdlc"
-PLUGIN_BASE = f"imp_claude/code/.claude-plugin/plugins/gen-methodology/v2"
+PLUGIN_NAME = "genisis"
+MARKETPLACE_NAME = "genisis"
+PLUGIN_BASE = f"imp_claude/code/.claude-plugin/plugins/genisis"
 PLUGIN_JSON_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/plugin.json"
 GRAPH_TOPOLOGY_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/config/graph_topology.yml"
 BOOTLOADER_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/specification/GENESIS_BOOTLOADER.md"
@@ -231,7 +231,7 @@ def fetch_graph_topology() -> str:
         pass
 
     # Fallback: local plugin path (works for local development)
-    local_path = Path(__file__).parent.parent / ".claude-plugin" / "plugins" / "gen-methodology" / "v2" / "config" / "graph_topology.yml"
+    local_path = Path(__file__).parent.parent / ".claude-plugin" / "plugins" / "genisis" / "config" / "graph_topology.yml"
     if local_path.exists():
         return local_path.read_text()
 
@@ -330,7 +330,7 @@ def clear_plugin_cache(dry_run: bool) -> bool:
 
 
 def setup_settings(target: Path, dry_run: bool) -> bool:
-    """Create or update .claude/settings.json with marketplace + plugin config."""
+    """Create or update .claude/settings.json with marketplace and plugin."""
     settings_file = target / ".claude" / "settings.json"
 
     existing = {}
@@ -348,7 +348,7 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
         "source": {"source": "github", "repo": GITHUB_REPO}
     }
 
-    # Enable plugin
+    # Enable plugin (hooks are loaded from the plugin's hooks.json by Claude Code)
     if "enabledPlugins" not in existing:
         existing["enabledPlugins"] = {}
     existing["enabledPlugins"][f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"] = True
@@ -601,6 +601,7 @@ def cmd_verify(args) -> int:
             else:
                 print_error(f"Plugin '{plugin_key}' not enabled")
                 failed += 1
+
         except Exception as e:
             print_error(f"Cannot parse settings.json: {e}")
             failed += 1
@@ -659,7 +660,7 @@ def cmd_install(args) -> int:
     clear_plugin_cache(args.dry_run)
     print()
 
-    # 2. Configure plugin
+    # 2. Configure plugin (marketplace + enablement; hooks come from plugin)
     print("--- Plugin Configuration ---")
     if not setup_settings(target, args.dry_run):
         success = False
@@ -677,7 +678,7 @@ def cmd_install(args) -> int:
             success = False
         print()
 
-        # 4. Append bootloader to CLAUDE.md
+        # 3b. Append bootloader to CLAUDE.md
         print("--- Genesis Bootloader ---")
         if not setup_bootloader(target, args.dry_run):
             success = False
@@ -702,8 +703,9 @@ def cmd_install(args) -> int:
             print("    CLAUDE.md                      Genesis Bootloader (appended)")
         print()
         print("  Next steps:")
-        print("    1. Restart Claude Code to load plugin")
-        print("    2. Run /gen-start to begin")
+        print("    1. Start Claude Code (it will prompt to install the marketplace)")
+        print("    2. Run /plugin install genisis@genisis")
+        print("    3. Run /gen-start to begin")
         print()
         print("  Verify installation:")
         print("    python gen-setup.py verify")
