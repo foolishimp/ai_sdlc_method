@@ -157,7 +157,7 @@ class TestVerify:
             text=True,
         )
         assert result.returncode == 0
-        assert "8 passed, 0 failed" in result.stdout
+        assert "10 passed, 0 failed" in result.stdout
 
     def test_verify_fails_on_empty_dir(self, clean_target):
         clean_target.mkdir()

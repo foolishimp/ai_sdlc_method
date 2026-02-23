@@ -5,6 +5,7 @@ AI SDLC Method v2 - Project Setup
 Self-contained installer that can be run directly from GitHub.
 
 # Implements: REQ-TOOL-011 (Installability), REQ-TOOL-003 (Workflow Commands), REQ-TOOL-007 (Project Scaffolding)
+# Implements: REQ-TOOL-012 (Multi-Tenant Folder Structure), REQ-TOOL-014 (Observability Integration Contract)
 
 Usage:
     # Install plugin + create v2 workspace (default)
@@ -28,9 +29,11 @@ What gets created:
         events/events.jsonl        - Event log (append-only)
         features/active/           - Active feature vectors
         features/completed/        - Converged feature vectors
+        graph/graph_topology.yml   - Asset graph topology (REQ-TOOL-007, REQ-TOOL-014)
         spec/                      - Derived spec views
         tasks/active/              - Task tracking
         tasks/finished/            - Completed tasks
+        context/project_constraints.yml - Project constraints (with structure section)
         agents/                    - Per-agent working state
     specification/                 - Spec directory (if absent)
         INTENT.md                  - Intent template
@@ -56,6 +59,11 @@ PLUGIN_NAME = "gen-methodology-v2"
 MARKETPLACE_NAME = "aisdlc"
 PLUGIN_BASE = f"imp_claude/code/.claude-plugin/plugins/gen-methodology/v2"
 PLUGIN_JSON_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/plugin.json"
+GRAPH_TOPOLOGY_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/config/graph_topology.yml"
+BOOTLOADER_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/specification/GENESIS_BOOTLOADER.md"
+
+BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
+BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
 VERSION = "2.8.0"
 
@@ -109,6 +117,16 @@ constraints:
     tracing: ""
   error_handling:
     strategy: ""     # fail-fast | retry | circuit-breaker
+
+# Multi-tenant folder structure (REQ-TOOL-012, REQ-TOOL-013)
+# Controls where design→code edge places generated source code.
+# Each design variant gets its own imp_<name>/ directory.
+structure:
+  design_tenants:
+    # - name: ""               # e.g., "scala_spark", "python_django"
+    #   output_dir: ""         # e.g., "imp_scala_spark/"
+    #   description: ""        # e.g., "Scala 2.13 + Spark 3.5 implementation"
+  root_code_policy: reject     # reject | warn — whether source code at project root is allowed
 """
 
 INTENT_TEMPLATE = """\
@@ -201,6 +219,40 @@ def get_plugin_version() -> str:
             return data.get("version", "unknown")
     except (urllib.error.URLError, json.JSONDecodeError, KeyError):
         return VERSION
+
+
+def fetch_graph_topology() -> str:
+    """Fetch graph_topology.yml from GitHub. Falls back to local plugin if available."""
+    # Try GitHub first
+    try:
+        with urllib.request.urlopen(GRAPH_TOPOLOGY_URL, timeout=10) as response:
+            return response.read().decode("utf-8")
+    except (urllib.error.URLError, OSError):
+        pass
+
+    # Fallback: local plugin path (works for local development)
+    local_path = Path(__file__).parent.parent / ".claude-plugin" / "plugins" / "gen-methodology" / "v2" / "config" / "graph_topology.yml"
+    if local_path.exists():
+        return local_path.read_text()
+
+    return ""
+
+
+def fetch_bootloader() -> str:
+    """Fetch GENESIS_BOOTLOADER.md from GitHub. Falls back to local spec if available."""
+    # Try GitHub first
+    try:
+        with urllib.request.urlopen(BOOTLOADER_URL, timeout=10) as response:
+            return response.read().decode("utf-8")
+    except (urllib.error.URLError, OSError):
+        pass
+
+    # Fallback: local path (works for development in the ai_sdlc_method repo)
+    local_path = Path(__file__).resolve().parent.parent.parent.parent / "specification" / "GENESIS_BOOTLOADER.md"
+    if local_path.exists():
+        return local_path.read_text()
+
+    return ""
 
 
 def write_file(path: Path, content: str, dry_run: bool, force: bool = False) -> bool:
@@ -329,6 +381,7 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
         ws / "events",
         ws / "features" / "active",
         ws / "features" / "completed",
+        ws / "graph",
         ws / "spec",
         ws / "tasks" / "active",
         ws / "tasks" / "finished",
@@ -364,6 +417,20 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
         dry_run,
     )
 
+    # Graph topology (REQ-TOOL-007, REQ-TOOL-014 — observability integration contract)
+    graph_topology_path = ws / "graph" / "graph_topology.yml"
+    if not graph_topology_path.exists():
+        if dry_run:
+            print_info("Would fetch and create: .ai-workspace/graph/graph_topology.yml")
+        else:
+            topology_content = fetch_graph_topology()
+            if topology_content:
+                write_file(graph_topology_path, topology_content, dry_run)
+            else:
+                print_warn("Could not fetch graph_topology.yml — create manually or re-run with network")
+    else:
+        print_info("Exists: .ai-workspace/graph/graph_topology.yml")
+
     # Emit project_initialized event (idempotent — only if events.jsonl is empty)
     events_file = ws / "events" / "events.jsonl"
     if not dry_run:
@@ -386,6 +453,51 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
     else:
         print_info("Would emit project_initialized event")
 
+    return True
+
+
+def setup_bootloader(target: Path, dry_run: bool) -> bool:
+    """Append Genesis Bootloader to CLAUDE.md (idempotent)."""
+    claude_md = target / "CLAUDE.md"
+
+    # Check if bootloader already present
+    if claude_md.exists():
+        existing = claude_md.read_text()
+        if BOOTLOADER_START_MARKER in existing:
+            print_info("Genesis Bootloader already in CLAUDE.md")
+            return True
+    else:
+        existing = ""
+
+    # Fetch bootloader content
+    bootloader = fetch_bootloader()
+    if not bootloader:
+        print_warn("Could not fetch GENESIS_BOOTLOADER.md — skipping CLAUDE.md update")
+        return True  # non-fatal
+
+    if dry_run:
+        if existing:
+            print_info("Would append Genesis Bootloader to existing CLAUDE.md")
+        else:
+            print_info("Would create CLAUDE.md with Genesis Bootloader")
+        return True
+
+    # Build the section to append
+    separator = "\n\n---\n\n" if existing.strip() else ""
+    bootloader_section = (
+        f"{separator}"
+        f"{BOOTLOADER_START_MARKER}\n"
+        f"{bootloader}\n"
+        f"{BOOTLOADER_END_MARKER}\n"
+    )
+
+    with open(claude_md, "a") as f:
+        f.write(bootloader_section)
+
+    if existing:
+        print_ok("Appended Genesis Bootloader to CLAUDE.md")
+    else:
+        print_ok("Created CLAUDE.md with Genesis Bootloader")
     return True
 
 
@@ -423,6 +535,7 @@ def cmd_verify(args) -> int:
         (target / ".claude" / "settings.json", "Plugin settings"),
         (target / ".ai-workspace" / "events" / "events.jsonl", "Event log"),
         (target / ".ai-workspace" / "features" / "active", "Feature vectors dir"),
+        (target / ".ai-workspace" / "graph" / "graph_topology.yml", "Graph topology"),
         (target / ".ai-workspace" / "tasks" / "active" / "ACTIVE_TASKS.md", "Task tracking"),
         (target / ".ai-workspace" / "context" / "project_constraints.yml", "Project constraints"),
     ]
@@ -434,6 +547,20 @@ def cmd_verify(args) -> int:
         else:
             print_error(f"{label}: MISSING — {path.relative_to(target)}")
             failed += 1
+
+    # Check Genesis Bootloader in CLAUDE.md
+    claude_md = target / "CLAUDE.md"
+    if claude_md.exists():
+        claude_content = claude_md.read_text()
+        if BOOTLOADER_START_MARKER in claude_content:
+            print_ok("Genesis Bootloader present in CLAUDE.md")
+            passed += 1
+        else:
+            print_error("Genesis Bootloader NOT in CLAUDE.md — re-run installer")
+            failed += 1
+    else:
+        print_error("CLAUDE.md missing — re-run installer")
+        failed += 1
 
     # Check settings content
     settings_file = target / ".claude" / "settings.json"
@@ -532,6 +659,12 @@ def cmd_install(args) -> int:
             success = False
         print()
 
+        # 4. Append bootloader to CLAUDE.md
+        print("--- Genesis Bootloader ---")
+        if not setup_bootloader(target, args.dry_run):
+            success = False
+        print()
+
     # Summary
     print("=" * 64)
     if args.dry_run:
@@ -544,9 +677,11 @@ def cmd_install(args) -> int:
         if not args.no_workspace:
             print("    .ai-workspace/events/          Event log (source of truth)")
             print("    .ai-workspace/features/        Feature vector storage")
+            print("    .ai-workspace/graph/           Graph topology (monitor integration)")
             print("    .ai-workspace/tasks/           Task tracking")
-            print("    .ai-workspace/context/         Project constraints")
+            print("    .ai-workspace/context/         Project constraints (with structure)")
             print("    specification/INTENT.md        Intent template")
+            print("    CLAUDE.md                      Genesis Bootloader (appended)")
         print()
         print("  Next steps:")
         print("    1. Restart Claude Code to load plugin")
