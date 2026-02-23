@@ -86,6 +86,32 @@ class TestFreshInstall:
         tasks = installed_target / ".ai-workspace" / "tasks" / "active" / "ACTIVE_TASKS.md"
         assert tasks.exists()
 
+class TestLegacyMigration:
+    """Installer removes pre-genisis keys (aisdlc / gen-methodology-v2)."""
+
+    def test_removes_legacy_marketplace_and_plugin(self, clean_target):
+        clean_target.mkdir()
+        settings_dir = clean_target / ".claude"
+        settings_dir.mkdir()
+        (settings_dir / "settings.json").write_text(json.dumps({
+            "extraKnownMarketplaces": {
+                "aisdlc": {"source": {"source": "github", "repo": "foolishimp/ai_sdlc_method"}}
+            },
+            "enabledPlugins": {"gen-methodology-v2@aisdlc": True},
+        }))
+        result = subprocess.run(
+            [sys.executable, str(INSTALLER), "--target", str(clean_target)],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+        data = json.loads((settings_dir / "settings.json").read_text())
+        assert "aisdlc" not in data["extraKnownMarketplaces"]
+        assert "gen-methodology-v2@aisdlc" not in data["enabledPlugins"]
+        assert "genisis" in data["extraKnownMarketplaces"]
+        assert data["enabledPlugins"]["genisis@genisis"] is True
+
+
 class TestIdempotency:
     """REQ-TOOL-011: Installation is idempotent."""
 

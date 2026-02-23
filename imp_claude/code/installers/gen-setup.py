@@ -308,6 +308,9 @@ def clear_plugin_cache(dry_run: bool) -> bool:
     cache_locations = [
         Path.home() / ".claude" / "plugins" / "marketplaces" / MARKETPLACE_NAME,
         Path.home() / ".claude" / "plugins" / "cache" / MARKETPLACE_NAME / PLUGIN_NAME,
+        # Legacy cache from pre-genisis installs
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "aisdlc",
+        Path.home() / ".claude" / "plugins" / "cache" / "aisdlc" / "gen-methodology-v2",
     ]
 
     found_any = False
@@ -341,9 +344,10 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
         except json.JSONDecodeError:
             print_warn("Existing settings.json has invalid JSON, will merge carefully")
 
-    # Add marketplace
+    # Add marketplace (and remove legacy keys from pre-genisis installs)
     if "extraKnownMarketplaces" not in existing:
         existing["extraKnownMarketplaces"] = {}
+    existing["extraKnownMarketplaces"].pop("aisdlc", None)
     existing["extraKnownMarketplaces"][MARKETPLACE_NAME] = {
         "source": {"source": "github", "repo": GITHUB_REPO}
     }
@@ -351,6 +355,7 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
     # Enable plugin (hooks are loaded from the plugin's hooks.json by Claude Code)
     if "enabledPlugins" not in existing:
         existing["enabledPlugins"] = {}
+    existing["enabledPlugins"].pop("gen-methodology-v2@aisdlc", None)
     existing["enabledPlugins"][f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"] = True
 
     if dry_run:
