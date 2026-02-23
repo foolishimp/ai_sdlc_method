@@ -1,0 +1,381 @@
+# IntentEngine Configuration
+# Implements: REQ-SUPV-001 (IntentEngine interface), REQ-SUPV-002 (Constraint Tolerances)
+# Implements: REQ-INTENT-001 (Intent Capture), REQ-INTENT-002 (Intent as Spec)
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §4.6, §4.6.9
+# Reference: ADR-014 (IntentEngine Binding), ADR-016 (Design Tolerances), ADR-017 (Functor Execution)
+#
+# The IntentEngine is not a fifth primitive — it is the composition law over the
+# four primitives: IntentEngine(intent + affect) = observer → evaluator → typed_output.
+# This config parameterises the composition: output type routing, ambiguity thresholds,
+# tolerance schemas, and escalation boundaries.
+
+---
+
+version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════════════
+# OUTPUT TYPES (§4.6 — three typed outputs of the IntentEngine)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Every IntentEngine invocation produces exactly one of these three outputs.
+# The output type determines control flow and event emission.
+
+output_types:
+
+  reflex_log:
+    description: "Observation within bounds — log and continue"
+    ambiguity_regime: zero
+    processing_phase: reflex
+    functor_category: F_D
+    event_types:
+      - iteration_completed
+      - edge_converged
+      - interoceptive_signal
+    control_flow: continue
+    human_required: false
+    examples:
+      - "All deterministic checks pass — emit event, proceed to next edge"
+      - "Sensory monitor reads within threshold — log observation"
+      - "Feature vector state updated — reflex side effect"
+
+  spec_event_log:
+    description: "Bounded ambiguity — defer for next iteration or batch review"
+    ambiguity_regime: bounded_nonzero
+    processing_phase: affect
+    functor_category: F_P
+    event_types:
+      - iteration_completed   # with non-zero delta
+      - affect_triage          # deferred signal
+    control_flow: iterate_again
+    human_required: false
+    examples:
+      - "Agent evaluator finds gap but can suggest fix — iterate again"
+      - "Test fails but failure is within expected iteration scope"
+      - "Signal triaged as 'defer' — queue for batch review"
+
+  escalate:
+    description: "Persistent ambiguity — requires human judgment or spawn"
+    ambiguity_regime: persistent
+    processing_phase: conscious
+    functor_category: F_H
+    event_types:
+      - intent_raised
+      - convergence_escalated
+      - spawn_created
+    control_flow: block_until_human
+    human_required: true
+    examples:
+      - "Same delta for 3+ iterations — stuck, escalate"
+      - "Source asset ambiguous — cannot resolve without human clarification"
+      - "Tolerance breached persistently — propose technology rebinding"
+
+# ═══════════════════════════════════════════════════════════════════════
+# AMBIGUITY CLASSIFICATION (§4.6.2)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# How the IntentEngine determines which output type to produce.
+# Classification maps evaluator results to ambiguity regimes.
+
+ambiguity_classification:
+
+  # Deterministic evaluators produce zero ambiguity (pass/fail)
+  zero:
+    evaluator_type: deterministic
+    mechanism: "Binary — pass or fail, no interpretation needed"
+    output: reflex_log
+    examples:
+      - "pytest exit code 0"
+      - "Coverage >= threshold"
+      - "Schema validation passes"
+      - "REQ tag format regex matches"
+
+  # Agent evaluators produce bounded nonzero ambiguity
+  bounded_nonzero:
+    evaluator_type: agent
+    mechanism: "LLM assessment — gap analysis, coherence check, candidate generation"
+    output: spec_event_log
+    boundary_condition: "Agent can propose a resolution within the current edge scope"
+    escalation_trigger: "Agent cannot resolve — ambiguity exceeds bounded capacity"
+    examples:
+      - "Agent finds missing test for REQ key — can generate test"
+      - "Agent detects design inconsistency — can suggest ADR amendment"
+
+  # Human evaluators handle persistent ambiguity
+  persistent:
+    evaluator_type: human
+    mechanism: "Human judgment — approval, rejection, spec modification, spawn decision"
+    output: escalate
+    examples:
+      - "Requirements need business stakeholder approval"
+      - "Design trade-off requires human prioritisation"
+      - "Stuck feature needs root cause investigation"
+
+# ═══════════════════════════════════════════════════════════════════════
+# ESCALATION BOUNDARIES (§4.6.2, ADR-017)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# The natural transformations η_D→P and η_P→H fire when ambiguity
+# exceeds the current category's capacity. These are the thresholds.
+
+escalation:
+
+  # η_D→P: deterministic → probabilistic
+  deterministic_to_probabilistic:
+    trigger: "Any deterministic check fails (ambiguity > 0)"
+    description: "Failed deterministic check needs agent assessment to diagnose"
+    automatic: true  # no human involvement needed
+
+  # η_P→H: probabilistic → human
+  probabilistic_to_human:
+    triggers:
+      - name: stuck_threshold
+        description: "Same delta for N consecutive iterations"
+        default: 3
+        per_profile:
+          hotfix: 1      # escalate immediately
+          standard: 3    # normal threshold
+          full: 3
+          spike: 5       # tolerate more iterations
+          poc: 5
+          minimal: 3
+
+      - name: max_iterations
+        description: "Total iterations before forced escalation"
+        default: 5
+        per_profile:
+          hotfix: 3
+          standard: 5
+          full: 7
+          spike: 10
+          poc: 8
+          minimal: 5
+
+      - name: confidence_floor
+        description: "Agent confidence below this triggers human review"
+        default: 0.7
+        note: "Advisory — agent self-reports confidence when available"
+
+# ═══════════════════════════════════════════════════════════════════════
+# SIGNAL SOURCES (ADR-011 — 7 sources at every observer point)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Every observer point can emit intent_raised events. Classification
+# enables telemetry analysis and different response patterns.
+
+signal_sources:
+
+  - id: gap
+    description: "Traceability validation finds uncovered REQ keys"
+    observer_point: "/gen-gaps"
+    typical_output: escalate
+    response_pattern: "Spawn new feature vector or add test coverage"
+
+  - id: test_failure
+    description: "Same check fails > stuck_threshold iterations"
+    observer_point: "Forward evaluation (TDD)"
+    typical_output: spec_event_log  # iterate first, escalate if stuck
+    response_pattern: "Iterate on current edge; escalate if persistent"
+
+  - id: refactoring
+    description: "Structural debt exceeds current feature scope"
+    observer_point: "TDD refactor phase"
+    typical_output: escalate
+    response_pattern: "Spawn discovery or spike vector"
+
+  - id: source_finding
+    description: "Source asset ambiguous/missing, escalate_upstream disposition"
+    observer_point: "Backward evaluation"
+    typical_output: escalate
+    response_pattern: "Escalate to source edge for re-iteration"
+
+  - id: process_gap
+    description: "Evaluator missing, criterion vague, context missing"
+    observer_point: "Inward evaluation"
+    typical_output: escalate
+    response_pattern: "Feed back to graph package — methodology improvement"
+
+  - id: runtime_feedback
+    description: "SLA violation, error rate spike from production telemetry"
+    observer_point: "Production telemetry"
+    typical_output: escalate
+    response_pattern: "Spawn hotfix vector or generate optimization intent"
+
+  - id: ecosystem
+    description: "Dependency deprecated, API changed, regulation updated"
+    observer_point: "External monitoring"
+    typical_output: spec_event_log  # triage first
+    response_pattern: "Assess impact; spawn vector if breaking"
+
+# ═══════════════════════════════════════════════════════════════════════
+# TOLERANCE SCHEMA (§4.6.9, ADR-016)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Every constraint must have a measurable threshold. Without tolerances,
+# no homeostasis. Tolerance breaches flow through the standard
+# IntentEngine pipeline: sense → classify → escalate.
+
+tolerance_schema:
+
+  # Structure for declaring tolerances on any constraint
+  fields:
+    metric:
+      type: string
+      description: "What is being measured"
+      required: true
+    threshold:
+      type: number_or_string
+      description: "The boundary value"
+      required: true
+    direction:
+      type: enum
+      values: [below, above, within_range]
+      description: "Healthy when metric is {direction} threshold"
+      required: true
+    unit:
+      type: string
+      description: "Unit of measurement (ms, %, count, $)"
+      required: false
+    signal:
+      type: string
+      description: "Which sensory monitor watches this (INTRO-* or EXTRO-*)"
+      required: false
+    breach_action:
+      type: enum
+      values: [reflex_log, iterate, escalate]
+      description: "What happens on breach"
+      default: iterate
+
+  # Default tolerances for the methodology's own technology bindings
+  # (Genesis self-compliance — spec §0)
+  genesis_tolerances:
+
+    event_log:
+      metric: events_jsonl_append_latency
+      threshold: 50ms
+      direction: below
+      signal: INTRO-007
+      breach_action: reflex_log
+      binding: "ADR-013 (Multi-Agent Coordination)"
+
+    config_parse:
+      metric: yaml_config_parse_time
+      threshold: 500ms
+      direction: below
+      signal: INTRO-007
+      breach_action: reflex_log
+      binding: "ADR-009 (Graph Topology as Config)"
+
+    test_suite:
+      metric: non_e2e_test_duration_seconds
+      threshold: 120
+      direction: below
+      breach_action: iterate
+      binding: "imp_bedrock/tests/"
+
+    event_log_size:
+      metric: events_jsonl_line_count
+      threshold: 10000
+      direction: below
+      breach_action: iterate
+      note: "Implement log rotation before reaching threshold"
+      binding: "ADR-013"
+
+    topology_complexity:
+      metric: graph_edge_count
+      threshold: 20
+      direction: below
+      breach_action: escalate
+      note: "Review edge granularity if graph grows beyond this"
+      binding: "ADR-009"
+
+    stuck_detection:
+      metric: max_consecutive_same_delta
+      threshold: 3
+      direction: below
+      breach_action: escalate
+      binding: "ADR-014 (IntentEngine Binding)"
+
+    coverage_floor:
+      metric: req_key_test_coverage_percent
+      threshold: 80
+      direction: above
+      breach_action: iterate
+      binding: "REQ-FEAT-001"
+
+# ═══════════════════════════════════════════════════════════════════════
+# EXECUTION MODE (ADR-017 — starting functor)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# The starting functor determines whether the system begins with
+# deterministic processing (headless), human direction (interactive),
+# or a valence-controlled hybrid (autopilot).
+
+execution_modes:
+
+  interactive:
+    description: "Human directs, agent constructs, tests validate"
+    starting_functor: F_H
+    direction: "top-down — human picks feature/edge, delegates to F_P/F_D"
+    when: "Default for /gen-start in interactive Bedrock session"
+
+  headless:
+    description: "Maximum automation, escalate only when necessary"
+    starting_functor: F_D
+    direction: "bottom-up — deterministic handles what it can, escalates up"
+    when: "CI/CD, scheduled runs, --auto mode with no human present"
+
+  autopilot:
+    description: "Valence-controlled hybrid — start deterministic, escalation sensitivity from profile"
+    starting_functor: F_D
+    direction: "bottom-up with configurable escalation thresholds"
+    valence_source: "profile default or feature vector affect.valence"
+    when: "/gen-start --auto"
+
+# ═══════════════════════════════════════════════════════════════════════
+# AFFECT SCHEMA (ADR-014, ADR-017 — control signal for natural transformation)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# The affect field in the feature vector controls escalation sensitivity.
+# Carried in feature vector state, visible in /gen-status and events.
+
+affect_schema:
+  fields:
+    urgency:
+      type: enum
+      values: [low, normal, high, critical]
+      default: normal
+      description: "Controls η_P→H sensitivity — how quickly to escalate to human"
+    valence:
+      type: enum
+      values: [high, medium, low]
+      default: medium
+      description: "Controls η_D→P sensitivity — how much ambiguity deterministic tolerates"
+    source:
+      type: enum
+      values: [profile, signal, iteration, human]
+      default: profile
+      description: "What set the current affect — for traceability"
+    escalation_count:
+      type: integer
+      default: 0
+      description: "How many times η has fired for this vector — monotonically increasing"
+
+  profile_defaults:
+    hotfix:
+      urgency: critical
+      valence: high
+    standard:
+      urgency: normal
+      valence: medium
+    full:
+      urgency: normal
+      valence: medium
+    spike:
+      urgency: low
+      valence: low
+    poc:
+      urgency: low
+      valence: low
+    minimal:
+      urgency: normal
+      valence: medium

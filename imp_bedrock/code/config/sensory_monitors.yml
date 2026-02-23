@@ -1,0 +1,272 @@
+# Sensory Monitor Registry
+# Implements: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-004
+# Reference: AISDLC_V2_DESIGN.md §1.8.2, §1.8.3, §1.8.8
+#
+# Defines interoceptive and exteroceptive monitors, their schedules,
+# thresholds, and profile-level overrides. Read by the Bedrock sensory
+# service (EventBridge + Lambda) at startup.
+
+---
+
+version: "1.0.0"
+
+service:
+  # Cloud-native lifecycle — no workspace open/close events
+  start_on: stack_deploy             # activated when CDK stack deploys
+  stop_on: stack_destroy             # deactivated on stack teardown
+  poll_interval: 60s                 # EventBridge schedule rate fallback
+
+  # ─── Serverless execution model ─────────────────────────────────
+  serverless:
+    runtime: python3.11
+    memory_mb: 256
+    timeout_seconds: 300
+    cold_start_threshold_ms: 2000    # warn if cold start > 2s
+    warm_pool:
+      enabled: true
+      min_instances: 1               # keep one warm for latency-sensitive monitors
+      max_instances: 5
+
+  # ─── EventBridge scheduler ──────────────────────────────────────
+  eventbridge_scheduler:
+    bus_name: "aisdlc-sensory-bus"
+    rule_prefix: "aisdlc-monitor-"
+    schedules:
+      hourly: "rate(1 hour)"
+      daily: "rate(1 day)"
+      weekly: "rate(7 days)"
+
+  # ─── DynamoDB Streams for state change detection ────────────────
+  dynamodb_streams:
+    table_name: "aisdlc-events"
+    stream_view_type: NEW_AND_OLD_IMAGES
+    batch_size: 10
+    batch_window_seconds: 5
+    triggers:
+      - event_type: iteration_completed
+        monitor_ids: [INTRO-003, INTRO-006]
+      - event_type: feature_vector_update
+        monitor_ids: [INTRO-002]
+
+# ═══════════════════════════════════════════════════════════════════════
+# INTEROCEPTIVE MONITORS (REQ-SENSE-001)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Observe the system's own health state. Each monitor produces a typed
+# interoceptive_signal event. Monitors are observation-only — they do
+# not modify DynamoDB state tables.
+
+monitors:
+  interoceptive:
+
+    - id: INTRO-001
+      name: event_freshness
+      description: "Time since last event in DynamoDB events table"
+      schedule: daily
+      trigger: eventbridge_schedule
+      reads:
+        - "dynamodb://aisdlc-events"
+      threshold:
+        metric: days_since_last_event
+        warning: 7
+        critical: 14
+      enabled: true
+
+    - id: INTRO-002
+      name: feature_vector_stall
+      description: "In-progress vectors with no iteration for > N days"
+      schedule: daily
+      trigger: eventbridge_schedule
+      reads:
+        - "dynamodb://aisdlc-features/active"
+      threshold:
+        metric: days_since_last_iteration
+        warning: 14
+        critical: 30
+      enabled: true
+
+    - id: INTRO-003
+      name: test_health
+      description: "Test coverage and flaky test rate"
+      schedule: on_change
+      trigger: dynamodb_stream
+      source_events:
+        - iteration_completed
+      threshold:
+        metric: coverage_percentage
+        warning: 80
+        critical: 60
+      flaky_threshold:
+        metric: flaky_rate_percentage
+        warning: 5
+        critical: 15
+      enabled: true
+
+    - id: INTRO-004
+      name: status_freshness
+      description: "Status record vs events table last timestamp"
+      schedule: daily
+      trigger: eventbridge_schedule
+      reads:
+        - "dynamodb://aisdlc-state/status"
+        - "dynamodb://aisdlc-events"
+      threshold:
+        metric: status_lag_days
+        warning: 1
+        critical: 3
+      enabled: true
+
+    - id: INTRO-005
+      name: build_health
+      description: "CI/CD pass rate from CodePipeline or CodeBuild API"
+      schedule: daily
+      trigger: eventbridge_schedule
+      aws_source: codebuild
+      threshold:
+        metric: failure_rate_percentage
+        warning: 20
+        critical: 50
+      window: 10   # last N builds
+      enabled: true
+
+    - id: INTRO-006
+      name: spec_code_drift
+      description: "REQ tags in code vs REQ keys in spec"
+      schedule: on_change
+      trigger: dynamodb_stream
+      source_events:
+        - iteration_completed
+      threshold:
+        metric: untagged_module_count
+        warning: 1
+        critical: 5
+      enabled: true
+
+    - id: INTRO-007
+      name: event_log_integrity
+      description: "Structural health of DynamoDB events table"
+      schedule: on_change
+      trigger: dynamodb_stream
+      source_events:
+        - "*"      # triggered on any event write
+      checks:
+        - valid_event_schema
+        - required_fields_present
+        - no_orphan_feature_refs
+      enabled: true
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # EXTEROCEPTIVE MONITORS (REQ-SENSE-002)
+  # ═══════════════════════════════════════════════════════════════════════
+  #
+  # Observe the external environment. Each monitor produces a typed
+  # exteroceptive_signal event. Monitors are observation-only.
+
+  exteroceptive:
+
+    - id: EXTRO-001
+      name: dependency_freshness
+      description: "Check for major version updates in dependencies"
+      schedule: weekly
+      trigger: eventbridge_schedule
+      commands:
+        python: "pip list --outdated --format=json"
+        node: "npm outdated --json"
+        scala: "sbt dependencyUpdates"
+      enabled: true
+
+    - id: EXTRO-002
+      name: cve_scanning
+      description: "Scan dependencies for known vulnerabilities"
+      schedule: daily
+      trigger: eventbridge_schedule
+      commands:
+        python: "pip-audit --format=json"
+        node: "npm audit --json"
+      severity_filter: medium    # report medium and above
+      enabled: true
+
+    - id: EXTRO-003
+      name: runtime_telemetry
+      description: "Query CloudWatch metrics and X-Ray traces for deviation"
+      schedule: hourly
+      trigger: eventbridge_schedule
+      aws_source: cloudwatch
+      threshold:
+        error_rate_sigma: 2                # > baseline + 2 sigma
+        latency_p99_ms: "${sla_latency}"   # from project_constraints.yml
+      cloudwatch_namespace: "aisdlc/runtime"
+      enabled: false    # disabled by default — requires telemetry configuration
+
+    - id: EXTRO-004
+      name: api_contract_changes
+      description: "Detect breaking changes in upstream API contracts"
+      schedule: daily
+      trigger: eventbridge_schedule
+      sources:
+        - type: openapi
+          url: "${upstream_api_spec}"       # from project_constraints.yml
+        - type: graphql
+          url: "${upstream_graphql}"
+      enabled: false    # disabled by default — requires API configuration
+
+# ═══════════════════════════════════════════════════════════════════════
+# PROFILE-LEVEL OVERRIDES (REQ-SENSE-004)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Profiles can enable/disable specific monitors and adjust thresholds.
+# These override the per-monitor defaults above.
+
+profile_overrides:
+
+  full:
+    # All monitors enabled, tightest thresholds
+    threshold_overrides: {}
+
+  standard:
+    # All monitors enabled, default thresholds
+    threshold_overrides: {}
+
+  hotfix:
+    # Suppress non-critical exteroception, tighten freshness
+    disable: [EXTRO-001, EXTRO-004]
+    threshold_overrides:
+      INTRO-001: { warning: 1, critical: 3 }
+      INTRO-002: { warning: 3, critical: 7 }
+
+  spike:
+    # All exteroception off, relax stall detection
+    disable: [EXTRO-001, EXTRO-002, EXTRO-003, EXTRO-004]
+    threshold_overrides:
+      INTRO-002: { warning: 30, critical: 60 }
+
+  poc:
+    # Reduce noise during proof-of-concept
+    disable: [EXTRO-001, EXTRO-003, EXTRO-004]
+    threshold_overrides:
+      INTRO-002: { warning: 21, critical: 45 }
+
+  minimal:
+    # Sensible defaults
+    disable: [EXTRO-003, EXTRO-004]
+    threshold_overrides: {}
+
+# ═══════════════════════════════════════════════════════════════════════
+# META-MONITORING (REQ-SENSE-004 — monitor health)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# If a monitor Lambda itself fails to execute, the service generates an
+# interoceptive meta-signal — the system senses that its own sensing
+# has failed. Dead-letter queues capture Lambda failures for replay.
+
+meta_monitoring:
+  enabled: true
+  dead_letter_queue:
+    sqs_queue_name: "aisdlc-monitor-dlq"
+    retention_days: 14
+  on_monitor_failure:
+    emit: interoceptive_signal
+    monitor_id: "META-001"
+    severity: warning
+    description: "Monitor {failed_monitor_id} failed to execute: {error}"
+    cloudwatch_alarm: true
