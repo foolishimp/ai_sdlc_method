@@ -565,6 +565,10 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 | `draft_proposal` | sensory service (MCP) | Homeostatic response drafted as proposal (requires human approval) |
 | `encoding_escalated` | `/gen-iterate` | Functional unit encoding changed via natural transformation η |
 | `convergence_escalated` | serialiser (multi-agent) | Agent attempted convergence outside role authority |
+| `evaluator_detail` | `/gen-iterate` | Individual evaluator check failed — name, type, expected vs observed, consecutive failure count |
+| `command_error` | any command | Methodology command encountered an error (missing config, invalid YAML, broken state) |
+| `health_checked` | `/gen-status --health` | Health check results — passed/failed counts, failed check names, recommendations |
+| `iteration_abandoned` | session recovery | Prior session ended without completing in-progress iteration |
 
 ### Event Schema by Type
 
@@ -648,6 +652,26 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 **`encoding_escalated`** — emitted when a functional unit's encoding changes via natural transformation η (§2.9):
 ```json
 {"event_type": "encoding_escalated", "timestamp": "...", "project": "...", "data": {"feature": "REQ-F-*", "edge": "{source}→{target}", "iteration": {n}, "functional_unit": "evaluate|construct|classify|route|propose|sense", "from_category": "F_D|F_P|F_H", "to_category": "F_D|F_P|F_H", "trigger": "reason for escalation"}}
+```
+
+**`evaluator_detail`** — emitted per failed evaluator check during iterate (REQ-SUPV-003). Enables pattern detection across iterations:
+```json
+{"event_type": "evaluator_detail", "timestamp": "...", "project": "...", "data": {"feature": "REQ-F-*", "edge": "{source}→{target}", "iteration": {n}, "check_name": "...", "check_type": "F_D|F_P|F_H", "result": "fail|skip", "expected": "...", "observed": "...", "consecutive_failures": {n}, "evaluator_config": "edge_params/{file}.yml"}}
+```
+
+**`command_error`** — emitted when any methodology command hits an error (REQ-SUPV-003). Enables tooling dysfunction pattern detection:
+```json
+{"event_type": "command_error", "timestamp": "...", "project": "...", "data": {"command": "/gen-{name}", "error_category": "missing_config|invalid_yaml|broken_state|unresolvable_ref|network|permission", "error_detail": "human-readable description", "workspace_state": "UNINITIALISED|NEEDS_CONSTRAINTS|NEEDS_INTENT|NO_FEATURES|IN_PROGRESS|...", "recoverable": true|false}}
+```
+
+**`health_checked`** — emitted when `/gen-status --health` completes (REQ-SUPV-003). Enables health trending over time:
+```json
+{"event_type": "health_checked", "timestamp": "...", "project": "...", "data": {"passed": {n}, "failed": {n}, "failed_checks": ["check_name", "..."], "warnings": ["warning_text", "..."], "genesis_compliant": true|false, "recommendations": ["action_text", "..."]}}
+```
+
+**`iteration_abandoned`** — emitted on session recovery when prior session left an iteration incomplete (REQ-SUPV-003):
+```json
+{"event_type": "iteration_abandoned", "timestamp": "...", "project": "...", "data": {"feature": "REQ-F-*", "edge": "{source}→{target}", "last_iteration": {n}, "edge_started_at": "...", "last_event_at": "...", "gap_seconds": {n}, "detected_by": "session_recovery"}}
 ```
 
 ### The Consciousness Loop at Every Observer Point

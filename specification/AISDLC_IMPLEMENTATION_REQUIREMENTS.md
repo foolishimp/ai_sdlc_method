@@ -839,14 +839,18 @@ Lifecycle hooks automating methodology compliance.
 
 **Priority**: High | **Phase**: 1
 
-Installer creates scaffolded project structure.
+Installer creates scaffolded project structure including all artifacts required by the observability layer.
 
 **Acceptance Criteria**:
-- Creates asset graph configuration, context directories, workspace
+- Creates asset graph configuration (`.ai-workspace/graph/graph_topology.yml`), context directories, workspace
+- Graph topology file includes asset types, transitions, and constraint dimensions — this is the integration contract between the methodology and any monitor/dashboard
 - Templates with placeholder guidance
 - Design-implementation binding via manifest
+- Scaffolded workspace passes monitor integration verification (all parsers return non-null)
 
 **Traces To**: Asset Graph Model §2.4 (Graph Construction — abiogenesis) | Ontology #39 (abiogenesis — encoding emerges from practice)
+
+**Validated By**: test06 GAP-042 (installer did not scaffold `graph_topology.yml`, breaking Genesis Monitor integration)
 
 ---
 
@@ -914,6 +918,66 @@ The methodology tooling shall be installable into any project directory via a si
 - Uninstallation leaves user artifacts intact (events, specs, code) — only removes tooling scaffolding
 
 **Traces To**: Asset Graph Model §0 (Genesis is a product — products must be deployable) | Ontology #39 (abiogenesis — the methodology must bootstrap itself into existence within a project)
+
+---
+
+### REQ-TOOL-012: Multi-Tenant Folder Structure
+
+**Priority**: High | **Phase**: 1
+
+The system shall enforce a multi-tenant folder structure where specification (WHAT) and implementation (HOW) occupy distinct, well-defined directory subtrees. This enables independent parallel design variants that are each self-contained and independently buildable.
+
+**Acceptance Criteria**:
+- Shared specification lives in `specification/` at project root — technology-agnostic, one per project
+- Each design variant lives in `imp_<design_name>/` — self-contained with its own `design/`, source code, build config, and tests
+- No generated source code, build files, or design documents may exist at the project root outside `specification/` and `imp_*/`
+- Each `imp_<name>/` directory is independently buildable (its own `build.sbt`, `setup.py`, `dbt_project.yml`, etc.)
+- Adding a second design variant (e.g., `imp_pyspark/` alongside `imp_scala_spark/`) requires no restructuring of the first
+- The `design→code` edge evaluator checklist includes a deterministic check: "All generated source files are under `imp_{variant}/`"
+- `project_constraints.yml` includes a `structure.design_tenants` section specifying the pattern
+
+**Traces To**: Asset Graph Model §2.7 (Multiple Implementations — one spec, many designs) | Ontology #40 (encoded representation), #41 (constructor — design binds technology)
+
+**Validated By**: test06 GAP-043 (code generated at root), GAP-044 (no constraint enforcing the pattern). Also the methodology repository itself (`imp_claude/`, `imp_gemini/`, `imp_codex/`) as the reference implementation of this pattern.
+
+---
+
+### REQ-TOOL-013: Output Directory Binding
+
+**Priority**: High | **Phase**: 1
+
+The `design→code` edge shall bind a concrete output directory derived from the design variant name before code generation begins. The iterate agent must resolve this binding from `project_constraints.yml` or the feature vector before invoking any constructor.
+
+**Acceptance Criteria**:
+- Output directory defaults to `imp_{design_variant}/` where `design_variant` is the active design name
+- Overridable via `project_constraints.yml` field `structure.output_directory`
+- The iterate agent passes the resolved output directory to the constructor as part of Context[]
+- Post-generation evaluator verifies no files were written outside the bound directory (excluding `specification/` and `.ai-workspace/`)
+- Design document (`DESIGN.md`, ADRs) placed in `imp_{variant}/design/`, not `specification/`
+
+**Traces To**: Asset Graph Model §5 (Context as Constraint Surface — output directory is a project-level constraint) | REQ-CTX-001
+
+**Validated By**: test06 GAP-043 (agent placed `build.sbt` and 8 module directories at project root; `DESIGN.md` placed in `specification/` conflating spec with design)
+
+---
+
+### REQ-TOOL-014: Observability Integration Contract
+
+**Priority**: Medium | **Phase**: 1
+
+The installer shall scaffold all files required by the methodology's observability layer (monitors, dashboards, analysis tools). The workspace structure is the integration contract — if the monitor expects a file, the installer must create it.
+
+**Acceptance Criteria**:
+- Installer creates `.ai-workspace/graph/graph_topology.yml` (asset types, transitions, constraint dimensions)
+- Installer creates or templates `.ai-workspace/STATUS.md` (project status summary)
+- Post-install verification checks that all expected paths exist and are parseable
+- Graph topology file is sourced from the methodology plugin's canonical `config/graph_topology.yml`
+- Workspace structure documented as the formal contract between methodology commands and observability tools
+- Changes to workspace structure are versioned and backward-compatible
+
+**Traces To**: Asset Graph Model §7.4 (Event Sourcing — observable state) | REQ-UX-003 (Project-Wide Observability)
+
+**Validated By**: test06 GAP-042 (Genesis Monitor showed blank dashboard because `graph_topology.yml` was absent)
 
 ---
 
@@ -1178,6 +1242,22 @@ Every constraint in the system — spec requirements, design bindings, edge eval
 
 **Traces To**: Asset Graph Model §4.6.9 (Constraint Tolerances), §7.1 (The Gradient), §4.5 (Sensory Systems) | Ontology #49 (teleodynamic self-maintenance — tolerances enable self-repair), #9 (constraint manifold — tolerances make the manifold measurable)
 
+### REQ-SUPV-003: Failure Observability
+
+**Priority**: High | **Phase**: 1
+
+The system shall capture its own failures as structured events in `events.jsonl`. Without failure events, the delta function returns zero for broken subsystems — the LLM evaluator cannot design improvements for failures it cannot observe. Unobserved failure is invisible to homeostasis. This is the interoceptive prerequisite: the system must sense its own dysfunction to self-correct.
+
+**Acceptance Criteria**:
+- **Evaluator failure detail**: When an evaluator check fails during `iterate()`, an `evaluator_detail` event is emitted with the check name, check type (F_D/F_P/F_H), the expected vs observed values, and the consecutive failure count for that check on that edge. This enables pattern detection: "check X has failed 4 consecutive iterations" is a signal that the requirement or evaluator needs revision, not just another iteration.
+- **Command error capture**: When any methodology command (`/gen-start`, `/gen-iterate`, `/gen-review`, etc.) encounters an error (missing config, invalid YAML, broken workspace state, unresolvable reference), a `command_error` event is emitted with the command name, error category, error detail, and workspace state at time of failure. This enables the system to detect tooling dysfunction patterns.
+- **Health check event**: When `/gen-status --health` runs, a `health_checked` event is emitted with the full check results (passed count, failed count, failed check names, recommendations). This enables trending: "bootloader missing for 3 consecutive health checks" or "same orphaned spawn persists across 5 checks" become visible patterns.
+- **Session abandonment detection**: When a methodology session ends without completing an in-progress iteration (no `edge_converged` or `iteration_completed` after `edge_started`), the next session detects the gap and emits an `iteration_abandoned` event with the feature, edge, last iteration number, and time since last event. This enables dropout pattern analysis.
+- All failure events use the same `events.jsonl` append-only log and follow the common event schema (event_type, timestamp, project)
+- Failure events are inputs to the same `observer → evaluator → typed_output` pipeline as success events — they can generate `intent_raised` events when patterns indicate systemic issues
+
+**Traces To**: Asset Graph Model §4.6 (IntentEngine — observer requires observable failures), §7.6 (Self-Observation), Genesis Bootloader §VI (Homeostasis — intent is computed from delta, delta requires observation of failures) | Ontology #49 (teleodynamic self-maintenance requires sensing dysfunction, not just health)
+
 ---
 
 ## Requirement Summary
@@ -1193,11 +1273,11 @@ Every constraint in the system — spec requirements, design bindings, edge eval
 | Full Lifecycle | 12 | 2 | 10 | 0 |
 | Sensory Systems | 5 | 0 | 4 | 1 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
-| Tooling | 11 | 0 | 7 | 4 |
+| Tooling | 14 | 0 | 10 | 4 |
 | User Experience | 7 | 0 | 5 | 2 |
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
-| Supervision (IntentEngine) | 2 | 0 | 2 | 0 |
-| **Total** | **64** | **10** | **43** | **12** |
+| Supervision (IntentEngine) | 3 | 0 | 3 | 0 |
+| **Total** | **68** | **10** | **46** | **12** |
 
 ### Phase 1 (Core Graph Engine): 44 requirements
 Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances).

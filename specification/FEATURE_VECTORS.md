@@ -169,6 +169,9 @@ Continuous interoceptive and exteroceptive monitoring with affect triage pipelin
 Plugin architecture, workspace, commands, release, test gap analysis, hooks, scaffolding, snapshots.
 
 **Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-TOOL-011
+| REQ-TOOL-012 | REQ-F-BOOT-001 | | |
+| REQ-TOOL-013 | REQ-F-BOOT-001 | | |
+| REQ-TOOL-014 | REQ-F-BOOT-001 | | |
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -234,6 +237,7 @@ Event-sourced agent coordination: agent identity, feature assignment via claims,
 The universal observer/evaluator composition law — fractal processing on every edge, ambiguity classification, three output types, chaining with affect propagation, consciousness-as-relative.
 
 **Satisfies**: REQ-SUPV-001, REQ-SUPV-002
+| REQ-SUPV-003 | REQ-F-SENSE-001 | | |
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -351,6 +355,9 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-TOOL-009 | REQ-F-TOOL-001 |
 | REQ-TOOL-010 | REQ-F-TOOL-001 |
 | REQ-TOOL-011 | REQ-F-TOOL-001 |
+| REQ-TOOL-012 | REQ-F-BOOT-001 | | |
+| REQ-TOOL-013 | REQ-F-BOOT-001 | | |
+| REQ-TOOL-014 | REQ-F-BOOT-001 | | |
 | REQ-LIFE-004 | REQ-F-LIFE-001 |
 | REQ-LIFE-005 | REQ-F-LIFE-001 |
 | REQ-LIFE-006 | REQ-F-LIFE-001 |
@@ -379,8 +386,9 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-COORD-005 | REQ-F-COORD-001 |
 | REQ-SUPV-001 | REQ-F-SUPV-001 |
 | REQ-SUPV-002 | REQ-F-SUPV-001 |
+| REQ-SUPV-003 | REQ-F-SENSE-001 | | |
 
-**64/64 requirements covered. No orphans.**
+**68/68 requirements covered. No orphans.**
 
 ---
 
@@ -394,11 +402,11 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-TRACE-001 | 5 | 1b | ENGINE, CTX |
 | REQ-F-EDGE-001 | 4 | 1c | EVAL |
 | REQ-F-LIFE-001 | 13 | 2 | ENGINE, TRACE |
-| REQ-F-SENSE-001 | 5 | 3 | LIFE, EVAL |
+| REQ-F-SENSE-001 | 6 | 3 | LIFE, EVAL |
 | REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
 | REQ-F-UX-001 | 7 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
 | REQ-F-SUPV-001 | 2 | 1b | ENGINE, EVAL |
-| **Total** | **64** | | |
+| **Total** | **68** | | |
 
-11 feature vectors. 64 implementation requirements. Full coverage. Critical path: ENGINE design.
+11 feature vectors. 68 implementation requirements. Full coverage. Critical path: ENGINE design.

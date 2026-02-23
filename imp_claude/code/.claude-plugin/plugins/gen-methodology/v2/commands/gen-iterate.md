@@ -137,6 +137,12 @@ The agent performs three directions of gap detection:
    }
    ```
 
+   **On evaluator failure** (REQ-SUPV-003): for each evaluator check that fails or is skipped, emit an `evaluator_detail` event:
+   ```json
+   {"event_type": "evaluator_detail", "timestamp": "{ISO 8601}", "project": "{project name}", "data": {"feature": "{REQ-F-*}", "edge": "{source}→{target}", "iteration": {n}, "check_name": "{check}", "check_type": "F_D|F_P|F_H", "result": "fail|skip", "expected": "{what the check requires}", "observed": "{what was found}", "consecutive_failures": {count of consecutive iterations this check has failed on this edge}, "evaluator_config": "edge_params/{file}.yml"}}
+   ```
+   These events enable the LLM evaluator to detect patterns: "check X has failed 4 consecutive iterations" signals the requirement or evaluator needs revision, not just another iteration. Only emitted for non-passing checks — passing checks are covered by the `iteration_completed` summary.
+
    **On encoding escalation**: if a functional unit's encoding changes during iteration (e.g., deterministic check fails and escalates to human), emit an `encoding_escalated` event:
    ```json
    {"event_type": "encoding_escalated", "timestamp": "{ISO 8601}", "project": "{project name}", "data": {"feature": "{REQ-F-*}", "edge": "{source}→{target}", "iteration": {n}, "functional_unit": "{unit}", "from_category": "{F_D|F_P|F_H}", "to_category": "{F_D|F_P|F_H}", "trigger": "{reason}"}}

@@ -391,6 +391,16 @@ How to perform the Genesis Self-Compliance checks:
 - **Constraint resolution**: mandatory dimensions filled at design edge
 - **Time-box monitoring**: approaching or expired time boxes
 
+**Event emission** (REQ-SUPV-003 — failure observability):
+
+After all checks complete, emit a `health_checked` event to `events.jsonl`:
+
+```json
+{"event_type": "health_checked", "timestamp": "{ISO 8601}", "project": "{project}", "data": {"passed": {n}, "failed": {n}, "failed_checks": ["check_name", "..."], "warnings": ["..."], "genesis_compliant": true|false, "recommendations": ["..."]}}
+```
+
+This enables health trending: the LLM evaluator can detect patterns like "same check failing across consecutive health runs" and generate improvement intents. Without this event, health check results exist only in stdout — invisible to the homeostatic loop.
+
 ### Event Sourcing Architecture
 
 The methodology uses **event sourcing** for all observability:
