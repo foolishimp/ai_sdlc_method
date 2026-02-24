@@ -129,7 +129,7 @@ The full composite vector carries the complete causal chain (intent, lineage, ev
 
 ### 2.4 Graph Construction (Abiogenesis)
 
-The graph topology follows the abiogenesis pattern (#39): domain constraints produce practice → practice crystallises into encoded topology → encoded topology directs construction → runtime experience updates the topology. The SDLC graph is one such crystallisation.
+The graph topology follows the abiogenesis pattern (#39): domain constraints produce practice → practice crystallises into encoded topology → encoded topology directs construction → runtime experience updates the topology. The SDLC graph is one such crystallisation. The project name **Genesis** is shorthand for this pattern — the methodology bootstraps its own structure from practice.
 
 ### 2.5 Graph Scaling (Zoom)
 
@@ -152,7 +152,7 @@ Design → Code (selective):    |design⟩ → |module_decomp⟩ ═════
 | Intermediate Asset | What it produces | Key evaluators |
 |--------------------|-----------------|----------------|
 | **Module Decomposition** | Module inventory, dependency DAG, feature-to-module mapping, interface contracts | DAG is acyclic, every REQ key in exactly one module, interfaces explicit |
-| **Basis Projections** | Priority-ordered minimal module subsets — feature vectors projected onto minimal module basis (§6.7, §11.1) | Connected subgraph of module DAG, priority ranking matches feature priority |
+| **Basis Projections** | Priority-ordered minimal module subsets — feature vectors projected onto minimal module basis (§6.7) | Connected subgraph of module DAG, priority ranking matches feature priority |
 | **Code per Module** | Modules built in dependency order against compiled interfaces | Compiles against dependencies, REQ tags present |
 
 Each explicit intermediate gets its own edge, evaluators, and convergence check. Making an intermediate mandatory means it must be a stable Markov object before the next edge proceeds.
@@ -229,7 +229,7 @@ REQ-F-AUTH-001 (spec)
   └── design.variant_c  → code.rust    → tests.rust
 ```
 
-Each variant is a separate trajectory through the downstream graph, sharing the same upstream spec. The variants can run in parallel, and telemetry from production enables data-driven selection between them. This is the Hilbert space (§11) in action — multiple vectors in superposition until measurement (production telemetry) collapses to the best-performing variant.
+Each variant is a separate trajectory through the downstream graph, sharing the same upstream spec. The variants run in parallel; production telemetry selects the best-performing variant.
 
 ### 2.8 Instantiation Layers: Engine, Graph Package, Project Binding
 
@@ -800,7 +800,7 @@ Task Graph = compress(F1 ∥ F2, F1.|design⟩ < F3.|code⟩)
 
 When the Design → Code edge is zoomed in (§2.5), the **module decomposition** and **basis projection** assets enable a finer-grained task scheduling strategy.
 
-A **basis projection** is the projection of a feature vector onto its minimal module basis (§11.1) — the smallest subset of modules that makes one priority feature work end-to-end. The term is native to the Hilbert space formalism: each feature vector lives in the space spanned by all module basis vectors; a basis projection selects the minimal subspace that preserves the feature's observable properties. Once a basis projection converges, it becomes a **Markov object** — a stable, tested, end-to-end slice that downstream work can depend on without knowing its construction history.
+A **basis projection** is the projection of a feature vector onto its minimal module basis — the smallest subset of modules that makes one priority feature work end-to-end. Once a basis projection converges, it becomes a **Markov object** — a stable, tested, end-to-end slice that downstream work can depend on without knowing its construction history.
 
 ```
 Module Decomposition (from Design):
@@ -826,7 +826,7 @@ graph TD
     style BP3 fill:#ffccbc,stroke:#e64a19
 ```
 
-**Key property**: basis projections that share no modules are **orthogonal** (§11.1) — they can execute in parallel with zero coordination. Projections that share modules must build the shared modules first, then diverge. This is the Hilbert space inner product made operational: features with zero shared modules have zero inner product and are fully parallelisable.
+**Key property**: basis projections that share no modules are **orthogonal** — they can execute in parallel with zero coordination. Projections that share modules must build the shared modules first, then diverge. Features with zero shared modules are fully parallelisable — zero coordination overhead.
 
 Each converged basis projection is a Markov object (§2.3):
 - **Boundary**: Its public interfaces, the features it proves, the tests it passes
@@ -878,7 +878,7 @@ The last two rows are what was previously called the "consciousness loop." They 
 
 There is no phase transition between these levels. The same `delta(state, constraints) → work` operates throughout. Complexity emerges because at larger scales, the constraints themselves become state for the next level. The spec that bounds production homeostasis is itself subject to gradient pressure from observations that the spec is wrong or incomplete. **The IntentEngine (§4.6) explains WHY the gradient operates at every scale**: each scale is an IntentEngine invocation (`observer → evaluator → typed_output`), and ambiguity classification determines whether work stays local (reflex) or propagates upward (escalate). The gradient is the IntentEngine applied fractally.
 
-The formal Hamiltonian (§11.2) captures this: `H(edge) = T(iteration_cost) + V(constraint_delta)`. When the spec updates (§7.3), the Hamiltonian shifts — former ground states acquire potential energy under the new constraints. The gradient is what drives the system back toward new minima.
+Effort scales with iteration cost and constraint distance from convergence. When the spec updates (§7.3), former stable states acquire new work — the gradient drives the system toward new convergence.
 
 **The spec as constraint surface**: The spec is the reference frame against which all observation is evaluated:
 
@@ -899,7 +899,7 @@ Every signal source feeds into the spec, and the spec re-expresses non-zero delt
 | **User feedback** (human evaluator) | "Search should support fuzzy matching" | Spec adds new requirement | Feature vector: new feature REQ-F-SEARCH-002 |
 | **Methodology self-observation** (TELEM) | Evaluator skip rate too high | Graph package updates edge config | Meta-vector: improve edge parameterisation |
 
-The spec is the system's **evolving self-model** — it absorbs signals from all sources and re-expresses them as feature vectors. The composite vector space (§11.1) represents the system's **total intentional state**: everything it is currently doing in response to everything it knows. This is the abiogenesis insight (#39) completing itself: the methodology starts as a pipeline (constructor without feedback), then the feedback loop closes (encoding updates from observation), and the system becomes self-maintaining (#49). The graph topology itself can evolve through this process.
+The spec is the system's **evolving self-model** — it absorbs signals from all sources and re-expresses them as feature vectors. The set of all in-flight vectors represents the system's **total intentional state**: everything it is currently doing in response to everything it knows. This is the abiogenesis insight (#39) completing itself: the methodology starts as a pipeline (constructor without feedback), then the feedback loop closes (encoding updates from observation), and the system becomes self-maintaining (#49). The graph topology itself can evolve through this process.
 
 ### 7.2 The Gradient at Production Scale
 
@@ -1134,7 +1134,7 @@ Both levels use the same three evaluator types (§4.1). Both produce events (§7
 
 ### 7.6 The Living System
 
-A system is **"living"** when the gradient operates at all scales simultaneously: spec updates shift the Hilbert space basis (§11.1), spawning new feature vectors, shifting existing ones, and redefining the potential energy landscape. The total intentional state — the superposition of all in-flight vectors — is the system's response to everything it knows.
+A system is **"living"** when the gradient operates at all scales simultaneously: spec updates redefine the constraint surface, spawning new feature vectors, shifting existing ones, and redefining convergence targets. The total intentional state — all in-flight vectors — is the system's response to everything it knows.
 
 **Six properties** (the emergent behaviour of the gradient at all scales concurrently):
 
@@ -1270,8 +1270,8 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Feature vector (composite) | Trajectory through constraint manifold | 15 + 9 |
 | REQ key | Vector identifier / lineage tag | 44 |
 | Task graph | Emergent structure from feature dependencies | 3 (generative principle) |
-| Module decomposition | Basis vectors of the build subspace | 9 (constraint manifold, §11.1) |
-| Basis projection | Feature vector projected onto minimal module basis — Markov object once converged | 7 (Markov object) + 9 (§11.1 projection) |
+| Module decomposition | Basis vectors of the build subspace | 9 (constraint manifold) |
+| Basis projection | Feature vector projected onto minimal module basis — Markov object once converged | 7 (Markov object) + 9 (constraint manifold) |
 | Build schedule (Gantt) | Derived projection of module DAG + feature priority + convergence events | 9, 11 (§7.4.2 derived projection) |
 | Protocol enforcement hook | Evaluator-as-prompter applied at meta-level — deterministic check of iterate side effects | 35 (evaluator-as-prompter) |
 | Circuit breaker (stop_hook_active) | Finite regression guarantee — evaluator backs off after one cycle | 7 (stability condition) |
@@ -1306,13 +1306,13 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Intent event (first-class) | Classified deviation signal with causal chain — trigger, delta, signal source, spawned vectors | 36, 44 |
 | Spec change event | Event-logged self-model modification — what changed, why, trace to triggering intent | 46 (living encoding), 2 (constraint propagation) |
 | Prior intents (causal chain) | Reflexive traceability — system detects consequences of its own modifications | 44 (feedback), 49 (self-maintaining) |
-| Total intentional state | Superposition of all in-flight vectors — system's response to everything it knows | 45 (stochastic expansion, §11.1) |
-| Hamiltonian shift (spec update) | Potential energy landscape redefined by spec change — ground states move. Formal expression of the gradient (§7.1) | 46 (living encoding, §11.2) |
+| Total intentional state | All in-flight vectors — system's response to everything it knows | 45 (stochastic expansion) |
+| Constraint surface shift (spec update) | Convergence targets redefined by spec change — stable states acquire new work. Formal expression of the gradient (§7.1) | 46 (living encoding) |
 | Progressive gradient activation | Abiogenesis → gradient at system scale → gradient at spec scale (emergent from composition, not distinct phases) | 39, 49, 46 |
 | Living system (operational) | Concurrent vector lifecycles + continuous metabolism + active perception + reflexive self-modification + selective pruning | 49 (teleodynamic, full expression) |
 | Metabolism (CI/CD loop) | Continuous transformation — energy consumed to maintain the system | 49 (self-maintaining) |
 | Vector spawning (reproduction) | New vectors born from intent events — system creates directed actions from observation | 36, 44 |
-| Vector cancellation (apoptosis) | Basis dimension collapses when requirement removed — vectors pruned | 9 (manifold topology change, §11.1) |
+| Vector cancellation (apoptosis) | Requirement removed — dependent vectors pruned | 9 (manifold topology change) |
 | Concurrent vector lifecycles (cell cycle) | Many vectors in different phases simultaneously — gestating, iterating, converged, deployed, observed | 45 (superposition) |
 
 ### 8.2 The Construction Pattern
@@ -1327,23 +1327,6 @@ The methodology is a direct instantiation of concept #38:
 | Selection pressure | Predators, regulators, environment | Evaluators (Human, Agent, Tests) |
 | Deviation signal | Mutation, amendment, feedback | Evaluator delta → Spec update |
 
-### 8.3 The Abiogenesis Sequence
-
-The methodology follows the abiogenesis pattern (#39) at two levels:
-
-**Level 1: Graph topology construction**
-1. Practitioners work in a domain (software, law, science)
-2. Patterns crystallise: "we always need X before Y"
-3. The graph topology is encoded
-4. The graph now drives construction
-
-**Level 2: Feature construction within the graph**
-1. Business need, technical limitation, user pain
-2. Developers experiment, building against the graph
-3. Specifications, test suites, architecture crystallise from practice
-4. Formal specifications direct the build; AI agents read specs to construct components
-5. Runtime telemetry updates the specification; the system becomes self-maintaining
-
 ---
 
 ## 9. Summary
@@ -1355,98 +1338,6 @@ The methodology follows the abiogenesis pattern (#39) at two levels:
 5. **Event sourcing + observability.** All state changes are immutable events; all observable state (STATUS, feature vectors, tasks) is a derived projection. REQ keys thread from spec through code, tests, telemetry, and back.
 6. **Gradient at every scale.** One computation — `delta(state, constraints) -> work` — from single iteration through edge convergence, feature traversal, production homeostasis, spec review, and constraint surface update. Complexity emerges from the same gradient at progressively larger scales.
 7. **Living system.** When operational, the gradient active at all scales simultaneously produces continuous sensing, concurrent vector lifecycles, CI/CD metabolism, active perception, reflexive self-modification, and selective pruning — an ecology of Markov objects interacting through boundaries.
-
----
-
-## 11. Feature Vectors as Hilbert Space
-
-> **Note**: This section describes structure discovered in the SDLC instantiation that should propagate back to the parent ontology as a new concept: **cost dynamics on constraint manifolds**.
-
-### 11.1 The Vector Space
-
-Feature vectors form a Hilbert space whose basis is the set of asset types:
-
-| Hilbert space concept | Feature vector interpretation |
-|---|---|
-| **Basis** | Asset types — the node types defined by the graph (including module-level when zoomed in). **The spec defines which basis vectors are active** — adding a requirement adds a dimension; removing one collapses it |
-| **Vectors** | Composite features: F = Σ |asset_type_i⟩ — trajectories through the graph. More precisely: the system's **directed responses** to all signals absorbed by the spec |
-| **Inner product** | Feature overlap — shared modules at the build decomposition level (§6.7). Features sharing many modules have high inner product and must coordinate; features sharing none are orthogonal |
-| **Orthogonality** | Independent features — zero shared modules, fully parallelisable. Each can run as an independent basis projection |
-| **Basis decomposition** | Atomic features — irreducible single-edge trajectories. Basis projections are near-atomic: minimal module sets for one feature |
-| **Norm** | Vector cost — sum of iteration effort across all components |
-| **Projection** | Basis projection — projecting a feature vector onto its minimal module basis (§6.7). Task batching — grouping features that share modules |
-| **Superposition** | The system's **total intentional state** — all features/basis projections in-flight, components not yet converged. Represents everything the system is currently doing in response to everything it knows |
-| **Measurement/collapse** | Evaluator convergence — basis projection converges to stable Markov object. Once converged, it has a definite boundary and downstream work can depend on it without knowing its construction history |
-| **Basis change** | Spec update via gradient at spec scale (§7.3) — the spec absorbs a signal and the vector space itself transforms. New dimensions appear (new requirements), old dimensions shift (updated constraints), existing vectors acquire potential energy under the new basis |
-
-The two compute regimes (#45) map directly:
-
-- **Probabilistic compute** (LLM) = exploration of the Hilbert space — superposition of possible constructions
-- **Deterministic Tests** = measurement — projection onto eigenstate, collapse to pass/fail
-
-### 11.2 The Hamiltonian: Cost and Effort
-
-The **Hamiltonian** H is the operator governing evolution (effort/cost) on the feature vector space. This is the formal expression of the gradient (§7.1) — `delta(state, constraints) → work` — cast in the language of physics:
-
-```
-H(edge) = T(iteration_cost) + V(constraint_delta)
-```
-
-| Hamiltonian concept | Asset graph interpretation |
-|---|---|
-| **H (total energy)** | Total effort/cost of the system |
-| **Kinetic energy T** | Iteration cost — compute, human time per cycle |
-| **Potential energy V** | Constraint difficulty — evaluator delta from convergence |
-| **Ground state** | Minimal-effort solution satisfying all constraints |
-| **Excited states** | Over-engineered solutions (more energy than necessary) |
-| **Energy conservation** | Budget constraint — total effort bounded |
-| **Eigenvalues** | Stable cost points — converged components have definite effort |
-
-- **T** scales with: evaluator type (human expensive, tests cheap, LLM moderate) and iteration count
-- **V** scales with: constraint density (#16) — sparse constraints = high potential (hard to converge), dense constraints = low potential (well-defined problem)
-
-Feature vector total cost:
-
-```
-Cost(feature) = Σ H(edge) for each component projection
-```
-
-#### 11.2.1 Hamiltonian Shift Under Spec Update
-
-When the gradient at spec scale (§7.3) updates the spec, the Hamiltonian **shifts** — the potential energy landscape is redefined:
-
-```
-H_old = T + V(constraint_delta | spec_old)
-H_new = T + V(constraint_delta | spec_new)
-
-For a converged asset at ground state under H_old:
-  V_old(asset) ≈ 0    (was at ground state)
-  V_new(asset) > 0     (constraint delta under new spec)
-```
-
-The asset "wants to move" — it has acquired potential energy because the constraints changed around it. A Scala 2.13 codebase that was at ground state (all evaluators pass, all constraints satisfied) becomes an excited state when the spec absorbs the ecosystem signal "Scala 3.x is now standard." The migration feature vector spawned by the intent event is the system's response to this potential energy.
-
-| Spec update type | Hamiltonian effect | System response |
-|---|---|---|
-| New requirement added | New dimension in V — existing assets don't cover it | Spawn feature vector in new dimension |
-| Constraint tightened (e.g., performance) | V increases for assets near the old bound | Spawn optimisation vector |
-| Ecosystem shift | V increases for all assets bound to old ecosystem | Spawn migration vector |
-| Requirement removed | Dimension collapses — over-engineered assets have excess T | Simplification vector (reduce complexity) |
-| Discovery (new capability) | New low-energy path appears | Spawn PoC vector to explore ground state |
-
-The system's total energy budget (§11.2, energy conservation) is finite. Spec updates that raise V across many assets create pressure to re-optimise — the system must find new ground states under the new Hamiltonian. This is relentless optimisation made formal: the gradient at spec scale (§7.3) continuously shifts the energy landscape, and the system continuously spawns vectors to find new minima.
-
-### 11.3 Task Planning as Action Minimisation
-
-Task planning (§6.4) becomes: **minimise the action** over the feature vector space.
-
-- Decompose into basis vectors (atomic single-component features)
-- Identify orthogonal subsets (parallel work — zero inner product)
-- Project overlapping vectors onto shared components (batching)
-- Sequence by dependency constraints
-- Optimise: converge the composite vector at minimum total H
-
-Constraint density (#16) is the **metric** on the space — it determines how "far apart" states are and therefore how much effort transitions require. This connects hallucination prevention (§5.2) to cost dynamics: sparse constraints = high-dimensional degeneracy = expensive to converge = high V.
 
 ---
 
