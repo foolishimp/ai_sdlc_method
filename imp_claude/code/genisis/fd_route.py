@@ -3,7 +3,6 @@
 
 from pathlib import Path
 
-from .config_loader import load_yaml
 from .models import Category, RouteResult
 
 

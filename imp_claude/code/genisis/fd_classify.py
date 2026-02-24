@@ -5,24 +5,41 @@ import re
 
 from .models import ClassificationResult
 
-_REQ_TAG_PATTERN = re.compile(
-    r"(Implements|Validates):\s*REQ-[A-Z]+(?:-[A-Z]+)*-\d+"
-)
+_REQ_TAG_PATTERN = re.compile(r"(Implements|Validates):\s*REQ-[A-Z]+(?:-[A-Z]+)*-\d+")
 
 _REQ_KEY_PATTERN = re.compile(r"REQ-[A-Z]+(?:-[A-Z]+)*-\d+")
 
 # Keyword sets for source finding classification
 _AMBIGUITY_KEYWORDS = {
-    "unclear", "ambiguous", "vague", "undefined", "unspecified",
-    "unknown", "uncertain", "implicit", "assumed", "tbd",
+    "unclear",
+    "ambiguous",
+    "vague",
+    "undefined",
+    "unspecified",
+    "unknown",
+    "uncertain",
+    "implicit",
+    "assumed",
+    "tbd",
 }
 _GAP_KEYWORDS = {
-    "missing", "absent", "gap", "omitted", "incomplete",
-    "no mention", "not defined", "not specified", "lacks",
+    "missing",
+    "absent",
+    "gap",
+    "omitted",
+    "incomplete",
+    "no mention",
+    "not defined",
+    "not specified",
+    "lacks",
 }
 _UNDERSPEC_KEYWORDS = {
-    "underspecified", "under-specified", "insufficient detail",
-    "needs clarification", "needs refinement", "placeholder",
+    "underspecified",
+    "under-specified",
+    "insufficient detail",
+    "needs clarification",
+    "needs refinement",
+    "placeholder",
 }
 
 

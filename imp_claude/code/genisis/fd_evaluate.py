@@ -14,7 +14,9 @@ from .models import (
 DEFAULT_TIMEOUT = 30
 
 
-def run_check(check: ResolvedCheck, cwd: Path, timeout: int = DEFAULT_TIMEOUT) -> CheckResult:
+def run_check(
+    check: ResolvedCheck, cwd: Path, timeout: int = DEFAULT_TIMEOUT
+) -> CheckResult:
     """Run a single deterministic check.
 
     Non-deterministic checks (agent, human) are returned as SKIP.
@@ -66,7 +68,9 @@ def run_check(check: ResolvedCheck, cwd: Path, timeout: int = DEFAULT_TIMEOUT) -
             required=check.required,
             check_type=check.check_type,
             functional_unit=check.functional_unit,
-            message="" if outcome == CheckOutcome.PASS else result.stderr or result.stdout,
+            message=""
+            if outcome == CheckOutcome.PASS
+            else result.stderr or result.stdout,
             command=check.command,
             exit_code=result.returncode,
             stdout=result.stdout,
@@ -114,10 +118,13 @@ def evaluate_checklist(
             and cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR)
             and cr.required
         ):
-            escalations.append(f"η_D→P: {cr.name} failed — may need agent investigation")
+            escalations.append(
+                f"η_D→P: {cr.name} failed — may need agent investigation"
+            )
 
     delta = sum(
-        1 for cr in results
+        1
+        for cr in results
         if cr.required and cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR)
     )
 
@@ -130,7 +137,9 @@ def evaluate_checklist(
     )
 
 
-def _interpret_result(result: subprocess.CompletedProcess, pass_criterion: str | None) -> CheckOutcome:
+def _interpret_result(
+    result: subprocess.CompletedProcess, pass_criterion: str | None
+) -> CheckOutcome:
     """Interpret subprocess result against pass criterion."""
     if not pass_criterion or "exit code 0" in pass_criterion.lower():
         return CheckOutcome.PASS if result.returncode == 0 else CheckOutcome.FAIL
@@ -140,16 +149,21 @@ def _interpret_result(result: subprocess.CompletedProcess, pass_criterion: str |
     # "coverage percentage >= N" — parse number from stdout
     if "coverage" in criterion_lower and ">=" in criterion_lower:
         import re
+
         # Extract threshold from criterion
         threshold_match = re.search(r">=\s*([\d.]+)", pass_criterion)
         if not threshold_match:
             return CheckOutcome.PASS if result.returncode == 0 else CheckOutcome.FAIL
         threshold = float(threshold_match.group(1))
 
-        # Extract percentage from output
-        pct_match = re.search(r"(\d+(?:\.\d+)?)%", result.stdout)
-        if pct_match:
-            actual = float(pct_match.group(1)) / 100.0
+        # Extract TOTAL coverage from pytest-cov output
+        # Look for "TOTAL ... NN%" line or "Total coverage: NN%" line
+        combined = result.stdout + result.stderr
+        total_match = re.search(r"TOTAL\s+\d+\s+\d+\s+(\d+(?:\.\d+)?)%", combined)
+        if not total_match:
+            total_match = re.search(r"Total coverage:\s*(\d+(?:\.\d+)?)%", combined)
+        if total_match:
+            actual = float(total_match.group(1)) / 100.0
             return CheckOutcome.PASS if actual >= threshold else CheckOutcome.FAIL
 
     # "zero violations" / "zero errors"

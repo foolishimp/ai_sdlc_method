@@ -1,0 +1,94 @@
+# Project Constraints — ai_sdlc_method (dogfooding)
+# Implements: REQ-CTX-001, REQ-CTX-002
+#
+# This is Genesis validating itself. The tools below resolve $variables
+# in edge_params/*.yml so the engine's F_D checks actually run.
+
+project:
+  name: ai_sdlc_method
+  kind: library
+  version: "3.0.0-beta.1"
+
+# ═══════════════════════════════════════════════════════════════
+# TOOLCHAIN — resolves $tools.* in edge checklists
+# ═══════════════════════════════════════════════════════════════
+
+tools:
+  test_runner:
+    command: "python -m pytest"
+    args: "imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
+    pass_criterion: "exit code 0"
+    required: true
+
+  coverage:
+    command: "python -m pytest"
+    args: "--cov=imp_claude/code/genisis --cov-report=term-missing imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
+    pass_criterion: "coverage percentage >= 0.70"
+    required: true
+
+  linter:
+    command: "ruff check"
+    args: "imp_claude/code/genisis/"
+    pass_criterion: "exit code 0"
+    required: true
+
+  formatter:
+    command: "ruff format"
+    args: "--check imp_claude/code/genisis/"
+    pass_criterion: "exit code 0"
+    required: true
+
+  type_checker:
+    command: "echo"
+    args: "type checking not configured"
+    pass_criterion: "exit code 0"
+    required: false
+
+# ═══════════════════════════════════════════════════════════════
+# THRESHOLDS — resolves $thresholds.* in edge checklists
+# ═══════════════════════════════════════════════════════════════
+
+thresholds:
+  test_coverage_minimum: 0.70
+  max_function_lines: 50
+  max_file_lines: 300
+  max_cyclomatic_complexity: 10
+
+# ═══════════════════════════════════════════════════════════════
+# STANDARDS — resolves $standards.* in edge checklists
+# ═══════════════════════════════════════════════════════════════
+
+standards:
+  style_guide: "PEP 8 via ruff"
+  docstrings: "Google style, required for public functions"
+  type_hints: "Optional — not enforced by mypy yet"
+  test_structure: "AAA pattern (Arrange, Act, Assert), pytest fixtures"
+
+# ═══════════════════════════════════════════════════════════════
+# CONSTRAINT DIMENSIONS (mandatory for requirements→design edge)
+# ═══════════════════════════════════════════════════════════════
+
+ecosystem_compatibility:
+  language: "Python"
+  version: "3.12"
+  runtime: "CPython"
+  frameworks:
+    - "pytest"
+    - "pyyaml"
+    - "Claude Code CLI"
+
+deployment_target:
+  platform: "Claude Code plugin (local CLI)"
+  cloud_provider: "none"
+  environment_tiers:
+    - "development"
+
+security_model:
+  authentication: "Claude Code auth (claude auth login)"
+  authorisation: "filesystem permissions"
+  data_protection: "local workspace — no PII"
+
+build_system:
+  tool: "pip"
+  module_structure: "monolith"
+  ci_integration: "none yet"

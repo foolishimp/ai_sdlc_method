@@ -27,6 +27,7 @@ from .models import (
 @dataclass
 class EngineConfig:
     """Configuration for the engine."""
+
     project_name: str
     workspace_path: Path
     edge_params_dir: Path
@@ -41,6 +42,7 @@ class EngineConfig:
 @dataclass
 class IterationRecord:
     """Record of one iteration — what happened, what was decided."""
+
     edge: str
     iteration: int
     evaluation: EvaluationResult
@@ -113,7 +115,8 @@ def iterate_edge(
 
     # 3. F_D: Compute delta — DETERMINISTIC
     delta = sum(
-        1 for cr in results
+        1
+        for cr in results
         if cr.required and cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR)
     )
     converged = delta == 0
@@ -130,30 +133,41 @@ def iterate_edge(
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
     check_summary = [
-        {"name": cr.name, "type": cr.check_type, "outcome": cr.outcome.value, "required": cr.required}
+        {
+            "name": cr.name,
+            "type": cr.check_type,
+            "outcome": cr.outcome.value,
+            "required": cr.required,
+        }
         for cr in results
     ]
 
-    emit_event(events_path, make_event(
-        "iteration_completed",
-        config.project_name,
-        feature=feature_id,
-        edge=edge,
-        iteration=iteration,
-        delta=delta,
-        status="converged" if converged else "iterating",
-        checks=check_summary,
-        escalations=escalations,
-    ))
-
-    if converged:
-        emit_event(events_path, make_event(
-            "edge_converged",
+    emit_event(
+        events_path,
+        make_event(
+            "iteration_completed",
             config.project_name,
             feature=feature_id,
             edge=edge,
             iteration=iteration,
-        ))
+            delta=delta,
+            status="converged" if converged else "iterating",
+            checks=check_summary,
+            escalations=escalations,
+        ),
+    )
+
+    if converged:
+        emit_event(
+            events_path,
+            make_event(
+                "edge_converged",
+                config.project_name,
+                feature=feature_id,
+                edge=edge,
+                iteration=iteration,
+            ),
+        )
 
     return IterationRecord(
         edge=edge,
@@ -178,17 +192,22 @@ def run_edge(
         edge_config_path = config.edge_params_dir / f"{edge_key}.yml"
 
     if not edge_config_path.exists():
-        events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
-        emit_event(events_path, make_event(
-            "iteration_completed",
-            config.project_name,
-            feature=feature_id,
-            edge=edge,
-            iteration=0,
-            delta=-1,
-            status="error",
-            error=f"No edge config found for '{edge}'",
-        ))
+        events_path = (
+            config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
+        )
+        emit_event(
+            events_path,
+            make_event(
+                "iteration_completed",
+                config.project_name,
+                feature=feature_id,
+                edge=edge,
+                iteration=0,
+                delta=-1,
+                status="error",
+                error=f"No edge config found for '{edge}'",
+            ),
+        )
         return []
 
     edge_config = load_yaml(edge_config_path)

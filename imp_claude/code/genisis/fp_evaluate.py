@@ -10,27 +10,28 @@ everything around it is F_D.
 import json
 import shutil
 import subprocess
-from pathlib import Path
 
 from .models import CheckOutcome, CheckResult, ResolvedCheck
 
 CLAUDE_CMD = "claude"
 
-_RESPONSE_SCHEMA = json.dumps({
-    "type": "object",
-    "properties": {
-        "outcome": {
-            "type": "string",
-            "enum": ["pass", "fail"],
-            "description": "Whether the asset passes the criterion",
+_RESPONSE_SCHEMA = json.dumps(
+    {
+        "type": "object",
+        "properties": {
+            "outcome": {
+                "type": "string",
+                "enum": ["pass", "fail"],
+                "description": "Whether the asset passes the criterion",
+            },
+            "reason": {
+                "type": "string",
+                "description": "Brief explanation of the judgment",
+            },
         },
-        "reason": {
-            "type": "string",
-            "description": "Brief explanation of the judgment",
-        },
-    },
-    "required": ["outcome", "reason"],
-})
+        "required": ["outcome", "reason"],
+    }
+)
 
 
 def run_check(
@@ -73,9 +74,12 @@ def run_check(
             [
                 claude_cmd,
                 "-p",
-                "--output-format", "json",
-                "--json-schema", _RESPONSE_SCHEMA,
-                "--model", model,
+                "--output-format",
+                "json",
+                "--json-schema",
+                _RESPONSE_SCHEMA,
+                "--model",
+                model,
                 "--no-session-persistence",
                 prompt,
             ],
@@ -129,13 +133,15 @@ def _build_prompt(check: ResolvedCheck, asset_content: str, context: str) -> str
     ]
     if context:
         parts.extend(["", "CONTEXT:", context])
-    parts.extend([
-        "",
-        "ASSET:",
-        asset_content,
-        "",
-        "Respond with your judgment as JSON matching the schema provided.",
-    ])
+    parts.extend(
+        [
+            "",
+            "ASSET:",
+            asset_content,
+            "",
+            "Respond with your judgment as JSON matching the schema provided.",
+        ]
+    )
     return "\n".join(parts)
 
 

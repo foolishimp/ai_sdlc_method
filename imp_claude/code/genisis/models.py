@@ -8,6 +8,7 @@ from typing import Optional
 
 class Category(Enum):
     """Functor category — how a functional unit is rendered."""
+
     F_D = "F_D"  # deterministic
     F_P = "F_P"  # probabilistic (agent)
     F_H = "F_H"  # human
@@ -15,6 +16,7 @@ class Category(Enum):
 
 class FunctionalUnit(Enum):
     """The 8 functional units of the methodology."""
+
     EVALUATE = "evaluate"
     CONSTRUCT = "construct"
     CLASSIFY = "classify"
@@ -34,18 +36,20 @@ CATEGORY_FIXED = {
 
 class CheckOutcome(Enum):
     """Result of evaluating a single check."""
+
     PASS = "pass"
     FAIL = "fail"
-    SKIP = "skip"    # unresolved $variable or non-deterministic check
+    SKIP = "skip"  # unresolved $variable or non-deterministic check
     ERROR = "error"  # command crashed / timeout
 
 
 @dataclass
 class ResolvedCheck:
     """A checklist entry with all $variables resolved."""
+
     name: str
-    check_type: str              # "deterministic" | "agent" | "human"
-    functional_unit: str         # "evaluate" | "sense" | etc.
+    check_type: str  # "deterministic" | "agent" | "human"
+    functional_unit: str  # "evaluate" | "sense" | etc.
     criterion: str
     source: str
     required: bool
@@ -57,6 +61,7 @@ class ResolvedCheck:
 @dataclass
 class CheckResult:
     """Outcome of running one check."""
+
     name: str
     outcome: CheckOutcome
     required: bool
@@ -72,6 +77,7 @@ class CheckResult:
 @dataclass
 class EvaluationResult:
     """Aggregate result of evaluating all checks on one edge."""
+
     edge: str
     checks: list[CheckResult] = field(default_factory=list)
     delta: int = 0
@@ -82,6 +88,7 @@ class EvaluationResult:
 @dataclass
 class ClassificationResult:
     """Output of F_D classify."""
+
     input_text: str
     classification: str
     confidence: float = 1.0
@@ -91,6 +98,7 @@ class ClassificationResult:
 @dataclass
 class SenseResult:
     """Output of F_D sense."""
+
     monitor_name: str
     value: object = None
     threshold: object = None
@@ -101,6 +109,7 @@ class SenseResult:
 @dataclass
 class RouteResult:
     """Output of F_D route."""
+
     selected_edge: str
     reason: str
     profile: str
@@ -110,6 +119,7 @@ class RouteResult:
 @dataclass
 class Event:
     """Structured event for events.jsonl."""
+
     event_type: str
     timestamp: str
     project: str

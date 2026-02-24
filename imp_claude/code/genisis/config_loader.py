@@ -98,16 +98,18 @@ def resolve_checklist(edge_config: dict, constraints: dict) -> list[ResolvedChec
         else:
             required = bool(required_raw)
 
-        results.append(ResolvedCheck(
-            name=entry.get("name", ""),
-            check_type=entry.get("type", "agent"),
-            functional_unit=entry.get("functional_unit", "evaluate"),
-            criterion=criterion,
-            source=entry.get("source", "default"),
-            required=required,
-            command=command,
-            pass_criterion=pass_criterion,
-            unresolved=all_unresolved,
-        ))
+        results.append(
+            ResolvedCheck(
+                name=entry.get("name", ""),
+                check_type=entry.get("type", "agent"),
+                functional_unit=entry.get("functional_unit", "evaluate"),
+                criterion=criterion,
+                source=entry.get("source", "default"),
+                required=required,
+                command=command,
+                pass_criterion=pass_criterion,
+                unresolved=all_unresolved,
+            )
+        )
 
     return results

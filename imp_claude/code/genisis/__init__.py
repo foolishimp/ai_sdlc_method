@@ -21,7 +21,11 @@ from .config_loader import (
 )
 from .fd_evaluate import evaluate_checklist, run_check
 from .fd_emit import emit_event, make_event
-from .fd_classify import classify_req_tag, classify_source_finding, classify_signal_source
+from .fd_classify import (
+    classify_req_tag,
+    classify_source_finding,
+    classify_signal_source,
+)
 from .fd_sense import (
     sense_event_freshness,
     sense_event_log_integrity,

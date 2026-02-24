@@ -3,7 +3,7 @@
 
 from typing import Callable
 
-from . import fd_classify, fd_emit, fd_evaluate, fd_route, fd_sense, fp_evaluate
+from . import fd_classify, fd_emit, fd_evaluate, fd_route, fd_sense
 from .models import Category, FunctionalUnit
 
 

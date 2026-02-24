@@ -9,10 +9,14 @@ from pathlib import Path
 
 from .models import SenseResult
 
-_REQ_TAG_PATTERN = re.compile(r"(?:Implements|Validates):\s*(REQ-[A-Z]+(?:-[A-Z]+)*-\d+)")
+_REQ_TAG_PATTERN = re.compile(
+    r"(?:Implements|Validates):\s*(REQ-[A-Z]+(?:-[A-Z]+)*-\d+)"
+)
 
 
-def sense_event_freshness(events_path: Path, threshold_minutes: int = 60) -> SenseResult:
+def sense_event_freshness(
+    events_path: Path, threshold_minutes: int = 60
+) -> SenseResult:
     """INTRO-001: Check time since last event in events.jsonl."""
     if not events_path.exists():
         return SenseResult(
@@ -99,7 +103,8 @@ def sense_feature_stall(
         value=recent[-1],
         threshold=threshold_iterations,
         breached=stalled,
-        detail=f"Last {threshold_iterations} deltas: {recent}" + (" — STALLED" if stalled else ""),
+        detail=f"Last {threshold_iterations} deltas: {recent}"
+        + (" — STALLED" if stalled else ""),
     )
 
 
@@ -120,7 +125,8 @@ def sense_test_health(cwd: Path, test_command: str, timeout: int = 60) -> SenseR
             value=result.returncode,
             threshold=0,
             breached=not passed,
-            detail=f"exit code {result.returncode}" + ("" if passed else f": {result.stderr[:200]}"),
+            detail=f"exit code {result.returncode}"
+            + ("" if passed else f": {result.stderr[:200]}"),
         )
     except subprocess.TimeoutExpired:
         return SenseResult(
@@ -236,5 +242,5 @@ def _last_line(path: Path) -> str:
         read_size = min(4096, size)
         f.seek(-read_size, 2)
         chunk = f.read().decode("utf-8", errors="replace")
-    lines = [l for l in chunk.splitlines() if l.strip()]
+    lines = [line for line in chunk.splitlines() if line.strip()]
     return lines[-1] if lines else ""

@@ -872,19 +872,32 @@ Python code drives the loop deterministically. The engine resolves configs, disp
 
 > **Source**: `engine.py` — `run()`, `run_edge()`, `iterate_edge()`.
 
-### Strategy C: Hybrid Engine `[PLANNED]`
+### Strategy C: Cross-Validating Hybrid `[PLANNED]`
 
-One `claude -p` call per edge that both constructs the artifact AND evaluates all agent checks. Deterministic checks run as subprocess before the LLM call. The engine validates structured output deterministically.
+Engine and LLM agent are **orthogonal projections** of the same `iterate()` contract. They don't compete — they cross-validate. Both evaluate the same checklist; disagreement is a first-class signal (ADR-019).
+
+```
+LLM constructs + evaluates  → delta_P
+Engine evaluates same asset  → delta_D (Level 4 events guaranteed)
+Compare:
+  delta_P == delta_D  → consistent, trust result
+  delta_P != delta_D  → disagreement → η escalation
+Engine emits event (always)  → both deltas recorded for audit
+```
 
 | Property | Target Value |
 |----------|-------------|
-| LLM calls | **4 per iteration** (1 per edge) |
-| Construct | Yes — LLM generates per-edge |
-| Context coherence | Per-edge (constructed artifacts from edge N become context for N+1) |
+| LLM calls | **4 per feature** (1 construct+evaluate per edge) |
+| Engine calls | **4 per feature** (1 F_D evaluation per edge, free) |
+| Construct | LLM generates per-edge |
+| Convergence gate | `delta_D == 0` (engine is hard gate) |
+| Advisory | `delta_P` (agent catches what F_D can't) |
+| Event reliability | **Level 4** — all events through `fd_emit` |
 | Cost | ~$0.50 per feature |
-| Testability | F_D tests unchanged. LLM tests: 4 calls vs 37 |
 
-See Appendix A for implementation path.
+**Why cross-validation, not pipeline**: Running both projections and comparing deltas catches hallucinated passes (LLM says pass, engine says fail) and surfaces coverage gaps (engine SKIPs agent checks, making the gap visible). Orthogonal failure modes — the engine can't hallucinate, the LLM can't miss context.
+
+See Appendix A for implementation path. See ADR-019 for the reliability model.
 
 ### Full Traversal Sequence (Engine — Current)
 
@@ -1006,6 +1019,19 @@ Conscious (F_H) — decisions, approvals             → BLOCKING (human wait)
 ```
 
 The engine already has the **full reflex layer** (route, emit, delta, subprocess, classify, sense). The cost question is how to structure the **affect layer's LLM calls** — per-check (Strategy B, 37 calls) vs per-edge (Strategy C, 4 calls) vs in-session (Strategy A, 1 session).
+
+### Event Reliability Hierarchy
+
+Event emission reliability depends on **how** the event is created:
+
+| Level | Mechanism | Reliability | Current state |
+|-------|-----------|-------------|---------------|
+| 4 | **Deterministic code** — `fd_emit.emit_event()` in Python | Guaranteed if code runs | Engine path only |
+| 3 | **Observer/gap analysis** — `/gen-gaps`, sense monitors | Verification layer, catches failures | On-demand |
+| 2 | **Hook** — `hooks.json` post_tool_call | Automatic, can fail silently | Limited |
+| 1 | **Agent instruction** — "emit event" in command .md | LLM may forget or skip | Most events today |
+
+Most of the 340+ events in `events.jsonl` are Level 1 — the E2E agent followed instruction. Strategy C (ADR-019) resolves this: all events flow through the engine's `fd_emit` (Level 4), regardless of which projection constructed the asset.
 
 ---
 
@@ -1276,6 +1302,7 @@ Architecture Decision Records for this feature, with cross-references.
 | [ADR-014](adrs/ADR-014-intentengine-binding.md) | IntentEngine Binding | Accepted | IntentEngine = iterate agent + edge config (no new code) | REQ-ITER-001 |
 | [ADR-016](adrs/ADR-016-design-tolerances-as-optimization-triggers.md) | Design Tolerances | Accepted | Tolerance breach → optimization intent | REQ-EVAL-002 |
 | [ADR-017](adrs/ADR-017-functor-based-execution-model.md) | Functor Execution Model | Accepted | Runtime functor composition via dispatch table | REQ-ITER-003, REQ-EVAL-002 |
+| [ADR-019](adrs/ADR-019-orthogonal-projection-reliability.md) | Orthogonal Projection Reliability | Accepted | Engine + LLM are cross-validators, not competing strategies | REQ-ITER-001, REQ-SUPV-003, REQ-TOOL-014 |
 
 ### Related ADRs (referenced but owned by other features)
 
@@ -1300,7 +1327,8 @@ Architecture Decision Records for this feature, with cross-references.
 | F_P modules (classify, route, sense) | F_P | `[STUB]` | `fp_evaluate.py` exists for evaluate only |
 | F_H modules (all) | F_H | `[STUB]` | Interactive prompts — future work |
 | Automatic η dispatch | η | `[STUB]` | Escalation signals recorded but not auto-dispatched |
-| CLI entry point | Infra | `[STUB]` | No `python -m genisis` yet |
+| **Cross-validation protocol** | Engine | `[PLANNED]` | Engine + LLM evaluate same checklist, compare deltas. ADR-019. |
+| CLI entry point | Infra | `[STUB]` | No `python -m genisis` yet — needed for LLM→engine invocation (ADR-019) |
 | Feature constraint merging | Config | `[STUB]` | `feature.threshold_overrides` + `acceptance_criteria` not yet composed |
 | Actor model / inbox / serialiser | Infra | `[FUTURE]` | ADR-013 — defer until multi-agent needed |
 | MCP sensory service | Infra | `[FUTURE]` | ADR-015 — defer until long-running monitors needed |
