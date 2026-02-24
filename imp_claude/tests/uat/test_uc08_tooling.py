@@ -1,10 +1,13 @@
 # Validates: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005
 # Validates: REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010
-"""UC-08: Developer Tooling — 24 scenarios.
+# Validates: REQ-TOOL-012, REQ-TOOL-013, REQ-TOOL-014, REQ-SENSE-006
+"""UC-08: Developer Tooling — 36 scenarios.
 
 Tests plugin architecture, workspace structure, workflow commands,
 release management, gap analysis, hooks, scaffolding, snapshots,
-feature views, and spec/design boundary enforcement.
+feature views, spec/design boundary enforcement, multi-tenant
+folder structure, output directory binding, observability contract,
+and artifact write observation.
 """
 
 from __future__ import annotations
@@ -619,3 +622,299 @@ class TestSpecDesignBoundary:
         assert (project_root / "imp_claude").exists()
         # Spec is shared, implementations are separate
         assert (project_root / "specification").exists()
+
+
+# ===================================================================
+# UC-08-25..28: MULTI-TENANT FOLDER STRUCTURE (Tier 1)
+# ===================================================================
+
+
+class TestMultiTenantFolderStructure:
+    """UC-08-25 through UC-08-28: REQ-TOOL-012 multi-tenant enforcement."""
+
+    PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
+
+    # UC-08-25 | Validates: REQ-TOOL-012 | Fixture: CLEAN
+    def test_spec_at_root_imp_as_peers(self):
+        """specification/ at root, imp_<name>/ as peer directories."""
+        assert (self.PROJECT_ROOT / "specification").is_dir(), (
+            "specification/ must exist at project root"
+        )
+        imp_dirs = sorted(self.PROJECT_ROOT.glob("imp_*/"))
+        assert len(imp_dirs) >= 1, "At least one imp_<name>/ directory required"
+
+        # Each imp dir should have its own design/ or code/ or tests/
+        for imp_dir in imp_dirs:
+            has_structure = (
+                (imp_dir / "design").is_dir()
+                or (imp_dir / "code").is_dir()
+                or (imp_dir / "tests").is_dir()
+            )
+            assert has_structure, (
+                f"{imp_dir.name}/ must contain design/, code/, or tests/"
+            )
+
+    # UC-08-26 | Validates: REQ-TOOL-012 | Fixture: CLEAN
+    def test_imp_dirs_independently_structured(self):
+        """Each imp_<name>/ is self-contained — adding one doesn't affect another."""
+        imp_dirs = sorted(self.PROJECT_ROOT.glob("imp_*/"))
+        assert len(imp_dirs) >= 2, (
+            "Need ≥2 imp_<name>/ dirs to verify independence"
+        )
+        # Each has its own design dir (no shared design/ at root)
+        for imp_dir in imp_dirs:
+            if (imp_dir / "design").exists():
+                assert (imp_dir / "design").is_dir()
+
+        # No design/ or src/ at project root (outside spec and imp_*)
+        assert not (self.PROJECT_ROOT / "design").exists(), (
+            "design/ must not exist at project root — belongs in imp_<name>/design/"
+        )
+        assert not (self.PROJECT_ROOT / "src").exists(), (
+            "src/ must not exist at project root — belongs in imp_<name>/code/ or imp_<name>/src/"
+        )
+
+    # UC-08-27 | Validates: REQ-TOOL-012 | Fixture: CLEAN
+    def test_constraints_template_has_design_tenants(self):
+        """project_constraints_template.yml has structure.design_tenants section."""
+        template_path = CONFIG_DIR / "project_constraints_template.yml"
+        assert template_path.exists()
+        content = yaml.safe_load(template_path.read_text().split("---")[-1])
+        assert "structure" in content, (
+            "project_constraints_template must have 'structure' section"
+        )
+        structure = content["structure"]
+        assert "design_tenants" in structure, (
+            "structure must have 'design_tenants' key"
+        )
+        assert "root_code_policy" in structure, (
+            "structure must have 'root_code_policy' key"
+        )
+        assert structure["root_code_policy"] in ("reject", "warn"), (
+            "root_code_policy must be 'reject' or 'warn'"
+        )
+
+    # UC-08-28 | Validates: REQ-TOOL-012 | Fixture: CLEAN
+    def test_no_generated_code_at_root(self):
+        """No generated source files exist at project root outside spec/ and imp_*/."""
+        # Check for common generated code patterns at root level
+        root_files = list(self.PROJECT_ROOT.iterdir())
+        generated_patterns = {"build.sbt", "dbt_project.yml"}
+        for f in root_files:
+            if f.is_file():
+                assert f.name not in generated_patterns, (
+                    f"Generated file '{f.name}' found at project root — should be in imp_<name>/"
+                )
+
+
+# ===================================================================
+# UC-08-29..30: OUTPUT DIRECTORY BINDING (Tier 1)
+# ===================================================================
+
+
+class TestOutputDirectoryBinding:
+    """UC-08-29 through UC-08-30: REQ-TOOL-013 output directory binding."""
+
+    # UC-08-29 | Validates: REQ-TOOL-013 | Fixture: CLEAN
+    def test_constraints_template_has_output_dir_field(self):
+        """project_constraints_template documents output_dir in design_tenants."""
+        template_path = CONFIG_DIR / "project_constraints_template.yml"
+        content = template_path.read_text()
+        # The template has commented-out examples showing the pattern
+        assert "output_dir" in content, (
+            "project_constraints_template must document output_dir field"
+        )
+        assert "imp_" in content, (
+            "project_constraints_template must show imp_<name>/ pattern"
+        )
+
+    # UC-08-30 | Validates: REQ-TOOL-013 | Fixture: CLEAN
+    def test_design_docs_in_imp_not_spec(self):
+        """Design documents live in imp_<name>/design/, not in specification/."""
+        project_root = pathlib.Path(__file__).parent.parent.parent.parent
+        spec_dir = project_root / "specification"
+
+        # specification/ should not contain DESIGN.md or adrs/
+        assert not (spec_dir / "DESIGN.md").exists(), (
+            "DESIGN.md must not be in specification/ — belongs in imp_<name>/design/"
+        )
+        assert not (spec_dir / "adrs").exists(), (
+            "adrs/ must not be in specification/ — belongs in imp_<name>/design/adrs/"
+        )
+
+        # But imp_claude/design/ should exist with ADRs
+        imp_claude_design = project_root / "imp_claude" / "design"
+        assert imp_claude_design.is_dir(), "imp_claude/design/ must exist"
+        adrs = list((imp_claude_design / "adrs").glob("ADR-*.md"))
+        assert len(adrs) >= 1, "imp_claude/design/adrs/ must have ADR files"
+
+
+# ===================================================================
+# UC-08-31..34: OBSERVABILITY INTEGRATION CONTRACT (Tier 2)
+# ===================================================================
+
+
+class TestObservabilityContract:
+    """UC-08-31 through UC-08-34: REQ-TOOL-014 observability contract."""
+
+    # UC-08-31 | Validates: REQ-TOOL-014 | Fixture: CLEAN
+    def test_installer_documents_graph_topology(self):
+        """Installer scaffolds graph_topology.yml for observability."""
+        # Read the installer source and verify it creates graph_topology.yml
+        installer = pathlib.Path(__file__).parent.parent.parent.parent / "imp_claude" / "code" / "installers" / "gen-setup.py"
+        assert installer.exists(), "gen-setup.py installer must exist"
+        content = installer.read_text()
+        assert "graph_topology" in content, (
+            "Installer must reference graph_topology.yml"
+        )
+        assert "graph/graph_topology.yml" in content, (
+            "Installer must scaffold .ai-workspace/graph/graph_topology.yml"
+        )
+
+    # UC-08-32 | Validates: REQ-TOOL-014 | Fixture: INITIALIZED
+    def test_initialized_workspace_has_graph_topology(self, initialized_workspace):
+        """Initialized workspace contains parseable graph_topology.yml."""
+        ws = initialized_workspace / ".ai-workspace"
+        topo_path = ws / "graph" / "graph_topology.yml"
+        assert topo_path.exists(), (
+            ".ai-workspace/graph/graph_topology.yml must exist after init"
+        )
+        content = yaml.safe_load(topo_path.read_text())
+        assert content is not None, "graph_topology.yml must be parseable YAML"
+
+    # UC-08-33 | Validates: REQ-TOOL-014 | Fixture: INITIALIZED
+    def test_initialized_workspace_has_edge_configs(self, initialized_workspace):
+        """Initialized workspace contains edge config files."""
+        ws = initialized_workspace / ".ai-workspace"
+        edges_dir = ws / "graph" / "edges"
+        assert edges_dir.is_dir(), "graph/edges/ must exist after init"
+        edge_files = list(edges_dir.glob("*.yml"))
+        assert len(edge_files) >= 4, (
+            f"Expected ≥4 edge config files, found {len(edge_files)}"
+        )
+
+    # UC-08-34 | Validates: REQ-TOOL-014 | Fixture: INITIALIZED
+    def test_initialized_workspace_has_profiles(self, initialized_workspace):
+        """Initialized workspace contains projection profile files."""
+        ws = initialized_workspace / ".ai-workspace"
+        profiles_dir = ws / "profiles"
+        assert profiles_dir.is_dir(), "profiles/ must exist after init"
+        profile_files = list(profiles_dir.glob("*.yml"))
+        assert len(profile_files) >= 3, (
+            f"Expected ≥3 profile files, found {len(profile_files)}"
+        )
+
+
+# ===================================================================
+# UC-08-35..38: ARTIFACT WRITE OBSERVATION (Tier 1)
+# ===================================================================
+
+
+class TestArtifactWriteObservation:
+    """UC-08-35 through UC-08-38: REQ-SENSE-006 artifact write hooks."""
+
+    HOOKS_DIR = PLUGIN_ROOT / "hooks"
+
+    # UC-08-35 | Validates: REQ-SENSE-006 | Fixture: CLEAN
+    def test_hooks_json_defines_post_tool_use(self):
+        """hooks.json defines PostToolUse hook matching Write|Edit."""
+        hooks_json = self.HOOKS_DIR / "hooks.json"
+        assert hooks_json.exists(), "hooks.json must exist"
+        data = json.loads(hooks_json.read_text())
+        hooks = data.get("hooks", {})
+        assert "PostToolUse" in hooks, (
+            "hooks.json must define PostToolUse category"
+        )
+        ptu_hooks = hooks["PostToolUse"]
+        assert len(ptu_hooks) >= 1, "PostToolUse must have at least 1 entry"
+
+        # Find the Write|Edit matcher
+        found = False
+        for entry in ptu_hooks:
+            matcher = entry.get("matcher", "")
+            if "Write" in matcher and "Edit" in matcher:
+                found = True
+                entry_hooks = entry.get("hooks", [])
+                assert len(entry_hooks) >= 1, "Write|Edit hook must have commands"
+                for h in entry_hooks:
+                    assert "command" in h, "Hook must specify command"
+                    assert "artifact-written" in h["command"], (
+                        "Hook command must reference artifact-written script"
+                    )
+        assert found, "PostToolUse must have a Write|Edit matcher"
+
+    # UC-08-36 | Validates: REQ-SENSE-006 | Fixture: CLEAN
+    def test_artifact_written_script_exists(self):
+        """on-artifact-written.sh exists and is a valid shell script."""
+        script = self.HOOKS_DIR / "on-artifact-written.sh"
+        assert script.exists(), "on-artifact-written.sh must exist"
+        content = script.read_text()
+        assert content.startswith("#!/bin/bash"), (
+            "Script must have bash shebang"
+        )
+        # Verify it emits artifact_modified events
+        assert "artifact_modified" in content, (
+            "Script must emit artifact_modified events"
+        )
+        # Verify it emits edge_started on first write
+        assert "edge_started" in content, (
+            "Script must emit edge_started on first asset type write"
+        )
+
+    # UC-08-37 | Validates: REQ-SENSE-006 | Fixture: CLEAN
+    def test_artifact_script_excludes_non_artifact_paths(self):
+        """Script excludes .ai-workspace/, .git/, and infrastructure files."""
+        script = self.HOOKS_DIR / "on-artifact-written.sh"
+        content = script.read_text()
+        # Must exclude workspace internals
+        assert ".ai-workspace" in content, (
+            "Script must exclude .ai-workspace/ paths"
+        )
+        assert ".git" in content, (
+            "Script must exclude .git/ paths"
+        )
+        # Must exclude infrastructure files
+        assert "pyproject.toml" in content or "package.json" in content, (
+            "Script must exclude infrastructure config files"
+        )
+
+    # UC-08-38 | Validates: REQ-SENSE-006 | Fixture: CLEAN
+    def test_artifact_script_maps_asset_types(self):
+        """Script maps file paths to asset types (requirements, design, code, etc.)."""
+        script = self.HOOKS_DIR / "on-artifact-written.sh"
+        content = script.read_text()
+
+        # Must map the key asset types from directory structure
+        expected_types = ["requirements", "design", "code", "unit_tests"]
+        for asset_type in expected_types:
+            assert asset_type in content, (
+                f"Script must map '{asset_type}' asset type"
+            )
+
+        # Must handle multi-tenant paths (strip imp_<name>/ prefix)
+        assert "imp_" in content, (
+            "Script must handle multi-tenant imp_<name>/ paths"
+        )
+
+    # UC-08-39 | Validates: REQ-SENSE-006 | Fixture: CLEAN
+    def test_artifact_script_fails_silently(self):
+        """Script traps errors and exits 0 (never blocks writes)."""
+        script = self.HOOKS_DIR / "on-artifact-written.sh"
+        content = script.read_text()
+        assert "trap" in content, (
+            "Script must use trap to catch errors"
+        )
+        assert "exit 0" in content, (
+            "Script must exit 0 on error (fail silently)"
+        )
+
+    # UC-08-40 | Validates: REQ-SENSE-006 | Fixture: CLEAN
+    def test_hooks_json_references_req_sense_006(self):
+        """hooks.json documents REQ-SENSE-006 traceability."""
+        hooks_json = self.HOOKS_DIR / "hooks.json"
+        data = json.loads(hooks_json.read_text())
+        # Check _implements metadata
+        implements = data.get("_implements", "")
+        assert "REQ-SENSE-006" in implements, (
+            "hooks.json must reference REQ-SENSE-006 in _implements"
+        )

@@ -5,7 +5,7 @@ vector_type: feature
 profile: full
 status: converged
 created: "2026-02-21T14:00:00Z"
-updated: "2026-02-22T07:30:00Z"
+updated: "2026-02-24T12:00:00Z"
 parent_id: REQ-F-LIFE-001
 spawned_by: REQ-F-LIFE-001
 
@@ -26,6 +26,7 @@ requirements:
   - REQ-SENSE-003
   - REQ-SENSE-004
   - REQ-SENSE-005
+  - REQ-SENSE-006
 
 trajectory:
   requirements:

@@ -9,17 +9,17 @@
 
 ## Context
 
-The v2.1 Asset Graph Model defines software development as a directed cyclic graph of typed assets connected by admissible transitions. The graph topology — which asset types exist and which transitions are allowed — is fundamental to the methodology.
+The Asset Graph Model defines software development as a directed cyclic graph of typed assets connected by admissible transitions. The graph topology — which asset types exist and which transitions are allowed — is fundamental to the methodology.
 
-In v1.x, the topology was implicit: a fixed 7-stage pipeline hard-coded into agent personas and skill configurations. There was no separate representation of the graph itself.
+We need a separate, explicit representation of the graph to avoid hard-coding it into the iteration engine. This ensures the methodology remains flexible and extensible.
 
-We need to decide how to represent the graph topology in the Claude Code implementation.
+We need to decide how to represent the graph topology in the Gemini CLI implementation.
 
 ### Options Considered
 
 1. **Hard-coded in agent markdown** — describe the graph inline in the iterate agent prompt
 2. **YAML configuration files** — separate files for asset types and transitions, loaded by the engine
-3. **Code-based registry** — Python/TypeScript code defining types and transitions programmatically
+3. **Code-based registry** — Python/Go code defining types and transitions programmatically
 4. **JSON Schema** — formal schema definitions with validation
 
 ---
@@ -29,17 +29,16 @@ We need to decide how to represent the graph topology in the Claude Code impleme
 **We will represent the graph topology as YAML configuration files in the workspace Context[] store.**
 
 Specifically:
-- `asset_types.yml` — defines each asset type with schema and Markov criteria
-- `transitions.yml` — defines admissible transitions with evaluator and constructor specifications
-- `edges/*.yml` — per-edge parameterisation configs (TDD, BDD, ADR generation, code tagging)
+- `graph_topology.yml` — defines asset types with schema and Markov criteria, plus admissible transitions with evaluator and constructor specifications
+- `edge_params/*.yml` — per-edge parameterisation configs (TDD, BDD, ADR generation, code tagging)
 
-These files live in `.ai-workspace/graph/` and are part of Context[]. The iterate agent reads them at invocation time.
+These files live in `code/config/` (defaults) and `.ai-workspace/graph/` (overrides) and are part of Context[]. The iterate agent reads them at invocation time.
 
 ---
 
 ## Rationale
 
-### Why YAML Configuration (vs Hard-Coded)
+### Why YAML Configuration
 
 **1. Graph topology IS context** — The Asset Graph Model (§5) explicitly states that the graph topology is itself an element of Context[]. Representing it as YAML config files that live in the context store is the correct implementation of this insight.
 
@@ -49,11 +48,11 @@ These files live in `.ai-workspace/graph/` and are part of Context[]. The iterat
 
 **4. Diffable and versionable** — YAML files work with git. Teams can review graph topology changes in pull requests. The context manifest (REQ-INTENT-004) can hash the topology files for reproducibility.
 
-**5. Readable by the iterate agent** — Claude Code agents read files. YAML is more readable to the LLM than JSON Schema or code. The agent can parse and reason about the topology to decide which transitions are admissible from the current state.
+**5. Readable by the iterate agent** — Gemini CLI agents read files. YAML is more readable to the LLM than JSON Schema or code. The agent can parse and reason about the topology to decide which transitions are admissible from the current state.
 
 ### Why Not Code-Based Registry
 
-Claude Code's implementation is markdown-first (ADR-001). The agents are markdown files, the commands are markdown files. Introducing a code-based registry would require a runtime environment (Python/Node.js), breaking the "just files" principle. YAML configs maintain the no-runtime-dependency model.
+The implementation is designed to be "just files" wherever possible. Introducing a code-based registry would require a specific runtime environment (Python/Go), potentially complicating the "plug-and-play" nature of the methodology. YAML configs maintain the no-runtime-dependency model.
 
 ### Why Not JSON Schema
 
@@ -65,29 +64,28 @@ JSON Schema is more precise but less readable for LLMs. The iterate agent needs 
 
 ### Positive
 
-- **Graph is inspectable** — developers can read the YAML to understand the project's SDLC topology
-- **Graph is configurable** — teams can customise without forking the plugin
-- **Graph is composable** — context hierarchy applies to topology
-- **Graph is versionable** — git tracks topology changes
-- **No runtime dependency** — just files, consistent with ADR-001
+- **Graph is inspectable** — developers can read the YAML to understand the project's SDLC topology.
+- **Graph is configurable** — teams can customise without forking the entire implementation.
+- **Graph is composable** — context hierarchy applies to topology.
+- **Graph is versionable** — git tracks topology changes.
+- **No runtime dependency** — just files, ensuring maximum portability.
 
 ### Negative
 
 - **No runtime validation** — YAML files can have syntax errors or invalid references (e.g., a transition referencing a non-existent asset type). Validation depends on the iterate agent detecting issues at invocation time.
 - **LLM parsing risk** — the iterate agent must correctly parse YAML. Malformed configs could cause subtle behavioural errors.
-- **No type safety** — unlike a code-based registry, there's no compile-time guarantee that the topology is well-formed.
 
 ### Mitigation
 
-- `/gen-init` generates valid default topology from the plugin's templates
-- The iterate agent includes instructions to validate topology before proceeding
-- A deterministic evaluator can be added for topology validation (check referential integrity)
+- `/gen-init` generates a valid default topology from the implementation's templates.
+- The iterate agent includes instructions to validate the topology before proceeding.
+- A deterministic evaluator can be added for topology validation (check referential integrity).
 
 ---
 
 ## Default Topology
 
-The plugin ships with a default graph topology representing the standard SDLC:
+The implementation ships with a default graph topology representing the standard SDLC:
 
 ```
 intent → requirements → design → code ↔ unit_tests

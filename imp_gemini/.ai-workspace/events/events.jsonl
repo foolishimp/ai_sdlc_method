@@ -10,3 +10,31 @@
 {"event_type": "edge_converged", "timestamp": "2026-02-21T13:30:00Z", "project": "gemini-genesis", "feature": "REQ-F-GEMINI-INIT-001", "edge": "design→code", "data": {"iteration": 3, "evaluators": "5/5", "convergence_type": "standard"}}
 {"event_type": "edge_converged", "timestamp": "2026-02-21T13:45:00Z", "project": "gemini-genesis", "feature": "REQ-F-GEMINI-INIT-001", "edge": "code↔unit_tests", "data": {"iteration": 1, "evaluators": "10/10", "convergence_type": "standard"}}
 {"event_type": "health_checked", "timestamp": "2026-02-23T06:57:11.081661+00:00", "project": "gemini-genesis", "data": {"passed": 1, "failed": 1, "results": [{"name": "bootloader_present", "status": "pass", "description": "GEMINI.md contains Bootloader"}, {"name": "graph_invariant", "status": "fail", "description": "graph_topology.yml missing"}], "infrastructure_issues": 0}}
+{"event_type": "intent_raised", "timestamp": "2026-02-24T10:00:00Z", "project": "imp_gemini", "data": {"intent_id": "INT-GEMINI-001", "description": "Build a robust, local Gemini CLI in Python that replaces the legacy Markdown-based commands.", "signal_source": "user"}}
+{"event_type": "edge_started", "timestamp": "2026-02-24T10:01:00Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "intent→requirements", "data": {"iteration": 1}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T10:05:00Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "intent→requirements", "iteration": 1, "status": "converged", "delta": 0}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T10:05:01Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "intent→requirements", "data": {"iteration": 1}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T10:10:00Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "requirements→design", "iteration": 1, "status": "iterating", "delta": 1}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T10:15:00Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "requirements→design", "iteration": 2, "status": "converged", "delta": 0}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T10:15:01Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "requirements→design", "data": {"iteration": 2}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T10:30:00Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "design→code", "iteration": 1, "status": "converged", "data": {"delta": 0}}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T10:30:01Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "design→code", "data": {"iteration": 1}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T10:45:00Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "design→code", "iteration": 2, "status": "converged", "data": {"delta": 0}}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T10:45:01Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "design→code", "data": {"iteration": 2}}
+{"event_type": "edge_started", "timestamp": "2026-02-24T10:46:00Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "code↔unit_tests", "data": {"iteration": 1}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T11:00:00Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "code↔unit_tests", "iteration": 1, "status": "converged", "data": {"delta": 0}}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T11:00:01Z", "project": "imp_gemini", "feature": "REQ-F-GEMINI-CLI-001", "edge": "code↔unit_tests", "data": {"iteration": 1}}
+{"event_type": "release_created", "timestamp": "2026-02-24T11:00:02Z", "project": "imp_gemini", "data": {"feature": "REQ-F-GEMINI-CLI-001", "version": "2.8.0-alpha.1"}}
+{"event_type": "edge_started", "timestamp": "2026-02-24T14:14:00.936191+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "intent\u2192requirements", "data": {}}
+{"event_type": "edge_started", "timestamp": "2026-02-24T14:14:38.156472+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "intent\u2192requirements", "data": {}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T14:14:38.156848+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "intent\u2192requirements", "data": {"delta": 0, "status": "converged"}}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T14:14:38.156897+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "intent\u2192requirements", "data": {}}
+{"event_type": "edge_started", "timestamp": "2026-02-24T14:14:38.371349+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "requirements\u2192design", "data": {}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T14:14:38.371723+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "requirements\u2192design", "data": {"delta": 0, "status": "converged"}}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T14:14:38.371798+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "requirements\u2192design", "data": {}}
+{"event_type": "edge_started", "timestamp": "2026-02-24T14:14:52.126503+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "intent\u2192requirements", "data": {}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T14:14:52.126965+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "intent\u2192requirements", "data": {"delta": 0, "status": "converged"}}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T14:14:52.127012+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "intent\u2192requirements", "data": {}}
+{"event_type": "edge_started", "timestamp": "2026-02-24T14:14:52.351581+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "requirements\u2192design", "data": {}}
+{"event_type": "iteration_completed", "timestamp": "2026-02-24T14:14:52.351981+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "requirements\u2192design", "data": {"delta": 0, "status": "converged"}}
+{"event_type": "edge_converged", "timestamp": "2026-02-24T14:14:52.352025+00:00", "project": "imp_gemini", "feature": "REQ-F-1", "edge": "requirements\u2192design", "data": {}}

@@ -5,12 +5,14 @@ vector_type: feature
 profile: standard
 status: converged
 created: "2026-02-20T08:00:00Z"
-updated: "2026-02-22T06:30:00Z"
+updated: "2026-02-24T12:00:00Z"
 parent_id: REQ-F-ENGINE-001
 
 description: |
   Plugin architecture, workspace scaffolding, 10 slash commands,
-  release management, test gap analysis, protocol hooks, snapshots.
+  release management, test gap analysis, protocol hooks, snapshots,
+  multi-tenant folder structure, output directory binding,
+  observability integration contract.
   Commands specified but not yet executable (markdown specs, not agent code).
 
 requirements:
@@ -24,6 +26,9 @@ requirements:
   - REQ-TOOL-008
   - REQ-TOOL-009
   - REQ-TOOL-010
+  - REQ-TOOL-012
+  - REQ-TOOL-013
+  - REQ-TOOL-014
 
 trajectory:
   requirements:

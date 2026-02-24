@@ -10,7 +10,7 @@ import yaml
 # Path Constants
 PROJECT_ROOT = pathlib.Path("/Users/jim/src/apps/ai_sdlc_method")
 IMP_GEMINI = PROJECT_ROOT / "imp_gemini"
-PLUGIN_ROOT = IMP_GEMINI / "code"
+PLUGIN_ROOT = IMP_GEMINI / "gemini_cli"
 CONFIG_DIR = PLUGIN_ROOT / "config"
 EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"
 PROFILES_DIR = CONFIG_DIR / "profiles"

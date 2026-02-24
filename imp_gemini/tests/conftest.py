@@ -7,6 +7,9 @@ import json
 import pytest
 import yaml
 
+# Do not collect archived E2E run artifacts as active tests.
+collect_ignore_glob = ["e2e/runs/*"]
+
 # Root paths
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
 SPEC_DIR = PROJECT_ROOT / "specification"
@@ -14,7 +17,7 @@ SPEC_DIR = PROJECT_ROOT / "specification"
 # Gemini implementation paths
 IMP_GEMINI = PROJECT_ROOT / "imp_gemini"
 DESIGN_DIR = IMP_GEMINI / "design"
-PLUGIN_ROOT = IMP_GEMINI / "code"
+PLUGIN_ROOT = IMP_GEMINI / "gemini_cli"
 CONFIG_DIR = PLUGIN_ROOT / "config"
 EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"
 PROFILES_DIR = CONFIG_DIR / "profiles"

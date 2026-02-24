@@ -55,150 +55,16 @@ EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"
 PROFILES_DIR = CONFIG_DIR / "profiles"
 
 
-# ── Shared helpers ───────────────────────────────────────────────────────
+# ── Shared helpers (delegating to conftest) ─────────────────────────────
 
-def _scaffold_green_project(tmp_path):
-    """Scaffold a project that passes all deterministic checks."""
-    src = tmp_path / "src"
-    src.mkdir()
-    (src / "__init__.py").write_text("")
-    (src / "auth.py").write_text(textwrap.dedent("""\
-        # Implements: REQ-F-AUTH-001
-        def login(user: str, password: str) -> bool:
-            return user == "admin" and password == "secret"
-    """))
-
-    tests_dir = tmp_path / "tests"
-    tests_dir.mkdir()
-    (tests_dir / "__init__.py").write_text("")
-    (tests_dir / "test_auth.py").write_text(textwrap.dedent("""\
-        # Validates: REQ-F-AUTH-001
-        from src.auth import login
-
-        def test_login_success():
-            assert login("admin", "secret") is True
-
-        def test_login_failure():
-            assert login("admin", "wrong") is False
-    """))
-
-    (tmp_path / "pyproject.toml").write_text(textwrap.dedent("""\
-        [tool.pytest.ini_options]
-        pythonpath = ["."]
-    """))
-    return tmp_path
-
-
-def _green_constraints():
-    return {
-        "tools": {
-            "test_runner": {
-                "command": "python -m pytest",
-                "args": "tests/ -v --tb=short",
-                "pass_criterion": "exit code 0",
-            },
-            "linter": {
-                "command": "python -m py_compile",
-                "args": "src/auth.py",
-                "pass_criterion": "exit code 0",
-            },
-            "formatter": {
-                "command": "true",
-                "args": "",
-                "pass_criterion": "exit code 0",
-            },
-            "coverage": {
-                "command": "python -m pytest",
-                "args": "tests/ --co -q",
-                "pass_criterion": "exit code 0",
-            },
-            "type_checker": {
-                "command": "true",
-                "args": "",
-                "pass_criterion": "exit code 0, zero errors",
-                "required": False,
-            },
-            "syntax_checker": {
-                "command": "python -m py_compile",
-                "args": "",
-                "pass_criterion": "exit code 0",
-            },
-        },
-        "thresholds": {
-            "test_coverage_minimum": 0.80,
-            "max_function_lines": 50,
-        },
-        "standards": {
-            "style_guide": "PEP 8",
-            "docstrings": "recommended",
-            "type_hints": "recommended",
-            "test_structure": "AAA",
-        },
-    }
-
-
-def _scaffold_broken_project(tmp_path):
-    """Scaffold a project with a failing test."""
-    src = tmp_path / "src"
-    src.mkdir()
-    (src / "__init__.py").write_text("")
-    (src / "calc.py").write_text(textwrap.dedent("""\
-        # Implements: REQ-F-CALC-001
-        def add(a, b):
-            return a - b  # BUG: subtraction instead of addition
-    """))
-
-    tests_dir = tmp_path / "tests"
-    tests_dir.mkdir()
-    (tests_dir / "__init__.py").write_text("")
-    (tests_dir / "test_calc.py").write_text(textwrap.dedent("""\
-        # Validates: REQ-F-CALC-001
-        from src.calc import add
-
-        def test_add():
-            assert add(2, 3) == 5  # will FAIL
-    """))
-
-    (tmp_path / "pyproject.toml").write_text(textwrap.dedent("""\
-        [tool.pytest.ini_options]
-        pythonpath = ["."]
-    """))
-    return tmp_path
-
-
-def _red_constraints():
-    return {
-        "tools": {
-            "test_runner": {
-                "command": "python -m pytest",
-                "args": "tests/ -v --tb=short",
-                "pass_criterion": "exit code 0",
-            },
-            "linter": {
-                "command": "python -m py_compile",
-                "args": "src/calc.py",
-                "pass_criterion": "exit code 0",
-            },
-            "formatter": {
-                "command": "true",
-                "args": "",
-                "pass_criterion": "exit code 0",
-            },
-            "coverage": {
-                "command": "true",
-                "args": "",
-                "pass_criterion": "exit code 0",
-            },
-            "type_checker": {
-                "command": "true",
-                "args": "",
-                "pass_criterion": "exit code 0",
-                "required": False,
-            },
-        },
-        "thresholds": {"test_coverage_minimum": 0.80},
-        "standards": {"style_guide": "PEP 8"},
-    }
+from conftest import (
+    scaffold_green_project as _scaffold_green_project,
+    green_constraints as _green_constraints,
+    scaffold_broken_project as _scaffold_broken_project,
+    red_constraints as _red_constraints,
+    events_path as _events_path,
+    read_events as _read_events,
+)
 
 
 def _make_engine_config(workspace_path, constraints, graph_topology=None):
@@ -214,17 +80,6 @@ def _make_engine_config(workspace_path, constraints, graph_topology=None):
         max_iterations_per_edge=3,
         claude_timeout=5,  # short — agent checks will timeout/error (by design)
     )
-
-
-def _events_path(workspace):
-    return workspace / ".ai-workspace" / "events" / "events.jsonl"
-
-
-def _read_events(workspace):
-    ep = _events_path(workspace)
-    if not ep.exists():
-        return []
-    return [json.loads(l) for l in ep.read_text().strip().split("\n") if l.strip()]
 
 
 # ═══════════════════════════════════════════════════════════════════════════

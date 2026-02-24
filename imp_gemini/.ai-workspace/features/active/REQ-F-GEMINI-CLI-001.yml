@@ -1,0 +1,25 @@
+feature: REQ-F-GEMINI-CLI-001
+title: "Implement Robust Local Gemini CLI (Python Core)"
+intent: INT-GEMINI-001
+status: converged
+trajectory:
+  intent:
+    status: converged
+    converged_at: "2026-02-24T10:00:00Z"
+  requirements:
+    status: converged
+    converged_at: "2026-02-24T10:05:01Z"
+  design:
+    status: converged
+    converged_at: "2026-02-24T10:15:01Z"
+  code:
+    status: converged
+    converged_at: "2026-02-24T10:45:01Z"
+  unit_tests:
+    status: converged
+    converged_at: "2026-02-24T11:00:01Z"
+  telemetry:
+    status: pending
+affect:
+  urgency: high
+  source: human

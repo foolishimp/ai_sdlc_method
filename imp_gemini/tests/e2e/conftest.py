@@ -13,7 +13,7 @@ import yaml
 # Path Constants
 PROJECT_ROOT = pathlib.Path("/Users/jim/src/apps/ai_sdlc_method")
 IMP_GEMINI = PROJECT_ROOT / "imp_gemini"
-PLUGIN_ROOT = IMP_GEMINI / "code"
+PLUGIN_ROOT = IMP_GEMINI / "gemini_cli"
 CONFIG_DIR = PLUGIN_ROOT / "config"
 EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"
 PROFILES_DIR = CONFIG_DIR / "profiles"
@@ -387,7 +387,7 @@ def e2e_project_dir(tmp_path_factory) -> pathlib.Path:
         
     # 6. Copy code directory for agentic discovery
     dest_code = project_dir / "code"
-    shutil.copytree(IMP_GEMINI / "code", dest_code, dirs_exist_ok=True)
+    shutil.copytree(IMP_GEMINI / "gemini_cli", dest_code, dirs_exist_ok=True)
 
     # 7. Disable human required checks in edge configs to allow full automation
     for yml in (ws / "graph/edges").glob("*.yml"):
