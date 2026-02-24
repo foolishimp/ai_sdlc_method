@@ -8,7 +8,7 @@
 
 ## 0. What the Methodology Is
 
-The methodology is not the commands, the configurations, the event schemas, or the tooling. Those are implementations — emergence within constraints. **The methodology is the constraints themselves.**
+**The methodology is the constraints themselves.** Commands, configurations, event schemas, and tooling are implementations — emergence within those constraints.
 
 Specifically, the methodology is:
 
@@ -19,15 +19,13 @@ Specifically, the methodology is:
 | **Symmetries** | What transformations preserve the invariants | Functor renderings F_D ↔ F_P ↔ F_H (§2.9); natural transformations between encodings |
 | **Projections** | How the same invariants produce different instances at different scales | full → standard → spike → minimal (Projections doc §3) |
 
-Any implementation that satisfies these constraints is a valid instantiation of the methodology. The slash commands are one valid emergence. A manual process that maintains the same invariants is another. A different toolchain that preserves the same symmetries is another. The constraints define the possibility space; the implementation fills it.
+Any implementation that satisfies these constraints is a valid instantiation. Slash commands, manual processes, and alternative toolchains are equally valid — the constraints define the possibility space; implementations fill it.
 
-This follows directly from the Constraint-Emergence Ontology (§V, §VIII-B): constraints bound the space of possible structures, and structure emerges within those bounds. The methodology does not prescribe how to build software — it defines the constraints under which valid software construction occurs, and any process that satisfies those constraints is a valid methodology instance.
+**The formal system is a generator of valid methodologies** (Projections doc §8). What it generates depends on which projection is applied, which encoding is chosen, and which technology binds the functional units. This document specifies the generator: the constraints, invariants, symmetries, and projections.
 
-**The formal system is a generator of valid methodologies** (Projections doc §8), not a single methodology. What it generates depends on which projection is applied, which encoding is chosen, and which technology binds the functional units. The generator itself — the constraints, invariants, symmetries, and projections — is what this document specifies.
+**Telemetry is constitutive.** A product that does not monitor itself is incomplete. Every valid methodology instance includes operational telemetry and self-monitoring from day one. The event log, sensory monitors, and feedback loop are methodology constraints, not tooling features. The IntentEngine invariant (Projections doc §2.4) requires every edge traversal to produce a classified observation — which requires sensing, which requires telemetry.
 
-**Telemetry is constitutive, not deferred.** A product that does not monitor itself is not yet a product. Every valid methodology instance includes operational telemetry and self-monitoring as part of the product from day one — not as a phase to be added later. The event log, the sensory monitors, the feedback loop are not features of the tooling; they are constraints of the methodology. A methodology instance without self-observation violates the IntentEngine invariant (Projections doc §2.4): if every edge traversal must produce a classified observation, then the system must be capable of observation, which requires sensing, which requires telemetry.
-
-This applies recursively: Genesis (the methodology tooling) is itself a product, and must comply to the same constraints it defines for products it builds.
+Genesis (the methodology tooling) is itself a product, and complies with the same constraints it defines.
 
 ---
 
@@ -114,7 +112,7 @@ graph LR
 - **Cyclic**: Feedback edges (Telemetry → New Intent) create cycles
 - **Extensible**: New asset types and edges addable without changing the engine
 - **Domain-constructed**: The graph topology is itself a product of abiogenesis (#39) — practice crystallises into encoded structure
-- **Not universal**: Different domains produce different graphs. The SDLC graph is one crystallisation. A legal document, a physics paper, an organisational policy each have different graphs
+- **Domain-specific**: Different domains produce different graphs. The SDLC graph is one crystallisation
 - **Zoomable**: Graph granularity is a choice (see §2.5)
 
 ### 2.3 Asset as Markov Object
@@ -122,7 +120,7 @@ graph LR
 An asset achieves Markov object status (#7) when:
 
 1. **Boundary** — Typed interface/schema. Requirements have REQ keys and acceptance criteria. Code has interfaces and contracts. Telemetry has metric schemas.
-2. **Conditional independence** — Usable without knowing its construction history. Code that passes its tests is interchangeable regardless of who built it. (You don't need the big bang to interact with the insect — just its boundary.)
+2. **Conditional independence** — Usable without knowing its construction history. Code that passes its tests is interchangeable regardless of who built it.
 3. **Stability** — All evaluators for this asset report convergence.
 
 An asset that fails its evaluators is a **candidate**, not a Markov object. It stays in iteration.
@@ -131,36 +129,11 @@ The full composite vector carries the complete causal chain (intent, lineage, ev
 
 ### 2.4 Graph Construction (Abiogenesis)
 
-The graph topology follows the abiogenesis pattern (#39):
-
-1. **Constraint**: Domain needs, technical limitations, regulatory requirements
-2. **Constructor**: Practitioners working, experimenting (practice precedes structure)
-3. **Encoding emerges**: Patterns crystallise into a graph topology (e.g., "we always need requirements before design")
-4. **Encoding drives constructor**: The graph now directs the process; AI agents follow the encoded decomposition
-5. **Graph evolves**: Runtime experience reveals missing asset types or unnecessary edges; the graph updates
-
-The SDLC graph is one such crystallisation. It is not privileged.
+The graph topology follows the abiogenesis pattern (#39): domain constraints produce practice → practice crystallises into encoded topology → encoded topology directs construction → runtime experience updates the topology. The SDLC graph is one such crystallisation.
 
 ### 2.5 Graph Scaling (Zoom)
 
-The graph is **zoomable**. Any edge can be expanded into a sub-graph, and any sub-graph can be collapsed into a single edge. But zoom is not binary — it is **selective**. You can collapse most of a sub-graph while still requiring specific intermediate assets.
-
-```mermaid
-graph LR
-    subgraph "Zoomed In (all intermediates explicit)"
-        A1[A] --> B1[B] --> C1[C] --> D1[D]
-    end
-    subgraph "Selective Zoom (B required, C collapsed)"
-        A2[A] --> B2[B] ==> D2[D]
-    end
-    subgraph "Zoomed Out (all intermediates encapsulated)"
-        A3[A] ==> D3[D]
-    end
-```
-
-**Zooming in** forces intermediate results to be created as explicit, evaluable assets. **Zooming out** treats the whole sub-graph as a single iterative edge. **Selective zoom** — the common case — collapses some intermediates while retaining others as mandatory waypoints.
-
-Example: a PoC skips formal requirements and UAT but still requires a design document:
+The graph is **zoomable** and **selectively** so. Any edge can be expanded into a sub-graph, any sub-graph collapsed into a single edge. Selective zoom — the common case — collapses some intermediates while retaining others as mandatory waypoints.
 
 ```
 Full:       Intent → Requirements → Design → Code ↔ Tests → UAT
@@ -168,78 +141,38 @@ PoC:        Intent ──────────────→ Design → Code
                                    ↑ mandatory intermediate
 ```
 
-You can also zoom in further and require multiple layers within a single asset type. Design might expand into:
+**Build decomposition** applies zoom to the Design → Code edge. For multi-module systems, the single edge is too coarse:
 
 ```
-Design (zoomed out):   |design⟩
-Design (zoomed in):    |high_level_design⟩ → |component_design⟩ → |api_spec⟩ → |data_model⟩
-Design (selective):    |high_level_design⟩ → |api_spec⟩
+Design → Code (zoomed out):   |design⟩ ═══════════════════════════► |code⟩
+Design → Code (zoomed in):    |design⟩ → |module_decomp⟩ → |basis_projections⟩ → |code_per_module⟩
+Design → Code (selective):    |design⟩ → |module_decomp⟩ ═══════════► |code_per_module⟩
 ```
 
-The **build decomposition** is the canonical example of zoom applied to the Design → Code edge. For complex multi-module systems, the single edge is too coarse — implicit module boundaries lead to interface mismatches and unscheduled builds. Zooming in:
+| Intermediate Asset | What it produces | Key evaluators |
+|--------------------|-----------------|----------------|
+| **Module Decomposition** | Module inventory, dependency DAG, feature-to-module mapping, interface contracts | DAG is acyclic, every REQ key in exactly one module, interfaces explicit |
+| **Basis Projections** | Priority-ordered minimal module subsets — feature vectors projected onto minimal module basis (§6.7, §11.1) | Connected subgraph of module DAG, priority ranking matches feature priority |
+| **Code per Module** | Modules built in dependency order against compiled interfaces | Compiles against dependencies, REQ tags present |
 
-```
-Design → Code (zoomed out):
-    |design⟩ ═══════════════════════════════════════════► |code⟩
-
-Design → Code (zoomed in):
-    |design⟩ → |module_decomp⟩ → |basis_projections⟩ → |code_per_module⟩
-
-Design → Code (selective — module decomp required, basis projections optional):
-    |design⟩ → |module_decomp⟩ ═══════════════════► |code_per_module⟩
-```
-
-```mermaid
-graph LR
-    subgraph "Design → Code: Zoomed Out"
-        D1[Design] ==> C1[Code]
-    end
-    subgraph "Design → Code: Zoomed In"
-        D2[Design] --> MD[Module Decomposition]
-        MD --> ST[Basis Projections]
-        ST --> CM[Code per Module]
-    end
-
-    style MD fill:#e1f5fe,stroke:#0288d1
-    style ST fill:#e1f5fe,stroke:#0288d1
-```
-
-Each intermediate asset:
-
-| Asset | What it produces | Key evaluators |
-|-------|-----------------|----------------|
-| **Module Decomposition** | Module inventory, dependency DAG, feature-to-module mapping, interface contracts between modules | DAG is acyclic, every REQ key lands in exactly one module, interfaces are explicit |
-| **Basis Projections** | Priority-ordered minimal module subsets — each a feature vector projected onto its minimal module basis (§6.7, §11.1) | Each projection is a connected subgraph of the module DAG, priority ranking matches feature priority, converges to Markov object |
-| **Code per Module** | Modules built in dependency order — each can see compiled interfaces of its dependencies | Compiles against its dependencies (not guessing at signatures), REQ tags present |
-
-The module decomposition asset is the **Gantt source** — combined with feature priority, it produces the build schedule as a derived projection. Basis projections identify which modules to build first for earliest end-to-end validation.
-
-**Dogfooding observation**: test05 jumped from design to code without the intermediate decomposition. The design doc contained an implicit 8-module DAG, but it was never evaluated as a standalone asset. Result: 4 parallel agents generated 8 modules simultaneously without shared interface contracts, producing ~100 cross-module type mismatches. With module decomposition as an explicit asset, interfaces would have been evaluated before code generation, and modules would have been built in dependency order.
-
-Each intermediate asset that is made explicit gets its own edge, its own evaluators, and its own convergence check. Making an intermediate mandatory means: "this asset must exist as a stable Markov object before the next edge can proceed."
-
-This is an operational choice, driven by Context[]:
+Each explicit intermediate gets its own edge, evaluators, and convergence check. Making an intermediate mandatory means it must be a stable Markov object before the next edge proceeds.
 
 | Zoom level | When | What you get |
 |------------|------|-------------|
-| **Zoomed in** | Regulated environments, complex problems, audit requirements | Full intermediate assets, maximum traceability, higher cost |
-| **Selective** | Most real work — skip what's unnecessary, keep what matters | Required intermediates explicit, others collapsed, balanced cost |
-| **Zoomed out** | Rapid prototyping, well-understood problems, trusted constructors | Fewer assets, faster delivery, less overhead |
+| **Zoomed in** | Regulated environments, complex systems, audit requirements | Full intermediates, maximum traceability, higher cost |
+| **Selective** | Most real work | Required intermediates explicit, others collapsed |
+| **Zoomed out** | Rapid prototyping, well-understood problems | Fewer assets, faster delivery |
 
-The choice of which intermediates are mandatory is itself Context[] — it can be set at the project level (project_constraints), the feature level (feature vector overrides), or the profile level (projection profiles).
+Scale-dependent assurance follows the same pattern:
 
-Tests are the canonical example of scale-dependent assurance:
-
-| Scale | Asset being assured | Assurance (evaluator) |
-|-------|--------------------|-----------------------|
-| Code module | Code | Unit tests |
+| Scale | Asset | Evaluator |
+|-------|-------|-----------|
+| Module | Code | Unit tests |
 | Service | Code + unit tests | Integration tests |
 | Feature | Req + design + code + tests | UAT |
 | Product | All features composed | Production telemetry + homeostasis |
 
-UAT to the software product is as unit tests to a code module — **the same evaluator pattern at a different scale**. Whether UAT is an explicit asset or an inherent evaluator of the composite depends on the zoom level chosen.
-
-The four primitives (Graph, Iterate, Evaluators, Spec+Context) are the same at every scale. The graph is fractal.
+The four primitives are the same at every scale. The graph is fractal.
 
 ### 2.6 The Spec/Design Boundary
 
@@ -281,11 +214,9 @@ A **constraint dimension** is a category of decisions that design must explicitl
 | **Observability** | Logging, metrics, tracing, alerting strategy | OpenTelemetry, structured logging, REQ-key tagging |
 | **Error Handling** | Failure modes, retry strategy, circuit breaking, degradation | Fail-fast, retry with backoff, graceful degradation |
 
-These dimensions are **not universal** — they are graph package configuration (§2.8). Different domains have different dimension taxonomies. A legal document graph might have dimensions for jurisdiction, precedent scope, and enforcement mechanism. The SDLC dimensions above are one crystallisation.
+These dimensions are graph package configuration (§2.8), not universal. Different domains have different taxonomies. Each dimension resolved adds constraint density (§5.2) at the design edge — unresolved dimensions leave the design under-constrained, and evaluators cannot detect gaps in dimensions the constraint surface does not define.
 
-**Each dimension resolved adds constraint density** (§5.2) at the design edge. Dogfooding observation: 5/7 bugs found at build time were in dimensions the design left implicit (ecosystem compatibility, build structure). The evaluator bar appeared adequate (1-iteration convergence) precisely because missing dimensions weren't being checked — the evaluator can't detect what the constraint surface doesn't define.
-
-The graph package (§2.8) specifies which dimensions are **mandatory** (must be explicitly resolved via ADRs or design decisions) and which are **advisory** (should be considered but may use implementation defaults). The project binding (§2.8, Layer 3) provides the concrete values for each dimension.
+The graph package (§2.8) specifies which dimensions are **mandatory** (must be explicitly resolved via ADRs or design decisions) and which are **advisory** (may use implementation defaults). The project binding (§2.8, Layer 3) provides concrete values.
 
 ### 2.7 Multiple Implementations Per Spec
 
@@ -521,44 +452,18 @@ graph TD
 
 ### 4.3 Three Processing Phases
 
-The methodology operates through three processing phases — analogous to the biological nervous system's layered architecture, where signals pass through progressively more expensive processing before reaching deliberative thought:
+The methodology operates through three processing phases, each progressively more expensive:
 
-| Property | Reflex (autonomic) | Affect (limbic) | Conscious (deliberative) |
-|----------|-------------------|-----------------|-------------------------|
-| **Biological analogy** | Spinal cord / brainstem | Limbic system / amygdala | Frontal cortex / prefrontal |
-| **Cognitive analogy** | Kahneman's System 1 (fast, automatic) | Emotional appraisal (valence, urgency) | Kahneman's System 2 (slow, deliberate) |
+| Property | Reflex | Affect | Conscious |
+|----------|--------|--------|-----------|
 | **When it fires** | Unconditionally — every iteration, every edge, no exceptions | When reflex processing surfaces a signal — classifies and assigns urgency | When affect phase determines signal warrants deliberation — approval, design, intent |
 | **What it does** | Sensing — event emission, test execution, state updates | Triage — signal classification, severity weighting, priority assignment | Direction — judgment, gap assessment, intent generation, spec modification |
 | **Evaluator types** | Deterministic Tests | Agent (classification), Threshold rules | Human, Agent (deliberative) |
-| **Protocol elements** | Event emission (§7.4), feature vector update, state view regeneration, circuit breaker (§7.7.3) | Signal source classification (gap / discovery / ecosystem / optimisation / user / TELEM), severity assessment, escalation decision | Generation, convergence assessment, spawn decisions, spec modification |
-| **Failure mode** | Silent — if skipped, observability vanishes | Noise — everything escalates to conscious review, or nothing does | Slow, expensive, may miss gaps |
-| **Can be skipped?** | No — protocol hooks enforce mandatory execution (§7.7) | No — but its thresholds can be tuned per profile (§2.6.2) | Yes (projection profiles can omit human evaluator) |
+| **Protocol elements** | Event emission (§7.4), feature vector update, state view regeneration, circuit breaker (§7.7.3) | Signal source classification, severity assessment, escalation decision | Generation, convergence assessment, spawn decisions, spec modification |
+| **Failure mode** | Silent — if skipped, observability vanishes | Noise — everything escalates, or nothing does | Slow, expensive, may miss gaps |
+| **Can be skipped?** | No — protocol hooks enforce mandatory execution (§7.7) | No — but thresholds tunable per profile (§2.6.2) | Yes (projection profiles can omit human evaluator) |
 
-**The biological precedent:** Biological nervous systems are highly optimised versions of this three-phase architecture. Reflexes act on hard-wired inputs because routing through the frontal cortex is frequently too costly and too slow — a threat requires immediate withdrawal, a heartbeat requires no deliberation. After the reflex filter, the limbic system adds **affect**: an emotional assessment of valence and urgency ("should I care about this? how much?"). Only signals that pass this triage reach conscious review for deliberative processing. The optimisation principle: **minimise the load on the most expensive processor** (consciousness) by filtering at cheaper layers first.
-
-**Mapping of methodology elements to processing phases:**
-
-| Element | Phase | Why |
-|---------|-------|-----|
-| Deterministic tests | Reflex | Fire unconditionally — pass/fail, no judgment |
-| Event emission (§7.4) | Reflex | Every iteration appends to events.jsonl — no decision involved |
-| Feature vector update | Reflex | State projection updated after every iteration |
-| Project state view regeneration | Reflex | Derived view recomputed — mechanical, not deliberative |
-| Protocol enforcement hooks (§7.7) | Reflex | Deterministic check of iterate side effects — fire-and-verify |
-| Circuit breaker (§7.7.3) | Reflex | Automatic regression prevention — triggers on count, not judgment |
-| Gap detection (source_findings, process_gaps) | Reflex → Affect | Data collection is reflex (automatic); **classification and severity assessment** is affect |
-| Signal source classification | Affect | Categorises delta as gap / discovery / ecosystem / optimisation / user / TELEM — requires pattern recognition, not deliberation |
-| Severity / priority weighting | Affect | Assigns urgency: "test regression on main" vs "minor style lint" vs "ecosystem deprecation in 18 months" — emotional valence in biological terms |
-| Escalation decision | Affect | Determines whether signal warrants conscious review or can be handled at lower cost (auto-fix, defer, log-and-continue) |
-| Threshold tuning (per profile) | Affect | Profiles (§2.6.2) adjust affect sensitivity: hotfix profile escalates everything; spike profile suppresses most signals |
-| Human evaluator | Conscious | Requires judgment — approval, rejection, refinement |
-| Agent evaluator (deliberative) | Conscious | Requires judgment — gap analysis, coherence assessment, design choice |
-| Intent generation | Conscious | Full deliberative review — new intent with causal chain, spec modification, vector spawning |
-| Spec modification | Conscious | The self-model update — changes the system's own encoding based on deliberative assessment |
-
-**Key insight: Each phase enables the next.** Reflexes produce the sensory substrate — without automatic event emission at every iteration, the spec review cycle (§7.3) has nothing to observe. Affect triages what the reflexes sense — without signal classification and urgency weighting, conscious processing drowns in noise or starves for input. Consciousness directs from what affect escalates — without deliberative judgment, the system can sense and assess but cannot redirect itself.
-
-A methodology with only reflex processing is mechanical — it can sense but cannot assess or direct. A methodology with reflex and consciousness but no affect is **either overwhelmed** (every signal escalates to expensive deliberation) **or blind** (no signal escalates because there is no triage). The affect phase is the necessary filter that makes consciousness viable at scale. The living system (§7.6) requires all three.
+**Key insight: Each phase enables the next.** Reflexes produce signals — without automatic event emission, the spec review cycle (§7.3) has nothing to observe. Affect triages those signals — without classification and urgency weighting, conscious processing drowns in noise or starves for input. Consciousness directs from what affect escalates — without deliberative judgment, the system can sense and assess but cannot redirect itself.
 
 **The IntentEngine (§4.6) formalises the mechanism inside each phase**: the three processing phases describe *when* signals are processed; the IntentEngine describes *what happens* — observation, ambiguity classification, and typed output routing. The three output types (`reflex.log`, `specEventLog`, `escalate`) correspond directly to the three phases.
 
@@ -573,16 +478,12 @@ The specification is the fitness landscape. Probabilistic compute explores it; d
 
 ### 4.5 Two Sensory Systems: Interoception and Exteroception
 
-The three processing phases (§4.3) define *how* signals are processed (reflex → affect → conscious). But they leave open the question: *where do signals come from?* Currently, signals are produced only when the human drives iterate() — reflexes fire during construction, and fall silent between iterations. This is a system with a nervous system but no sensory organs. A living being's senses operate continuously, even at rest.
+The three processing phases (§4.3) define *how* signals are processed (reflex → affect → conscious). But they leave open the question: *where do signals come from?* Two complementary sensory systems feed the processing phases continuously:
 
-Biological systems maintain two complementary sensory systems that feed the processing phases:
-
-| System | Direction | Biological | SDLC equivalent |
-|--------|-----------|-----------|-----------------|
-| **Interoception** | Inward — the system's own state | Visceral senses: hunger, temperature, pH, proprioception, metabolic rate, fatigue | Project health: test suite staleness, dependency freshness, feature vector stall, event log gaps, coverage drift, STATUS age, build health, code/spec drift |
-| **Exteroception** | Outward — the external environment | Environmental senses: vision, hearing, touch, smell — detecting threats and opportunities | Ecosystem state: dependency updates, CVE alerts, API deprecations, upstream breaking changes, user feedback channels, runtime telemetry, competitor signals |
-
-**The structural claim:** A system with processing phases but no continuous sensory input is a brain without eyes or gut. It can think when stimulated but cannot notice. Interoception and exteroception are the continuous signal generators that feed the affect phase with raw observations. Without them, the affect phase only fires during explicit iterate() calls — the system sleeps between human-driven actions.
+| System | Direction | SDLC equivalent |
+|--------|-----------|-----------------|
+| **Interoception** | Inward — the system's own state | Project health: test suite staleness, dependency freshness, feature vector stall, event log gaps, coverage drift, build health, code/spec drift |
+| **Exteroception** | Outward — the external environment | Ecosystem state: dependency updates, CVE alerts, API deprecations, upstream breaking changes, user feedback channels, runtime telemetry |
 
 #### 4.5.1 Interoception (Self-Sensing)
 
@@ -591,14 +492,8 @@ Interoceptive monitors observe the system's own health state continuously, indep
 | Monitor | What it observes | Signal type | Affect threshold example |
 |---------|-----------------|-------------|------------------------|
 | **Event freshness** | Time since last event in events.jsonl | staleness | > 7 days → escalate |
-| **Feature vector stall** | In-progress vectors with no iteration for > N days | stall | > 14 days → escalate |
 | **Test health** | Coverage drift, flaky test rate, suite execution time | degradation | Coverage < threshold → escalate |
-| **Dependency audit** | Known vulnerabilities in lockfile dependencies | vulnerability | Any CVE severity ≥ high → escalate |
-| **Build health** | CI/CD pass rate, build duration trends | degradation | Failure rate > 20% → escalate |
 | **Spec/code drift** | Code diverged from spec assertions (REQ tags missing, stale) | drift | Any untagged code in traced module → escalate |
-| **State view freshness** | Project state view age vs last event timestamp | staleness | Stale > 1 day → auto-regenerate (reflex) |
-
-Interoceptive signals are the system's *proprioception* — its sense of where its own body parts are. A project that cannot sense its own test coverage drift or dependency staleness is numb to internal decay.
 
 #### 4.5.2 Exteroception (Environment-Sensing)
 
@@ -606,14 +501,9 @@ Exteroceptive monitors observe the external environment continuously:
 
 | Monitor | What it observes | Signal type | Affect threshold example |
 |---------|-----------------|-------------|------------------------|
-| **Dependency ecosystem** | New major versions, deprecation notices, EOL announcements | ecosystem_change | Major version → escalate |
 | **CVE feeds** | Published vulnerabilities affecting project dependencies | security | Severity ≥ medium → escalate |
 | **Runtime telemetry** | Error rates, latency, SLA violations tagged with REQ keys | runtime_deviation | Error rate > baseline + 2σ → escalate |
-| **User feedback** | Support tickets, feature requests, bug reports | user_signal | Cluster of 3+ similar reports → escalate |
 | **API contract changes** | Upstream API breaking changes, deprecation headers | contract_break | Any breaking change → escalate |
-| **Regulatory/compliance** | New regulations affecting project domain | compliance | Any applicable regulation → escalate |
-
-Exteroceptive signals are the system's *vision and hearing* — its awareness of the world it operates in. A project that cannot sense an upstream API deprecation or a CVE in its dependencies is blind to external threats.
 
 #### 4.5.3 Sensory Systems and the Processing Pipeline
 
@@ -646,71 +536,17 @@ INTEROCEPTION                    EXTEROCEPTION
                      └─────────────────────┘
 ```
 
-The critical property: interoception and exteroception run **independently of iterate()**. They are background processes (biological analogy: the autonomic nervous system runs whether you are thinking or not). They produce signals that accumulate, and the affect phase processes them either on a schedule or when the human next engages. This means the system can detect "your dependencies have a critical CVE" or "feature vector FV-AUTH-001 has been stalled for 3 weeks" even when no one is actively developing.
+Both sensory systems run independently of iterate() and feed signals into the processing pipeline continuously.
 
-**Implementation note:** The sensory systems are themselves parameterisable via projection profiles (§2.6.2). A hotfix profile may disable exteroception entirely (irrelevant during emergency fix). A spike profile may run only interoception (checking test health but not scanning for ecosystem changes). A full profile runs both continuously.
+#### 4.5.4 Review Boundary Invariant
 
-#### 4.5.4 Sensory Service Architecture
+The sensory service can autonomously observe, classify, and draft proposals. But it cannot change the spec, modify code, or emit `intent_raised` events. Only the interactive session (with human in the loop) can cross the review boundary. This preserves REQ-EVAL-003 (Human Accountability) while enabling continuous autonomous sensing.
 
-The sensory systems (interoception + exteroception + affect triage) are not bolt-on services external to the methodology. **Sensing is a core capability of the methodology system itself** — part of Genesis. The sensory-gradient loop is as fundamental as iterate(); the system that cannot sense is not alive (§7.6).
-
-**Service model:** The sensory loop runs as a **long-running service** that:
-
-1. **Watches the workspace** — file system events, event log growth, feature vector changes
-2. **Runs monitors on schedule** — interoceptive and exteroceptive monitors execute on configurable intervals (or on workspace open)
-3. **Performs affect triage** — rule-based classification (severity thresholds, signal source matching) with agent-classified escalation for ambiguous signals (tiered: rules first, agent only when rules are insufficient)
-4. **Generates homeostatic responses** — for signals that warrant action, invokes a probabilistic agent to produce **draft proposals only** (proposed intent events, proposed diffs, proposed spec modifications). The service does NOT modify files autonomously.
-5. **Exposes proposals at the review boundary** — the service interface surfaces draft proposals to the interactive session. The human approves, modifies, or dismisses through the interactive loop.
-
-**Two distinct event categories:**
-
-| Category | Autonomy | Examples | Approval required |
-|----------|----------|---------|-------------------|
-| **Sensor/evaluate events** | Autonomous — the service observes and classifies without human involvement | `interoceptive_signal`, `exteroceptive_signal`, `affect_triage` | No — these are observations, not changes |
-| **Change-approval events** | Conscious — requires human decision at the review boundary | `draft_proposal` → human review → `intent_raised`, `spec_modified` | Yes — proposals become changes only with human approval |
-
-**The monitor rides the telemetry:** The methodology system (Genesis) produces events as it operates — event emission at every iterate() boundary, feature vector updates, state view regeneration. An external observer (e.g., `genesis_monitor`) **consumes this telemetry** — it reads the event stream that Genesis produces. The monitor is an observer of telemetry, not the sensor itself. The sensory service is the sensor; the monitor is a consumer of what the sensor and the methodology jointly produce. Future alignment with common telemetry interpretation libraries (OpenTelemetry, etc.) is anticipated — the event log format (§7.4) is designed to be portable.
-
-**Review boundary as architectural invariant:** The separation between autonomous sensing and human-approved changes is not a policy choice — it is a structural invariant. The sensory service can observe anything, classify anything, and draft anything. But it cannot change the spec, cannot modify code, cannot emit `intent_raised` events. Only the interactive session (with human in the loop) can cross the review boundary. This preserves REQ-EVAL-003 (Human Accountability) while enabling continuous autonomous sensing.
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                   SENSORY SERVICE (long-running)                   │
-│                                                                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌─────────────────────┐   │
-│  │ Interoceptive│  │ Exteroceptive│  │ Affect Triage       │   │
-│  │ Monitors     │  │ Monitors     │  │ (rule + agent-class)│   │
-│  │ INTRO-001..7 │  │ EXTRO-001..4 │  │                     │   │
-│  └──────┬───────┘  └──────┬───────┘  └─────────┬───────────┘   │
-│         │                  │                     │               │
-│         └──────── signals ─┴─────────────────────┘               │
-│                            │                                      │
-│                     ┌──────┴──────┐                               │
-│                     │ Probabilistic│                               │
-│                     │ Agent       │  draft proposals only         │
-│                     └──────┬──────┘                               │
-│                            │                                      │
-│  ═══════════════ REVIEW BOUNDARY (tool interface) ══════════════ │
-│                            │                                      │
-└────────────────────────────┼──────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              INTERACTIVE SESSION (Human in loop)                  │
-│                                                                   │
-│  Human reviews proposals → approve / modify / dismiss            │
-│  Approved proposals → intent_raised / spec_modified events       │
-│  Changes applied to workspace                                    │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Traces To**: §4.5.1 (Interoception), §4.5.2 (Exteroception), §4.5.3 (Processing Pipeline), §4.3 (Three Processing Phases), §7.3 (Spec Review — stage 4) | Ontology #49 (teleodynamic — self-maintaining), #35 (evaluator-as-prompter)
+**Traces To**: §4.3 (Three Processing Phases), §7.3 (Spec Review — stage 4) | Ontology #49 (teleodynamic — self-maintaining), #35 (evaluator-as-prompter)
 
 ### 4.6 The IntentEngine: Fractal Processing on Every Edge
 
-The preceding sections define the primitives (§1), the iteration function (§3), the evaluator types (§4.1), the processing phases (§4.3), the sensory systems (§4.5), and the gradient (§7.1). This section formalises what unifies them: they are all the same building block — an **IntentEngine** — composed of an `observer → evaluator` pair that sits on every edge, at every scale, and chains fractally.
-
-The IntentEngine is **not a fifth primitive**. It is a **composition law** over the existing four. Just as multiplication is a composition law over addition (not a new axiom), the IntentEngine describes how Graph, Iterate, Evaluators, and Spec+Context compose into a universal processing unit. The four primitives remain exactly as stated in §1.
+The IntentEngine is **not a fifth primitive** — it is a **composition law** over the existing four (Graph, Iterate, Evaluators, Spec+Context). It describes the universal `observer → evaluator` building block that sits on every edge, at every scale, and chains fractally.
 
 #### 4.6.1 The IntentEngine
 
@@ -726,11 +562,7 @@ IntentEngine(intent + affect) = observer → evaluator → typed_output
 | **evaluator** | Classifies the observation's **ambiguity level** — how much uncertainty remains | Edge evaluators checking convergence delta, affect triage classifying severity, spec review computing drift |
 | **typed_output** | Always a typed intent — one of three exhaustive categories (§4.6.3) | Convergence event, deferred iteration, escalation to human review |
 
-The observer and evaluator are the two halves of what already exists at every edge. The IntentEngine names the pattern and formalises its output taxonomy.
-
 #### 4.6.2 Ambiguity Classification
-
-The evaluator's function is **ambiguity measurement**. The ambiguity of the observation determines the processing path:
 
 | Ambiguity | Processing Phase | Action | Example |
 |-----------|-----------------|--------|---------|
@@ -738,19 +570,7 @@ The evaluator's function is **ambiguity measurement**. The ambiguity of the obse
 | **Nonzero, bounded** | Affect → Probabilistic disambiguation | LLM/agent constructs next candidate, triage classifies severity | Code doesn't meet design intent, gap found, drift within tolerance |
 | **Persistent / unbounded** | Escalate to higher consciousness | Human review, spec modification, vector spawning | Ambiguous requirement, conflicting constraints, stuck iteration |
 
-**Key insight**: A reflex isn't "simple" — it is **unambiguous**. "Duck down! Run!" is a reflex because ambiguity = 0, not because the action is trivial. A complex build system is a reflex: it resolves deterministically regardless of complexity. Conversely, a one-line code change may require conscious deliberation if the intent is ambiguous.
-
-This maps directly to the three evaluator types (§4.1):
-
-| Evaluator type | Ambiguity regime | Why |
-|----------------|-----------------|-----|
-| **Deterministic Tests** | Zero | Pass/fail — no ambiguity in the observation |
-| **Agent(intent, context)** | Nonzero, bounded | Probabilistic — the LLM disambiguates within constraint bounds |
-| **Human** | Persistent / unbounded | Judgment required — ambiguity exceeds what the constraint surface can resolve |
-
 #### 4.6.3 Three Output Types
-
-Every IntentEngine produces exactly one of three typed outputs:
 
 | Output Type | What it means | When | Maps to |
 |-------------|--------------|------|---------|
@@ -758,177 +578,17 @@ Every IntentEngine produces exactly one of three typed outputs:
 | **specEventLog** | Deferred/async intent for later processing — the observation requires further work but is bounded | Ambiguity nonzero but bounded — context assembly needed, another iteration warranted | `iteration_completed` (with non-zero delta), `affect_triage` (deferred), `draft_proposal` |
 | **escalate** | Push to higher consciousness level — the observation exceeds this unit's processing capacity | Ambiguity persistent — judgment, spec modification, or spawning required | `intent_raised`, `convergence_escalated`, `spec_modified`, `spawn_created` |
 
-These three types are **exhaustive**: every possible outcome of observation + evaluation falls into one of them. This is because ambiguity partitions into exactly three regimes (zero, bounded, unbounded), and each regime has exactly one processing response.
-
-The output types map to existing event types in `events.jsonl` (§7.4). No new event types are required — the IntentEngine formalises the classification that already governs event emission.
-
 #### 4.6.4 Observer/Evaluator on Every Edge
 
-Each graph edge traversal is an IntentEngine invocation. The vector carries intent+affect. The edge's evaluators are the ambiguity classifiers. Convergence means zero ambiguity on all evaluators:
-
-```
-Vector arrives at edge →
-  IntentEngine(
-    intent: "traverse edge E with asset A",
-    affect: urgency from profile + prior signals
-  ) =
-    observer: load context, run constructor → produce candidate
-    evaluator: classify convergence delta (ambiguity?)
-    output:
-      reflex.log    → edge converged — promote candidate to Markov object
-      specEventLog  → iterate again (bounded ambiguity in candidate)
-      escalate      → spawn child vector, request human review, or modify spec
-```
-
-The existing iteration loop (§3.1) is the IntentEngine applied repeatedly until the output is `reflex.log` (zero ambiguity — all evaluators pass):
-
-```
-while true:
-    output = IntentEngine(intent, affect, edge_evaluators)
-    match output:
-        reflex.log    → promote(candidate); break     // converged
-        specEventLog  → continue                       // iterate again
-        escalate      → spawn_or_escalate(); break     // beyond this scope
-```
-
-This is not a new loop — it is the same `while not stable(candidate): iterate(...)` from §3.1, with the IntentEngine naming what happens inside each cycle.
+Every edge has an observer/evaluator pair. At production scale, observers are continuous (sensory systems §4.5). The pattern is fractal — it appears at single-iteration, edge, feature, and product scales.
 
 #### 4.6.5 Chaining and Affect Propagation
 
-IntentEngine units compose: one unit's output becomes the next unit's input. The chain **is** the supervision hierarchy:
-
-```
-IntentEngine₁(intent₁ + affect₁) → output₁
-    ↓ (output₁ becomes intent₂, affect carries forward)
-IntentEngine₂(intent₂ + affect₂) → output₂
-    ↓
-IntentEngine₃(intent₃ + affect₃) → output₃
-```
-
-The affect (urgency, valence) propagates and transforms at each level. A sensory signal at the reflex level may be low-urgency; if affect triage classifies it as high-severity, the urgency increases as it propagates upward:
-
-```
-Sensory monitor (IntentEngine at reflex scale):
-    observer: poll dependency CVE feed
-    evaluator: severity classification
-    output: specEventLog (CVE found, severity = high)
-        ↓ affect: urgency elevated
-Affect triage (IntentEngine at triage scale):
-    observer: load CVE details + project dependency graph
-    evaluator: impact assessment (does this affect us?)
-    output: escalate (critical dependency affected)
-        ↓ affect: urgency = critical
-Conscious review (IntentEngine at conscious scale):
-    observer: load full context — affected code, test coverage, deployment state
-    evaluator: human judgment — "yes, this needs a hotfix"
-    output: reflex.log (decision made → spawn hotfix vector)
-```
-
-Note the last step: at the **conscious level**, the human's decision is unambiguous (ambiguity = 0), so the output is `reflex.log`. The decision itself required deliberation, but the **output** is a deterministic action. This illustrates consciousness-as-relative (§4.6.6): what is an escalation at one level becomes a reflex at the next.
+IntentEngines chain: one unit's typed output becomes the next unit's input, with affect (urgency, valence) propagating and transforming at each level. The escalation chain (reflex → affect → conscious) is IntentEngine chaining — a Level N `escalate` output becomes Level N+1's reflex input.
 
 #### 4.6.6 Consciousness as Relative
 
-The IntentEngine operates at every scale (the gradient table from §7.1, reinterpreted):
-
-| Scale | Observer | Evaluator (ambiguity?) | Output types |
-|-------|----------|----------------------|--------------|
-| **Single iteration** | Run constructor, produce candidate | Compare candidate to edge evaluators | reflex.log (pass), specEventLog (iterate), escalate (stuck) |
-| **Edge convergence** | Observe iteration history | All evaluators pass? | reflex.log (converged), specEventLog (more iterations), escalate (spawn) |
-| **Feature traversal** | Observe edge convergence across graph | All edges for this vector converged? | reflex.log (feature done), specEventLog (next edge), escalate (blocked) |
-| **Sensory monitor** | Poll/watch (intero/extero) | Threshold classification | reflex.log (within bounds), specEventLog (drift detected), escalate (breach) |
-| **Production homeostasis** | Runtime telemetry | SLA/health assessment | reflex.log (healthy), specEventLog (degrading), escalate (incident → hotfix spawn) |
-| **Spec review** | Review constraint surface | Constraint adequacy | reflex.log (spec stable), specEventLog (evolution needed), escalate (paradigm shift) |
-
-The critical structural property: **Level N's `escalate` output becomes Level N+1's reflex input.** When an edge iteration escalates (stuck after max iterations), the feature traversal level handles it as a straightforward routing decision — spawn or reassign. When production homeostasis escalates (SLA breach), the spec review level handles it as an input signal to evaluate.
-
-Conversely, **Level N's `reflex.log` is invisible to Level N+1** — it is handled. A passing test, a successful build, a healthy telemetry check: these are absorbed at their own level and never propagate upward. The affect phase (§4.3) is the mechanism that implements this filtering — it decides what escalates and what stays local.
-
-This is WHY the gradient (§7.1) operates at every scale with the same `delta(state, constraints) → work`: each scale is an IntentEngine, each evaluates ambiguity, and each routes to the appropriate processing level. The gradient is the IntentEngine applied fractally.
-
-#### 4.6.7 Ontology Connection
-
-The IntentEngine maps to three ontology concepts:
-
-| Ontology concept | How IntentEngine instantiates it |
-|-----------------|--------------------------------|
-| **#49 Teleodynamic self-maintenance** | Fractal self-repair: each IntentEngine detects deviation (observer) and corrects (evaluator → output). At every scale, the system senses and responds. The chain of IntentEngines is the mechanism by which the system maintains itself. |
-| **#23 Scale-dependent observation** | Consciousness-as-relative: the same observation at different scales produces different processing. A test failure is a reflex at the code level but may escalate to conscious review at the feature level. The IntentEngine is the unit of scale-dependent observation. |
-| **#9 Constraint manifold** | Ambiguity as constraint density measure: zero ambiguity means the constraint surface fully determines the response (reflex). Nonzero ambiguity means the constraint surface is insufficient — more constraints needed (context assembly, LLM inference, human judgment). Persistent ambiguity means the constraint manifold itself needs modification (spec update). |
-
-#### 4.6.8 Graph Discovery: The IntentEngine as Topology Generator
-
-A predefined graph sets up mandatory waypoints — audit points, test gates, design reviews. But the graph need not be predefined. The IntentEngine provides the feedback signal for when the graph itself needs to grow.
-
-**Starting from intent alone:** Begin with a single edge: `Intent → Code`. The IntentEngine fires. If the evaluator reports zero ambiguity — the intent is unambiguous, the code is correct, tests pass — the single edge suffices. No intermediate nodes needed. But if the evaluator reports **persistent ambiguity** (escalate) — "I keep producing code that doesn't meet the intent because the design space is too wide" — that escalation is the signal that the edge is too coarse. The graph needs a new intermediate node.
-
-```
-Attempt 1:  Intent ═══════════════════════► Code
-            IntentEngine fires: escalate (persistent ambiguity — design space too wide)
-
-Attempt 2:  Intent → Design → Code
-            IntentEngine fires on each edge: bounded ambiguity → iterate → converge
-```
-
-The graph grows **because the IntentEngine told it to**. Persistent `escalate` at a coarse edge means that edge should be zoomed in (§2.5). The new intermediate node becomes a mandatory waypoint — not because a process mandated it, but because the system discovered it couldn't converge without it.
-
-**Invariants as evaluators, not topology:** In a discovered graph, mandatory concerns (observability, testing, security) are expressed as **evaluator criteria on whatever edges exist**, not as mandatory graph nodes:
-
-| Concern | As topology (predefined) | As evaluator (discovered) |
-|---------|------------------------|--------------------------|
-| Testing | Mandatory `Code → Tests` node | Every IntentEngine invocation must include a deterministic test evaluator |
-| Observability | Mandatory `Telemetry` node | Every `reflex.log` output emits to `events.jsonl` — observation is on every edge |
-| Security | Mandatory `Security Review` node | Security evaluator active on `Design → Code` edge (or wherever code is produced) |
-| Audit | Mandatory intermediate assets | Every IntentEngine produces a typed output — the event log IS the audit trail |
-
-This is the abiogenesis pattern (§2.4) operating in real time: the practitioner starts working (intent → code), the IntentEngine's escalation signals reveal where the graph is under-specified, and new nodes crystallise from that experience. The predefined SDLC graph (§2.1) is one such crystallisation — it encodes the invariant waypoints that decades of practice have shown are almost always needed. But for a new domain, or a novel problem, the graph can emerge from IntentEngine feedback rather than being prescribed.
-
-**The composition law guarantees observability regardless:** Whether the graph has 2 nodes or 20, every edge traversal is an IntentEngine invocation that produces a classified observation and a typed output. The event log captures every invocation. This means: no unobserved computation, even in a graph that is still being discovered. The four primitives hold; the graph is found, not assumed.
-
-### 4.6.9 Constraint Tolerances: The Mechanism That Produces Delta
-
-The gradient (§7.1) is `delta(state, constraints) → work`. But delta is undefined unless constraints have **measurable thresholds** — tolerances. A constraint without a tolerance is a wish; a constraint with a tolerance is a sensor.
-
-Every constraint surface — spec, design, edge evaluators, operational SLAs — implies tolerances:
-
-```
-Constraint: "the system must be fast"        → unmeasurable, delta undefined
-Constraint: "P99 latency < 200ms"            → measurable, delta = |observed - 200ms|
-Constraint: "all tests pass"                 → measurable, delta = failing_count
-Constraint: "design uses protocol X"         → measurable, delta = drift from X's properties
-```
-
-**Tolerances are what make the sensory system (§4.5) operational.** Without them, interoceptive and exteroceptive monitors have nothing to measure against. With them, every monitor becomes an IntentEngine invocation:
-
-```
-monitor observes metric →
-  evaluator compares metric to tolerance →
-    within bounds:  reflex.log (system healthy at this point)
-    drifting:       specEventLog (optimisation intent deferred)
-    breached:       escalate (corrective intent raised)
-```
-
-**Tolerances exist at every scale of the gradient:**
-
-| Scale | Constraint | Tolerance | Breach signal |
-|-------|-----------|-----------|---------------|
-| Single iteration | Edge evaluator | Pass/fail threshold, max iterations | Non-converging iteration count |
-| Edge convergence | All evaluators | Convergence within N iterations | Stuck threshold exceeded |
-| Feature traversal | Graph topology | Feature completes within profile bounds | Stalled feature vector |
-| Production | SLAs, health checks | Latency, error rate, uptime | Operational degradation |
-| Spec review | Spec adequacy | Constraint coverage, consistency | Gaps between spec and reality |
-| Design bindings | Technology choices | Performance, cost, fitness tolerances | Ecosystem drift |
-
-The last row is critical: **design-level technology bindings are constraints with tolerances**. When an implementation chooses a protocol, a runtime, or a service model, that choice implies performance, cost, and fitness bounds. When those bounds are breached — because the project scaled, the ecosystem shifted, or better options emerged — the breach is a delta that produces optimization intent. The design evaluates its own fitness.
-
-**Bidirectional pressure on graph topology:** Tolerances create a feedback signal that balances graph discovery (§4.6.8):
-
-- **Escalation pressure**: persistent ambiguity → the graph needs more edges (§4.6.8)
-- **Tolerance pressure**: complexity breaches → the graph needs fewer or simpler edges
-- **Equilibrium**: the optimal graph topology for the current constraints
-
-This is the homeostatic principle applied to the graph itself: the graph is not prescribed, not discovered once, but continuously maintained at equilibrium between expressive power and operational cost.
-
-**Without tolerances, there is no homeostasis.** The gradient requires measurable delta. The IntentEngine requires classifiable observations. The sensory system requires thresholds to monitor. Tolerances are not optional metadata on constraints — they are the mechanism by which constraints become operational. A methodology without tolerances is a methodology without intent generation — it can execute prescribed work but cannot sense drift, propose corrections, or evolve.
+"Consciousness" is relative to the Markov boundary. What is conscious deliberation at one scale (human reviews a stuck iteration) is reflex at a larger scale (feature traversal routes the escalation as a straightforward decision). The same observation can be classified differently depending on the evaluator's scope. Level N's `reflex.log` is invisible to Level N+1 — handled and absorbed. Level N's `escalate` becomes Level N+1's routine input.
 
 ---
 
@@ -984,7 +644,43 @@ flowchart LR
 
 This is the ontology's constraint density (#16) in action. Sparse constraints → probability degeneracy (#54) → hallucination/failure. Dense constraints → stable Markov objects (#7). **Context is what prevents hallucination in the construction process.**
 
-### 5.3 Context Stability
+### 5.3 Constraint Tolerances: The Mechanism That Produces Delta
+
+The gradient (§7.1) is `delta(state, constraints) → work`. But delta is undefined unless constraints have **measurable thresholds** — tolerances. A constraint without a tolerance is a wish; a constraint with a tolerance is a sensor.
+
+```
+Constraint: "the system must be fast"        → unmeasurable, delta undefined
+Constraint: "P99 latency < 200ms"            → measurable, delta = |observed - 200ms|
+Constraint: "all tests pass"                 → measurable, delta = failing_count
+Constraint: "design uses protocol X"         → measurable, delta = drift from X's properties
+```
+
+**Tolerances are what make the sensory system (§4.5) operational.** Without them, interoceptive and exteroceptive monitors have nothing to measure against. With them, every monitor becomes an IntentEngine invocation:
+
+```
+monitor observes metric →
+  evaluator compares metric to tolerance →
+    within bounds:  reflex.log (system healthy at this point)
+    drifting:       specEventLog (optimisation intent deferred)
+    breached:       escalate (corrective intent raised)
+```
+
+**Tolerances exist at every scale of the gradient:**
+
+| Scale | Constraint | Tolerance | Breach signal |
+|-------|-----------|-----------|---------------|
+| Single iteration | Edge evaluator | Pass/fail threshold, max iterations | Non-converging iteration count |
+| Edge convergence | All evaluators | Convergence within N iterations | Stuck threshold exceeded |
+| Feature traversal | Graph topology | Feature completes within profile bounds | Stalled feature vector |
+| Production | SLAs, health checks | Latency, error rate, uptime | Operational degradation |
+| Spec review | Spec adequacy | Constraint coverage, consistency | Gaps between spec and reality |
+| Design bindings | Technology choices | Performance, cost, fitness tolerances | Ecosystem drift |
+
+The last row is critical: **design-level technology bindings are constraints with tolerances**. When an implementation chooses a protocol, a runtime, or a service model, that choice implies performance, cost, and fitness bounds. When those bounds are breached — because the project scaled, the ecosystem shifted, or better options emerged — the breach is a delta that produces optimization intent.
+
+**Without tolerances, there is no homeostasis.** The gradient requires measurable delta. The IntentEngine requires classifiable observations. The sensory system requires thresholds to monitor. Tolerances are not optional metadata on constraints — they are the mechanism by which constraints become operational.
+
+### 5.4 Context Stability
 
 Context is largely **shared across the graph**. ADRs, Data Models, Policy — these don't change per edge. They are the standing constraint surface. What changes per edge is which subset is relevant and how the constructor weights them.
 
@@ -1274,39 +970,16 @@ The full lifecycle includes deployment, runtime, and feedback assets in the grap
 
 ### 7.3 Spec Review as Stateless Gradient Check
 
-The gradient at the largest development scale is: `delta(workspace_state, spec) → intents`. This is the same `delta(state, constraints) → work` applied at the workspace-spec scale. The spec is the constraint surface; the workspace is the state; non-zero deltas produce intents.
+The gradient at the largest scale: `delta(workspace_state, spec) → intents`. A **stateless function** spanning all three processing phases (§4.3):
 
-This operation — previously called the "consciousness loop" — is a **stateless function**: given the same workspace state and the same spec, it produces the same intents. It spans all three processing phases (§4.3):
+1. **|spec> defines bounds** — the constraint surface
+2. **Construction** — feature vectors traverse the graph via iterate() (reflex)
+3. **Observation** — |running> + |telemetry> + sensory feeds (§4.5)
+4. **Gradient** — `delta(|workspace>, |spec>)` computed from all signal sources
+5. **Triage** (affect) — classify source, assess severity, decide escalation. Profile settings (§2.6.2) tune thresholds.
+6. **Intent** (conscious) — `intent_raised` event, spawns vectors. Spec modification is itself an event (§7.4), enabling the system to observe its own spec changes.
 
-```
-1. |spec⟩ defines bounds (the constraint surface)
-         │
-         ▼
-2. Construction: feature vectors traverse the graph via iterate()           ─┐
-         │                                                                   │ REFLEX
-         ▼                                                                   │ (autonomic)
-3. |running⟩ + |telemetry⟩ — the system operates and is observed           ─┘
-         │
-         ▼
-4. delta(|workspace⟩, |spec⟩) — gradient computed                          ─┐
-   + sensory service feeds continuously (§4.5.4):                           │
-     interoceptive signals (self-health) +                                  │ AFFECT
-     exteroceptive signals (environment) +                                  │ (limbic)
-     iterate()-produced deltas                                              │
-         │                                                                   │
-         ▼                                                                   │
-4b. Signal triage — classify source, assess severity, decide escalation     ─┘
-         │
-         ├──→ [delta below threshold] log, defer, or auto-handle (no escalation)
-         │
-         ▼ [delta above threshold]
-5. intent_raised event — deliberative review, event-logged, spawns vectors  ─┐
-         │                                                                   │ CONSCIOUS
-         ▼                                                                   │ (deliberative)
-6. spec_change_event — the constraint surface updates, update is recorded   ─┘
-         │
-         └──→ back to 1 (the updated spec defines new bounds)
-```
+Back to step 1 with the updated spec.
 
 ```mermaid
 flowchart TD
@@ -1334,50 +1007,23 @@ flowchart TD
     style DEFER fill:#e0e0e0,stroke:#757575
 ```
 
-**Stage 4b (affect) is the critical filter.** It determines which deltas reach conscious processing. A test regression on the main branch has high severity — escalate immediately. A minor lint warning has low severity — log and defer. An ecosystem deprecation with an 18-month timeline has medium severity — escalate but at low priority. The affect phase prevents consciousness from being overwhelmed by signal volume. Profile settings (§2.6.2) tune the affect thresholds: a hotfix profile escalates aggressively (low threshold); a spike profile suppresses most signals (high threshold).
-
-The critical structural property: the spec modification at stage 6 is itself an **event** (§7.4). It is appended to the event log, making it available for projection, audit, and — crucially — further observation. The system can observe its own spec modifications, evaluate whether they improved outcomes, and modify its modification strategy.
-
 #### 7.3.1 Intent Events as First-Class Objects (`intent_raised`)
 
-For the spec review to close with full traceability, the `intent_raised` event must capture not just "what to build" but the complete causal chain:
+The `intent_raised` event captures the complete causal chain:
 
-| Field | What it records | Why it matters |
-|---|---|---|
-| `trigger` | Which signal(s) caused this intent | Traceability — why did we notice? |
-| `delta` | Spec vs observation deviation | The observation — what did we see? |
-| `signal_source` | gap / discovery / ecosystem / optimisation / user / TELEM | Classification — what kind of signal? (affect phase, §4.3) |
-| `vector_type` | discovery / PoC / feature / hotfix / spike | The response — how do we respond? |
-| `spec_impact` | Which REQ keys / spec sections affected | The constraint surface update — what changes? |
-| `spawned_vectors` | Feature IDs spawned from this intent | The action — what vectors enter the graph? |
-| `prior_intents` | Chain of intent events that led here | Reflexivity — have we seen this before? |
-
-The `prior_intents` field closes the reflexive loop. If intent A modifies the spec, the modified spec triggers intent B, and intent B traces back to A — the system detects that its own modification caused a new deviation. This is the structural property that distinguishes spec review from a simple feedback loop: **awareness of the consequences of one's own constraint surface changes**.
+| Field | What it records |
+|---|---|
+| `trigger` | Which signal(s) caused this intent |
+| `delta` | Spec vs observation deviation |
+| `signal_source` | gap / discovery / ecosystem / optimisation / user / TELEM |
+| `vector_type` | discovery / PoC / feature / hotfix / spike |
+| `spec_impact` | Which REQ keys / spec sections affected |
+| `spawned_vectors` | Feature IDs spawned from this intent |
+| `prior_intents` | Chain of prior intent events (closes the reflexive loop) |
 
 #### 7.3.2 Spec Change Events
 
-When the spec absorbs a signal and updates, it emits a `spec_modified` event:
-
-```json
-{
-  "event": "spec_modified",
-  "trigger_intent": "INT-2026-042",
-  "signal_source": "ecosystem",
-  "what_changed": ["REQ-NF-COMPAT-001 updated: Scala 2.13 → 3.x"],
-  "why": "Scala 2.13 end-of-life detected via ecosystem monitoring",
-  "affected_req_keys": ["REQ-NF-COMPAT-001", "REQ-NF-BUILD-003"],
-  "spawned_vectors": ["FV-MIGRATION-001"],
-  "prior_intents": ["INT-2026-038"],
-  "timestamp": "2026-03-15T10:00:00Z"
-}
-```
-
-These events enable:
-
-- **Spec archaeology**: Why does REQ-NF-COMPAT-001 say Scala 3.x? Because `spec_modified` event at timestamp T traced it to ecosystem signal
-- **Feedback loop detection**: Intent A → spec change → intent B → spec change → ... if intent B traces back to A, the loop is visible
-- **Impact analysis**: When a spec change spawns vectors, and those vectors produce telemetry, and that telemetry triggers new intents — the full causal chain is in the event log
-- **Rate of evolution**: How often does the spec change? Which sections are volatile? Which are stable? All derivable from `spec_modified` events
+Spec updates emit `spec_modified` events with `trigger_intent`, `signal_source`, `what_changed`, `affected_req_keys`, `spawned_vectors`, `prior_intents`, and `timestamp`. These events enable feedback loop detection (intent A -> spec change -> intent B tracing back to A), impact analysis, and rate-of-evolution metrics.
 
 ### 7.4 Event Sourcing: Immutable Facts and Derived Projections
 
@@ -1488,108 +1134,22 @@ Both levels use the same three evaluator types (§4.1). Both produce events (§7
 
 ### 7.6 The Living System
 
-When the spec updates via the gradient check (§7.3), the Hilbert space (§11.1) undergoes a **basis change**:
+A system is **"living"** when the gradient operates at all scales simultaneously: spec updates shift the Hilbert space basis (§11.1), spawning new feature vectors, shifting existing ones, and redefining the potential energy landscape. The total intentional state — the superposition of all in-flight vectors — is the system's response to everything it knows.
 
-- **New basis vectors appear**: A new requirement (REQ-F-SEARCH-002) adds a dimension to the vector space. New feature vectors can now exist in this dimension.
-- **Existing vectors shift**: An ecosystem migration changes the design constraints. Code that was at ground state (§11.2) under the old spec has high potential energy under the new spec — it "wants" to move.
-- **Hamiltonian shifts**: The potential energy landscape V(constraint_delta) is redefined by the spec update. What was optimal is no longer optimal. New ground states exist.
-- **Vectors are spawned**: Each spec change spawns one or more feature vectors (discovery, PoC, feature, hotfix) that enter the graph and traverse edges via iterate().
+**Six properties** (the emergent behaviour of the gradient at all scales concurrently):
 
-The total intentional state — the superposition of all in-flight feature vectors — is the system's response to **everything it knows**, continuously updated as the spec absorbs new signals. This is the gradient operating at all scales simultaneously — and this simultaneous operation is what makes the system alive.
+1. **Continuous sensing** — interoceptive + exteroceptive monitors (§4.5) run independently of iterate()
+2. **Concurrent vector lifecycles** — many vectors in different phases simultaneously
+3. **Continuous metabolism** — CI/CD runs continuously, not on-demand
+4. **Active perception** — telemetry streams continuously, not sampled
+5. **Reflexive self-modification** — spec review (§7.3) continuously absorbs signals and spawns responses
+6. **Selective pruning** — vectors whose requirements are removed or superseded are cancelled
 
-#### 7.6.1 The Living System in Operation
+The system achieves "living" status when all six properties are active simultaneously — each is the gradient operating at a different scale.
 
-When the full lifecycle is operational — CI/CD running, telemetry streaming, the gradient active at every scale — the system exhibits the structural properties of a living organism. This is not metaphor; it is the same architecture.
+#### 7.6.1 The Markov Boundary as Concurrency Enabler
 
-At any moment, many feature vectors are in-flight simultaneously, each at a different lifecycle stage:
-
-```
-|FV-AUTH-001⟩     = |req:converged⟩ + |design:converged⟩ + |code:iteration_3⟩ + |tests:pending⟩
-|FV-SEARCH-002⟩   = |req:converged⟩ + |design:iteration_1⟩
-|FV-PERF-003⟩     = |req:gestating⟩                          ← just spawned from telemetry signal
-|FV-MIGRATE-004⟩  = |req:converged⟩ + |design:converged⟩ + |code:converged⟩ + |tests:converged⟩ + |cicd:deploying⟩
-|FV-HOTFIX-005⟩   = |code:iteration_1⟩                       ← fast-tracked, skip design
-```
-
-The biological analogy is structural — the gradient at every scale corresponds to biological self-maintenance at every scale:
-
-| Living system | SDLC system | Structural correspondence |
-|---|---|---|
-| **DNA** | Spec (the constraint surface) | Information that directs construction, updated from experience |
-| **Proteins / cells** | Feature vectors at various lifecycle stages | Constructed structures, each in a different phase of their lifecycle |
-| **Metabolism** | CI/CD loop | Continuous transformation: code → build → deploy → run |
-| **Interoception** (§4.5.1) | Event freshness, test health, vector stall, build health, spec/code drift | Gradient sensing: `delta(system_health, expected_health)` — continuous, service-hosted |
-| **Exteroception** (§4.5.2) | Dependency ecosystem, CVE feeds, runtime telemetry, API changes | Gradient sensing: `delta(environment, assumptions)` — continuous, service-hosted |
-| **Autonomic nervous system** (reflex, §4.3) | Event emission + protocol hooks + circuit breaker | The gradient at iteration scale — fires unconditionally |
-| **Limbic system** (affect, §4.3) | Signal classification + severity + escalation | The gradient at triage scale — assigns urgency, filters noise |
-| **Frontal cortex** (conscious, §4.3) | Evaluators (human + agent) + spec review (§7.3) | The gradient at spec scale — deliberative judgment |
-| **Immune system** | Evaluator network (tests, agent checks) | Boundary-condition enforcement — the gradient at the Markov boundary |
-| **Homeostasis** | Telemetry → observer → correction | The gradient at production scale (§7.2) |
-| **Reproduction** | Vector spawning from intent events | New vectors born from non-zero gradient — directed responses |
-| **Apoptosis** | Vector cancellation (requirement removed) | Vectors whose basis dimension collapses are terminated |
-| **Evolution** | Graph package updates from TELEM signals | The encoding itself evolves — the gradient at the methodology scale |
-
-```mermaid
-graph TB
-    subgraph "The Living System (operational state)"
-        SPEC["|spec⟩\nDNA — constraint surface"] --> |"spawn"| V1["FV-AUTH\n|code:iter_3⟩"]
-        SPEC --> |"spawn"| V2["FV-SEARCH\n|design:iter_1⟩"]
-        SPEC --> |"spawn"| V3["FV-PERF\n|req:gestating⟩"]
-        SPEC --> |"spawn"| V4["FV-MIGRATE\n|cicd:deploying⟩"]
-
-        V1 --> |"iterate()"| V1
-        V2 --> |"iterate()"| V2
-        V4 --> CICD["CI/CD\nmetabolism"]
-        CICD --> RUN["|running⟩"]
-        RUN --> TEL["|telemetry⟩\nnervous system"]
-
-        TEL --> EVAL["Evaluators\nimmune system"]
-        EVAL --> |"gradient > 0"| SPEC
-
-        V1 --> |"converge"| CICD
-    end
-
-    style SPEC fill:#e1bee7,stroke:#6a1b9a
-    style V3 fill:#fff9c4,stroke:#f9a825
-    style V4 fill:#c8e6c9,stroke:#2e7d32
-    style RUN fill:#bbdefb,stroke:#1565c0
-    style EVAL fill:#ff9,stroke:#333
-```
-
-#### 7.6.2 Six Properties of the Living System
-
-The "living" quality is the **emergent behaviour** of the gradient operating at all scales concurrently:
-
-1. **Continuous sensing** — interoceptive and exteroceptive monitors (§4.5) run independently of iterate(), computing `delta(observed, expected)` about internal health and external environment. The system notices even when no one is actively developing
-2. **Concurrent vector lifecycles** — many vectors in different phases simultaneously, not a sequential pipeline
-3. **Continuous metabolism** — CI/CD runs continuously, not on-demand. The system is always building, testing, deploying
-4. **Active perception** — telemetry streams continuously, not sampled. The system is always observing itself
-5. **Reflexive self-modification** — spec review (§7.3) operates continuously. The constraint surface is always absorbing signals and spawning responses
-6. **Selective pruning** — vectors that are no longer needed (requirement removed, superseded by discovery) are cancelled. The system doesn't just grow; it prunes
-
-No single component creates the living quality. It is the simultaneous operation of all six — sensing, concurrency, metabolism, perception, reflection, pruning — that produces the living system. Each is the gradient operating at a different scale; all scales active simultaneously = alive.
-
-#### 7.6.3 The Markov Boundary as Concurrency Enabler
-
-**The Markov boundary is what makes concurrency possible.** When a feature vector's component converges at an edge (§2.3), it achieves Markov object status: a stable boundary (interface, contract, test suite), conditional independence (usable without knowing construction history), and evaluator-confirmed stability. This boundary is what allows other vectors to depend on the converged asset without coupling to its internals or its construction process.
-
-Without Markov boundaries, concurrent vectors would require global coordination — every vector would need to know the state of every other vector. With Markov boundaries, coordination is local: a vector only needs to know the boundary of assets it depends on, not their internal state or construction history. This is the Markov blanket (#8) made operational at the feature level:
-
-```
-FV-AUTH (converged at |code⟩):
-    Boundary: AuthService interface, 47 passing tests, REQ-F-AUTH-001 traced
-    Inside: 3 classes, 400 lines, OAuth2 implementation
-    History: 5 iterations at design, 3 at code, 1 evaluator escalation
-
-FV-SEARCH (in-flight at |design⟩):
-    Depends on: AuthService.boundary   ← only the boundary, not the internals
-    Does NOT need to know: how AuthService was built, how many iterations it took,
-                           what design alternatives were considered
-```
-
-The more vectors in flight, the more critical the Markov boundary becomes. In a living system with dozens of concurrent vectors — gestating, iterating, converging, deploying, being observed — the Markov boundary at each convergence point is what prevents combinatorial explosion of coordination. Each converged asset is a stable island that other vectors can build on. The living system is not a monolith; it is an **ecology of Markov objects**, each with a clean boundary, interacting through interfaces, evolving independently within their boundaries, and collectively producing the system's behaviour.
-
-This is the ontology's teleodynamic transition (#49) at full expression: a self-maintaining, self-modifying system that acts on its own behalf, with multiple concurrent processes, continuous energy consumption, and the capacity to observe and direct its own evolution.
+The Markov boundary (§2.3) is what makes concurrency tractable. Converged assets have stable boundaries (interface, contract, test suite) and conditional independence — other vectors depend on the boundary, not the internals or construction history. Without Markov boundaries, concurrent vectors would require global coordination; with them, coordination is local. The living system is an **ecology of Markov objects** interacting through boundaries, evolving independently within them.
 
 ### 7.7 Protocol Enforcement Hooks
 
@@ -1788,31 +1348,13 @@ The methodology follows the abiogenesis pattern (#39) at two levels:
 
 ## 9. Summary
 
-The AI SDLC is:
-
-1. An **asset graph** — a directed cyclic graph of typed assets with admissible transitions (zoomable)
-2. With a **universal iteration function** — the only operation, converging each edge until evaluators pass
-3. Traced by **feature vectors** — composite vectors (trajectories through the graph), identified by REQ keys
-4. Bounded by **Spec + Context[]** — the constraint surface (including the graph topology itself) that prevents degeneracy
-5. Evaluated by **{Human, Agent, Tests}** — composable convergence criteria per edge
-6. Operating in **three processing phases** — reflex (autonomic: event emission, test execution, protocol hooks, circuit breakers — sensing without deliberation), affect (limbic: signal classification, severity assessment, urgency weighting, escalation decision — triage that filters what reaches consciousness), and conscious (deliberative: human + agent evaluators, judgment, intent generation, spec modification — only processes what affect escalates). Each phase enables the next: reflexes produce the sensory substrate, affect triages it, consciousness directs from what survives triage.
-7. Split at a **Spec/Design boundary** — Spec = WHAT (tech-agnostic), Design = HOW (tech-bound). Constraint dimensions define what design must resolve.
-8. Observable via **feature views** — REQ keys grepped across all artifacts produce per-feature status at any time
-9. Completing the **full lifecycle** — through CI/CD, Telemetry (tagged with REQ keys), Homeostasis, and back to Intent
-10. Packaged in **three layers** — Engine (universal primitives) / Graph Package (domain-specific topology + edge configs + constraint dimensions) / Project Binding (instance-specific constraints + context URIs)
-11. Executed via **event sourcing** — immutable events, all state (STATUS, feature vectors, tasks) as derived projections
-12. **Self-observing** — TELEM signals from methodology runs feed back into graph package evolution
-13. **Protocol-enforced** — hooks verify iterate() side effects (event emission, feature vector, STATUS) before allowing the agent to stop. Circuit breaker prevents infinite regression. The hooks are the deterministic evaluator of the protocol itself — the reflex phase (§4.3) of the methodology's autonomic nervous system.
-14. **Gradient at every scale** — one computation, `delta(state, constraints) → work`, applied from single iteration through edge convergence, feature traversal, production homeostasis, spec review, and constraint surface update. The spec is the constraint surface: all signals (gaps, discoveries, ecosystem evolution, optimisation, user feedback, methodology self-observation) converge on the spec and radiate outward as new or modified feature vectors. Spec changes are event-logged, making the system's self-modification observable and traceable. Intent events carry full causal chains (trigger, delta, signal source, prior intents), enabling the system to detect the consequences of its own modifications. No new primitive is required — complexity emerges from the same gradient operating at progressively larger scales.
-15. **Continuously sensing** — interoceptive monitors (§4.5.1) observe the system's own health (test staleness, vector stalls, build failures, coverage drift, spec/code drift) while exteroceptive monitors (§4.5.2) observe the external environment (dependency updates, CVE feeds, runtime telemetry, user feedback, API changes). Both run independently of iterate() — the system notices threats and decay even when no one is actively developing.
-16. **Fractally composed** — every edge, every scale, every sensory monitor is the same building block: the **IntentEngine** (§4.6) — `observer → evaluator → typed_output(reflex.log | specEventLog | escalate)`, parameterised by intent+affect. Ambiguity is the routing criterion: zero → reflex, bounded → probabilistic disambiguation, persistent → escalate. Level N's escalate becomes Level N+1's reflex. The IntentEngine is not a fifth primitive — it is the composition law by which the four primitives assemble into a universal processing unit at every scale.
-17. **Alive** — when operational, the gradient active at all scales simultaneously produces the structural properties of a living organism: continuous sensing (interoception + exteroception), many feature vectors in concurrent lifecycle stages (gestating, iterating, converging, deploying, being observed), continuous metabolism (CI/CD), active perception (telemetry), reflexive self-modification (gradient at spec scale), selective pruning (vector cancellation when requirements removed). The Markov boundary (§2.3) at each converged asset is what makes concurrency tractable — vectors interact through boundaries, not internals, preventing combinatorial coordination explosion. The system is an ecology of Markov objects.
-
-The graph is not universal — it is domain-constructed via abiogenesis (#39). The SDLC graph is one crystallisation. A legal document, a physics paper, an organisational policy each produce different graphs from the same four primitives. The graph is zoomable: any edge expandable into a sub-graph, any sub-graph collapsible into a single edge.
-
-The methodology is an instantiation of the constraint-emergence ontology's information-driven construction pattern (#38), with the iteration function as local preorder traversal (#15) on the constraint manifold (#9), producing stable Markov objects (#7) that become constraints for the next construction, closing the feedback loop (#44) through runtime observation, and achieving self-maintaining teleodynamic status (#49) when the specification becomes a living encoding (#46) updated from production experience. The execution model is event sourcing — each methodology action produces an immutable event; all observable state is a projection of the event history. The methodology observes itself through the same evaluator pattern it uses for artifacts. One gradient — `delta(state, constraints) → work` — operates at every scale: single iteration, edge convergence, feature traversal, production homeostasis, spec review, constraint surface update. The spec is the constraint surface — all signals converge on it, all directed action radiates from it, and its own modifications are event-logged, enabling the system to detect the consequences of its own changes. Two sensory systems — interoception (self-sensing) and exteroception (environment-sensing) — run continuously and independently of iterate(), feeding signals through the three processing phases (reflex → affect → conscious). When operational, the gradient active at all scales simultaneously produces a living system: continuous sensing, many concurrent feature vectors at different lifecycle stages, continuous CI/CD metabolism, active telemetry perception, reflexive spec evolution, selective vector pruning — an ecology of Markov objects interacting through boundaries, collectively producing a self-maintaining, self-directing system.
-
-Four primitives. One operation. Three layers. The rest is parameterisation — including the graph itself.
+1. **Four primitives, one operation.** Graph, Iterate, Evaluators, Spec+Context. `iterate(Asset, Context[], Evaluators) -> Asset'` is the only operation. Everything else is parameterisation.
+2. **Asset graph.** A directed cyclic graph of typed assets with admissible transitions (zoomable). The SDLC graph is one domain-specific instantiation; the primitives are universal.
+3. **Universal iterate().** One agent, one function, all edges. Behaviour is parameterised by edge config, not hard-coded. Convergence = all evaluators pass.
+4. **Three processing phases + sensory systems.** Reflex (autonomic event emission, protocol hooks), affect (signal triage, severity, escalation), conscious (human + agent evaluators, spec modification). Interoceptive + exteroceptive monitors (§4.5) run continuously and independently of iterate().
+5. **Event sourcing + observability.** All state changes are immutable events; all observable state (STATUS, feature vectors, tasks) is a derived projection. REQ keys thread from spec through code, tests, telemetry, and back.
+6. **Gradient at every scale.** One computation — `delta(state, constraints) -> work` — from single iteration through edge convergence, feature traversal, production homeostasis, spec review, and constraint surface update. Complexity emerges from the same gradient at progressively larger scales.
+7. **Living system.** When operational, the gradient active at all scales simultaneously produces continuous sensing, concurrent vector lifecycles, CI/CD metabolism, active perception, reflexive self-modification, and selective pruning — an ecology of Markov objects interacting through boundaries.
 
 ---
 

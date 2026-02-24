@@ -1,6 +1,6 @@
 # AI SDLC — Executive Summary
 
-The Asset Graph Model, free of platform constraints or historical comparisons.
+A condensed overview of the Asset Graph Model — the formal system underlying all platform-specific implementations.
 
 ## 1. The Formal System: 4 Primitives, 1 Operation
 
@@ -46,9 +46,9 @@ Every functional unit (Evaluate, Construct, Sense) has three renderings that esc
 
 ## 5. Projections: Selective Capability Enablement
 
-A **Projection** is a valid instance of the formal system that selectively enables capabilities.
+A **Projection** is a valid instance of the formal system that selectively enables capabilities while preserving all four invariants.
 *   **Profiles**: Named configurations (Minimal, Standard, Full) that define which edges exist, which evaluators are active, and what context is required.
-*   **Logical Completeness**: The "Full" design is always present in the blueprint (the DNA), but only the parts required for the current projection are "expressed" in the workspace.
+*   **Logical Completeness**: The full system is always present in the specification; projections omit edges, evaluators, or context that a given project does not require.
 
 ## 6. Multi-Tenant by Design
 

@@ -124,7 +124,7 @@ algorithm: "sha256-canonical-v1"
 aggregate_hash: "sha256:a1b2c3d4e5f6..."
 
 entries:
-  - path: "adrs/ADR-001-platform.md"
+  - path: "adrs/ADR-008-universal-iterate-agent.md"
     hash: "sha256:1a2b3c..."
     size: 7437
     type: adr

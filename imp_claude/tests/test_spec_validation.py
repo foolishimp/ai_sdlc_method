@@ -318,19 +318,19 @@ class TestFormalSpecContent:
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Human evaluator" in content and "Conscious" in content
-        assert "Agent evaluator" in content and "Conscious" in content
-        assert "Deterministic" in content and "Reflex" in content
+        assert "Human, Agent (deliberative)" in content and "Conscious" in content
+        assert "Agent (classification)" in content and "Affect" in content
+        assert "Deterministic Tests" in content and "Reflex" in content
 
     @pytest.mark.bdd
     def test_spec_defines_affect_phase(self):
-        """Spec §4.3 must define the affect (limbic) processing phase."""
+        """Spec §4.3 must define the affect processing phase."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Affect (limbic)" in content
-        assert "Limbic system" in content
-        assert "signal classification" in content.lower() or "Signal triage" in content
+        assert "Affect" in content
+        assert "Triage" in content or "triage" in content
+        assert "signal classification" in content.lower() or "severity weighting" in content
 
     @pytest.mark.bdd
     def test_spec_labels_hooks_as_reflex(self):
@@ -350,14 +350,14 @@ class TestFormalSpecContent:
         assert "Each phase enables the next" in content
 
     @pytest.mark.bdd
-    def test_living_system_table_has_three_nervous_system_layers(self):
-        """Living system table (§7.7.6) must have autonomic, limbic, and frontal cortex."""
+    def test_living_system_references_three_phases(self):
+        """Living system section must reference all three processing phases."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Autonomic nervous system" in content
-        assert "Limbic system" in content
-        assert "Frontal cortex" in content
+        assert "Reflex" in content
+        assert "Affect" in content
+        assert "Conscious" in content
 
     @pytest.mark.bdd
     def test_spec_defines_consciousness_loop(self):
@@ -369,20 +369,20 @@ class TestFormalSpecContent:
         assert "intent_raised" in content
 
     @pytest.mark.bdd
-    def test_spec_defines_sensory_service_architecture(self):
-        """Spec §4.5.4 must define Sensory Service Architecture."""
+    def test_spec_defines_review_boundary_invariant(self):
+        """Spec §4.5.4 must define the Review Boundary Invariant."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "4.5.4 Sensory Service Architecture" in content
+        assert "Review Boundary Invariant" in content
 
     @pytest.mark.bdd
-    def test_spec_defines_long_running_service_model(self):
-        """Spec §4.5.4 must define the sensory service as a long-running service."""
+    def test_spec_defines_autonomous_sensing(self):
+        """Spec §4.5.4 must define autonomous sensing with human-approved changes."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "long-running service" in content
+        assert "autonomously observe" in content or "autonomous" in content.lower()
 
     @pytest.mark.bdd
     def test_spec_defines_review_boundary(self):
@@ -393,13 +393,13 @@ class TestFormalSpecContent:
         assert "review boundary" in content.lower() or "REVIEW BOUNDARY" in content
 
     @pytest.mark.bdd
-    def test_spec_defines_two_event_categories(self):
-        """Spec §4.5.4 must define sensor/evaluate vs change-approval event categories."""
+    def test_spec_defines_review_boundary_separation(self):
+        """Spec §4.5.4 must separate autonomous sensing from human-approved changes."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Sensor/evaluate events" in content
-        assert "Change-approval events" in content
+        assert "review boundary" in content.lower()
+        assert "REQ-EVAL-003" in content
 
     @pytest.mark.bdd
     def test_spec_defines_draft_only_autonomy(self):
@@ -410,20 +410,22 @@ class TestFormalSpecContent:
         assert "draft proposals only" in content.lower() or "draft proposals" in content
 
     @pytest.mark.bdd
-    def test_spec_defines_monitor_telemetry_separation(self):
-        """Spec §4.5.4 must clarify that the monitor rides the telemetry."""
+    def test_spec_defines_sensory_pipeline(self):
+        """Spec §4.5.3 must define the sensory processing pipeline."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "monitor rides the telemetry" in content.lower() or "genesis_monitor" in content
+        assert "INTEROCEPTION" in content or "interoception" in content.lower()
+        assert "EXTEROCEPTION" in content or "exteroception" in content.lower()
 
     @pytest.mark.bdd
-    def test_living_system_table_shows_service_hosted(self):
-        """Living system table must show interoception/exteroception as service-hosted."""
+    def test_living_system_defines_properties(self):
+        """Living system section must define operational properties."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "service-hosted" in content.lower()
+        assert "Living System" in content
+        assert "concurrent" in content.lower() or "vector lifecycles" in content
 
     @pytest.mark.bdd
     def test_spec_defines_context_sources(self):

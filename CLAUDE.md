@@ -143,7 +143,7 @@ ai_sdlc_method/
 | Stage | Status |
 |-------|--------|
 | Intent | Complete |
-| Spec | Complete (formal system, IntentEngine §4.6, constraint tolerances §4.6.9, projections, invariants, UX, sensory systems) |
+| Spec | Complete (formal system, IntentEngine §4.6, constraint tolerances §5.3, projections, invariants, UX, sensory systems) |
 | Design | Complete (Claude: ADRs 008-017, Gemini: ADRs GG-001-008, Codex: ADR-CG-001) |
 | Code | Phase 1a (Claude: configs, 4 agents, 13 commands, 4 hooks — no executable engine) |
 | Tests | 502 tests (Claude: spec validation + implementation), 22 E2E |

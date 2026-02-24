@@ -53,7 +53,7 @@ These files live in `.ai-workspace/graph/` and are part of Context[]. The iterat
 
 ### Why Not Code-Based Registry
 
-Claude Code's implementation is markdown-first (ADR-001). The agents are markdown files, the commands are markdown files. Introducing a code-based registry would require a runtime environment (Python/Node.js), breaking the "just files" principle. YAML configs maintain the no-runtime-dependency model.
+Claude Code's implementation is markdown-first. The agents are markdown files, the commands are markdown files. Introducing a code-based registry would require a runtime environment (Python/Node.js), breaking the "just files" principle. YAML configs maintain the no-runtime-dependency model.
 
 ### Why Not JSON Schema
 
@@ -69,7 +69,7 @@ JSON Schema is more precise but less readable for LLMs. The iterate agent needs 
 - **Graph is configurable** — teams can customise without forking the plugin
 - **Graph is composable** — context hierarchy applies to topology
 - **Graph is versionable** — git tracks topology changes
-- **No runtime dependency** — just files, consistent with ADR-001
+- **No runtime dependency** — just files, consistent with the markdown-first principle
 
 ### Negative
 

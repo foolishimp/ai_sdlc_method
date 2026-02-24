@@ -99,14 +99,14 @@ The key insight: **a persistent escalation at the tolerance level means the bind
 | Edge YAML (ADR-009) | Parse time < 500ms | 40+ edge configs | "Compile edge configs to binary format or merge related edges" |
 | Context manifest (ADR-010) | Hash time < 2s | Context store grows to 500 files | "Implement incremental hashing or context pruning" |
 | Event log (ADR-013) | Append latency < 50ms | events.jsonl exceeds 100MB | "Implement log rotation or archival" |
-| Graph topology (ADR-009) | Edge count < 20 | Graph discovery (§4.6.8) adds edges | "Review edge granularity — merge or compose edges" |
+| Graph topology (ADR-009) | Edge count < 20 | Graph scaling (§2.5) adds edges | "Review edge granularity — merge or compose edges" |
 
-### Relationship to Graph Discovery (§4.6.8)
+### Relationship to Graph Scaling (§2.5)
 
-Design tolerances connect directly to graph discovery. When the IntentEngine's escalation signal suggests the graph is too coarse (§4.6.8), the new edges it generates have their own tolerances. If those edges consistently breach tolerances (too slow, too expensive, too complex), the graph discovery process receives negative feedback — the topology should be simplified, not grown.
+Design tolerances connect directly to graph scaling. When the IntentEngine's escalation signal suggests the graph is too coarse, the new edges it generates have their own tolerances. If those edges consistently breach tolerances (too slow, too expensive, too complex), the scaling process receives negative feedback — the topology should be simplified, not grown.
 
 This creates a **bidirectional pressure**:
-- **Escalation pressure** (§4.6.8): persistent ambiguity → graph needs more edges
+- **Escalation pressure**: persistent ambiguity → graph needs more edges
 - **Tolerance pressure** (this ADR): tolerance breaches → graph needs fewer/simpler edges
 
 The equilibrium between these pressures is the optimal graph topology for the current ecosystem.
@@ -153,7 +153,7 @@ The design evaluates its own fitness. When ecosystem conditions change (new API 
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems), §4.6 (IntentEngine), §4.6.8 (Graph Discovery)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems), §4.6 (IntentEngine), §5.3 (Constraint Tolerances)
 - [ADR-009](ADR-009-graph-topology-as-configuration.md) — Graph Topology as Configuration (tolerances on topology complexity)
 - [ADR-010](ADR-010-spec-reproducibility.md) — Spec Reproducibility (tolerances on hash computation cost)
 - [ADR-013](ADR-013-multi-agent-coordination.md) — Multi-Agent Coordination (tolerances on event log size and serialiser throughput)

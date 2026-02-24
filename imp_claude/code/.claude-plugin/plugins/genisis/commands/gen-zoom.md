@@ -3,7 +3,7 @@
 Zoom into or out of graph edges, revealing sub-structure within an edge traversal or aggregating across edges for a high-level view. The graph is zoomable (§1) — this command navigates zoom levels.
 
 <!-- Implements: REQ-GRAPH-002 (Zoomable Graph), REQ-UX-007 (Edge Zoom Management) -->
-<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §1, §4.6.8 (Graph Discovery), ADR-009 (Graph Topology as Config) -->
+<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §1, §2.5 (Graph Scaling), ADR-009 (Graph Topology as Config) -->
 
 ## Usage
 
@@ -181,7 +181,7 @@ The four aggregation bands map to graph regions:
 - **Validation**: uat_tests + cicd
 - **Operations**: running_system + telemetry
 
-### Step 5: Graph Discovery Connection (§4.6.8)
+### Step 5: Graph Discovery Connection (§2.5)
 
 When zooming in reveals that an edge's sub-structure is consistently too complex (many sub-steps, high iteration counts), this is a signal for graph discovery — the edge may need to be split into separate edges in the topology.
 

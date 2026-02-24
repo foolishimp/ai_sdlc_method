@@ -62,12 +62,6 @@ Four primitives. One operation. The rest is parameterisation.
 
 ---
 
-## History
+## Version
 
-- **v2.0** (2026-02): Asset Graph Model — 4 primitives, 1 operation, ontology-grounded.
-- **v2.1** (2026-02): Revised framing — composite vectors, zoomable graph, scale-dependent assurance, 3-param iterate(). ~570-line canonical doc replaces 4,400 lines. 32 implementation requirements replace 47.
-- **v2.5** (2026-02): Consciousness loop, protocol enforcement hooks, event sourcing, signal classification. 39 implementation requirements.
-- **v2.6** (2026-02): Three processing phases (reflex/affect/conscious), two sensory systems (interoception/exteroception), affect triage pipeline, context sources. 44 implementation requirements.
-- **v2.7** (2026-02): Two-command UX layer (Start + Status), §11 User Experience requirements (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery). 49 implementation requirements.
-- **v2.8** (2026-02): Multi-agent coordination, §12 Coordination requirements (agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based authority). 58 implementation requirements. Gradient unification (homeostasis + consciousness → single `delta(state, constraints) → work` at every scale). Observer agents (dev, CI/CD, ops) close the abiogenesis loop. Synthesised from Gemini Genesis and Codex Genesis design proposals.
-- **v3.0** (2026-02): IntentEngine formalization (§4.6, REQ-SUPV-001/002), functor encoding tracking (REQ-ITER-003), installability (REQ-TOOL-011). 64 implementation requirements.
+**v3.0** — Asset Graph Model (v2.8), 64 implementation requirements. See [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) for the canonical specification.

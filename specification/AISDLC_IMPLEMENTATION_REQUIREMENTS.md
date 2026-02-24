@@ -290,7 +290,7 @@ The system shall support hierarchical context composition.
 - Deep merge for objects
 - Customisation without forking
 
-**Traces To**: Asset Graph Model §5.3 (Context Stability) | Ontology #23 (scale-dependent time)
+**Traces To**: Asset Graph Model §5.4 (Context Stability) | Ontology #23 (scale-dependent time)
 
 ---
 
@@ -790,7 +790,7 @@ Workspace structure for task and context management.
 - Context preservation across sessions
 - Version-controlled (git)
 
-**Traces To**: Asset Graph Model §5.3 (Context Stability) | Ontology #40 (encoded representation)
+**Traces To**: Asset Graph Model §5.4 (Context Stability) | Ontology #40 (encoded representation)
 
 ---
 
@@ -1260,7 +1260,7 @@ Every constraint in the system — spec requirements, design bindings, edge eval
 - Tolerance pressure (complexity/cost breach → simplify) balances escalation pressure (ambiguity → add structure) to produce graph topology equilibrium
 - A constraint without a declared tolerance is flagged by gap analysis as incomplete
 
-**Traces To**: Asset Graph Model §4.6.9 (Constraint Tolerances), §7.1 (The Gradient), §4.5 (Sensory Systems) | Ontology #49 (teleodynamic self-maintenance — tolerances enable self-repair), #9 (constraint manifold — tolerances make the manifold measurable)
+**Traces To**: Asset Graph Model §5.3 (Constraint Tolerances), §7.1 (The Gradient), §4.5 (Sensory Systems) | Ontology #49 (teleodynamic self-maintenance — tolerances enable self-repair), #9 (constraint manifold — tolerances make the manifold measurable)
 
 ### REQ-SUPV-003: Failure Observability
 

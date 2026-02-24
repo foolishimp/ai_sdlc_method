@@ -1,7 +1,7 @@
 # IntentEngine Configuration
 # Implements: REQ-SUPV-001 (IntentEngine interface), REQ-SUPV-002 (Constraint Tolerances)
 # Implements: REQ-INTENT-001 (Intent Capture), REQ-INTENT-002 (Intent as Spec)
-# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §4.6, §4.6.9
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §4.6, §5.3
 # Reference: ADR-014 (IntentEngine Binding), ADR-016 (Design Tolerances), ADR-017 (Functor Execution)
 #
 # The IntentEngine is not a fifth primitive — it is the composition law over the
@@ -207,7 +207,7 @@ signal_sources:
     response_pattern: "Assess impact; spawn vector if breaking"
 
 # ═══════════════════════════════════════════════════════════════════════
-# TOLERANCE SCHEMA (§4.6.9, ADR-016)
+# TOLERANCE SCHEMA (§5.3, ADR-016)
 # ═══════════════════════════════════════════════════════════════════════
 #
 # Every constraint must have a measurable threshold. Without tolerances,
