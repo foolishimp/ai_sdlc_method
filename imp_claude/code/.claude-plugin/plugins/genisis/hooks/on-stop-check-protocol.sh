@@ -121,24 +121,26 @@ else
 fi
 
 # -----------------------------------------------------------------------
-# Check 4: Latest edge_iteration_completed event has source_findings and process_gaps
-# (Filter by event type to avoid false blocks from spec_modified or other event types)
+# Check 4: Latest iteration_completed event FOR THIS EDGE has source_findings and process_gaps
+# Filter by edge name to avoid false blocks from other features/edges.
 # -----------------------------------------------------------------------
 if [ -f "$EVENTS_FILE" ]; then
-  LAST_EDGE_EVENT=$(grep '"iteration_completed"' "$EVENTS_FILE" 2>/dev/null || true)
+  # Filter iteration_completed events to those matching the current edge
+  LAST_EDGE_EVENT=$(grep '"iteration_completed"' "$EVENTS_FILE" 2>/dev/null | \
+    grep "\"edge\":\"${EDGE}\"" 2>/dev/null | tail -1 || true)
+  if [ -z "$LAST_EDGE_EVENT" ]; then
+    # Fallback: try without edge filter (edge might use different quoting)
+    LAST_EDGE_EVENT=$(grep '"iteration_completed"' "$EVENTS_FILE" 2>/dev/null | tail -1 || true)
+  fi
   if [ -n "$LAST_EDGE_EVENT" ]; then
-    LAST_EDGE_EVENT=$(echo "$LAST_EDGE_EVENT" | tail -1)
-  else
-    # No iteration_completed event — check the latest event as fallback
-    LAST_EDGE_EVENT=$(tail -1 "$EVENTS_FILE" 2>/dev/null || true)
-  fi
-  HAS_FINDINGS=$(echo "$LAST_EDGE_EVENT" | jq 'has("source_findings")' 2>/dev/null || echo "false")
-  HAS_GAPS=$(echo "$LAST_EDGE_EVENT" | jq 'has("process_gaps")' 2>/dev/null || echo "false")
-  if [ "$HAS_FINDINGS" != "true" ]; then
-    MISSING="$MISSING- source_findings: not present in latest edge event (backward gap detection missing)\n"
-  fi
-  if [ "$HAS_GAPS" != "true" ]; then
-    MISSING="$MISSING- process_gaps: not present in latest edge event (inward gap detection missing)\n"
+    HAS_FINDINGS=$(echo "$LAST_EDGE_EVENT" | jq 'has("source_findings")' 2>/dev/null || echo "false")
+    HAS_GAPS=$(echo "$LAST_EDGE_EVENT" | jq 'has("process_gaps")' 2>/dev/null || echo "false")
+    if [ "$HAS_FINDINGS" != "true" ]; then
+      MISSING="$MISSING- source_findings: not present in latest edge event for '${EDGE}' (backward gap detection missing)\n"
+    fi
+    if [ "$HAS_GAPS" != "true" ]; then
+      MISSING="$MISSING- process_gaps: not present in latest edge event for '${EDGE}' (inward gap detection missing)\n"
+    fi
   fi
 fi
 

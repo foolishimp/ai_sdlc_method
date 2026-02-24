@@ -100,6 +100,26 @@ def _find_graph_topology(workspace: Path) -> Path:
     return candidates[0]
 
 
+def _emit_command_error(workspace: Path, project: str, command: str, category: str, detail: str) -> None:
+    """Emit a command_error event for REQ-SUPV-003 failure observability."""
+    from .fd_emit import emit_event, make_event
+
+    events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
+    try:
+        emit_event(
+            events_path,
+            make_event(
+                "command_error",
+                project or workspace.name,
+                command=command,
+                error_category=category,
+                error_detail=detail,
+            ),
+        )
+    except Exception:
+        pass  # Observation failure must not block error reporting
+
+
 def cmd_evaluate(args: argparse.Namespace) -> int:
     """Evaluate an asset against an edge's checklist. Emit Level 4 events."""
     workspace = Path(args.workspace) if args.workspace else _find_workspace(Path.cwd())
@@ -110,6 +130,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     else:
         asset_path = Path(args.asset)
         if not asset_path.exists():
+            _emit_command_error(workspace, "", "evaluate", "missing_asset", f"Asset not found: {args.asset}")
             print(
                 json.dumps({"error": f"Asset not found: {args.asset}"}), file=sys.stderr
             )
@@ -121,6 +142,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         Path(args.constraints) if args.constraints else _find_constraints(workspace)
     )
     if not constraints_path.exists():
+        _emit_command_error(workspace, "", "evaluate", "missing_constraints", f"Constraints not found: {constraints_path}")
         print(
             json.dumps({"error": f"Constraints not found: {constraints_path}"}),
             file=sys.stderr,
@@ -159,6 +181,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     edge_config_path = edge_params_dir / f"{edge_filename}.yml"
 
     if not edge_config_path.exists():
+        _emit_command_error(workspace, config.project_name, "evaluate", "missing_edge_config", f"Edge config not found: {edge_config_path}")
         print(
             json.dumps({"error": f"Edge config not found: {edge_config_path}"}),
             file=sys.stderr,
@@ -287,10 +310,8 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
                 config.project_name,
                 feature=args.feature,
                 edge=edge,
-                data={
-                    "iteration": args.iteration,
-                    "convergence_type": "standard",
-                },
+                iteration=args.iteration,
+                convergence_type="standard",
             ),
         )
 

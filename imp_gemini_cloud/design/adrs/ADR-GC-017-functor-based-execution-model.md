@@ -67,4 +67,4 @@ GCP services provide clean boundaries for the functor categories. Cloud Run Jobs
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-017](../../imp_bedrock/design/adrs/ADR-017-functor-based-execution-model.md) — AWS equivalent
+- [ADR-AB-017](../adrs/ADR-017-functor-based-execution-model.md) — AWS equivalent

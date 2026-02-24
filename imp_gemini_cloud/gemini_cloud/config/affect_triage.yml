@@ -1,0 +1,282 @@
+# Affect Triage Pipeline Configuration
+# Implements: REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-LIFE-006
+# Reference: AISDLC_V2_DESIGN.md §1.8.4, §1.8.5, §1.8.6
+#
+# Tiered triage: rule-based classification first (fast, pattern-matching),
+# agent-classified only for ambiguous signals (slow, Claude headless).
+# Triage assigns classification, severity, and escalation decision.
+# Above-threshold signals generate draft proposals via review boundary.
+
+---
+
+version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════════════
+# CLASSIFICATION RULES (Rule-based — fast)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Evaluated in order. First matching rule wins.
+# Unmatched signals fall through to agent classification.
+
+classification_rules:
+
+  # ─── Vulnerability signals (exteroceptive) ───────────────────────
+  - name: critical_vulnerability
+    pattern:
+      monitor_type: exteroceptive
+      monitor_id: EXTRO-002
+      severity: critical
+    classification: vulnerability
+    default_severity: critical
+    escalation: always
+
+  - name: medium_vulnerability
+    pattern:
+      monitor_type: exteroceptive
+      monitor_id: EXTRO-002
+      severity: [medium, high]
+    classification: vulnerability
+    default_severity: warning
+    escalation: threshold
+
+  # ─── Contract break (exteroceptive) ──────────────────────────────
+  - name: api_breaking_change
+    pattern:
+      monitor_id: EXTRO-004
+    classification: contract_break
+    default_severity: critical
+    escalation: always
+
+  # ─── Runtime deviation (exteroceptive) ───────────────────────────
+  - name: runtime_spike
+    pattern:
+      monitor_id: EXTRO-003
+    classification: runtime_deviation
+    default_severity: critical
+    escalation: always
+
+  # ─── Degradation signals (interoceptive) ─────────────────────────
+  - name: test_coverage_drop
+    pattern:
+      monitor_id: INTRO-003
+      metric_delta: "> 5%"
+    classification: degradation
+    default_severity: warning
+    escalation: threshold
+
+  - name: build_failure_rate
+    pattern:
+      monitor_id: INTRO-005
+      metric_value: "> threshold"
+    classification: degradation
+    default_severity: warning
+    escalation: threshold
+
+  # ─── Staleness signals (interoceptive) ───────────────────────────
+  - name: event_staleness
+    pattern:
+      monitor_id: INTRO-001
+      metric_value: "> threshold"
+    classification: staleness
+    default_severity: info
+    escalation: threshold
+
+  - name: feature_stall
+    pattern:
+      monitor_id: INTRO-002
+      metric_value: "> threshold"
+    classification: staleness
+    default_severity: warning
+    escalation: threshold
+
+  - name: status_lag
+    pattern:
+      monitor_id: INTRO-004
+      metric_value: "> threshold"
+    classification: staleness
+    default_severity: info
+    escalation: threshold
+
+  # ─── Drift signals (interoceptive) ───────────────────────────────
+  - name: spec_code_drift
+    pattern:
+      monitor_id: INTRO-006
+    classification: drift
+    default_severity: warning
+    escalation: threshold
+
+  # ─── Ecosystem signals (exteroceptive) ───────────────────────────
+  - name: dependency_update
+    pattern:
+      monitor_id: EXTRO-001
+    classification: ecosystem_change
+    default_severity: info
+    escalation: threshold
+
+  # ─── Integrity signals (interoceptive) ───────────────────────────
+  - name: event_log_corruption
+    pattern:
+      monitor_id: INTRO-007
+    classification: integrity
+    default_severity: warning
+    escalation: always
+
+  # ─── Meta-monitoring (monitor failure) ───────────────────────────
+  - name: monitor_failure
+    pattern:
+      monitor_id: META-001
+    classification: meta_failure
+    default_severity: warning
+    escalation: threshold
+
+  # ─── Fallback: unmatched → agent classification ──────────────────
+  - name: agent_fallback
+    pattern:
+      unmatched: true
+    classification: agent_classify
+    escalation: agent_decides
+
+# ═══════════════════════════════════════════════════════════════════════
+# ESCALATION THRESHOLDS (per profile)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Each profile defines the minimum severity for escalation.
+# "always" escalation ignores the threshold.
+# "threshold" escalation compares signal severity against the profile.
+
+escalation_thresholds:
+
+  full:
+    minimum_severity: info         # escalate everything
+    description: "Maximum sensitivity — all signals reach conscious review"
+
+  standard:
+    minimum_severity: warning      # skip info-level signals
+    description: "Balanced — warning and above reach conscious review"
+
+  hotfix:
+    minimum_severity: info         # escalate everything (emergency mode)
+    description: "Emergency — all signals escalated for rapid response"
+
+  spike:
+    minimum_severity: critical     # only critical signals
+    description: "Exploration focus — suppress noise, only critical signals"
+
+  poc:
+    minimum_severity: critical     # only critical signals
+    description: "Construction focus — suppress non-critical signals"
+
+  minimal:
+    minimum_severity: warning      # sensible defaults
+    description: "Sensible defaults — warning and above"
+
+# ═══════════════════════════════════════════════════════════════════════
+# AGENT CLASSIFICATION (for unmatched signals)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# When rule-based classification fails, invoke Claude headless for
+# classification. This is the "slow path" — only for ambiguous signals.
+
+agent_classification:
+  model: claude-haiku-4-5          # fast, cheap model for classification
+  prompt_template: |
+    You are a signal classifier for the AI SDLC sensory system.
+    Given this signal, classify it and recommend an escalation decision.
+
+    Signal:
+    - Monitor: {monitor_id}
+    - Observation: {observation}
+    - Metric value: {metric_value}
+    - Threshold: {threshold}
+
+    Classify as one of: vulnerability, degradation, staleness, drift,
+    ecosystem_change, contract_break, runtime_deviation, integrity, meta_failure
+
+    Assign severity: info, warning, critical
+
+    Recommend escalation: escalate, defer, log_only
+
+  output_schema:
+    classification: string
+    severity: string
+    escalation_decision: string
+    reasoning: string
+
+# ═══════════════════════════════════════════════════════════════════════
+# REVIEW BOUNDARY (REQ-SENSE-005)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# MCP tools exposed by the sensory service. These constitute the
+# review boundary separating autonomous sensing from human-approved
+# changes. The sensory service CANNOT modify workspace files —
+# all modifications go through the interactive session after human
+# approval.
+
+review_boundary:
+  mcp_tools:
+    - name: sensory-status
+      description: "Current state of all monitors, last run times, signal counts"
+      returns: monitor_health_dashboard
+      modifies_workspace: false
+
+    - name: sensory-proposals
+      description: "List pending draft proposals with full context"
+      returns: proposal_list_with_trigger_chains
+      modifies_workspace: false
+
+    - name: sensory-approve
+      description: "Approve a proposal — interactive session applies the change"
+      parameters:
+        - name: id
+          type: string
+          required: true
+          description: "Proposal ID to approve"
+      returns: confirmation_and_events
+      modifies_workspace: true    # applied by interactive session, not service
+
+    - name: sensory-dismiss
+      description: "Dismiss a proposal with reason (logged for learning)"
+      parameters:
+        - name: id
+          type: string
+          required: true
+          description: "Proposal ID to dismiss"
+        - name: reason
+          type: string
+          required: true
+          description: "Reason for dismissal"
+      returns: dismissal_logged
+      modifies_workspace: false
+
+    - name: sensory-config
+      description: "View/modify monitor configuration and thresholds"
+      returns: current_config
+      modifies_workspace: false
+
+  # The review boundary enforces:
+  # 1. All file modifications go through human oversight (REQ-EVAL-003)
+  # 2. Two distinct event categories:
+  #    - sensor/evaluate: autonomous, observation-only
+  #    - change-approval: conscious, human-approved
+  autonomy_model: draft_only
+  human_required_for: [file_modification, event_emission, feature_vector_update]
+
+# ═══════════════════════════════════════════════════════════════════════
+# TRIAGE EVENT SCHEMA
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Every triage decision is logged to events.jsonl as affect_triage.
+
+event_schema:
+  event_type: affect_triage
+  fields:
+    timestamp: ISO-8601
+    signal_id: "ref to interoceptive_signal or exteroceptive_signal"
+    source_monitor: "monitor_id that generated the signal"
+    classification: "vulnerability | degradation | staleness | drift | ecosystem_change | contract_break | runtime_deviation | integrity | meta_failure"
+    severity: "info | warning | critical"
+    escalation_decision: "escalate | defer | log_only | dismissed"
+    recommended_action: "human-readable recommendation"
+    affected_req_keys: "list of REQ-* keys if traceable"
+    profile_threshold: "the active threshold that caused escalation"
+    classified_by: "rule | agent"

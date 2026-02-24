@@ -100,7 +100,42 @@ if [ -d "$WORKSPACE/features/active" ]; then
 fi
 
 # -----------------------------------------------------------------------
-# Check 3: STATUS.md freshness
+# Check 3: Abandoned iteration detection (REQ-SUPV-003)
+# If .edge_in_progress exists from a prior session, the previous session
+# ended without completing an iteration. Emit iteration_abandoned event.
+# -----------------------------------------------------------------------
+EDGE_FILE="$WORKSPACE/.edge_in_progress"
+if [ -f "$EDGE_FILE" ]; then
+  ABANDONED_EDGE=$(cat "$EDGE_FILE")
+  ABANDONED_START=$(cat "$WORKSPACE/.edge_start_time" 2>/dev/null || echo "0")
+  NOW_EPOCH=$(date "+%s")
+  SECONDS_SINCE=$((NOW_EPOCH - ABANDONED_START))
+
+  # Find the last iteration number for this edge from events
+  LAST_ITER=0
+  if [ -f "$EVENTS_FILE" ]; then
+    LAST_ITER=$(grep '"iteration_completed"' "$EVENTS_FILE" 2>/dev/null | \
+      grep "\"edge\":\"${ABANDONED_EDGE}\"" 2>/dev/null | \
+      tail -1 | jq -r '.iteration // .data.iteration // 0' 2>/dev/null || echo "0")
+  fi
+
+  # Emit iteration_abandoned event
+  if [ -f "$EVENTS_FILE" ] || [ -d "$WORKSPACE/events" ]; then
+    PROJ_NAME=$(grep 'name:' "$WORKSPACE"/*/context/project_constraints.yml 2>/dev/null | head -1 | sed 's/.*name: *"\{0,1\}\([^"]*\)"\{0,1\}/\1/' || echo "unknown")
+    TIMESTAMP=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+    EVENT="{\"event_type\":\"iteration_abandoned\",\"timestamp\":\"$TIMESTAMP\",\"project\":\"$PROJ_NAME\",\"feature\":\"\",\"edge\":\"$ABANDONED_EDGE\",\"data\":{\"last_iteration\":$LAST_ITER,\"seconds_since_last_event\":$SECONDS_SINCE}}"
+    echo "$EVENT" >> "${EVENTS_FILE:-$WORKSPACE/events/events.jsonl}"
+  fi
+
+  ISSUES="${ISSUES}  [!] Abandoned iteration: edge '${ABANDONED_EDGE}' was in progress when previous session ended\n"
+  ISSUE_COUNT=$((ISSUE_COUNT + 1))
+
+  # Clean up stale state
+  rm -f "$EDGE_FILE" "$WORKSPACE/.edge_start_time" "$WORKSPACE/.edge_events_baseline"
+fi
+
+# -----------------------------------------------------------------------
+# Check 4: STATUS.md freshness
 # -----------------------------------------------------------------------
 STATUS_FILE="$WORKSPACE/STATUS.md"
 if [ -f "$STATUS_FILE" ] && [ -f "$EVENTS_FILE" ]; then

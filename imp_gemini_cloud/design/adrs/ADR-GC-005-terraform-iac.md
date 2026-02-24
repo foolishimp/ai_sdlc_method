@@ -55,4 +55,4 @@ Using Terraform ensures that every project gets an identical methodology stack. 
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-007](../../imp_bedrock/design/adrs/ADR-AB-007-infrastructure-as-code-cdk.md) — AWS CDK equivalent
+- [ADR-AB-007](../adrs/ADR-AB-007-infrastructure-as-code-cdk.md) — AWS CDK equivalent

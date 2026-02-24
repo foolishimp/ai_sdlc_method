@@ -1813,7 +1813,7 @@ Phase 2:  Product telemetry edges — CI/CD, running system, production homeosta
 ## References
 
 - [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.8.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 63 implementation requirements (v3.11.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 69 implementation requirements (v3.13.0)
 - [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.8.0, 11 vectors)
 - [ADR-017](adrs/ADR-017-functor-based-execution-model.md) — Functor-based execution model (telemetry encoding)
 - ADR-001 (claude-code-as-mvp-platform) — platform choice, standing decision

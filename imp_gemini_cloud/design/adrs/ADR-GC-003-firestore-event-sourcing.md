@@ -53,4 +53,4 @@ Firestore’s ability to "push" updates to clients (even CLI ones) is a signific
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-005](../../imp_bedrock/design/adrs/ADR-AB-005-event-sourcing-dynamodb.md) — AWS DynamoDB equivalent
+- [ADR-AB-005](../adrs/ADR-AB-005-event-sourcing-dynamodb.md) — AWS DynamoDB equivalent

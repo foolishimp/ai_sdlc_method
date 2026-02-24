@@ -63,4 +63,4 @@ Using a single workflow ensures that all edges share the same error handling, lo
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-008](../../imp_bedrock/design/adrs/ADR-008-universal-iterate-agent.md) — AWS sibling adaptation
+- [ADR-AB-008](../adrs/ADR-008-universal-iterate-agent.md) — AWS sibling adaptation

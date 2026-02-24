@@ -53,6 +53,24 @@ def select_next_edge(
     graph = profile.get("graph", {})
     include_edges = graph.get("include", [])
     optional_edges = graph.get("optional", [])
+
+    # Handle include: "all" — expand to all transitions from graph_topology
+    if include_edges == "all":
+        transitions = graph_topology.get("transitions", [])
+        include_edges = []
+        for t in transitions:
+            source = t.get("source", "")
+            target = t.get("target", "")
+            if source and target:
+                sep = "↔" if t.get("edge_type") == "co_evolution" else "→"
+                include_edges.append(f"{source}{sep}{target}")
+            elif t.get("edge"):
+                include_edges.append(t["edge"])
+    if not isinstance(include_edges, list):
+        include_edges = []
+    if not isinstance(optional_edges, list):
+        optional_edges = []
+
     all_edges = include_edges + optional_edges
 
     trajectory = feature_trajectory.get("trajectory", {})

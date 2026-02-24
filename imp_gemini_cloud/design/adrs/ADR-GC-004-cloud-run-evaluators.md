@@ -50,4 +50,4 @@ Cloud Run Jobs provide true container isolation. Each test run happens in a clea
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-002](../../imp_bedrock/design/adrs/ADR-AB-002-iterate-engine-step-functions.md) — AWS Lambda containers equivalent
+- [ADR-AB-002](../adrs/ADR-AB-002-iterate-engine-step-functions.md) — AWS Lambda containers equivalent

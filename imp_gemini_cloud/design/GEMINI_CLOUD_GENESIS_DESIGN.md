@@ -183,7 +183,7 @@ Aligned with Claude v2.8 (11/11 feature vectors).
 
 ### 4.1 Lifecycle Closure
 
-- **Phase 1**: Step Functions -> Cloud Workflows.
+- **Phase 1**: Cloud Workflows -> Cloud Workflows.
 - **Phase 2**: Cloud Build -> Eventarc -> Sensory Service.
 
 ### 4.2 Sensory Service Strategy

@@ -3,7 +3,7 @@
 **Status**: Accepted
 **Date**: 2026-02-23
 **Deciders**: Gemini Cloud Genesis Design Authors
-**Requirements**: REQ-SENSE-001, REQ-SENSE-002, REQ-COORD-006 (Multi-tenancy)
+**Requirements**: REQ-SENSE-001, REQ-SENSE-002, REQ-COORD-005 (Multi-tenancy)
 **Extends**: ADR-GC-003 (Firestore Event Sourcing)
 
 ---

@@ -56,4 +56,4 @@ Using Eventarc allows the system to react instantly to failures (like a failed C
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-006](../../imp_bedrock/design/adrs/ADR-AB-006-sensory-service-eventbridge-lambda.md) — AWS equivalent
+- [ADR-AB-006](../adrs/ADR-AB-006-sensory-service-eventbridge-lambda.md) — AWS equivalent

@@ -59,4 +59,4 @@ Mapping ambiguity to service boundaries ensures cost-effective scaling. Cheap, d
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-014](../../imp_bedrock/design/adrs/ADR-014-intentengine-binding.md) — AWS sibling adaptation
+- [ADR-AB-014](../adrs/ADR-014-intentengine-binding.md) — AWS sibling adaptation

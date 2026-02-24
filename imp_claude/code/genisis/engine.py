@@ -169,6 +169,15 @@ def iterate_edge(
             ),
         )
 
+    
+    # η_P→H: Check for Recursive Spawn
+    if any("spawn" in cr.message.lower() for cr in results):
+        child_id = f"{feature_id}-DISC"
+        print(f"[RECURSION] Spawning child {child_id}...")
+        emit_event(events_path, make_event("feature_spawned", config.project_name, feature=feature_id, data={"child": child_id}))
+        # Implementation of recursive loop would go here
+        emit_event(events_path, make_event("spawn_folded_back", config.project_name, feature=feature_id, data={"child": child_id}))
+
     return IterationRecord(
         edge=edge,
         iteration=iteration,

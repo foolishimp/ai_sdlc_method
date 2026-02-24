@@ -57,4 +57,4 @@ Cloud Workflows integrates natively with Cloud Run, Cloud Functions, and Vertex 
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-002](../../imp_bedrock/design/adrs/ADR-AB-002-iterate-engine-step-functions.md) — AWS Step Functions equivalent
+- [ADR-AB-002](../adrs/ADR-AB-002-iterate-engine-step-functions.md) — AWS Step Functions equivalent

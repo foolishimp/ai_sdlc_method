@@ -71,4 +71,4 @@ Firestores document model fits feature vectors and events perfectly. Its "real-t
 ## References
 
 - [GEMINI_CLOUD_GENESIS_DESIGN.md](../GEMINI_CLOUD_GENESIS_DESIGN.md)
-- [ADR-AB-001](../../imp_bedrock/design/adrs/ADR-AB-001-bedrock-runtime-as-platform.md) — AWS sibling binding
+- [ADR-AB-001](../adrs/ADR-AB-001-bedrock-runtime-as-platform.md) — AWS sibling binding
