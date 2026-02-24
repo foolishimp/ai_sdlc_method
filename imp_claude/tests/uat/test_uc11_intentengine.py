@@ -138,39 +138,44 @@ class TestIntentEngineInterface:
         )
 
     # UC-11-04 | Validates: REQ-SUPV-001 | Fixture: IN_PROGRESS
-    def test_affect_propagation(self, evaluator_defaults):
-        """Affect propagates through chained IntentEngine invocations.
+    def test_affect_as_valence_vector(self, evaluator_defaults):
+        """Affect is a valence vector emitted by ANY evaluator on its gap finding.
 
-        The processing_phases in evaluator_defaults define a chain:
-        reflex fires first, affect classifies, conscious decides.
-        The phase ordering forms the propagation chain — each phase
-        enables the next.
+        Affect is not an evaluator type assignment. It is urgency/severity/priority
+        attached to a gap finding. F_D emits affect via threshold breach, F_P via
+        classified severity, F_H via human urgency judgment. The affect signal
+        determines routing — defer or escalate.
         """
         phases = evaluator_defaults.get("processing_phases", {})
         assert "reflex" in phases
         assert "affect" in phases
         assert "conscious" in phases
 
-        # Verify the propagation chain: reflex → affect → conscious
-        # Reflex fires unconditionally (no dependency)
+        # Verify reflex fires unconditionally
         reflex_fires = phases["reflex"].get("fires_when", "").lower()
         assert "every iteration" in reflex_fires or "no exceptions" in reflex_fires, (
             "Reflex must fire unconditionally"
         )
 
-        # Affect fires when reflex surfaces a signal
+        # Affect fires when any evaluator detects a gap
         affect_fires = phases["affect"].get("fires_when", "").lower()
-        assert "reflex" in affect_fires, (
-            "Affect must fire in response to reflex output"
+        assert "evaluator" in affect_fires or "gap" in affect_fires, (
+            "Affect must fire when any evaluator detects a gap"
+        )
+
+        # Affect must describe valence, not be an evaluator type
+        affect_desc = phases["affect"].get("description", "").lower()
+        assert "valence" in affect_desc or "urgency" in affect_desc, (
+            "Affect must describe valence/urgency, not an evaluator type"
         )
 
         # Conscious fires when affect determines signal warrants deliberation
         conscious_fires = phases["conscious"].get("fires_when", "").lower()
         assert "affect" in conscious_fires, (
-            "Conscious must fire in response to affect triage"
+            "Conscious must fire in response to affect"
         )
 
-        # Verify ordering: each evaluator type maps to a specific phase
+        # Verify evaluator type → processing phase mapping
         eval_types = evaluator_defaults.get("evaluator_types", {})
         assert eval_types.get("deterministic", {}).get("processing_phase") == "reflex"
         assert eval_types.get("agent", {}).get("processing_phase") == "conscious"

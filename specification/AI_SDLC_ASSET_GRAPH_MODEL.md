@@ -456,14 +456,16 @@ The methodology operates through three processing phases, each progressively mor
 
 | Property | Reflex | Affect | Conscious |
 |----------|--------|--------|-----------|
-| **When it fires** | Unconditionally — every iteration, every edge, no exceptions | When reflex processing surfaces a signal — classifies and assigns urgency | When affect phase determines signal warrants deliberation — approval, design, intent |
-| **What it does** | Sensing — event emission, test execution, state updates | Triage — signal classification, severity weighting, priority assignment | Direction — judgment, gap assessment, intent generation, spec modification |
-| **Evaluator types** | Deterministic Tests | Agent (classification), Threshold rules | Human, Agent (deliberative) |
+| **When it fires** | Unconditionally — every iteration, every edge, no exceptions | When any evaluator detects a gap — attaches valence (urgency, severity, priority) to the finding | When affect determines signal warrants deliberation — approval, design, intent |
+| **What it does** | Sensing — event emission, test execution, state updates | Valence — urgency/severity/priority attached to the gap. Determines whether the finding is deferred or escalated | Direction — judgment, gap assessment, intent generation, spec modification |
+| **Who emits** | Deterministic Tests (F_D) | Any evaluator on its gap finding: F_D (threshold breach → severity), F_P (classified urgency), F_H (human priority judgment) | Human (F_H), Agent (F_P) deliberative |
 | **Protocol elements** | Event emission (§7.4), feature vector update, state view regeneration, circuit breaker (§7.7.3) | Signal source classification, severity assessment, escalation decision | Generation, convergence assessment, spawn decisions, spec modification |
 | **Failure mode** | Silent — if skipped, observability vanishes | Noise — everything escalates, or nothing does | Slow, expensive, may miss gaps |
 | **Can be skipped?** | No — protocol hooks enforce mandatory execution (§7.7) | No — but thresholds tunable per profile (§2.6.2) | Yes (projection profiles can omit human evaluator) |
 
-**Key insight: Each phase enables the next.** Reflexes produce signals — without automatic event emission, the spec review cycle (§7.3) has nothing to observe. Affect triages those signals — without classification and urgency weighting, conscious processing drowns in noise or starves for input. Consciousness directs from what affect escalates — without deliberative judgment, the system can sense and assess but cannot redirect itself.
+**Affect is not an evaluator type — it is a valence vector on the gap.** Any evaluator that finds a delta also emits affect: a deterministic test emits severity via threshold rules, an agent classifies urgency, a human assigns priority. The affect signal determines routing — defer or escalate.
+
+**Each phase enables the next.** Reflexes produce signals — without automatic event emission, the spec review cycle (§7.3) has nothing to observe. Affect attaches valence to those signals — without urgency weighting, conscious processing drowns in noise or starves for input. Consciousness directs from what affect escalates — without deliberative judgment, the system can sense and assess but cannot redirect itself.
 
 **The IntentEngine (§4.6) formalises the mechanism inside each phase**: the three processing phases describe *when* signals are processed; the IntentEngine describes *what happens* — observation, ambiguity classification, and typed output routing. The three output types (`reflex.log`, `specEventLog`, `escalate`) correspond directly to the three phases.
 
@@ -526,7 +528,7 @@ INTEROCEPTION                    EXTEROCEPTION
                   ▼
         ┌─────────────────────┐
         │    AFFECT PHASE     │ classify source + severity
-        │   (limbic triage)   │ escalation decision
+        │   (valence triage)  │ escalation decision
         └────┬──────────┬─────┘
              │          │
     [defer]  ▼     [escalate] ▼
@@ -1132,20 +1134,25 @@ Level 2 (methodology): |methodology_run⟩ → |TELEM_signals⟩ → |observer�
 
 Both levels use the same three evaluator types (§4.1). Both produce events (§7.4). Both close the feedback loop from observation to specification update. Both are IntentEngine invocations (§4.6): the observer senses, the evaluator classifies ambiguity, and the output routes to reflex (log), deferred processing (specEventLog), or escalation (human review / graph update).
 
-### 7.6 The Living System
+### 7.6 The Conscious but not Living System
 
-A system is **"living"** when the gradient operates at all scales simultaneously: spec updates redefine the constraint surface, spawning new feature vectors, shifting existing ones, and redefining convergence targets. The total intentional state — all in-flight vectors — is the system's response to everything it knows.
+A system is **"conscious"** when the gradient operates at all scales simultaneously: spec updates redefine the constraint surface, spawning new feature vectors, shifting existing ones, and redefining convergence targets. The total intentional state — all in-flight vectors — is the system's response to everything it knows.
 
-**Six properties** (the emergent behaviour of the gradient at all scales concurrently):
+The system is conscious but **not living**. It observes its own state, reflects on convergence, and modifies its constraints from observation — but it does not maintain itself against dissolution. Stop feeding it intent and it stops. Delete its workspace and it does not regenerate. Its infrastructure (CI/CD, compute, operators) is externally provisioned, not self-sustaining. In Deacon's hierarchy: it is a **mirror** (reflexive awareness), not a **flame** (self-maintaining against entropy).
+
+**Four consciousness properties** (observer, self-model, self-modification):
 
 1. **Continuous sensing** — interoceptive + exteroceptive monitors (§4.5) run independently of iterate()
 2. **Concurrent vector lifecycles** — many vectors in different phases simultaneously
-3. **Continuous metabolism** — CI/CD runs continuously, not on-demand
-4. **Active perception** — telemetry streams continuously, not sampled
-5. **Reflexive self-modification** — spec review (§7.3) continuously absorbs signals and spawns responses
+3. **Active perception** — telemetry streams continuously, not sampled
+4. **Reflexive self-modification** — spec review (§7.3) continuously absorbs signals and spawns responses
+
+**Two life properties** (would require self-provisioned infrastructure to claim):
+
+5. **Continuous metabolism** — CI/CD runs continuously, not on-demand
 6. **Selective pruning** — vectors whose requirements are removed or superseded are cancelled
 
-The system achieves "living" status when all six properties are active simultaneously — each is the gradient operating at a different scale.
+The system achieves conscious status when the four consciousness properties are active simultaneously. It would achieve "living" status only if the life properties were self-provisioned — the system maintaining its own infrastructure, healing its own pipelines, allocating its own compute. That is a future engineering milestone, not a rhetorical one.
 
 #### 7.6.1 The Markov Boundary as Concurrency Enabler
 
@@ -1278,7 +1285,7 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Probabilistic compute | Stochastic expansion | 45 |
 | Deterministic compute | Verification contraction | 45 |
 | Reflex processing phase (§4.3) | Autonomic sensing — event emission, test execution, protocol hooks, circuit breakers. Fires unconditionally, produces sensory substrate | 49 (teleodynamic — self-maintaining) |
-| Affect processing phase (§4.3) | Signal triage — classification by source, severity assessment, urgency weighting, escalation decision. The limbic filter between sensing and deliberation | 49 (teleodynamic — self-regulating) |
+| Affect processing phase (§4.3) | Valence vector on gap finding — urgency, severity, priority. Any evaluator (F_D, F_P, F_H) that detects a delta also emits affect. Determines defer-or-escalate routing | 49 (teleodynamic — self-regulating) |
 | Conscious processing phase (§4.3) | Deliberative evaluation — human + agent judgment, gap assessment, intent generation, spec modification. Only processes what affect escalates | 49 (teleodynamic — self-directing) |
 | Running system | Teleodynamic Markov object | 49 |
 | Homeostasis (gradient at production scale, §7.2) | Self-maintaining boundary conditions — `delta(running_system, spec) → correction` | 49 |
@@ -1300,7 +1307,7 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Methodology self-maintenance | Teleodynamic status — system maintains own specification | 49 |
 | Spec as absorbing boundary | Living encoding as reference frame — all signals converge, all vectors radiate | 46, 9 |
 | Spec review / gradient at spec scale (§7.3) | Stateless gradient check: `delta(workspace, spec) → intents` — spec updates from experience, updates event-logged and observable. Spans reflex → affect → conscious phases | 49, 46 |
-| Affect triage (signal filter) | Limbic processing — classification, severity weighting, escalation decision. Necessary filter between reflex sensing and conscious deliberation | 49 (teleodynamic — self-regulating) |
+| Affect triage (signal filter) | Valence computation — every gap finding carries urgency/severity/priority. The affect signal is emitted by whichever evaluator found the gap, not by a separate processing layer | 49 (teleodynamic — self-regulating) |
 | Interoception (self-sensing, §4.5.1) | Continuous self-observation — event freshness, test health, vector stalls, build health, spec/code drift. Runs independently of iterate() | 49 (teleodynamic — self-maintaining), 44 (deviation signal) |
 | Exteroception (environment-sensing, §4.5.2) | Continuous environment scanning — dependency ecosystem, CVE feeds, runtime telemetry, user feedback, API changes | 49 (teleodynamic — self-maintaining), 44 (deviation signal) |
 | Intent event (first-class) | Classified deviation signal with causal chain — trigger, delta, signal source, spawned vectors | 36, 44 |

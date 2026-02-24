@@ -28,7 +28,7 @@ evaluator_types:
   agent:
     type: agent
     processing_phase: conscious
-    processing_phases: [conscious, affect]    # Deliberative + signal classification/triage
+    processing_phases: [conscious]    # Deliberative. Agent also emits affect (valence) on its gap findings, but affect is not an evaluator assignment — all evaluators emit affect.
     description: "LLM-based assessment — coherence, completeness, gap analysis"
     mechanism: |
       Assess the current asset candidate against:
@@ -125,16 +125,14 @@ convergence_rules:
 # PROCESSING PHASES (Spec §4.3)
 # ═══════════════════════════════════════════════════════════════════════
 #
-# Three processing phases govern all methodology operations, modelled on
-# biological nervous system architecture. Each phase enables the next:
-# reflexes produce the sensory substrate, affect triages it, consciousness
-# directs from what survives triage.
+# Three processing phases govern all methodology operations. Each phase
+# enables the next: reflexes produce the sensory substrate, affect attaches
+# valence to findings, consciousness directs from what affect escalates.
 
 processing_phases:
 
   reflex:
     description: "Autonomic sensing — fires unconditionally, no judgment"
-    analogy: "Spinal cord / brainstem / System 1 (fast, automatic)"
     includes:
       - deterministic tests
       - event emission to events.jsonl
@@ -145,18 +143,21 @@ processing_phases:
     fires_when: "Every iteration boundary, every edge — no exceptions, no decision"
 
   affect:
-    description: "Signal triage — classifies, weights, decides escalation"
-    analogy: "Limbic system / amygdala (emotional appraisal, valence, urgency)"
+    description: "Valence vector on gap findings — urgency, severity, priority"
+    # Affect is NOT an evaluator type. It is emitted by ANY evaluator that
+    # finds a gap: F_D emits severity via threshold breach, F_P via classified
+    # urgency, F_H via human priority judgment. The affect signal determines
+    # routing — defer or escalate.
     includes:
       - signal source classification (gap / discovery / ecosystem / optimisation / user / TELEM)
       - severity and priority weighting
       - escalation decision (escalate to conscious vs log-and-defer)
       - threshold tuning per projection profile
-    fires_when: "Reflex processing surfaces a signal — classifies and assigns urgency"
+    fires_when: "Any evaluator detects a gap — attaches valence to the finding"
+    emitted_by: "F_D (threshold breach), F_P (classified severity), F_H (human urgency judgment)"
 
   conscious:
     description: "Deliberative processing — requires judgment"
-    analogy: "Frontal cortex / prefrontal / System 2 (slow, deliberate)"
     includes:
       - human evaluator
       - agent evaluator (deliberative)
@@ -165,4 +166,4 @@ processing_phases:
       - spec modification
       - spawn decisions
       - convergence judgment (question_answered)
-    fires_when: "Affect phase determines signal warrants deliberation — approval, design, intent"
+    fires_when: "Affect determines signal warrants deliberation — approval, design, intent"

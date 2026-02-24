@@ -502,8 +502,8 @@ And provides remediation guidance for each failure
 Given the evaluator configuration for all edge types
 When I inspect the processing_phase field for each evaluator type
 Then Deterministic Tests are classified as "reflex" (autonomic)
-And Agent classification is classified as "affect" (limbic triage)
 And Human and Agent deliberative are classified as "conscious" (deliberative)
+And Affect is a valence vector emitted by ANY evaluator on its gap finding (not an evaluator type assignment)
 ```
 
 ### UC-02-05: Evaluator composition is configurable per edge

@@ -318,19 +318,20 @@ class TestFormalSpecContent:
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Human, Agent (deliberative)" in content and "Conscious" in content
-        assert "Agent (classification)" in content and "Affect" in content
-        assert "Deterministic Tests" in content and "Reflex" in content
+        assert "Human (F_H)" in content and "Conscious" in content
+        assert "Deterministic Tests (F_D)" in content and "Reflex" in content
+        # Affect is a valence vector emitted by ANY evaluator, not an evaluator assignment
+        assert "Affect is not an evaluator type" in content
 
     @pytest.mark.bdd
-    def test_spec_defines_affect_phase(self):
-        """Spec §4.3 must define the affect processing phase."""
+    def test_spec_defines_affect_as_valence(self):
+        """Spec §4.3 must define affect as valence vector on gap findings."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
         assert "Affect" in content
-        assert "Triage" in content or "triage" in content
-        assert "signal classification" in content.lower() or "severity weighting" in content
+        assert "valence" in content.lower()
+        assert "any evaluator" in content.lower() or "ANY evaluator" in content
 
     @pytest.mark.bdd
     def test_spec_labels_hooks_as_reflex(self):
@@ -419,12 +420,12 @@ class TestFormalSpecContent:
         assert "EXTEROCEPTION" in content or "exteroception" in content.lower()
 
     @pytest.mark.bdd
-    def test_living_system_defines_properties(self):
-        """Living system section must define operational properties."""
+    def test_conscious_system_defines_properties(self):
+        """Conscious system section must define operational properties."""
         spec_path = SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
         with open(spec_path) as f:
             content = f.read()
-        assert "Living System" in content
+        assert "Conscious but not Living" in content
         assert "concurrent" in content.lower() or "vector lifecycles" in content
 
     @pytest.mark.bdd

@@ -825,22 +825,21 @@ class TestProcessingPhases:
                 f"evaluator '{name}' processing_phases must be a list"
 
     @pytest.mark.tdd
-    def test_agent_spans_conscious_and_affect(self, evaluator_defaults):
-        """Agent evaluator must declare both conscious and affect processing phases."""
+    def test_agent_is_conscious(self, evaluator_defaults):
+        """Agent evaluator must declare conscious processing phase."""
         agent = evaluator_defaults["evaluator_types"]["agent"]
         phases = agent["processing_phases"]
         assert "conscious" in phases, "agent missing conscious in processing_phases"
-        assert "affect" in phases, "agent missing affect in processing_phases"
 
     @pytest.mark.tdd
-    def test_affect_phase_has_evaluator(self, evaluator_defaults):
-        """At least one evaluator must include 'affect' in its processing_phases."""
-        found = False
-        for name, evtype in evaluator_defaults["evaluator_types"].items():
-            if "affect" in evtype.get("processing_phases", []):
-                found = True
-                break
-        assert found, "no evaluator is tagged with processing_phases containing 'affect'"
+    def test_affect_is_valence_not_evaluator_assignment(self, evaluator_defaults):
+        """Affect must be defined as a processing phase (valence vector, not evaluator type)."""
+        phases = evaluator_defaults.get("processing_phases", {})
+        assert "affect" in phases, "affect phase missing from processing_phases section"
+        affect = phases["affect"]
+        desc = affect.get("description", "").lower()
+        assert "valence" in desc or "urgency" in desc, \
+            "affect phase must describe valence/urgency (not an evaluator type assignment)"
 
     @pytest.mark.tdd
     def test_processing_phases_section_exists(self, evaluator_defaults):
@@ -857,10 +856,9 @@ class TestProcessingPhases:
 
     @pytest.mark.tdd
     def test_processing_phases_have_descriptions(self, evaluator_defaults):
-        """Each processing phase must have description, analogy, includes, fires_when."""
+        """Each processing phase must have description, includes, fires_when."""
         for name, phase in evaluator_defaults["processing_phases"].items():
             assert "description" in phase, f"phase '{name}' missing description"
-            assert "analogy" in phase, f"phase '{name}' missing analogy"
             assert "includes" in phase, f"phase '{name}' missing includes"
             assert "fires_when" in phase, f"phase '{name}' missing fires_when"
 

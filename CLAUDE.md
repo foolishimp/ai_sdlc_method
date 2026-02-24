@@ -120,15 +120,19 @@ ai_sdlc_method/
 | Document | Path | What it covers |
 |----------|------|---------------|
 | Intent | specification/INTENT.md | Business motivation |
-| Asset Graph Model | specification/AI_SDLC_ASSET_GRAPH_MODEL.md | Formal system, Hilbert space |
+| Executive Summary | specification/EXECUTIVE_SUMMARY.md | Condensed overview of the formal system |
+| Asset Graph Model | specification/AI_SDLC_ASSET_GRAPH_MODEL.md | Formal system — 4 primitives, 1 operation |
+| Genesis Bootloader | specification/GENESIS_BOOTLOADER.md | LLM constraint context — axiom set for project sessions |
 | Projections | specification/PROJECTIONS_AND_INVARIANTS.md | Projections, vector types, spawning |
-| Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 67 platform-agnostic reqs |
+| Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 69 platform-agnostic reqs |
 | Feature Vectors | specification/FEATURE_VECTORS.md | Feature decomposition |
 | UX | specification/UX.md | User journeys, MVP features, validation scenarios |
 | Claude Design | imp_claude/design/AISDLC_V2_DESIGN.md | Claude Code implementation |
-| Claude ADRs | imp_claude/design/adrs/ADR-008..017 | 10 ADRs, fully cross-referenced |
+| Claude ADRs | imp_claude/design/adrs/ADR-008..019 | 12 ADRs, fully cross-referenced |
 | Iterate Agent | imp_claude/code/.../genisis/agents/gen-iterate.md | The universal agent |
 | Graph Topology | imp_claude/code/.../genisis/config/graph_topology.yml | 10 asset types, 10 transitions |
+| Engine CLI | imp_claude/code/genisis/__main__.py | Level 4 deterministic evaluation |
+| Installer | imp_claude/code/installers/gen-setup.py | Python installer, deploys bootloader to CLAUDE.md |
 | Gemini Design | imp_gemini/design/GEMINI_GENESIS_DESIGN.md | Gemini CLI implementation |
 | Codex Design | imp_codex/design/CODEX_GENESIS_DESIGN.md | Codex implementation |
 | Bedrock Design | imp_bedrock/design/BEDROCK_GENESIS_DESIGN.md | AWS Bedrock cloud-native implementation |
@@ -144,14 +148,14 @@ ai_sdlc_method/
 |-------|--------|
 | Intent | Complete |
 | Spec | Complete (formal system, IntentEngine §4.6, constraint tolerances §5.3, projections, invariants, UX, sensory systems) |
-| Design | Complete (Claude: ADRs 008-017, Gemini: ADRs GG-001-008, Codex: ADR-CG-001) |
-| Code | Phase 1a (Claude: configs, 4 agents, 13 commands, 4 hooks — no executable engine) |
-| Tests | 502 tests (Claude: spec validation + implementation), 22 E2E |
+| Design | Complete (Claude: ADRs 008-019, Gemini: ADRs GG-001-008, Codex: ADR-CG-001) |
+| Code | Phase 1a (Claude: configs, 4 agents, 13 commands, 4 hooks, engine CLI with Level 4 deterministic evaluation) |
+| Tests | 950 tests (Claude: spec validation + implementation), 34 E2E |
 | UAT | Not started |
 | CI/CD | Not started |
 | Telemetry | Not started |
 
-**Next**: Functor execution model implementation — mode/valence config, affect schema, escalation tests (post ADR-017)
+**Next**: F_P construct implementation, cross-validating hybrid (engine delta_D as hard gate, LLM delta_P as soft construction)
 
 ---
 

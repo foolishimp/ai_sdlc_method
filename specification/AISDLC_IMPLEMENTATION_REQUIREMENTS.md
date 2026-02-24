@@ -223,7 +223,7 @@ The system shall support three evaluator types, composable per graph edge.
 - **Agent(intent, context)**: LLM-based gap analysis, coherence checking, refinement — probabilistic compute (#45)
 - **Deterministic Tests**: pass/fail — type checks, schema validation, test suites, SLA monitors — deterministic compute (#45)
 - All three compute delta (#36) between current state and target state
-- Each evaluator type declares `processing_phase: reflex|affect|conscious` — Deterministic is reflex (autonomic), Agent classification is affect (limbic triage), Human and Agent deliberative are conscious (deliberative)
+- Each evaluator type declares `processing_phase: reflex|affect|conscious` — Deterministic is reflex (autonomic), Human and Agent deliberative are conscious (deliberative). Affect is not an evaluator type — it is a valence vector (urgency, severity, priority) emitted by ANY evaluator on its gap finding: F_D emits affect via threshold breach, F_P via classified severity, F_H via human urgency judgment
 
 **Traces To**: Asset Graph Model §4.1 (Three Evaluator Types), §4.3 (Three Processing Phases) | Ontology #35 (evaluator-as-prompter), #45 (two compute regimes), #49 (teleodynamic)
 
@@ -525,7 +525,7 @@ The system shall provide a development observer agent — an agent specification
 - Draft intents presented to human for approval (actor model — no autonomous spec modification)
 - Idempotent: same workspace state + same spec = same observations
 
-**Traces To**: Asset Graph Model §7.1 (The Gradient), §7.3 (Spec Review), §7.6 (The Living System) | Ontology #49 (teleodynamic — self-maintaining), #36 (delta/intent)
+**Traces To**: Asset Graph Model §7.1 (The Gradient), §7.3 (Spec Review), §7.6 (The Conscious but not Living System) | Ontology #49 (teleodynamic — self-maintaining), #36 (delta/intent)
 
 ---
 
@@ -568,7 +568,7 @@ The system shall provide an ops observer agent — an agent specification execut
 - Integrates with interoceptive signals (REQ-SENSE-001) — ops observer is a higher-level consumer of sensory data
 - Stateless: same telemetry snapshot + same spec = same observations
 
-**Traces To**: Asset Graph Model §7.1 (The Gradient), §7.2 (Gradient at Production Scale), §7.6 (The Living System) | Ontology #49 (teleodynamic), #44 (deviation signal), #7 (Markov object)
+**Traces To**: Asset Graph Model §7.1 (The Gradient), §7.2 (Gradient at Production Scale), §7.6 (The Conscious but not Living System) | Ontology #49 (teleodynamic), #44 (deviation signal), #7 (Markov object)
 
 ---
 

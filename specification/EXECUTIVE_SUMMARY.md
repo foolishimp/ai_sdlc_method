@@ -30,7 +30,7 @@ The system is a self-regulating organism that closes the loop between constructi
 *   **Computed Intent**: Intent is not an external command; it is a generated output of any observer detecting a delta: `intent = delta(observed_state, spec)`.
 *   **Three Processing Phases**:
     1.  **Reflex (Autonomic)**: Event emission, test execution, protocol hooks. Fires unconditionally.
-    2.  **Affect (Limbic)**: Signal classification and triage. Assigns urgency and determines escalation.
+    2.  **Affect (Valence)**: Urgency, severity, priority attached to each gap finding. Any evaluator (F_D, F_P, F_H) emits affect on its findings. Determines defer-or-escalate routing.
     3.  **Conscious (Deliberative)**: Human/Agent judgment, intent generation, spec modification.
 *   **Sensory Systems**:
     *   **Interoception**: Continuous monitoring of internal health (e.g., test staleness, stalled vectors).

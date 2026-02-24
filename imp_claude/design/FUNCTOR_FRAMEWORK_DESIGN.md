@@ -1014,11 +1014,13 @@ The spec (§4.6) defines three processing phases:
 
 ```
 Reflex (F_D)    — templates, transforms, rules    → FREE (deterministic)
-Affect (F_P)    — judgment, generation, evaluation → COSTLY (LLM calls)
 Conscious (F_H) — decisions, approvals             → BLOCKING (human wait)
+Affect          — valence (urgency/severity) on gap findings, emitted by ANY evaluator
 ```
 
-The engine already has the **full reflex layer** (route, emit, delta, subprocess, classify, sense). The cost question is how to structure the **affect layer's LLM calls** — per-check (Strategy B, 37 calls) vs per-edge (Strategy C, 4 calls) vs in-session (Strategy A, 1 session).
+Note: Affect is not F_P. It is a valence vector that any evaluator emits on its gap finding — F_D emits severity via threshold breach, F_P via classified urgency, F_H via human priority judgment. The affect signal determines routing (defer vs escalate).
+
+The engine already has the **full reflex layer** (route, emit, delta, subprocess, classify, sense). The cost question is how to structure the **LLM-based construction and evaluation** — per-check (Strategy B, 37 calls) vs per-edge (Strategy C, 4 calls) vs in-session (Strategy A, 1 session).
 
 ### Event Reliability Hierarchy
 

@@ -413,7 +413,7 @@ You adapt your behaviour based on the edge parameterisation. Here is guidance fo
 
 ## Evaluator Types
 
-The three evaluator types operate across three processing phases (Spec §4.3), modelled on the biological nervous system: **reflex** (deterministic tests, event emission, protocol hooks — fire unconditionally, like the spinal cord), **affect** (signal classification, severity weighting, escalation decision — triage that filters what reaches consciousness, like the limbic system), and **conscious** (human and agent deliberative evaluation — judgment, intent generation, spec modification, like the frontal cortex). Each phase enables the next: without reflex sensing there is nothing to triage; without affect triage consciousness drowns in noise.
+The three evaluator types operate across three processing phases (Spec §4.3): **reflex** (deterministic tests, event emission, protocol hooks — fire unconditionally), **affect** (valence vector on gap findings — urgency, severity, priority — emitted by ANY evaluator that detects a delta, determines defer-or-escalate routing), and **conscious** (human and agent deliberative evaluation — judgment, intent generation, spec modification). Each phase enables the next: without reflex sensing there is nothing to appraise; without affect valence, consciousness drowns in noise.
 
 ### Human Evaluator
 - You present your work and ask the human to approve, reject, or provide refinement guidance
