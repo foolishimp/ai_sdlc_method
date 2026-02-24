@@ -83,6 +83,7 @@ class EvaluationResult:
     delta: int = 0
     converged: bool = False
     escalations: list[str] = field(default_factory=list)
+    spawn_requested: str = ""  # child feature ID if spawn was triggered
 
 
 @dataclass
@@ -114,6 +115,39 @@ class RouteResult:
     reason: str
     profile: str
     candidates: list[str] = field(default_factory=list)
+
+
+@dataclass
+class SpawnRequest:
+    """Request to spawn a child vector — output of stuck-delta detection."""
+
+    question: str
+    vector_type: str  # discovery | spike | poc | hotfix
+    parent_feature: str
+    triggered_at_edge: str
+    context_hints: dict = field(default_factory=dict)
+
+
+@dataclass
+class SpawnResult:
+    """Result of creating a child vector."""
+
+    child_id: str
+    child_path: str
+    parent_updated: bool
+    event_emitted: bool
+    profile: str
+
+
+@dataclass
+class FoldBackResult:
+    """Result of folding a child's results back to parent."""
+
+    parent_id: str
+    child_id: str
+    payload_path: str
+    parent_unblocked: bool
+    event_emitted: bool
 
 
 @dataclass

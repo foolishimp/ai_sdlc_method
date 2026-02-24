@@ -34,12 +34,20 @@ class FunctorResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
+class GuardrailResult:
+    """A binary safety gate. If it fails, the iteration is aborted."""
+    name: str
+    passed: bool
+    message: str
+
+@dataclass
 class IterationReport:
     """The consolidated result of one iterate() application."""
     asset_path: str
     delta: int
     converged: bool
     functor_results: List[FunctorResult]
+    guardrail_results: List[GuardrailResult] = field(default_factory=list)
     timestamp: datetime = field(default_factory=lambda: datetime.now())
     spawn: Optional[SpawnRequest] = None
 

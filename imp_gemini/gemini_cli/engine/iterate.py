@@ -8,7 +8,8 @@ from typing import Dict, Any, List, Protocol, Union
 from pathlib import Path
 from datetime import datetime
 
-from .models import IterationReport, FunctorResult, Outcome, SpawnRequest
+from .models import IterationReport, FunctorResult, Outcome, SpawnRequest, GuardrailResult
+from .guardrails import GuardrailEngine
 
 class Functor(Protocol):
     """Protocol for STL-style generic predicates (Evaluators)."""
@@ -18,15 +19,27 @@ class Functor(Protocol):
 class IterateEngine:
     """The Universal 'std::sort' of the SDLC."""
     
-    def __init__(self, functors: List[Functor]):
+    def __init__(self, functors: List[Functor], constraints: Dict[str, Any] = None):
         self.functors = functors
+        self.guardrail_engine = GuardrailEngine(constraints or {})
 
     def run(self, asset_path: Path, context: Dict, mode: str = "interactive") -> IterationReport:
         """
         Single application of iterate().
         Returns a strongly-typed IterationReport.
         """
-        # 1. Read current candidate
+        # 1. Pre-flight Guardrails (HARD CONTROLS)
+        guardrails = self.guardrail_engine.validate_pre_flight(context.get("edge", ""), context)
+        if any(not g.passed for g in guardrails):
+            return IterationReport(
+                asset_path=str(asset_path),
+                delta=-1, # Delta is invalid if guardrails fail
+                converged=False,
+                functor_results=[],
+                guardrail_results=guardrails
+            )
+
+        # 2. Read current candidate
         candidate = asset_path.read_text() if asset_path.exists() else ""
         
         # 2. Run Generic Predicates (Evaluators)

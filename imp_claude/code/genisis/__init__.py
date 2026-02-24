@@ -8,10 +8,13 @@ from .models import (
     ClassificationResult,
     EvaluationResult,
     Event,
+    FoldBackResult,
     FunctionalUnit,
     ResolvedCheck,
     RouteResult,
     SenseResult,
+    SpawnRequest,
+    SpawnResult,
 )
 from .config_loader import (
     load_yaml,
@@ -34,6 +37,15 @@ from .fd_sense import (
     sense_test_health,
 )
 from .fd_route import lookup_encoding, select_next_edge, select_profile
+from .fd_spawn import (
+    check_time_box,
+    create_child_vector,
+    detect_spawn_condition,
+    emit_spawn_events,
+    fold_back_child,
+    link_parent_child,
+    load_events,
+)
 from .dispatch import dispatch, lookup_and_dispatch
 
 __all__ = [
@@ -44,10 +56,13 @@ __all__ = [
     "ClassificationResult",
     "EvaluationResult",
     "Event",
+    "FoldBackResult",
     "FunctionalUnit",
     "ResolvedCheck",
     "RouteResult",
     "SenseResult",
+    "SpawnRequest",
+    "SpawnResult",
     # Config
     "load_yaml",
     "resolve_variable",
@@ -73,6 +88,14 @@ __all__ = [
     "lookup_encoding",
     "select_next_edge",
     "select_profile",
+    # Spawn
+    "check_time_box",
+    "create_child_vector",
+    "detect_spawn_condition",
+    "emit_spawn_events",
+    "fold_back_child",
+    "link_parent_child",
+    "load_events",
     # Dispatch
     "dispatch",
     "lookup_and_dispatch",

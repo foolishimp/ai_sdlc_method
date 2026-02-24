@@ -16,6 +16,13 @@ from .config_loader import load_yaml, resolve_checklist
 from .fd_emit import emit_event, make_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
+from .fd_spawn import (
+    create_child_vector,
+    detect_spawn_condition,
+    emit_spawn_events,
+    link_parent_child,
+    load_events,
+)
 from .fp_evaluate import run_check as fp_run_check
 from .models import (
     CheckOutcome,
@@ -169,14 +176,29 @@ def iterate_edge(
             ),
         )
 
-    
-    # η_P→H: Check for Recursive Spawn
-    if any("spawn" in cr.message.lower() for cr in results):
-        child_id = f"{feature_id}-DISC"
-        print(f"[RECURSION] Spawning child {child_id}...")
-        emit_event(events_path, make_event("feature_spawned", config.project_name, feature=feature_id, data={"child": child_id}))
-        # Implementation of recursive loop would go here
-        emit_event(events_path, make_event("spawn_folded_back", config.project_name, feature=feature_id, data={"child": child_id}))
+    # Spawn detection: check if stuck delta pattern warrants a child vector
+    if not converged:
+        spawn_request = detect_spawn_condition(
+            load_events(config.workspace_path), feature_id, edge, threshold=3
+        )
+        if spawn_request:
+            spawn_result = create_child_vector(
+                config.workspace_path, spawn_request, config.project_name
+            )
+            link_parent_child(
+                config.workspace_path,
+                feature_id,
+                spawn_result.child_id,
+                spawn_request.vector_type,
+                spawn_request,
+            )
+            emit_spawn_events(
+                config.workspace_path,
+                config.project_name,
+                spawn_request,
+                spawn_result,
+            )
+            evaluation.spawn_requested = spawn_result.child_id
 
     return IterationRecord(
         edge=edge,
@@ -237,6 +259,10 @@ def run_edge(
         if record.evaluation.converged:
             break
 
+        # If spawn was triggered, parent is now blocked — stop iterating
+        if record.evaluation.spawn_requested:
+            break
+
     return records
 
 
@@ -279,6 +305,12 @@ def run(
         edge_key = edge.replace("→", "_").replace("↔", "_").replace(" ", "")
         if records and records[-1].evaluation.converged:
             feature_trajectory["trajectory"][edge_key] = {"status": "converged"}
+        elif records and records[-1].evaluation.spawn_requested:
+            feature_trajectory["trajectory"][edge_key] = {
+                "status": "blocked",
+                "blocked_by": records[-1].evaluation.spawn_requested,
+            }
+            break
         else:
             feature_trajectory["trajectory"][edge_key] = {"status": "iterating"}
             break
