@@ -12,7 +12,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from typing import Any
+from typing import Optional, Any
 
 import yaml
 
@@ -124,7 +124,7 @@ def compute_aggregated_view(workspace: Path) -> dict[str, Any]:
 
 
 def classify_tolerance_breach(
-    observed_value: float, threshold: float, severity: str | None = None,
+    observed_value: float, threshold: float, severity: Union[str, None] = None,
 ) -> str:
     """Classify tolerance pressure into IntentEngine output classes."""
     if observed_value <= threshold:
@@ -170,9 +170,9 @@ def get_converged_edges(events: list[dict[str, Any]], feature: str) -> set[str]:
 
 def compute_current_delta(
     events: list[dict[str, Any]], feature: str, edge: str,
-) -> int | None:
+) -> Union[int, None]:
     """Return the most recent delta value for a feature/edge pair, or None."""
-    delta: int | None = None
+    delta: Union[int, None] = None
     for ev in events:
         if (
             ev.get("event_type") == "iteration_completed"
@@ -289,9 +289,9 @@ def _has_blocked_dependency(
 
 def select_next_feature(
     features: list[dict[str, Any]],
-) -> dict[str, Any] | None:
+) ->Optional[ dict[str, Any] ]:
     """Select the feature closest to completion (fewest unconverged edges)."""
-    best: dict[str, Any] | None = None
+    best:Optional[ dict[str, Any] ] = None
     best_remaining = float("inf")
 
     for fv in features:
@@ -313,8 +313,8 @@ def select_next_feature(
 
 def get_next_edge(
     feature: dict[str, Any],
-    graph_topology: dict[str, Any] | None = None,
-) -> str | None:
+    graph_topology:Optional[ dict[str, Any] ] = None,
+) -> Union[str, None]:
     """Walk edges in topological order, return first unconverged edge."""
     traj = feature.get("trajectory", {})
     edges = STANDARD_PROFILE_EDGES
@@ -467,7 +467,7 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
 
 def detect_corrupted_events(workspace: Path) -> list[dict[str, Any]]:
     """Return list of corruption reports for events.jsonl."""
-    events_file = workspace / ".ai-workspace" / "events" / "events.jsonl"
+    events_file = _workspace_dir(workspace) / "events" / "events.jsonl"
     if not events_file.exists():
         return []
 
@@ -535,10 +535,15 @@ def get_unactioned_escalations(
 
 def detect_workspace_state(workspace: Path) -> str:
     """Detect the current workspace state from filesystem + event log."""
-    ws_dir = _workspace_dir(workspace)
-    project_root = workspace.parent if workspace.name == ".ai-workspace" else workspace
+    # Ensure we are looking at the actual .ai-workspace directory
+    if workspace.name == ".ai-workspace":
+        ws_dir = workspace
+        project_root = workspace.parent
+    else:
+        ws_dir = workspace / ".ai-workspace"
+        project_root = workspace
 
-    if not ws_dir.exists():
+    if not ws_dir.exists() or not ws_dir.is_dir():
         return "UNINITIALISED"
 
     constraints_candidates = [
@@ -549,6 +554,7 @@ def detect_workspace_state(workspace: Path) -> str:
     has_constraints = False
     for cp in constraints_candidates:
         if cp.exists():
+            # print(f"DEBUG: Found constraint file at {cp}")
             try:
                 with open(cp) as f:
                     data = yaml.safe_load(f)

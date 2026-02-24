@@ -5,11 +5,12 @@ Prompts the developer for approval or refinement.
 """
 
 from typing import Dict, Any
+from gemini_cli.engine.models import FunctorResult, Outcome
 
 class HumanFunctor:
     """Judgment-based evaluator (Ask the user)."""
     
-    def evaluate(self, candidate: str, context: Dict) -> Dict[str, Any]:
+    def evaluate(self, candidate: str, context: Dict) -> FunctorResult:
         print("\n" + "="*40)
         print("HUMAN EVALUATION REQUIRED")
         print("="*40)
@@ -22,9 +23,24 @@ class HumanFunctor:
         choice = input(f"{prompt} (y/n/r): ").lower().strip()
         
         if choice == 'y':
-            return {"delta": 0, "status": "approved", "reasoning": "Human approved."}
+            return FunctorResult(
+                name="human_judgment",
+                outcome=Outcome.PASS,
+                delta=0,
+                reasoning="Human approved."
+            )
         elif choice == 'r':
             feedback = input("Provide refinement guidance: ")
-            return {"delta": 1, "status": "refine", "reasoning": feedback}
+            return FunctorResult(
+                name="human_judgment",
+                outcome=Outcome.FAIL,
+                delta=1,
+                reasoning=feedback
+            )
         else:
-            return {"delta": 1, "status": "rejected", "reasoning": "Human rejected."}
+            return FunctorResult(
+                name="human_judgment",
+                outcome=Outcome.FAIL,
+                delta=1,
+                reasoning="Human rejected."
+            )

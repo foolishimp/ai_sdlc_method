@@ -6,6 +6,8 @@ from enum import Enum
 from pathlib import Path
 from . import workspace_state
 
+from typing import Any, Union
+
 class ProjectState(Enum):
     UNINITIALISED = "UNINITIALISED"
     NEEDS_CONSTRAINTS = "NEEDS_CONSTRAINTS"
@@ -17,12 +19,16 @@ class ProjectState(Enum):
     ALL_CONVERGED = "ALL_CONVERGED"
 
 class StateManager:
-    def __init__(self, workspace_root: str = ".ai-workspace"):
+    def __init__(self, workspace_root: Union[str, Path] = ".ai-workspace"):
         self.workspace_root = Path(workspace_root)
-        self.project_root = self.workspace_root.parent if self.workspace_root.name == ".ai-workspace" else self.workspace_root
+        # project_root is either parent of .ai-workspace, or the directory itself
+        if self.workspace_root.name == ".ai-workspace":
+            self.project_root = self.workspace_root.parent
+        else:
+            self.project_root = self.workspace_root
 
     def get_current_state(self) -> ProjectState:
-        state_str = workspace_state.detect_workspace_state(self.project_root)
+        state_str = workspace_state.detect_workspace_state(self.workspace_root)
         return ProjectState(state_str)
 
     def get_active_features(self):

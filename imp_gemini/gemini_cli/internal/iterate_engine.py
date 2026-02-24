@@ -17,7 +17,7 @@ import yaml
 
 
 class IterateEngine:
-    def __init__(self, project_root: Path | None = None):
+    def __init__(self, project_root: Union[Path, None] = None):
         self.project_root = project_root or Path.cwd()
         self.ws_dir = self.project_root / ".ai-workspace"
         self.events_file = self.ws_dir / "events" / "events.jsonl"

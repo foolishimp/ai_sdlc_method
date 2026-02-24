@@ -10,6 +10,7 @@ from pathlib import Path
 from gemini_cli.engine.state import EventStore, Projector
 from gemini_cli.engine.iterate import IterateEngine
 from gemini_cli.functors.f_probabilistic import GeminiFunctor, SpawnRequest
+from gemini_cli.engine.models import Outcome, FunctorResult
 
 @pytest.fixture
 def workspace(tmp_path):
@@ -31,22 +32,28 @@ def test_iterate_engine_convergence(workspace):
     # REQ-CLI-003: Universal iterate() engine
     class MockFunctor:
         def evaluate(self, candidate, context):
-            return {"delta": 0 if "pass" in candidate else 1}
+            passed = "pass" in candidate
+            return FunctorResult(
+                name="mock", 
+                outcome=Outcome.PASS if passed else Outcome.FAIL,
+                delta=0 if passed else 1,
+                reasoning="test"
+            )
 
     engine = IterateEngine(functors=[MockFunctor()])
     asset_path = workspace / "asset.txt"
     
     # Test Failure
     asset_path.write_text("fail")
-    result = engine.run(asset_path, {})
-    assert result["converged"] is False
-    assert result["delta"] == 1
+    report = engine.run(asset_path, {})
+    assert report.converged is False
+    assert report.delta == 1
     
     # Test Success
     asset_path.write_text("pass")
-    result = engine.run(asset_path, {})
-    assert result["converged"] is True
-    assert result["delta"] == 0
+    report = engine.run(asset_path, {})
+    assert report.converged is True
+    assert report.delta == 0
 
 def test_recursive_spawn_detection():
     # REQ-CLI-006: Recursive Spawning
@@ -56,16 +63,16 @@ def test_recursive_spawn_detection():
     context = {"iteration_count": 5}
     result = functor.evaluate("some candidate", context)
     
-    assert "spawn" in result
-    assert isinstance(result["spawn"], SpawnRequest)
-    assert "Triggering recursion" in result["reasoning"]
+    assert result.spawn is not None
+    assert isinstance(result.spawn, SpawnRequest)
+    assert "Triggering recursion" in result.reasoning
 
 def test_recursive_self_validation(workspace):
     # Dogfooding: Check if engine detects invariant violations
     engine = IterateEngine(functors=[])
     events = [
-        {"event_type": "iteration_completed", "feature": "F1", "edge": "E1", "data": {"delta": 5}},
-        {"event_type": "iteration_completed", "feature": "F1", "edge": "E1", "data": {"delta": 10}}, # VIOLATION: Delta increased
+        {"event_type": "iteration_completed", "feature": "F1", "edge": "E1", "delta": 5},
+        {"event_type": "iteration_completed", "feature": "F1", "edge": "E1", "delta": 10}, # VIOLATION: Delta increased
     ]
     
     violations = engine.validate_invariants(events)

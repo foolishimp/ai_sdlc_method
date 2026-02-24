@@ -15,7 +15,6 @@ class EventStore:
     
     def __init__(self, workspace_root: Path):
         self.log_path = workspace_root / "events" / "events.jsonl"
-        self.log_path.parent.mkdir(parents=True, exist_ok=True)
 
     def emit(self, event_type: str, project: str, feature: str = "", edge: str = "", delta: int = None, data: Dict = None):
         """Append an event to the log. delta is TOP-LEVEL for state-machine routing."""
@@ -28,6 +27,7 @@ class EventStore:
             "delta": delta,
             "data": data or {}
         }
+        self.log_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.log_path, "a") as f:
             f.write(json.dumps(event) + "\n")
         return event

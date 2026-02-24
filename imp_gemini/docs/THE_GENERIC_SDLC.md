@@ -1,4 +1,4 @@
-# The Generic SDLC: Applying STL Principles to AI-Native Engineering
+# Project Genesis: The Generic SDLC: Applying STL Principles to AI-Native Engineering
 
 **Date**: February 24, 2026
 **Theme**: Architectural Restatement of the AI SDLC (v2.8)
