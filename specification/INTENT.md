@@ -48,7 +48,7 @@ Four primitives. One operation. The rest is parameterisation.
 | Document | Purpose |
 |----------|---------|
 | [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | Canonical methodology — the 4 primitives, ontology grounding |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 64 implementation requirements derived from the model |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 69 implementation requirements derived from the model |
 | [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) | Parent theory |
 
 ---
@@ -56,7 +56,7 @@ Four primitives. One operation. The rest is parameterisation.
 ## Current Status
 
 **Asset Graph Model (v2.8)**: Complete — multi-agent coordination, two-command UX, gradient unification, processing phases, sensory systems, protocol hooks
-**Implementation Requirements (v3.12)**: Complete — 64 requirements, 10 critical
+**Implementation Requirements (v3.13)**: Complete — 69 requirements, 10 critical
 **Tooling (e.g. Claude Code plugins)**: Phase 1a — 4 agents, 13 commands, 4 hooks, configurable graph
 **Examples**: [ai_sdlc_examples](https://github.com/foolishimp/ai_sdlc_examples) — CDME dogfood (5/5 edges converged)
 
@@ -64,4 +64,4 @@ Four primitives. One operation. The rest is parameterisation.
 
 ## Version
 
-**v3.0** — Asset Graph Model (v2.8), 64 implementation requirements. See [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) for the canonical specification.
+**v3.0** — Asset Graph Model (v2.8), 69 implementation requirements. See [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) for the canonical specification.

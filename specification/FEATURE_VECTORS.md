@@ -2,7 +2,7 @@
 
 **Version**: 1.8.0
 **Date**: 2026-02-22
-**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.12.0)
+**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.13.0)
 **Method**: Asset Graph Model §6.4 (Task Planning as Trajectory Optimisation)
 
 ---
@@ -144,7 +144,7 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
 Continuous interoceptive and exteroceptive monitoring with affect triage pipeline, running as a long-running service with review boundary for draft-only autonomy.
 
-**Satisfies**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-SENSE-006
+**Satisfies**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-SENSE-006, REQ-SUPV-003
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -234,7 +234,6 @@ Event-sourced agent coordination: agent identity, feature assignment via claims,
 The universal observer/evaluator composition law — fractal processing on every edge, ambiguity classification, three output types, chaining with affect propagation, consciousness-as-relative.
 
 **Satisfies**: REQ-SUPV-001, REQ-SUPV-002
-| REQ-SUPV-003 | REQ-F-SENSE-001 | | |
 
 **Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
 
@@ -384,7 +383,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-COORD-005 | REQ-F-COORD-001 |
 | REQ-SUPV-001 | REQ-F-SUPV-001 |
 | REQ-SUPV-002 | REQ-F-SUPV-001 |
-| REQ-SUPV-003 | REQ-F-SENSE-001 | | |
+| REQ-SUPV-003 | REQ-F-SENSE-001 |
 
 **69/69 requirements covered. No orphans.**
 

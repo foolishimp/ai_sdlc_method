@@ -2,7 +2,7 @@
 
 **Version**: 1.0.0
 **Date**: 2026-02-22
-**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.11.0), [FEATURE_VECTORS.md](FEATURE_VECTORS.md) (v1.8.0)
+**Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.13.0), [FEATURE_VECTORS.md](FEATURE_VECTORS.md) (v1.8.0)
 **Method**: Asset Graph Model §9.2 — BDD (Given/When/Then), business language only
 
 ---
@@ -27,7 +27,7 @@ Implementers building AI SDLC tooling for any platform (Claude, Gemini, Codex, o
 
 ## Coverage Matrix
 
-All 63 implementation requirements mapped to use case clusters and scenario counts.
+All 69 implementation requirements mapped to use case clusters and scenario counts.
 
 | REQ Key | Description | UC Cluster | Scenarios |
 |---------|-------------|------------|-----------|
@@ -70,6 +70,7 @@ All 63 implementation requirements mapped to use case clusters and scenario coun
 | REQ-SENSE-003 | Affect Triage Pipeline | UC-07 | 4 |
 | REQ-SENSE-004 | Sensory System Configuration | UC-07 | 2 |
 | REQ-SENSE-005 | Review Boundary | UC-07 | 3 |
+| REQ-SENSE-006 | Artifact Write Observation | UC-07 | 3 |
 | REQ-TOOL-001 | Plugin Architecture | UC-08 | 2 |
 | REQ-TOOL-002 | Developer Workspace | UC-08 | 3 |
 | REQ-TOOL-003 | Workflow Commands | UC-08 | 3 |
@@ -80,6 +81,10 @@ All 63 implementation requirements mapped to use case clusters and scenario coun
 | REQ-TOOL-008 | Context Snapshot | UC-08 | 2 |
 | REQ-TOOL-009 | Feature Views | UC-08 | 2 |
 | REQ-TOOL-010 | Spec/Design Boundary Enforcement | UC-08 | 2 |
+| REQ-TOOL-011 | Installability | UC-08 | 2 |
+| REQ-TOOL-012 | Multi-Tenant Folder Structure | UC-08 | 2 |
+| REQ-TOOL-013 | Output Directory Binding | UC-08 | 2 |
+| REQ-TOOL-014 | Observability Integration Contract | UC-08 | 1 |
 | REQ-UX-001 | State-Driven Routing | UC-09 | 8 |
 | REQ-UX-002 | Progressive Disclosure | UC-09 | 4 |
 | REQ-UX-003 | Project-Wide Observability | UC-09 | 4 |
@@ -94,8 +99,9 @@ All 63 implementation requirements mapped to use case clusters and scenario coun
 | REQ-COORD-005 | Role-Based Evaluator Authority | UC-10 | 3 |
 | REQ-SUPV-001 | IntentEngine Interface | UC-11 | 7 |
 | REQ-SUPV-002 | Constraint Tolerances | UC-11 | 7 |
+| REQ-SUPV-003 | Failure Observability | UC-11 | 4 |
 
-**Total: 64 REQ keys, 220 scenarios.**
+**Total: 69 REQ keys, 234 scenarios.**
 
 ---
 
@@ -1855,12 +1861,47 @@ And REQ-EVAL-003 (Human Accountability) is preserved
 And the approval event records: who approved, what was proposed, what was applied
 ```
 
+### UC-07-17: Artifact write outside iterate() detected
+
+`Validates: REQ-SENSE-006` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a workspace with methodology-managed directories (specification/, design/, code/, tests/)
+When an agent writes a file directly without invoking iterate()
+Then a PostToolUse (or equivalent) hook detects the file write
+And an "artifact_modified" event is emitted to events.jsonl
+And the event contains: timestamp, file_path, asset_type (mapped from path), tool used
+And the hook does NOT block the write operation
+```
+
+### UC-07-18: Artifact observation excludes infrastructure files
+
+`Validates: REQ-SENSE-006` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given the artifact write observation hook is active
+When a file is written to .ai-workspace/, .git/, or infrastructure paths
+Then no "artifact_modified" event is emitted
+And only writes to methodology artifact directories trigger observation
+```
+
+### UC-07-19: First artifact write triggers edge_started
+
+`Validates: REQ-SENSE-006` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a session with no prior artifact writes for a given asset type
+When the first file write to that asset type is detected
+Then an "edge_started" event is emitted with trigger "artifact_write_detected"
+And subsequent writes to the same asset type do NOT emit additional edge_started events
+```
+
 ---
 
 ## UC-08: Developer Tooling
 
 **Feature Vector**: REQ-F-TOOL-001
-**Satisfies**: REQ-TOOL-001 through REQ-TOOL-010
+**Satisfies**: REQ-TOOL-001 through REQ-TOOL-014
 
 ### UC-08-01: Plugin is installable and discoverable
 
@@ -2149,6 +2190,91 @@ When two implementations (Claude and Gemini) create designs for the same REQ key
 Then each implementation has its own design trajectory
 And the same REQ key appears in both design documents
 And the spec remains technology-agnostic (shared across implementations)
+```
+
+### UC-08-25: Single-command installation
+
+`Validates: REQ-TOOL-011` | Fixture: CLEAN | **NEW**
+
+```gherkin
+Given a clean project directory with no methodology artifacts
+When I run the installer command (single platform-appropriate command)
+Then the workspace structure is created (.ai-workspace/, configs, event log)
+And methodology commands/agents are registered
+And a "project_initialized" event is emitted to events.jsonl
+And running the installer again preserves existing events, feature vectors, and user artifacts
+```
+
+### UC-08-26: Installation verifiable and uninstallable
+
+`Validates: REQ-TOOL-011` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given a project with the methodology installed
+When I run the health/version command
+Then the system confirms successful installation with version information
+And if the methodology is uninstalled, user artifacts (events, specs, code) remain intact
+And only tooling scaffolding is removed
+```
+
+### UC-08-27: Multi-tenant folder structure enforced
+
+`Validates: REQ-TOOL-012` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given a project with specification/ and imp_claude/ directories
+When the design→code edge generates source code
+Then all generated source files are placed under imp_{variant}/
+And no generated source code, build files, or design documents exist at the project root
+And each imp_<name>/ directory is independently buildable
+```
+
+### UC-08-28: Adding a second design variant requires no restructuring
+
+`Validates: REQ-TOOL-012` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given an existing project with imp_scala_spark/ containing a complete design variant
+When I add a second variant imp_pyspark/
+Then the first variant (imp_scala_spark/) requires no restructuring
+And both variants share the same specification/ directory
+And each variant has its own design/, code, build config, and tests
+```
+
+### UC-08-29: Output directory bound before code generation
+
+`Validates: REQ-TOOL-013` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a feature at the design→code edge with design variant "claude"
+When the iterate agent resolves the output directory
+Then it defaults to imp_claude/ derived from the design variant name
+And the resolved directory is passed to the constructor as part of Context[]
+And the post-generation evaluator verifies no files were written outside the bound directory
+```
+
+### UC-08-30: Output directory overridable via constraints
+
+`Validates: REQ-TOOL-013` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given project_constraints.yml with structure.output_directory set to "imp_custom/"
+When the iterate agent resolves the output directory
+Then it uses "imp_custom/" instead of the default
+And design documents are placed in imp_custom/design/, not specification/
+```
+
+### UC-08-31: Installer scaffolds observability contract files
+
+`Validates: REQ-TOOL-014` | Fixture: CLEAN | **NEW**
+
+```gherkin
+Given a clean project directory
+When the installer runs
+Then .ai-workspace/graph/graph_topology.yml is created (sourced from canonical config)
+And .ai-workspace/STATUS.md is created or templated
+And post-install verification checks that all expected paths exist and are parseable
+And the workspace structure is the formal contract between methodology commands and observability tools
 ```
 
 ---
@@ -2775,8 +2901,8 @@ And the roles are not hard-coded in the engine
 
 ## UC-11: IntentEngine / Supervision
 
-**Feature Vector**: REQ-F-SUPV-001
-**Satisfies**: REQ-SUPV-001, REQ-SUPV-002
+**Feature Vector**: REQ-F-SUPV-001, REQ-F-SENSE-001
+**Satisfies**: REQ-SUPV-001, REQ-SUPV-002, REQ-SUPV-003
 
 ### UC-11-01: Every edge traversal produces IntentEngine output
 
@@ -2968,6 +3094,54 @@ And the gap report recommends: define a measurable threshold (e.g., p99 < 200ms)
 And without a tolerance, the sensory system has nothing to measure
 ```
 
+### UC-11-15: Evaluator failure emits detail event
+
+`Validates: REQ-SUPV-003` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given Feature A at "code↔unit_tests" with a failing deterministic check "tests_pass"
+When the iterate function runs and the check fails
+Then an "evaluator_detail" event is emitted to events.jsonl
+And the event contains: check name, check type (F_D), expected vs observed values, consecutive failure count
+And the LLM evaluator can detect patterns like "check X failed 4 consecutive iterations"
+```
+
+### UC-11-16: Command error captured as event
+
+`Validates: REQ-SUPV-003` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given a workspace with corrupted YAML in an edge config
+When a methodology command encounters the parse error
+Then a "command_error" event is emitted to events.jsonl
+And the event contains: command name, error category, error detail, workspace state
+And the system can detect tooling dysfunction patterns from accumulated error events
+```
+
+### UC-11-17: Health check emits structured event
+
+`Validates: REQ-SUPV-003` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given a workspace with known issues (orphaned spawn, missing config)
+When /gen-status --health runs
+Then a "health_checked" event is emitted to events.jsonl
+And the event contains: passed count, failed count, failed check names, recommendations
+And trending is possible: "same orphaned spawn persists across 5 checks" becomes a visible pattern
+```
+
+### UC-11-18: Session abandonment detected
+
+`Validates: REQ-SUPV-003` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a previous session ended with an edge_started but no edge_converged or iteration_completed
+When the next session begins and detects the gap
+Then an "iteration_abandoned" event is emitted
+And the event contains: feature, edge, last iteration number, time since last event
+And dropout pattern analysis can identify systematic abandonment issues
+```
+
 ---
 
 ## Appendix A: Existing Test Coverage Map
@@ -3099,14 +3273,14 @@ Extends IN_PROGRESS with:
 | UC-04: Feature Traceability | REQ-F-TRACE-001 | 5 | 18 | 14 | 4 |
 | UC-05: Edge Parameterisations | REQ-F-EDGE-001 | 4 | 16 | 14 | 2 |
 | UC-06: Full Lifecycle Closure | REQ-F-LIFE-001 | 13 | 33 | 27 | 6 |
-| UC-07: Sensory Systems | REQ-F-SENSE-001 | 5 | 16 | 15 | 1 |
-| UC-08: Developer Tooling | REQ-F-TOOL-001 | 10 | 24 | 17 | 7 |
+| UC-07: Sensory Systems | REQ-F-SENSE-001 | 6 | 19 | 18 | 1 |
+| UC-08: Developer Tooling | REQ-F-TOOL-001 | 14 | 31 | 24 | 7 |
 | UC-09: User Experience | REQ-F-UX-001 | 7 | 33 | 27 | 6 |
 | UC-10: Multi-Agent Coordination | REQ-F-COORD-001 | 5 | 16 | 15 | 1 |
-| UC-11: IntentEngine / Supervision | REQ-F-SUPV-001 | 2 | 14 | 14 | 0 |
-| **Total** | **11 vectors** | **64** | **220** | **184** | **36** |
+| UC-11: IntentEngine / Supervision | REQ-F-SUPV-001 | 3 | 18 | 18 | 0 |
+| **Total** | **11 vectors** | **69** | **234** | **198** | **36** |
 
-**220 scenarios. 64 REQ keys. 100% coverage. 184 genuinely new functional scenarios.**
+**234 scenarios. 69 REQ keys. 100% coverage. 198 genuinely new functional scenarios.**
 
 ---
 
