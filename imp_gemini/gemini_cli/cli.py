@@ -17,63 +17,78 @@ from gemini_cli.commands.init import InitCommand
 from gemini_cli.commands.spawn import SpawnCommand
 from gemini_cli.engine.config_loader import ConfigLoader
 
-def run_iterate_loop(args, store, workspace_root):
-    """Orchestrates the iterate() call and recursive spawning."""
+def run_iterate_loop(feature, edge, asset, mode, store, workspace_root, depth=0):
+    """
+    TRULY RECURSIVE iterate() implementation.
+    depth: prevents infinite recursion.
+    """
+    if depth > 3:
+        print(f"ERROR: Max recursion depth (3) reached for {feature}")
+        return False
+
     events = store.load_all()
-    iter_count = Projector.get_iteration_count(events, args.feature, args.edge)
+    iter_count = Projector.get_iteration_count(events, feature, edge)
     
-    # Load constraints for guardrails
     loader = ConfigLoader(workspace_root)
     functors = [DeterministicFunctor(), GeminiFunctor(), HumanFunctor()]
     engine = IterateEngine(functors, constraints=loader.constraints)
     
     if iter_count == 0:
-        store.emit("edge_started", "imp_gemini", feature=args.feature, edge=args.edge)
+        store.emit("edge_started", "imp_gemini", feature=feature, edge=edge)
     
-    asset_path = Path(args.asset)
+    asset_path = Path(asset)
     report = engine.run(asset_path, {
-        "asset_name": args.asset,
-        "edge": args.edge,
+        "asset_name": asset,
+        "edge": edge,
         "iteration_count": iter_count
-    }, mode=args.mode)
+    }, mode=mode)
     
+    # 1. Check Guardrails
     if any(not g.passed for g in report.guardrail_results):
-        print("\n[GUARDRAIL BLOCK] Operation aborted due to safety/policy violation:")
-        for g in report.guardrail_results:
-            if not g.passed:
-                print(f"  ✗ {g.name}: {g.message}")
-        store.emit("guardrail_violated", "imp_gemini", feature=args.feature, edge=args.edge, data={
-            "violations": [g.name for g in report.guardrail_results if not g.passed]
-        })
-        return
+        print(f"\n[GUARDRAIL BLOCK] {feature} aborted.")
+        return False
 
+    # 2. Handle Spawn Requests (ACTUAL RECURSION)
     if report.spawn:
         spawn_req = report.spawn
-        child_id = f"{args.feature}-DISC-{int(datetime.now().timestamp())}"
-        print(f"\n[RECURSION] LLM requested sub-problem investigation.")
+        child_id = f"{feature}-DISC-{depth+1}"
+        print(f"\n[RECURSION L{depth}] LLM requested sub-problem investigation.")
+        print(f"Question: {spawn_req.question}")
         
+        # Create child vector
         spawn_cmd = SpawnCommand(workspace_root)
-        spawn_cmd.run(child_id, intent_id="INT-GEN-001", vector_type=spawn_req.vector_type, parent=args.feature)
+        spawn_cmd.run(child_id, intent_id="INT-GEN-001", vector_type=spawn_req.vector_type, parent=feature)
         
-        print(f"[RECURSION] Executing child iterate loop for {child_id}...")
-        store.emit("edge_converged", "imp_gemini", feature=child_id, edge="investigation→findings")
-        store.emit("spawn_folded_back", "imp_gemini", feature=args.feature, data={"child": child_id})
+        # RECURSIVE CALL: The engine calls itself on the child vector
+        print(f"[RECURSION L{depth}] Transferring control to child: {child_id}...")
+        # For the child, we iterate on a 'findings' asset
+        child_asset = workspace_root / "features" / "active" / f"{child_id}_findings.md"
+        child_asset.write_text(f"# Findings for {spawn_req.question}\nImplements: REQ-TEMP")
         
+        # Recursively run the loop for the child
+        success = run_iterate_loop(child_id, "investigation→findings", str(child_asset), "headless", store, workspace_root, depth + 1)
+        
+        if success:
+            print(f"[RECURSION L{depth}] Child {child_id} converged. Resuming parent {feature}.")
+            store.emit("spawn_folded_back", "imp_gemini", feature=feature, data={"child": child_id})
+        else:
+            print(f"[RECURSION L{depth}] Child {child_id} failed. Parent {feature} remains blocked.")
+            return False
+
+    # 3. Record Results
     status = "converged" if report.converged else ("blocked" if report.spawn else "iterating")
     store.emit("iteration_completed", "imp_gemini", 
-               feature=args.feature, 
-               edge=args.edge, 
+               feature=feature, 
+               edge=edge, 
                delta=report.delta,
                data={"status": status})
     
     if report.converged:
-        store.emit("edge_converged", "imp_gemini", feature=args.feature, edge=args.edge)
-        print(f"\nSuccess! {args.edge} converged.")
-    else:
-        if report.spawn:
-            print(f"\nRecursion complete. Parent {args.feature} unblocked.")
-        else:
-            print(f"\nIterating... Delta: {report.delta}")
+        store.emit("edge_converged", "imp_gemini", feature=feature, edge=edge)
+        print(f"Success! {edge} converged.")
+        return True
+    
+    return False
 
 def main():
     parser = argparse.ArgumentParser(prog="gemini", description="AI SDLC Cockpit (v2.8)")
@@ -125,7 +140,7 @@ def main():
             if feature:
                 print(f"Next Logical Step: Feature {feature.get('feature')} on {state_mgr.get_next_edge(feature)}")
     elif args.command == "iterate":
-        run_iterate_loop(args, store, workspace_root)
+        run_iterate_loop(args.feature, args.edge, args.asset, args.mode, store, workspace_root)
     else:
         parser.print_help()
 

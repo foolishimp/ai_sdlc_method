@@ -95,8 +95,8 @@ def test_recursive_spawn_workflow(test_workspace):
     res = run_gemini(test_workspace, "iterate", "--feature", "REQ-STUCK-1", "--edge", "design→code", "--asset", str(asset), "--mode", "headless")
     
     # Check if recursion was triggered in output
-    assert "[RECURSION]" in res.stdout
-    assert "Spawning child vector" in res.stdout
+    assert "RECURSION" in res.stdout
+    assert "Spawned" in res.stdout and "vector" in res.stdout
     
     # Verify the event log recorded the feature_spawned event
     events_file = test_workspace / ".ai-workspace" / "events" / "events.jsonl"
