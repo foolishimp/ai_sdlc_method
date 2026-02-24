@@ -1,17 +1,13 @@
 # AI SDLC Methodology Plugin — v2.7 (Asset Graph Model — Project Genesis)
 
-## What Changed from v1.x
+## Architecture
 
-| Aspect | v1.x | v2.7 |
-|--------|------|------|
-| Model | 7-stage pipeline | Asset graph with typed transitions |
-| Agents | 7 (one per stage) | 1 (universal iterate agent) |
-| Skills | 11 consolidated | Edge parameterisations (YAML) |
-| Topology | Hard-coded in agents | Configurable YAML (`graph_topology.yml`) |
-| Iteration | Per-stage feedback loops | Universal `iterate(Asset, Context[], Evaluators)` |
-| Commands | 9 | 10 (2 primary + 8 advanced) |
-| UX | Learn 9 commands | Two verbs: Start ("Go.") + Status ("Where am I?") |
-| Reproducibility | Not addressed | Content-addressable context manifest |
+- **Model**: Asset graph with typed transitions — directed cyclic graph of assets
+- **Agent**: 1 universal iterate agent, parameterised per edge via YAML configs
+- **Topology**: Configurable `graph_topology.yml` — asset types and admissible transitions
+- **Iteration**: Universal `iterate(Asset, Context[], Evaluators)` — the only operation
+- **UX**: Two primary verbs — Start ("Go.") + Status ("Where am I?") — plus 8 power-user commands
+- **Reproducibility**: Content-addressable context manifest
 
 ## Structure
 

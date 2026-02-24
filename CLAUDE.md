@@ -153,8 +153,6 @@ ai_sdlc_method/
 
 **Next**: Functor execution model implementation — mode/valence config, affect schema, escalation tests (post ADR-017)
 
-**v1.x preserved at tag `v1.x-final`** — `git checkout v1.x-final`
-
 ---
 
 ## Task Tracking
@@ -228,5 +226,4 @@ pytest imp_claude/tests/ -v
 ## Related
 
 - **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
-- **Prior work**: v1.x 7-stage pipeline at tag `v1.x-final`
 - **PDF generation**: Use `md2pdf` at `/Users/jim/bin/md2pdf` (handles Mermaid, MathJax)

@@ -64,9 +64,7 @@ Four primitives. One operation. The rest is parameterisation.
 
 ## History
 
-- **v1.0** (2024): Key Principles + TDD workflow (ai_init)
-- **v1.2** (2025-11): 7-stage pipeline model, 47 implementation requirements, ~4,400 lines across 4 methodology docs
-- **v2.0** (2026-02): Asset Graph Model — 4 primitives, 1 operation, ontology-grounded. Prior version tagged `v2.0`.
+- **v2.0** (2026-02): Asset Graph Model — 4 primitives, 1 operation, ontology-grounded.
 - **v2.1** (2026-02): Revised framing — composite vectors, zoomable graph, scale-dependent assurance, 3-param iterate(). ~570-line canonical doc replaces 4,400 lines. 32 implementation requirements replace 47.
 - **v2.5** (2026-02): Consciousness loop, protocol enforcement hooks, event sourcing, signal classification. 39 implementation requirements.
 - **v2.6** (2026-02): Three processing phases (reflex/affect/conscious), two sensory systems (interoception/exteroception), affect triage pipeline, context sources. 44 implementation requirements.

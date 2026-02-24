@@ -4,7 +4,7 @@
 **Date**: 2026-02-20
 **Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.8.0)
 **Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
-**Platform**: Claude Code (ADR-001 — carried forward from v1.x)
+**Platform**: Claude Code (ADR-001)
 
 ---
 
@@ -12,27 +12,17 @@
 
 This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 11 feature vectors defined in FEATURE_VECTORS.md.
 
-**Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
-
-**What carries forward from v1.x**:
-- Claude Code as platform (ADR-001)
-- Plugin delivery mechanism
-- Workspace file structure (adapted)
-- Slash commands (adapted)
-- Markdown-first approach
-
-**What changes**:
-- 7 stage agents → 1 iterate engine with edge parameterisations
-- Linear pipeline → graph with admissible transitions
-- Stage-specific skills → evaluator + constructor composition per edge
-- Fixed topology → configurable graph in Context[]
-
-**What v2.0.0 adds** (from spec v2.7.0):
+The design implements the Asset Graph Model:
+- One universal iterate agent parameterised per edge
+- Configurable graph topology in Context[]
+- Evaluator + constructor composition per edge
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
 - Constraint dimension taxonomy at the design edge
 - Event sourcing as the formal execution model
 - Methodology self-observation via TELEM signals
 - Two-command UX layer: Start (routing) + Status (observability)
+- Plugin delivery via .claude-plugin/
+- Markdown-first approach
 
 ---
 
@@ -98,7 +88,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 
 ### 1.2 Design Principle: Universal Engine, Parameterised Edges
 
-The v1.x design had separate agents for each stage. The v2.1 design has:
+The design employs:
 
 - **One iterate() implementation** — a Claude Code agent that takes (asset, context, evaluators) and produces the next candidate
 - **Edge parameterisation configs** — YAML files that define: which evaluators, which constructors, what convergence criteria
@@ -1759,38 +1749,7 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 
 ---
 
-## 4. Migration from v1.x
-
-### What Changes
-
-| v1.x | v2.1 |
-|------|------|
-| 7 agent files (one per stage) | 4 agent files (iterate + 3 observers) |
-| 42→11 skills | Edge parameterisation configs (YAML) |
-| stages_config.yml (1,273 lines) | graph_topology.yml + edge_params/ (~200 lines) |
-| Fixed 7-stage pipeline | Configurable graph in Context[] |
-| 9 commands | 13 commands (12 power-user + Start routing layer) |
-| .ai-workspace with task focus | .ai-workspace with graph/context/features/tasks |
-
-### What Carries Forward
-
-- Claude Code as platform (ADR-001)
-- Plugin delivery mechanism (.claude-plugin/)
-- Markdown-first approach
-- Workspace under .ai-workspace/
-- ACTIVE_TASKS.md for task tracking
-- Slash commands for workflow integration
-- Federated context hierarchy concept
-
-### Migration Path
-
-1. New projects: `/gen-init` creates v2.6 workspace
-2. Existing v1.x projects: v1.x agents/commands continue to work; v2.6 can be installed alongside
-3. No breaking changes to user workflow — commands change but concept is familiar
-
----
-
-## 5. ADR Disposition
+## 4. ADR Disposition
 
 ### Carried Forward (still valid)
 - **ADR-001**: Claude Code as MVP Platform
@@ -1857,5 +1816,4 @@ Phase 2:  Product telemetry edges — CI/CD, running system, production homeosta
 - [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 63 implementation requirements (v3.11.0)
 - [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.8.0, 11 vectors)
 - [ADR-017](adrs/ADR-017-functor-based-execution-model.md) — Functor-based execution model (telemetry encoding)
-- Prior v1.x design (AISDLC_IMPLEMENTATION_DESIGN.md) — superseded, recoverable at tag `v1.x-final`
-- ADR-001 (claude-code-as-mvp-platform) — v1.x platform choice, carried forward as standing decision
+- ADR-001 (claude-code-as-mvp-platform) — platform choice, standing decision

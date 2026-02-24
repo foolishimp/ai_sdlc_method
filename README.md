@@ -204,8 +204,6 @@ ai_sdlc_method/
 - Tests: 521+ tests (spec + implementation + installer), 34 E2E convergence tests
 - UAT / CI/CD / Telemetry: Not started
 
-**v1.x preserved at tag `v1.x-final`** — recoverable via `git checkout v1.x-final`
-
 ---
 
 ## License
@@ -217,5 +215,5 @@ MIT
 ## Acknowledgments
 
 - **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
-- **Prior work**: v1.x 7-stage pipeline (superseded), [ai_init](https://github.com/foolishimp/ai_init) (Key Principles, integrated as Context[])
+- [ai_init](https://github.com/foolishimp/ai_init) (Key Principles, integrated as Context[])
 - **Built with**: Claude Code, Gemini CLI, Codex

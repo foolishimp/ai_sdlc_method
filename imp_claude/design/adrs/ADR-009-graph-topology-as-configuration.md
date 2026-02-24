@@ -11,7 +11,7 @@
 
 The v2.1 Asset Graph Model defines software development as a directed cyclic graph of typed assets connected by admissible transitions. The graph topology — which asset types exist and which transitions are allowed — is fundamental to the methodology.
 
-In v1.x, the topology was implicit: a fixed 7-stage pipeline hard-coded into agent personas and skill configurations. There was no separate representation of the graph itself.
+The graph topology must be explicitly represented as configuration, not implicit in agent implementations.
 
 We need to decide how to represent the graph topology in the Claude Code implementation.
 
