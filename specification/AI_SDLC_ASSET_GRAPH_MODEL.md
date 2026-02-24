@@ -1037,7 +1037,7 @@ Each methodology action produces an immutable event:
 
 ```json
 {
-  "type": "iteration_completed",
+  "event_type": "iteration_completed",
   "edge": "requirements_design",
   "feature": "REQ-F-AUTH-001",
   "iteration": 2,
@@ -1068,6 +1068,11 @@ Event types (values of the `event_type` field, aligned with iterate agent contra
 | `edge_released` | Agent voluntarily abandons an edge claim | §12 (REQ-COORD-002) |
 | `claim_expired` | No event from active agent within timeout | §12 (REQ-COORD-002) |
 | `convergence_escalated` | Agent converges outside role authority | §12 (REQ-COORD-005) |
+| `artifact_modified` | File write detected outside iterate() | §7.7.5 (REQ-SENSE-006) |
+| `evaluator_detail` | Individual evaluator check failure with expected/observed | REQ-SUPV-003 |
+| `command_error` | Methodology command encounters an error | REQ-SUPV-003 |
+| `health_checked` | Workspace health check completed | REQ-SUPV-003 |
+| `iteration_abandoned` | In-progress iteration detected incomplete by next session | REQ-SUPV-003 |
 
 Note: `edge_claim` is an **inbox-local** event in multi-agent mode — it is emitted to the agent's private inbox and never appears in the canonical event log. The serialiser transforms it into `edge_started` (granted) or `claim_rejected` (conflict). In single-agent mode, the agent emits `edge_started` directly with no claim step. See §12 (Multi-Agent Coordination) for the full protocol.
 

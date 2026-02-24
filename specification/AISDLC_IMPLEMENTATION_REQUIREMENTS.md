@@ -688,7 +688,7 @@ The system shall observe all file writes to methodology-managed directories (spe
 - Multi-tenant aware: paths under imp_<name>/ mapped by subdirectory after tenant prefix
 - Events are sufficient for: real-time progress tracking, post-hoc audit, and root cause analysis
 
-**Traces To**: Asset Graph Model §7.7 (Protocol Enforcement — addresses dogfooding observation at line 1600), §4.3 (Reflex Processing Phase), §4.5.1 (Interoception — self-observation of file system mutations) | Ontology #49 (teleodynamic — boundary maintenance)
+**Traces To**: Asset Graph Model §7.7.5 (Bypass Detection and the Observability Sliding Scale), §4.3 (Reflex Processing Phase), §4.5.1 (Interoception — self-observation of file system mutations) | Ontology #49 (teleodynamic — boundary maintenance)
 
 ---
 
@@ -1299,8 +1299,8 @@ The system shall capture its own failures as structured events in `events.jsonl`
 | Supervision (IntentEngine) | 3 | 0 | 3 | 0 |
 | **Total** | **69** | **10** | **47** | **12** |
 
-### Phase 1 (Core Graph Engine): 45 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances).
+### Phase 1 (Core Graph Engine): 49 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability).
 
 ### Phase 2 (Full Lifecycle + Coordination): 20 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking.
