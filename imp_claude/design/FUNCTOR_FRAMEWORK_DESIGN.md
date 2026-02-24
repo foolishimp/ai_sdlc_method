@@ -1,7 +1,7 @@
 # F_D Functor Framework — Design & Implementation Guide
 
 **Version**: 2.1.0
-**Implements**: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition)
+**Implements**: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-ITER-001, REQ-ITER-002, REQ-ITER-003, REQ-EVAL-002
 **Package**: `imp_claude/code/genisis/`
 
 ---
@@ -1236,7 +1236,59 @@ The actor model adds **robustness** (crash recovery, concurrent agent coordinati
 
 ---
 
-## 20. What's Not Implemented Yet
+## 20. Traceability Matrix `[IMPLEMENTED]`
+
+Every REQ key in scope maps to the modules that implement it and the ADRs that justify the design.
+
+### REQ → Module Mapping
+
+| REQ Key | Title | Primary Modules | Status |
+|---------|-------|----------------|--------|
+| REQ-GRAPH-001 | Asset Type Registry | `models.py` (FunctionalUnit, Category enums), profile YAMLs | `[IMPLEMENTED]` |
+| REQ-GRAPH-002 | Admissible Transitions | `fd_route.py` (select_next_edge), `engine.py` (run), profile `graph.include/optional` | `[IMPLEMENTED]` |
+| REQ-GRAPH-003 | Asset as Markov Object | `engine.py` (delta→convergence), `fd_evaluate.py` (deterministic state check) | `[IMPLEMENTED]` |
+| REQ-ITER-001 | Universal Iteration Function | `engine.py` (iterate_edge, run_edge, run), `fp_evaluate.py` | `[PARTIAL]` — evaluate only, no construct |
+| REQ-ITER-002 | Convergence and Promotion | `engine.py` (delta=0 detection), `fd_evaluate.py` (evaluate_checklist), `fd_route.py` (trajectory update) | `[IMPLEMENTED]` |
+| REQ-ITER-003 | Functor Encoding Tracking | `models.py` (CATEGORY_FIXED), `dispatch.py` (DISPATCH table, lookup_and_dispatch), `fd_route.py` (lookup_encoding) | `[IMPLEMENTED]` |
+| REQ-EVAL-002 | Evaluator Composition | `config_loader.py` (resolve_checklist), `fd_evaluate.py` (run_check), `fp_evaluate.py` (run_check), `engine.py` (check dispatch by type) | `[IMPLEMENTED]` |
+
+### REQ → ADR Mapping
+
+| REQ Key | ADRs | Design Decisions |
+|---------|------|-----------------|
+| REQ-GRAPH-001..003 | ADR-009 | Graph topology as YAML configuration |
+| REQ-ITER-001..002 | ADR-008 | Universal iterate agent (single agent, edge-parameterised) |
+| REQ-ITER-001 | ADR-014 | IntentEngine binding (configuration-only, no new code) |
+| REQ-ITER-003 | ADR-017 | Functor-based execution model (runtime composition) |
+| REQ-EVAL-002 | ADR-017 | Three-category dispatch (F_D/F_P/F_H) |
+| All | ADR-016 | Design tolerances as optimization triggers |
+
+---
+
+## 21. ADR Index `[IMPLEMENTED]`
+
+Architecture Decision Records for this feature, with cross-references.
+
+| ADR | Title | Status | Key Decision | REQ Keys |
+|-----|-------|--------|-------------|----------|
+| [ADR-008](adrs/ADR-008-universal-iterate-agent.md) | Universal Iterate Agent | Accepted | Single agent, behaviour parameterised by edge config | REQ-ITER-001, REQ-ITER-002 |
+| [ADR-009](adrs/ADR-009-graph-topology-as-configuration.md) | Graph Topology as Config | Accepted | YAML-based topology, not hard-coded | REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003 |
+| [ADR-014](adrs/ADR-014-intentengine-binding.md) | IntentEngine Binding | Accepted | IntentEngine = iterate agent + edge config (no new code) | REQ-ITER-001 |
+| [ADR-016](adrs/ADR-016-design-tolerances-as-optimization-triggers.md) | Design Tolerances | Accepted | Tolerance breach → optimization intent | REQ-EVAL-002 |
+| [ADR-017](adrs/ADR-017-functor-based-execution-model.md) | Functor Execution Model | Accepted | Runtime functor composition via dispatch table | REQ-ITER-003, REQ-EVAL-002 |
+
+### Related ADRs (referenced but owned by other features)
+
+| ADR | Title | Relevance |
+|-----|-------|-----------|
+| [ADR-010](adrs/ADR-010-spec-reproducibility.md) | Spec Reproducibility | Context hash in EngineConfig |
+| [ADR-011](adrs/ADR-011-consciousness-loop-at-every-observer.md) | Consciousness Loop | Intent raised at observer points |
+| [ADR-013](adrs/ADR-013-multi-agent-coordination.md) | Multi-Agent Coordination | Deferred — sync model chosen (§19) |
+| [ADR-015](adrs/ADR-015-sensory-service-technology-binding.md) | Sensory Service Tech Binding | Deferred — on-demand sense functions (§19) |
+
+---
+
+## 22. What's Not Implemented Yet
 
 | Gap | Category | Status | Notes |
 |---|---|---|---|
