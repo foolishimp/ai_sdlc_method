@@ -5,7 +5,7 @@ vector_type: feature
 profile: standard
 status: converged
 created: "2026-02-20T08:00:00Z"
-updated: "2026-02-24T12:00:00Z"
+updated: "2026-02-25T02:05:00Z"
 parent_id: REQ-F-ENGINE-001
 
 description: |
@@ -59,3 +59,14 @@ trajectory:
       deterministic_pytest: pass
       agent_req_coverage: pass
       agent_acceptance_criteria: pass
+  cicd:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-25T01:30:00Z"
+    converged_at: "2026-02-25T02:05:00Z"
+    notes: "USER_GUIDE.md created, Codex-reviewed, fixes applied, committed"
+    evaluator_results:
+      deterministic_user_guide_created: pass
+      agent_all_commands_documented: pass
+      agent_codex_review_fixes: pass
+      deterministic_committed: pass
