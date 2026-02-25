@@ -4,7 +4,7 @@ import hashlib
 import json
 import pytest
 import yaml
-from imp_gemini.code.internal.workspace_state import (
+from gemini_cli.internal.workspace_state import (
     compute_context_hash,
     deep_merge,
     resolve_context_hierarchy,

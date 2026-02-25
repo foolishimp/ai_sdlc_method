@@ -1,6 +1,6 @@
 # Validates: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-ITER-001, REQ-ITER-002
 import pytest
-from imp_gemini.code.internal.workspace_state import load_events, detect_stuck_features
+from gemini_cli.internal.workspace_state import load_events, detect_stuck_features
 
 pytestmark = [pytest.mark.uat]
 
@@ -28,7 +28,8 @@ class TestIterateFunction:
         # In Gemini CLI, the iterate agent is a markdown spec
         # we check if it exists and mentions the signature
         import pathlib
-        iterate_spec = pathlib.Path("/Users/jim/src/apps/ai_sdlc_method/imp_gemini/code/agents/gen-iterate.md")
+        project_root = pathlib.Path(__file__).parents[3]
+        iterate_spec = project_root / "imp_gemini" / "gemini_cli" / "agents" / "gen-iterate.md"
         assert iterate_spec.exists()
         spec_text = iterate_spec.read_text()
         assert "Current asset" in spec_text

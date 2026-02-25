@@ -2,7 +2,7 @@
 import pytest
 import json
 from pathlib import Path
-from imp_gemini.code.internal.state_machine import StateManager, ProjectState
+from gemini_cli.internal.state_machine import StateManager, ProjectState
 
 def test_detect_uninitialised(tmp_path):
     # Arrange: Create a directory with no .ai-workspace

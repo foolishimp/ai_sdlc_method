@@ -1291,7 +1291,7 @@ The system shall capture its own failures as structured events in `events.jsonl`
 | Context | 2 | 0 | 1 | 1 |
 | Feature Vectors | 3 | 1 | 2 | 0 |
 | Full Lifecycle | 12 | 2 | 10 | 0 |
-| Sensory Systems | 6 | 0 | 5 | 1 |
+| Sensory Systems | 5 | 0 | 5 | 0 |
 | Edge Parameterisations | 4 | 0 | 4 | 0 |
 | Tooling | 14 | 0 | 10 | 4 |
 | User Experience | 7 | 0 | 5 | 2 |

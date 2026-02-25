@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 # Path Constants
-PROJECT_ROOT = pathlib.Path("/Users/jim/src/apps/ai_sdlc_method")
+PROJECT_ROOT = pathlib.Path(__file__).parents[3]
 IMP_GEMINI = PROJECT_ROOT / "imp_gemini"
 PLUGIN_ROOT = IMP_GEMINI / "gemini_cli"
 CONFIG_DIR = PLUGIN_ROOT / "config"

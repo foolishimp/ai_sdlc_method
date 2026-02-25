@@ -1,6 +1,6 @@
 # Validates: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-008
 import pytest
-from imp_gemini.code.internal.workspace_state import load_events
+from gemini_cli.internal.workspace_state import load_events
 
 pytestmark = [pytest.mark.uat]
 
@@ -46,5 +46,6 @@ class TestSignalClassification:
 class TestProtocolEnforcement:
     def test_hooks_exist(self):
         import pathlib
-        hooks_file = pathlib.Path("/Users/jim/src/apps/ai_sdlc_method/imp_gemini/code/hooks/hooks.json")
+        project_root = pathlib.Path(__file__).parents[3]
+        hooks_file = project_root / "imp_gemini" / "gemini_cli" / "hooks" / "hooks.json"
         assert hooks_file.exists()

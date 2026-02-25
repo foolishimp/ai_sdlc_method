@@ -400,11 +400,11 @@ Convergence is evaluator-dependent and edge-dependent. The iteration engine is u
 
 Every evaluation is performed by one or more of:
 
-| Evaluator | Compute Regime | What it does |
-|-----------|---------------|-------------|
-| **Human** | Judgment | Domain evaluation, business fit, "is this what I meant", approval/rejection |
-| **Agent(intent, context)** | Probabilistic (#45) | LLM traversal under constraints — gap analysis, coherence checking, refinement suggestions |
-| **Deterministic Tests** | Deterministic (#45) | Pass/fail. Type checks, schema validation, test suites, contract verification, SLA monitors |
+| Evaluator | Compute Regime | What it does | Processing Phase |
+|-----------|---------------|-------------|------------------|
+| **Human evaluator** | Judgment | Domain evaluation, business fit, approval/rejection | Conscious |
+| **Agent evaluator** | Probabilistic (#45) | LLM traversal under constraints | Conscious |
+| **Deterministic Tests** | Deterministic (#45) | Pass/fail. Type checks, schema validation | Reflex |
 
 All three are instances of **evaluator-as-prompter** (#35): they compute a delta (#36) between current state and target state, then emit a constraint signal that drives the next iteration.
 
