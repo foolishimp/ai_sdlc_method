@@ -68,12 +68,12 @@ Architectural evaluation found ~70% of changes are sound and address real gaps. 
 
 ## Phase 6: Validate Config and Hook Changes
 
-- [ ] **P6.1** Review affect correction in `evaluator_defaults.yml` — confirm alignment with spec §4.3
+- [ ] **P6.1** Review affect correction in `evaluator_defaults.yml` — Gemini was half-right: affect is NOT an evaluator type (spec §4.3 line 466 confirms), but affect IS still a processing phase (Reflex → Affect → Conscious). Gemini removed it as a phase, which is wrong. Additionally, affect is part of the IntentEngine input tuple: `IntentEngine(intent + affect)` (§4.6.1) — it gives "emotion" (urgency, severity, priority) to outgoing intents. Validate that evaluator_defaults.yml preserves all three roles: (a) processing phase, (b) valence vector on gap findings, (c) intent tuple component.
 - [ ] **P6.2** Review `on-session-start.sh` abandoned iteration detection — confirm REQ-SUPV-003 compliance
 - [ ] **P6.3** Review `on-stop-check-protocol.sh` edge-specific filtering fix — confirm correctness
 - [ ] **P6.4** Review `graph_topology.yml` version bump (2.6.0 → 2.8.0) — confirm alignment with spec version
 
-**Rationale**: These changes fix real bugs (edge filtering) and correct a conceptual error (affect as phase vs. valence vector). Validation, not rewrite.
+**Rationale**: The hook changes fix real bugs (edge filtering, abandoned iteration detection). The affect correction needs careful review — Gemini correctly identified that affect is not an evaluator type, but incorrectly stripped its role as a processing phase and missed its role as the emotional component of the intent tuple (§4.6.1).
 
 ---
 
@@ -112,7 +112,7 @@ Architectural evaluation found ~70% of changes are sound and address real gaps. 
 | `__main__.py` helpers | KEEP | DRY refactoring is correct |
 | `__main__.py` uncommitted | DISCARD | Unstable, untested |
 | `cmd_run_edge` | KEEP | Needed for automated traversal |
-| Affect correction | KEEP | Faithful to spec §4.3 |
+| Affect correction | PARTIAL REVERT | Gemini right: affect ≠ evaluator type. Gemini wrong: affect IS still a processing phase + intent tuple component (§4.6.1). Restore phase role and intent emotion. |
 | Hook bug fixes | KEEP | Real bugs fixed |
 | Comparison reports | KEEP | Documentation only |
 | Test additions | KEEP | Valid tests, real coverage |
