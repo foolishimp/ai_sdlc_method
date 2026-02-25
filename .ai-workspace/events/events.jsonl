@@ -673,3 +673,5 @@
 {"event_type":"artifact_modified","timestamp":"2026-02-24T15:55:39.000Z","project":"ai_sdlc_method","file_path":"imp_claude/code/genisis/__init__.py","asset_type":"code","tool":"Edit"}
 {"event_type":"artifact_modified","timestamp":"2026-02-24T15:56:44.000Z","project":"ai_sdlc_method","file_path":"imp_claude/tests/test_functor_spawn.py","asset_type":"unit_tests","tool":"Edit"}
 {"event_type":"artifact_modified","timestamp":"2026-02-24T15:56:44.000Z","project":"ai_sdlc_method","file_path":"imp_claude/tests/test_functor_spawn.py","asset_type":"unit_tests","tool":"Edit"}
+{"event_type":"artifact_modified","timestamp":"2026-02-25T01:05:44.000Z","project":"ai_sdlc_method","file_path":"specification/USER_GUIDE.md","asset_type":"requirements","tool":"Write"}
+{"event_type":"edge_started","timestamp":"2026-02-25T01:05:44.000Z","project":"ai_sdlc_method","edge":"intent→requirements","trigger":"artifact_write_detected","first_file":"specification/USER_GUIDE.md"}
