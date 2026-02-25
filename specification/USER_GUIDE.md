@@ -34,7 +34,7 @@ Genesis gives you a structured way to build software with AI. Instead of ad-hoc 
 
 ### 1.1 The Asset Graph
 
-Your project moves through 10 asset types connected by transitions:
+Ten typed assets connected by directed transitions. The graph is cyclic — telemetry feeds back to intent.
 
 ```
 Intent ──> Requirements ──> Design ──> Code <──> Unit Tests
@@ -45,50 +45,48 @@ Intent ──> Requirements ──> Design ──> Code <──> Unit Tests
 Code ──> CI/CD ──> Running System ──> Telemetry ──> Intent (feedback)
 ```
 
-Each node is a typed asset. Each arrow is a transition that transforms one asset into the next. The graph is cyclic — telemetry feeds back into new intents.
-
-| Asset Type | What It Is |
+| Asset Type | Definition |
 |-----------|-----------|
-| Intent | Raw problem statement — what you want to build and why |
+| Intent | Problem/opportunity statement |
 | Requirements | Structured, testable requirements with unique REQ keys |
 | Design | Technical architecture — components, ADRs, data models |
-| Code | Implementation source code tagged with REQ keys |
+| Code | Source code tagged with REQ keys |
 | Unit Tests | Tests co-evolved with code via TDD |
 | Test Cases | Integration/system tests derived from design |
-| UAT Tests | Business acceptance tests in plain language (BDD) |
+| UAT Tests | Business acceptance tests in business language (BDD) |
 | CI/CD | Pipeline configuration and build artifacts |
 | Running System | Deployed system with health checks |
 | Telemetry | Runtime metrics and alerts tagged with REQ keys |
 
 ### 1.2 The Only Operation: iterate()
 
-Genesis has exactly one operation:
+One operation:
 
 ```
 iterate(Asset, Context[], Evaluators) -> Asset'
 ```
 
-- **Asset**: The current state of a typed artifact (e.g., your requirements document)
-- **Context[]**: Constraints that bound construction (project constraints, ADRs, standards)
-- **Evaluators**: Quality checks that determine when the asset is good enough
+| Parameter | Role |
+|-----------|------|
+| **Asset** | Current state of a typed artifact |
+| **Context[]** | Constraints bounding construction (project constraints, ADRs, standards) |
+| **Evaluators** | Quality checks defining convergence |
 
-The iterate agent generates a candidate, runs the evaluators, and reports what passed and what failed. If all required checks pass (delta = 0), the edge **converges** and you move to the next transition. If not, you iterate again.
+The agent generates a candidate, runs evaluators, and reports results. When all required checks pass (delta = 0), the edge **converges** and the feature advances to the next transition. Otherwise, iterate again.
 
 ### 1.3 Three Evaluator Types
 
-Every quality check on every edge is one of three types:
+| Type | Mechanism | Example |
+|------|-----------|---------|
+| **Deterministic** | Execute command, check exit code | `pytest --tb=short` exits 0 |
+| **Agent** | LLM assesses against criterion | "All REQ keys have corresponding code" |
+| **Human** | Practitioner reviews and approves/rejects | "Does this design meet requirements?" |
 
-| Type | What It Does | Example |
-|------|-------------|---------|
-| **Deterministic** | Runs a command, checks the output | `pytest --tb=short` must exit 0 |
-| **Agent** | Claude assesses against a criterion | "All REQ keys have corresponding code" |
-| **Human** | You review and approve/reject | "Does this design meet your needs?" |
-
-Evaluators compose: an edge can have all three types. Deterministic runs first (cheap, fast), then agent (moderate), then human (expensive, only when needed).
+Evaluators compose per edge. Execution order: deterministic (cheap) → agent (moderate) → human (expensive, only when needed).
 
 ### 1.4 Feature Vectors and REQ Keys
 
-A **feature vector** is a single capability's journey through the graph. Each feature gets a unique REQ key (e.g., `REQ-F-AUTH-001`) that threads through every artifact:
+A **feature vector** is a single capability's trajectory through the graph. Each feature carries a unique REQ key that threads through every artifact:
 
 ```
 Spec:       REQ-F-AUTH-001 defined
@@ -98,11 +96,11 @@ Tests:      # Validates: REQ-F-AUTH-001
 Telemetry:  logger.info("login", req="REQ-F-AUTH-001")
 ```
 
-This gives you end-to-end traceability from intent to runtime.
+REQ keys provide end-to-end traceability from intent to runtime.
 
 ### 1.5 Profiles
 
-Not every feature needs every edge. **Profiles** control which transitions are included and what evaluators apply:
+**Profiles** select which transitions and evaluators apply to a given feature:
 
 | Profile | Edges | When to Use |
 |---------|-------|-------------|
@@ -115,22 +113,16 @@ Not every feature needs every edge. **Profiles** control which transitions are i
 
 ### 1.6 Event Sourcing
 
-All state in Genesis is derived from an append-only event log:
-
-```
-.ai-workspace/events/events.jsonl
-```
-
-Every iteration emits events. STATUS.md, feature vector files, and task lists are all projections of this log — they can be regenerated at any time.
+All state derives from an append-only event log: `.ai-workspace/events/events.jsonl`. STATUS.md, feature vectors, and task lists are projections of this log, regenerable at any time.
 
 ### 1.7 The Two-Command Interface
 
-You only need two commands for daily work:
+Two commands cover daily workflow:
 
-- **`/gen-start`** — "Go." Detects project state and routes to the right action.
-- **`/gen-status`** — "Where am I?" Shows feature progress, health, and next steps.
+- **`/gen-start`** — State detection and routing. Determines what to do next and delegates.
+- **`/gen-status`** — Progress, health, and observability.
 
-The other 11 commands exist for specific scenarios, but `/gen-start` handles routing for you.
+The remaining 11 commands address specific scenarios; `/gen-start` handles routing automatically.
 
 ---
 
@@ -238,25 +230,21 @@ Clone the repo and point to the local path:
 
 ## 3. Your First Project
 
-We will use a running example throughout this guide: **tasktracker**, a Python REST API for managing tasks.
+Running example throughout: **tasktracker** — a Python REST API for task management.
 
-### 3.1 Start in Your Project Directory
+### 3.1 Create Project Directory
 
 ```bash
 mkdir tasktracker && cd tasktracker
 ```
 
-Open Claude Code in this directory.
-
 ### 3.2 Install Genesis
-
-Run the installer in your project directory:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 -
 ```
 
-Restart Claude Code. The installer creates the workspace, a template `specification/INTENT.md`, and `project_constraints.yml`.
+Restart Claude Code. The installer creates `.ai-workspace/`, a template `specification/INTENT.md`, and `project_constraints.yml`.
 
 ### 3.3 Run /gen-start
 
@@ -264,13 +252,13 @@ Restart Claude Code. The installer creates the workspace, a template `specificat
 /gen-start
 ```
 
-The installer already created a template intent, so Genesis detects `NO_FEATURES` and guides you to describe what you are building and create your first feature vector.
+Post-install state is `NO_FEATURES` (template intent exists). Genesis prompts for a feature description.
 
-If you are starting without the installer (using `/gen-init` instead), Genesis detects `UNINITIALISED` and runs the progressive init flow — 5 questions covering project name, kind, language, test runner, and intent.
+Alternative: without the installer, `/gen-init` detects `UNINITIALISED` and runs a 5-question progressive init (project name, kind, language, test runner, intent).
 
 ### 3.4 Configure Your Project
 
-Edit `specification/INTENT.md` to describe your project:
+Edit `specification/INTENT.md`:
 
 ```markdown
 # Intent: tasktracker
@@ -285,7 +273,7 @@ Developer input
 High
 ```
 
-Edit `.ai-workspace/context/project_constraints.yml` to match your toolchain:
+Edit `.ai-workspace/context/project_constraints.yml`:
 
 ```yaml
 project:
@@ -312,7 +300,7 @@ thresholds:
 
 ### 3.5 Create Your First Feature
 
-Run `/gen-start`. Genesis detects `NO_FEATURES` — intent exists but no feature vectors. It creates your first feature vector:
+`/gen-start` detects `NO_FEATURES` and creates the first feature vector:
 
 ```
 Feature vector created: REQ-F-TASK-001
@@ -321,11 +309,7 @@ Profile: standard
 Status: pending
 ```
 
-The feature vector YAML is written to `.ai-workspace/features/active/REQ-F-TASK-001.yml`. It defines:
-- The REQ key (`REQ-F-TASK-001`)
-- The profile (`standard` — 4 edges)
-- The trajectory (which edges to traverse)
-- Acceptance criteria (derived from intent)
+Written to `.ai-workspace/features/active/REQ-F-TASK-001.yml`. Contains: REQ key, profile (standard — 4 edges), trajectory, and acceptance criteria derived from intent.
 
 ### 3.6 Check Status
 
@@ -347,15 +331,13 @@ Project:
   Edges: 0/4 converged
 ```
 
-You are ready to iterate.
-
 ---
 
 ## 4. Working Through the Graph
 
 ### 4.1 Intent to Requirements
 
-Run `/gen-start`. Genesis detects `IN_PROGRESS`, selects `REQ-F-TASK-001`, identifies `intent_requirements` as the first unconverged edge, and delegates to the iterate agent.
+`/gen-start` detects `IN_PROGRESS`, selects `REQ-F-TASK-001`, identifies `intent_requirements` as the first unconverged edge, and delegates to the iterate agent.
 
 The iterate agent:
 
@@ -388,15 +370,15 @@ The iterate agent:
 | correct_key_format | agent | PASS |
 | human_validates_completeness | human | -- |
 
-5. **Requests human review** — this is a spec-boundary edge. You review the requirements and either approve, reject with feedback, or request refinements.
+5. **Requests human review** — spec-boundary edge requires human approval. Options: approve, reject with feedback, or refine.
 
-On approval, the edge converges. Event emitted. Feature vector updated.
+On approval: edge converges, event emitted, feature vector updated.
 
 ### 4.2 Requirements to Design
 
-Run `/gen-start` again. The next unconverged edge is `requirements_design`.
+Next unconverged edge: `requirements_design`.
 
-At this boundary, Genesis prompts for **constraint dimensions** — mandatory technical decisions that haven't been made yet:
+Genesis prompts for **constraint dimensions** — mandatory technical decisions not yet resolved:
 
 ```
 The following constraint dimensions must be resolved at design:
@@ -414,25 +396,17 @@ The following constraint dimensions must be resolved at design:
   error_handling: (not set)
 ```
 
-You provide answers:
+Answers for this example:
 - **ecosystem**: Python 3.12, FastAPI, SQLAlchemy, PostgreSQL
 - **deployment**: Docker containers on AWS ECS
 - **security**: JWT with bcrypt password hashing
 - **build_system**: pip + pyproject.toml
 
-The iterate agent generates:
-- Component architecture (API layer, service layer, data layer)
-- ADRs for each constraint dimension decision
-- Data models (Task, User schemas)
-- API endpoint specifications
-
-The agent evaluator checks completeness and fidelity against the requirements. The human evaluator asks you to review. On approval, the edge converges.
+The iterate agent produces: component architecture, ADRs per constraint dimension, data models, and API endpoint specifications. Agent evaluator checks completeness and fidelity; human evaluator reviews. On approval, edge converges.
 
 ### 4.3 Design to Code
 
-Run `/gen-start`. Next edge: `design_code`.
-
-The iterate agent scaffolds code from your design:
+Next edge: `design_code`. The iterate agent scaffolds code from design:
 
 ```python
 # src/tasktracker/models/task.py
@@ -450,17 +424,11 @@ class Task(Base):
     ...
 ```
 
-Evaluators run:
-- **Deterministic**: Does it compile/parse? Does the linter pass?
-- **Agent**: Are all REQ keys tagged? Does code match design?
-
-If the linter fails, the iterate agent fixes the issue and re-evaluates. When delta = 0, the edge converges.
+Evaluators: deterministic (compile, lint), agent (REQ tag coverage, design conformance). On failure, the agent remediates and re-evaluates. delta = 0 → converge.
 
 ### 4.4 Code and Unit Tests (TDD Co-evolution)
 
-Run `/gen-start`. Next edge: `code_unit_tests`.
-
-This is a **bidirectional** edge — code and tests co-evolve. The iterate agent follows the TDD cycle:
+Next edge: `code_unit_tests`. Bidirectional — code and tests co-evolve via TDD:
 
 **RED**: Write a failing test first:
 
@@ -508,11 +476,9 @@ And agent checks:
 | all_req_keys_covered | agent | Every REQ key in spec has a test |
 | code_quality | agent | Functions under 50 lines, clear naming |
 
-The iterate agent loops (RED-GREEN-REFACTOR) until all checks pass. With `--auto`, it continues without pausing between iterations.
+The agent loops RED→GREEN→REFACTOR until all checks pass. `--auto` suppresses inter-iteration pauses.
 
 ### 4.5 Checking Progress
-
-At any point, check where you are:
 
 ```
 /gen-status
@@ -532,7 +498,7 @@ Project:
   Edges: 3/4 converged
 ```
 
-Trace a specific REQ key end-to-end:
+Trace a REQ key:
 
 ```
 /gen-trace REQ-F-TASK-001.1
@@ -549,7 +515,7 @@ REQ-F-TASK-001.1: Create task
   Telemetry     --                                              [GAP]
 ```
 
-Check traceability across all REQ keys:
+Validate traceability:
 
 ```
 /gen-gaps --layer 1
@@ -574,13 +540,13 @@ Coverage: 3/4 REQ keys fully covered (75%)
 
 ### 5.1 Human Reviews
 
-At edges where the evaluator config includes `human`, the iterate agent pauses and presents the candidate for your review.
+Edges with `human` evaluators pause for review:
 
 ```
 /gen-review --feature REQ-F-TASK-001
 ```
 
-You see the current asset with evaluator results and choose:
+Actions:
 
 | Action | What Happens |
 |--------|-------------|
@@ -590,7 +556,7 @@ You see the current asset with evaluator results and choose:
 
 ### 5.2 Spec-Boundary Reviews
 
-At transitions between specification levels (intent to requirements, requirements to design), Genesis runs a **gradient check** with three dimensions:
+Spec-boundary edges (intent→requirements, requirements→design) include a **gradient check** across three dimensions:
 
 ```
 /gen-spec-review --feature REQ-F-TASK-001 --edge "requirements→design"
@@ -602,14 +568,11 @@ At transitions between specification levels (intent to requirements, requirement
 | **Fidelity** | Does target faithfully represent source? | No requirements weakened or narrowed |
 | **Boundary** | Does target stay within its specification level? | Design doesn't introduce implementation details |
 
-If the review finds issues, you can:
-- **Approve** (issues are minor)
-- **Reject** (rework this edge)
-- **Escalate** (the source asset needs revision — block this edge, re-open upstream)
+Disposition: **Approve** (minor issues), **Reject** (rework edge), or **Escalate** (source asset needs revision — blocks edge, re-opens upstream).
 
 ### 5.3 Traceability Validation
 
-Three layers of traceability, checked by `/gen-gaps`:
+`/gen-gaps` validates three traceability layers:
 
 | Layer | What It Checks | When to Run |
 |-------|---------------|-------------|
@@ -621,22 +584,15 @@ Three layers of traceability, checked by `/gen-gaps`:
 /gen-gaps --layer all
 ```
 
-Gaps found are emitted as `intent_raised` events, feeding the consciousness loop.
+Gaps emit `intent_raised` events, feeding the consciousness loop.
 
 ### 5.4 Checkpoints
-
-Save a snapshot of your workspace state:
 
 ```
 /gen-checkpoint --message "All CRUD tests passing, auth next"
 ```
 
-This creates an immutable snapshot at `.ai-workspace/snapshots/snapshot-{timestamp}.yml` with:
-- Context hash (SHA-256 of all context files)
-- Feature states (which edges converged, iteration counts)
-- Git ref (current commit)
-
-Use checkpoints before risky changes or at the end of work sessions.
+Creates an immutable snapshot at `.ai-workspace/snapshots/snapshot-{timestamp}.yml` containing context hash (SHA-256), feature states, and git ref. Recommended before risky changes or at session end.
 
 ---
 
@@ -644,12 +600,10 @@ Use checkpoints before risky changes or at the end of work sessions.
 
 ### 6.1 Pre-Release Checklist
 
-Before creating a release:
-
 ```
-/gen-gaps                    # Check traceability across all layers
-/gen-status --health         # Workspace integrity check
-/gen-escalate                # Review any unactioned signals
+/gen-gaps                    # Traceability across all layers
+/gen-status --health         # Workspace integrity
+/gen-escalate                # Unactioned signals
 ```
 
 ### 6.2 Create a Release
@@ -658,20 +612,15 @@ Before creating a release:
 /gen-release --version "1.0.0"
 ```
 
-Genesis:
-1. Validates release readiness (all critical features converged, gaps reviewed)
-2. Generates changelog from git log (commits with REQ keys since last release)
-3. Creates release manifest with REQ coverage report
-4. Creates git tag `v1.0.0`
-5. Emits `release_created` event
+Sequence: validate readiness → generate changelog (commits with REQ keys since last tag) → create release manifest with REQ coverage → git tag `v1.0.0` → emit `release_created` event.
 
 ### 6.3 Dry Run
-
-Preview without creating tags or artifacts:
 
 ```
 /gen-release --version "1.0.0" --dry-run
 ```
+
+Preview only — no tags or artifacts created.
 
 ---
 
@@ -679,11 +628,11 @@ Preview without creating tags or artifacts:
 
 ### 7.1 Adding Features
 
-After your first feature converges (or while it is still in progress), add new features by running `/gen-start`. If the current state allows it, Genesis will offer to create a new feature vector. You describe the capability and it creates a new trajectory through the graph (e.g., `REQ-F-AUTH-001`).
+Run `/gen-start` to add features at any time. Genesis creates a new feature vector and trajectory (e.g., `REQ-F-AUTH-001`).
 
 ### 7.2 Feature Selection
 
-When you run `/gen-start` with multiple active features, Genesis picks the most important one:
+With multiple active features, `/gen-start` selects by priority:
 
 1. **Time-boxed spawns approaching expiry** (< 25% budget remaining)
 2. **Closest to complete** (fewest unconverged edges)
@@ -692,9 +641,9 @@ When you run `/gen-start` with multiple active features, Genesis picks the most 
 
 ### 7.3 Feature Dependencies
 
-Features can depend on each other. If `REQ-F-AUTH-001` must complete before `REQ-F-TASK-001` can proceed past design, the dependency blocks the downstream feature at that edge.
+Dependencies block downstream features at the declared edge. Example: `REQ-F-AUTH-001` must complete before `REQ-F-TASK-001` can proceed past design.
 
-`/gen-status` shows blocked features:
+`/gen-status` output:
 
 ```
 Active Features:
@@ -704,13 +653,11 @@ Active Features:
 
 ### 7.4 Overriding Selection
 
-Skip the automatic selection:
-
 ```
 /gen-start --feature REQ-F-AUTH-001
 ```
 
-Or go directly to a specific edge:
+Direct edge targeting:
 
 ```
 /gen-iterate --edge "code↔unit_tests" --feature REQ-F-AUTH-001
@@ -720,7 +667,7 @@ Or go directly to a specific edge:
 
 ## 8. Spawning Child Vectors
 
-Sometimes a feature gets stuck because you need to investigate something first. Child vectors let you branch off, investigate, and fold results back.
+Child vectors branch from a parent feature for investigation, then fold results back as context.
 
 ### 8.1 When to Spawn
 
@@ -739,19 +686,13 @@ Sometimes a feature gets stuck because you need to investigate something first. 
   --duration "3 days"
 ```
 
-This creates a child vector (`REQ-F-SPIKE-001`) with:
-- A limited graph (spike profile: 2 edges)
-- A time-box (3 days)
-- A link to the parent feature
+Creates child vector `REQ-F-SPIKE-001`: limited graph (spike profile, 3 edges), time-box (3 days), linked to parent.
 
 ### 8.3 Time-Boxes
 
-Child vectors (except features) are **time-boxed**. When the time-box expires:
-- The child converges with whatever results it has
-- Partial findings are packaged as the fold-back payload
-- The parent is unblocked
+Non-feature child vectors are time-boxed. On expiry: child converges with partial results, fold-back payload packaged, parent unblocked.
 
-Check remaining time:
+Remaining time:
 
 ```
 /gen-status --feature REQ-F-SPIKE-001
@@ -766,14 +707,14 @@ REQ-F-SPIKE-001  SQLAlchemy async evaluation
 
 ### 8.4 Fold-Back
 
-When a child vector converges (or its time-box expires), its results fold back to the parent:
+On child convergence or time-box expiry:
 
-1. Child outputs are written to `.ai-workspace/features/fold-back/REQ-F-SPIKE-001.md`
-2. Parent's Context[] is updated with the findings
-3. Parent's blocked edge is unblocked
-4. `spawn_folded_back` event is emitted
+1. Outputs written to `.ai-workspace/features/fold-back/REQ-F-SPIKE-001.md`
+2. Parent's Context[] updated with findings
+3. Parent's blocked edge unblocked
+4. `spawn_folded_back` event emitted
 
-The next time you iterate on the parent, the child's findings are in context.
+Subsequent parent iterations include child findings in context.
 
 ### 8.5 Vector Type Quick Reference
 
@@ -791,9 +732,9 @@ The next time you iterate on the parent, the child's findings are in context.
 
 ### 9.1 How Stuck Detection Works
 
-If the same delta (number of failing checks) persists for 3 or more consecutive iterations on the same edge, Genesis marks the feature as `STUCK`.
+Same delta persisting for 3+ consecutive iterations on one edge → feature marked `STUCK`.
 
-`/gen-start` detects this automatically:
+`/gen-start` detects automatically:
 
 ```
 STATE: STUCK
@@ -804,7 +745,7 @@ REQ-F-TASK-001 on code_unit_tests: delta=2 unchanged for 4 iterations
 
 ### 9.2 The Escalation Queue
 
-View all items needing attention:
+View queue:
 
 ```
 /gen-escalate
@@ -827,25 +768,19 @@ ESCALATION QUEUE (3 items)
 
 ### 9.3 Recovery Options
 
-Process items interactively:
-
-```
-/gen-escalate --action
-```
-
-For each item, you choose:
+Interactive processing via `/gen-escalate --action`. Per-item options:
 
 | Option | When to Use |
 |--------|-------------|
-| **Spawn discovery** | You need to investigate *why* it is stuck |
-| **Force iterate** | Try once more with additional context or a different approach |
-| **Relax convergence** | Mark failing checks as advisory (they still report but do not block) |
-| **Escalate to human** | Review the asset yourself and provide specific guidance |
-| **Dismiss** | Acknowledge the signal, log a reason, and move on |
+| **Spawn discovery** | Investigate root cause |
+| **Force iterate** | Retry with additional context |
+| **Relax convergence** | Mark failing checks as advisory (report but do not block) |
+| **Escalate to human** | Direct review with specific guidance |
+| **Dismiss** | Acknowledge, log reason, proceed |
 
 ### 9.4 Zooming In
 
-If an edge feels too coarse, zoom in to see sub-steps:
+Decompose an edge into sub-steps:
 
 ```
 /gen-zoom in --edge "code_unit_tests"
@@ -860,7 +795,7 @@ code <-> unit_tests decomposes into:
   COMMIT   Save with REQ key in commit message
 ```
 
-This can help identify which phase of the TDD cycle is causing problems.
+Identifies which TDD phase is failing.
 
 ---
 
@@ -881,7 +816,7 @@ This can help identify which phase of the TDD cycle is causing problems.
 | `--backup` | Create backup before changes |
 | `--impl` | Implementation name (auto-detected if omitted) |
 
-Creates `.ai-workspace/` with graph topology, edge configs, profiles, project constraints template, feature vector template, and event log. Auto-detects project name, language, and test runner.
+Scaffolds `.ai-workspace/` with graph topology, edge configs, profiles, templates, and event log. Auto-detects project metadata.
 
 ---
 
@@ -931,15 +866,7 @@ State detection (first match wins):
 | `--auto` | Auto-iterate until convergence (pauses at human gates) |
 | `--profile` | Override projection profile |
 
-The iterate agent:
-1. Loads edge config and project constraints
-2. Builds the effective evaluator checklist
-3. Analyses the source asset for gaps and ambiguities
-4. Generates or evaluates the target asset
-5. Runs all evaluators (deterministic, agent, human)
-6. Reports delta (failing required checks)
-7. Emits events and updates feature vector
-8. Converges when delta = 0
+Agent sequence: load edge config → build effective checklist → analyse source (backward gaps) → generate/evaluate target → run evaluators → report delta → emit events → converge when delta = 0.
 
 Output:
 
@@ -1033,7 +960,7 @@ Layer 1: REQ tag coverage (code + tests). Layer 2: Test gap analysis (spec vs te
 | `--feature` | Feature to review |
 | `--edge` | Specific edge (defaults to current active) |
 
-Presents the current candidate with evaluator results. You approve, reject with feedback, or request refinements.
+Presents candidate with evaluator results. Actions: approve, reject (with feedback), or refine.
 
 ---
 
@@ -1117,7 +1044,7 @@ Creates a snapshot at `.ai-workspace/snapshots/snapshot-{timestamp}.yml` with co
 |--------|-------------|
 | `--direction` | Trace direction (default: both) |
 
-Shows where a REQ key appears (or is missing) across all asset types.
+Reports REQ key presence or absence across all asset types.
 
 ---
 
@@ -1214,35 +1141,18 @@ Profiles live in `.ai-workspace/graph/profiles/`. To customize:
 
 ## 12. Pitfalls and FAQ
 
-**Q: I ran `/gen-start` and nothing happened.**
-A: Check that the plugin is installed (`settings.json` has genisis enabled). Restart Claude Code after installation.
-
-**Q: How do I undo an iteration?**
-A: You don't undo — you iterate again. Provide feedback on what was wrong and the next iteration uses your feedback as context. Events are append-only.
-
-**Q: When should I use `/gen-start` vs `/gen-iterate`?**
-A: Use `/gen-start` almost always — it detects state and routes automatically. Use `/gen-iterate` only when you want to target a specific edge and feature directly.
-
-**Q: Can I skip edges?**
-A: Yes, use profiles. The `standard` profile skips UAT, CI/CD, and telemetry edges. The `hotfix` profile goes straight to code + tests. Or create a custom profile.
-
-**Q: How do I use this with an existing codebase?**
-A: Install Genesis, write your intent, spawn features for the capabilities you want to add. Existing code is context — Genesis does not require starting from zero.
-
-**Q: What if I disagree with the agent's output?**
-A: Reject it in the human review step. Provide specific feedback. The next iteration uses your feedback as additional context.
-
-**Q: What is the difference between `/gen-review` and `/gen-spec-review`?**
-A: `/gen-spec-review` is for spec-boundary edges (intent to requirements, requirements to design) and adds gradient checks (completeness, fidelity, boundary). `/gen-review` is the general human gate.
-
-**Q: Can I change the graph topology?**
-A: Yes. Edit `.ai-workspace/graph/graph_topology.yml`. You can add asset types, transitions, or constraint dimensions. Existing features will continue with their original topology.
-
-**Q: The event log is getting large.**
-A: It is append-only by design. Use `/gen-checkpoint` to mark known-good states. Old events are not deleted but are rarely read directly — all views are derived projections.
-
-**Q: What are the REQ key naming conventions?**
-A: Format: `REQ-{TYPE}-{DOMAIN}-{SEQ}` where TYPE is `F` (functional), `NFR` (non-functional). Examples: `REQ-F-AUTH-001`, `REQ-NFR-PERF-001`. Sub-requirements use dots: `REQ-F-AUTH-001.1`.
+| Question | Answer |
+|----------|--------|
+| `/gen-start` does nothing | Verify plugin in `settings.json`. Restart Claude Code after install. |
+| Undo an iteration? | No undo. Iterate again with feedback. Events are append-only. |
+| `/gen-start` vs `/gen-iterate`? | `/gen-start` for automatic routing. `/gen-iterate` for targeting a specific edge/feature. |
+| Skip edges? | Use profiles. `standard` skips UAT/CI/CD/telemetry. `hotfix` targets code+tests only. |
+| Existing codebase? | Install, write intent, create features for new capabilities. Existing code is context. |
+| Disagree with agent output? | Reject in review with specific feedback. Next iteration uses it as context. |
+| `/gen-review` vs `/gen-spec-review`? | `/gen-spec-review` adds gradient checks (completeness, fidelity, boundary) at spec-boundary edges. `/gen-review` is the general human gate. |
+| Change graph topology? | Edit `.ai-workspace/graph/graph_topology.yml`. Existing features retain their original topology. |
+| Event log growing large? | Append-only by design. `/gen-checkpoint` marks known-good states. Views are derived projections. |
+| REQ key format? | `REQ-{TYPE}-{DOMAIN}-{SEQ}`. TYPE: `F` (functional), `NFR` (non-functional). Sub-reqs: `REQ-F-AUTH-001.1`. |
 
 ---
 
