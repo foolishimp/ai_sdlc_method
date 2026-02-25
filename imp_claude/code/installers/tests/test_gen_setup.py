@@ -50,8 +50,8 @@ class TestFreshInstall:
         settings = installed_target / ".claude" / "settings.json"
         assert settings.exists()
         data = json.loads(settings.read_text())
-        assert "genisis" in data["extraKnownMarketplaces"]
-        assert data["enabledPlugins"]["genisis@genisis"] is True
+        assert "genesis" in data["extraKnownMarketplaces"]
+        assert data["enabledPlugins"]["genesis@genesis"] is True
 
     def test_creates_events_jsonl(self, installed_target):
         events = installed_target / ".ai-workspace" / "events" / "events.jsonl"
@@ -87,7 +87,7 @@ class TestFreshInstall:
         assert tasks.exists()
 
 class TestLegacyMigration:
-    """Installer removes pre-genisis keys (aisdlc / gen-methodology-v2)."""
+    """Installer removes pre-genesis keys (aisdlc / gen-methodology-v2)."""
 
     def test_removes_legacy_marketplace_and_plugin(self, clean_target):
         clean_target.mkdir()
@@ -108,8 +108,8 @@ class TestLegacyMigration:
         data = json.loads((settings_dir / "settings.json").read_text())
         assert "aisdlc" not in data["extraKnownMarketplaces"]
         assert "gen-methodology-v2@aisdlc" not in data["enabledPlugins"]
-        assert "genisis" in data["extraKnownMarketplaces"]
-        assert data["enabledPlugins"]["genisis@genisis"] is True
+        assert "genesis" in data["extraKnownMarketplaces"]
+        assert data["enabledPlugins"]["genesis@genesis"] is True
 
 
 class TestIdempotency:

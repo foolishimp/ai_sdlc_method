@@ -14,13 +14,13 @@ SPEC_DIR = PROJECT_ROOT / "specification"
 # Claude implementation paths
 IMP_CLAUDE = PROJECT_ROOT / "imp_claude"
 DESIGN_DIR = IMP_CLAUDE / "design"
-PLUGIN_ROOT = IMP_CLAUDE / "code/.claude-plugin/plugins/genisis"
+PLUGIN_ROOT = IMP_CLAUDE / "code/.claude-plugin/plugins/genesis"
 CONFIG_DIR = PLUGIN_ROOT / "config"
 EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"
 PROFILES_DIR = CONFIG_DIR / "profiles"
 COMMANDS_DIR = PLUGIN_ROOT / "commands"
 AGENTS_DIR = PLUGIN_ROOT / "agents"
-GENISIS_PKG = IMP_CLAUDE / "code" / "genisis"
+GENESIS_PKG = IMP_CLAUDE / "code" / "genesis"
 
 
 
@@ -238,8 +238,8 @@ def make_engine_config(workspace_path, constraints, graph_topology=None):
     """Build an EngineConfig pointing at the real plugin configs."""
     import sys
     sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
-    from genisis.engine import EngineConfig
-    from genisis.config_loader import load_yaml as _load_yaml
+    from genesis.engine import EngineConfig
+    from genesis.config_loader import load_yaml as _load_yaml
     return EngineConfig(
         project_name="test_project",
         workspace_path=workspace_path,

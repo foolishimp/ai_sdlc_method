@@ -22,19 +22,19 @@ tools:
 
   coverage:
     command: "python -m pytest"
-    args: "--cov=imp_claude/code/genisis --cov-report=term-missing imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
+    args: "--cov=imp_claude/code/genesis --cov-report=term-missing imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
     pass_criterion: "coverage percentage >= 0.70"
     required: true
 
   linter:
     command: "ruff check"
-    args: "imp_claude/code/genisis/"
+    args: "imp_claude/code/genesis/"
     pass_criterion: "exit code 0"
     required: true
 
   formatter:
     command: "ruff format"
-    args: "--check imp_claude/code/genisis/"
+    args: "--check imp_claude/code/genesis/"
     pass_criterion: "exit code 0"
     required: true
 

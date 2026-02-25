@@ -8,7 +8,7 @@
 
 ## What Exists
 
-The engine is a working Python module at `imp_claude/code/genisis/`:
+The engine is a working Python module at `imp_claude/code/genesis/`:
 
 | Module | What it does | Status |
 |--------|-------------|--------|
@@ -39,10 +39,10 @@ The engine has no `__main__.py`. The LLM agent cannot invoke it.
 
 ```bash
 # Evaluate an asset against an edge's checklist
-python -m genisis evaluate \
+python -m genesis evaluate \
   --edge "code↔unit_tests" \
   --feature "REQ-F-AUTH-001" \
-  --asset ./imp_claude/code/genisis/engine.py \
+  --asset ./imp_claude/code/genesis/engine.py \
   --workspace . \
   --output json
 
@@ -135,15 +135,15 @@ tools:
     pass_criterion: "exit code 0"
   coverage:
     command: "python -m pytest"
-    args: "--cov=imp_claude/code/genisis --cov-report=term imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
+    args: "--cov=imp_claude/code/genesis --cov-report=term imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
     pass_criterion: "coverage percentage >= 0.70"
   linter:
     command: "ruff check"
-    args: "imp_claude/code/genisis/"
+    args: "imp_claude/code/genesis/"
     pass_criterion: "exit code 0"
   formatter:
     command: "ruff format"
-    args: "--check imp_claude/code/genisis/"
+    args: "--check imp_claude/code/genesis/"
     pass_criterion: "exit code 0"
 ```
 
@@ -169,7 +169,7 @@ Gap 3: Context accumulation       ← not needed (LLM accumulates, engine evalua
 
 **Gap 1 second** because it's the minimal bridge between the LLM agent and the engine. 50 lines of Python.
 
-**Gap 2 is design-level** — update the `/gen-iterate` command spec to say "after constructing, call `python -m genisis evaluate` and compare deltas." No engine code change.
+**Gap 2 is design-level** — update the `/gen-iterate` command spec to say "after constructing, call `python -m genesis evaluate` and compare deltas." No engine code change.
 
 **Gap 3 is not needed** — the LLM session IS the context accumulator. The engine is stateless per invocation. That's a feature, not a bug.
 
@@ -181,10 +181,10 @@ After Gaps 1 + 4:
 
 ```bash
 # Engine evaluates its own code against TDD checklist
-PYTHONPATH=imp_claude/code python -m genisis evaluate \
+PYTHONPATH=imp_claude/code python -m genesis evaluate \
   --edge "code↔unit_tests" \
   --feature "REQ-F-ENGINE-001" \
-  --asset imp_claude/code/genisis/engine.py \
+  --asset imp_claude/code/genesis/engine.py \
   --workspace .
 
 # Expected: deterministic checks (pytest, lint, format) run and report pass/fail
@@ -197,7 +197,7 @@ After Gap 2 (in `/gen-iterate`):
 
 ```
 LLM constructs code → self-evaluates → delta_P = 0
-LLM calls: python -m genisis evaluate ... → delta_D = 2
+LLM calls: python -m genesis evaluate ... → delta_D = 2
                                              (lint fail + coverage fail)
 LLM reads: "Engine disagrees. 2 deterministic failures."
 LLM fixes lint + coverage → re-calls engine → delta_D = 0

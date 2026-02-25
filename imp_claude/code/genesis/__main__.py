@@ -1,9 +1,9 @@
 # Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability)
-"""CLI entry point for the genisis engine.
+"""CLI entry point for the genesis engine.
 
 Usage:
-    python -m genisis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset path/to/file.py
-    python -m genisis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset - < file.py
+    python -m genesis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset path/to/file.py
+    python -m genesis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset - < file.py
 
 The engine evaluates an asset against an edge's checklist and emits Level 4 events.
 The LLM agent calls this for cross-validation (ADR-019).
@@ -52,7 +52,7 @@ def _find_edge_params(workspace: Path) -> Path:
         / "code"
         / ".claude-plugin"
         / "plugins"
-        / "genisis"
+        / "genesis"
         / "config"
         / "edge_params",
     ]
@@ -71,7 +71,7 @@ def _find_profiles(workspace: Path) -> Path:
         / "code"
         / ".claude-plugin"
         / "plugins"
-        / "genisis"
+        / "genesis"
         / "config"
         / "profiles",
     ]
@@ -90,7 +90,7 @@ def _find_graph_topology(workspace: Path) -> Path:
         / "code"
         / ".claude-plugin"
         / "plugins"
-        / "genisis"
+        / "genesis"
         / "config"
         / "graph_topology.yml",
     ]
@@ -340,7 +340,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="genisis",
+        prog="genesis",
         description="Genesis F_D engine — deterministic evaluation with Level 4 events",
     )
     subparsers = parser.add_subparsers(dest="command")

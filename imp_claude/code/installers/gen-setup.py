@@ -55,9 +55,9 @@ from typing import Dict, List, Tuple
 # =============================================================================
 
 GITHUB_REPO = "foolishimp/ai_sdlc_method"
-PLUGIN_NAME = "genisis"
-MARKETPLACE_NAME = "genisis"
-PLUGIN_BASE = f"imp_claude/code/.claude-plugin/plugins/genisis"
+PLUGIN_NAME = "genesis"
+MARKETPLACE_NAME = "genesis"
+PLUGIN_BASE = f"imp_claude/code/.claude-plugin/plugins/genesis"
 PLUGIN_JSON_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/plugin.json"
 GRAPH_TOPOLOGY_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/config/graph_topology.yml"
 BOOTLOADER_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/specification/GENESIS_BOOTLOADER.md"
@@ -231,7 +231,7 @@ def fetch_graph_topology() -> str:
         pass
 
     # Fallback: local plugin path (works for local development)
-    local_path = Path(__file__).parent.parent / ".claude-plugin" / "plugins" / "genisis" / "config" / "graph_topology.yml"
+    local_path = Path(__file__).parent.parent / ".claude-plugin" / "plugins" / "genesis" / "config" / "graph_topology.yml"
     if local_path.exists():
         return local_path.read_text()
 
@@ -308,9 +308,11 @@ def clear_plugin_cache(dry_run: bool) -> bool:
     cache_locations = [
         Path.home() / ".claude" / "plugins" / "marketplaces" / MARKETPLACE_NAME,
         Path.home() / ".claude" / "plugins" / "cache" / MARKETPLACE_NAME / PLUGIN_NAME,
-        # Legacy cache from pre-genisis installs
+        # Legacy cache from pre-genesis installs
         Path.home() / ".claude" / "plugins" / "marketplaces" / "aisdlc",
         Path.home() / ".claude" / "plugins" / "cache" / "aisdlc" / "gen-methodology-v2",
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "genisis",
+        Path.home() / ".claude" / "plugins" / "cache" / "genisis" / "genisis",
     ]
 
     found_any = False
@@ -344,10 +346,11 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
         except json.JSONDecodeError:
             print_warn("Existing settings.json has invalid JSON, will merge carefully")
 
-    # Add marketplace (and remove legacy keys from pre-genisis installs)
+    # Add marketplace (and remove legacy keys from pre-genesis installs)
     if "extraKnownMarketplaces" not in existing:
         existing["extraKnownMarketplaces"] = {}
     existing["extraKnownMarketplaces"].pop("aisdlc", None)
+    existing["extraKnownMarketplaces"].pop("genisis", None)
     existing["extraKnownMarketplaces"][MARKETPLACE_NAME] = {
         "source": {"source": "github", "repo": GITHUB_REPO}
     }
@@ -356,6 +359,7 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
     if "enabledPlugins" not in existing:
         existing["enabledPlugins"] = {}
     existing["enabledPlugins"].pop("gen-methodology-v2@aisdlc", None)
+    existing["enabledPlugins"].pop("genisis@genisis", None)
     existing["enabledPlugins"][f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"] = True
 
     if dry_run:
@@ -709,7 +713,7 @@ def cmd_install(args) -> int:
         print()
         print("  Next steps:")
         print("    1. Start Claude Code (it will prompt to install the marketplace)")
-        print("    2. Run /plugin install genisis@genisis")
+        print("    2. Run /plugin install genesis@genesis")
         print("    3. Run /gen-start to begin")
         print()
         print("  Verify installation:")
