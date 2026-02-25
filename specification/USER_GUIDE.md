@@ -1,6 +1,6 @@
 # Genesis User Guide
 
-**Version**: v3.0.0-beta.1 | **Platform**: Claude Code | **Date**: 2026-02-25
+**Version**: 2.8.0 | **Platform**: Claude Code | **Date**: 2026-02-25
 
 A practitioner guide for building software with the Genesis Asset Graph Model methodology.
 
@@ -109,9 +109,9 @@ Not every feature needs every edge. **Profiles** control which transitions are i
 | **full** | All 10 | Regulated/audited systems, full governance |
 | **standard** | Intent through Unit Tests (4 edges) | Normal feature development |
 | **poc** | Intent through Code (3 edges) | Prove feasibility before committing |
-| **spike** | Requirements through Code (2 edges) | Research a technical question |
-| **hotfix** | Code + Unit Tests, CI/CD (2 edges) | Emergency production fix |
-| **minimal** | Code only (1 edge) | Smallest valid methodology instance |
+| **spike** | Intent through Code (3 edges) | Research a technical question |
+| **hotfix** | Intent + Code + Unit Tests (3 edges) | Emergency production fix |
+| **minimal** | Intent + Code (2 edges) | Smallest valid methodology instance |
 
 ### 1.6 Event Sourcing
 
@@ -152,31 +152,27 @@ Restart Claude Code after installation.
 curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 - verify
 ```
 
-Or inside Claude Code, run `/gen-start`. State detection will report `NEEDS_INTENT` or `UNINITIALISED` and guide you through setup.
+Or inside Claude Code, run `/gen-start`. State detection will report `NO_FEATURES` (the installer creates a template intent) and guide you to create your first feature vector.
 
 ### 2.3 What Gets Created
+
+The installer creates a minimal workspace. Additional configs (evaluator defaults, edge params, profiles, hooks) are delivered by the plugin at runtime.
 
 ```
 your-project/
 ├── .claude/
-│   ├── settings.json                  # Plugin config + hook wiring
-│   └── hooks/                         # Protocol enforcement hooks
-│       ├── on-session-start.sh        # Workspace health check
-│       ├── on-iterate-start.sh        # Edge detection + context injection
-│       ├── on-artifact-written.sh     # File-write observation
-│       └── on-stop-check-protocol.sh  # Mandatory side-effect enforcement
+│   └── settings.json                  # Plugin config (marketplace reference)
 ├── .ai-workspace/                     # Genesis workspace
 │   ├── events/events.jsonl            # Event log (source of truth)
 │   ├── features/
 │   │   ├── active/                    # Feature vectors in progress
 │   │   └── completed/                 # Converged feature vectors
 │   ├── graph/
-│   │   ├── graph_topology.yml         # Asset types + transitions
-│   │   ├── evaluator_defaults.yml     # Evaluator types + phases
-│   │   ├── edges/                     # Per-edge evaluator configs
-│   │   └── profiles/                  # Projection profiles (6)
-│   ├── {impl}/context/
+│   │   └── graph_topology.yml         # Asset types + transitions
+│   ├── context/
 │   │   └── project_constraints.yml    # Toolchain + thresholds
+│   ├── agents/                        # Per-agent working state
+│   ├── spec/                          # Derived spec views
 │   ├── tasks/
 │   │   ├── active/ACTIVE_TASKS.md     # Current work
 │   │   └── finished/                  # Completed task docs
@@ -185,6 +181,12 @@ your-project/
 │   └── INTENT.md                      # Intent document template
 └── CLAUDE.md                          # Genesis Bootloader (appended)
 ```
+
+The plugin provides at runtime:
+- **Hooks**: session health, edge detection, artifact observation, stop-check enforcement
+- **Edge configs**: per-edge evaluator checklists (10 files in `edge_params/`)
+- **Profiles**: projection profiles (full, standard, poc, spike, hotfix, minimal)
+- **Evaluator defaults**: evaluator types and processing phases
 
 ### 2.4 Alternative Installation
 
@@ -246,25 +248,29 @@ mkdir tasktracker && cd tasktracker
 
 Open Claude Code in this directory.
 
-### 3.2 Run /gen-start
+### 3.2 Install Genesis
+
+Run the installer in your project directory:
+
+```bash
+curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 -
+```
+
+Restart Claude Code. The installer creates the workspace, a template `specification/INTENT.md`, and `project_constraints.yml`.
+
+### 3.3 Run /gen-start
 
 ```
 /gen-start
 ```
 
-Genesis detects `UNINITIALISED` (no `.ai-workspace/` directory) and starts the progressive initialization flow. It asks 5 questions:
+The installer already created a template intent, so Genesis detects `NO_FEATURES` and guides you to describe what you are building and create your first feature vector.
 
-1. **Project name?** — `tasktracker` (auto-detected from directory)
-2. **Project kind?** — `service` (application/library/service/data-pipeline)
-3. **Primary language?** — `Python`
-4. **Test runner?** — `pytest`
-5. **What are you building?** — "A REST API for creating, listing, completing, and deleting tasks with user authentication"
+If you are starting without the installer (using `/gen-init` instead), Genesis detects `UNINITIALISED` and runs the progressive init flow — 5 questions covering project name, kind, language, test runner, and intent.
 
-Genesis creates the workspace, writes your intent to `specification/INTENT.md`, configures `project_constraints.yml` with your toolchain, and emits a `project_initialized` event.
+### 3.4 Configure Your Project
 
-### 3.3 What Was Generated
-
-**specification/INTENT.md** — Your intent, captured:
+Edit `specification/INTENT.md` to describe your project:
 
 ```markdown
 # Intent: tasktracker
@@ -273,13 +279,13 @@ A REST API for creating, listing, completing, and deleting tasks
 with user authentication.
 
 ## Source
-Developer input during /gen-init
+Developer input
 
 ## Priority
 High
 ```
 
-**project_constraints.yml** — Your toolchain configuration (excerpt):
+Edit `.ai-workspace/context/project_constraints.yml` to match your toolchain:
 
 ```yaml
 project:
@@ -304,9 +310,9 @@ thresholds:
   max_function_lines: 50
 ```
 
-### 3.4 Create Your First Feature
+### 3.5 Create Your First Feature
 
-Run `/gen-start` again. Genesis detects `NO_FEATURES` — intent exists but no feature vectors. It creates your first feature vector:
+Run `/gen-start`. Genesis detects `NO_FEATURES` — intent exists but no feature vectors. It creates your first feature vector:
 
 ```
 Feature vector created: REQ-F-TASK-001
@@ -321,7 +327,7 @@ The feature vector YAML is written to `.ai-workspace/features/active/REQ-F-TASK-
 - The trajectory (which edges to traverse)
 - Acceptance criteria (derived from intent)
 
-### 3.5 Check Status
+### 3.6 Check Status
 
 ```
 /gen-status
@@ -587,7 +593,7 @@ You see the current asset with evaluator results and choose:
 At transitions between specification levels (intent to requirements, requirements to design), Genesis runs a **gradient check** with three dimensions:
 
 ```
-/gen-spec-review --feature REQ-F-TASK-001 --edge "requirements->design"
+/gen-spec-review --feature REQ-F-TASK-001 --edge "requirements→design"
 ```
 
 | Dimension | What It Checks | Example |
@@ -673,13 +679,7 @@ Preview without creating tags or artifacts:
 
 ### 7.1 Adding Features
 
-After your first feature converges (or while it is still in progress), spawn additional features:
-
-```
-/gen-spawn --type feature --reason "User authentication for the task API"
-```
-
-This creates a new feature vector (e.g., `REQ-F-AUTH-001`) with its own trajectory through the graph.
+After your first feature converges (or while it is still in progress), add new features by running `/gen-start`. If the current state allows it, Genesis will offer to create a new feature vector. You describe the capability and it creates a new trajectory through the graph (e.g., `REQ-F-AUTH-001`).
 
 ### 7.2 Feature Selection
 
@@ -713,7 +713,7 @@ Skip the automatic selection:
 Or go directly to a specific edge:
 
 ```
-/gen-iterate --edge "code->unit_tests" --feature REQ-F-AUTH-001
+/gen-iterate --edge "code↔unit_tests" --feature REQ-F-AUTH-001
 ```
 
 ---
@@ -890,7 +890,7 @@ Creates `.ai-workspace/` with graph topology, edge configs, profiles, project co
 **State-driven router. The primary entry point.**
 
 ```
-/gen-start [--feature "REQ-F-*"] [--edge "source->target"] [--auto] [--profile "standard"]
+/gen-start [--feature "REQ-F-*"] [--edge "source→target"] [--auto] [--profile "standard"]
 ```
 
 | Option | Description |
@@ -921,12 +921,12 @@ State detection (first match wins):
 **Run one iteration on a specific graph edge.**
 
 ```
-/gen-iterate --edge "source->target" --feature "REQ-F-*" [--auto] [--profile "name"]
+/gen-iterate --edge "source→target" --feature "REQ-F-*" [--auto] [--profile "name"]
 ```
 
 | Option | Description |
 |--------|-------------|
-| `--edge` | The graph transition (e.g., `design->code`, `code<->unit_tests`) |
+| `--edge` | The graph transition (e.g., `design→code`, `code↔unit_tests`) |
 | `--feature` | The feature vector being worked on |
 | `--auto` | Auto-iterate until convergence (pauses at human gates) |
 | `--profile` | Override projection profile |
@@ -946,7 +946,7 @@ Output:
 ```
 ITERATION REPORT
 ════════════════
-Edge: design -> code
+Edge: design → code
 Feature: REQ-F-TASK-001
 Iteration: 2
 
@@ -988,15 +988,17 @@ STATUS: CONVERGED
 **Spawn a child vector for investigation or risk mitigation.**
 
 ```
-/gen-spawn --type {discovery|spike|poc|hotfix|feature} --parent "REQ-F-*" --reason "why" [--duration "time"]
+/gen-spawn --type {discovery|spike|poc|hotfix} --parent "REQ-F-*" --reason "why" [--duration "time"]
 ```
 
 | Option | Description |
 |--------|-------------|
-| `--type` | Vector type (determines profile and time-box) |
-| `--parent` | Parent feature vector (omit for top-level features) |
+| `--type` | Vector type: discovery, spike, poc, or hotfix |
+| `--parent` | Parent feature vector (required) |
 | `--reason` | Why this child is needed |
 | `--duration` | Time-box override (e.g., "3 days", "4 hours") |
+
+Note: Top-level feature vectors are created by `/gen-start` when it detects `NO_FEATURES` state, not by `/gen-spawn`.
 
 ---
 
@@ -1023,7 +1025,7 @@ Layer 1: REQ tag coverage (code + tests). Layer 2: Test gap analysis (spec vs te
 **Human evaluator review point.**
 
 ```
-/gen-review --feature "REQ-F-*" [--edge "source->target"]
+/gen-review --feature "REQ-F-*" [--edge "source→target"]
 ```
 
 | Option | Description |
@@ -1040,7 +1042,7 @@ Presents the current candidate with evaluator results. You approve, reject with 
 **Formal spec-boundary review with gradient checks.**
 
 ```
-/gen-spec-review --feature "REQ-F-*" --edge "source->target" [--diff] [--checklist-only]
+/gen-spec-review --feature "REQ-F-*" --edge "source→target" [--diff] [--checklist-only]
 ```
 
 | Option | Description |
@@ -1059,7 +1061,7 @@ Checks three dimensions: completeness (coverage), fidelity (faithfulness), and b
 **Navigate zoom levels in the graph.**
 
 ```
-/gen-zoom [in|out|show] --edge "source->target" [--feature "REQ-F-*"] [--depth n]
+/gen-zoom [in|out|show] --edge "source→target" [--feature "REQ-F-*"] [--depth n]
 ```
 
 | Option | Description |
@@ -1148,19 +1150,20 @@ Validates readiness, generates changelog, creates release manifest, tags the com
 │   ├── completed/                # Converged feature vectors
 │   └── fold-back/                # Child vector results
 ├── graph/
-│   ├── graph_topology.yml        # 10 asset types, 10 transitions
-│   ├── evaluator_defaults.yml    # 3 evaluator types, processing phases
-│   ├── edges/                    # Per-edge evaluator configs (10 files)
-│   └── profiles/                 # Projection profiles (6 files)
-├── {impl}/context/
+│   └── graph_topology.yml        # 10 asset types, 10 transitions
+├── context/
 │   ├── project_constraints.yml   # Toolchain, thresholds, standards
 │   └── context_manifest.yml      # Content-addressable hash tracking
+├── agents/                       # Per-agent working state
+├── spec/                         # Derived spec views
 ├── tasks/
 │   ├── active/ACTIVE_TASKS.md    # Current work (derived view)
 │   └── finished/                 # Completed task documentation
 ├── snapshots/                    # Immutable checkpoints
 └── STATUS.md                     # Auto-generated status (derived view)
 ```
+
+Additional configs (evaluator defaults, edge params, profiles) are loaded from the plugin at runtime, not stored in the workspace.
 
 ### 11.2 Key Files
 
@@ -1197,7 +1200,7 @@ trajectory:
   code_unit_tests: iterating (iter 3, delta 1)
 ```
 
-**project_constraints.yml** — Your toolchain and thresholds. Evaluator checks resolve `$variables` from this file (e.g., `$tools.test_runner.command` becomes `pytest`).
+**project_constraints.yml** (in `.ai-workspace/context/`) — Your toolchain and thresholds. Evaluator checks resolve `$variables` from this file (e.g., `$tools.test_runner.command` becomes `pytest`).
 
 ### 11.3 Profiles
 
