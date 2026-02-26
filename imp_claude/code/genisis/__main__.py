@@ -1,12 +1,14 @@
-# Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability)
+# Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability), REQ-F-FPC-005 (CLI Construct Mode)
 """CLI entry point for the genisis engine.
 
 Usage:
     python -m genisis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset path/to/file.py
     python -m genisis run-edge --edge "code↔unit_tests" --feature "REQ-F-CALC-001" --asset src/calc.py --max-iterations 5
+    python -m genisis construct --edge "intent→requirements" --feature "REQ-F-AUTH-001" --asset spec/INTENT.md --output artifacts/req.md
 
 evaluate: single iteration via iterate_edge() — same Level 4 events as before.
 run-edge: loop until converge/spawn/budget via run_edge() — enables CLI spawn.
+construct: construct + evaluate in one call — F_P builds, F_D gates (ADR-020).
 
 The engine evaluates an asset against an edge's checklist and emits Level 4 events.
 The LLM agent calls this for cross-validation (ADR-019).
@@ -309,6 +311,9 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
     if config is None:
         return 1
 
+    construct = getattr(args, "construct", False)
+    output_file = Path(args.output) if getattr(args, "output", None) else None
+
     # run_edge does its own edge config file lookup
     profile_path = config.profiles_dir / "standard.yml"
     profile = load_yaml(profile_path) if profile_path.exists() else {}
@@ -320,6 +325,8 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
         profile=profile,
         asset_content=asset_content,
         context=args.context or "",
+        construct=construct,
+        output_path=output_file,
     )
 
     last = records[-1] if records else None
@@ -343,11 +350,105 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
             / f"{child_id}.yml"
         )
 
+    if last and last.construct_result:
+        output["construct"] = {
+            "model": last.construct_result.model,
+            "duration_ms": last.construct_result.duration_ms,
+            "retries": last.construct_result.retries,
+            "artifact_length": len(last.construct_result.artifact),
+            "traceability": last.construct_result.traceability,
+        }
+
     print(json.dumps(output, indent=2))
 
     if last and (last.evaluation.converged or last.evaluation.spawn_requested):
         return 0
     return 1
+
+
+def cmd_construct(args: argparse.Namespace) -> int:
+    """Construct + evaluate in one call. F_P builds, F_D gates (ADR-020)."""
+    workspace = Path(args.workspace) if args.workspace else _find_workspace(Path.cwd())
+
+    asset_content = _load_asset(args, workspace)
+    if asset_content is None:
+        return 1
+
+    config = _build_config(args, workspace)
+    if config is None:
+        return 1
+
+    output_file = Path(args.output) if args.output else None
+
+    edge_config_path = _resolve_edge_config(args.edge, config.edge_params_dir)
+    if edge_config_path is None:
+        _emit_command_error(
+            workspace,
+            config.project_name,
+            "construct",
+            "missing_edge_config",
+            f"Edge config not found for: {args.edge}",
+        )
+        print(
+            json.dumps({"error": f"Edge config not found for: {args.edge}"}),
+            file=sys.stderr,
+        )
+        return 1
+
+    edge_config = load_yaml(edge_config_path)
+
+    record = iterate_edge(
+        edge=args.edge,
+        edge_config=edge_config,
+        config=config,
+        feature_id=args.feature,
+        asset_content=asset_content,
+        context=args.context or "",
+        iteration=args.iteration,
+        construct=True,
+        output_path=output_file,
+    )
+
+    # Build output
+    formatted = _format_record(record)
+    ev = record.evaluation
+    passed = sum(1 for c in ev.checks if c.outcome.value == "pass")
+    failed = sum(1 for c in ev.checks if c.outcome.value in ("fail", "error"))
+    skipped = sum(1 for c in ev.checks if c.outcome.value == "skip")
+
+    output = {
+        "edge": args.edge,
+        "feature": args.feature,
+        "iteration": args.iteration,
+        "delta": ev.delta,
+        "converged": ev.converged,
+        "evaluators": {
+            "passed": passed,
+            "failed": failed,
+            "skipped": skipped,
+            "total": len(ev.checks),
+        },
+        "checks": formatted["checks"],
+        "escalations": ev.escalations,
+        "event_emitted": record.event_emitted,
+        "source": "engine_cli",
+    }
+
+    if record.construct_result:
+        cr = record.construct_result
+        output["construct"] = {
+            "model": cr.model,
+            "duration_ms": cr.duration_ms,
+            "retries": cr.retries,
+            "artifact_length": len(cr.artifact),
+            "traceability": cr.traceability,
+            "source_findings": cr.source_findings,
+        }
+        if output_file:
+            output["output_path"] = str(output_file)
+
+    print(json.dumps(output, indent=2))
+    return 0 if ev.converged else 1
 
 
 # ── Shared CLI args ──────────────────────────────────────────────────────
@@ -419,6 +520,31 @@ def main() -> int:
         default=10,
         help="Maximum iterations before stopping (default: 10)",
     )
+    run_parser.add_argument(
+        "--construct",
+        action="store_true",
+        help="Enable F_P construct before evaluate (ADR-020)",
+    )
+    run_parser.add_argument(
+        "--output",
+        default=None,
+        help="Path to write constructed artifact",
+    )
+
+    # construct subcommand (ADR-020)
+    construct_parser = subparsers.add_parser(
+        "construct",
+        help="Construct artifact + evaluate in one call (F_P builds, F_D gates)",
+    )
+    _add_shared_args(construct_parser)
+    construct_parser.add_argument(
+        "--iteration", type=int, default=1, help="Iteration number for event"
+    )
+    construct_parser.add_argument(
+        "--output",
+        default=None,
+        help="Path to write constructed artifact",
+    )
 
     args = parser.parse_args()
 
@@ -426,6 +552,8 @@ def main() -> int:
         return cmd_evaluate(args)
     elif args.command == "run-edge":
         return cmd_run_edge(args)
+    elif args.command == "construct":
+        return cmd_construct(args)
     else:
         parser.print_help()
         return 1

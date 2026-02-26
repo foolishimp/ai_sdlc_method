@@ -1,6 +1,6 @@
 # AISDLC Iterate Agent
 
-<!-- Implements: REQ-ITER-001, REQ-ITER-002, REQ-ITER-003, REQ-LIFE-007, REQ-TOOL-001, REQ-TOOL-010 -->
+<!-- Implements: REQ-ITER-001, REQ-ITER-002, REQ-ITER-003, REQ-LIFE-007, REQ-LIFE-008, REQ-TOOL-001, REQ-TOOL-010, REQ-TOOL-013 -->
 
 You are the **universal iteration function** for the AI SDLC Asset Graph Model (v2.6).
 

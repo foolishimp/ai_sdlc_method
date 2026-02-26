@@ -1,0 +1,126 @@
+feature: REQ-F-FP-001
+title: F_P Construct & Batched Evaluate
+intent: INT-AISDLC-001
+vector_type: feature
+profile: full
+status: converged
+priority: critical
+created: "2026-02-27T10:00:00Z"
+updated: "2026-02-27T12:00:00Z"
+parent_id: REQ-F-ENGINE-001
+
+description: |
+  LLM judgment construction loop for the engine. Currently the engine can
+  evaluate (F_D deterministic + F_P agent checks) but cannot construct
+  artifacts. F_P construct calls the LLM once per edge to generate/modify
+  the asset, then batched F_D + F_P evaluation validates convergence.
+  This unlocks Strategy C (cross-validating hybrid): engine delta_D as
+  hard gate, LLM delta_P as soft construction. Target: 4 LLM calls for
+  full 4-edge traversal (vs 37 cold-start calls today), ~92s, ~$0.60.
+
+requirements:
+  - REQ-ITER-001
+  - REQ-ITER-002
+  - REQ-ITER-003
+  - REQ-EVAL-002
+
+dependencies:
+  - feature: REQ-F-ENGINE-001
+    status: resolved
+    note: "Engine loop, evaluate, emit all converged"
+
+constraints:
+  acceptance_criteria:
+    - key: REQ-F-FPC-001
+      criterion: "run_construct() produces valid artifact via single claude -p call per edge"
+      priority: critical
+    - key: REQ-F-FPC-004
+      criterion: "iterate_edge() calls construct before evaluate when construct=True"
+      priority: critical
+    - key: REQ-NFR-FPC-001
+      criterion: "Full 4-edge traversal uses ≤4 LLM calls for construct"
+      priority: high
+    - key: REQ-NFR-FPC-002
+      criterion: "All 950+ existing tests pass without modification"
+      priority: critical
+    - key: REQ-BR-FPC-001
+      criterion: "Construct always precedes evaluate; original asset backed up"
+      priority: critical
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-27T10:00:00Z"
+    converged_at: "2026-02-27T10:30:00Z"
+    evaluator_results:
+      agent_all_checks: pass
+      human_completeness: pass
+      human_priorities: pass
+    delta: 0
+  design:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-27T10:30:00Z"
+    converged_at: "2026-02-27T11:00:00Z"
+    evaluator_results:
+      agent_all_reqs_traced: pass
+      agent_no_orphan_components: pass
+      agent_interfaces_consistent: pass
+      agent_dependencies_sound: pass
+      agent_data_models: pass
+      agent_ecosystem_resolved: pass
+      agent_deployment_resolved: pass
+      agent_security_resolved: pass
+      agent_build_resolved: pass
+      agent_advisory_considered: pass
+      agent_adrs_exist: pass
+      agent_adr_depth: pass
+      agent_doc_structure: pass
+      agent_diagrams: pass
+      human_review: pass
+    delta: 0
+  code:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-27T11:00:00Z"
+    converged_at: "2026-02-27T12:00:00Z"
+    evaluator_results:
+      fd_tests_pass: pass
+      fd_coverage: pass
+      fd_lint: pass
+      fd_format: pass
+      fd_type_check: pass
+      agent_req_tags: pass
+      agent_code_quality: pass
+      agent_all_req_keys: pass
+      human_review: pass
+    delta: 0
+    notes: "fp_construct.py (260 LOC), engine.py + __main__.py modified, models.py updated. 37 new tests, 966 existing pass."
+  unit_tests:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-27T11:00:00Z"
+    converged_at: "2026-02-27T12:00:00Z"
+    evaluator_results:
+      fd_tests_pass: pass
+      agent_test_quality: pass
+      agent_all_req_keys_have_tests: pass
+      human_review: pass
+    delta: 0
+    notes: "37 tests in test_functor_construct.py covering all 11 REQ keys."
+  uat_tests:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-27T12:00:00Z"
+    converged_at: "2026-02-27T12:30:00Z"
+    notes: "21 Gherkin scenarios covering all 11 REQ keys."
+    evaluator_results:
+      agent_scenarios_cover_all: pass
+      agent_business_language: pass
+      agent_given_when_then: pass
+      agent_req_tags: pass
+      agent_positive_negative: pass
+      human_approves_language: pass
+      human_approves_coverage: pass
+    delta: 0

@@ -1,8 +1,9 @@
-# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition)
+# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-F-FPC-003 (Context Accumulation), REQ-F-FPC-004 (Engine Construct Integration), REQ-NFR-FPC-001 (4 Calls Per Traversal), REQ-NFR-FPC-002 (Backward Compatible Default), REQ-BR-FPC-001 (Construct Before Evaluate)
 """Deterministic engine — owns the graph traversal loop.
 
 F_D controls: routing, emission, delta computation, convergence decisions.
 F_P is called: for agent evaluation via Claude Code CLI.
+F_P is called: for artifact construction via Claude Code CLI (ADR-020).
 F_H is called: for human evaluation (future — currently skips).
 
 The LLM cannot skip emission. The deterministic code calls it, takes its
@@ -11,19 +12,27 @@ answer, records everything, then decides what to do next.
 Design principle (ADR-019): iterate_edge() is pure evaluation — it computes
 delta and emits events. Lifecycle decisions (spawn, fold-back) belong to the
 orchestrator (run_edge, run, or CLI).
+
+Design principle (ADR-020): When construct=True, iterate_edge() calls
+fp_construct.run_construct() BEFORE evaluation. The constructed artifact
+replaces the input for evaluation. Batched F_P evaluations from the construct
+response are merged with F_D check results.
 """
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 from .config_loader import load_yaml, resolve_checklist
 from .fd_emit import emit_event, make_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
+from .fp_construct import batched_check_results, run_construct
 from .fp_evaluate import run_check as fp_run_check
 from .models import (
     CheckOutcome,
     CheckResult,
+    ConstructResult,
     EvaluationResult,
 )
 
@@ -53,6 +62,7 @@ class IterationRecord:
     iteration: int
     evaluation: EvaluationResult
     event_emitted: bool = True
+    construct_result: Optional[ConstructResult] = None
 
 
 def iterate_edge(
@@ -63,20 +73,63 @@ def iterate_edge(
     asset_content: str,
     context: str = "",
     iteration: int = 1,
+    construct: bool = False,
+    output_path: Path | None = None,
 ) -> IterationRecord:
     """Run one iteration on a single edge.
 
     This is the core loop body. F_D owns every step:
-    1. Resolve checklist ($variables)
-    2. Evaluate each check (dispatch by type: F_D subprocess or F_P Claude Code)
-    3. Compute delta (deterministic)
-    4. Emit event (deterministic — ALWAYS fires)
-    5. Return the record
+    1. (Optional) F_P: Construct artifact via Claude Code CLI
+    2. Resolve checklist ($variables)
+    3. Evaluate each check (dispatch by type: F_D subprocess or F_P Claude Code)
+       - When construct=True, batched F_P evaluations replace per-check agent calls
+    4. Compute delta (deterministic)
+    5. Emit event (deterministic — ALWAYS fires)
+    6. Return the record
+
+    When construct=True (ADR-020):
+    - Calls fp_construct.run_construct() BEFORE evaluation
+    - Writes constructed artifact to output_path (if provided)
+    - Uses batched F_P evaluations from construct response
+    - Falls back to per-check fp_evaluate for unmatched agent checks
     """
-    # 1. F_D: Resolve checklist
+    construct_result = None
+
+    # 1. F_P: Construct artifact (when enabled)
+    if construct:
+        construct_result = run_construct(
+            edge=edge,
+            asset_content=asset_content,
+            context=context,
+            edge_config=edge_config,
+            constraints=config.constraints,
+            model=config.model,
+            timeout=config.claude_timeout,
+            claude_cmd="claude",
+        )
+
+        # Write constructed artifact to filesystem (REQ-BR-FPC-001)
+        if construct_result.artifact and output_path:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(construct_result.artifact)
+
+        # Use constructed artifact for evaluation instead of input
+        if construct_result.artifact:
+            asset_content = construct_result.artifact
+
+    # 2. F_D: Resolve checklist
     checks = resolve_checklist(edge_config, config.constraints)
 
-    # 2. Evaluate each check — dispatch by type
+    # Build batched evaluation lookup (from construct response)
+    batched_results = {}
+    if construct_result and construct_result.evaluations:
+        agent_checks = [c for c in checks if c.check_type == "agent"]
+        batched = batched_check_results(construct_result, agent_checks)
+        for check, result in zip(agent_checks, batched):
+            if result is not None:
+                batched_results[check.name] = result
+
+    # 3. Evaluate each check — dispatch by type
     results: list[CheckResult] = []
     escalations: list[str] = []
 
@@ -84,7 +137,10 @@ def iterate_edge(
         if check.check_type == "deterministic":
             cr = fd_run_check(check, config.workspace_path, timeout=config.fd_timeout)
         elif check.check_type == "agent":
-            if config.deterministic_only:
+            # Use batched result from construct if available
+            if check.name in batched_results:
+                cr = batched_results[check.name]
+            elif config.deterministic_only:
                 cr = CheckResult(
                     name=check.name,
                     outcome=CheckOutcome.SKIP,
@@ -129,7 +185,7 @@ def iterate_edge(
             elif cr.check_type == "agent":
                 escalations.append(f"η_P→H: {cr.name} — agent evaluation failed")
 
-    # 3. F_D: Compute delta — DETERMINISTIC
+    # 4. F_D: Compute delta — DETERMINISTIC
     delta = sum(
         1
         for cr in results
@@ -145,7 +201,7 @@ def iterate_edge(
         escalations=escalations,
     )
 
-    # 4. F_D: Emit event — THIS ALWAYS FIRES
+    # 5. F_D: Emit event — THIS ALWAYS FIRES
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
     check_summary = [
@@ -164,26 +220,35 @@ def iterate_edge(
     )
     skipped = sum(1 for cr in results if cr.outcome == CheckOutcome.SKIP)
 
+    event_data = dict(
+        feature=feature_id,
+        edge=edge,
+        iteration=iteration,
+        delta=delta,
+        status="converged" if converged else "iterating",
+        evaluators={
+            "passed": passed,
+            "failed": failed,
+            "skipped": skipped,
+            "total": len(results),
+            "details": check_summary,
+        },
+        checks=check_summary,
+        escalations=escalations,
+    )
+
+    if construct_result:
+        event_data["construct"] = {
+            "model": construct_result.model,
+            "duration_ms": construct_result.duration_ms,
+            "retries": construct_result.retries,
+            "traceability": construct_result.traceability,
+            "source_findings": construct_result.source_findings,
+        }
+
     emit_event(
         events_path,
-        make_event(
-            "iteration_completed",
-            config.project_name,
-            feature=feature_id,
-            edge=edge,
-            iteration=iteration,
-            delta=delta,
-            status="converged" if converged else "iterating",
-            evaluators={
-                "passed": passed,
-                "failed": failed,
-                "skipped": skipped,
-                "total": len(results),
-                "details": check_summary,
-            },
-            checks=check_summary,
-            escalations=escalations,
-        ),
+        make_event("iteration_completed", config.project_name, **event_data),
     )
 
     if converged:
@@ -198,11 +263,12 @@ def iterate_edge(
             ),
         )
 
-    # 5. Return the record — spawn decisions are orchestrator responsibility (ADR-019)
+    # 6. Return the record — spawn decisions are orchestrator responsibility (ADR-019)
     return IterationRecord(
         edge=edge,
         iteration=iteration,
         evaluation=evaluation,
+        construct_result=construct_result,
     )
 
 
@@ -213,6 +279,8 @@ def run_edge(
     profile: dict,
     asset_content: str,
     context: str = "",
+    construct: bool = False,
+    output_path: Path | None = None,
 ) -> list[IterationRecord]:
     """Iterate on a single edge until convergence or budget exhaustion."""
     edge_config_path = config.edge_params_dir / f"{_edge_to_filename(edge)}.yml"
@@ -252,8 +320,14 @@ def run_edge(
             asset_content=asset_content,
             context=context,
             iteration=i,
+            construct=construct,
+            output_path=output_path,
         )
         records.append(record)
+
+        # If construct produced an artifact, use it for subsequent iterations
+        if record.construct_result and record.construct_result.artifact:
+            asset_content = record.construct_result.artifact
 
         if record.evaluation.converged:
             break
@@ -299,10 +373,14 @@ def run(
     config: EngineConfig,
     asset_content: str,
     context: str = "",
+    construct: bool = False,
+    output_dir: Path | None = None,
 ) -> list[IterationRecord]:
     """Full graph traversal — deterministic loop, Claude Code for evaluation.
 
     Routes through edges in profile order, iterating each until convergence.
+    When construct=True, threads context between edges: each converged edge's
+    artifact is appended to the context for the next edge (REQ-F-FPC-003).
     """
     profile_name = select_profile(feature_type, config.profiles_dir)
     profile = load_yaml(config.profiles_dir / f"{profile_name}.yml")
@@ -313,11 +391,18 @@ def run(
     }
 
     all_records = []
+    accumulated_context = context
 
     route = select_next_edge(feature_trajectory, config.graph_topology, profile)
 
     while route.selected_edge:
         edge = route.selected_edge
+
+        # Determine output path for this edge's artifact
+        output_path = None
+        if construct and output_dir:
+            edge_filename = edge.replace("→", "_").replace("↔", "_").replace(" ", "")
+            output_path = output_dir / f"{feature_id}_{edge_filename}.md"
 
         records = run_edge(
             edge=edge,
@@ -325,13 +410,24 @@ def run(
             feature_id=feature_id,
             profile=profile,
             asset_content=asset_content,
-            context=context,
+            context=accumulated_context,
+            construct=construct,
+            output_path=output_path,
         )
         all_records.extend(records)
 
         edge_key = edge.replace("→", "_").replace("↔", "_").replace(" ", "")
         if records and records[-1].evaluation.converged:
             feature_trajectory["trajectory"][edge_key] = {"status": "converged"}
+
+            # Thread constructed artifact as context for next edge (REQ-F-FPC-003)
+            if construct and records[-1].construct_result:
+                last_artifact = records[-1].construct_result.artifact
+                if last_artifact:
+                    accumulated_context += (
+                        f"\n\n--- {edge} artifact ---\n{last_artifact}"
+                    )
+
         elif records and records[-1].evaluation.spawn_requested:
             feature_trajectory["trajectory"][edge_key] = {
                 "status": "blocked",

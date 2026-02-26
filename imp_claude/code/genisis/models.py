@@ -1,4 +1,4 @@
-# Implements: REQ-ITER-003 (Functor Encoding Tracking)
+# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-DATA-FPC-001 (Construct Result Model)
 """Data models for the F_D functor framework."""
 
 from dataclasses import dataclass, field
@@ -148,6 +148,19 @@ class FoldBackResult:
     payload_path: str
     parent_unblocked: bool
     event_emitted: bool
+
+
+@dataclass
+class ConstructResult:
+    """Output of F_P construct — LLM-generated artifact + batched evaluations."""
+
+    artifact: str
+    evaluations: list[dict] = field(default_factory=list)
+    traceability: list[str] = field(default_factory=list)
+    source_findings: list[dict] = field(default_factory=list)
+    model: str = ""
+    duration_ms: int = 0
+    retries: int = 0
 
 
 @dataclass
