@@ -14,18 +14,31 @@ class IterateEngine:
         candidate = asset_path.read_text() if asset_path.exists() else ""
         results = []
         for f in self.functors:
-            if mode == "headless" and f.__name__ == "HumanFunctor": continue
+            # Skip human functors in headless mode
+            if mode == "headless" and f.__class__.__name__ == "HumanFunctor":
+                continue
             results.append(f.evaluate(candidate, context))
+        
         total_delta = sum(r.delta for r in results)
         spawn_req = next((r.spawn for r in results if r.spawn), None)
-        return IterationReport(asset_path=str(asset_path), delta=total_delta, converged=(total_delta == 0 and not spawn_req), functor_results=results, spawn=spawn_req)
+        
+        return IterationReport(
+            asset_path=str(asset_path),
+            delta=total_delta,
+            converged=(total_delta == 0 and not spawn_req),
+            functor_results=results,
+            spawn=spawn_req
+        )
 
     def validate_invariants(self, events: List[Dict]) -> List[str]:
-        violations, last_deltas = [], {}
+        violations = []
+        last_deltas = {}
         for ev in events:
             if ev.get("event_type") == "iteration_completed":
-                key, delta = (ev.get("feature"), ev.get("edge")), ev.get("delta")
+                key = (ev.get("feature"), ev.get("edge"))
+                delta = ev.get("delta")
                 if delta is not None:
-                    if key in last_deltas and delta > last_deltas[key]: violations.append(f"INVARIANT_VIOLATION: Delta increased for {key}")
+                    if key in last_deltas and delta > last_deltas[key]:
+                        violations.append(f"INVARIANT_VIOLATION: Delta increased for {key}")
                     last_deltas[key] = delta
         return violations

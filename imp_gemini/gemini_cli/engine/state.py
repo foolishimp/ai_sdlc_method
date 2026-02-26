@@ -19,9 +19,22 @@ class EventStore:
         }
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.log_path, "a") as f:
-            f.write(json.dumps(event) + "
-")
+            f.write(json.dumps(event) + "\n")
         return event
+
+    def load_all(self) -> List[Dict]:
+        """Loads all events from the immutable log."""
+        if not self.log_path.exists():
+            return []
+        events = []
+        with open(self.log_path, "r") as f:
+            for line in f:
+                if line.strip():
+                    try:
+                        events.append(json.loads(line))
+                    except:
+                        continue
+        return events
 
 class Projector:
     @staticmethod

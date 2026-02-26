@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Dict, Any, Optional
@@ -27,12 +26,18 @@ class FunctorResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
+class GuardrailResult:
+    name: str
+    passed: bool
+    message: str
+
+@dataclass
 class IterationReport:
     asset_path: str
     delta: int
     converged: bool
     functor_results: List[FunctorResult]
-    guardrail_results: List[Any] = field(default_factory=list)
+    guardrail_results: List[GuardrailResult] = field(default_factory=list)
     timestamp: datetime = field(default_factory=lambda: datetime.now())
     spawn: Optional[SpawnRequest] = None
 

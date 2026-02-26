@@ -1,45 +1,58 @@
 # Implements: REQ-CLI-005, REQ-CLI-006
 """
-Probabilistic Functor: The Gemini API binding.
-Supports Recursive Spawning for sub-problem investigation.
+Probabilistic Functor: The Sub-Agent Binding.
+Hands control back to the Gemini CLI session for complex work.
 """
 
-import os
 from typing import Dict, Any, Union
-from pathlib import Path
-from gemini_cli.engine.models import FunctorResult, Outcome, SpawnRequest
+from ..engine.models import FunctorResult, Outcome, SpawnRequest
 
 class GeminiFunctor:
-    """Universal Probabilistic Evaluator/Constructor."""
+    """Functor that delegates work to the interactive Gemini CLI (Sub-Agent)."""
     
-    def __init__(self, model_name: str = "gemini-1.5-pro"):
+    def __init__(self, model_name: str = "gemini-interactive"):
         self.model_name = model_name
-        self.api_key = os.getenv("GEMINI_API_KEY")
 
     def evaluate(self, candidate: str, context: Dict) -> FunctorResult:
         """
-        Evaluate candidate using Gemini.
-        Returns FunctorResult with delta, reasoning, or a SpawnRequest if stuck.
+        Structured delegation to the user (the Sub-Agent).
         """
-        # 1. Check for 'stuck' condition
-        if context.get("iteration_count", 0) > 3:
+        print("\n" + "═"*60)
+        print(" SUB-AGENT ITERATION REQUIRED")
+        print("═"*60)
+        print(f"Goal: {context.get('edge', 'General Construction')}")
+        print(f"Asset: {context.get('asset_name', 'Unknown')}")
+        print("-" * 20)
+        print("TASK: Please evaluate/construct the candidate against the requirements.")
+        print("Use your tools (read_file, run_shell_command) to validate.")
+        print("-" * 20)
+        
+        # In a real sub-agent flow, we might use ask_user here.
+        # For this CLI MVP, we'll use standard input to get the signal.
+        
+        choice = input("Convergence? (y = Pass / n = Fail / s = Spawn Recursion): ").lower().strip()
+        
+        if choice == 'y':
             return FunctorResult(
-                name="gemini_eval",
+                name="sub_agent_eval",
+                outcome=Outcome.PASS,
+                delta=0,
+                reasoning="Sub-Agent confirmed convergence."
+            )
+        elif choice == 's':
+            reason = input("Why is recursion required? ")
+            return FunctorResult(
+                name="sub_agent_eval",
                 outcome=Outcome.FAIL,
                 delta=1,
-                reasoning="LLM stuck for 3+ iterations. Triggering recursion.",
-                spawn=SpawnRequest(
-                    question="Why is the delta not decreasing?",
-                    vector_type="discovery"
-                )
+                reasoning=f"Sub-Agent requested recursion: {reason}",
+                spawn=SpawnRequest(question=reason, vector_type="discovery")
             )
-            
-        # 2. Simulate 'Universal Evaluator' logic
-        is_valid = "Implements: REQ-" in candidate
-        return FunctorResult(
-            name="gemini_eval",
-            outcome=Outcome.PASS if is_valid else Outcome.FAIL,
-            delta=0 if is_valid else 1,
-            reasoning="Candidate contains REQ tags." if is_valid else "Missing REQ tags.",
-            next_candidate=candidate 
-        )
+        else:
+            feedback = input("Provide feedback for the next iteration: ")
+            return FunctorResult(
+                name="sub_agent_eval",
+                outcome=Outcome.FAIL,
+                delta=1,
+                reasoning=feedback
+            )
