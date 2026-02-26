@@ -7,6 +7,10 @@ F_H is called: for human evaluation (future — currently skips).
 
 The LLM cannot skip emission. The deterministic code calls it, takes its
 answer, records everything, then decides what to do next.
+
+Design principle (ADR-019): iterate_edge() is pure evaluation — it computes
+delta and emits events. Lifecycle decisions (spawn, fold-back) belong to the
+orchestrator (run_edge, run, or CLI).
 """
 
 from dataclasses import dataclass
@@ -16,13 +20,6 @@ from .config_loader import load_yaml, resolve_checklist
 from .fd_emit import emit_event, make_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
-from .fd_spawn import (
-    create_child_vector,
-    detect_spawn_condition,
-    emit_spawn_events,
-    link_parent_child,
-    load_events,
-)
 from .fp_evaluate import run_check as fp_run_check
 from .models import (
     CheckOutcome,
@@ -44,6 +41,8 @@ class EngineConfig:
     model: str = "sonnet"
     max_iterations_per_edge: int = 10
     claude_timeout: int = 120
+    deterministic_only: bool = False
+    fd_timeout: int = 120
 
 
 @dataclass
@@ -83,15 +82,25 @@ def iterate_edge(
 
     for check in checks:
         if check.check_type == "deterministic":
-            cr = fd_run_check(check, config.workspace_path)
+            cr = fd_run_check(check, config.workspace_path, timeout=config.fd_timeout)
         elif check.check_type == "agent":
-            cr = fp_run_check(
-                check,
-                asset_content=asset_content,
-                context=context,
-                model=config.model,
-                timeout=config.claude_timeout,
-            )
+            if config.deterministic_only:
+                cr = CheckResult(
+                    name=check.name,
+                    outcome=CheckOutcome.SKIP,
+                    required=check.required,
+                    check_type=check.check_type,
+                    functional_unit=check.functional_unit,
+                    message="Skipped: deterministic-only mode",
+                )
+            else:
+                cr = fp_run_check(
+                    check,
+                    asset_content=asset_content,
+                    context=context,
+                    model=config.model,
+                    timeout=config.claude_timeout,
+                )
         elif check.check_type == "human":
             cr = CheckResult(
                 name=check.name,
@@ -149,6 +158,12 @@ def iterate_edge(
         for cr in results
     ]
 
+    passed = sum(1 for cr in results if cr.outcome == CheckOutcome.PASS)
+    failed = sum(
+        1 for cr in results if cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR)
+    )
+    skipped = sum(1 for cr in results if cr.outcome == CheckOutcome.SKIP)
+
     emit_event(
         events_path,
         make_event(
@@ -159,6 +174,13 @@ def iterate_edge(
             iteration=iteration,
             delta=delta,
             status="converged" if converged else "iterating",
+            evaluators={
+                "passed": passed,
+                "failed": failed,
+                "skipped": skipped,
+                "total": len(results),
+                "details": check_summary,
+            },
             checks=check_summary,
             escalations=escalations,
         ),
@@ -176,30 +198,7 @@ def iterate_edge(
             ),
         )
 
-    # Spawn detection: check if stuck delta pattern warrants a child vector
-    if not converged:
-        spawn_request = detect_spawn_condition(
-            load_events(config.workspace_path), feature_id, edge, threshold=3
-        )
-        if spawn_request:
-            spawn_result = create_child_vector(
-                config.workspace_path, spawn_request, config.project_name
-            )
-            link_parent_child(
-                config.workspace_path,
-                feature_id,
-                spawn_result.child_id,
-                spawn_request.vector_type,
-                spawn_request,
-            )
-            emit_spawn_events(
-                config.workspace_path,
-                config.project_name,
-                spawn_request,
-                spawn_result,
-            )
-            evaluation.spawn_requested = spawn_result.child_id
-
+    # 5. Return the record — spawn decisions are orchestrator responsibility (ADR-019)
     return IterationRecord(
         edge=edge,
         iteration=iteration,
@@ -259,9 +258,37 @@ def run_edge(
         if record.evaluation.converged:
             break
 
-        # If spawn was triggered, parent is now blocked — stop iterating
-        if record.evaluation.spawn_requested:
-            break
+        # Spawn detection at orchestrator level (not inside iterate_edge)
+        from .fd_spawn import (
+            detect_spawn_condition,
+            create_child_vector,
+            link_parent_child,
+            emit_spawn_events,
+            load_events as load_spawn_events,
+        )
+
+        spawn_request = detect_spawn_condition(
+            load_spawn_events(config.workspace_path), feature_id, edge, threshold=3
+        )
+        if spawn_request:
+            spawn_result = create_child_vector(
+                config.workspace_path, spawn_request, config.project_name
+            )
+            link_parent_child(
+                config.workspace_path,
+                feature_id,
+                spawn_result.child_id,
+                spawn_request.vector_type,
+                spawn_request,
+            )
+            emit_spawn_events(
+                config.workspace_path,
+                config.project_name,
+                spawn_request,
+                spawn_result,
+            )
+            record.evaluation.spawn_requested = spawn_result.child_id
+            break  # Parent is now blocked — stop iterating
 
     return records
 

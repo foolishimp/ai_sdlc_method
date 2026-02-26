@@ -4,15 +4,18 @@
 These functions operate on filesystem paths (workspace directories) and return
 derived state. No stored state variables — same input always produces same
 output.
+
+Provenance: Originally authored by Gemini in
+imp_gemini/gemini_cli/internal/workspace_state.py,
+ported to imp_claude and adapted for Claude tenant conventions.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import re
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, Optional, Union
 
 import yaml
 
@@ -45,6 +48,7 @@ BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 # ═══════════════════════════════════════════════════════════════════════
 # CONTEXT & VIEW UTILITIES
 # ═══════════════════════════════════════════════════════════════════════
+
 
 def _workspace_dir(workspace: Path) -> Path:
     """Normalize a path to the actual ``.ai-workspace`` directory."""
@@ -124,7 +128,9 @@ def compute_aggregated_view(workspace: Path) -> dict[str, Any]:
 
 
 def classify_tolerance_breach(
-    observed_value: float, threshold: float, severity: Union[str, None] = None,
+    observed_value: float,
+    threshold: float,
+    severity: Union[str, None] = None,
 ) -> str:
     """Classify tolerance pressure into IntentEngine output classes."""
     if observed_value <= threshold:
@@ -140,6 +146,7 @@ def classify_tolerance_breach(
 # EVENT UTILITIES
 # ═══════════════════════════════════════════════════════════════════════
 
+
 def load_events(workspace: Path) -> list[dict[str, Any]]:
     """Parse events.jsonl from a workspace, returning list of event dicts."""
     events_file = _workspace_dir(workspace) / "events" / "events.jsonl"
@@ -153,7 +160,7 @@ def load_events(workspace: Path) -> list[dict[str, Any]]:
             continue
         try:
             events.append(json.loads(line))
-        except json.JSONDecodeError as exc:
+        except json.JSONDecodeError:
             continue
     return events
 
@@ -163,13 +170,14 @@ def get_converged_edges(events: list[dict[str, Any]], feature: str) -> set[str]:
     return {
         ev.get("edge", "")
         for ev in events
-        if ev.get("event_type") == "edge_converged"
-        and ev.get("feature") == feature
+        if ev.get("event_type") == "edge_converged" and ev.get("feature") == feature
     }
 
 
 def compute_current_delta(
-    events: list[dict[str, Any]], feature: str, edge: str,
+    events: list[dict[str, Any]],
+    feature: str,
+    edge: str,
 ) -> Union[int, None]:
     """Return the most recent delta value for a feature/edge pair, or None."""
     delta: Union[int, None] = None
@@ -186,7 +194,9 @@ def compute_current_delta(
 
 
 def get_iteration_count(
-    events: list[dict[str, Any]], feature: str, edge: str,
+    events: list[dict[str, Any]],
+    feature: str,
+    edge: str,
 ) -> int:
     """Count iteration_completed events for a feature/edge pair."""
     return sum(
@@ -201,6 +211,7 @@ def get_iteration_count(
 # ═══════════════════════════════════════════════════════════════════════
 # FEATURE UTILITIES
 # ═══════════════════════════════════════════════════════════════════════
+
 
 def get_active_features(workspace: Path) -> list[dict[str, Any]]:
     """Load all active feature vector YAML files."""
@@ -218,9 +229,11 @@ def get_active_features(workspace: Path) -> list[dict[str, Any]]:
 
 
 def detect_stuck_features(
-    workspace: Path, threshold: int = 3,
+    workspace: Path,
+    threshold: int = 3,
 ) -> list[dict[str, Any]]:
-    """Detect features where delta has not decreased for *threshold* consecutive iterations."""
+    """Detect features where delta has not decreased for *threshold*
+    consecutive iterations."""
     events = load_events(workspace)
     stuck: list[dict[str, Any]] = []
 
@@ -239,19 +252,23 @@ def detect_stuck_features(
             continue
         tail = deltas[-threshold:]
         if len(set(tail)) == 1 and tail[0] > 0:
-            stuck.append({
-                "feature": feat,
-                "edge": edge,
-                "delta": tail[0],
-                "iterations": len(deltas),
-                "reason": f"delta={tail[0]} unchanged for {threshold} iterations",
-            })
+            stuck.append(
+                {
+                    "feature": feat,
+                    "edge": edge,
+                    "delta": tail[0],
+                    "iterations": len(deltas),
+                    "reason": f"delta={tail[0]} unchanged for {threshold} iterations",
+                }
+            )
 
     return stuck
 
 
 def _has_pending_human_review(
-    workspace: Path, feature_id: str, events: list[dict[str, Any]],
+    workspace: Path,
+    feature_id: str,
+    events: list[dict[str, Any]],
 ) -> bool:
     """Check if a feature has a pending human review."""
     features = get_active_features(workspace)
@@ -260,13 +277,18 @@ def _has_pending_human_review(
             continue
         traj = fv.get("trajectory", {})
         for _edge_name, edge_data in traj.items():
-            if isinstance(edge_data, dict) and edge_data.get("status") == "pending_review":
+            if (
+                isinstance(edge_data, dict)
+                and edge_data.get("status") == "pending_review"
+            ):
                 return True
     return False
 
 
 def _has_blocked_dependency(
-    workspace: Path, feature_id: str, events: list[dict[str, Any]],
+    workspace: Path,
+    feature_id: str,
+    events: list[dict[str, Any]],
 ) -> bool:
     """Check if a feature is blocked by an unconverged dependency (spawn)."""
     features = get_active_features(workspace)
@@ -287,11 +309,12 @@ def _has_blocked_dependency(
 # FEATURE SELECTION & EDGE WALK
 # ═══════════════════════════════════════════════════════════════════════
 
+
 def select_next_feature(
     features: list[dict[str, Any]],
-) ->Optional[ dict[str, Any] ]:
+) -> Optional[dict[str, Any]]:
     """Select the feature closest to completion (fewest unconverged edges)."""
-    best:Optional[ dict[str, Any] ] = None
+    best: Optional[dict[str, Any]] = None
     best_remaining = float("inf")
 
     for fv in features:
@@ -299,7 +322,8 @@ def select_next_feature(
             continue
         traj = fv.get("trajectory", {})
         converged_count = sum(
-            1 for _k, v in traj.items()
+            1
+            for _k, v in traj.items()
             if isinstance(v, dict) and v.get("status") == "converged"
         )
         total_edges = max(len(traj), 1)
@@ -313,7 +337,7 @@ def select_next_feature(
 
 def get_next_edge(
     feature: dict[str, Any],
-    graph_topology:Optional[ dict[str, Any] ] = None,
+    graph_topology: Optional[dict[str, Any]] = None,
 ) -> Union[str, None]:
     """Walk edges in topological order, return first unconverged edge."""
     traj = feature.get("trajectory", {})
@@ -322,7 +346,7 @@ def get_next_edge(
         transitions = graph_topology.get("transitions", [])
         if transitions:
             edges = [t.get("name", "") for t in transitions if t.get("name")]
-            
+
     for edge in edges:
         parts = edge.replace("↔", "→").split("→")
         for part in parts:
@@ -342,9 +366,10 @@ def get_next_edge(
 # GENESIS SELF-COMPLIANCE (REQ-SUPV-002, REQ-UX-005)
 # ═══════════════════════════════════════════════════════════════════════
 
+
 def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
     """Verify methodology invariants and bootloader presence.
-    
+
     Returns a dict with: passed (int), failed (int), results (list of dicts).
     """
     results = []
@@ -352,12 +377,24 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
     failed = 0
 
     # 1. Bootloader Presence
-    gemini_md = workspace / "GEMINI.md"
-    if gemini_md.exists() and BOOTLOADER_START_MARKER in gemini_md.read_text():
-        results.append({"name": "bootloader_present", "status": "pass", "description": "GEMINI.md contains Bootloader"})
+    claude_md = workspace / "CLAUDE.md"
+    if claude_md.exists() and BOOTLOADER_START_MARKER in claude_md.read_text():
+        results.append(
+            {
+                "name": "bootloader_present",
+                "status": "pass",
+                "description": "CLAUDE.md contains Bootloader",
+            }
+        )
         passed += 1
     else:
-        results.append({"name": "bootloader_present", "status": "fail", "description": "Bootloader markers missing in GEMINI.md"})
+        results.append(
+            {
+                "name": "bootloader_present",
+                "status": "fail",
+                "description": "Bootloader markers missing in CLAUDE.md",
+            }
+        )
         failed += 1
 
     # 2. Graph Invariant
@@ -370,16 +407,40 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
             nodes = len(topology.get("asset_types", {}))
             edges = len(topology.get("transitions", []))
             if nodes > 0 and edges > 0:
-                results.append({"name": "graph_invariant", "status": "pass", "description": f"Graph has {nodes} nodes, {edges} edges"})
+                results.append(
+                    {
+                        "name": "graph_invariant",
+                        "status": "pass",
+                        "description": f"Graph has {nodes} nodes, {edges} edges",
+                    }
+                )
                 passed += 1
             else:
-                results.append({"name": "graph_invariant", "status": "fail", "description": "Graph topology is empty"})
+                results.append(
+                    {
+                        "name": "graph_invariant",
+                        "status": "fail",
+                        "description": "Graph topology is empty",
+                    }
+                )
                 failed += 1
         except Exception as e:
-            results.append({"name": "graph_invariant", "status": "fail", "description": f"Cannot parse graph: {e}"})
+            results.append(
+                {
+                    "name": "graph_invariant",
+                    "status": "fail",
+                    "description": f"Cannot parse graph: {e}",
+                }
+            )
             failed += 1
     else:
-        results.append({"name": "graph_invariant", "status": "fail", "description": "graph_topology.yml missing"})
+        results.append(
+            {
+                "name": "graph_invariant",
+                "status": "fail",
+                "description": "graph_topology.yml missing",
+            }
+        )
         failed += 1
 
     # 3. Iterate & Evaluator Invariant
@@ -393,8 +454,9 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
         for edge in edges:
             name = edge.get("name", "")
             config_rel = edge.get("edge_config", "")
-            if not name or not config_rel: continue
-            
+            if not name or not config_rel:
+                continue
+
             # Local path check
             config_path = workspace / ".ai-workspace" / "graph" / config_rel
             if config_path.exists():
@@ -404,36 +466,72 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
                         cfg = yaml.safe_load(f)
                     # Support both evaluators: and checklist: keys
                     evs = cfg.get("evaluators", cfg.get("checklist", []))
-                    if isinstance(evs, dict): # some schemas use dict mapping type -> list
-                        count = sum(len(v) if isinstance(v, list) else 1 for v in evs.values())
+                    if isinstance(
+                        evs, dict
+                    ):  # some schemas use dict mapping type -> list
+                        count = sum(
+                            len(v) if isinstance(v, list) else 1 for v in evs.values()
+                        )
                     else:
                         count = len(evs)
-                    
+
                     if count > 0:
                         evaluators_found += count
                     else:
                         zero_evaluator_edges.append(name)
-                except:
+                except Exception:
                     zero_evaluator_edges.append(name)
             else:
                 missing_configs.append(name)
 
         if not missing_configs:
-            results.append({"name": "iterate_invariant", "status": "pass", "description": "All edges have evaluator configs"})
+            results.append(
+                {
+                    "name": "iterate_invariant",
+                    "status": "pass",
+                    "description": "All edges have evaluator configs",
+                }
+            )
             passed += 1
         else:
-            results.append({"name": "iterate_invariant", "status": "fail", "description": f"Missing config for edges: {', '.join(missing_configs)}"})
+            results.append(
+                {
+                    "name": "iterate_invariant",
+                    "status": "fail",
+                    "description": (
+                        f"Missing config for edges: {', '.join(missing_configs)}"
+                    ),
+                }
+            )
             failed += 1
 
         if not zero_evaluator_edges:
-            results.append({"name": "evaluator_invariant", "status": "pass", "description": f"All edges have >=1 evaluator ({evaluators_found} total)"})
+            results.append(
+                {
+                    "name": "evaluator_invariant",
+                    "status": "pass",
+                    "description": (
+                        f"All edges have >=1 evaluator ({evaluators_found} total)"
+                    ),
+                }
+            )
             passed += 1
         else:
-            results.append({"name": "evaluator_invariant", "status": "fail", "description": f"Edges with 0 evaluators: {', '.join(zero_evaluator_edges)}"})
+            results.append(
+                {
+                    "name": "evaluator_invariant",
+                    "status": "fail",
+                    "description": (
+                        f"Edges with 0 evaluators: {', '.join(zero_evaluator_edges)}"
+                    ),
+                }
+            )
             failed += 1
 
     # 4. Tolerance Check (REQ-SUPV-002)
-    constraints_path = workspace / ".ai-workspace" / "context" / "project_constraints.yml"
+    constraints_path = (
+        workspace / ".ai-workspace" / "context" / "project_constraints.yml"
+    )
     if constraints_path.exists():
         try:
             with open(constraints_path) as f:
@@ -443,19 +541,53 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
             for name, val in dims.items():
                 if isinstance(val, dict):
                     # Check for non-placeholder values
-                    resolved = [v for k, v in val.items() if k not in ("mandatory", "description", "resolves_via", "examples") and v]
+                    resolved = [
+                        v
+                        for k, v in val.items()
+                        if k
+                        not in ("mandatory", "description", "resolves_via", "examples")
+                        and v
+                    ]
                     if resolved:
-                        # Check if it looks like a "wish" (no numbers, versions, or booleans)
+                        # Check if it looks like a "wish"
+                        # (no numbers, versions, or booleans)
                         flat_val = str(resolved).lower()
-                        if not any(char.isdigit() for char in flat_val) and not any(kw in flat_val for kw in ["true", "false", "yes", "no", "active", "enabled"]):
+                        if not any(char.isdigit() for char in flat_val) and not any(
+                            kw in flat_val
+                            for kw in [
+                                "true",
+                                "false",
+                                "yes",
+                                "no",
+                                "active",
+                                "enabled",
+                            ]
+                        ):
                             wishes.append(name)
-            
+
             if wishes:
-                results.append({"name": "tolerance_check", "status": "warn", "description": f"{len(wishes)} constraints lack measurable thresholds (wishes): {', '.join(wishes)}"})
+                results.append(
+                    {
+                        "name": "tolerance_check",
+                        "status": "warn",
+                        "description": (
+                            f"{len(wishes)} constraints lack measurable"
+                            f" thresholds (wishes): {', '.join(wishes)}"
+                        ),
+                    }
+                )
             else:
-                results.append({"name": "tolerance_check", "status": "pass", "description": "All resolved constraints have measurable thresholds"})
+                results.append(
+                    {
+                        "name": "tolerance_check",
+                        "status": "pass",
+                        "description": (
+                            "All resolved constraints have measurable thresholds"
+                        ),
+                    }
+                )
                 passed += 1
-        except:
+        except Exception:
             pass
 
     return {"passed": passed, "failed": failed, "results": results}
@@ -464,6 +596,7 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════
 # INTEGRITY & HEALTH CHECKS
 # ═══════════════════════════════════════════════════════════════════════
+
 
 def detect_corrupted_events(workspace: Path) -> list[dict[str, Any]]:
     """Return list of corruption reports for events.jsonl."""
@@ -493,13 +626,17 @@ def detect_orphaned_spawns(workspace: Path) -> list[dict[str, Any]]:
         parent = fv.get("parent", {})
         if not parent:
             continue
-        parent_id = parent.get("feature", "") if isinstance(parent, dict) else str(parent)
+        parent_id = (
+            parent.get("feature", "") if isinstance(parent, dict) else str(parent)
+        )
         if parent_id and parent_id not in feature_ids:
-            orphans.append({
-                "feature": fv.get("feature", ""),
-                "parent": parent_id,
-                "reason": f"parent {parent_id} not in active features",
-            })
+            orphans.append(
+                {
+                    "feature": fv.get("feature", ""),
+                    "parent": parent_id,
+                    "reason": f"parent {parent_id} not in active features",
+                }
+            )
     return orphans
 
 
@@ -508,12 +645,15 @@ def get_unactioned_escalations(
 ) -> list[dict[str, Any]]:
     """Find escalation/intent_raised events that have no corresponding action."""
     escalations = [
-        ev for ev in events
-        if ev.get("event_type") in ("intent_raised", "escalation")
+        ev for ev in events if ev.get("event_type") in ("intent_raised", "escalation")
     ]
     actioned_intents: set[str] = set()
     for ev in events:
-        if ev.get("event_type") in ("spawn_created", "review_completed", "spec_modified"):
+        if ev.get("event_type") in (
+            "spawn_created",
+            "review_completed",
+            "spec_modified",
+        ):
             iid = ev.get("intent_id", "") or ev.get("data", {}).get("intent_id", "")
             if iid:
                 actioned_intents.add(iid)
@@ -533,6 +673,7 @@ def get_unactioned_escalations(
 # STATE DETECTION
 # ═══════════════════════════════════════════════════════════════════════
 
+
 def detect_workspace_state(workspace: Path) -> str:
     """Detect the current workspace state from filesystem + event log."""
     # Ensure we are looking at the actual .ai-workspace directory
@@ -547,8 +688,7 @@ def detect_workspace_state(workspace: Path) -> str:
         return "UNINITIALISED"
 
     constraints_candidates = [
-        ws_dir / "claude_genesis" / "project_constraints.yml",
-        ws_dir / "gemini" / "context" / "project_constraints.yml",
+        ws_dir / "claude" / "context" / "project_constraints.yml",
         ws_dir / "context" / "project_constraints.yml",
     ]
     has_constraints = False
@@ -575,10 +715,19 @@ def detect_workspace_state(workspace: Path) -> str:
                     mandatory_total = 0
                     for _name, dim_val in dims.items():
                         if isinstance(dim_val, dict):
-                            if dim_val.get("mandatory") is False: continue
+                            if dim_val.get("mandatory") is False:
+                                continue
                             values = [
-                                v for k, v in dim_val.items()
-                                if k not in ("mandatory", "description", "resolves_via", "examples", "notes")
+                                v
+                                for k, v in dim_val.items()
+                                if k
+                                not in (
+                                    "mandatory",
+                                    "description",
+                                    "resolves_via",
+                                    "examples",
+                                    "notes",
+                                )
                                 and v
                             ]
                             if values:
@@ -586,7 +735,7 @@ def detect_workspace_state(workspace: Path) -> str:
                             mandatory_total += 1
                     if mandatory_total > 0 and mandatory_filled == 0:
                         return "NEEDS_CONSTRAINTS"
-                except:
+                except Exception:
                     pass
                 break
 
@@ -597,10 +746,7 @@ def detect_workspace_state(workspace: Path) -> str:
         project_root / "specification" / "INTENT.md",
         ws_dir / "spec" / "INTENT.md",
     ]
-    has_intent = any(
-        p.exists() and p.stat().st_size > 10
-        for p in intent_candidates
-    )
+    has_intent = any(p.exists() and p.stat().st_size > 10 for p in intent_candidates)
     if not has_intent:
         return "NEEDS_INTENT"
 
@@ -628,10 +774,9 @@ def detect_workspace_state(workspace: Path) -> str:
             any_stuck = True
             continue
 
-        is_blocked = (
-            _has_blocked_dependency(workspace, feat_id, events)
-            or _has_pending_human_review(workspace, feat_id, events)
-        )
+        is_blocked = _has_blocked_dependency(
+            workspace, feat_id, events
+        ) or _has_pending_human_review(workspace, feat_id, events)
         if not is_blocked:
             all_blocked = False
 

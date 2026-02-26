@@ -518,16 +518,26 @@ class TestEngineSpawnIntegration:
         return tmp_path
 
     def test_engine_spawns_on_stuck_delta(self, stuck_workspace):
-        """3 stuck iterations → child vector created on disk."""
+        """3 stuck iterations → child vector created on disk.
+
+        Spawn detection lives in run_edge() (ADR-019: iterate_edge is pure
+        evaluation; lifecycle decisions are orchestrator responsibility).
+        """
         from conftest import PROFILES_DIR, CONFIG_DIR
 
         from genisis.config_loader import load_yaml
-        from genisis.engine import EngineConfig, iterate_edge
+        from genisis.engine import EngineConfig, run_edge
+
+        # Write a minimal edge config to the workspace as a file
+        edge_dir = stuck_workspace / "edge_params"
+        edge_dir.mkdir(exist_ok=True)
+        edge_config_path = edge_dir / "tdd.yml"
+        edge_config_path.write_text(yaml.dump(self._minimal_edge_config()))
 
         config = EngineConfig(
             project_name="test_project",
             workspace_path=stuck_workspace,
-            edge_params_dir=stuck_workspace,  # won't use — we pass edge_config directly
+            edge_params_dir=edge_dir,
             profiles_dir=PROFILES_DIR,
             constraints=self._broken_constraints(),
             graph_topology=load_yaml(CONFIG_DIR / "graph_topology.yml"),
@@ -536,21 +546,20 @@ class TestEngineSpawnIntegration:
             claude_timeout=5,
         )
 
-        edge_config = self._minimal_edge_config()
+        profile = load_yaml(PROFILES_DIR / "standard.yml")
 
-        # This is the 3rd iteration — should trigger spawn (delta=1 for 3 in a row)
-        record = iterate_edge(
+        # Pre-loaded 2 stuck iterations; run_edge adds the 3rd → triggers spawn
+        records = run_edge(
             edge="code↔unit_tests",
-            edge_config=edge_config,
             config=config,
             feature_id="REQ-F-CALC-001",
+            profile=profile,
             asset_content="def add(a, b): return a - b",
-            iteration=3,
         )
 
-        # Verify spawn was triggered
-        assert record.evaluation.spawn_requested != ""
-        child_id = record.evaluation.spawn_requested
+        # Verify spawn was triggered on last record
+        assert records[-1].evaluation.spawn_requested != ""
+        child_id = records[-1].evaluation.spawn_requested
 
         # Verify child file exists on disk
         child_path = (
@@ -603,16 +612,26 @@ class TestEngineSpawnIntegration:
         assert records[-1].evaluation.spawn_requested != ""
 
     def test_spawn_result_in_evaluation(self, stuck_workspace):
-        """EvaluationResult.spawn_requested populated with valid feature ID."""
+        """EvaluationResult.spawn_requested populated with valid feature ID.
+
+        Spawn detection lives in run_edge() (ADR-019), so we test through
+        the orchestrator level.
+        """
         from conftest import PROFILES_DIR, CONFIG_DIR
 
         from genisis.config_loader import load_yaml
-        from genisis.engine import EngineConfig, iterate_edge
+        from genisis.engine import EngineConfig, run_edge
+
+        # Write a minimal edge config to the workspace as a file
+        edge_dir = stuck_workspace / "edge_params"
+        edge_dir.mkdir(exist_ok=True)
+        edge_config_path = edge_dir / "tdd.yml"
+        edge_config_path.write_text(yaml.dump(self._minimal_edge_config()))
 
         config = EngineConfig(
             project_name="test_project",
             workspace_path=stuck_workspace,
-            edge_params_dir=stuck_workspace,
+            edge_params_dir=edge_dir,
             profiles_dir=PROFILES_DIR,
             constraints=self._broken_constraints(),
             graph_topology=load_yaml(CONFIG_DIR / "graph_topology.yml"),
@@ -621,16 +640,15 @@ class TestEngineSpawnIntegration:
             claude_timeout=5,
         )
 
-        edge_config = self._minimal_edge_config()
+        profile = load_yaml(PROFILES_DIR / "standard.yml")
 
-        record = iterate_edge(
+        records = run_edge(
             edge="code↔unit_tests",
-            edge_config=edge_config,
             config=config,
             feature_id="REQ-F-CALC-001",
+            profile=profile,
             asset_content="def add(a, b): return a - b",
-            iteration=3,
         )
 
-        assert record.evaluation.spawn_requested.startswith("REQ-F-")
-        assert "DISCOVERY" in record.evaluation.spawn_requested
+        assert records[-1].evaluation.spawn_requested.startswith("REQ-F-")
+        assert "DISCOVERY" in records[-1].evaluation.spawn_requested

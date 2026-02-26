@@ -403,7 +403,9 @@ def check_time_box(feature_vector: dict) -> str:
 def _parse_duration_hours(duration_str: str) -> float:
     """Parse a human-readable duration to hours."""
     duration_str = duration_str.strip().lower()
-    match = re.match(r"(\d+(?:\.\d+)?)\s*(hour|hours|h|day|days|d|week|weeks|w)", duration_str)
+    match = re.match(
+        r"(\d+(?:\.\d+)?)\s*(hour|hours|h|day|days|d|week|weeks|w)", duration_str
+    )
     if not match:
         return 0
     value = float(match.group(1))

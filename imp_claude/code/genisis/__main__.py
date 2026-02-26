@@ -3,7 +3,10 @@
 
 Usage:
     python -m genisis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset path/to/file.py
-    python -m genisis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset - < file.py
+    python -m genisis run-edge --edge "code↔unit_tests" --feature "REQ-F-CALC-001" --asset src/calc.py --max-iterations 5
+
+evaluate: single iteration via iterate_edge() — same Level 4 events as before.
+run-edge: loop until converge/spawn/budget via run_edge() — enables CLI spawn.
 
 The engine evaluates an asset against an edge's checklist and emits Level 4 events.
 The LLM agent calls this for cross-validation (ADR-019).
@@ -15,7 +18,7 @@ import sys
 from pathlib import Path
 
 from .config_loader import load_yaml
-from .engine import EngineConfig
+from .engine import EngineConfig, IterationRecord, iterate_edge, run_edge
 
 
 def _find_workspace(start: Path) -> Path:
@@ -100,7 +103,9 @@ def _find_graph_topology(workspace: Path) -> Path:
     return candidates[0]
 
 
-def _emit_command_error(workspace: Path, project: str, command: str, category: str, detail: str) -> None:
+def _emit_command_error(
+    workspace: Path, project: str, command: str, category: str, detail: str
+) -> None:
     """Emit a command_error event for REQ-SUPV-003 failure observability."""
     from .fd_emit import emit_event, make_event
 
@@ -120,42 +125,60 @@ def _emit_command_error(workspace: Path, project: str, command: str, category: s
         pass  # Observation failure must not block error reporting
 
 
-def cmd_evaluate(args: argparse.Namespace) -> int:
-    """Evaluate an asset against an edge's checklist. Emit Level 4 events."""
-    workspace = Path(args.workspace) if args.workspace else _find_workspace(Path.cwd())
+# ── Shared helpers ───────────────────────────────────────────────────────
 
-    # Load asset content
+
+_EDGE_MAP = {
+    "code↔unit_tests": "tdd",
+    "design→test_cases": "design_tests",
+    "design→uat_tests": "bdd",
+}
+
+
+def _load_asset(args: argparse.Namespace, workspace: Path) -> str | None:
+    """Load asset content from file or stdin. Returns None on error."""
     if args.asset == "-":
-        asset_content = sys.stdin.read()
-    else:
-        asset_path = Path(args.asset)
-        if not asset_path.exists():
-            _emit_command_error(workspace, "", "evaluate", "missing_asset", f"Asset not found: {args.asset}")
-            print(
-                json.dumps({"error": f"Asset not found: {args.asset}"}), file=sys.stderr
-            )
-            return 1
-        asset_content = asset_path.read_text()
+        return sys.stdin.read()
+    asset_path = Path(args.asset)
+    if not asset_path.exists():
+        _emit_command_error(
+            workspace,
+            "",
+            args.command,
+            "missing_asset",
+            f"Asset not found: {args.asset}",
+        )
+        print(json.dumps({"error": f"Asset not found: {args.asset}"}), file=sys.stderr)
+        return None
+    return asset_path.read_text()
 
-    # Load constraints
+
+def _build_config(args: argparse.Namespace, workspace: Path) -> EngineConfig | None:
+    """Build EngineConfig from CLI args. Returns None on error."""
     constraints_path = (
         Path(args.constraints) if args.constraints else _find_constraints(workspace)
     )
     if not constraints_path.exists():
-        _emit_command_error(workspace, "", "evaluate", "missing_constraints", f"Constraints not found: {constraints_path}")
+        _emit_command_error(
+            workspace,
+            "",
+            args.command,
+            "missing_constraints",
+            f"Constraints not found: {constraints_path}",
+        )
         print(
             json.dumps({"error": f"Constraints not found: {constraints_path}"}),
             file=sys.stderr,
         )
-        return 1
+        return None
     constraints = load_yaml(constraints_path)
 
-    # Load graph topology
     topo_path = _find_graph_topology(workspace)
     graph_topology = load_yaml(topo_path) if topo_path.exists() else {}
 
-    # Build engine config
-    config = EngineConfig(
+    max_iters = getattr(args, "max_iterations", 1)
+
+    return EngineConfig(
         project_name=constraints.get("project", {}).get("name", workspace.name),
         workspace_path=workspace,
         edge_params_dir=_find_edge_params(workspace),
@@ -163,179 +186,208 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         constraints=constraints,
         graph_topology=graph_topology,
         model=args.model,
-        max_iterations_per_edge=1,  # CLI runs one iteration at a time
-        claude_timeout=args.timeout,
+        max_iterations_per_edge=max_iters,
+        claude_timeout=getattr(args, "timeout", 120),
+        deterministic_only=getattr(args, "deterministic_only", False),
+        fd_timeout=getattr(args, "fd_timeout", 120),
     )
 
-    # Load edge config
-    edge = args.edge
-    edge_params_dir = config.edge_params_dir
-    edge_map = {
-        "code↔unit_tests": "tdd",
-        "design→test_cases": "design_tests",
-        "design→uat_tests": "bdd",
-    }
-    edge_filename = edge_map.get(
+
+def _resolve_edge_config(edge: str, edge_params_dir: Path) -> Path | None:
+    """Resolve edge name to config file path. Returns None if not found."""
+    edge_filename = _EDGE_MAP.get(
         edge, edge.replace("→", "_").replace("↔", "_").replace(" ", "")
     )
     edge_config_path = edge_params_dir / f"{edge_filename}.yml"
+    if edge_config_path.exists():
+        return edge_config_path
+    return None
 
-    if not edge_config_path.exists():
-        _emit_command_error(workspace, config.project_name, "evaluate", "missing_edge_config", f"Edge config not found: {edge_config_path}")
+
+def _format_record(record: IterationRecord) -> dict:
+    """Format an IterationRecord as a JSON-serializable dict."""
+    ev = record.evaluation
+    return {
+        "iteration": record.iteration,
+        "delta": ev.delta,
+        "converged": ev.converged,
+        "spawn_requested": ev.spawn_requested,
+        "checks": [
+            {
+                "name": c.name,
+                "type": c.check_type,
+                "outcome": c.outcome.value,
+                "required": c.required,
+                "message": c.message[:200] if c.message else "",
+            }
+            for c in ev.checks
+        ],
+        "escalations": ev.escalations,
+    }
+
+
+# ── Commands ─────────────────────────────────────────────────────────────
+
+
+def cmd_evaluate(args: argparse.Namespace) -> int:
+    """Evaluate an asset against an edge's checklist. Emit Level 4 events."""
+    workspace = Path(args.workspace) if args.workspace else _find_workspace(Path.cwd())
+
+    asset_content = _load_asset(args, workspace)
+    if asset_content is None:
+        return 1
+
+    config = _build_config(args, workspace)
+    if config is None:
+        return 1
+
+    edge_config_path = _resolve_edge_config(args.edge, config.edge_params_dir)
+    if edge_config_path is None:
+        _emit_command_error(
+            workspace,
+            config.project_name,
+            "evaluate",
+            "missing_edge_config",
+            f"Edge config not found for: {args.edge}",
+        )
         print(
-            json.dumps({"error": f"Edge config not found: {edge_config_path}"}),
+            json.dumps({"error": f"Edge config not found for: {args.edge}"}),
             file=sys.stderr,
         )
         return 1
 
     edge_config = load_yaml(edge_config_path)
 
-    # Determine check filter
-    run_agent = not args.deterministic_only
-
-    # Run one iteration
-    from .config_loader import resolve_checklist
-    from .fd_evaluate import run_check as fd_run_check
-    from .fp_evaluate import run_check as fp_run_check
-    from .fd_emit import emit_event, make_event
-    from .models import CheckOutcome, CheckResult
-
-    checks = resolve_checklist(edge_config, constraints)
-    results: list[CheckResult] = []
-    escalations: list[str] = []
-
-    for check in checks:
-        if check.check_type == "deterministic":
-            cr = fd_run_check(check, workspace, timeout=args.fd_timeout)
-        elif check.check_type == "agent":
-            if run_agent:
-                cr = fp_run_check(
-                    check,
-                    asset_content=asset_content,
-                    context=args.context or "",
-                    model=config.model,
-                    timeout=config.claude_timeout,
-                )
-            else:
-                cr = CheckResult(
-                    name=check.name,
-                    outcome=CheckOutcome.SKIP,
-                    required=check.required,
-                    check_type=check.check_type,
-                    functional_unit=check.functional_unit,
-                    message="Skipped: --deterministic-only mode",
-                )
-        elif check.check_type == "human":
-            cr = CheckResult(
-                name=check.name,
-                outcome=CheckOutcome.SKIP,
-                required=check.required,
-                check_type=check.check_type,
-                functional_unit=check.functional_unit,
-                message="Skipped: human check (CLI mode)",
-            )
-        else:
-            cr = CheckResult(
-                name=check.name,
-                outcome=CheckOutcome.SKIP,
-                required=check.required,
-                check_type=check.check_type,
-                functional_unit=check.functional_unit,
-                message=f"Skipped: unknown check type '{check.check_type}'",
-            )
-
-        results.append(cr)
-
-        if cr.required and cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR):
-            if cr.check_type == "deterministic":
-                escalations.append(f"η_D→P: {cr.name}")
-            elif cr.check_type == "agent":
-                escalations.append(f"η_P→H: {cr.name}")
-
-    # Compute delta
-    delta = sum(
-        1
-        for cr in results
-        if cr.required and cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR)
-    )
-    converged = delta == 0
-
-    # Emit Level 4 event
-    events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
-    check_details = [
-        {
-            "name": cr.name,
-            "type": cr.check_type,
-            "outcome": cr.outcome.value,
-            "required": cr.required,
-            "message": cr.message[:200] if cr.message else "",
-        }
-        for cr in results
-    ]
-
-    passed = sum(1 for cr in results if cr.outcome == CheckOutcome.PASS)
-    failed = sum(
-        1 for cr in results if cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR)
-    )
-    skipped = sum(1 for cr in results if cr.outcome == CheckOutcome.SKIP)
-
-    emit_event(
-        events_path,
-        make_event(
-            "iteration_completed",
-            config.project_name,
-            feature=args.feature,
-            edge=edge,
-            iteration=args.iteration,
-            delta=delta,
-            status="converged" if converged else "iterating",
-            evaluators={
-                "passed": passed,
-                "failed": failed,
-                "skipped": skipped,
-                "total": len(results),
-                "details": check_details,
-            },
-            checks=check_details,
-            escalations=escalations,
-            source="engine_cli",
-        ),
+    record = iterate_edge(
+        edge=args.edge,
+        edge_config=edge_config,
+        config=config,
+        feature_id=args.feature,
+        asset_content=asset_content,
+        context=args.context or "",
+        iteration=args.iteration,
     )
 
-    if converged:
-        emit_event(
-            events_path,
-            make_event(
-                "edge_converged",
-                config.project_name,
-                feature=args.feature,
-                edge=edge,
-                iteration=args.iteration,
-                convergence_type="standard",
-            ),
-        )
+    # Build output — preserve the same schema callers expect
+    formatted = _format_record(record)
+    ev = record.evaluation
+    passed = sum(1 for c in ev.checks if c.outcome.value == "pass")
+    failed = sum(1 for c in ev.checks if c.outcome.value in ("fail", "error"))
+    skipped = sum(1 for c in ev.checks if c.outcome.value == "skip")
 
-    # Output JSON result
     output = {
-        "edge": edge,
+        "edge": args.edge,
         "feature": args.feature,
         "iteration": args.iteration,
-        "delta": delta,
-        "converged": converged,
+        "delta": ev.delta,
+        "converged": ev.converged,
         "evaluators": {
             "passed": passed,
             "failed": failed,
             "skipped": skipped,
-            "total": len(results),
+            "total": len(ev.checks),
         },
-        "checks": check_details,
-        "escalations": escalations,
-        "event_emitted": True,
+        "checks": formatted["checks"],
+        "escalations": ev.escalations,
+        "event_emitted": record.event_emitted,
         "source": "engine_cli",
     }
 
     print(json.dumps(output, indent=2))
-    return 0
+    return 0 if ev.converged else 1
+
+
+def cmd_run_edge(args: argparse.Namespace) -> int:
+    """Loop on an edge until converge/spawn/budget. Enables CLI spawn."""
+    workspace = Path(args.workspace) if args.workspace else _find_workspace(Path.cwd())
+
+    asset_content = _load_asset(args, workspace)
+    if asset_content is None:
+        return 1
+
+    config = _build_config(args, workspace)
+    if config is None:
+        return 1
+
+    # run_edge does its own edge config file lookup
+    profile_path = config.profiles_dir / "standard.yml"
+    profile = load_yaml(profile_path) if profile_path.exists() else {}
+
+    records = run_edge(
+        edge=args.edge,
+        config=config,
+        feature_id=args.feature,
+        profile=profile,
+        asset_content=asset_content,
+        context=args.context or "",
+    )
+
+    last = records[-1] if records else None
+    output = {
+        "edge": args.edge,
+        "feature": args.feature,
+        "total_iterations": len(records),
+        "final_delta": last.evaluation.delta if last else -1,
+        "converged": last.evaluation.converged if last else False,
+        "spawn_requested": last.evaluation.spawn_requested if last else "",
+        "iterations": [_format_record(r) for r in records],
+    }
+
+    if last and last.evaluation.spawn_requested:
+        child_id = last.evaluation.spawn_requested
+        output["child_path"] = str(
+            config.workspace_path
+            / ".ai-workspace"
+            / "features"
+            / "active"
+            / f"{child_id}.yml"
+        )
+
+    print(json.dumps(output, indent=2))
+
+    if last and (last.evaluation.converged or last.evaluation.spawn_requested):
+        return 0
+    return 1
+
+
+# ── Shared CLI args ──────────────────────────────────────────────────────
+
+
+def _add_shared_args(parser: argparse.ArgumentParser) -> None:
+    """Add arguments shared by evaluate and run-edge."""
+    parser.add_argument(
+        "--edge", required=True, help="Edge name (e.g., 'code↔unit_tests')"
+    )
+    parser.add_argument(
+        "--feature", required=True, help="Feature ID (e.g., 'REQ-F-ENGINE-001')"
+    )
+    parser.add_argument(
+        "--asset", required=True, help="Path to asset file, or '-' for stdin"
+    )
+    parser.add_argument(
+        "--workspace", default=None, help="Workspace root (auto-detected if omitted)"
+    )
+    parser.add_argument(
+        "--constraints", default=None, help="Path to project_constraints.yml"
+    )
+    parser.add_argument("--context", default="", help="Additional context string")
+    parser.add_argument(
+        "--model", default="sonnet", help="Model for agent checks (default: sonnet)"
+    )
+    parser.add_argument(
+        "--timeout", type=int, default=120, help="Timeout for agent checks in seconds"
+    )
+    parser.add_argument(
+        "--deterministic-only",
+        action="store_true",
+        help="Only run F_D checks (skip agent and human). Fast, free, Level 4.",
+    )
+    parser.add_argument(
+        "--fd-timeout",
+        type=int,
+        default=120,
+        help="Timeout for deterministic subprocess checks in seconds (default: 120)",
+    )
 
 
 def main() -> int:
@@ -348,49 +400,32 @@ def main() -> int:
     # evaluate subcommand
     eval_parser = subparsers.add_parser(
         "evaluate",
-        help="Evaluate an asset against an edge's checklist",
+        help="Evaluate an asset against an edge's checklist (single iteration)",
     )
-    eval_parser.add_argument(
-        "--edge", required=True, help="Edge name (e.g., 'code↔unit_tests')"
-    )
-    eval_parser.add_argument(
-        "--feature", required=True, help="Feature ID (e.g., 'REQ-F-ENGINE-001')"
-    )
-    eval_parser.add_argument(
-        "--asset", required=True, help="Path to asset file, or '-' for stdin"
-    )
-    eval_parser.add_argument(
-        "--workspace", default=None, help="Workspace root (auto-detected if omitted)"
-    )
-    eval_parser.add_argument(
-        "--constraints", default=None, help="Path to project_constraints.yml"
-    )
-    eval_parser.add_argument("--context", default="", help="Additional context string")
-    eval_parser.add_argument(
-        "--model", default="sonnet", help="Model for agent checks (default: sonnet)"
-    )
-    eval_parser.add_argument(
-        "--timeout", type=int, default=120, help="Timeout for agent checks in seconds"
-    )
+    _add_shared_args(eval_parser)
     eval_parser.add_argument(
         "--iteration", type=int, default=1, help="Iteration number for event"
     )
-    eval_parser.add_argument(
-        "--deterministic-only",
-        action="store_true",
-        help="Only run F_D checks (skip agent and human). Fast, free, Level 4.",
+
+    # run-edge subcommand
+    run_parser = subparsers.add_parser(
+        "run-edge",
+        help="Loop on edge until converge/spawn/budget",
     )
-    eval_parser.add_argument(
-        "--fd-timeout",
+    _add_shared_args(run_parser)
+    run_parser.add_argument(
+        "--max-iterations",
         type=int,
-        default=120,
-        help="Timeout for deterministic subprocess checks in seconds (default: 120)",
+        default=10,
+        help="Maximum iterations before stopping (default: 10)",
     )
 
     args = parser.parse_args()
 
     if args.command == "evaluate":
         return cmd_evaluate(args)
+    elif args.command == "run-edge":
+        return cmd_run_edge(args)
     else:
         parser.print_help()
         return 1
