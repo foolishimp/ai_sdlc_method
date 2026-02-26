@@ -1,4 +1,4 @@
-# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-F-FPC-003 (Context Accumulation), REQ-F-FPC-004 (Engine Construct Integration), REQ-NFR-FPC-001 (4 Calls Per Traversal), REQ-NFR-FPC-002 (Backward Compatible Default), REQ-BR-FPC-001 (Construct Before Evaluate)
+# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-F-FPC-003 (Context Accumulation), REQ-F-FPC-004 (Engine Construct Integration), REQ-NFR-FPC-001 (4 Calls Per Traversal), REQ-NFR-FPC-002 (Backward Compatible Default), REQ-BR-FPC-001 (Construct Before Evaluate), REQ-ROBUST-007 (Failure Event Emission)
 """Deterministic engine — owns the graph traversal loop.
 
 F_D controls: routing, emission, delta computation, convergence decisions.
@@ -52,6 +52,8 @@ class EngineConfig:
     claude_timeout: int = 120
     deterministic_only: bool = False
     fd_timeout: int = 120
+    stall_timeout: int = 60
+    sanitize_env: bool = True
 
 
 @dataclass
@@ -94,6 +96,7 @@ def iterate_edge(
     - Falls back to per-check fp_evaluate for unmatched agent checks
     """
     construct_result = None
+    events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
     # 1. F_P: Construct artifact (when enabled)
     if construct:
@@ -107,6 +110,27 @@ def iterate_edge(
             timeout=config.claude_timeout,
             claude_cmd="claude",
         )
+
+        # Emit fp_failure event on construct failure (REQ-ROBUST-007)
+        if not construct_result.artifact and construct_result.source_findings:
+            classification = "UNKNOWN"
+            for finding in construct_result.source_findings:
+                classification = finding.get("classification", "UNKNOWN")
+                break
+            emit_event(
+                events_path,
+                make_event(
+                    "fp_failure",
+                    config.project_name,
+                    feature=feature_id,
+                    edge=edge,
+                    iteration=iteration,
+                    classification=classification,
+                    duration_ms=construct_result.duration_ms,
+                    retries=construct_result.retries,
+                    phase="construct",
+                ),
+            )
 
         # Write constructed artifact to filesystem (REQ-BR-FPC-001)
         if construct_result.artifact and output_path:
@@ -178,6 +202,24 @@ def iterate_edge(
 
         results.append(cr)
 
+        # Emit evaluator_detail event for failing checks (REQ-ROBUST-007)
+        if cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR):
+            emit_event(
+                events_path,
+                make_event(
+                    "evaluator_detail",
+                    config.project_name,
+                    feature=feature_id,
+                    edge=edge,
+                    iteration=iteration,
+                    check_name=cr.name,
+                    check_type=cr.check_type,
+                    outcome=cr.outcome.value,
+                    required=cr.required,
+                    message=cr.message[:500] if cr.message else "",
+                ),
+            )
+
         # η detection
         if cr.required and cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR):
             if cr.check_type == "deterministic":
@@ -202,8 +244,6 @@ def iterate_edge(
     )
 
     # 5. F_D: Emit event — THIS ALWAYS FIRES
-    events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
-
     check_summary = [
         {
             "name": cr.name,

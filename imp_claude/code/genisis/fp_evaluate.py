@@ -1,4 +1,4 @@
-# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition)
+# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-ROBUST-001 (Actor Isolation)
 """F_P evaluate — LLM-based evaluation via Claude Code CLI.
 
 Uses `claude -p --output-format json --json-schema` for structured output.
@@ -9,8 +9,8 @@ everything around it is F_D.
 
 import json
 import shutil
-import subprocess
 
+from .fp_subprocess import run_claude_isolated
 from .models import CheckOutcome, CheckResult, ResolvedCheck
 
 CLAUDE_CMD = "claude"
@@ -69,57 +69,44 @@ def run_check(
 
     prompt = _build_prompt(check, asset_content, context)
 
-    try:
-        result = subprocess.run(
-            [
-                claude_cmd,
-                "-p",
-                "--output-format",
-                "json",
-                "--json-schema",
-                _RESPONSE_SCHEMA,
-                "--model",
-                model,
-                "--no-session-persistence",
-                prompt,
-            ],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
+    cmd = [
+        claude_cmd,
+        "-p",
+        "--output-format",
+        "json",
+        "--json-schema",
+        _RESPONSE_SCHEMA,
+        "--model",
+        model,
+        "--no-session-persistence",
+        prompt,
+    ]
+    result = run_claude_isolated(cmd, timeout=timeout)
 
-        if result.returncode != 0:
-            return CheckResult(
-                name=check.name,
-                outcome=CheckOutcome.ERROR,
-                required=check.required,
-                check_type=check.check_type,
-                functional_unit=check.functional_unit,
-                message=f"Claude Code exited {result.returncode}: {result.stderr[:200]}",
-                stdout=result.stdout,
-                stderr=result.stderr,
-            )
-
-        return _parse_response(result.stdout, check)
-
-    except subprocess.TimeoutExpired:
+    if result.timed_out:
+        detail = "stall detected" if result.stall_killed else "wall timeout"
         return CheckResult(
             name=check.name,
             outcome=CheckOutcome.ERROR,
             required=check.required,
             check_type=check.check_type,
             functional_unit=check.functional_unit,
-            message=f"Claude Code timed out after {timeout}s",
+            message=f"Claude Code {detail} after {result.duration_ms}ms",
         )
-    except OSError as e:
+
+    if result.error:
         return CheckResult(
             name=check.name,
             outcome=CheckOutcome.ERROR,
             required=check.required,
             check_type=check.check_type,
             functional_unit=check.functional_unit,
-            message=f"Failed to invoke Claude Code: {e}",
+            message=f"Claude Code error: {result.error}",
+            stdout=result.stdout,
+            stderr=result.stderr,
         )
+
+    return _parse_response(result.stdout, check)
 
 
 def _build_prompt(check: ResolvedCheck, asset_content: str, context: str) -> str:

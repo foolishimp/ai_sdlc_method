@@ -1,4 +1,4 @@
-# Implements: REQ-F-FPC-001 (LLM Construct Per Edge), REQ-F-FPC-002 (Batched Evaluate), REQ-F-FPC-006 (Construct Output Schema), REQ-NFR-FPC-003 (Timeout Retry Resilience)
+# Implements: REQ-F-FPC-001 (LLM Construct Per Edge), REQ-F-FPC-002 (Batched Evaluate), REQ-F-FPC-006 (Construct Output Schema), REQ-NFR-FPC-003 (Timeout Retry Resilience), REQ-ROBUST-001 (Actor Isolation)
 """F_P construct — LLM-based artifact generation via Claude Code CLI.
 
 Calls `claude -p` once per edge to construct an artifact and batch-evaluate
@@ -12,9 +12,9 @@ Design reference: ADR-020, FUNCTOR_FRAMEWORK_DESIGN.md Appendix A.
 
 import json
 import shutil
-import subprocess
 import time
 
+from .fp_subprocess import run_claude_isolated
 from .models import CheckOutcome, CheckResult, ConstructResult, ResolvedCheck
 
 CLAUDE_CMD = "claude"
@@ -267,33 +267,27 @@ def _call_claude(
     model: str,
     timeout: int,
     claude_cmd: str,
+    stall_timeout: int = 60,
 ) -> str | None:
-    """Call claude -p and return stdout, or None on failure."""
-    try:
-        result = subprocess.run(
-            [
-                claude_cmd,
-                "-p",
-                "--output-format",
-                "json",
-                "--json-schema",
-                _RESPONSE_SCHEMA,
-                "--model",
-                model,
-                "--no-session-persistence",
-                prompt,
-            ],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        if result.returncode != 0:
-            return None
-        return result.stdout
-    except subprocess.TimeoutExpired:
+    """Call claude -p via isolated runner and return stdout, or None on failure."""
+    cmd = [
+        claude_cmd,
+        "-p",
+        "--output-format",
+        "json",
+        "--json-schema",
+        _RESPONSE_SCHEMA,
+        "--model",
+        model,
+        "--no-session-persistence",
+        prompt,
+    ]
+    result = run_claude_isolated(
+        cmd, timeout=timeout, stall_timeout=stall_timeout
+    )
+    if result.timed_out or result.returncode != 0:
         return None
-    except OSError:
-        return None
+    return result.stdout
 
 
 def _parse_response(stdout: str) -> ConstructResult | None:

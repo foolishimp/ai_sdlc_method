@@ -40,6 +40,7 @@ Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaki
 11. [User Experience](#11-user-experience) — State-driven routing, progressive disclosure, observability
 12. [Multi-Agent Coordination](#12-multi-agent-coordination) — Agent identity, event-sourced assignment, work isolation
 13. [Supervision (IntentEngine)](#13-supervision-intentengine) — Universal observer/evaluator composition law
+14. [Runtime Robustness](#14-runtime-robustness) — Actor isolation, supervisor pattern, crash recovery
 
 ---
 
@@ -1280,6 +1281,95 @@ The system shall capture its own failures as structured events in `events.jsonl`
 
 ---
 
+## 14. Runtime Robustness
+
+These requirements ensure that probabilistic processing (F_P calls) is resilient to hangs, crashes, and interrupted sessions. Without runtime robustness, a single hung F_P invocation cascades through the calling chain with no timeout recovery, no failure events, and no way to detect or recover from the interruption.
+
+### REQ-ROBUST-001: F_P Invocation Isolation
+
+**Priority**: Critical | **Phase**: 1
+
+Every F_P invocation (construct or evaluate) shall execute in an isolated boundary such that the invoking engine can terminate it cleanly on timeout or error. A failing F_P call must not block the engine or any upstream caller.
+
+**Acceptance Criteria**:
+- F_P invocations are isolated: timeout or crash in one invocation does not affect others
+- The engine can forcibly terminate any F_P invocation and reclaim resources
+- Environment conflicts between nested invocations are prevented (the engine may itself run inside an F_P context)
+- Every F_P invocation has a bounded wall-clock timeout — unbounded calls are not permitted
+- Isolation is transparent to callers — construct and evaluate result types are unchanged
+
+**Traces To**: Asset Graph Model §4.3 (Three Processing Phases — F_P as bounded invocation), REQ-SUPV-003 (Failure Observability — isolation enables clean failure capture)
+
+---
+
+### REQ-ROBUST-002: Supervisor Pattern for F_P Calls
+
+**Priority**: Critical | **Phase**: 1
+
+F_P invocations shall follow a supervisor pattern: timeout detection, configurable retry on transient failure, and structured error reporting on persistent failure. The supervisor never allows an F_P call to run unbounded.
+
+**Acceptance Criteria**:
+- Wall-clock timeout enforced (configurable, with a bounded default)
+- Stall detection: if an F_P invocation produces no observable progress for a configurable period, it is treated as hung and terminated
+- On timeout: invocation terminated, failure recorded with timeout flag and elapsed duration
+- On transient failure: retry up to a configured limit (default 2)
+- On persistent failure: return structured error result with failure classification (timeout, error, stall)
+- Retry count and total duration tracked in result metadata
+
+**Traces To**: Asset Graph Model §4.6 (IntentEngine — escalation on persistent failure), REQ-SUPV-001 (IntentEngine Interface — timeout → escalate)
+
+---
+
+### REQ-ROBUST-003: Crash Recovery via Event Log Gap Detection
+
+**Priority**: High | **Phase**: 1
+
+The system shall detect interrupted iterations by scanning the event log for started events with no subsequent completion event. Detected gaps are emitted as abandonment events on engine startup, enabling pattern analysis and recovery.
+
+**Acceptance Criteria**:
+- On engine startup, scan the event log for unpaired edge-start events
+- A started edge with no subsequent convergence or completion event for the same feature/edge is classified as abandoned
+- Each detected gap emits an abandonment event with: feature, edge, last event timestamp, time since last event
+- Gap detection is idempotent — running it twice does not emit duplicate abandonment events
+- Gap information is available to status commands for user awareness
+
+**Traces To**: Asset Graph Model §7.4 (Event Sourcing — views reconstructible from events), REQ-COORD-002 (Feature Assignment — stale claims detectable via events)
+
+---
+
+### REQ-ROBUST-007: Failure Event Emission
+
+**Priority**: Critical | **Phase**: 1
+
+Every F_P failure (timeout, error, stall) shall emit a structured failure event to the event log. Without failure events, the delta function returns zero for broken subsystems — the evaluator cannot design improvements for failures it cannot observe.
+
+**Acceptance Criteria**:
+- On F_P construct failure: emit failure event with classification (timeout, parse error, tool missing, error), duration, retry count, edge, feature
+- On F_P evaluate failure: emit evaluator detail event with check name, outcome, check type, message, duration
+- Failure events use the same append-only event log and common event schema
+- Failure events are emitted by the engine (F_D), not by the failing F_P invocation — guaranteed emission
+
+**Traces To**: Asset Graph Model §4.6 (IntentEngine — observer requires observable failures), REQ-SUPV-003 (Failure Observability — every failure as structured event)
+
+---
+
+### REQ-ROBUST-008: Session Gap Detection
+
+**Priority**: High | **Phase**: 1
+
+The system shall detect when a previous session was interrupted mid-iteration and emit abandonment events on startup. This closes the observability gap for sessions that crash or are killed without clean shutdown.
+
+**Acceptance Criteria**:
+- Engine startup checks for started events without matching completion events
+- Abandoned iterations detected across session boundaries (not just within the current session)
+- Stall detection threshold is configurable via engine parameters
+- Gap detection runs before any new iteration begins
+- Detected gaps do not block engine operation — they are recorded and reported
+
+**Traces To**: Asset Graph Model §7.4 (Event Sourcing), REQ-SUPV-003 (Failure Observability — session abandonment as observable event), REQ-COORD-002 (Feature Assignment — stale claim detection)
+
+---
+
 ## Requirement Summary
 
 | Category | Count | Critical | High | Medium |
@@ -1297,10 +1387,11 @@ The system shall capture its own failures as structured events in `events.jsonl`
 | User Experience | 7 | 0 | 5 | 2 |
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
 | Supervision (IntentEngine) | 3 | 0 | 3 | 0 |
-| **Total** | **69** | **10** | **47** | **12** |
+| Runtime Robustness | 5 | 3 | 2 | 0 |
+| **Total** | **74** | **13** | **49** | **12** |
 
-### Phase 1 (Core Graph Engine): 49 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability).
+### Phase 1 (Core Graph Engine): 54 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (actor isolation, supervisor pattern, crash recovery, failure events, session gap detection).
 
 ### Phase 2 (Full Lifecycle + Coordination): 20 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking.

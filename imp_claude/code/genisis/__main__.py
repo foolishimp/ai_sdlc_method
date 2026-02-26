@@ -1,4 +1,4 @@
-# Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability), REQ-F-FPC-005 (CLI Construct Mode)
+# Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability), REQ-F-FPC-005 (CLI Construct Mode), REQ-ROBUST-008 (Session Gap Detection)
 """CLI entry point for the genisis engine.
 
 Usage:
@@ -127,6 +127,46 @@ def _emit_command_error(
         pass  # Observation failure must not block error reporting
 
 
+def _check_session_gaps(workspace: Path, project: str) -> None:
+    """Detect and emit events for abandoned iterations (REQ-ROBUST-008).
+
+    Scans the event log for edge_started events with no subsequent completion.
+    Emits iteration_abandoned events for each detected gap. Idempotent —
+    won't emit duplicates on repeated invocations.
+    """
+    from .fd_emit import emit_event, make_event
+    from .workspace_state import detect_abandoned_iterations, load_events
+
+    events = load_events(workspace)
+    abandoned = detect_abandoned_iterations(events)
+
+    if not abandoned:
+        return
+
+    events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
+    for gap in abandoned:
+        try:
+            emit_event(
+                events_path,
+                make_event(
+                    "iteration_abandoned",
+                    project,
+                    feature=gap["feature"],
+                    edge=gap["edge"],
+                    last_event_timestamp=gap["last_event_timestamp"],
+                ),
+            )
+        except Exception:
+            pass  # Observation failure must not block engine startup
+
+    import sys
+
+    print(
+        f"genisis: detected {len(abandoned)} abandoned iteration(s) from prior session",
+        file=sys.stderr,
+    )
+
+
 # ── Shared helpers ───────────────────────────────────────────────────────
 
 
@@ -192,6 +232,7 @@ def _build_config(args: argparse.Namespace, workspace: Path) -> EngineConfig | N
         claude_timeout=getattr(args, "timeout", 120),
         deterministic_only=getattr(args, "deterministic_only", False),
         fd_timeout=getattr(args, "fd_timeout", 120),
+        stall_timeout=getattr(args, "stall_timeout", 60),
     )
 
 
@@ -242,6 +283,8 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     config = _build_config(args, workspace)
     if config is None:
         return 1
+
+    _check_session_gaps(workspace, config.project_name)
 
     edge_config_path = _resolve_edge_config(args.edge, config.edge_params_dir)
     if edge_config_path is None:
@@ -311,6 +354,8 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
     if config is None:
         return 1
 
+    _check_session_gaps(workspace, config.project_name)
+
     construct = getattr(args, "construct", False)
     output_file = Path(args.output) if getattr(args, "output", None) else None
 
@@ -377,6 +422,8 @@ def cmd_construct(args: argparse.Namespace) -> int:
     config = _build_config(args, workspace)
     if config is None:
         return 1
+
+    _check_session_gaps(workspace, config.project_name)
 
     output_file = Path(args.output) if args.output else None
 
@@ -488,6 +535,12 @@ def _add_shared_args(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=120,
         help="Timeout for deterministic subprocess checks in seconds (default: 120)",
+    )
+    parser.add_argument(
+        "--stall-timeout",
+        type=int,
+        default=60,
+        help="Stall detection timeout for F_P calls in seconds (default: 60, 0=disable)",
     )
 
 

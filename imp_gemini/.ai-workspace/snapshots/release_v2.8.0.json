@@ -1,0 +1,9 @@
+{
+  "version": "v2.8.0",
+  "timestamp": "2026-02-26T23:43:06.744757+00:00",
+  "features": [
+    "REQ-F-GEMINI-INIT-001",
+    "REQ-F-GEMINI-CLI-001",
+    "REQ-F-1"
+  ]
+}

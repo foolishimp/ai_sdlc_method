@@ -1,4 +1,4 @@
-# Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-002
+# Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-002, REQ-ROBUST-003, REQ-ROBUST-008
 """Pure-function workspace state detection utilities.
 
 These functions operate on filesystem paths (workspace directories) and return
@@ -206,6 +206,55 @@ def get_iteration_count(
         and ev.get("feature") == feature
         and ev.get("edge") == edge
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SESSION GAP DETECTION (REQ-ROBUST-003, REQ-ROBUST-008)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def detect_abandoned_iterations(
+    events: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Detect edge_started events with no subsequent completion.
+
+    Scans the event log for ``edge_started`` events that were never followed
+    by an ``edge_converged`` or ``iteration_completed`` for the same
+    feature/edge pair. Also filters out pairs that already have an
+    ``iteration_abandoned`` event (idempotency).
+
+    Returns a list of dicts: {feature, edge, last_event_timestamp}.
+    """
+    # Track started edges and their timestamps
+    started: dict[tuple[str, str], str] = {}  # (feature, edge) → timestamp
+    completed: set[tuple[str, str]] = set()
+    already_abandoned: set[tuple[str, str]] = set()
+
+    for ev in events:
+        et = ev.get("event_type", "")
+        feature = ev.get("feature", "")
+        edge = ev.get("edge", "")
+        key = (feature, edge)
+
+        if et == "edge_started" and feature and edge:
+            started[key] = ev.get("timestamp", "")
+        elif et in ("edge_converged", "iteration_completed") and feature and edge:
+            completed.add(key)
+        elif et == "iteration_abandoned" and feature and edge:
+            already_abandoned.add(key)
+
+    abandoned = []
+    for key, timestamp in started.items():
+        if key not in completed and key not in already_abandoned:
+            abandoned.append(
+                {
+                    "feature": key[0],
+                    "edge": key[1],
+                    "last_event_timestamp": timestamp,
+                }
+            )
+
+    return abandoned
 
 
 # ═══════════════════════════════════════════════════════════════════════
