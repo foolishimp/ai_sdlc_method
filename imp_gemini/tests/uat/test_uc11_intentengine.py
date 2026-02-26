@@ -1,6 +1,6 @@
 # Validates: REQ-SUPV-001, REQ-SUPV-002
 import pytest
-from genesis_core.internal.workspace_state import classify_tolerance_breach, get_unactioned_escalations
+from gemini_cli.internal.workspace_state import classify_tolerance_breach, get_unactioned_escalations
 
 pytestmark = [pytest.mark.uat]
 

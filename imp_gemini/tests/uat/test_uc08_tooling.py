@@ -1,6 +1,6 @@
 # Validates: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-009
 import pytest
-from genesis_core.internal.workspace_state import compute_feature_view, compute_aggregated_view
+from gemini_cli.internal.workspace_state import compute_feature_view, compute_aggregated_view
 
 pytestmark = [pytest.mark.uat]
 
