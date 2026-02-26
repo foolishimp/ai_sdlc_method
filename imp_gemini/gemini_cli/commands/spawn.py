@@ -1,7 +1,7 @@
 
 import yaml
 from pathlib import Path
-from genesis_core.engine.state import EventStore
+from gemini_cli.engine.state import EventStore
 
 class SpawnCommand:
     """Creates a new feature vector (Feature, Discovery, Spike, etc.)."""

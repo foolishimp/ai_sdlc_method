@@ -7,19 +7,19 @@ import argparse
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
-from genesis_core.engine.state import EventStore, Projector
-from genesis_core.engine.iterate import IterateEngine
+from gemini_cli.engine.state import EventStore, Projector
+from gemini_cli.engine.iterate import IterateEngine
 from gemini_cli.functors.f_deterministic import DeterministicFunctor
 from gemini_cli.functors.f_probabilistic import GeminiFunctor
 from gemini_cli.functors.f_human import HumanFunctor
-from genesis_core.internal.state_machine import StateManager, ProjectState
+from gemini_cli.internal.state_machine import StateManager, ProjectState
 from gemini_cli.commands.init import InitCommand
 from gemini_cli.commands.spawn import SpawnCommand
 from gemini_cli.commands.checkpoint import CheckpointCommand
 from gemini_cli.commands.trace import TraceCommand
 from gemini_cli.commands.gaps import GapsCommand
 from gemini_cli.commands.release import ReleaseCommand
-from genesis_core.engine.config_loader import ConfigLoader
+from gemini_cli.engine.config_loader import ConfigLoader
 
 def run_iterate_loop(feature, edge, asset, mode, store, workspace_root, depth=0):
     """

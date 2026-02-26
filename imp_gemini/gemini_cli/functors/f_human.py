@@ -5,7 +5,7 @@ Prompts the developer for approval or refinement.
 """
 
 from typing import Dict, Any
-from genesis_core.engine.models import FunctorResult, Outcome
+from gemini_cli.engine.models import FunctorResult, Outcome
 
 class HumanFunctor:
     """Judgment-based evaluator (Ask the user)."""

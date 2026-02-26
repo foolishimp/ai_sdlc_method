@@ -3,8 +3,8 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any
 
-from genesis_core.engine.iterate import IterateEngine
-from genesis_core.engine.models import FunctorResult, Outcome
+from gemini_cloud.engine.iterate import IterateEngine
+from gemini_cloud.engine.models import FunctorResult, Outcome
 from gemini_cloud.engine.state import CloudEventStore
 from gemini_cloud.functors.f_vertex import VertexFunctor
 

@@ -7,7 +7,7 @@ Supports Recursive Spawning for sub-problem investigation.
 import os
 from typing import Dict, Any, Union
 from pathlib import Path
-from genesis_core.engine.models import FunctorResult, Outcome, SpawnRequest
+from gemini_cli.engine.models import FunctorResult, Outcome, SpawnRequest
 
 class GeminiFunctor:
     """Universal Probabilistic Evaluator/Constructor."""

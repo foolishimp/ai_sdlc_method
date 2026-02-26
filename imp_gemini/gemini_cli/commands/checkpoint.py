@@ -2,7 +2,7 @@
 import shutil
 from pathlib import Path
 from datetime import datetime, timezone
-from genesis_core.engine.state import EventStore
+from gemini_cli.engine.state import EventStore
 
 class CheckpointCommand:
     """Saves an immutable snapshot of the methodology state."""

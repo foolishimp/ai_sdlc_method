@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import List, Dict
 
-from genesis_core.engine.state import EventStore, Projector
+from gemini_cli.engine.state import EventStore, Projector
 
 class ReleaseCommand:
     """Generates a release manifest and emits a release_created event."""
