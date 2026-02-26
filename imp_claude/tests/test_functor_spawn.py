@@ -11,7 +11,7 @@ import yaml
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
-from genisis.fd_spawn import (
+from genesis.fd_spawn import (
     check_time_box,
     create_child_vector,
     detect_spawn_condition,
@@ -20,7 +20,7 @@ from genisis.fd_spawn import (
     link_parent_child,
     load_events,
 )
-from genisis.models import SpawnRequest
+from genesis.models import SpawnRequest
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────
@@ -525,8 +525,8 @@ class TestEngineSpawnIntegration:
         """
         from conftest import PROFILES_DIR, CONFIG_DIR
 
-        from genisis.config_loader import load_yaml
-        from genisis.engine import EngineConfig, run_edge
+        from genesis.config_loader import load_yaml
+        from genesis.engine import EngineConfig, run_edge
 
         # Write a minimal edge config to the workspace as a file
         edge_dir = stuck_workspace / "edge_params"
@@ -575,8 +575,8 @@ class TestEngineSpawnIntegration:
 
         from conftest import PROFILES_DIR, CONFIG_DIR
 
-        from genisis.config_loader import load_yaml
-        from genisis.engine import EngineConfig, run_edge
+        from genesis.config_loader import load_yaml
+        from genesis.engine import EngineConfig, run_edge
 
         # Write a minimal edge config to the workspace as a file
         edge_dir = stuck_workspace / "edge_params"
@@ -619,8 +619,8 @@ class TestEngineSpawnIntegration:
         """
         from conftest import PROFILES_DIR, CONFIG_DIR
 
-        from genisis.config_loader import load_yaml
-        from genisis.engine import EngineConfig, run_edge
+        from genesis.config_loader import load_yaml
+        from genesis.engine import EngineConfig, run_edge
 
         # Write a minimal edge config to the workspace as a file
         edge_dir = stuck_workspace / "edge_params"

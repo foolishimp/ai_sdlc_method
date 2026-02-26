@@ -1,9 +1,9 @@
 # Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability)
-"""CLI entry point for the genisis engine.
+"""CLI entry point for the genesis engine.
 
 Usage:
-    python -m genisis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset path/to/file.py
-    python -m genisis run-edge --edge "code↔unit_tests" --feature "REQ-F-CALC-001" --asset src/calc.py --max-iterations 5
+    python -m genesis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset path/to/file.py
+    python -m genesis run-edge --edge "code↔unit_tests" --feature "REQ-F-CALC-001" --asset src/calc.py --max-iterations 5
 
 evaluate: single iteration via iterate_edge() — same Level 4 events as before.
 run-edge: loop until converge/spawn/budget via run_edge() — enables CLI spawn.
@@ -55,7 +55,7 @@ def _find_edge_params(workspace: Path) -> Path:
         / "code"
         / ".claude-plugin"
         / "plugins"
-        / "genisis"
+        / "genesis"
         / "config"
         / "edge_params",
     ]
@@ -74,7 +74,7 @@ def _find_profiles(workspace: Path) -> Path:
         / "code"
         / ".claude-plugin"
         / "plugins"
-        / "genisis"
+        / "genesis"
         / "config"
         / "profiles",
     ]
@@ -93,7 +93,7 @@ def _find_graph_topology(workspace: Path) -> Path:
         / "code"
         / ".claude-plugin"
         / "plugins"
-        / "genisis"
+        / "genesis"
         / "config"
         / "graph_topology.yml",
     ]
@@ -392,7 +392,7 @@ def _add_shared_args(parser: argparse.ArgumentParser) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="genisis",
+        prog="genesis",
         description="Genesis F_D engine — deterministic evaluation with Level 4 events",
     )
     subparsers = parser.add_subparsers(dest="command")

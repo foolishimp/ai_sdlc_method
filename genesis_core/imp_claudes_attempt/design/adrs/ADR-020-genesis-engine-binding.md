@@ -13,7 +13,7 @@
 
 The Genesis Engine Specification (`genesis_core/specification/GENESIS_ENGINE_SPEC.md`) defines the platform-agnostic contract for the iterate() operation — data model, evaluation pipeline, orchestration, event contract, configuration, and binding points.
 
-This ADR binds that specification to Claude Code. It is the design document that the code in `imp_claude/code/genisis/` implements. Every section traces back to a specific section of the engine spec.
+This ADR binds that specification to Claude Code. It is the design document that the code in `imp_claude/code/genesis/` implements. Every section traces back to a specific section of the engine spec.
 
 ### What Already Exists
 
@@ -38,9 +38,9 @@ The Claude Code implementation preceded the genesis_core specification. The engi
 
 ## Decision
 
-**The Claude Code implementation binds the Genesis Engine Specification through Python dataclasses, subprocess dispatch for F_D checks, `claude -p` subprocess for F_P checks, JSONL file with `fcntl.flock` for the event store, and a `python -m genisis` CLI entry point. All binding points are satisfied by subprocess-based mechanisms — no in-process SDK calls, no network APIs, no cloud services.**
+**The Claude Code implementation binds the Genesis Engine Specification through Python dataclasses, subprocess dispatch for F_D checks, `claude -p` subprocess for F_P checks, JSONL file with `fcntl.flock` for the event store, and a `python -m genesis` CLI entry point. All binding points are satisfied by subprocess-based mechanisms — no in-process SDK calls, no network APIs, no cloud services.**
 
-The binding philosophy: **everything is a subprocess.** F_D runs shell commands. F_P runs `claude -p`. The engine itself is invocable via `python -m genisis`. This is consistent with Claude Code's architecture as a local CLI tool.
+The binding philosophy: **everything is a subprocess.** F_D runs shell commands. F_P runs `claude -p`. The engine itself is invocable via `python -m genesis`. This is consistent with Claude Code's architecture as a local CLI tool.
 
 ---
 
@@ -194,25 +194,25 @@ def emit_event(events_path: Path, event: dict) -> None:
 
 ### B8. CLI Entry Point (Engine Spec §6.5)
 
-**Module**: `python -m genisis` → `__main__.py`
+**Module**: `python -m genesis` → `__main__.py`
 
 **Subcommands**:
 
 ```bash
 # Single iteration — evaluate an asset against one edge's checklist
-python -m genisis evaluate \
+python -m genesis evaluate \
   --edge "code↔unit_tests" \
   --feature "REQ-F-ENGINE-001" \
-  --asset imp_claude/code/genisis/engine.py \
+  --asset imp_claude/code/genesis/engine.py \
   --workspace . \
   --deterministic-only \
   --fd-timeout 120
 
 # Edge loop — iterate until convergence, spawn, or budget exhaustion
-python -m genisis run-edge \
+python -m genesis run-edge \
   --edge "code↔unit_tests" \
   --feature "REQ-F-ENGINE-001" \
-  --asset imp_claude/code/genisis/engine.py \
+  --asset imp_claude/code/genesis/engine.py \
   --workspace . \
   --max-iterations 10
 ```
@@ -231,7 +231,7 @@ python -m genisis run-edge \
 }
 ```
 
-**PYTHONPATH**: The CLI requires `PYTHONPATH=imp_claude/code` because `genisis` is not installed as a pip package. This is a known limitation of Phase 1a — the plugin installer does not install Python dependencies.
+**PYTHONPATH**: The CLI requires `PYTHONPATH=imp_claude/code` because `genesis` is not installed as a pip package. This is a known limitation of Phase 1a — the plugin installer does not install Python dependencies.
 
 ---
 
@@ -295,7 +295,7 @@ The cross-validation protocol defined in ADR-019 binds to Claude Code as follows
 │  2. LLM constructs next candidate (F_P Construct)            │
 │  3. LLM self-evaluates (produces delta_P)                    │
 │  4. LLM invokes engine:                                      │
-│     $ PYTHONPATH=imp_claude/code python -m genisis evaluate \ │
+│     $ PYTHONPATH=imp_claude/code python -m genesis evaluate \ │
 │       --edge "code↔unit_tests" \                             │
 │       --feature "REQ-F-AUTH-001" \                           │
 │       --asset <path> \                                       │
@@ -321,7 +321,7 @@ The cross-validation protocol defined in ADR-019 binds to Claude Code as follows
 
 | Protocol Step | Status |
 |--------------|--------|
-| Engine CLI entry point | `[IMPLEMENTED]` — `python -m genisis evaluate` |
+| Engine CLI entry point | `[IMPLEMENTED]` — `python -m genesis evaluate` |
 | Engine evaluates assets | `[IMPLEMENTED]` — 5 F_D checks converge (delta=0) |
 | LLM invokes engine | `[PARTIAL]` — gen-iterate command spec needs update |
 | Delta comparison | `[PLANNED]` — not yet in gen-iterate command |
@@ -342,7 +342,7 @@ This is the Claude Code tenant's constraint file. Other tenants use their own pa
 ### C2. Edge Params Location
 
 ```
-imp_claude/code/.claude-plugin/plugins/genisis/config/edge_params/*.yml
+imp_claude/code/.claude-plugin/plugins/genesis/config/edge_params/*.yml
 ```
 
 12 edge parameter files, one per graph edge. Shipped with the plugin, not per-project.
@@ -350,7 +350,7 @@ imp_claude/code/.claude-plugin/plugins/genisis/config/edge_params/*.yml
 ### C3. Profiles Location
 
 ```
-imp_claude/code/.claude-plugin/plugins/genisis/config/profiles/*.yml
+imp_claude/code/.claude-plugin/plugins/genesis/config/profiles/*.yml
 ```
 
 6 named profiles: standard, poc, spike, hotfix, full, minimal.
@@ -367,15 +367,15 @@ tools:
     pass_criterion: "exit code 0"
   coverage:
     command: "python -m pytest"
-    args: "--cov=imp_claude/code/genisis --cov-report=term-missing imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
+    args: "--cov=imp_claude/code/genesis --cov-report=term-missing imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
     pass_criterion: "coverage percentage >= 0.70"
   linter:
     command: "ruff check"
-    args: "imp_claude/code/genisis/"
+    args: "imp_claude/code/genesis/"
     pass_criterion: "exit code 0"
   formatter:
     command: "ruff format"
-    args: "--check imp_claude/code/genisis/"
+    args: "--check imp_claude/code/genesis/"
     pass_criterion: "exit code 0"
 thresholds:
   test_coverage_minimum: 0.70
@@ -432,7 +432,7 @@ The engine evaluates but does not construct. F_P Construct (generating code, spe
 
 ### Mitigation
 
-- **Spec drift**: Run engine dogfood (`python -m genisis evaluate`) in CI to detect when implementation diverges from spec expectations.
+- **Spec drift**: Run engine dogfood (`python -m genesis evaluate`) in CI to detect when implementation diverges from spec expectations.
 - **F_P cold starts**: Strategy C cross-validation (LLM constructs in session, engine evaluates F_D only) avoids unnecessary F_P subprocess calls. F_P evaluation stays in the LLM session.
 - **Portability**: Event store binding is isolated in `fd_emit.py`. Replacing `fcntl` with a platform-appropriate mechanism affects one file.
 

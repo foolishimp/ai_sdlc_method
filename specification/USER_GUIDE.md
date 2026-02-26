@@ -189,11 +189,11 @@ Add to `.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "genisis": {
+    "genesis": {
       "source": { "source": "github", "repo": "foolishimp/ai_sdlc_method" }
     }
   },
-  "enabledPlugins": { "genisis@genisis": true }
+  "enabledPlugins": { "genesis@genesis": true }
 }
 ```
 
@@ -206,14 +206,14 @@ Clone the repo and point to the local path:
 ```json
 {
   "extraKnownMarketplaces": {
-    "genisis": {
+    "genesis": {
       "source": {
         "source": "local",
         "path": "/path/to/ai_sdlc_method/imp_claude/code/.claude-plugin"
       }
     }
   },
-  "enabledPlugins": { "genisis@genisis": true }
+  "enabledPlugins": { "genesis@genesis": true }
 }
 ```
 

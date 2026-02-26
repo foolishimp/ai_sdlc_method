@@ -25,5 +25,5 @@ markers = [
 
 [tool.coverage.run]
 omit = [
-    "imp_claude/code/genisis/workspace_state.py",
+    "imp_claude/code/genesis/workspace_state.py",
 ]

@@ -28,8 +28,8 @@ from conftest import (
     read_events,
 )
 
-from genisis.config_loader import load_yaml
-from genisis.engine import EngineConfig, IterationRecord, iterate_edge, run_edge
+from genesis.config_loader import load_yaml
+from genesis.engine import EngineConfig, IterationRecord, iterate_edge, run_edge
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
@@ -481,7 +481,7 @@ class TestCLIErrorHandling:
         (workspace / ".ai-workspace" / "events").mkdir(parents=True)
 
         # Simulate what cmd_evaluate does: call _load_asset with a non-existent file
-        from genisis.__main__ import _load_asset
+        from genesis.__main__ import _load_asset
         import argparse
 
         args = argparse.Namespace(asset="/nonexistent/file.py", command="evaluate")
@@ -493,7 +493,7 @@ class TestCLIErrorHandling:
         workspace = tmp_path
         (workspace / ".ai-workspace" / "events").mkdir(parents=True)
 
-        from genisis.__main__ import _build_config
+        from genesis.__main__ import _build_config
         import argparse
 
         args = argparse.Namespace(

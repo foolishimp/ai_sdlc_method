@@ -29,7 +29,7 @@ PLUGIN_ROOT = (
     / "code"
     / ".claude-plugin"
     / "plugins"
-    / "genisis"
+    / "genesis"
 )
 CONFIG_DIR = PLUGIN_ROOT / "config"
 COMMANDS_DIR = PLUGIN_ROOT / "commands"

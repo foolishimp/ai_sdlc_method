@@ -20,31 +20,31 @@ import yaml
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
-from genisis.models import (
+from genesis.models import (
     Category,
     CheckOutcome,
     FunctionalUnit,
     CATEGORY_FIXED,
 )
-from genisis.config_loader import load_yaml, resolve_checklist
-from genisis.fd_evaluate import evaluate_checklist, run_check
-from genisis.fd_emit import emit_event, make_event
-from genisis.fd_classify import classify_req_tag, classify_source_finding, classify_signal_source
-from genisis.fd_sense import (
+from genesis.config_loader import load_yaml, resolve_checklist
+from genesis.fd_evaluate import evaluate_checklist, run_check
+from genesis.fd_emit import emit_event, make_event
+from genesis.fd_classify import classify_req_tag, classify_source_finding, classify_signal_source
+from genesis.fd_sense import (
     sense_event_freshness,
     sense_event_log_integrity,
     sense_feature_stall,
     sense_req_tag_coverage,
 )
-from genisis.fd_route import lookup_encoding, select_next_edge, select_profile
-from genisis.dispatch import dispatch, lookup_and_dispatch, DISPATCH
+from genesis.fd_route import lookup_encoding, select_next_edge, select_profile
+from genesis.dispatch import dispatch, lookup_and_dispatch, DISPATCH
 
 
 # ── Paths to real configs ────────────────────────────────────────────────
 
 PLUGIN_ROOT = (
     pathlib.Path(__file__).parent.parent
-    / "code/.claude-plugin/plugins/genisis"
+    / "code/.claude-plugin/plugins/genesis"
 )
 CONFIG_DIR = PLUGIN_ROOT / "config"
 EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"

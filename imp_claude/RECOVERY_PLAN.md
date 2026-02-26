@@ -15,8 +15,8 @@ Architectural evaluation found ~70% of changes are sound and address real gaps. 
 
 ## Phase 1: Discard Uncommitted Changes
 
-- [ ] **P1.1** Discard uncommitted diff in `imp_claude/code/genisis/__main__.py`
-- [ ] **P1.2** Discard uncommitted diff in `imp_claude/code/genisis/engine.py`
+- [ ] **P1.1** Discard uncommitted diff in `imp_claude/code/genesis/__main__.py`
+- [ ] **P1.2** Discard uncommitted diff in `imp_claude/code/genesis/engine.py`
 - [ ] **P1.3** Verify: `git diff -- imp_claude/` shows no changes
 
 **Rationale**: The uncommitted rewrite is unstable and untested. The committed versions are the baseline for further work.
@@ -25,8 +25,8 @@ Architectural evaluation found ~70% of changes are sound and address real gaps. 
 
 ## Phase 2: Delete Dead Code
 
-- [ ] **P2.1** Delete `imp_claude/code/genisis/state.py` (41 lines, no imports, redundant with fd_emit + workspace_state)
-- [ ] **P2.2** Verify: `grep -r "from .state import\|from genisis.state import" imp_claude/` returns nothing
+- [ ] **P2.1** Delete `imp_claude/code/genesis/state.py` (41 lines, no imports, redundant with fd_emit + workspace_state)
+- [ ] **P2.2** Verify: `grep -r "from .state import\|from genesis.state import" imp_claude/` returns nothing
 
 **Rationale**: `state.py` duplicates `fd_emit.emit_event()` and is never imported. Gemini prototyping artifact.
 
@@ -91,7 +91,7 @@ Architectural evaluation found ~70% of changes are sound and address real gaps. 
 ## Phase 8: Run Full Regression
 
 - [ ] **P8.1** Run `pytest imp_claude/tests/ -v --tb=short` — all tests pass
-- [ ] **P8.2** Run engine dogfood: `PYTHONPATH=imp_claude/code python -m genisis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset imp_claude/code/genisis/engine.py --deterministic-only --fd-timeout 120`
+- [ ] **P8.2** Run engine dogfood: `PYTHONPATH=imp_claude/code python -m genesis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset imp_claude/code/genesis/engine.py --deterministic-only --fd-timeout 120`
 - [ ] **P8.3** Verify delta=0 (engine converges on own codebase)
 - [ ] **P8.4** Verify events emitted to `.ai-workspace/events/events.jsonl`
 

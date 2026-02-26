@@ -1,5 +1,5 @@
 # Validates: REQ-ITER-003, REQ-CTX-001
-"""Tests for genisis config_loader — YAML loading and $variable resolution."""
+"""Tests for genesis config_loader — YAML loading and $variable resolution."""
 
 import pathlib
 import textwrap
@@ -11,13 +11,13 @@ import yaml
 import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
-from genisis.config_loader import (
+from genesis.config_loader import (
     load_yaml,
     resolve_checklist,
     resolve_variable,
     resolve_variables,
 )
-from genisis.models import ResolvedCheck
+from genesis.models import ResolvedCheck
 
 
 # ── resolve_variable ─────────────────────────────────────────────────────
@@ -236,7 +236,7 @@ class TestLoadYaml:
         """Load actual tdd.yml edge config."""
         edge_path = (
             pathlib.Path(__file__).parent.parent
-            / "code/.claude-plugin/plugins/genisis/config/edge_params/tdd.yml"
+            / "code/.claude-plugin/plugins/genesis/config/edge_params/tdd.yml"
         )
         if edge_path.exists():
             config = load_yaml(edge_path)
@@ -247,7 +247,7 @@ class TestLoadYaml:
         """Load actual project_constraints_template.yml."""
         path = (
             pathlib.Path(__file__).parent.parent
-            / "code/.claude-plugin/plugins/genisis/config/project_constraints_template.yml"
+            / "code/.claude-plugin/plugins/genesis/config/project_constraints_template.yml"
         )
         if path.exists():
             config = load_yaml(path)
@@ -263,7 +263,7 @@ class TestRealConfigResolution:
     def real_edge_config(self):
         path = (
             pathlib.Path(__file__).parent.parent
-            / "code/.claude-plugin/plugins/genisis/config/edge_params/tdd.yml"
+            / "code/.claude-plugin/plugins/genesis/config/edge_params/tdd.yml"
         )
         if not path.exists():
             pytest.skip("tdd.yml not found")
@@ -273,7 +273,7 @@ class TestRealConfigResolution:
     def real_constraints(self):
         path = (
             pathlib.Path(__file__).parent.parent
-            / "code/.claude-plugin/plugins/genisis/config/project_constraints_template.yml"
+            / "code/.claude-plugin/plugins/genesis/config/project_constraints_template.yml"
         )
         if not path.exists():
             pytest.skip("project_constraints_template.yml not found")

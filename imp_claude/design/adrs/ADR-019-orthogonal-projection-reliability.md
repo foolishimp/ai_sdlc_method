@@ -108,12 +108,12 @@ cr = fp_run_check(check, asset_content, context, model, timeout)
 **LLM calls engine** (new capability needed):
 ```python
 # Exposed as CLI entry point or MCP tool
-from genisis.engine import iterate_edge, EngineConfig
+from genesis.engine import iterate_edge, EngineConfig
 record = iterate_edge(edge, edge_config, config, feature_id, asset)
 # Returns: IterationRecord with delta, check results, events already emitted
 ```
 
-The missing piece is small: a CLI entry point (`python -m genisis.engine evaluate --edge ... --asset ...`) or MCP tool that lets the LLM agent invoke `iterate_edge()` and read back the `IterationRecord`.
+The missing piece is small: a CLI entry point (`python -m genesis.engine evaluate --edge ... --asset ...`) or MCP tool that lets the LLM agent invoke `iterate_edge()` and read back the `IterationRecord`.
 
 ### How This Changes Strategy C
 
@@ -201,7 +201,7 @@ This follows directly from the spec's projection model (PROJECTIONS_AND_INVARIAN
 
 ### Implementation Path
 
-1. **Immediate**: Add CLI entry point for `iterate_edge()` — `python -m genisis.engine evaluate --edge <edge> --feature <id> --asset <path>`
+1. **Immediate**: Add CLI entry point for `iterate_edge()` — `python -m genesis.engine evaluate --edge <edge> --feature <id> --asset <path>`
 2. **Short-term**: Modify `/gen-iterate` command spec to invoke engine after LLM evaluation, compare deltas, record both in event
 3. **Medium-term**: Add disagreement detection to the engine — when `delta_P` is provided alongside `delta_D`, emit `delta_disagreement` event type
 4. **Long-term**: Build the cross-validation into the engine loop itself — engine runs F_D checks, calls LLM for F_P checks, compares, escalates

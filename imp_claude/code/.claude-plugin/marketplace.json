@@ -1,12 +1,12 @@
 {
-  "name": "genisis",
+  "name": "genesis",
   "owner": {
     "name": "foolishimp"
   },
   "plugins": [
     {
-      "name": "genisis",
-      "source": "./plugins/genisis",
+      "name": "genesis",
+      "source": "./plugins/genesis",
       "description": "AI SDLC Asset Graph Model v2.8 — universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX, methodology self-observation. 4 agents, 13 commands, 4 hooks."
     }
   ]

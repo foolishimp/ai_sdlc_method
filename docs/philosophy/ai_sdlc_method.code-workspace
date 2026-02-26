@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../../../constraint_emergence_ontology"
+		},
+		{
+			"path": "../../../ai_sdlc_examples"
 		}
 	],
 	"settings": {}
