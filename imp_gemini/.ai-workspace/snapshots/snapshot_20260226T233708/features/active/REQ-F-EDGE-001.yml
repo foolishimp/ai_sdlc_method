@@ -1,0 +1,32 @@
+feature: REQ-F-EDGE-001
+intent: INT-AISDLC-001
+parent: null
+status: converged
+trajectory:
+  code:
+    asset: gemini_cli/engine/guardrails.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:21:06.344758+00:00'
+  design:
+    asset: design/EDGE_PARAMETERISATION_DESIGN.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:19:52.362781+00:00'
+  intent:
+    status: converged
+  requirements:
+    asset: specification/EDGE_PARAMETERISATION_REQUIREMENTS.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:19:20.792867+00:00'
+  unit_tests:
+    asset: tests/test_guardrails.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:21:25.069555+00:00'
+vector_type: feature

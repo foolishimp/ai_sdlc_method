@@ -1,0 +1,32 @@
+feature: REQ-F-CTX-001
+intent: INT-AISDLC-001
+parent: null
+status: converged
+trajectory:
+  code:
+    asset: gemini_cli/engine/config_loader.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:12:43.774696+00:00'
+  design:
+    asset: design/CONTEXT_MANAGEMENT_DESIGN.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:12:02.394796+00:00'
+  intent:
+    status: converged
+  requirements:
+    asset: specification/CONTEXT_MANAGEMENT_REQUIREMENTS.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:10:54.593745+00:00'
+  unit_tests:
+    asset: tests/test_config_loader.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:13:32.949621+00:00'
+vector_type: feature

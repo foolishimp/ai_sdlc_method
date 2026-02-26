@@ -1,0 +1,32 @@
+feature: REQ-F-TOOL-001
+intent: INT-AISDLC-001
+parent: null
+status: converged
+trajectory:
+  code:
+    asset: gemini_cli/commands/gaps.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:24:36.301773+00:00'
+  design:
+    asset: design/TOOLING_DESIGN.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:24:16.388491+00:00'
+  intent:
+    status: converged
+  requirements:
+    asset: specification/TOOLING_REQUIREMENTS.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:22:47.711658+00:00'
+  unit_tests:
+    asset: tests/test_config_validation.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:24:52.977840+00:00'
+vector_type: feature

@@ -17,6 +17,21 @@ class GeminiFunctor:
         """
         Structured delegation to the user (the Sub-Agent).
         """
+        iteration_count = context.get("iteration_count", 0)
+        
+        # REQ-CLI-006: Automatic recursion detection for stuck features
+        if iteration_count >= 3:
+            return FunctorResult(
+                name="sub_agent_eval",
+                outcome=Outcome.FAIL,
+                delta=1,
+                reasoning=f"Triggering recursion (iteration {iteration_count}). Stuck feature detected.",
+                spawn=SpawnRequest(
+                    question=f"Feature stuck after {iteration_count} iterations. Investigate root cause.",
+                    vector_type="discovery"
+                )
+            )
+
         print("\n" + "═"*60)
         print(" SUB-AGENT ITERATION REQUIRED")
         print("═"*60)

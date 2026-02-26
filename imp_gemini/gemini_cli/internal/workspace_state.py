@@ -95,12 +95,21 @@ def detect_workspace_state(workspace: Path) -> str:
     if not ws_dir.exists():
         return "UNINITIALISED"
     
-    # Check for constraints
-    constraints_path = ws_dir / "gemini_genesis" / "context" / "project_constraints.yml"
-    if not constraints_path.exists():
-        constraints_path = ws_dir / "context" / "project_constraints.yml"
+    # Check for constraints in any design tenant directory or the root context
+    # Try common design tenant names
+    design_tenants = [d.name for d in ws_dir.iterdir() if d.is_dir() and d.name.endswith("_genesis")]
+    design_tenants.append("context")
     
-    if not constraints_path.exists():
+    constraints_path = None
+    for dt in design_tenants:
+        for p in [ws_dir / dt / "context" / "project_constraints.yml", ws_dir / dt / "project_constraints.yml"]:
+            if p.exists():
+                constraints_path = p
+                break
+        if constraints_path:
+            break
+    
+    if not constraints_path:
         return "NEEDS_CONSTRAINTS"
         
     # Check for intent

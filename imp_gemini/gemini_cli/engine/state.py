@@ -49,6 +49,35 @@ class Projector:
             if not feat: continue
             if feat not in status: status[feat] = {"status": "pending", "trajectory": {}}
             e_type, edge_name = ev["event_type"], ev.get("edge")
+            if edge_name:
+                edge_name = edge_name.replace("->", "\u2192")
             if e_type == "edge_started" and edge_name: status[feat]["trajectory"][edge_name] = "iterating"
             elif e_type == "edge_converged" and edge_name: status[feat]["trajectory"][edge_name] = "converged"
         return status
+
+class DependencyResolver:
+    """Reconstructs the feature dependency graph from events (ADR-008)."""
+    
+    def __init__(self, events: List[Dict]):
+        self.events = events
+        self.dependencies = self._build_graph()
+
+    def _build_graph(self) -> Dict[str, List[str]]:
+        graph = {}
+        for ev in self.events:
+            if ev.get("event_type") == "feature_spawned":
+                child = ev.get("feature")
+                parent = ev.get("data", {}).get("parent")
+                if child and parent:
+                    graph.setdefault(child, []).append(parent)
+        return graph
+
+    def get_all_dependencies(self, feature_id: str) -> List[str]:
+        return self.dependencies.get(feature_id, [])
+
+    def is_blocked(self, feature_id: str, converged_features: List[str]) -> bool:
+        deps = self.get_all_dependencies(feature_id)
+        for d in deps:
+            if d not in converged_features:
+                return True
+        return False

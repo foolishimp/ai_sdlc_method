@@ -4,14 +4,24 @@ Universal Guardrail Engine.
 Enforces hard invariants before construction begins.
 """
 
+import re
 from typing import Dict, Any, List
 from .models import GuardrailResult
 
+class TagValidator:
+    """Enforces REQ key discipline in artifacts (REQ-EDGE-004)."""
+    
+    def validate(self, candidate: str) -> bool:
+        if not candidate:
+            return True # Empty is okay for new files
+        return bool(re.search(r"(Implements|Validates).*?: REQ-", candidate))
+
 class GuardrailEngine:
-    """The safety controller of the SDLC."""
+    """The safety controller of the SDLC (REQ-SUPV-001)."""
     
     def __init__(self, constraints: Dict[str, Any]):
         self.constraints = constraints
+        self.tag_validator = TagValidator()
 
     def validate_pre_flight(self, edge: str, context: Dict) -> List[GuardrailResult]:
         """Check invariants BEFORE the iterate loop starts."""
@@ -34,4 +44,19 @@ class GuardrailEngine:
                     message="Confidential projects require mandatory security scanning."
                 ))
 
+        return results
+
+    def validate_post_flight(self, edge: str, candidate: str) -> List[GuardrailResult]:
+        """Check invariants AFTER construction (e.g., tagging)."""
+        results = []
+        
+        # REQ-EDGE-004: Tagging Discipline
+        if any(keyword in edge.lower() for keyword in ["code", "test", "design", "requirements"]):
+            if not self.tag_validator.validate(candidate):
+                results.append(GuardrailResult(
+                    name="tagging_discipline",
+                    passed=False,
+                    message="Artifact is missing mandatory 'Implements: REQ-*' or 'Validates: REQ-*' tag."
+                ))
+        
         return results

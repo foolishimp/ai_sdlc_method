@@ -24,10 +24,11 @@ class InitCommand:
             f"imp_{impl}/code",
             f"imp_{impl}/tests",
             ".ai-workspace/graph/edges",
-            f".ai-workspace/{impl}_genesis/context/data_models",
-            f".ai-workspace/{impl}_genesis/context/templates",
-            f".ai-workspace/{impl}_genesis/context/policy",
-            f".ai-workspace/{impl}_genesis/context/standards",
+            f".ai-workspace/{impl}_genesis/adrs",
+            f".ai-workspace/{impl}_genesis/data_models",
+            f".ai-workspace/{impl}_genesis/templates",
+            f".ai-workspace/{impl}_genesis/policy",
+            f".ai-workspace/{impl}_genesis/standards",
             ".ai-workspace/features/active",
             ".ai-workspace/features/completed",
             ".ai-workspace/events",
@@ -46,7 +47,7 @@ class InitCommand:
             for edge_cfg in (config_src / "edge_params").glob("*.yml"):
                 shutil.copy2(edge_cfg, project_root / ".ai-workspace" / "graph" / "edges" / edge_cfg.name)
             # Copy project_constraints template
-            shutil.copy2(config_src / "project_constraints_template.yml", project_root / ".ai-workspace" / f"{impl}_genesis" / "context" / "project_constraints.yml")
+            shutil.copy2(config_src / "project_constraints_template.yml", project_root / ".ai-workspace" / f"{impl}_genesis" / "project_constraints.yml")
 
         # 3. Create STATUS.md (GAP-025)
         status_file = project_root / ".ai-workspace" / "STATUS.md"

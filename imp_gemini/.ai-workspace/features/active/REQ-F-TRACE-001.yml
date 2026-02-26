@@ -1,0 +1,32 @@
+feature: REQ-F-TRACE-001
+intent: INT-AISDLC-001
+parent: null
+status: converged
+trajectory:
+  code:
+    asset: gemini_cli/engine/state.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:17:46.688312+00:00'
+  design:
+    asset: design/TRACEABILITY_DESIGN.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:17:06.113821+00:00'
+  intent:
+    status: converged
+  requirements:
+    asset: specification/TRACEABILITY_REQUIREMENTS.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:16:10.729547+00:00'
+  unit_tests:
+    asset: tests/test_dependency_resolver.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:18:15.122263+00:00'
+vector_type: feature

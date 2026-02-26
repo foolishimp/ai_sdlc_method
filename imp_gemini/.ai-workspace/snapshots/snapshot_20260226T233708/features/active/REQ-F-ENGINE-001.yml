@@ -1,0 +1,36 @@
+feature: REQ-F-ENGINE-001
+intent: INT-001
+parent: null
+status: converged
+trajectory:
+  code:
+    asset: gemini_cli/engine/iterate.py
+    delta: 0
+    iteration: 3
+    status: converged
+    updated_at: '2026-02-26T22:11:58.308364+00:00'
+  design:
+    delta: 0
+    status: converged
+    updated_at: '2026-02-26T22:07:40.492731+00:00'
+  design->code:
+    asset: gemini_cli/engine/iterate.py
+    delta: 0
+    iteration: 2
+    status: converged
+    updated_at: '2026-02-26T22:11:19.784921+00:00'
+  intent:
+    status: converged
+  "intent\u2192requirements": converged
+  requirements:
+    delta: 0
+    status: converged
+    updated_at: '2026-02-26T22:07:18.865475+00:00'
+  "requirements\u2192design": converged
+  unit_tests:
+    asset: gemini_cli/engine/iterate.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T22:30:54.867448+00:00'
+vector_type: feature

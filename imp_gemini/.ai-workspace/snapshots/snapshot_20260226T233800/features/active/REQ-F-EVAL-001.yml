@@ -1,0 +1,32 @@
+feature: REQ-F-EVAL-001
+intent: INT-AISDLC-001
+parent: null
+status: converged
+trajectory:
+  code:
+    asset: gemini_cli/functors/f_human.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:15:07.158788+00:00'
+  design:
+    asset: design/EVALUATOR_FRAMEWORK_DESIGN.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:14:48.953586+00:00'
+  intent:
+    status: converged
+  requirements:
+    asset: specification/EVALUATOR_FRAMEWORK_REQUIREMENTS.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:14:18.294683+00:00'
+  unit_tests:
+    asset: tests/test_cli_core.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:15:32.818172+00:00'
+vector_type: feature

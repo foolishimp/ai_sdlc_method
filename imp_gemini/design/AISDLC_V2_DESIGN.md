@@ -90,11 +90,11 @@ Implements ADR-012 for simplified interaction.
 - **Start**: Automated routing through the state machine.
 - **Status**: Aggregated observability and "You Are Here" indicators.
 
-### 1.10 Context Source Resolution
-Implements resolution of `context_sources` from `project_constraints.yml`. External collections are resolved and copied into `.ai-workspace/context/` subdirectories such as `adrs/`, `data_models/`, `templates/`, `policy/`, and `standards/`.
-
-## 6. Multi-Agent Coordination
+## 1.10 Multi-Agent Coordination
 Implements REQ-F-COORD-001 using event-sourced claims.
+
+## 1.11 Context Source Resolution
+Implements resolution of `context_sources` from `project_constraints.yml`. External collections are resolved and copied into `.ai-workspace/context/` subdirectories such as `adrs/`, `data_models/`, `templates/`, `policy/`, and `standards/`.
 
 ## 7. Protocol Enforcement
 Every `iterate()` invocation enforces mandatory side effects via Reflex Hooks.

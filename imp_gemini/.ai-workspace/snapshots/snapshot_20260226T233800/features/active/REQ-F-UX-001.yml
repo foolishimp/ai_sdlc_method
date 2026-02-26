@@ -1,0 +1,32 @@
+feature: REQ-F-UX-001
+intent: INT-AISDLC-001
+parent: null
+status: converged
+trajectory:
+  code:
+    asset: gemini_cli/cli.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:27:04.204976+00:00'
+  design:
+    asset: design/UX_DESIGN.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:26:23.961742+00:00'
+  intent:
+    status: converged
+  requirements:
+    asset: specification/UX_REQUIREMENTS.md
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:25:52.482210+00:00'
+  unit_tests:
+    asset: tests/test_state_machine.py
+    delta: 0
+    iteration: 1
+    status: converged
+    updated_at: '2026-02-26T23:27:14.099337+00:00'
+vector_type: feature

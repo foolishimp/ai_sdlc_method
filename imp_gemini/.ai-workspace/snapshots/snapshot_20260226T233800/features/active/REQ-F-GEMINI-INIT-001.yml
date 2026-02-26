@@ -1,0 +1,94 @@
+# Feature Vector: REQ-F-GEMINI-INIT-001
+# Bootstrap Gemini Tooling Layer
+# Satisfies: REQ-F-UX-001, REQ-F-ENGINE-001
+
+---
+
+feature: "REQ-F-GEMINI-INIT-001"
+title: "Bootstrap Gemini Tooling Layer"
+intent: "INT-AISDLC-001"
+vector_type: feature
+profile: standard
+status: converged
+convergence_type: "standard"
+created: "2026-02-21T12:15:00Z"
+updated: "2026-02-21T13:45:00Z"
+
+time_box:
+  enabled: false
+
+parent:
+  feature: ""
+  edge: ""
+  reason: ""
+
+children: []
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-21T12:15:00Z"
+    converged_at: "2026-02-21T12:30:00Z"
+    context_hash: ""
+    asset: "imp_gemini/.ai-workspace/spec/REQUIREMENTS.md"
+    evaluator_results:
+      agent: pass
+      human: approved
+
+  design:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-21T12:35:00Z"
+    converged_at: "2026-02-21T12:45:00Z"
+    context_hash: ""
+    asset: "imp_gemini/design/GEMINI_BOOTSTRAP_DESIGN.md"
+    evaluator_results:
+      agent: pass
+      human: approved
+
+  code:
+    status: converged
+    iteration: 3
+    started_at: "2026-02-21T12:55:00Z"
+    converged_at: "2026-02-21T13:30:00Z"
+    context_hash: ""
+    asset: "imp_gemini/code/"
+    evaluator_results:
+      agent: pass
+      deterministic: pass
+
+  unit_tests:
+    status: converged
+    iteration: 1
+    started_at: "2026-02-21T13:40:00Z"
+    converged_at: "2026-02-21T13:45:00Z"
+    context_hash: ""
+    asset: "imp_gemini/tests/"
+    evaluator_results:
+      agent: pass
+      deterministic: pass
+
+  uat_tests:
+    status: pending
+
+dependencies: []
+
+constraints:
+  acceptance_criteria:
+    - id: "AC-GEMINI-INIT-001"
+      description: "State-driven routing logic correctly identifies UNINITIALISED state"
+      evaluator: agent
+      check: "Algorithm correctly flags missing workspace"
+      req: "REQ-UX-001"
+      required: true
+    - id: "AC-GEMINI-INIT-002"
+      description: "Start command correctly delegates to iterate tool"
+      evaluator: agent
+      check: "Routing selects highest priority actionable feature"
+      req: "REQ-UX-004"
+      required: true
+
+  threshold_overrides: {}
+
+  additional_checks: []
