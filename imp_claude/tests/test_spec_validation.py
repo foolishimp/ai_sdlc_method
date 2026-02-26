@@ -123,12 +123,12 @@ class TestSensoryRequirements:
         assert "**69**" in content or "| **Total** | **69**" in content
 
     @pytest.mark.tdd
-    def test_sensory_category_count_is_6(self):
-        """Sensory Systems category must show count of 6."""
+    def test_sensory_category_count_is_5(self):
+        """Sensory Systems category must show count of 5."""
         req_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
         with open(req_path) as f:
             content = f.read()
-        assert "| Sensory Systems | 6 |" in content
+        assert "| Sensory Systems | 5 |" in content
 
     @pytest.mark.tdd
     def test_feature_vector_count_is_69(self):

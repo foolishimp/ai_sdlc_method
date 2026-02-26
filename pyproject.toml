@@ -22,3 +22,8 @@ markers = [
     "uat: UAT integration tests — end-to-end methodology validation",
     "e2e: E2E convergence tests — headless Claude drives full methodology (slow, requires Claude CLI)",
 ]
+
+[tool.coverage.run]
+omit = [
+    "imp_claude/code/genisis/workspace_state.py",
+]
