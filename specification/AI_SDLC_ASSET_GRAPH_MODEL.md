@@ -174,6 +174,27 @@ Scale-dependent assurance follows the same pattern:
 
 The four primitives are the same at every scale. The graph is fractal.
 
+#### Example: Competitive Parallel Construction
+
+The graph supports fan-in natively. Multiple edges can target the same node. This enables **competitive parallel construction** — N independent constructors produce candidates against the same spec, and a unification node evaluates and synthesises the best:
+
+```
+spec → constructor_A → unification/synthesis
+spec → constructor_B → unification/synthesis
+spec → constructor_C → unification/synthesis
+```
+
+This is topologically identical to:
+
+```
+design → code ──────→ UAT tests
+design → unit_tests ─→ UAT tests
+```
+
+The unification node is an ordinary asset with ordinary evaluators. `iterate()` at that node compares candidates, selects or merges, and converges when the unified result passes all checks. No special primitives required — fan-in is a graph property.
+
+Because the graph is fractal, this pattern is recursive: any construction edge at any depth can itself fan out to competing constructors. A valid implementation of the graph model must be able to express this topology. An implementation that restricts graphs to linear pipelines or single-constructor edges is non-conformant.
+
 ### 2.6 The Spec/Design Boundary
 
 The asset graph contains a fundamental boundary between **specification** and **design**:
