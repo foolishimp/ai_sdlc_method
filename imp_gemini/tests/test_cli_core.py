@@ -7,10 +7,10 @@ Validates Event Sourcing, Universal Iteration, and Recursive Spawning.
 import pytest
 import json
 from pathlib import Path
-from gemini_cli.engine.state import EventStore, Projector
-from gemini_cli.engine.iterate import IterateEngine
+from genesis_core.engine.state import EventStore, Projector
+from genesis_core.engine.iterate import IterateEngine
 from gemini_cli.functors.f_probabilistic import GeminiFunctor, SpawnRequest
-from gemini_cli.engine.models import Outcome, FunctorResult
+from genesis_core.engine.models import Outcome, FunctorResult
 
 @pytest.fixture
 def workspace(tmp_path):

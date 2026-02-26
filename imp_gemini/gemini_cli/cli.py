@@ -7,15 +7,19 @@ import argparse
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
-from gemini_cli.engine.state import EventStore, Projector
-from gemini_cli.engine.iterate import IterateEngine
+from genesis_core.engine.state import EventStore, Projector
+from genesis_core.engine.iterate import IterateEngine
 from gemini_cli.functors.f_deterministic import DeterministicFunctor
 from gemini_cli.functors.f_probabilistic import GeminiFunctor
 from gemini_cli.functors.f_human import HumanFunctor
-from gemini_cli.internal.state_machine import StateManager, ProjectState
+from genesis_core.internal.state_machine import StateManager, ProjectState
 from gemini_cli.commands.init import InitCommand
 from gemini_cli.commands.spawn import SpawnCommand
-from gemini_cli.engine.config_loader import ConfigLoader
+from gemini_cli.commands.checkpoint import CheckpointCommand
+from gemini_cli.commands.trace import TraceCommand
+from gemini_cli.commands.gaps import GapsCommand
+from gemini_cli.commands.release import ReleaseCommand
+from genesis_core.engine.config_loader import ConfigLoader
 
 def run_iterate_loop(feature, edge, asset, mode, store, workspace_root, depth=0):
     """
@@ -59,13 +63,11 @@ def run_iterate_loop(feature, edge, asset, mode, store, workspace_root, depth=0)
         spawn_cmd = SpawnCommand(workspace_root)
         spawn_cmd.run(child_id, intent_id="INT-GEN-001", vector_type=spawn_req.vector_type, parent=feature)
         
-        # RECURSIVE CALL: The engine calls itself on the child vector
+        # RECURSIVE CALL
         print(f"[RECURSION L{depth}] Transferring control to child: {child_id}...")
-        # For the child, we iterate on a 'findings' asset
         child_asset = workspace_root / "features" / "active" / f"{child_id}_findings.md"
         child_asset.write_text(f"# Findings for {spawn_req.question}\nImplements: REQ-TEMP")
         
-        # Recursively run the loop for the child
         success = run_iterate_loop(child_id, "investigation→findings", str(child_asset), "headless", store, workspace_root, depth + 1)
         
         if success:
@@ -95,26 +97,48 @@ def main():
     parser.add_argument("--workspace", help="Path to the .ai-workspace root")
     subparsers = parser.add_subparsers(dest="command")
 
+    # Start: Detect state and go
     subparsers.add_parser("start", help="Detect state and go")
+    
+    # Status: Projection of the event log
     subparsers.add_parser("status", help="Where am I?")
     
+    # Init: Initialize workspace
     init_p = subparsers.add_parser("init", help="Initialize workspace")
     init_p.add_argument("--name", required=True)
     
+    # Spawn: Create new feature vector
     spawn_p = subparsers.add_parser("spawn", help="Create new feature vector")
     spawn_p.add_argument("--id", required=True)
     spawn_p.add_argument("--intent", required=True)
     spawn_p.add_argument("--type", default="feature")
 
+    # Iterate: Run the universal engine
     iterate_p = subparsers.add_parser("iterate", help="Run iterate() on an edge")
     iterate_p.add_argument("--feature", required=True)
     iterate_p.add_argument("--edge", required=True)
     iterate_p.add_argument("--asset", required=True)
     iterate_p.add_argument("--mode", default="interactive", choices=["interactive", "headless"])
 
+    # Checkpoint: Save snapshot
+    checkpoint_p = subparsers.add_parser("checkpoint", help="Save workspace snapshot")
+    checkpoint_p.add_argument("--message", default="Manual Checkpoint")
+
+    # Trace: Show traceability for a REQ key
+    trace_p = subparsers.add_parser("trace", help="Show traceability matrix for a REQ key")
+    trace_p.add_argument("--key", required=True)
+
+    # Gaps: Scan for gaps
+    subparsers.add_parser("gaps", help="Scan for implementation/test gaps")
+
+    # Release: Generate release manifest
+    release_p = subparsers.add_parser("release", help="Generate a release manifest")
+    release_p.add_argument("--version", required=True)
+
     args = parser.parse_args()
     
-    workspace_root = Path(args.workspace) if args.workspace else Path.cwd() / ".ai-workspace"
+    project_root = Path.cwd()
+    workspace_root = Path(args.workspace) if args.workspace else project_root / ".ai-workspace"
     store = EventStore(workspace_root)
     
     if args.command == "init":
@@ -135,12 +159,30 @@ def main():
         state_mgr = StateManager(workspace_root=str(workspace_root.absolute()))
         current_state = state_mgr.get_current_state()
         print(f"\nDetected State: {current_state.value}")
-        if current_state == ProjectState.IN_PROGRESS:
+        if current_state == ProjectState.UNINITIALISED:
+            print("Project not initialized. Run /gen-init to bootstrap.")
+        elif current_state == ProjectState.NEEDS_INTENT:
+            print("Action Required: Define project intent in specification/INTENT.md")
+        elif current_state == ProjectState.NO_FEATURES:
+            print("Action Required: Spawn your first feature vector using /gen-spawn.")
+        elif current_state == ProjectState.IN_PROGRESS:
             feature = state_mgr.get_next_actionable_feature()
             if feature:
                 print(f"Next Logical Step: Feature {feature.get('feature')} on {state_mgr.get_next_edge(feature)}")
+        elif current_state == ProjectState.ALL_CONVERGED:
+            print("All features converged! 🎉 Ready for release.")
+        else:
+            print(f"Status: {current_state.value}")
     elif args.command == "iterate":
         run_iterate_loop(args.feature, args.edge, args.asset, args.mode, store, workspace_root)
+    elif args.command == "checkpoint":
+        CheckpointCommand(workspace_root).run(args.message)
+    elif args.command == "trace":
+        TraceCommand(project_root).run(args.key)
+    elif args.command == "gaps":
+        GapsCommand(project_root).run()
+    elif args.command == "release":
+        ReleaseCommand(workspace_root).run(args.version)
     else:
         parser.print_help()
 

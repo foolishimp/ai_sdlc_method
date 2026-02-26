@@ -1,6 +1,6 @@
 # Validates: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-ITER-001, REQ-ITER-002
 import pytest
-from gemini_cli.internal.workspace_state import load_events, detect_stuck_features
+from genesis_core.internal.workspace_state import load_events, detect_stuck_features
 
 pytestmark = [pytest.mark.uat]
 

@@ -4,8 +4,8 @@
 import argparse
 import sys
 from pathlib import Path
-from gemini_cli.internal.state_machine import StateManager, ProjectState
-from gemini_cli.internal.iterate_engine import IterateEngine
+from genesis_core.internal.state_machine import StateManager, ProjectState
+from genesis_core.internal.iterate_engine import IterateEngine
 
 def cmd_start(args):
     """Handle /gen-start logic."""

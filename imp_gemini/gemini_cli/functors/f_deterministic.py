@@ -6,7 +6,7 @@ Executes shells commands, test runners, and linters.
 
 import subprocess
 from typing import Dict, Any
-from gemini_cli.engine.models import FunctorResult, Outcome
+from genesis_core.engine.models import FunctorResult, Outcome
 
 class DeterministicFunctor:
     """Zero-ambiguity evaluator (pytest, ruff, etc.)."""

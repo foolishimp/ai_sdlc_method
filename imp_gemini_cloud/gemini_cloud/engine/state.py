@@ -1,4 +1,3 @@
-
 import json
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
@@ -11,12 +10,12 @@ class CloudEventStore:
         self.project_id = project_id
         self.collection_path = f"tenants/{tenant_id}/projects/{project_id}/events"
 
-    def emit(self, event_type: str, project: str = "", feature: str = "", edge: str = "", delta: int = None, data: Dict = None):
+    def emit(self, event_type: str, feature: str = "", edge: str = "", delta: int = None, data: Dict = None):
         """Schema-identical to local EventStore."""
         event = {
             "event_type": event_type,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "project": project or self.project_id,
+            "project": self.project_id,
             "feature": feature,
             "edge": edge,
             "delta": delta,

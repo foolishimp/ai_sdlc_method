@@ -1,9 +1,9 @@
 # Validates: REQ-SUPV-001
 import pytest
 from pathlib import Path
-from gemini_cli.engine.guardrails import GuardrailEngine
-from gemini_cli.engine.iterate import IterateEngine
-from gemini_cli.engine.models import Outcome, FunctorResult
+from genesis_core.engine.guardrails import GuardrailEngine
+from genesis_core.engine.iterate import IterateEngine
+from genesis_core.engine.models import Outcome, FunctorResult
 
 def test_dependency_guardrail_block():
     # Arrange

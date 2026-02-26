@@ -29,11 +29,12 @@ def test_workspace(tmp_path):
 def run_gemini(workspace, cmd, *args):
     """Helper to run the CLI."""
     full_cmd = ["python3", "-m", "gemini_cli.cli", "--workspace", str(workspace / ".ai-workspace"), cmd] + list(args)
+    env = {"PYTHONPATH": f"{Path.cwd()}:{Path.cwd().parent}"}
     result = subprocess.run(
         full_cmd, 
         capture_output=True, 
         text=True, 
-        env={"PYTHONPATH": "."}
+        env=env
     )
     return result
 

@@ -4,7 +4,7 @@ import json
 import yaml
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-from gemini_cli.internal.iterate_engine import IterateEngine
+from genesis_core.internal.iterate_engine import IterateEngine
 
 @pytest.fixture
 def engine(tmp_path):
