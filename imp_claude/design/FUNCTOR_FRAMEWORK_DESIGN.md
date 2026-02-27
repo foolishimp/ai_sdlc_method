@@ -2,7 +2,7 @@
 
 **Version**: 2.1.0
 **Implements**: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-ITER-001, REQ-ITER-002, REQ-ITER-003, REQ-EVAL-002
-**Package**: `imp_claude/code/genisis/`
+**Package**: `imp_claude/code/genesis/`
 
 ---
 
@@ -130,7 +130,7 @@ Each profile YAML (`config/profiles/{name}.yml`) provides three things the engin
 
 ```mermaid
 graph TD
-    subgraph "imp_claude/code/genisis/"
+    subgraph "imp_claude/code/genesis/"
         INIT["__init__.py<br/><i>public API exports</i>"]
         MOD["models.py<br/><i>enums + dataclasses</i>"]
         CL["config_loader.py<br/><i>YAML + $variable resolution</i>"]
@@ -1330,7 +1330,7 @@ Architecture Decision Records for this feature, with cross-references.
 | F_H modules (all) | F_H | `[STUB]` | Interactive prompts — future work |
 | Automatic η dispatch | η | `[STUB]` | Escalation signals recorded but not auto-dispatched |
 | **Cross-validation protocol** | Engine | `[PLANNED]` | Engine + LLM evaluate same checklist, compare deltas. ADR-019. |
-| CLI entry point | Infra | `[STUB]` | No `python -m genisis` yet — needed for LLM→engine invocation (ADR-019) |
+| CLI entry point | Infra | `[STUB]` | No `python -m genesis` yet — needed for LLM→engine invocation (ADR-019) |
 | Feature constraint merging | Config | `[STUB]` | `feature.threshold_overrides` + `acceptance_criteria` not yet composed |
 | Actor model / inbox / serialiser | Infra | `[FUTURE]` | ADR-013 — defer until multi-agent needed |
 | MCP sensory service | Infra | `[FUTURE]` | ADR-015 — defer until long-running monitors needed |

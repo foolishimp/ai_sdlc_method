@@ -65,7 +65,7 @@ ai_sdlc_method/
 │   │   ├── AISDLC_V2_DESIGN.md
 │   │   └── adrs/                           #   ADR-008 through ADR-017
 │   ├── code/
-│   │   └── .claude-plugin/plugins/genisis/
+│   │   └── .claude-plugin/plugins/genesis/
 │   │       ├── agents/
 │   │       ├── commands/
 │   │       ├── config/
@@ -129,9 +129,9 @@ ai_sdlc_method/
 | UX | specification/UX.md | User journeys, MVP features, validation scenarios |
 | Claude Design | imp_claude/design/AISDLC_V2_DESIGN.md | Claude Code implementation |
 | Claude ADRs | imp_claude/design/adrs/ADR-008..019 | 12 ADRs, fully cross-referenced |
-| Iterate Agent | imp_claude/code/.../genisis/agents/gen-iterate.md | The universal agent |
-| Graph Topology | imp_claude/code/.../genisis/config/graph_topology.yml | 10 asset types, 10 transitions |
-| Engine CLI | imp_claude/code/genisis/__main__.py | Level 4 deterministic evaluation |
+| Iterate Agent | imp_claude/code/.../genesis/agents/gen-iterate.md | The universal agent |
+| Graph Topology | imp_claude/code/.../genesis/config/graph_topology.yml | 10 asset types, 10 transitions |
+| Engine CLI | imp_claude/code/genesis/__main__.py | Level 4 deterministic evaluation |
 | Installer | imp_claude/code/installers/gen-setup.py | Python installer, deploys bootloader to CLAUDE.md |
 | Gemini Design | imp_gemini/design/GEMINI_GENESIS_DESIGN.md | Gemini CLI implementation |
 | Codex Design | imp_codex/design/CODEX_GENESIS_DESIGN.md | Codex implementation |

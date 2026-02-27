@@ -137,10 +137,10 @@ Gemini runs one evaluation per functor level. If F_D fails, you know "determinis
 ### 4.3 Engine CLI That Converges on Itself
 
 ```bash
-PYTHONPATH=imp_claude/code python -m genisis evaluate \
+PYTHONPATH=imp_claude/code python -m genesis evaluate \
     --edge "code↔unit_tests" \
     --feature "REQ-F-ENGINE-001" \
-    --asset imp_claude/code/genisis/engine.py \
+    --asset imp_claude/code/genesis/engine.py \
     --deterministic-only --fd-timeout 120
 ```
 

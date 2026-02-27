@@ -225,7 +225,6 @@ def detect_abandoned_iterations(
 
     Returns a list of dicts: {feature, edge, last_event_timestamp}.
     """
-    # Track started edges and their timestamps
     started: dict[tuple[str, str], str] = {}  # (feature, edge) → timestamp
     completed: set[tuple[str, str]] = set()
     already_abandoned: set[tuple[str, str]] = set()

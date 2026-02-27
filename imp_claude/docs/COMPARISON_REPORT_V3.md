@@ -299,5 +299,5 @@ The gap is not in vision — it's in verified, tested code that does what it cla
 | Gemini no parent update | `commands/spawn.py:13-43` | Writes child YAML only, parent untouched |
 | Claude 978 tests | `pytest --co` output | 978 collected |
 | Gemini ~340 tests | `grep -c "def test_"` across tests/ | 377 test functions |
-| Claude self-convergence | `python -m genisis evaluate` | delta=0 on own codebase |
+| Claude self-convergence | `python -m genesis evaluate` | delta=0 on own codebase |
 | Gemini guardrails = 2 rules | `guardrails.py:23-38` | 2 if-statements |

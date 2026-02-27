@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
-from genisis.models import (
+from genesis.models import (
     Category,
     CheckOutcome,
     CheckResult,
@@ -19,21 +19,21 @@ from genisis.models import (
     FunctionalUnit,
     ResolvedCheck,
 )
-from genisis.fd_evaluate import evaluate_checklist, run_check
-from genisis.fd_emit import emit_event, make_event
-from genisis.fd_classify import (
+from genesis.fd_evaluate import evaluate_checklist, run_check
+from genesis.fd_emit import emit_event, make_event
+from genesis.fd_classify import (
     classify_req_tag,
     classify_signal_source,
     classify_source_finding,
 )
-from genisis.fd_sense import (
+from genesis.fd_sense import (
     sense_event_freshness,
     sense_event_log_integrity,
     sense_feature_stall,
     sense_req_tag_coverage,
 )
-from genisis.fd_route import lookup_encoding, select_next_edge, select_profile
-from genisis.dispatch import dispatch, lookup_and_dispatch
+from genesis.fd_route import lookup_encoding, select_next_edge, select_profile
+from genesis.dispatch import dispatch, lookup_and_dispatch
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -315,7 +315,7 @@ class TestSenseEventFreshness:
 
     def test_fresh_event(self, tmp_path):
         events_path = tmp_path / "events.jsonl"
-        from genisis.fd_emit import make_event as mk
+        from genesis.fd_emit import make_event as mk
         event = mk("test", "proj")
         events_path.write_text(json.dumps({
             "event_type": "test",

@@ -40,7 +40,7 @@ Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaki
 11. [User Experience](#11-user-experience) — State-driven routing, progressive disclosure, observability
 12. [Multi-Agent Coordination](#12-multi-agent-coordination) — Agent identity, event-sourced assignment, work isolation
 13. [Supervision (IntentEngine)](#13-supervision-intentengine) — Universal observer/evaluator composition law
-14. [Runtime Robustness](#14-runtime-robustness) — Actor isolation, supervisor pattern, crash recovery
+14. [Runtime Robustness](#14-runtime-robustness) — F_P invocation isolation, supervisor pattern, crash recovery
 
 ---
 
@@ -1283,7 +1283,7 @@ The system shall capture its own failures as structured events in `events.jsonl`
 
 ## 14. Runtime Robustness
 
-These requirements ensure that probabilistic processing (F_P calls) is resilient to hangs, crashes, and interrupted sessions. Without runtime robustness, a single hung F_P invocation cascades through the calling chain with no timeout recovery, no failure events, and no way to detect or recover from the interruption.
+These requirements ensure that probabilistic processing (F_P invocations) is resilient to hangs, crashes, and interrupted sessions. Without runtime robustness, a single hung F_P invocation cascades through the calling chain with no timeout recovery, no failure events, and no way to detect or recover from the interruption.
 
 ### REQ-ROBUST-001: F_P Invocation Isolation
 
@@ -1391,7 +1391,7 @@ The system shall detect when a previous session was interrupted mid-iteration an
 | **Total** | **74** | **13** | **49** | **12** |
 
 ### Phase 1 (Core Graph Engine): 54 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (actor isolation, supervisor pattern, crash recovery, failure events, session gap detection).
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (F_P invocation isolation, supervisor pattern, crash recovery, failure events, session gap detection).
 
 ### Phase 2 (Full Lifecycle + Coordination): 20 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking.

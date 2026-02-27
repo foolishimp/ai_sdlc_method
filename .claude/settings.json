@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genisis/hooks/on-session-start.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genesis/hooks/on-session-start.sh",
             "timeout": 10
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genisis/hooks/on-iterate-start.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genesis/hooks/on-iterate-start.sh",
             "timeout": 5
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genisis/hooks/on-artifact-written.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genesis/hooks/on-artifact-written.sh",
             "timeout": 5
           }
         ]
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genisis/hooks/on-stop-check-protocol.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genesis/hooks/on-stop-check-protocol.sh",
             "timeout": 10
           }
         ]

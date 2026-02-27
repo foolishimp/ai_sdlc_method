@@ -23,11 +23,11 @@ import pytest
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
-from genisis.models import CheckOutcome
-from genisis.config_loader import load_yaml, resolve_checklist
-from genisis.engine import EngineConfig, iterate_edge, run_edge, run
-from genisis.fd_emit import make_event, emit_event
-from genisis.fd_sense import sense_feature_stall, sense_event_log_integrity
+from genesis.models import CheckOutcome
+from genesis.config_loader import load_yaml, resolve_checklist
+from genesis.engine import EngineConfig, iterate_edge, run_edge, run
+from genesis.fd_emit import make_event, emit_event
+from genesis.fd_sense import sense_feature_stall, sense_event_log_integrity
 
 from conftest import (
     scaffold_green_project,

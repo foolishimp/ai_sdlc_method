@@ -1,5 +1,5 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking)
-"""genisis — F_D functor framework for deterministic methodology operations."""
+"""genesis — F_D functor framework for deterministic methodology operations."""
 
 from .models import (
     Category,

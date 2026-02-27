@@ -1,49 +1,29 @@
 feature: REQ-F-ROBUST-001
-title: Actor Model Runtime Robustness
+title: Runtime Robustness for F_P Invocations
 intent: INT-AISDLC-001
 vector_type: feature
-profile: full
+profile: standard
 status: in_progress
 priority: critical
 created: "2026-02-27T22:00:00Z"
-updated: "2026-02-27T22:00:00Z"
+updated: "2026-02-27T23:00:00Z"
 parent_id: REQ-F-ENGINE-001
 spawned_by: gap_analysis
 
 description: |
-  Implement the actor model + event sourcing robustness layer for the genisis
-  engine. The engine currently uses synchronous subprocess.run() for all F_P
-  calls (construct, evaluate). This creates cascading failure modes:
-  - claude -p hangs → engine process hangs → calling session hangs
-  - No crash recovery: mid-iteration failure loses all progress
-  - No actor isolation: timeout in one check blocks all subsequent checks
-  - No cross-validation: engine and agent run independently, never compare
-  - Eta escalations recorded but never dispatched (F_D→F_P→F_H chain broken)
+  Implement runtime robustness for the genisis engine's F_P subprocess calls.
+  Trigger: 5-hour hang during test10 dogfood — claude -p subprocess became a
+  zombie, blocking the engine with no timeout recovery or failure events.
 
-  The designs exist (ADR-013 claim protocol, ADR-015 MCP service, ADR-017
-  functor escalation, ADR-019 cross-validation). This feature implements the
-  runtime code that makes them operational.
-
-  Strategy: Use MCP claude-code-runner as the actor isolation boundary.
-  Each F_P call becomes a message to an isolated MCP actor. Supervisor
-  pattern: timeout → actor dies → supervisor records failure event →
-  routes to fallback (retry, escalate, or skip). Event sourcing ensures
-  every state transition is observable and recoverable.
-
-  Trigger: 5-hour hang during test10 dogfood run. Engine construct call
-  timed out, per-check evaluates returned empty, no recovery path existed.
+  Scope: Process isolation, watchdog timeouts, failure event emission, and
+  session gap detection. Deferred: eta dispatch, cross-validation, MCP mediation.
 
 requirements:
-  - REQ-ROBUST-001  # Actor isolation for F_P subprocess calls
-  - REQ-ROBUST-002  # Supervisor pattern with timeout/retry/escalate
+  - REQ-ROBUST-001  # F_P invocation isolation
+  - REQ-ROBUST-002  # Supervisor pattern (timeout/retry/escalate)
   - REQ-ROBUST-003  # Crash recovery via event log gap detection
-  - REQ-ROBUST-004  # Eta dispatch (F_D→F_P→F_H automatic re-rendering)
-  - REQ-ROBUST-005  # Cross-validation protocol (delta_D vs delta_P)
-  - REQ-ROBUST-006  # MCP-mediated F_P calls (replace subprocess.run)
-  - REQ-ROBUST-007  # Failure event emission (every failure observable)
-  - REQ-ROBUST-008  # Session gap detection (interrupted iterations)
-  - REQ-COORD-001   # Agent identity in events (from COORD design)
-  - REQ-COORD-002   # Event-sourced claims (from COORD design)
+  - REQ-ROBUST-007  # Failure event emission
+  - REQ-ROBUST-008  # Session gap detection
   - REQ-SUPV-003    # Failure observability (from SUPV design)
 
 dependencies:
@@ -53,35 +33,17 @@ dependencies:
   - feature: REQ-F-FP-001
     status: resolved
     note: "F_P construct + batched evaluate converged"
-  - feature: REQ-F-COORD-001
-    status: design_only
-    note: "ADR-013 design converged but runtime code not implemented"
-  - feature: REQ-F-SENSE-001
-    status: design_only
-    note: "ADR-015 MCP service design converged but not implemented"
-  - feature: REQ-F-SUPV-001
-    status: design_only
-    note: "IntentEngine composition law designed, runtime partial"
 
-constraints:
-  acceptance_criteria:
-    - key: REQ-ROBUST-001
-      criterion: "F_P calls run in isolated actors; timeout kills actor, not caller"
-      priority: critical
-    - key: REQ-ROBUST-002
-      criterion: "Supervisor retries failed F_P call, then escalates to F_H on persistent failure"
-      priority: critical
-    - key: REQ-ROBUST-003
-      criterion: "Engine detects interrupted iterations from event log gaps on restart"
-      priority: high
-    - key: REQ-ROBUST-006
-      criterion: "MCP claude-code-runner replaces subprocess.run for F_P calls"
-      priority: critical
-    - key: REQ-ROBUST-007
-      criterion: "Every F_P failure emits a structured event with duration, error class, retry count"
-      priority: critical
-    - key: REQ-ROBUST-005
-      criterion: "Engine records delta_D and delta_P in events; disagreement triggers alert"
-      priority: high
-
-trajectory: {}
+trajectory:
+  intent_requirements:
+    status: converged
+    note: "§14 Runtime Robustness added to spec (5 REQs, tech-agnostic)"
+  requirements_design:
+    status: converged
+    note: "Design in fp_subprocess.py, engine.py changes, workspace_state.py"
+  design_code:
+    status: converged
+    note: "fp_subprocess.py created, fp_construct/fp_evaluate/engine/__main__/workspace_state modified"
+  code_unit_tests:
+    status: converged
+    note: "26 new tests (test_fp_subprocess.py, test_session_gap_detection.py), 981 existing pass"

@@ -77,7 +77,7 @@ Two commands. That's it:
 
 ## What You Get
 
-**genisis** — The Asset Graph Model methodology:
+**genesis** — The Asset Graph Model methodology:
 - **1 universal iterate agent** — parameterised per edge, not hard-coded per stage
 - **13 commands** — start, status, init, iterate, spawn, review, spec-review, escalate, zoom, trace, gaps, checkpoint, release
 - **4 hooks** — session health, edge detection, artifact observation, stop-check enforcement
@@ -124,7 +124,7 @@ Add to your project's `.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "genisis": {
+    "genesis": {
       "source": {
         "source": "github",
         "repo": "foolishimp/ai_sdlc_method"
@@ -132,7 +132,7 @@ Add to your project's `.claude/settings.json`:
     }
   },
   "enabledPlugins": {
-    "genisis@genisis": true
+    "genesis@genesis": true
   }
 }
 ```
@@ -150,7 +150,7 @@ git clone https://github.com/foolishimp/ai_sdlc_method.git /path/to/ai_sdlc_meth
 ```json
 {
   "extraKnownMarketplaces": {
-    "genisis": {
+    "genesis": {
       "source": {
         "source": "local",
         "path": "/path/to/ai_sdlc_method/imp_claude/code/.claude-plugin"
@@ -158,7 +158,7 @@ git clone https://github.com/foolishimp/ai_sdlc_method.git /path/to/ai_sdlc_meth
     }
   },
   "enabledPlugins": {
-    "genisis@genisis": true
+    "genesis@genesis": true
   }
 }
 ```

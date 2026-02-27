@@ -2,12 +2,10 @@
 """Tests for session gap detection and failure event emission."""
 
 import json
-import tempfile
-from pathlib import Path
 
 import pytest
 
-from genisis.workspace_state import detect_abandoned_iterations, load_events
+from genesis.workspace_state import detect_abandoned_iterations, load_events
 
 
 # ── detect_abandoned_iterations tests ────────────────────────────────
@@ -62,7 +60,6 @@ class TestDetectAbandonedIterations:
             {"event_type": "edge_started", "feature": "REQ-F-001", "edge": "design→code", "timestamp": "t1"},
             {"event_type": "edge_converged", "feature": "REQ-F-001", "edge": "design→code", "timestamp": "t2"},
             {"event_type": "edge_started", "feature": "REQ-F-002", "edge": "code↔unit_tests", "timestamp": "t3"},
-            # REQ-F-002 never completed
         ]
         result = detect_abandoned_iterations(events)
         assert len(result) == 1
@@ -95,12 +92,11 @@ class TestFpFailureEventStructure:
 
     def test_fp_failure_event_from_engine(self, tmp_path):
         """Engine emits fp_failure event on construct failure."""
-        from genisis.fd_emit import emit_event, make_event
+        from genesis.fd_emit import emit_event, make_event
 
         events_path = tmp_path / ".ai-workspace" / "events" / "events.jsonl"
         events_path.parent.mkdir(parents=True)
 
-        # Simulate what engine.py does on construct failure
         emit_event(
             events_path,
             make_event(
@@ -129,7 +125,7 @@ class TestFpFailureEventStructure:
 
     def test_evaluator_detail_event_structure(self, tmp_path):
         """Engine emits evaluator_detail event on check failure."""
-        from genisis.fd_emit import emit_event, make_event
+        from genesis.fd_emit import emit_event, make_event
 
         events_path = tmp_path / ".ai-workspace" / "events" / "events.jsonl"
         events_path.parent.mkdir(parents=True)
@@ -161,7 +157,7 @@ class TestFpFailureEventStructure:
 
     def test_iteration_abandoned_event_structure(self, tmp_path):
         """Abandoned iteration event has required fields."""
-        from genisis.fd_emit import emit_event, make_event
+        from genesis.fd_emit import emit_event, make_event
 
         events_path = tmp_path / ".ai-workspace" / "events" / "events.jsonl"
         events_path.parent.mkdir(parents=True)
@@ -194,7 +190,6 @@ class TestCheckSessionGaps:
 
     def test_gap_detected_and_event_emitted(self, tmp_path):
         """_check_session_gaps emits iteration_abandoned for incomplete edges."""
-        # Set up workspace with an incomplete edge
         events_dir = tmp_path / ".ai-workspace" / "events"
         events_dir.mkdir(parents=True)
         events_file = events_dir / "events.jsonl"
@@ -208,7 +203,7 @@ class TestCheckSessionGaps:
             }) + "\n"
         )
 
-        from genisis.__main__ import _check_session_gaps
+        from genesis.__main__ import _check_session_gaps
 
         _check_session_gaps(tmp_path, "test")
 
@@ -239,7 +234,7 @@ class TestCheckSessionGaps:
             }) + "\n"
         )
 
-        from genisis.__main__ import _check_session_gaps
+        from genesis.__main__ import _check_session_gaps
 
         _check_session_gaps(tmp_path, "test")
 

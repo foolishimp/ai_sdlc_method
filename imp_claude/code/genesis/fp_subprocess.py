@@ -15,7 +15,7 @@ import signal
 import subprocess
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -148,7 +148,6 @@ def run_claude_isolated(
                 return
 
             # Reset activity timer on any poll cycle where process is active
-            # (For pipe-based capture, activity is detected when process completes)
             last_activity = now
 
     watcher = threading.Thread(target=watchdog, daemon=True)

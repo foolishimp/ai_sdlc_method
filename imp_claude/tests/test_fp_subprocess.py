@@ -2,13 +2,12 @@
 """Tests for fp_subprocess — isolated F_P process manager."""
 
 import os
-import subprocess
 import time
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from genisis.fp_subprocess import (
+from genesis.fp_subprocess import (
     SubprocessResult,
     _NESTING_GUARD_VARS,
     _kill_process_group,
@@ -62,7 +61,7 @@ class TestCleanEnv:
 class TestRunClaudeIsolated:
     """Validates: REQ-ROBUST-001, REQ-ROBUST-002."""
 
-    @patch("genisis.fp_subprocess.subprocess.Popen")
+    @patch("genesis.fp_subprocess.subprocess.Popen")
     def test_success(self, mock_popen_cls):
         """Successful subprocess returns stdout and zero exit code."""
         mock_proc = MagicMock()
@@ -83,7 +82,7 @@ class TestRunClaudeIsolated:
         assert result.pid == 12345
         assert result.duration_ms >= 0
 
-    @patch("genisis.fp_subprocess.subprocess.Popen")
+    @patch("genesis.fp_subprocess.subprocess.Popen")
     def test_nonzero_exit(self, mock_popen_cls):
         """Nonzero exit code is captured with error message."""
         mock_proc = MagicMock()
@@ -100,7 +99,7 @@ class TestRunClaudeIsolated:
         assert "Exited with code 1" in result.error
         assert result.stderr == "error output"
 
-    @patch("genisis.fp_subprocess.subprocess.Popen")
+    @patch("genesis.fp_subprocess.subprocess.Popen")
     def test_os_error(self, mock_popen_cls):
         """OSError on Popen returns error result without crashing."""
         mock_popen_cls.side_effect = OSError("No such file")
@@ -111,17 +110,14 @@ class TestRunClaudeIsolated:
         assert "Failed to start subprocess" in result.error
         assert result.duration_ms >= 0
 
-    @patch("genisis.fp_subprocess.subprocess.Popen")
+    @patch("genesis.fp_subprocess.subprocess.Popen")
     def test_timeout_kills_process(self, mock_popen_cls):
         """Wall timeout triggers process group kill and sets timed_out."""
         mock_proc = MagicMock()
         mock_proc.pid = 12345
-
-        # Simulate a hanging process: poll returns None initially, then 0 after kill
         poll_results = [None] * 100 + [0]
         mock_proc.poll.side_effect = poll_results
 
-        # communicate blocks, then returns after kill
         def slow_communicate():
             time.sleep(0.5)
             return ("partial", "")
@@ -130,7 +126,7 @@ class TestRunClaudeIsolated:
         mock_proc.returncode = -9
         mock_popen_cls.return_value = mock_proc
 
-        with patch("genisis.fp_subprocess._kill_process_group") as mock_kill:
+        with patch("genesis.fp_subprocess._kill_process_group"):
             result = run_claude_isolated(
                 ["sleep", "999"], timeout=1, stall_timeout=0
             )
@@ -138,7 +134,7 @@ class TestRunClaudeIsolated:
         assert result.timed_out is True
         assert result.duration_ms > 0
 
-    @patch("genisis.fp_subprocess.subprocess.Popen")
+    @patch("genesis.fp_subprocess.subprocess.Popen")
     def test_start_new_session(self, mock_popen_cls):
         """Popen called with start_new_session=True for process group isolation."""
         mock_proc = MagicMock()
@@ -153,7 +149,7 @@ class TestRunClaudeIsolated:
         call_kwargs = mock_popen_cls.call_args[1]
         assert call_kwargs["start_new_session"] is True
 
-    @patch("genisis.fp_subprocess.subprocess.Popen")
+    @patch("genesis.fp_subprocess.subprocess.Popen")
     def test_env_sanitized_by_default(self, mock_popen_cls):
         """By default, environment is sanitized (nesting guards removed)."""
         mock_proc = MagicMock()
@@ -169,7 +165,7 @@ class TestRunClaudeIsolated:
         call_kwargs = mock_popen_cls.call_args[1]
         assert "CLAUDECODE" not in call_kwargs["env"]
 
-    @patch("genisis.fp_subprocess.subprocess.Popen")
+    @patch("genesis.fp_subprocess.subprocess.Popen")
     def test_env_not_sanitized_when_disabled(self, mock_popen_cls):
         """When sanitize_env=False, environment is passed as None (inherit)."""
         mock_proc = MagicMock()
@@ -195,10 +191,9 @@ class TestKillProcessGroup:
         """SIGTERM kills the process group; falls back to proc.kill()."""
         mock_proc = MagicMock()
         mock_proc.pid = 99999
-        # Simulate process already gone
         mock_proc.poll.return_value = None
 
-        with patch("genisis.fp_subprocess.os.getpgid", side_effect=ProcessLookupError):
+        with patch("genesis.fp_subprocess.os.getpgid", side_effect=ProcessLookupError):
             _kill_process_group(mock_proc)
             mock_proc.kill.assert_called_once()
 
@@ -208,6 +203,5 @@ class TestKillProcessGroup:
         mock_proc.pid = 99999
         mock_proc.kill.side_effect = ProcessLookupError
 
-        with patch("genisis.fp_subprocess.os.getpgid", side_effect=ProcessLookupError):
-            # Should not raise
+        with patch("genesis.fp_subprocess.os.getpgid", side_effect=ProcessLookupError):
             _kill_process_group(mock_proc)
