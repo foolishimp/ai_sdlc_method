@@ -20,7 +20,7 @@ EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"
 PROFILES_DIR = CONFIG_DIR / "profiles"
 COMMANDS_DIR = PLUGIN_ROOT / "commands"
 AGENTS_DIR = PLUGIN_ROOT / "agents"
-GENISIS_PKG = IMP_CLAUDE / "code" / "genesis"
+GENESIS_PKG = IMP_CLAUDE / "code" / "genesis"
 
 
 

@@ -285,7 +285,7 @@ for edge in profile_edges:
 ### Package/Module Structure
 
 ```
-imp_claude/code/genisis/
+imp_claude/code/genesis/
 ├── __init__.py          # unchanged
 ├── __main__.py          # + construct subcommand, --construct flag
 ├── engine.py            # + construct param, context threading

@@ -11,13 +11,13 @@ import pytest
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
-from genisis.models import (
+from genesis.models import (
     CheckOutcome,
     CheckResult,
     ConstructResult,
     ResolvedCheck,
 )
-from genisis.fp_construct import (
+from genesis.fp_construct import (
     _build_prompt,
     _extract_agent_checks,
     _parse_response,
@@ -342,7 +342,7 @@ class TestRunConstruct:
         assert len(result.source_findings) == 1
         assert result.source_findings[0]["classification"] == "TOOL_MISSING"
 
-    @patch("genisis.fp_construct._call_claude")
+    @patch("genesis.fp_construct._call_claude")
     def test_successful_construct(self, mock_call):
         """Happy path: claude returns valid JSON, construct succeeds."""
         response = {
@@ -367,7 +367,7 @@ class TestRunConstruct:
         assert result.retries == 0
         mock_call.assert_called_once()
 
-    @patch("genisis.fp_construct._call_claude")
+    @patch("genesis.fp_construct._call_claude")
     def test_timeout_retry(self, mock_call):
         """Validates: REQ-NFR-FPC-003 — retry on timeout."""
         valid_response = json.dumps({
@@ -388,7 +388,7 @@ class TestRunConstruct:
         assert result.retries == 1
         assert mock_call.call_count == 2
 
-    @patch("genisis.fp_construct._call_claude")
+    @patch("genesis.fp_construct._call_claude")
     def test_all_retries_exhausted(self, mock_call):
         """All retries fail — returns error ConstructResult."""
         mock_call.return_value = None  # Always timeout
@@ -404,7 +404,7 @@ class TestRunConstruct:
         assert len(result.source_findings) == 1
         assert result.source_findings[0]["classification"] == "TIMEOUT"
 
-    @patch("genisis.fp_construct._call_claude")
+    @patch("genesis.fp_construct._call_claude")
     def test_malformed_json_retry(self, mock_call):
         """Malformed JSON triggers retry."""
         valid_response = json.dumps({
@@ -423,7 +423,7 @@ class TestRunConstruct:
         assert result.artifact == "good code"
         assert result.retries == 1
 
-    @patch("genisis.fp_construct._call_claude")
+    @patch("genesis.fp_construct._call_claude")
     def test_model_passthrough(self, mock_call):
         """Model parameter is passed to claude and recorded in result."""
         mock_call.return_value = json.dumps({
@@ -451,7 +451,7 @@ class TestEngineConstructIntegration:
     """Validates: REQ-F-FPC-004 — iterate_edge() calls construct before evaluate."""
 
     def _make_engine_config(self, tmp_path):
-        from genisis.engine import EngineConfig
+        from genesis.engine import EngineConfig
 
         events_dir = tmp_path / ".ai-workspace" / "events"
         events_dir.mkdir(parents=True)
@@ -469,7 +469,7 @@ class TestEngineConstructIntegration:
 
     def test_iterate_edge_without_construct(self, tmp_path):
         """Default path: construct=False, no construct call made."""
-        from genisis.engine import iterate_edge
+        from genesis.engine import iterate_edge
 
         config = self._make_engine_config(tmp_path)
         edge_config = {"checklist": []}
@@ -484,10 +484,10 @@ class TestEngineConstructIntegration:
         assert record.construct_result is None
         assert record.evaluation.converged is True  # No checks = converged
 
-    @patch("genisis.engine.run_construct")
+    @patch("genesis.engine.run_construct")
     def test_iterate_edge_with_construct(self, mock_construct, tmp_path):
         """Validates: REQ-F-FPC-004 — construct called before evaluate."""
-        from genisis.engine import iterate_edge
+        from genesis.engine import iterate_edge
 
         mock_construct.return_value = ConstructResult(
             artifact="constructed artifact",
@@ -512,10 +512,10 @@ class TestEngineConstructIntegration:
         assert record.construct_result.artifact == "constructed artifact"
         mock_construct.assert_called_once()
 
-    @patch("genisis.engine.run_construct")
+    @patch("genesis.engine.run_construct")
     def test_construct_writes_artifact(self, mock_construct, tmp_path):
         """Validates: REQ-BR-FPC-001 — artifact written to filesystem."""
-        from genisis.engine import iterate_edge
+        from genesis.engine import iterate_edge
 
         mock_construct.return_value = ConstructResult(
             artifact="# Generated Requirements\nREQ-001: Auth",
@@ -538,10 +538,10 @@ class TestEngineConstructIntegration:
         assert output_file.exists()
         assert "Generated Requirements" in output_file.read_text()
 
-    @patch("genisis.engine.run_construct")
+    @patch("genesis.engine.run_construct")
     def test_construct_result_in_event(self, mock_construct, tmp_path):
         """Construct metadata included in emitted event."""
-        from genisis.engine import iterate_edge
+        from genesis.engine import iterate_edge
 
         mock_construct.return_value = ConstructResult(
             artifact="code",
@@ -574,10 +574,10 @@ class TestEngineConstructIntegration:
         assert iter_event["construct"]["duration_ms"] == 5000
         assert iter_event["construct"]["traceability"] == ["REQ-001"]
 
-    @patch("genisis.engine.run_construct")
+    @patch("genesis.engine.run_construct")
     def test_batched_evaluations_used(self, mock_construct, tmp_path):
         """Validates: REQ-F-FPC-002 — batched F_P evals replace per-check calls."""
-        from genisis.engine import iterate_edge
+        from genesis.engine import iterate_edge
 
         mock_construct.return_value = ConstructResult(
             artifact="generated code",
@@ -603,7 +603,7 @@ class TestEngineConstructIntegration:
             ]
         }
 
-        with patch("genisis.engine.fp_run_check") as mock_fp:
+        with patch("genesis.engine.fp_run_check") as mock_fp:
             record = iterate_edge(
                 edge="design→code",
                 edge_config=edge_config,
@@ -628,15 +628,15 @@ class TestEngineConstructIntegration:
 class TestContextThreading:
     """Validates: REQ-F-FPC-003 — context accumulated between edges in run()."""
 
-    @patch("genisis.engine.run_edge")
-    @patch("genisis.engine.select_next_edge")
-    @patch("genisis.engine.select_profile")
-    @patch("genisis.engine.load_yaml")
+    @patch("genesis.engine.run_edge")
+    @patch("genesis.engine.select_next_edge")
+    @patch("genesis.engine.select_profile")
+    @patch("genesis.engine.load_yaml")
     def test_context_accumulates(
         self, mock_yaml, mock_profile, mock_next_edge, mock_run_edge
     ):
-        from genisis.engine import EngineConfig, IterationRecord, run
-        from genisis.models import EvaluationResult
+        from genesis.engine import EngineConfig, IterationRecord, run
+        from genesis.models import EvaluationResult
 
         mock_profile.return_value = "standard"
         mock_yaml.return_value = {}
@@ -664,7 +664,7 @@ class TestContextThreading:
         mock_run_edge.side_effect = [[edge1_record], [edge2_record]]
 
         # Route returns edge1, then edge2, then None (done)
-        from genisis.models import RouteResult
+        from genesis.models import RouteResult
 
         mock_next_edge.side_effect = [
             RouteResult(
@@ -714,7 +714,7 @@ class TestBackwardCompatibility:
     """Validates: REQ-NFR-FPC-002 — existing evaluate-only path unchanged."""
 
     def _make_engine_config(self, tmp_path):
-        from genisis.engine import EngineConfig
+        from genesis.engine import EngineConfig
 
         events_dir = tmp_path / ".ai-workspace" / "events"
         events_dir.mkdir(parents=True)
@@ -732,11 +732,11 @@ class TestBackwardCompatibility:
 
     def test_default_construct_false(self, tmp_path):
         """iterate_edge() defaults construct=False — no F_P construct call."""
-        from genisis.engine import iterate_edge
+        from genesis.engine import iterate_edge
 
         config = self._make_engine_config(tmp_path)
 
-        with patch("genisis.engine.run_construct") as mock_construct:
+        with patch("genesis.engine.run_construct") as mock_construct:
             record = iterate_edge(
                 edge="intent→requirements",
                 edge_config={"checklist": []},
@@ -750,8 +750,8 @@ class TestBackwardCompatibility:
 
     def test_iteration_record_has_optional_construct(self, tmp_path):
         """IterationRecord.construct_result defaults to None."""
-        from genisis.engine import IterationRecord
-        from genisis.models import EvaluationResult as ER
+        from genesis.engine import IterationRecord
+        from genesis.models import EvaluationResult as ER
 
         record = IterationRecord(
             edge="test",
@@ -771,10 +771,10 @@ class TestCLIConstruct:
 
     def test_construct_subcommand_registered(self):
         """construct subcommand is available in argparse."""
-        from genisis.__main__ import main
+        from genesis.__main__ import main
         import argparse
 
-        parser = argparse.ArgumentParser(prog="genisis")
+        parser = argparse.ArgumentParser(prog="genesis")
         subparsers = parser.add_subparsers(dest="command")
         # Just verify the construct command can be parsed
         construct_parser = subparsers.add_parser("construct")
@@ -794,10 +794,10 @@ class TestCLIConstruct:
 
     def test_run_edge_construct_flag_registered(self):
         """--construct flag available on run-edge subcommand."""
-        from genisis.__main__ import main
+        from genesis.__main__ import main
         import argparse
 
-        parser = argparse.ArgumentParser(prog="genisis")
+        parser = argparse.ArgumentParser(prog="genesis")
         subparsers = parser.add_subparsers(dest="command")
         run_parser = subparsers.add_parser("run-edge")
         run_parser.add_argument("--construct", action="store_true")

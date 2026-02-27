@@ -311,6 +311,9 @@ def clear_plugin_cache(dry_run: bool) -> bool:
         # Legacy cache from pre-genesis installs
         Path.home() / ".claude" / "plugins" / "marketplaces" / "aisdlc",
         Path.home() / ".claude" / "plugins" / "cache" / "aisdlc" / "gen-methodology-v2",
+        # Legacy cache from genisis typo era
+        Path.home() / ".claude" / "plugins" / "marketplaces" / "genisis",
+        Path.home() / ".claude" / "plugins" / "cache" / "genisis" / "genisis",
     ]
 
     found_any = False
@@ -329,6 +332,48 @@ def clear_plugin_cache(dry_run: bool) -> bool:
 
     if not found_any:
         print_info("No cached plugin found (fresh install)")
+
+    # Clean stale keys from global plugin registry files
+    legacy_keys_marketplace = ["aisdlc", "genisis"]
+    legacy_keys_plugin = ["gen-methodology-v2@aisdlc", "genisis@genisis"]
+
+    km_path = Path.home() / ".claude" / "plugins" / "known_marketplaces.json"
+    if km_path.exists():
+        try:
+            km = json.loads(km_path.read_text())
+            dirty = False
+            for key in legacy_keys_marketplace:
+                if key in km:
+                    if dry_run:
+                        print_info(f"Would remove '{key}' from known_marketplaces.json")
+                    else:
+                        km.pop(key)
+                        dirty = True
+            if dirty:
+                km_path.write_text(json.dumps(km, indent=2))
+                print_ok("Cleaned legacy keys from known_marketplaces.json")
+        except Exception as e:
+            print_warn(f"Could not clean known_marketplaces.json: {e}")
+
+    ip_path = Path.home() / ".claude" / "plugins" / "installed_plugins.json"
+    if ip_path.exists():
+        try:
+            ip = json.loads(ip_path.read_text())
+            plugins = ip.get("plugins", {})
+            dirty = False
+            for key in legacy_keys_plugin:
+                if key in plugins:
+                    if dry_run:
+                        print_info(f"Would remove '{key}' from installed_plugins.json")
+                    else:
+                        plugins.pop(key)
+                        dirty = True
+            if dirty:
+                ip_path.write_text(json.dumps(ip, indent=2))
+                print_ok("Cleaned legacy keys from installed_plugins.json")
+        except Exception as e:
+            print_warn(f"Could not clean installed_plugins.json: {e}")
+
     return True
 
 
@@ -348,6 +393,7 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
     if "extraKnownMarketplaces" not in existing:
         existing["extraKnownMarketplaces"] = {}
     existing["extraKnownMarketplaces"].pop("aisdlc", None)
+    existing["extraKnownMarketplaces"].pop("genisis", None)
     existing["extraKnownMarketplaces"][MARKETPLACE_NAME] = {
         "source": {"source": "github", "repo": GITHUB_REPO}
     }
@@ -356,6 +402,7 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
     if "enabledPlugins" not in existing:
         existing["enabledPlugins"] = {}
     existing["enabledPlugins"].pop("gen-methodology-v2@aisdlc", None)
+    existing["enabledPlugins"].pop("genisis@genisis", None)
     existing["enabledPlugins"][f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"] = True
 
     if dry_run:
