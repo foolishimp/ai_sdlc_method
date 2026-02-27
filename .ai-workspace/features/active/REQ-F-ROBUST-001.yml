@@ -1,0 +1,49 @@
+feature: REQ-F-ROBUST-001
+title: Runtime Robustness for F_P Invocations
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: in_progress
+priority: critical
+created: "2026-02-27T22:00:00Z"
+updated: "2026-02-27T23:00:00Z"
+parent_id: REQ-F-ENGINE-001
+spawned_by: gap_analysis
+
+description: |
+  Implement runtime robustness for the genisis engine's F_P subprocess calls.
+  Trigger: 5-hour hang during test10 dogfood — claude -p subprocess became a
+  zombie, blocking the engine with no timeout recovery or failure events.
+
+  Scope: Process isolation, watchdog timeouts, failure event emission, and
+  session gap detection. Deferred: eta dispatch, cross-validation, MCP mediation.
+
+requirements:
+  - REQ-ROBUST-001  # F_P invocation isolation
+  - REQ-ROBUST-002  # Supervisor pattern (timeout/retry/escalate)
+  - REQ-ROBUST-003  # Crash recovery via event log gap detection
+  - REQ-ROBUST-007  # Failure event emission
+  - REQ-ROBUST-008  # Session gap detection
+  - REQ-SUPV-003    # Failure observability (from SUPV design)
+
+dependencies:
+  - feature: REQ-F-ENGINE-001
+    status: resolved
+    note: "Engine loop, evaluate, emit all converged"
+  - feature: REQ-F-FP-001
+    status: resolved
+    note: "F_P construct + batched evaluate converged"
+
+trajectory:
+  intent_requirements:
+    status: converged
+    note: "§14 Runtime Robustness added to spec (5 REQs, tech-agnostic)"
+  requirements_design:
+    status: converged
+    note: "Design in fp_subprocess.py, engine.py changes, workspace_state.py"
+  design_code:
+    status: converged
+    note: "fp_subprocess.py created, fp_construct/fp_evaluate/engine/__main__/workspace_state modified"
+  code_unit_tests:
+    status: converged
+    note: "26 new tests (test_fp_subprocess.py, test_session_gap_detection.py), 981 existing pass"

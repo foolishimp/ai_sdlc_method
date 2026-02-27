@@ -1,12 +1,14 @@
-# Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability)
+# Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability), REQ-F-FPC-005 (CLI Construct Mode), REQ-ROBUST-008 (Session Gap Detection)
 """CLI entry point for the genesis engine.
 
 Usage:
-    python -m genesis evaluate --edge "code↔unit_tests" --feature "REQ-F-ENGINE-001" --asset path/to/file.py
-    python -m genesis run-edge --edge "code↔unit_tests" --feature "REQ-F-CALC-001" --asset src/calc.py --max-iterations 5
+    python -m genesis evaluate --edge "code\u2194unit_tests" --feature "REQ-F-ENGINE-001" --asset path/to/file.py
+    python -m genesis run-edge --edge "code\u2194unit_tests" --feature "REQ-F-CALC-001" --asset src/calc.py --max-iterations 5
+    python -m genesis construct --edge "intent\u2192requirements" --feature "REQ-F-AUTH-001" --asset spec/INTENT.md --output artifacts/req.md
 
-evaluate: single iteration via iterate_edge() — same Level 4 events as before.
-run-edge: loop until converge/spawn/budget via run_edge() — enables CLI spawn.
+evaluate: single iteration via iterate_edge() \u2014 same Level 4 events as before.
+run-edge: loop until converge/spawn/budget via run_edge() \u2014 enables CLI spawn.
+construct: construct + evaluate in one call \u2014 F_P builds, F_D gates (ADR-020).
 
 The engine evaluates an asset against an edge's checklist and emits Level 4 events.
 The LLM agent calls this for cross-validation (ADR-019).
@@ -35,7 +37,7 @@ def _find_workspace(start: Path) -> Path:
 
 
 def _find_constraints(workspace: Path) -> Path:
-    """Find project_constraints.yml — try tenant paths then root."""
+    """Find project_constraints.yml \u2014 try tenant paths then root."""
     candidates = [
         workspace / ".ai-workspace" / "claude" / "context" / "project_constraints.yml",
         workspace / ".ai-workspace" / "context" / "project_constraints.yml",
@@ -43,11 +45,11 @@ def _find_constraints(workspace: Path) -> Path:
     for c in candidates:
         if c.exists():
             return c
-    return candidates[0]  # return first even if missing — error will be clear
+    return candidates[0]  # return first even if missing \u2014 error will be clear
 
 
 def _find_edge_params(workspace: Path) -> Path:
-    """Find edge_params directory — try workspace then plugin."""
+    """Find edge_params directory \u2014 try workspace then plugin."""
     candidates = [
         workspace / ".ai-workspace" / "graph" / "edges",
         workspace
@@ -66,7 +68,7 @@ def _find_edge_params(workspace: Path) -> Path:
 
 
 def _find_profiles(workspace: Path) -> Path:
-    """Find profiles directory — try workspace then plugin."""
+    """Find profiles directory \u2014 try workspace then plugin."""
     candidates = [
         workspace / ".ai-workspace" / "profiles",
         workspace
@@ -125,13 +127,50 @@ def _emit_command_error(
         pass  # Observation failure must not block error reporting
 
 
-# ── Shared helpers ───────────────────────────────────────────────────────
+def _check_session_gaps(workspace: Path, project: str) -> None:
+    """Detect and emit events for abandoned iterations (REQ-ROBUST-008).
+
+    Scans the event log for edge_started events with no subsequent completion.
+    Emits iteration_abandoned events for each detected gap. Idempotent.
+    """
+    from .fd_emit import emit_event, make_event
+    from .workspace_state import detect_abandoned_iterations, load_events
+
+    events = load_events(workspace)
+    abandoned = detect_abandoned_iterations(events)
+
+    if not abandoned:
+        return
+
+    events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
+    for gap in abandoned:
+        try:
+            emit_event(
+                events_path,
+                make_event(
+                    "iteration_abandoned",
+                    project,
+                    feature=gap["feature"],
+                    edge=gap["edge"],
+                    last_event_timestamp=gap["last_event_timestamp"],
+                ),
+            )
+        except Exception:
+            pass  # Observation failure must not block engine startup
+
+    print(
+        f"genesis: detected {len(abandoned)} abandoned iteration(s) from prior session",
+        file=sys.stderr,
+    )
+
+
+# \u2500\u2500 Shared helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 
 _EDGE_MAP = {
-    "code↔unit_tests": "tdd",
-    "design→test_cases": "design_tests",
-    "design→uat_tests": "bdd",
+    "code\u2194unit_tests": "tdd",
+    "design\u2192test_cases": "design_tests",
+    "design\u2192uat_tests": "bdd",
 }
 
 
@@ -190,13 +229,14 @@ def _build_config(args: argparse.Namespace, workspace: Path) -> EngineConfig | N
         claude_timeout=getattr(args, "timeout", 120),
         deterministic_only=getattr(args, "deterministic_only", False),
         fd_timeout=getattr(args, "fd_timeout", 120),
+        stall_timeout=getattr(args, "stall_timeout", 60),
     )
 
 
 def _resolve_edge_config(edge: str, edge_params_dir: Path) -> Path | None:
     """Resolve edge name to config file path. Returns None if not found."""
     edge_filename = _EDGE_MAP.get(
-        edge, edge.replace("→", "_").replace("↔", "_").replace(" ", "")
+        edge, edge.replace("\u2192", "_").replace("\u2194", "_").replace(" ", "")
     )
     edge_config_path = edge_params_dir / f"{edge_filename}.yml"
     if edge_config_path.exists():
@@ -226,7 +266,7 @@ def _format_record(record: IterationRecord) -> dict:
     }
 
 
-# ── Commands ─────────────────────────────────────────────────────────────
+# \u2500\u2500 Commands \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 
 def cmd_evaluate(args: argparse.Namespace) -> int:
@@ -240,6 +280,8 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     config = _build_config(args, workspace)
     if config is None:
         return 1
+
+    _check_session_gaps(workspace, config.project_name)
 
     edge_config_path = _resolve_edge_config(args.edge, config.edge_params_dir)
     if edge_config_path is None:
@@ -268,7 +310,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         iteration=args.iteration,
     )
 
-    # Build output — preserve the same schema callers expect
+    # Build output \u2014 preserve the same schema callers expect
     formatted = _format_record(record)
     ev = record.evaluation
     passed = sum(1 for c in ev.checks if c.outcome.value == "pass")
@@ -309,6 +351,11 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
     if config is None:
         return 1
 
+    _check_session_gaps(workspace, config.project_name)
+
+    construct = getattr(args, "construct", False)
+    output_file = Path(args.output) if getattr(args, "output", None) else None
+
     # run_edge does its own edge config file lookup
     profile_path = config.profiles_dir / "standard.yml"
     profile = load_yaml(profile_path) if profile_path.exists() else {}
@@ -320,6 +367,8 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
         profile=profile,
         asset_content=asset_content,
         context=args.context or "",
+        construct=construct,
+        output_path=output_file,
     )
 
     last = records[-1] if records else None
@@ -343,6 +392,15 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
             / f"{child_id}.yml"
         )
 
+    if last and last.construct_result:
+        output["construct"] = {
+            "model": last.construct_result.model,
+            "duration_ms": last.construct_result.duration_ms,
+            "retries": last.construct_result.retries,
+            "artifact_length": len(last.construct_result.artifact),
+            "traceability": last.construct_result.traceability,
+        }
+
     print(json.dumps(output, indent=2))
 
     if last and (last.evaluation.converged or last.evaluation.spawn_requested):
@@ -350,13 +408,100 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
     return 1
 
 
-# ── Shared CLI args ──────────────────────────────────────────────────────
+def cmd_construct(args: argparse.Namespace) -> int:
+    """Construct + evaluate in one call. F_P builds, F_D gates (ADR-020)."""
+    workspace = Path(args.workspace) if args.workspace else _find_workspace(Path.cwd())
+
+    asset_content = _load_asset(args, workspace)
+    if asset_content is None:
+        return 1
+
+    config = _build_config(args, workspace)
+    if config is None:
+        return 1
+
+    _check_session_gaps(workspace, config.project_name)
+
+    output_file = Path(args.output) if args.output else None
+
+    edge_config_path = _resolve_edge_config(args.edge, config.edge_params_dir)
+    if edge_config_path is None:
+        _emit_command_error(
+            workspace,
+            config.project_name,
+            "construct",
+            "missing_edge_config",
+            f"Edge config not found for: {args.edge}",
+        )
+        print(
+            json.dumps({"error": f"Edge config not found for: {args.edge}"}),
+            file=sys.stderr,
+        )
+        return 1
+
+    edge_config = load_yaml(edge_config_path)
+
+    record = iterate_edge(
+        edge=args.edge,
+        edge_config=edge_config,
+        config=config,
+        feature_id=args.feature,
+        asset_content=asset_content,
+        context=args.context or "",
+        iteration=args.iteration,
+        construct=True,
+        output_path=output_file,
+    )
+
+    # Build output
+    formatted = _format_record(record)
+    ev = record.evaluation
+    passed = sum(1 for c in ev.checks if c.outcome.value == "pass")
+    failed = sum(1 for c in ev.checks if c.outcome.value in ("fail", "error"))
+    skipped = sum(1 for c in ev.checks if c.outcome.value == "skip")
+
+    output = {
+        "edge": args.edge,
+        "feature": args.feature,
+        "iteration": args.iteration,
+        "delta": ev.delta,
+        "converged": ev.converged,
+        "evaluators": {
+            "passed": passed,
+            "failed": failed,
+            "skipped": skipped,
+            "total": len(ev.checks),
+        },
+        "checks": formatted["checks"],
+        "escalations": ev.escalations,
+        "event_emitted": record.event_emitted,
+        "source": "engine_cli",
+    }
+
+    if record.construct_result:
+        cr = record.construct_result
+        output["construct"] = {
+            "model": cr.model,
+            "duration_ms": cr.duration_ms,
+            "retries": cr.retries,
+            "artifact_length": len(cr.artifact),
+            "traceability": cr.traceability,
+            "source_findings": cr.source_findings,
+        }
+        if output_file:
+            output["output_path"] = str(output_file)
+
+    print(json.dumps(output, indent=2))
+    return 0 if ev.converged else 1
+
+
+# \u2500\u2500 Shared CLI args \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 
 def _add_shared_args(parser: argparse.ArgumentParser) -> None:
     """Add arguments shared by evaluate and run-edge."""
     parser.add_argument(
-        "--edge", required=True, help="Edge name (e.g., 'code↔unit_tests')"
+        "--edge", required=True, help="Edge name (e.g., 'code\u2194unit_tests')"
     )
     parser.add_argument(
         "--feature", required=True, help="Feature ID (e.g., 'REQ-F-ENGINE-001')"
@@ -388,12 +533,18 @@ def _add_shared_args(parser: argparse.ArgumentParser) -> None:
         default=120,
         help="Timeout for deterministic subprocess checks in seconds (default: 120)",
     )
+    parser.add_argument(
+        "--stall-timeout",
+        type=int,
+        default=60,
+        help="Stall detection timeout for F_P calls in seconds (default: 60, 0=disable)",
+    )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="genesis",
-        description="Genesis F_D engine — deterministic evaluation with Level 4 events",
+        description="Genesis F_D engine \u2014 deterministic evaluation with Level 4 events",
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -419,6 +570,31 @@ def main() -> int:
         default=10,
         help="Maximum iterations before stopping (default: 10)",
     )
+    run_parser.add_argument(
+        "--construct",
+        action="store_true",
+        help="Enable F_P construct before evaluate (ADR-020)",
+    )
+    run_parser.add_argument(
+        "--output",
+        default=None,
+        help="Path to write constructed artifact",
+    )
+
+    # construct subcommand (ADR-020)
+    construct_parser = subparsers.add_parser(
+        "construct",
+        help="Construct artifact + evaluate in one call (F_P builds, F_D gates)",
+    )
+    _add_shared_args(construct_parser)
+    construct_parser.add_argument(
+        "--iteration", type=int, default=1, help="Iteration number for event"
+    )
+    construct_parser.add_argument(
+        "--output",
+        default=None,
+        help="Path to write constructed artifact",
+    )
 
     args = parser.parse_args()
 
@@ -426,6 +602,8 @@ def main() -> int:
         return cmd_evaluate(args)
     elif args.command == "run-edge":
         return cmd_run_edge(args)
+    elif args.command == "construct":
+        return cmd_construct(args)
     else:
         parser.print_help()
         return 1
