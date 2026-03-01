@@ -53,11 +53,17 @@ Feature views are generated at every stage by grepping REQ keys across artifacts
 ai_sdlc_method/
 │
 ├── specification/                          # SHARED — the formal system (tech-agnostic)
-│   ├── INTENT.md
-│   ├── AI_SDLC_ASSET_GRAPH_MODEL.md
-│   ├── PROJECTIONS_AND_INVARIANTS.md
-│   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md
-│   ├── FEATURE_VECTORS.md
+│   ├── README.md                           #   Document map, derivation hierarchy, reading paths
+│   ├── INTENT.md                           #   Why — problem and business value
+│   ├── AI_SDLC_ASSET_GRAPH_MODEL.md        #   Formal system — 4 primitives, 1 operation
+│   ├── EXECUTIVE_SUMMARY.md                #   5-minute digest
+│   ├── GENESIS_BOOTLOADER.md               #   LLM axiom set (load into sessions)
+│   ├── PROJECTIONS_AND_INVARIANTS.md       #   Profiles, invariants, spawn/fold-back
+│   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # 74 platform-agnostic requirements
+│   ├── FEATURE_VECTORS.md                  #   13 features with dependency graph
+│   ├── UX.md                               #   User journeys and validation scenarios
+│   ├── UAT_TEST_CASES.md                   #   BDD acceptance tests (9 use cases)
+│   ├── USER_GUIDE.md                       #   Practitioner guide
 │   └── presentations/
 │
 ├── imp_claude/                             # Claude Code implementation
@@ -117,22 +123,39 @@ ai_sdlc_method/
 
 ## Key Documents
 
+### Specification (shared, tech-agnostic)
+
+See **[specification/README.md](specification/README.md)** for the full document map, derivation hierarchy, and reading paths.
+
+| Document | Path | Role |
+|----------|------|------|
+| Spec Index | specification/README.md | Derivation map, reading paths, what-belongs-where |
+| Intent | specification/INTENT.md | Why — problem statement and business value |
+| Asset Graph Model | specification/AI_SDLC_ASSET_GRAPH_MODEL.md | The formal system — 4 primitives, 1 operation |
+| Executive Summary | specification/EXECUTIVE_SUMMARY.md | 5-minute digest — start here for orientation |
+| Genesis Bootloader | specification/GENESIS_BOOTLOADER.md | LLM axiom set — load into sessions, not for human reading |
+| Projections & Invariants | specification/PROJECTIONS_AND_INVARIANTS.md | Graph subsets, profiles, spawn/fold-back, time-boxing |
+| Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 74 platform-agnostic requirements (the build contract) |
+| Feature Vectors | specification/FEATURE_VECTORS.md | 13 features with dependency graph and task plan |
+| UX | specification/UX.md | User journeys, MVP features, validation scenarios |
+| UAT Test Cases | specification/UAT_TEST_CASES.md | Acceptance tests — 9 use cases, BDD-style |
+| User Guide | specification/USER_GUIDE.md | Practitioner guide for Genesis day-to-day use |
+
+### Implementation (Claude Code)
+
 | Document | Path | What it covers |
 |----------|------|---------------|
-| Intent | specification/INTENT.md | Business motivation |
-| Executive Summary | specification/EXECUTIVE_SUMMARY.md | Condensed overview of the formal system |
-| Asset Graph Model | specification/AI_SDLC_ASSET_GRAPH_MODEL.md | Formal system — 4 primitives, 1 operation |
-| Genesis Bootloader | specification/GENESIS_BOOTLOADER.md | LLM constraint context — axiom set for project sessions |
-| Projections | specification/PROJECTIONS_AND_INVARIANTS.md | Projections, vector types, spawning |
-| Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 69 platform-agnostic reqs |
-| Feature Vectors | specification/FEATURE_VECTORS.md | Feature decomposition |
-| UX | specification/UX.md | User journeys, MVP features, validation scenarios |
 | Claude Design | imp_claude/design/AISDLC_V2_DESIGN.md | Claude Code implementation |
 | Claude ADRs | imp_claude/design/adrs/ADR-008..019 | 12 ADRs, fully cross-referenced |
 | Iterate Agent | imp_claude/code/.../genesis/agents/gen-iterate.md | The universal agent |
 | Graph Topology | imp_claude/code/.../genesis/config/graph_topology.yml | 10 asset types, 10 transitions |
 | Engine CLI | imp_claude/code/genesis/__main__.py | Level 4 deterministic evaluation |
 | Installer | imp_claude/code/installers/gen-setup.py | Python installer, deploys bootloader to CLAUDE.md |
+
+### Other Implementations
+
+| Document | Path | What it covers |
+|----------|------|---------------|
 | Gemini Design | imp_gemini/design/GEMINI_GENESIS_DESIGN.md | Gemini CLI implementation |
 | Codex Design | imp_codex/design/CODEX_GENESIS_DESIGN.md | Codex implementation |
 | Bedrock Design | imp_bedrock/design/BEDROCK_GENESIS_DESIGN.md | AWS Bedrock cloud-native implementation |

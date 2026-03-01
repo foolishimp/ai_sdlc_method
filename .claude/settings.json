@@ -1,49 +1,13 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genesis/hooks/on-session-start.sh",
-            "timeout": 10
-          }
-        ]
+  "extraKnownMarketplaces": {
+    "genesis": {
+      "source": {
+        "source": "github",
+        "repo": "foolishimp/ai_sdlc_method"
       }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genesis/hooks/on-iterate-start.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genesis/hooks/on-artifact-written.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/imp_claude/code/.claude-plugin/plugins/genesis/hooks/on-stop-check-protocol.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
+    }
+  },
+  "enabledPlugins": {
+    "genesis@genesis": true
   }
 }

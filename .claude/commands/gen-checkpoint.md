@@ -1,1 +1,0 @@
-/Users/jim/src/apps/ai_sdlc_method/imp_claude/code/.claude-plugin/plugins/genisis/commands/gen-checkpoint.md
