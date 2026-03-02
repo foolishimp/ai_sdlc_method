@@ -1,7 +1,7 @@
 {
   "_implements": "REQ-TOOL-006 (Methodology Hooks), REQ-SENSE-006, REQ-LIFE-008",
-  "_reference": "ADR-011 (Consciousness Loop), §7.7.5 (Bypass Detection)",
-  "_note": "PostEvent is not a real Claude Code hook type. Dev-observer trigger must be agent-driven, not hook-driven.",
+  "_reference": "ADR-021 (Dual-Mode Traverse) — hooks scoped to Interactive mode only",
+  "_note": "PostToolUse and UserPromptSubmit disabled per ADR-021. Engine mode (genesis evaluate) owns its own protocol enforcement at Level 4. Interactive mode retains SessionStart (workspace health) and Stop (protocol verification). See ADR-021 for rationale.",
   "hooks": {
     "SessionStart": [
       {
@@ -10,29 +10,6 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/on-session-start.sh",
             "statusMessage": "Running workspace health check..."
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/on-iterate-start.sh",
-            "statusMessage": "Setting edge traversal context..."
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/on-artifact-written.sh",
-            "statusMessage": "Observing artifact write..."
           }
         ]
       }

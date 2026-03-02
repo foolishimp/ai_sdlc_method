@@ -1,204 +1,254 @@
-# Project Status — ai_sdlc_method (v3.0.0-beta.1)
+# Project Status — ai_sdlc_method
 
-Generated: 2026-02-25T02:05:00Z
+Generated: 2026-03-03T00:10:00Z
 
-## State: ALL_CONVERGED
+---
 
-All 11 features converged. Phase 1a + Phase 2a (observer agents) + Phase 2b (functor encoding) complete.
-63 requirements, 511 tests (config validation + BDD + spec validation + UAT integration).
+## State
 
-  Start would: no unconverged features — next action is functor execution model implementation (post ADR-017)
+**ALL_CONVERGED** — All 13 active feature vectors have converged trajectories (52/52 standard phases).
+
+> Note: REQ-F-ROBUST-001 carries a stale `status: in_progress` field; all four trajectory edges show `converged`. The field should be updated to `converged`.
+
+> 9 unactioned `intent_raised` signals await human review. `/gen-start` would present these for new feature spawn decisions.
+
+**What /gen-start would do:** Surface unactioned signals (INT-TELEM-001..003, INT-GAP-001, INT-GAP-TAG-001, INT-GAP-TEL-001, INT-GAP-ORPHAN-001, INT-589-001..002) and ask which gap to address next. New feature vectors for REQ-EVOL-001..005 (spec evolution) are PENDING in the JOIN layer.
+
+---
 
 ## You Are Here
 
 ```
-REQ-F-ENGINE-001  intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
-REQ-F-EVAL-001    intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
-REQ-F-CTX-001     intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
-REQ-F-EDGE-001    intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
-REQ-F-TRACE-001   intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
-REQ-F-TOOL-001    intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓ → cicd ✓
-REQ-F-UX-001      intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
-REQ-F-LIFE-001    intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓ → uat ✓
-REQ-F-SENSE-001   intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
-REQ-F-COORD-001   intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
-REQ-F-SUPV-001    intent ✓ → req ✓ → design ✓ → code ✓ → tests ✓
+REQ-F-ENGINE-001  req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-EVAL-001    req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-CTX-001     req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-TRACE-001   req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-EDGE-001    req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-TOOL-001    req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ✓  [converged]
+REQ-F-UX-001      req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-COORD-001   req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-SENSE-001   req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-SUPV-001    req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged]
+REQ-F-LIFE-001    req ✓ → des ✓ → cod ✓ → tst ✓ → uat ✓ → cicd ○  [converged]
+REQ-F-FP-001      req ✓ → des ✓ → cod ✓ → tst ✓ → uat ✓ → cicd ○  [converged]
+REQ-F-ROBUST-001  req ✓ → des ✓ → cod ✓ → tst ✓ → uat ○ → cicd ○  [converged*]
 ```
 
-## Project Rollup
+`* status field stale — trajectory all converged`
 
+PENDING (spec defined, no workspace vector):
 ```
-Edges converged:  46/46 (100%)
-Features:         11 converged, 0 in-progress, 0 blocked, 0 stuck
-Signals:          1 unactioned (INT-GAP-001: REQ-LIFE-009 gap — low severity)
-Functor:          standard/interactive/medium — 0 feature overrides, 0 η
+REQ-EVOL-001..005  ○ pending — no workspace vector yet (added this session)
 ```
+
+---
 
 ## Feature Build Schedule
 
 ```mermaid
 gantt
-    title Feature Build Schedule — ai_sdlc_method
+    title ai_sdlc_method — Feature Build Schedule (v3.0.0-beta.1)
     dateFormat YYYY-MM-DD HH:mm
-    axisFormat %m-%d %H:%M
+    axisFormat %m-%d
 
-    section REQ-F-ENGINE-001
-    requirements     :done, eng-req, 2026-02-19 08:00, 2026-02-19 11:00
-    design           :done, eng-des, 2026-02-19 11:00, 2026-02-19 14:00
-    code             :done, eng-cod, 2026-02-19 14:00, 2026-02-19 16:00
-    unit_tests       :done, eng-tst, 2026-02-19 16:00, 2026-02-19 17:00
+    section Foundation (Feb 19)
+    ENGINE req+des+cod+tst   :done, eng, 2026-02-19 08:00, 2026-02-19 18:00
+    CTX req+des+cod+tst      :done, ctx, 2026-02-19 10:00, 2026-02-19 20:00
+    TRACE req+des+cod+tst    :done, trc, 2026-02-19 10:00, 2026-02-19 22:00
 
-    section REQ-F-EVAL-001
-    requirements     :done, eval-req, 2026-02-19 10:00, 2026-02-20 08:00
-    design           :done, eval-des, 2026-02-20 08:00, 2026-02-20 10:00
-    code             :done, eval-cod, 2026-02-20 10:00, 2026-02-20 11:00
-    unit_tests       :done, eval-tst, 2026-02-20 11:00, 2026-02-20 13:00
+    section Evaluators & Tooling (Feb 19-22)
+    EVAL req+des+cod+tst     :done, ev,  2026-02-19 10:00, 2026-02-20 10:00
+    EDGE req+des+cod+tst     :done, edg, 2026-02-20 08:00, 2026-02-21 08:00
+    TOOL code                :done, tlc, 2026-02-20 10:00, 2026-02-22 06:30
+    TOOL tests               :done, tlt, 2026-02-22 06:15, 2026-02-22 06:30
+    TOOL cicd                :done, tlci,2026-02-25 01:30, 2026-02-25 02:05
 
-    section REQ-F-CTX-001
-    requirements     :done, ctx-req, 2026-02-19 10:00, 2026-02-20 08:00
-    design           :done, ctx-des, 2026-02-20 08:00, 2026-02-20 10:00
-    code             :done, ctx-cod, 2026-02-20 10:00, 2026-02-20 12:00
-    unit_tests       :done, ctx-tst, 2026-02-20 12:00, 2026-02-20 13:00
+    section UX & Multi-Agent (Feb 21-22)
+    UX design                :done, uxd, 2026-02-21 14:00, 2026-02-21 18:00
+    UX code                  :done, uxc, 2026-02-21 18:00, 2026-02-21 19:00
+    UX tests                 :done, uxt, 2026-02-22 06:00, 2026-02-22 06:15
+    COORD design             :done, cod, 2026-02-21 19:00, 2026-02-22 07:45
+    COORD code+tests         :done, coc, 2026-02-22 07:45, 2026-02-22 08:00
+    SENSE design             :done, sed, 2026-02-21 18:00, 2026-02-22 07:15
+    SENSE code+tests         :done, sec, 2026-02-22 07:15, 2026-02-22 07:30
+    SUPV design              :done, sud, 2026-02-22 10:00, 2026-02-22 10:15
+    SUPV code+tests          :done, suc, 2026-02-22 10:15, 2026-02-22 10:30
 
-    section REQ-F-EDGE-001
-    requirements     :done, edge-req, 2026-02-20 08:00, 2026-02-20 09:00
-    design           :done, edge-des, 2026-02-20 09:00, 2026-02-20 10:00
-    code             :done, edge-cod, 2026-02-20 10:00, 2026-02-20 10:00
-    unit_tests       :done, edge-tst, 2026-02-20 10:00, 2026-02-20 13:00
+    section Lifecycle (Feb 22)
+    LIFE requirements        :done, lir, 2026-02-22 18:05, 2026-02-22 18:10
+    LIFE design              :done, lid, 2026-02-22 18:15, 2026-02-22 18:30
+    LIFE code                :done, lic, 2026-02-22 18:35, 2026-02-22 18:45
+    LIFE tests               :done, lit, 2026-02-22 18:50, 2026-02-22 19:00
+    LIFE uat                 :done, liu, 2026-02-22 19:10, 2026-02-22 19:30
 
-    section REQ-F-TRACE-001
-    requirements     :done, trc-req, 2026-02-19 10:00, 2026-02-20 08:00
-    design           :done, trc-des, 2026-02-20 08:00, 2026-02-20 10:00
-    code             :done, trc-cod, 2026-02-20 10:00, 2026-02-20 12:00
-    unit_tests       :done, trc-tst, 2026-02-20 12:00, 2026-02-20 13:00
+    section F_P Construct & Robustness (Feb 27)
+    FP requirements          :done, fpr, 2026-02-27 10:00, 2026-02-27 10:30
+    FP design                :done, fpd, 2026-02-27 10:30, 2026-02-27 11:00
+    FP code+tests            :done, fpc, 2026-02-27 11:00, 2026-02-27 12:00
+    FP uat                   :done, fpu, 2026-02-27 12:00, 2026-02-27 12:30
+    ROBUST req+des           :done, rbr, 2026-02-27 22:00, 2026-02-27 23:00
+    ROBUST code+tests        :done, rbc, 2026-02-27 23:00, 2026-02-28 01:00
 
-    section REQ-F-TOOL-001
-    requirements     :done, tool-req, 2026-02-20 08:00, 2026-02-20 09:00
-    design           :done, tool-des, 2026-02-20 09:00, 2026-02-20 10:00
-    code             :done, tool-cod, 2026-02-20 10:00, 2026-02-22 06:30
-    unit_tests       :done, tool-tst, 2026-02-22 06:15, 2026-02-22 06:30
-    cicd             :done, tool-cicd, 2026-02-25 01:30, 2026-02-25 02:05
+    section Spec Evolution (Mar 3)
+    ADR-S-009 + ADR-S-010    :done, adr, 2026-03-03 00:00, 2026-03-03 00:30
+    REQ-EVOL-001..005        :done, evl, 2026-03-03 00:00, 2026-03-03 00:30
 
-    section REQ-F-UX-001
-    requirements     :done, ux-req, 2026-02-21 14:00, 2026-02-21 14:30
-    design           :done, ux-des, 2026-02-21 14:00, 2026-02-21 18:00
-    code             :done, ux-cod, 2026-02-21 18:00, 2026-02-21 19:00
-    unit_tests       :done, ux-tst, 2026-02-22 06:00, 2026-02-22 06:15
-
-    section REQ-F-LIFE-001
-    requirements     :done, life-req, 2026-02-20 10:00, 2026-02-22 18:10
-    design           :done, life-des, 2026-02-22 18:15, 2026-02-22 18:30
-    code             :done, life-cod, 2026-02-22 18:35, 2026-02-22 18:45
-    unit_tests       :done, life-tst, 2026-02-22 18:50, 2026-02-22 19:00
-    uat_tests        :done, life-uat, 2026-02-22 19:10, 2026-02-22 19:30
-
-    section REQ-F-SENSE-001
-    requirements     :done, sense-req, 2026-02-21 14:00, 2026-02-21 18:00
-    design           :done, sense-des, 2026-02-21 18:00, 2026-02-22 07:15
-    code             :done, sense-cod, 2026-02-22 07:15, 2026-02-22 07:30
-    unit_tests       :done, sense-tst, 2026-02-22 07:20, 2026-02-22 07:30
-
-    section REQ-F-COORD-001
-    requirements     :done, coord-req, 2026-02-21 14:00, 2026-02-21 19:00
-    design           :done, coord-des, 2026-02-21 19:00, 2026-02-22 07:45
-    code             :done, coord-cod, 2026-02-22 07:45, 2026-02-22 08:00
-    unit_tests       :done, coord-tst, 2026-02-22 07:50, 2026-02-22 08:00
-
-    section REQ-F-SUPV-001
-    requirements     :done, supv-req, 2026-02-22 09:00, 2026-02-22 10:00
-    design           :done, supv-des, 2026-02-22 10:00, 2026-02-22 11:00
-    code             :done, supv-cod, 2026-02-22 11:00, 2026-02-22 12:00
-    unit_tests       :done, supv-tst, 2026-02-22 12:00, 2026-02-22 12:30
+    section Pending (UAT + CICD remaining)
+    UAT (11 features)        :     uat-p, 2026-03-03 00:30, 22h
+    CICD (12 features)       :     cic-p, after uat-p, 12h
 ```
+
+---
+
+## Project Rollup
+
+| Metric | Value |
+|--------|-------|
+| Features: converged | 12/13 (ROBUST stale — effectively 13/13) |
+| Features: in_progress | 0 |
+| Features: blocked | 0 |
+| Features: stuck | 0 |
+| Features: PENDING (spec, no vector) | 5 (REQ-EVOL-001..005) |
+| Standard phases converged | 52/52 (100%) |
+| UAT phases converged | 2/13 (15%) |
+| CICD phases converged | 1/13 (8%) |
+| Total edges converged | 55/78 (71%) |
+| Unactioned signals | 9 |
+| Total events | 650 |
+| Spec_modified events | 16 |
+
+---
 
 ## Phase Completion Summary
 
 | Phase | Converged | In Progress | Pending | Blocked |
 |-------|-----------|-------------|---------|---------|
-| requirements | 11 | 0 | 0 | 0 |
-| design | 11 | 0 | 0 | 0 |
-| code | 11 | 0 | 0 | 0 |
-| unit_tests | 11 | 0 | 0 | 0 |
-| uat_tests | 1 | 0 | 0 | 0 |
-| **Total** | **45** | **0** | **0** | **0** |
+| requirements | 13 | 0 | 0 | 0 |
+| design | 13 | 0 | 0 | 0 |
+| code | 13 | 0 | 0 | 0 |
+| unit_tests | 13 | 0 | 0 | 0 |
+| uat_tests | 2 | 0 | 11 | 0 |
+| cicd | 1 | 0 | 12 | 0 |
+| **Total** | **55** | **0** | **23** | **0** |
 
-## Converged Features
+---
 
-| Feature | Title | Impl Reqs | Edges | Profile | Tests |
-|---------|-------|-----------|-------|---------|-------|
-| REQ-F-ENGINE-001 | Asset Graph Engine | 6 | 4/4 | standard | 139 (config) |
-| REQ-F-EVAL-001 | Evaluator Framework | 3 | 4/4 | standard | (shared) |
-| REQ-F-CTX-001 | Context Management | 3 | 4/4 | standard | (shared) |
-| REQ-F-TRACE-001 | Feature Vector Traceability | 5 | 4/4 | standard | (shared) |
-| REQ-F-EDGE-001 | Edge Parameterisations | 4 | 4/4 | standard | (shared) |
-| REQ-F-TOOL-001 | Developer Tooling | 10 | 5/5 | standard | 21 |
-| REQ-F-UX-001 | User Experience (Two-Command UX) | 7 | 4/4 | full | 29 |
-| REQ-F-LIFE-001 | Full Lifecycle Closure | 13 | 5/5 | full | 26 BDD + 44 UAT |
-| REQ-F-SENSE-001 | Sensory Systems | 5 | 4/4 | full | 23 |
-| REQ-F-COORD-001 | Multi-Agent Coordination | 5 | 4/4 | full | 24 |
-| REQ-F-SUPV-001 | IntentEngine Formalization | 2 | 4/4 | full | (shared) |
+## Active Features
 
-## Signals
+All 13 features are converged. No active iteration in progress.
 
-| Signal | Status | Severity | Description |
-|--------|--------|----------|-------------|
-| INT-GAP-001 | unactioned | low | REQ-LIFE-009 (Spec Review as Gradient Check) has no code and no tests |
+| Feature | Title | Phases Complete |
+|---------|-------|-----------------|
+| REQ-F-ENGINE-001 | Asset Graph Engine | req+des+cod+tst |
+| REQ-F-EVAL-001 | Evaluator Framework | req+des+cod+tst |
+| REQ-F-CTX-001 | Context Management | req+des+cod+tst |
+| REQ-F-TRACE-001 | Feature Vector Traceability | req+des+cod+tst |
+| REQ-F-EDGE-001 | Edge Parameterisations | req+des+cod+tst |
+| REQ-F-TOOL-001 | Developer Tooling | req+des+cod+tst+**cicd** |
+| REQ-F-UX-001 | User Experience | req+des+cod+tst |
+| REQ-F-COORD-001 | Multi-Agent Coordination | req+des+cod+tst |
+| REQ-F-SENSE-001 | Sensory Systems | req+des+cod+tst |
+| REQ-F-SUPV-001 | IntentEngine Formalization | req+des+cod+tst |
+| REQ-F-LIFE-001 | Full Lifecycle Closure | req+des+cod+tst+**uat** |
+| REQ-F-FP-001 | F_P Construct & Batched Evaluate | req+des+cod+tst+**uat** |
+| REQ-F-ROBUST-001 | Runtime Robustness | req+des+cod+tst (status stale) |
 
-## Recent Changes (since last STATUS.md)
+### PENDING (spec-defined, no workspace vector)
 
-| Date | Change | Impact |
-|------|--------|--------|
-| 2026-02-22 | ADR-017: Functor-Based Execution Model | Resolves actor model review gate |
-| 2026-02-22 | REQ-F-SUPV-001 added (IntentEngine Formalization) | 11th feature vector, 2 reqs |
-| 2026-02-22 | REQ-ITER-003: Functor Encoding Tracking | 63rd requirement (was 62) |
-| 2026-02-22 | Functor encoding in profiles, edge params, feature vector template | 107 functional_unit annotations, 6 profile encodings |
-| 2026-02-22 | encoding_escalated event type (20th) | Event sourcing expanded |
-| 2026-02-22 | --functor view in /gen-status | Functor registry visibility |
-| 2026-02-22 | 9 new TestFunctorEncoding tests | 502 → 511 tests |
-| 2026-02-25 | USER_GUIDE.md created + Codex-reviewed | REQ-F-TOOL-001 cicd edge converged |
+| Feature REQ | Derives From | Added |
+|------------|-------------|-------|
+| REQ-EVOL-001 | ADR-S-009 §15 | 2026-03-03 |
+| REQ-EVOL-002 | ADR-S-009 §15 | 2026-03-03 |
+| REQ-EVOL-003 | ADR-S-010 §15 | 2026-03-03 |
+| REQ-EVOL-004 | ADR-S-010 §15 | 2026-03-03 |
+| REQ-EVOL-005 | ADR-S-010 §15 | 2026-03-03 |
+
+---
+
+## Signals (Unactioned)
+
+| Intent ID | Signal | Priority |
+|-----------|--------|----------|
+| INT-TELEM-001 | Telemetry signal | Medium |
+| INT-TELEM-002 | Telemetry signal | Medium |
+| INT-TELEM-003 | Telemetry signal | Medium |
+| INT-GAP-001 | Gap analysis finding | High |
+| INT-GAP-TAG-001 | REQ tag coverage gap | High |
+| INT-GAP-TEL-001 | Telemetry coverage gap | Medium |
+| INT-GAP-ORPHAN-001 | Orphaned workspace artifact | Medium |
+| INT-589-001 | Session finding | Medium |
+| INT-589-002 | Session finding | Medium |
+
+These 9 signals are candidates for next-iteration work. Review with `/gen-status --feature "REQ-F-*"` for context.
+
+---
 
 ## Next Actions
 
-1. **Functor execution model implementation** — mode/valence config, affect schema, escalation tests (post ADR-017)
-2. **Action INT-GAP-001** — decide whether REQ-LIFE-009 needs code/tests or is covered by existing spec review
-3. **Multi-tenant implementations** — Gemini Genesis (design complete), Codex Genesis (design complete)
-4. **Phase 2b: Production lifecycle** — CI/CD edges, telemetry, homeostasis
+1. **Fix stale status field** in `REQ-F-ROBUST-001.yml` (`status: in_progress` → `status: converged`)
+2. **Spawn EVOL feature vectors** for REQ-EVOL-001..005 — use `/gen-spawn REQ-EVOL-001` etc.
+3. **Review unactioned signals** — 9 INT-* signals need human triage
+4. **UAT push** — 11 features need uat_tests edges (start with REQ-F-ENGINE-001 as foundation)
+5. **CICD push** — 12 features need cicd edges (expand from REQ-F-TOOL-001 baseline)
 
 ---
 
 ## Process Telemetry
 
 ### Convergence Pattern
-- **All features**: 11/11 converged with 1-3 iterations per edge. No stuck deltas, no time-box expirations.
-- **REQ-F-LIFE-001** was the only feature re-iterated (Phase 2a observer agents): requirements iter 2, design iter 3, code iter 2, unit_tests iter 2, uat_tests iter 2. UAT had 3 failures on iter 1 (legacy event types, schema evolution, config naming) — all fixed in iter 2.
-- **Anomaly**: Most features converged in 1 iteration per edge. This is expected — configs and specs, not runtime code. Phase 2b will have higher iteration counts.
-- **Skipped deterministic checks**: 4 per edge (coverage, lint, format, type-check) — Phase 1a has no executable runtime code; deterministic tools have nothing to run against. These activate in Phase 2b.
 
-### Traceability Coverage
-- **REQ keys defined**: 63 (v3.11.0) — was 62 before functor tracking
-- **REQ keys in feature vectors**: 63/63 (FEATURE_VECTORS.md v1.8.0)
-- **Tests**: 511 passing across 3 test files (config validation: 139, BDD methodology: 235, spec validation: 137)
-- **Config files**: 10 edge params, 6 profiles, 1 graph topology, 1 evaluator defaults, 1 feature vector template — all with functional_unit annotations
+| Edge | Iterations (total) | Avg | Anomalies |
+|------|--------------------|-----|-----------|
+| requirements | 14 across 13 features | 1.1 | LIFE: 2 iters |
+| design | 16 across 13 features | 1.2 | ENGINE: 2, LIFE: 3 |
+| code | 14 across 13 features | 1.1 | LIFE: 2 iters |
+| unit_tests | 14 across 13 features | 1.1 | LIFE: 2 iters |
+| uat_tests | 4 across 2 features | 2.0 | Both 2 iters (normal) |
+| cicd | 1 across 1 feature | 1.0 | — |
 
-### Constraint Surface Observations
-- **No project_constraints.yml** — constraints resolved at spec level (self-hosting project)
-- **Skipped evaluators**: 4 per edge (coverage, lint, format, type-check) — Phase 1a scope
-- **Functor encoding**: All 6 profiles now declare encoding sections; 0 feature-level overrides active
-- **Category-fixed units enforced**: emit=F_D, decide=F_H in all profiles (validated by TestFunctorEncoding)
+**Assessment:** No pathological convergence. LIFE feature (full lifecycle closure) required most iteration — consistent with complexity. No 1-iteration convergence flags. Evaluators appear appropriately challenging.
 
-### Event Log
-- **75 events** in events.jsonl (4 days, 2026-02-19 to 2026-02-22)
-- Event types used: intent_raised (2), spec_modified (9), edge_converged (20), iteration_completed (13), feature_spawned (7), evaluator_ran (3), finding_raised (1), telemetry_signal_emitted (4), gaps_validated (2), release_created (2), edge_started (5)
-- **Missing event type**: encoding_escalated — no escalations yet (expected: will fire when functor execution model goes live)
+### Spec Evolution This Session (2026-03-03)
+
+Four `spec_modified` events emitted (first use of ADR-S-010 schema):
+- `ADR-S-009`: Feature Vector Lifecycle two-layer model (spec=definitions, workspace=trajectory)
+- `ADR-S-010`: Event-Sourced Spec Evolution (`feature_proposal` + `spec_modified` + Draft Features Queue)
+- `AISDLC_IMPLEMENTATION_REQUIREMENTS.md`: 74 → 79 requirements (EVOL category + §15)
+- `specification/README.md`: ADR table + count updated
+
+Trigger type: `manual` (author-direct, not via homeostasis pipeline). Audit trail now operational.
+
+### Traceability Coverage (estimated)
+
+| Layer | Count | Source |
+|-------|-------|--------|
+| REQ keys defined in spec | 79 | AISDLC_IMPLEMENTATION_REQUIREMENTS.md |
+| REQ keys in code (est.) | ~55 | 13 converged code edges |
+| REQ keys in tests (est.) | ~55 | 13 converged test edges |
+| REQ keys in telemetry | 0 | Telemetry phase not started |
+
+Run `/gen-gaps` for precise layer-by-layer coverage.
+
+### Assumption Register
+
+| Assumption | Context | Status |
+|-----------|---------|--------|
+| REQ-EVOL features implementable without new graph nodes | ADR-S-009/010 | Needs validation at design edge |
+| `feature_proposal` consumers handle unknown event types | ADR-S-010 consequences | Advisory — validate in test_methodology_bdd.py |
+| Manual spec edits advisory-only (git hook) | ADR-S-010 §manual | Accepted trade-off |
+
+---
 
 ## Self-Reflection — Feedback → New Intent
 
 | Signal | Observation | Recommended Action |
 |--------|-------------|-------------------|
-| TELEM-003 | Claude's implementation IS the markdown specs — Claude reads and executes them | Resolved. Phase 1a is the complete Claude implementation. |
-| TELEM-020 | All features converge in 1-3 iterations at code↔unit_tests | Expected — configs + specs, not runtime code. Phase 2b will have higher iteration counts. |
-| TELEM-021 | UAT tests found 3 schema evolution issues (legacy event types, old field names, config naming) | Schema evolution should be tracked — consider a schema version field in events. |
-| TELEM-022 | Observer agents close the right side of the abiogenesis loop | Loop is structurally closed. Functional validation requires Phase 2b. |
-| TELEM-024 | Functor encoding added to profiles but feature vectors don't have functor sections yet | Feature vectors need regeneration from template when next iteration runs. Template has functor; existing vectors predate it. |
-| TELEM-025 | 75 events over 4 days, 0 encoding_escalated events | No η has fired — expected since no live functor dispatch exists yet. First escalation will be the canary for the execution model. |
-| TELEM-026 | INT-GAP-001 (REQ-LIFE-009 gap) still unactioned after 10+ hours | Low severity, but stale signals erode trust in the consciousness loop. Decide: action, defer, or dismiss. |
+| TELEM-001 | 9 unactioned signals accumulated — homeostasis generating faster than human review | Add prioritization: High severity → spawn within 1 session |
+| TELEM-002 | `iteration_abandoned` event had empty feature field — Stop hook couldn't associate edge with feature | Add feature-tracking to Stop hook |
+| TELEM-003 | REQ-EVOL-001..005 in spec with no workspace vectors — JOIN PENDING state now visible | Spawn EVOL vectors to begin implementation |
+| TELEM-004 | spec_modified events now working (16 total, 4 this session) — audit trail operational | Validate spec_modified consumption in `/gen-status --health` |
+| TELEM-005 | UAT coverage at 15% (2/13) — gap between code convergence and acceptance verification | Prioritize UAT edge for REQ-F-ENGINE-001 |
+
+---
+
+*Status written to `.ai-workspace/STATUS.md` — 13 features, 55/78 phases converged (71%). 9 unactioned signals. Spec evolution audit trail operational.*

@@ -106,6 +106,7 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-008](adrs/ADR-S-008-sensory-triage-intent-pipeline.md) | Sensory-Triage-Intent | The "Consciousness Loop": how signals become actionable intents |
 | [ADR-S-009](adrs/ADR-S-009-feature-vector-lifecycle-spec-vs-trajectory.md) | Feature Vector Lifecycle | Spec layer = feature definitions; workspace layer = trajectory only; JOIN semantics |
 | [ADR-S-010](adrs/ADR-S-010-event-sourced-spec-evolution.md) | Event-Sourced Spec Evolution | `feature_proposal` and `spec_modified` events; promotion path; Draft Features Queue |
+| [ADR-S-011](adrs/ADR-S-011-openlineage-unified-metadata-standard.md) | OpenLineage Unified Metadata | All events follow OL RunEvent schema; custom facets; local-first; causal chaining via ParentRunFacet |
 
 
 ---
