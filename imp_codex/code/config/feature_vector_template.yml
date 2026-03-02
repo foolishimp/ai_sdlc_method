@@ -66,6 +66,10 @@ children: []
 # Updated by the iterate agent after each iteration.
 
 trajectory:
+  feature_decomp:
+    status: pending                   # pending | iterating | converged
+    escalations: []
+
   requirements:
     status: pending                   # pending | iterating | converged
     escalations: []                   # [{iteration, functional_unit, from, to, trigger, timestamp}]
@@ -79,6 +83,14 @@ trajectory:
     #   human: pending
 
   design:
+    status: pending
+    escalations: []
+
+  module_decomp:
+    status: pending
+    escalations: []
+
+  basis_projections:
     status: pending
     escalations: []
 

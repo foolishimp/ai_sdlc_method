@@ -1,0 +1,39 @@
+# Edge Parameterisation: Requirements → Feature Decomposition
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2.1, §6.1
+
+---
+
+edge: "requirements→feature_decomp"
+pattern: decomposition
+description: |
+  Decompose structured requirements into deliverable feature vectors (REQ-F-*),
+  with priorities and dependencies, ready to flow into design.
+
+source_analysis:
+  - name: "requirements_clarity_for_decomposition"
+    functional_unit: sense
+    criterion: "Identify ambiguous or overlapping requirements that hinder clean feature boundaries."
+    required: true
+
+checklist:
+  - name: "features_listed"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Features (REQ-F-*) identified with titles and descriptions; each traces to one or more requirements."
+    required: true
+
+  - name: "priorities_defined"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Each feature has an explicit priority and ordering rationale."
+    required: true
+
+  - name: "dependencies_declared"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Inter-feature dependencies identified where applicable."
+    required: false
+
+convergence:
+  rule: "all_required_checks_pass"
+

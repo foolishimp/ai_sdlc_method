@@ -141,6 +141,23 @@ Layer 3: PROJECT BINDING        Workspace:
 - Different graph packages can be created by forking the `config/` directory
 - The iterate agent reads Layer 2 config at runtime, never hard-codes domain knowledge
 
+#### 1.3.1 Graph Topology Update — Explicit Build Nodes (Spec §2.1, §6.7)
+
+The specification promotes intermediate build nodes between Design and Code to first-class edges for parallelism and traceability:
+
+```
+Requirements → Feature Decomposition → Design → Module Decomposition → Basis Projections → Code ↔ Unit Tests
+```
+
+Implications for the plugin design:
+- New asset types: `feature_decomp`, `module_decomp`, `basis_projections` with their own schemas and Markov criteria.
+- New admissible transitions: `requirements→feature_decomp`, `feature_decomp→design`, `design→module_decomp`, `module_decomp→basis_projections`, `basis_projections→code`.
+- Evaluators attach at each new edge, enabling explicit convergence of build architecture prior to implementation.
+
+Current plugin configuration (v2.7.0 topology) still includes `design→code` directly for backward compatibility. This design document adopts the explicit nodes as the target model; subsequent config updates will align `graph_topology.yml`, edge parameterisations, and role authorisations to these edges.
+
+References: ADR‑S‑006 (Feature Decomposition), ADR‑S‑007 (Module Decomposition & Basis Projections), AI_SDLC_ASSET_GRAPH_MODEL §2.1/§6.7.
+
 ### 1.4 Constraint Dimensions at the Design Edge (Spec §2.6.1)
 
 The Requirements → Design edge is the most consequential transition. The spec defines **constraint dimensions** — categories of disambiguation that design must resolve. In the implementation:
@@ -172,6 +189,16 @@ Note: `edge_claim` is an inbox-local event in multi-agent mode (ADR-013) — it 
 All methodology commands emit events. The event log is the sole integration contract between the methodology and any external observer (e.g., genesis-monitor). See the iterate agent's **Event Type Reference** for the canonical schema catalogue.
 
 This is an engine-level primitive (Layer 1) — it applies regardless of graph package.
+
+#### 1.5.1 Runtime Robustness for Probabilistic Processing (Spec §14, REQ‑ROBUST‑001/002/003/007/008)
+
+The engine enforces runtime robustness around probabilistic processing (F_P):
+- Isolation: each F_P invocation executes in an isolated boundary so callers can terminate it cleanly on timeout/error without cascading stalls.
+- Supervisor pattern: enforce wall‑clock timeouts, detect stalls (no observable progress), retry on transient failures (bounded), and return structured error on persistent failure.
+- Failure event emission: guarantee emission of structured failure events (classification: timeout/error/stall, duration, retry count, edge, feature) to `events.jsonl`.
+- Crash/session gap recovery: on startup, scan for `edge_started` without corresponding completion and emit `iteration_abandoned` events with feature/edge/timestamps.
+
+These behaviours integrate with the IntentEngine pipeline (observer → evaluator → typed_output). Failure observability is a prerequisite for homeostasis: unobserved failure yields a zero delta. See ADR‑CG‑009 and ADR‑S‑008 (Sensory‑Triage‑Intent) for the triage path.
 
 ### 1.6 Methodology Self-Observation (Spec §7.5)
 

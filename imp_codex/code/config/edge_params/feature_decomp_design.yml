@@ -1,0 +1,33 @@
+# Edge Parameterisation: Feature Decomposition → Design
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2.1
+
+---
+
+edge: "feature_decomp→design"
+pattern: design
+description: |
+  Map decomposed features to architectural components and produce a cohesive design
+  with ADRs, data models, and interface specifications.
+
+source_analysis:
+  - name: "feature_coverage_in_design"
+    functional_unit: sense
+    criterion: "Verify each feature is addressed by at least one design component."
+    required: true
+
+checklist:
+  - name: "components_defined"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Design components and interfaces are specified and traced to features/requirements."
+    required: true
+
+  - name: "adrs_present"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Key technology and architectural decisions recorded as ADRs."
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+

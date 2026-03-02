@@ -30,13 +30,17 @@ roles:
     description: "Designs system architecture, resolves constraint dimensions, creates ADRs"
     converge_edges:
       - intent_requirements
+      - requirements_feature_decomp
+      - feature_decomp_design
       - requirements_design
-      - design_code
+      - design_module_decomp
+      - module_decomp_basis_projections
     human_review_bypass: false   # architect still needs human review where configured
 
   tdd_engineer:
     description: "Implements code and tests via TDD co-evolution"
     converge_edges:
+      - basis_projections_code
       - code_unit_tests
       - design_test_cases
     human_review_bypass: false

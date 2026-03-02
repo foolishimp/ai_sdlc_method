@@ -45,7 +45,7 @@ fi
 
 # Fallback: if topology parse failed or file not found, use known defaults
 if [ -z "${ASSET_TYPES:-}" ]; then
-  ASSET_TYPES="intent|requirements|design|module_decomp|basis_projections|code|unit_tests|uat_tests|test_cases|cicd|running_system|telemetry"
+  ASSET_TYPES="intent|requirements|feature_decomp|design|module_decomp|basis_projections|code|unit_tests|uat_tests|test_cases|cicd|running_system|telemetry"
 fi
 
 # Extract edge from the prompt (best-effort parse)

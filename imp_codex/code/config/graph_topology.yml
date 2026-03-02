@@ -48,6 +48,19 @@ asset_types:
       - traces_to_intent
       - human_approved
 
+  feature_decomp:
+    description: "Decomposition of requirements into deliverable features (REQ-F-*)"
+    schema:
+      features: list
+      priorities: list
+      dependencies: list
+      approvals: list
+    markov_criteria:
+      - features_listed
+      - priorities_defined
+      - traces_to_requirements
+      - human_approved
+
   design:
     description: "Technical solution architecture with component specs and ADRs"
     schema:
@@ -61,6 +74,30 @@ asset_types:
       - traces_to_requirements
       - adrs_documented
       - human_approved
+
+  module_decomp:
+    description: "Build architecture: module map, dependency DAG, interface contracts"
+    schema:
+      modules: list
+      dependency_dag: list
+      interfaces: list
+      ownership: list
+    markov_criteria:
+      - dag_acyclic
+      - components_mapped
+      - interfaces_defined
+      - traces_to_design
+
+  basis_projections:
+    description: "Feature×Module projections: minimal module subsets per feature"
+    schema:
+      projections: list
+      priority_order: list
+      assumptions: list
+    markov_criteria:
+      - all_mvp_features_projected
+      - projections_consistent_with_interfaces
+      - priority_order_respects_dependencies
 
   code:
     description: "Implementation source code tagged with REQ keys"
@@ -252,6 +289,22 @@ transitions:
     constructor: agent
     edge_config: "edge_params/intent_requirements.yml"
 
+  - name: "Requirements → Feature Decomposition"
+    source: requirements
+    target: feature_decomp
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+    edge_config: "edge_params/requirements_feature_decomp.yml"
+
+  - name: "Feature Decomposition → Design"
+    source: feature_decomp
+    target: design
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+    edge_config: "edge_params/feature_decomp_design.yml"
+
   - name: "Requirements → Design"
     source: requirements
     target: design
@@ -260,7 +313,31 @@ transitions:
     constructor: agent
     edge_config: "edge_params/requirements_design.yml"
 
-  - name: "Design → Code"
+  - name: "Design → Module Decomposition"
+    source: design
+    target: module_decomp
+    edge_type: standard
+    evaluators: [agent, deterministic]
+    constructor: agent
+    edge_config: "edge_params/design_module_decomp.yml"
+
+  - name: "Module Decomposition → Basis Projections"
+    source: module_decomp
+    target: basis_projections
+    edge_type: standard
+    evaluators: [agent, deterministic]
+    constructor: agent
+    edge_config: "edge_params/module_decomp_basis_projections.yml"
+
+  - name: "Basis Projections → Code"
+    source: basis_projections
+    target: code
+    edge_type: standard
+    evaluators: [agent, deterministic]
+    constructor: agent
+    edge_config: "edge_params/basis_projections_code.yml"
+
+  - name: "Design → Code"  # Backward compatibility
     source: design
     target: code
     edge_type: standard

@@ -119,3 +119,11 @@ Each `intent_raised` event carries:
 - **REQ-LIFE-006**: Signal source classification — 7 types covering all observer points
 - **REQ-LIFE-007**: Spec change events — `spec_modified` with traceability
 - **REQ-LIFE-008**: Protocol enforcement hooks — mandatory side effects after every iteration
+
+---
+
+## References
+
+- AI_SDLC_ASSET_GRAPH_MODEL (§4.3, §7.5)  
+- edge_params/feedback_loop.yml  
+- ADR‑S‑008 (spec): Sensory‑Triage‑Intent pipeline — development‑time observers feed the same triage/escalation loop
