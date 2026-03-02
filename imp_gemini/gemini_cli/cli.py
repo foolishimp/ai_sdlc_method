@@ -56,7 +56,7 @@ def main():
     iterate_p.add_argument("--feature", required=True)
     iterate_p.add_argument("--edge", required=True)
     iterate_p.add_argument("--asset", required=True)
-    iterate_p.add_argument("--mode", default="interactive", choices=["interactive", "headless"])
+    iterate_p.add_argument("--mode", default="auto", choices=["interactive", "headless", "auto"])
 
     # Checkpoint: Save snapshot
     checkpoint_p = subparsers.add_parser("checkpoint", help="Save workspace snapshot")

@@ -33,7 +33,8 @@ class AffectTriageEngine:
     def _triage_signal(self, signal: Dict):
         data = signal.get("data", {})
         monitor_id = data.get("monitor_id")
-        severity = data.get("severity")
+        valence = data.get("valence", {})
+        severity = valence.get("severity", "info")
         
         # Check triage rules
         rules = self.config.get("rules", [])
@@ -42,8 +43,27 @@ class AffectTriageEngine:
                 action = rule.get("action")
                 if action == "raise_intent":
                     self._raise_intent(signal, rule)
+                elif action == "propose_feature":
+                    self._propose_feature(signal, rule)
                 elif action == "emit_affect":
                     self._emit_affect(signal, rule)
+
+    def _propose_feature(self, signal: Dict, rule: Dict):
+        data = signal.get("data", {})
+        # Simple heuristic for IDs
+        proposal_id = f"PROP-{int(datetime.now().timestamp())}"
+        self.store.emit(
+            "feature_proposal",
+            project=signal.get("project", "unknown"),
+            data={
+                "proposal_id": proposal_id,
+                "feature_id": rule.get("proposed_fid", "REQ-F-AUTO"),
+                "title": rule.get("proposed_title", "Automatic Corrective Feature"),
+                "requirements": rule.get("requirements", []),
+                "intent_id": data.get("monitor_id", "INT-AUTO"),
+                "trigger_signal_id": signal.get("timestamp")
+            }
+        )
 
     def _raise_intent(self, signal: Dict, rule: Dict):
         data = signal.get("data", {})

@@ -46,3 +46,21 @@ class FeatureTrajectory:
     feature_id: str
     status: str
     trajectory: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
+@dataclass
+class FeatureProposal:
+    proposal_id: str
+    feature_id: str
+    title: str
+    description: str
+    requirements: List[str]
+    intent_id: str
+    status: str = "pending" # pending, approved, dismissed
+
+@dataclass
+class SpecModification:
+    previous_hash: str
+    new_hash: str
+    delta: str
+    trigger_event_id: str
+    timestamp: datetime = field(default_factory=lambda: datetime.now())

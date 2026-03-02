@@ -1,66 +1,117 @@
-from pathlib import Path
 import json
+import hashlib
+from pathlib import Path
+from datetime import datetime, timezone
 from gemini_cli.engine.state import EventStore
+from gemini_cli.commands.spawn import SpawnCommand
 
 class ReviewCommand:
-    """Implements the Review Boundary (REQ-SENSE-005)."""
+    """Implements the Review Boundary (REQ-SENSE-005) and Promotion Phase."""
     
     def __init__(self, workspace_root: Path):
         self.workspace_root = workspace_root
+        self.project_root = workspace_root.parent
         self.store = EventStore(workspace_root)
 
     def run(self, action: str = "list", proposal_id: str = None):
-        proposals_path = self.workspace_root / "proposals"
-        proposals_path.mkdir(exist_ok=True)
+        events = self.store.load_all()
+        proposals = [e for e in events if e["event_type"] == "feature_proposal"]
         
+        # Filter for only latest status of each proposal
+        latest_proposals = {}
+        for p in proposals:
+            pid = p["data"]["proposal_id"]
+            latest_proposals[pid] = p
+
         if action == "list":
-            proposals = list(proposals_path.glob("*.json"))
-            if not proposals:
-                print("No pending proposals for review.")
-                return
-            
-            print("\nPENDING PROPOSALS")
-            print("="*30)
-            for p in proposals:
-                with open(p) as f:
-                    data = json.load(f)
-                    print(f"[{p.stem}] {data.get('title', 'No Title')}")
-                    print(f"  Source: {data.get('source', 'Unknown')}")
-                    print(f"  Severity: {data.get('severity', 'info')}")
-                    print("-" * 20)
-        
-        elif action == "approve" and proposal_id:
-            p_file = proposals_path / f"{proposal_id}.json"
-            if not p_file.exists():
-                print(f"Proposal {proposal_id} not found.")
-                return
-            
-            with open(p_file) as f:
-                data = json.load(f)
-            
-            # Record approval event
-            self.store.emit(
-                "proposal_approved",
-                project="imp_gemini",
-                data={"proposal_id": proposal_id, "type": data.get("type")}
-            )
-            
-            # Delete proposal after approval
-            p_file.unlink()
-            print(f"Proposal {proposal_id} approved and applied.")
-            
-        elif action == "dismiss" and proposal_id:
-            p_file = proposals_path / f"{proposal_id}.json"
-            if not p_file.exists():
-                print(f"Proposal {proposal_id} not found.")
-                return
-            
+            print("\nPENDING FEATURE PROPOSALS")
+            print("="*40)
+            for pid, p in latest_proposals.items():
+                data = p["data"]
+                print(f"[{pid}] {data['feature_id']}: {data['title']}")
+                print(f"      Intent: {data['intent_id']} | Triggered: {p['timestamp']}")
+            return
+
+        if not proposal_id:
+            print("Error: Action requires --id")
+            return
+
+        if proposal_id not in latest_proposals:
+            print(f"Error: Proposal {proposal_id} not found.")
+            return
+
+        proposal = latest_proposals[proposal_id]
+
+        if action == "approve":
+            self._promote_proposal(proposal)
+        elif action == "dismiss":
             self.store.emit(
                 "proposal_dismissed",
                 project="imp_gemini",
                 data={"proposal_id": proposal_id}
             )
-            p_file.unlink()
             print(f"Proposal {proposal_id} dismissed.")
+
+    def _promote_proposal(self, proposal: Dict):
+        data = proposal["data"]
+        fid = data["feature_id"]
+        title = data["title"]
+        reqs = data.get("requirements", [])
+        
+        print(f"Promoting {fid} to Specification Singleton...")
+
+        spec_file = self.project_root / "specification" / "features" / "FEATURE_VECTORS.md"
+        if not spec_file.exists():
+            print(f"Error: Spec file not found at {spec_file}")
+            return
+
+        # 1. Update Singleton Definition (Idempotent append)
+        content = spec_file.read_text()
+        prev_hash = hashlib.sha256(content.encode()).hexdigest()
+        
+        if f"### {fid}:" in content:
+            print(f"Warning: {fid} already exists in spec. Skipping file write.")
         else:
-            print(f"Unknown action: {action}")
+            new_entry = f"\n---\n\n### {fid}: {title}\n\nGenerated from homeostatic response to {data['intent_id']}.\n\n**Satisfies**: {', '.join(reqs)}\n\n**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩\n"
+            content += new_entry
+            spec_file.write_text(content)
+            
+            new_hash = hashlib.sha256(content.encode()).hexdigest()
+            
+            # 2. Emit spec_modified event
+            self.store.emit(
+                "spec_modified",
+                project="imp_gemini",
+                data={
+                    "previous_hash": prev_hash,
+                    "new_hash": new_hash,
+                    "delta": f"Added feature {fid}",
+                    "trigger_event_id": proposal["timestamp"]
+                }
+            )
+
+        # 3. Inflate Workspace Vector (The "How")
+        spawn = SpawnCommand(self.workspace_root)
+        spawn.run(fid, intent_id=data["intent_id"], vector_type="feature")
+        
+        # 4. Emit proposal_approved
+        self.store.emit(
+            "proposal_approved",
+            project="imp_gemini",
+            data={"proposal_id": data["proposal_id"], "feature_id": fid}
+        )
+        
+        print(f"Successfully promoted {fid}. Operational trajectory initialized.")
+        
+        # 5. Git Integration (Optional/Requested)
+        self._git_commit(fid, data["proposal_id"])
+
+    def _git_commit(self, fid: str, pid: str):
+        try:
+            import subprocess
+            subprocess.run(["git", "add", "specification/features/FEATURE_VECTORS.md"], cwd=self.project_root)
+            msg = f"feat: Promote proposal {pid} ({fid}) to specification"
+            subprocess.run(["git", "commit", "-m", msg], cwd=self.project_root)
+            print(f"Git commit created: {msg}")
+        except Exception as e:
+            print(f"Git commit failed: {e}")

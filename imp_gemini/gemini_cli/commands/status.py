@@ -18,7 +18,7 @@ class StatusCommand:
 
     def run(self):
         events = self.store.load_all()
-        status_data = Projector.get_feature_status(events)
+        status_data = Projector.get_feature_status(events, project_root=self.project_root)
         current_state = self.state_mgr.get_current_state()
         
         print("\nAI SDLC CURRENT STATUS")
@@ -41,6 +41,13 @@ class StatusCommand:
         # 1. Phase Completion Summary
         converged_count = 0
         in_progress_count = 0
+        # Reference the v2.8.0 canonical edges for summary
+        canonical_edges = [
+            "intent→requirements", "requirements→feature_decomp", "feature_decomp→design",
+            "design→module_decomp", "module_decomp→basis_proj", "basis_proj→code",
+            "code↔unit_tests", "design→test_cases", "module_decomp→uat_tests"
+        ]
+        
         for feat, data in status_data.items():
             for edge, state in data["trajectory"].items():
                 if state == "converged":
@@ -71,7 +78,9 @@ State: {current_state.value}
 ## Feature Trajectory
 """
         for feat, data in status_data.items():
-            content += f"\n### {feat}\n"
+            if data["status"] == "pending":
+                continue
+            content += f"\n### {feat}: {data.get('title', 'Unknown')}\n"
             content += "| Edge | Status | Iteration | Delta |\n"
             content += "|------|--------|-----------|-------|\n"
             for edge, state_info in data["trajectory"].items():
@@ -86,8 +95,13 @@ State: {current_state.value}
                     delta = "N/A"
                 content += f"| {edge} | {status} | {iter_count} | {delta} |\n"
 
+        content += "\n## Pending Features (from Spec)\n"
+        for feat, data in status_data.items():
+            if data["status"] == "pending":
+                content += f"- **{feat}**: {data.get('title', 'No Title')}\n"
+
         content += f"""
-## Traceability Coverage
+        ## Traceability Coverage
 - Estimated Requirements: {total_reqs}
 - Verified: {converged_count} (Estimated)
 

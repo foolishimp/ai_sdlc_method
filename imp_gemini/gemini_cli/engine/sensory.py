@@ -79,9 +79,12 @@ class SensoryService:
             )
 
     def _emit_signal(self, event_type: str, monitor_id: str, name: str, data: Dict):
-        # Determine severity based on thresholds in config
-        severity = "info"
-        # TODO: Implement threshold checking logic
+        # ADR-S-008: Every signal carries a Valence Vector (severity, urgency, priority)
+        valence = {
+            "severity": data.get("severity", "info"),
+            "urgency": data.get("urgency", "low"),
+            "priority": data.get("priority", "low")
+        }
         
         self.store.emit(
             event_type,
@@ -89,7 +92,7 @@ class SensoryService:
             data={
                 "monitor_id": monitor_id,
                 "name": name,
-                "severity": severity,
+                "valence": valence,
                 **data
             }
         )
