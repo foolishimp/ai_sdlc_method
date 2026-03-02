@@ -3,22 +3,6 @@ intent: INT-001
 parent: null
 status: converged
 trajectory:
-  code:
-    asset: gemini_cli/engine/iterate.py
-    delta: 0
-    iteration: 3
-    status: converged
-    updated_at: '2026-02-26T22:11:58.308364+00:00'
-  design:
-    delta: 0
-    status: converged
-    updated_at: '2026-02-26T22:07:40.492731+00:00'
-  design->code:
-    asset: gemini_cli/engine/iterate.py
-    delta: 0
-    iteration: 2
-    status: converged
-    updated_at: '2026-02-26T22:11:19.784921+00:00'
   intent:
     status: converged
   "intent\u2192requirements": converged
@@ -26,7 +10,34 @@ trajectory:
     delta: 0
     status: converged
     updated_at: '2026-02-26T22:07:18.865475+00:00'
-  "requirements\u2192design": converged
+  "requirements\u2192feature_decomp": converged
+  feature_decomposition:
+    delta: 0
+    status: converged
+    updated_at: '2026-03-02T01:00:00.000000+00:00'
+  "feature_decomp\u2192design": converged
+  design:
+    delta: 0
+    status: converged
+    updated_at: '2026-02-26T22:07:40.492731+00:00'
+  "design\u2192module_decomp": converged
+  module_decomposition:
+    delta: 0
+    status: converged
+    updated_at: '2026-03-02T01:00:00.000000+00:00'
+  "module_decomp\u2192basis_proj": converged
+  basis_projections:
+    delta: 0
+    status: converged
+    updated_at: '2026-03-02T01:00:00.000000+00:00'
+  "basis_proj\u2192code": converged
+  code:
+    asset: gemini_cli/engine/iterate.py
+    delta: 0
+    iteration: 3
+    status: converged
+    updated_at: '2026-02-26T22:11:58.308364+00:00'
+  code↔unit_tests: converged
   unit_tests:
     asset: gemini_cli/engine/iterate.py
     delta: 0
