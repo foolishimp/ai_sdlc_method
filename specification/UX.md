@@ -20,7 +20,7 @@ This document defines the **user experience** of the AI SDLC methodology. It ans
 |----------|------------------|------------------------------|
 | [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | The formal system (constraints, invariants, symmetries) | Journeys must be **satisfiable** within the formal system |
 | [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | Platform-agnostic WHAT (including §11 REQ-UX-* requirements) | Journeys exercise requirements end-to-end; gaps drive new REQ keys |
-| [UAT_TEST_CASES.md](UAT_TEST_CASES.md) | Exhaustive functional use cases per REQ key | Scenarios here are **cross-cutting** — each touches many REQ keys simultaneously |
+| [UAT_TEST_CASES.md](../verification/UAT_TEST_CASES.md) | Exhaustive functional use cases per REQ key | Scenarios here are **cross-cutting** — each touches many REQ keys simultaneously |
 | [FEATURE_VECTORS.md](FEATURE_VECTORS.md) | Feature decomposition | Journeys may reveal missing feature vectors |
 | [PROJECTIONS_AND_INVARIANTS.md](PROJECTIONS_AND_INVARIANTS.md) | Projection profiles and vector types | Journeys exercise specific profiles end-to-end |
 

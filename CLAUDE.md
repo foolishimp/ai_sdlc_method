@@ -62,9 +62,11 @@ ai_sdlc_method/
 │   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # 74 platform-agnostic requirements
 │   ├── FEATURE_VECTORS.md                  #   13 features with dependency graph
 │   ├── UX.md                               #   User journeys and validation scenarios
-│   ├── UAT_TEST_CASES.md                   #   BDD acceptance tests (9 use cases)
 │   ├── USER_GUIDE.md                       #   Practitioner guide
 │   └── presentations/
+│
+├── verification/                           # SHARED — acceptance contracts (not spec, not impl)
+│   └── UAT_TEST_CASES.md                   #   BDD acceptance tests (9 use cases, platform-agnostic)
 │
 ├── imp_claude/                             # Claude Code implementation
 │   ├── design/
@@ -138,7 +140,7 @@ See **[specification/README.md](specification/README.md)** for the full document
 | Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 74 platform-agnostic requirements (the build contract) |
 | Feature Vectors | specification/FEATURE_VECTORS.md | 13 features with dependency graph and task plan |
 | UX | specification/UX.md | User journeys, MVP features, validation scenarios |
-| UAT Test Cases | specification/UAT_TEST_CASES.md | Acceptance tests — 9 use cases, BDD-style |
+| UAT Test Cases | verification/UAT_TEST_CASES.md | Shared acceptance contract — 9 use cases, BDD-style (verification, not spec) |
 | User Guide | specification/USER_GUIDE.md | Practitioner guide for Genesis day-to-day use |
 
 ### Implementation (Claude Code)
