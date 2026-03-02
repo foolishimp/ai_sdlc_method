@@ -58,12 +58,14 @@ Constraint-Emergence Ontology  (external)
         ├──► core/GENESIS_BOOTLOADER.md            LLM operational distillation
         │
         └──► requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md   74 requirements
+                    │                   (spec/design boundary is downstream of here)
+                    ├──► features/FEATURE_VECTORS.md      13 features, dependency DAG, build order, MVP scope
+                    │           │
+                    │           ├──► ux/UX.md              User journeys, MVP, validation
+                    │           │
+                    │           └──► verification/UAT_TEST_CASES.md   Acceptance contracts (9 use cases)
                     │
-                    ├──► features/FEATURE_VECTORS.md      13 features, dependency graph
-                    │
-                    ├──► ux/UX.md                          User journeys, MVP, validation
-                    │
-                    └──► verification/UAT_TEST_CASES.md    Acceptance contracts (9 use cases)
+                    └──► (ux/ and verification/ also derive from requirements directly)
 ```
 
 **Rule**: downstream documents may not contradict upstream ones. A conflict is always resolved by fixing the downstream document.
@@ -99,6 +101,7 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-003](adrs/ADR-S-003-req-key-format.md) | REQ key format | `REQ-{CLASS}-{SEQ}` threads from spec to code to tests to telemetry |
 | [ADR-S-004](adrs/ADR-S-004-derivation-constraint.md) | Derivation constraint | Downstream may not contradict upstream; fix the downstream doc |
 | [ADR-S-005](adrs/ADR-S-005-spec-versioning-contract.md) | Spec versioning | Semantic versioning; breaking changes listed explicitly |
+| [ADR-S-006](adrs/ADR-S-006-feature-decomposition-node.md) | Feature Decomposition node | Explicit graph node between Requirements and Design; spec/design boundary moves |
 
 ---
 

@@ -48,6 +48,21 @@ asset_types:
       - traces_to_intent
       - human_approved
 
+  feature_decomposition:
+    description: "Tech-agnostic decomposition of requirements into dependency-ordered buildable features"
+    schema:
+      features: list               # Each feature: id (REQ-F-*), name, satisfies (list of REQ keys)
+      dependency_dag: object       # Adjacency list: feature_id → [feature_ids that must converge first]
+      build_order: list            # Topological sort of dependency_dag
+      mvp_scope: list              # Feature IDs in MVP (connected subgraph)
+      deferred_scope: list         # Feature IDs explicitly deferred past MVP
+    markov_criteria:
+      - all_req_f_keys_assigned    # Every REQ-F-* key is in exactly one feature
+      - dag_is_acyclic             # No circular feature dependencies
+      - build_order_derivable      # Topological sort succeeds
+      - mvp_scope_marked           # MVP/deferred boundary explicitly stated
+      - human_approved
+
   design:
     description: "Technical solution architecture with component specs and ADRs"
     schema:
@@ -58,7 +73,7 @@ asset_types:
       dependencies: list
     markov_criteria:
       - has_components
-      - traces_to_requirements
+      - traces_to_feature_decomposition
       - adrs_documented
       - human_approved
 
@@ -252,13 +267,22 @@ transitions:
     constructor: agent
     edge_config: "edge_params/intent_requirements.yml"
 
-  - name: "Requirements → Design"
+  - name: "Requirements → Feature Decomposition"
     source: requirements
+    target: feature_decomposition
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+    edge_config: "edge_params/requirements_feature_decomp.yml"
+
+  - name: "Feature Decomposition → Design"
+    source: feature_decomposition
     target: design
     edge_type: standard
     evaluators: [agent, human]
     constructor: agent
     edge_config: "edge_params/requirements_design.yml"
+    note: "PoC/spike profiles may collapse this to Requirements → Design directly (zoom)"
 
   - name: "Design → Code"
     source: design
@@ -330,4 +354,4 @@ graph_properties:
   cyclic: true         # Feedback loop: telemetry → intent
   extensible: true     # Add new asset types/transitions via YAML
   zoomable: true       # Any edge can expand into a sub-graph
-  version: "2.7.0"
+  version: "2.8.0"

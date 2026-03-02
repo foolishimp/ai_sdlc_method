@@ -59,29 +59,32 @@ Each edge is the same operation: `iterate()` until evaluators converge. The edge
 A **delivered feature** is the composite of all assets produced along its edges. Software feature delivery is a composite vector:
 
 ```
-Feature F = |req⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
+Feature F = |req⟩ + |feature_decomp⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
 ```
 
 The SDLC asset graph:
 
 ```
-                        ┌──→ UAT Tests ──────────────────────────────────────────┐
-                        │                                                         │
-Intent → Requirements → Design ──→ Module Decomp → Basis Projections → Code → Unit Tests
-              ↑            │                                         │            │
-              │            └──→ Test Cases                           │            ↓
-              │                   │                         CI/CD ◄──┘   Running System → Telemetry
-              │                   │                                                         │
-              └───────────────────┴──────────────── Observer/Evaluator ◄────────────────────┘
-                                                           │
-                                                           ▼
-                                                      New Intent
+                                                      ┌──→ UAT Tests ──────────────────────────────┐
+                                                      │                                             │
+Intent → Requirements → Feature Decomp → Design ──→ Module Decomp → Basis Projections → Code → Unit Tests
+              ↑                │              │                                       │            │
+              │                │              └──→ Test Cases                         │            ↓
+              │                │                       │                    CI/CD ◄──┘   Running System → Telemetry
+              │                │                       │                                             │
+              └────────────────┴───────────────────────┴────── Observer/Evaluator ◄─────────────────┘
+                                                                      │
+                                                                      ▼
+                                                                 New Intent
+
+ ← ─ ─ ─ ─ ─ ─ ─ ─ SPEC (tech-agnostic) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ DESIGN (tech-bound) ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ →
 ```
 
 ```mermaid
 graph LR
     INT[Intent] --> REQ[Requirements]
-    REQ --> DES[Design]
+    REQ --> FDEC[Feature Decomposition]
+    FDEC --> DES[Design]
     DES --> MOD[Module Decomposition]
     MOD --> ST[Basis Projections]
     ST --> CODE[Code]
@@ -100,6 +103,7 @@ graph LR
     style INT fill:#f9f,stroke:#333
     style INT2 fill:#f9f,stroke:#333
     style OBS fill:#ff9,stroke:#333
+    style FDEC fill:#e8f5e9,stroke:#388e3c
     style MOD fill:#e1f5fe,stroke:#0288d1
     style ST fill:#e1f5fe,stroke:#0288d1
 ```
@@ -136,9 +140,11 @@ The graph topology follows the abiogenesis pattern (#39): domain constraints pro
 The graph is **zoomable** and **selectively** so. Any edge can be expanded into a sub-graph, any sub-graph collapsed into a single edge. Selective zoom — the common case — collapses some intermediates while retaining others as mandatory waypoints.
 
 ```
-Full:       Intent → Requirements → Design → Code ↔ Tests → UAT
-PoC:        Intent ──────────────→ Design → Code ↔ Tests
-                                   ↑ mandatory intermediate
+Full:       Intent → Requirements → Feature Decomp → Design → Code ↔ Tests → UAT
+Standard:   Intent → Requirements → Feature Decomp → Design → Code ↔ Tests
+PoC:        Intent → Requirements ─────────────────→ Design → Code ↔ Tests
+                                            ↑ Feature Decomp collapsed (Requirements → Design directly)
+Spike:      Intent ──────────────────────────────────────→ Code ↔ Tests
 ```
 
 **Build decomposition** applies zoom to the Design → Code edge. For multi-module systems, the single edge is too coarse:
@@ -199,28 +205,31 @@ Because the graph is fractal, this pattern is recursive: any construction edge a
 
 The asset graph contains a fundamental boundary between **specification** and **design**:
 
-- **Spec** (Requirements) = **WHAT** the system does. Tech-agnostic. One spec can have many designs.
+- **Spec** = **WHAT** the system does. Tech-agnostic. Covers Intent, Requirements, and Feature Decomposition. One spec can have many designs.
 - **Design** = **HOW** architecturally. Tech-bound — ADRs, ecosystem binding, component architecture.
 
-This boundary is the Requirements → Design edge. Everything upstream of this edge (Intent, Requirements) describes the problem and constraints without committing to technology. Everything downstream (Design, Code, Tests) is bound to a specific technology stack and architecture.
+This boundary is the **Feature Decomposition → Design** edge. Everything upstream of this edge (Intent, Requirements, Feature Decomposition) describes the problem and its structure without committing to technology. Everything downstream (Design, Code, Tests) is bound to a specific technology stack and architecture.
 
 ```
-                 Spec/Design boundary
-                        │
-  Intent → Requirements │ Design → Code ↔ Tests → ...
-                        │
-  WHAT (tech-agnostic)  │  HOW (tech-bound)
-  One spec              │  Many possible designs
+                              Spec/Design boundary
+                                      │
+  Intent → Requirements → Feature Decomp │ Design → Code ↔ Tests → ...
+                                      │
+  WHAT (tech-agnostic)                │  HOW (tech-bound)
+  One spec                            │  Many possible designs
 ```
+
+**Feature Decomposition** is on the spec side: it decomposes requirements into a dependency-ordered build plan — purely in terms of functionality, not technology. The same feature decomposition is valid across all implementations (Claude, Gemini, Codex). Only at Design does technology binding begin.
 
 This separation enables:
-- **Multiple implementations**: The same spec (REQ-F-AUTH-001) can have `design.variant_a`, `design.variant_b`, `design.variant_c` — different designs for the same requirements. Telemetry enables data-driven variant selection.
-- **Technology migration**: Change the design without changing the spec. The requirements survive platform shifts.
-- **Disambiguation routing**: When iteration reveals ambiguity, the evaluator routes feedback to the right level — business gap → Spec, technical gap → Design.
+- **Multiple implementations**: The same feature decomposition (with its dependency DAG) can be implemented via `design.variant_a`, `design.variant_b`, `design.variant_c`. The dependency order is shared; the architecture is per-implementation.
+- **MVP scoping before architecture**: Feature Decomposition makes the MVP boundary a formal graph operation — select a connected subgraph — rather than an informal cut during design.
+- **Technology migration**: Change the design without changing the spec or the feature decomposition. The requirements and build order survive platform shifts.
+- **Disambiguation routing**: When iteration reveals ambiguity, the evaluator routes feedback to the right level — business gap → Requirements (Spec), structural gap → Feature Decomposition, technical gap → Design.
 
 #### 2.6.1 Constraint Dimensions at the Design Edge
 
-The Requirements → Design edge is the most consequential transition in the graph. Design must resolve **all disambiguation necessary for code to be constructed**. Each unresolved dimension leaves the design under-constrained — the constructor fills the gap with implicit assumptions that may be wrong.
+The Feature Decomposition → Design edge is the most consequential transition in the graph. Design receives a structured, dependency-ordered feature plan and must resolve **all disambiguation necessary for code to be constructed**. Each unresolved dimension leaves the design under-constrained — the constructor fills the gap with implicit assumptions that may be wrong.
 
 A **constraint dimension** is a category of decisions that design must explicitly address:
 
@@ -718,7 +727,7 @@ Context itself evolves, but on a slower timescale than assets. This is the ontol
 A **feature** is the composite of all assets produced along its trajectory through the graph:
 
 ```
-Feature F = |req⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
+Feature F = |req⟩ + |feature_decomp⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
 ```
 
 Each component is a stable asset produced by iterating along an edge. The REQ key is the **vector identifier** — it tags which trajectory all these assets belong to. A feature is **complete** when all its edge-produced assets have converged to Markov objects. Components like |module_decomp⟩ and |basis_projections⟩ are present when the graph is zoomed in at the build decomposition level (§2.5); at zoomed-out level they collapse into the Design → Code edge.

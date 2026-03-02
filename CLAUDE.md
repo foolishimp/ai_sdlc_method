@@ -23,13 +23,18 @@ The graph is not universal. The SDLC graph is one domain-specific instantiation.
 
 ```
 1. Intent
-2. Spec (tech-agnostic — WHAT the system does)
-3. Design (tech-bound — HOW architecturally, ADRs, ecosystem binding)
-4. Code ↔ Unit Tests (TDD co-evolution)
-5. UAT Tests
-6. CI/CD
-7. Telemetry / Observer → feedback → new Intent
+2. Requirements (tech-agnostic — WHAT the system must do, REQ-* keys)
+3. Feature Decomposition (tech-agnostic — WHICH buildable units, dependency DAG, MVP scope)
+4. Design (tech-bound — HOW architecturally, ADRs, ecosystem binding)
+5. Code ↔ Unit Tests (TDD co-evolution)
+6. UAT Tests
+7. CI/CD
+8. Telemetry / Observer → feedback → new Intent
 ```
+
+The spec/design boundary is at **Feature Decomposition → Design**.
+Everything upstream (Intent, Requirements, Feature Decomposition) is tech-agnostic.
+Everything downstream (Design, Code, Tests) is technology-bound.
 
 ### Feature Lineage
 
