@@ -118,7 +118,7 @@ The Spec (Intent + Context[]) shall be canonically serialisable, versioned, and 
 The system shall maintain a registry of asset types with typed interfaces.
 
 **Acceptance Criteria**:
-- Default types: Intent, Requirements, Design, Code, Unit Tests, Test Cases, UAT Tests, CI/CD, Running System, Telemetry
+- Default types: Intent, Requirements, Feature Decomposition, Design, Module Decomposition, Basis Projections, Code, Unit Tests, Test Cases, UAT Tests, CI/CD, Running System, Telemetry
 - Each type has: schema/interface definition, Markov criteria (#7)
 - Registry extensible — new types addable without engine changes
 
@@ -134,6 +134,7 @@ The system shall define and enforce admissible transitions between asset types.
 
 **Acceptance Criteria**:
 - Transitions are directed edges with source type and target type
+- Default edges: Intent → Requirements, Requirements → Feature Decomposition, Feature Decomposition → Design, Design → Module Decomposition, Module Decomposition → Basis Projections, Basis Projections → Code, Code ↔ Unit Tests, Design → Test Cases, Design → UAT Tests, Code → CI/CD, CI/CD → Running System, Running System → Telemetry, Telemetry → Intent
 - Graph is cyclic (feedback edges are first-class)
 - Only admissible transitions can be traversed
 - Transition registry extensible — new edges addable

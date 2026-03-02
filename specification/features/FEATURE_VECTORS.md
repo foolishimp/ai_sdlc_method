@@ -21,7 +21,7 @@ The core graph topology, iteration function, and convergence/promotion mechanism
 
 **Satisfies**: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-ITER-001, REQ-ITER-002, REQ-ITER-003
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - Asset type registry with typed interfaces and Markov criteria
@@ -40,7 +40,7 @@ The three evaluator types and their composition per edge.
 
 **Satisfies**: REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - Human evaluator interface (judgment, approval/rejection)
@@ -59,7 +59,7 @@ Context[] as constraint surface, hierarchy, and spec reproducibility.
 
 **Satisfies**: REQ-CTX-001, REQ-CTX-002, REQ-INTENT-004
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - Context store: ADRs, data models, templates, policy, graph topology, prior implementations
@@ -78,7 +78,7 @@ Intent capture, REQ keys, trajectories, dependencies, and task planning.
 
 **Satisfies**: REQ-INTENT-001, REQ-INTENT-002, REQ-FEAT-001, REQ-FEAT-002, REQ-FEAT-003
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - Intent capture (INT-* format, structured, persisted)
@@ -98,7 +98,7 @@ TDD, BDD, ADR, and code tagging configurations for common graph edges.
 
 **Satisfies**: REQ-EDGE-001, REQ-EDGE-002, REQ-EDGE-003, REQ-EDGE-004
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - TDD co-evolution pattern (RED/GREEN/REFACTOR/COMMIT) at Code ↔ Tests edges
@@ -117,7 +117,7 @@ CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
 **Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009, REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012, REQ-INTENT-003
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩ → |uat⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩ → |uat⟩
 
 **What converges**:
 - CI/CD as graph edge (Code → CI/CD → Running System)
@@ -146,7 +146,7 @@ Continuous interoceptive and exteroceptive monitoring with affect triage pipelin
 
 **Satisfies**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-SENSE-006, REQ-SUPV-003
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - Sensory service architecture: long-running service with workspace watcher, monitor scheduler, affect triage
@@ -170,7 +170,7 @@ Plugin architecture, workspace, commands, release, test gap analysis, hooks, sca
 
 **Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-TOOL-011, REQ-TOOL-012, REQ-TOOL-013, REQ-TOOL-014
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - Plugin architecture: installable, discoverable, versioned methodology delivery
@@ -194,7 +194,7 @@ Two-command UX layer: state-driven routing (Start), project-wide observability (
 
 **Satisfies**: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005, REQ-UX-006, REQ-UX-007
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - State-driven routing: 8-state machine derived from workspace filesystem + event log
@@ -215,7 +215,7 @@ Event-sourced agent coordination: agent identity, feature assignment via claims,
 
 **Satisfies**: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-COORD-005
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - Agent identity: `agent_id` + `agent_role` on all events, self-declared via registry
@@ -235,7 +235,7 @@ The universal observer/evaluator composition law — fractal processing on every
 
 **Satisfies**: REQ-SUPV-001, REQ-SUPV-002
 
-**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
 - IntentEngine interface: `observer → evaluator → typed_output(reflex.log | specEventLog | escalate)` parameterised by intent+affect
@@ -251,6 +251,26 @@ The universal observer/evaluator composition law — fractal processing on every
 **Dependencies**: REQ-F-ENGINE-001.|design⟩ (IntentEngine composes over the four primitives), REQ-F-EVAL-001.|design⟩ (ambiguity classification maps to evaluator types)
 
 ---
+
+
+---
+
+### REQ-F-ROBUST-001: Runtime Robustness
+
+Resilient F_P invocation with isolation, timeouts, stall detection, and crash recovery.
+
+**Satisfies**: REQ-ROBUST-001, REQ-ROBUST-002, REQ-ROBUST-003, REQ-ROBUST-007, REQ-ROBUST-008
+
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- F_P invocation isolation: isolated boundaries for all probabilistic calls
+- Supervisor pattern: wall-clock timeout enforcement, stall detection, transient retry
+- Crash recovery: engine startup gap detection for abandoned iterations
+- Failure event emission: guaranteed emission of classification, duration, and error detail
+- Session gap detection: cross-session abandonment events on startup
+
+**Dependencies**: REQ-F-ENGINE-001.|code⟩ (needs iterate() integration)
 
 ## Dependency Graph
 
@@ -385,7 +405,12 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-SUPV-002 | REQ-F-SUPV-001 |
 | REQ-SUPV-003 | REQ-F-SENSE-001 |
 
-**69/69 requirements covered. No orphans.**
+| REQ-ROBUST-001 | REQ-F-ROBUST-001 |
+| REQ-ROBUST-002 | REQ-F-ROBUST-001 |
+| REQ-ROBUST-003 | REQ-F-ROBUST-001 |
+| REQ-ROBUST-007 | REQ-F-ROBUST-001 |
+| REQ-ROBUST-008 | REQ-F-ROBUST-001 |
+| **74/74 requirements covered. No orphans.**
 
 ---
 
@@ -404,6 +429,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-UX-001 | 7 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
 | REQ-F-SUPV-001 | 2 | 1b | ENGINE, EVAL |
-| **Total** | **69** | | |
+| REQ-F-ROBUST-001 | 5 | 1a | ENGINE |
+| **Total** | **74** | | |
 
-11 feature vectors. 69 implementation requirements. Full coverage. Critical path: ENGINE design.
+12 feature vectors. 74 implementation requirements. Full coverage. Critical path: ENGINE design.

@@ -102,6 +102,9 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-004](adrs/ADR-S-004-derivation-constraint.md) | Derivation constraint | Downstream may not contradict upstream; fix the downstream doc |
 | [ADR-S-005](adrs/ADR-S-005-spec-versioning-contract.md) | Spec versioning | Semantic versioning; breaking changes listed explicitly |
 | [ADR-S-006](adrs/ADR-S-006-feature-decomposition-node.md) | Feature Decomposition node | Explicit graph node between Requirements and Design; spec/design boundary moves |
+| [ADR-S-007](adrs/ADR-S-007-module-decomposition-basis-projections.md) | Module Decomposition node | Explicit nodes for mapping architecture to code; enables parallelism |
+| [ADR-S-008](adrs/ADR-S-008-sensory-triage-intent-pipeline.md) | Sensory-Triage-Intent | The "Consciousness Loop": how signals become actionable intents |
+
 
 ---
 
