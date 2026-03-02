@@ -33,7 +33,11 @@ specification/
 │   └── UAT_TEST_CASES.md
 │
 └── adrs/                        ← Spec-level architectural decisions (ADR-S-* series)
-    └── ADR-S-001-specification-document-hierarchy.md
+    ├── ADR-S-001-specification-document-hierarchy.md
+    ├── ADR-S-002-multi-tenancy-model.md
+    ├── ADR-S-003-req-key-format.md
+    ├── ADR-S-004-derivation-constraint.md
+    └── ADR-S-005-spec-versioning-contract.md
 ```
 
 ---
@@ -85,6 +89,16 @@ Constraint-Emergence Ontology  (external)
 | [features/FEATURE_VECTORS.md](features/FEATURE_VECTORS.md) | requirements | 13 features, dependency graph, build order | 409 lines |
 | [ux/UX.md](ux/UX.md) | core model + requirements | User journeys, MVP, validation scenarios | 1087 lines |
 | [verification/UAT_TEST_CASES.md](verification/UAT_TEST_CASES.md) | requirements + features | BDD acceptance contracts (9 use cases) | 3287 lines |
+
+### Spec-Level Decisions (adrs/)
+
+| ADR | Decision | Key Rule |
+|-----|----------|----------|
+| [ADR-S-001](adrs/ADR-S-001-specification-document-hierarchy.md) | Document hierarchy | Tiered subdirectories reflect derivation order |
+| [ADR-S-002](adrs/ADR-S-002-multi-tenancy-model.md) | Multi-tenancy model | `specification/` shared; `imp_*/` isolated; one-way read dependency |
+| [ADR-S-003](adrs/ADR-S-003-req-key-format.md) | REQ key format | `REQ-{CLASS}-{SEQ}` threads from spec to code to tests to telemetry |
+| [ADR-S-004](adrs/ADR-S-004-derivation-constraint.md) | Derivation constraint | Downstream may not contradict upstream; fix the downstream doc |
+| [ADR-S-005](adrs/ADR-S-005-spec-versioning-contract.md) | Spec versioning | Semantic versioning; breaking changes listed explicitly |
 
 ---
 
