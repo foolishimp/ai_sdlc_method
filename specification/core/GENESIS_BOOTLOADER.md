@@ -254,15 +254,15 @@ A feature is **complete** when all its edge-produced assets have converged to st
 One domain-specific graph. Not privileged — just common:
 
 ```
-Intent → Requirements → Design → Code ↔ Unit Tests
-                          │
-                          ├→ Test Cases → UAT Tests
-                          │
-                          └→ CI/CD → Running System → Telemetry
-                                                        │
-                                          Observer/Evaluator
-                                                        │
-                                                   New Intent
+Intent → Requirements → Feature Decomposition → Design → Module Decomp → Basis Projections → Code ↔ Unit Tests
+                                                    │
+                                                    ├→ Test Cases → UAT Tests
+                                                    │
+                                                    └→ CI/CD → Running System → Telemetry
+                                                                                  │
+                                                                    Observer/Evaluator
+                                                                                  │
+                                                                             New Intent
 ```
 
 Every edge is `iterate()` with edge-specific evaluators and context.
@@ -270,10 +270,10 @@ Every edge is `iterate()` with edge-specific evaluators and context.
 **The graph is zoomable.** Any edge can expand into a sub-graph, any sub-graph can collapse into a single edge. Selective zoom — the common case — collapses some intermediates while retaining others as mandatory waypoints:
 
 ```
-Full:      Intent → Requirements → Design → Code ↔ Tests → UAT
-Standard:  Intent → Requirements → Design → Code ↔ Tests
-PoC:       Intent ──────────────→ Design → Code ↔ Tests
-Hotfix:    ──────────────────────────────→ Code ↔ Tests
+Full:      Intent → Requirements → Feat Decomp → Design → Mod Decomp → Basis Proj → Code ↔ Tests → UAT
+Standard:  Intent → Requirements → Feat Decomp → Design → Mod Decomp → Basis Proj → Code ↔ Tests
+PoC:       Intent ──────────────→ Feat Decomp → Design → Code ↔ Tests
+Hotfix:    ───────────────────────────────────────────── → Code ↔ Tests
 ```
 
 Zoom does not change the spec — it changes which functional units have explicit encodings and convergence criteria.

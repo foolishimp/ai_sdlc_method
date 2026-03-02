@@ -63,6 +63,28 @@ asset_types:
       - mvp_scope_marked           # MVP/deferred boundary explicitly stated
       - human_approved
 
+  module_decomposition:
+    description: "Mapping of architectural components to code modules; dependency DAG; interface contracts"
+    schema:
+      module_map: object       # component_name → module_path(s)
+      dependency_dag: object   # module → [modules it depends on] — must be acyclic
+      interface_contracts: list  # Public APIs between modules (F_D-verifiable)
+      build_config: object     # Build system scaffolding (package.json, setup.py, etc.)
+    markov_criteria:
+      - all_components_mapped    # Every design component → at least one module
+      - dependency_dag_acyclic   # No circular module dependencies
+      - interfaces_defined       # All inter-module calls have contracts
+      - human_approved
+
+  basis_projections:
+    description: "Per-(feature × module) intersection specs — each projection scopes one feature within one module"
+    schema:
+      projections: list        # Each: {feature_id, module_id, scope, out_of_scope, required_interfaces, exposed_interfaces, evaluator_contract}
+    markov_criteria:
+      - all_features_projected  # Every MVP feature projected onto its modules
+      - projections_sum_to_feature  # Sum of projections for F = intent of F
+      - module_interfaces_consistent  # All projections for a module agree with module interface
+
   design:
     description: "Technical solution architecture with component specs and ADRs"
     schema:
@@ -284,6 +306,32 @@ transitions:
     edge_config: "edge_params/requirements_design.yml"
     note: "PoC/spike profiles may collapse this to Requirements → Design directly (zoom)"
 
+  - name: "Design → Module Decomposition"
+    source: design
+    target: module_decomposition
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+    edge_config: "edge_params/design_module_decomp.yml"
+    note: "PoC/spike profiles skip this — Design → Code directly (zoom)"
+
+  - name: "Module Decomposition → Basis Projections"
+    source: module_decomposition
+    target: basis_projections
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+    edge_config: "edge_params/module_decomp_basis_proj.yml"
+
+  - name: "Basis Projections → Code"
+    source: basis_projections
+    target: code
+    edge_type: standard
+    evaluators: [agent, deterministic]
+    constructor: agent
+    edge_config: "edge_params/design_code.yml"
+    note: "Reuses design_code edge params; the basis projection replaces design as the source context"
+
   - name: "Design → Code"
     source: design
     target: code
@@ -291,6 +339,7 @@ transitions:
     evaluators: [agent, deterministic]
     constructor: agent
     edge_config: "edge_params/design_code.yml"
+    note: "PoC/spike shortcut — standard profile uses Design → Module Decomp → Basis Proj → Code"
 
   - name: "Code ↔ Unit Tests"
     source: code

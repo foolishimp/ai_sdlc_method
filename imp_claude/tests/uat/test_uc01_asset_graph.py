@@ -40,15 +40,17 @@ pytestmark = [pytest.mark.uat]
 
 
 class TestAssetTypeRegistry:
-    """UC-01-01 through UC-01-03: asset type definitions and extensibility."""
+    """UC-01-01 through UC-01-03: asset type definitions and extensibility (13 types in v2.8.0)."""
 
     # UC-01-01 | Validates: REQ-GRAPH-001 | Fixture: INITIALIZED
-    def test_ten_asset_types(self, graph_topology):
-        """Graph topology defines exactly 10 asset types."""
+    def test_thirteen_asset_types(self, graph_topology):
+        """Graph topology defines exactly 13 asset types."""
         types = graph_topology.get("asset_types", {})
-        assert len(types) == 10, f"Expected 10 asset types, got {len(types)}: {list(types.keys())}"
+        assert len(types) == 13, f"Expected 13 asset types, got {len(types)}: {list(types.keys())}"
         expected = {
-            "intent", "requirements", "design", "code", "unit_tests",
+            "intent", "requirements", "feature_decomposition",
+            "module_decomposition", "basis_projections",
+            "design", "code", "unit_tests",
             "test_cases", "uat_tests", "cicd", "running_system", "telemetry",
         }
         assert set(types.keys()) == expected
@@ -118,9 +120,9 @@ class TestAdmissibleTransitions:
                 f"Non-admissible edge ({source}, {target}) found in transitions"
             )
 
-        # Also verify the transition set is exactly 10 (closed)
-        assert len(transitions) == 10, (
-            f"Expected exactly 10 transitions, got {len(transitions)}"
+        # Also verify the transition set is exactly 14 (closed)
+        assert len(transitions) == 14, (
+            f"Expected exactly 14 transitions, got {len(transitions)}"
         )
 
     # UC-01-05 | Validates: REQ-GRAPH-002 | Fixture: INITIALIZED
@@ -136,10 +138,10 @@ class TestAdmissibleTransitions:
         assert props.get("cyclic") is True
 
     # UC-01-06 | Validates: REQ-GRAPH-002 | Fixture: INITIALIZED
-    def test_ten_transitions(self, graph_topology):
-        """Graph topology defines exactly 10 transitions."""
+    def test_fourteen_transitions(self, graph_topology):
+        """Graph topology defines exactly 14 transitions."""
         transitions = graph_topology.get("transitions", [])
-        assert len(transitions) == 10
+        assert len(transitions) == 14
 
     def test_transitions_have_evaluators(self, graph_topology):
         """Every transition has evaluators defined."""

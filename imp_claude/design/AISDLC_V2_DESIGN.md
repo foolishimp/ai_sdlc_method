@@ -111,7 +111,7 @@ Layer 1: ENGINE (universal)   Plugin root:
 
 Layer 2: GRAPH PACKAGE          Plugin config:
   (domain-specific)             config/graph_topology.yml    (asset types + transitions)
-  topology + edge configs       config/edge_params/*.yml     (10 edge parameterisations)
+  topology + edge configs       config/edge_params/*.yml     (14 edge parameterisations)
   constraint dimensions         config/graph_topology.yml    (constraint_dimensions section)
   projection profiles           config/profiles/*.yml        (6 named profiles)
 
@@ -133,7 +133,7 @@ Layer 3: PROJECT BINDING        Workspace:
 
 ### 1.4 Constraint Dimensions at the Design Edge (Spec §2.6.1)
 
-The Requirements → Design edge is the most consequential transition. The spec defines **constraint dimensions** — categories of disambiguation that design must resolve. In the implementation:
+The Feature Decomposition → Design edge is the most consequential transition (spec/design boundary). The spec defines **constraint dimensions** — categories of disambiguation that design must resolve. In the implementation:
 
 1. **Graph topology** (`graph_topology.yml`) declares the dimension taxonomy with mandatory/advisory flags
 2. **Edge config** (`requirements_design.yml`) includes checklist items that verify each mandatory dimension is resolved

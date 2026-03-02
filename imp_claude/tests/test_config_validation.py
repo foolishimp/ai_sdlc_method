@@ -52,12 +52,12 @@ class TestGraphTopology:
     @pytest.mark.tdd
     def test_has_asset_types(self, graph_topology):
         assert "asset_types" in graph_topology
-        assert len(graph_topology["asset_types"]) >= 10
+        assert len(graph_topology["asset_types"]) >= 13
 
     @pytest.mark.tdd
     def test_has_transitions(self, graph_topology):
         assert "transitions" in graph_topology
-        assert len(graph_topology["transitions"]) >= 10
+        assert len(graph_topology["transitions"]) >= 14
 
     @pytest.mark.tdd
     def test_asset_types_have_required_fields(self, graph_topology):
@@ -105,11 +105,15 @@ class TestGraphTopology:
 
     @pytest.mark.tdd
     def test_bootstrap_graph_edges_present(self, graph_topology):
-        """The bootstrap graph edges must all be present."""
+        """The bootstrap graph edges must all be present (v2.8.0 — 14 transitions)."""
         expected_edges = [
             ("intent", "requirements"),
-            ("requirements", "design"),
-            ("design", "code"),
+            ("requirements", "feature_decomposition"),
+            ("feature_decomposition", "design"),
+            ("design", "module_decomposition"),
+            ("module_decomposition", "basis_projections"),
+            ("basis_projections", "code"),
+            ("design", "code"),          # PoC/spike shortcut
             ("code", "unit_tests"),
             ("design", "test_cases"),
             ("design", "uat_tests"),
@@ -639,9 +643,9 @@ class TestVersionConsistency:
         assert plugin_json["version"] == "2.8.0"
 
     @pytest.mark.tdd
-    def test_graph_topology_version_is_2_7(self, graph_topology):
-        """graph_topology.yml version must be 2.7.0."""
-        assert graph_topology["graph_properties"]["version"] == "2.7.0"
+    def test_graph_topology_version_is_2_8(self, graph_topology):
+        """graph_topology.yml version must be 2.8.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.8.0"
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_event_sourcing_or_iterate(self, plugin_json):

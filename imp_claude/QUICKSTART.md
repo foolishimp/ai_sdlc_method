@@ -88,9 +88,9 @@ Two commands. That's it:
 ## The Asset Graph
 
 ```
-Intent → Requirements → Design → Code ↔ Unit Tests → UAT → CI/CD → Running System → Telemetry
-                                                                                        ↓
-                                                                                      Intent (feedback)
+Intent → Requirements → Feat Decomp → Design → Mod Decomp → Basis Proj → Code ↔ Unit Tests → UAT → CI/CD → Running System → Telemetry
+                                                                                                                                                    ↓
+                                                                                                                                              Intent (feedback)
 ```
 
 One operation: `iterate(Asset, Context[], Evaluators) → Asset'`
