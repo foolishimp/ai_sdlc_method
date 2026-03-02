@@ -35,10 +35,14 @@ def test_emit_event(engine):
         lines = f.readlines()
         assert len(lines) == 1
         event = json.loads(lines[0])
-        assert event["event_type"] == "test_event"
-        assert event["project"] == "test-project"
-        assert event["feature"] == "REQ-F-TEST-001"
-        assert event["delta"] == 3
+        # OpenLineage v2 structure
+        assert event["eventType"] == "OTHER"
+        assert "eventTime" in event
+        facets = event["run"]["facets"]
+        assert facets["sdlc_event_type"]["type"] == "test_event"
+        assert event["_metadata"]["project"] == "test-project"
+        assert facets["sdlc_req_keys"]["feature_id"] == "REQ-F-TEST-001"
+        assert facets["sdlc_delta"]["value"] == 3
 
 def test_update_feature_vector(engine):
     # Act

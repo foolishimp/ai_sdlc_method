@@ -1,0 +1,39 @@
+# Edge Parameterisation: Basis Projections → Code
+# Reference: ADR-CG-008, Spec §6.7
+
+---
+
+edge: "basis_projections→code"
+pattern: code_generation
+description: |
+  Implement each basis projection within its module boundary. Scaffold per-module
+  structure, implement functionality, and integrate across module interfaces.
+
+source_analysis:
+  - name: "projection_scope_clarity"
+    functional_unit: sense
+    criterion: "Confirm the projected intent and local interface requirements are unambiguous."
+    required: true
+
+checklist:
+  - name: "scaffold_created"
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "Per-module scaffolding/build config exists and builds/lints."
+    required: true
+
+  - name: "code_matches_projection"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Code implements the projected intent and adheres to module interfaces."
+    required: true
+
+  - name: "req_tags_present"
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "All code files contain 'Implements: REQ-*' tags as appropriate."
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+

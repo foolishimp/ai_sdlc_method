@@ -18,6 +18,9 @@ from gemini_cli.commands.release import ReleaseCommand
 from gemini_cli.commands.review import ReviewCommand
 from gemini_cli.commands.status import StatusCommand
 from gemini_cli.commands.iterate import IterateCommand
+from gemini_cli.commands.spec_review import SpecReviewCommand
+from gemini_cli.commands.escalate import EscalateCommand
+from gemini_cli.commands.zoom import ZoomCommand
 from gemini_cli.engine.sensory import SensoryService
 
 def main():
@@ -34,6 +37,9 @@ def main():
     
     # Status: Projection of the event log
     subparsers.add_parser("status", help="Where am I?")
+
+    # Spec-review: Review workspace against spec (REQ-LIFE-009)
+    subparsers.add_parser("spec-review", help="Review workspace against specification gradient")
     
     # Sense: Run monitors
     subparsers.add_parser("sense", help="Run sensory monitors")
@@ -69,6 +75,16 @@ def main():
     # Gaps: Scan for gaps
     subparsers.add_parser("gaps", help="Scan for implementation/test gaps")
 
+    # Escalate: Raise convergence issue
+    escalate_p = subparsers.add_parser("escalate", help="Escalate convergence issue to human")
+    escalate_p.add_argument("--feature", required=True)
+    escalate_p.add_argument("--edge", required=True)
+    escalate_p.add_argument("--reason", required=True)
+
+    # Zoom: Expand edge into sub-graph
+    zoom_p = subparsers.add_parser("zoom", help="Expand edge into sub-graph")
+    zoom_p.add_argument("--edge", required=True)
+
     # Release: Generate release manifest
     release_p = subparsers.add_parser("release", help="Generate a release manifest")
     release_p.add_argument("--version", required=True)
@@ -87,9 +103,11 @@ def main():
     if args.command == "init":
         InitCommand(workspace_root).run(args.name, impl=design_name.replace("_genesis", ""))
     elif args.command == "spawn":
-        SpawnCommand(workspace_root).run(args.id, args.intent, args.type)
+        SpawnCommand(workspace_root, design_name=design_name).run(args.id, args.intent, args.type)
     elif args.command == "status":
         StatusCommand(workspace_root).run()
+    elif args.command == "spec-review":
+        SpecReviewCommand(workspace_root, design_name=design_name).run()
     elif args.command == "sense":
         from gemini_cli.engine.triage import AffectTriageEngine
         SensoryService(workspace_root).run_all_monitors()
@@ -126,8 +144,12 @@ def main():
         impl_name = design_name.replace("_genesis", "")
         current_project_root = workspace_root.parent
         GapsCommand(current_project_root, impl_name=impl_name).run()
+    elif args.command == "escalate":
+        EscalateCommand(workspace_root, design_name=design_name).run(args.feature, args.edge, args.reason)
+    elif args.command == "zoom":
+        ZoomCommand(workspace_root).run(args.edge)
     elif args.command == "release":
-        ReleaseCommand(workspace_root).run(args.version)
+        ReleaseCommand(workspace_root, design_name=design_name).run(args.version)
     elif args.command == "review":
         ReviewCommand(workspace_root).run(args.action, args.id)
     else:

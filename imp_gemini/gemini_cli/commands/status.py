@@ -60,7 +60,7 @@ class StatusCommand:
         
         # 3. Process Telemetry
         total_events = len(events)
-        last_event_time = events[-1]["timestamp"] if events else "N/A"
+        last_event_time = events[-1].get("eventTime", "N/A") if events else "N/A"
 
         content = f"""# Project Status — {self.project_root.name}
 
@@ -101,7 +101,7 @@ State: {current_state.value}
                 content += f"- **{feat}**: {data.get('title', 'No Title')}\n"
 
         content += f"""
-        ## Traceability Coverage
+## Traceability Coverage
 - Estimated Requirements: {total_reqs}
 - Verified: {converged_count} (Estimated)
 

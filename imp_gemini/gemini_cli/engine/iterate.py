@@ -9,8 +9,8 @@ class Functor(Protocol):
     def evaluate(self, candidate: str, context: Dict) -> FunctorResult: ...
 
 class IterateEngine:
-    def __init__(self, functors: List[Functor] = None, constraints: Dict[str, Any] = None, project_root: Path = None):
-        self.functors = functors or []
+    def __init__(self, functor_map: Dict[str, Functor] = None, constraints: Dict[str, Any] = None, project_root: Path = None):
+        self.functor_map = functor_map or {}
         self.project_root = project_root or Path.cwd()
         # Find workspace root (parent of .ai-workspace)
         if (self.project_root / ".ai-workspace").exists():
@@ -30,7 +30,7 @@ class IterateEngine:
             
         self.store = EventStore(self.workspace_root)
 
-    def run(self, asset_path: Path, context: Dict, mode: str = "interactive") -> IterationReport:
+    def run(self, asset_path: Path, context: Dict, mode: str = "interactive", checklist: List[Dict[str, Any]] = None) -> IterationReport:
         # 1. Run Guardrails (REQ-SUPV-001)
         from .guardrails import GuardrailEngine
         guardrails = GuardrailEngine(self.constraints)
@@ -48,11 +48,27 @@ class IterateEngine:
 
         candidate = asset_path.read_text() if asset_path.exists() else ""
         results = []
-        for f in self.functors:
+        
+        # Determine checks to run: from checklist or from default functors
+        checks = checklist if checklist else [{"evaluator": f.__class__.__name__.replace("Functor", "").lower()} for f in self.functor_map.values()]
+        
+        for check in checks:
+            eval_type = check.get("evaluator", "agent")
+            # Map evaluator names (standardize)
+            if eval_type == "deterministic_shell": eval_type = "deterministic"
+            if eval_type == "sub_agent_eval": eval_type = "agent"
+            
+            f = self.functor_map.get(eval_type)
+            if not f:
+                continue
+                
             # Skip human functors in headless mode
             if mode == "headless" and f.__class__.__name__ == "HumanFunctor":
                 continue
-            res = f.evaluate(candidate, context)
+                
+            # Merge check parameters into context for the functor
+            check_context = {**context, **check, "constraints": self.constraints}
+            res = f.evaluate(candidate, check_context)
             results.append(res)
             
             # If a functor provides a next candidate, update our local candidate for the next functor
@@ -144,16 +160,27 @@ class IterateEngine:
     def verify_protocol(self, start_time: datetime) -> List[str]:
         """Checks if the required events were emitted since start_time."""
         events = self.store.load_all()
-        recent_events = [e for e in events if datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00")) >= start_time]
+        recent_events = []
+        for e in events:
+            ts_str = e.get("eventTime")
+            if ts_str:
+                ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                if ts >= start_time:
+                    recent_events.append(e)
         
         gaps = []
-        if not any(e["event_type"] == "iteration_completed" for e in recent_events):
+        has_iteration_event = False
+        for e in recent_events:
+            type_facet = e.get("run", {}).get("facets", {}).get("sdlc_event_type", {})
+            if type_facet.get("type") == "iteration_completed":
+                has_iteration_event = True
+                break
+                
+        if not has_iteration_event:
             gaps.append("No event emitted.")
         
         # Check if feature vector was updated by looking at modification times
-        # For simplicity in this implementation, we will just assume if any converged event happened, it should be fine,
-        # but the test expects a specific message if we don't find evidence of update.
-        # Here we'll just check if there were ANY events.
+        # For simplicity in this implementation, we will just assume if any events happened, it should be fine.
         if not recent_events:
             gaps.append("Feature vector state not updated.")
         

@@ -1,0 +1,39 @@
+# Edge Parameterisation: Module Decomposition → Basis Projections
+# Reference: ADR-CG-008, Spec §6.7
+
+---
+
+edge: "module_decomp→basis_projections"
+pattern: projection
+description: |
+  Project features onto the minimal set of modules required for implementation.
+  Produce ordered projections enabling safe parallel execution.
+
+source_analysis:
+  - name: "unprojected_features"
+    functional_unit: sense
+    criterion: "Identify features in scope that are not projected onto any module."
+    required: true
+
+checklist:
+  - name: "all_mvp_features_projected"
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "All MVP features have at least one projection to modules."
+    required: true
+
+  - name: "projections_consistent_with_interfaces"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Each projection respects module interface contracts; declare stubs/mocks as needed."
+    required: true
+
+  - name: "priority_order_respects_dependencies"
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "Projection execution order respects module DAG dependencies (toposort)."
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+

@@ -2,6 +2,7 @@ import json
 import hashlib
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Dict, List, Optional
 from gemini_cli.engine.state import EventStore
 from gemini_cli.commands.spawn import SpawnCommand
 
@@ -15,21 +16,29 @@ class ReviewCommand:
 
     def run(self, action: str = "list", proposal_id: str = None):
         events = self.store.load_all()
-        proposals = [e for e in events if e["event_type"] == "feature_proposal"]
+        # Filter for feature_proposal events (v2 schema: facets.sdlc_event_type.type)
+        proposals = []
+        for e in events:
+            facets = e.get("run", {}).get("facets", {})
+            type_facet = facets.get("sdlc_event_type", {})
+            if type_facet.get("type") == "feature_proposal":
+                proposals.append(e)
         
         # Filter for only latest status of each proposal
         latest_proposals = {}
         for p in proposals:
-            pid = p["data"]["proposal_id"]
-            latest_proposals[pid] = p
+            data = p.get("_metadata", {}).get("original_data", {})
+            pid = data.get("proposal_id")
+            if pid:
+                latest_proposals[pid] = p
 
         if action == "list":
             print("\nPENDING FEATURE PROPOSALS")
             print("="*40)
             for pid, p in latest_proposals.items():
-                data = p["data"]
-                print(f"[{pid}] {data['feature_id']}: {data['title']}")
-                print(f"      Intent: {data['intent_id']} | Triggered: {p['timestamp']}")
+                data = p.get("_metadata", {}).get("original_data", {})
+                print(f"[{pid}] {data.get('feature_id')}: {data.get('title')}")
+                print(f"      Intent: {data.get('intent_id')} | Triggered: {p.get('eventTime')}")
             return
 
         if not proposal_id:
@@ -53,7 +62,7 @@ class ReviewCommand:
             print(f"Proposal {proposal_id} dismissed.")
 
     def _promote_proposal(self, proposal: Dict):
-        data = proposal["data"]
+        data = proposal.get("_metadata", {}).get("original_data", {})
         fid = data["feature_id"]
         title = data["title"]
         reqs = data.get("requirements", [])
@@ -86,7 +95,7 @@ class ReviewCommand:
                     "previous_hash": prev_hash,
                     "new_hash": new_hash,
                     "delta": f"Added feature {fid}",
-                    "trigger_event_id": proposal["timestamp"]
+                    "trigger_event_id": proposal.get("eventTime")
                 }
             )
 

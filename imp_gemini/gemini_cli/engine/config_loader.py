@@ -17,6 +17,39 @@ class ConfigLoader:
         self.workspace_root = workspace_root
         self.design_name = design_name
         self.constraints = self._load_hierarchical_constraints()
+        self.constraints["context"] = self.constraints.get("context", {})
+        self.constraints["context"]["adrs"] = self._load_context_adrs()
+
+    def _load_context_adrs(self) -> Dict[str, str]:
+        """Index ADR content for the constraint surface."""
+        adrs = {}
+        # Search paths for ADRs (Cascading context)
+        search_dirs = [
+            self.workspace_root / self.design_name / "adrs",
+            self.workspace_root / self.design_name / "context" / "adrs",
+            self.workspace_root / "adrs",
+            self.workspace_root.parent / "adrs", # Support root-level adrs
+            self.workspace_root.parent / "specification" / "adrs",
+            self.workspace_root.parent / "design" / "adrs",
+        ]
+        
+        for adr_dir in search_dirs:
+            if adr_dir.exists():
+                for path in adr_dir.glob("*.md"):
+                    # Extract ID (e.g., ADR-001) from filename
+                    import re
+                    match = re.search(r"(ADR-[A-Z0-9]+-\d+)", path.name)
+                    if not match:
+                        # Fallback for GG style: ADR-GG-001
+                        match = re.search(r"(ADR-GG-\d+)", path.name)
+                    
+                    key = match.group(1) if match else path.stem
+                    try:
+                        # Later dirs override earlier ones if keys collide
+                        adrs[key] = path.read_text(errors="ignore")
+                    except:
+                        continue
+        return adrs
 
     def _load_hierarchical_constraints(self) -> Dict[str, Any]:
         """Load constraints from multiple levels (ADR-004)."""
@@ -57,14 +90,28 @@ class ConfigLoader:
         checklist = edge_config.get("checklist", [])
         resolved = []
         
+        import re
+        # Pattern to match $var or ${var}
+        pattern = re.compile(r"\$\{?([a-zA-Z0-9_.]+)\}?")
+        
+        def interpolator(text: str) -> str:
+            if not isinstance(text, str):
+                return text
+            
+            def replacer(match):
+                var_path = match.group(1).split(".")
+                val = self._get_nested_val(self.constraints, var_path)
+                return str(val) if val is not None else match.group(0)
+            
+            return pattern.sub(replacer, text)
+
         for check in checklist:
-            res_check = dict(check)
-            
-            # Resolve command variables (e.g., "$tools.test_runner.command")
-            if "command" in res_check and res_check["command"].startswith("$"):
-                var_path = res_check["command"][1:].split(".")
-                res_check["command"] = self._get_nested_val(self.constraints, var_path)
-            
+            res_check = {}
+            for k, v in check.items():
+                if isinstance(v, str):
+                    res_check[k] = interpolator(v)
+                else:
+                    res_check[k] = v
             resolved.append(res_check)
         return resolved
 

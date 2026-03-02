@@ -29,8 +29,7 @@ class SyncContextCommand:
             print("No context sources defined.")
             return
 
-        print(f"
-Syncing Context Sources (Tenant: {self.design_name})")
+        print(f"\nSyncing Context Sources (Tenant: {self.design_name})")
         print("="*40)
 
         for source in sources:
@@ -57,8 +56,7 @@ Syncing Context Sources (Tenant: {self.design_name})")
             else:
                 shutil.copy2(src_path, target_dir / src_path.name)
         
-        print("
-Context sync complete.")
+        print("\nContext sync complete.")
 
     def _resolve_uri(self, uri: str) -> Path:
         if uri.startswith("file://"):

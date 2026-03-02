@@ -559,6 +559,7 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 | `claim_rejected` | serialiser (multi-agent) | Feature+edge already claimed by another agent |
 | `edge_released` | serialiser (multi-agent) | Agent voluntarily abandons an edge claim |
 | `claim_expired` | serialiser (multi-agent) | No event from active agent within timeout (telemetry) |
+| `iteration_abandoned` | engine startup | Detected edge started in prior session without completion |
 | `interoceptive_signal` | sensory service (MCP) | Internal monitor detects delta (test regression, coverage drop, build break) |
 | `exteroceptive_signal` | sensory service (MCP) | External monitor detects delta (CVE, dependency update, upstream API change) |
 | `affect_triage` | affect pipeline | Signal classified by severity and routed (reflex/escalate/defer) |
@@ -578,6 +579,11 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 **`edge_converged`** — emitted when an edge reaches convergence:
 ```json
 {"event_type": "edge_converged", "timestamp": "...", "project": "...", "feature": "REQ-F-*", "edge": "{source}→{target}", "data": {"iteration": {n}, "evaluators": "{pass}/{total}", "convergence_type": "standard|question_answered|time_box_expired"}}
+```
+
+**`iteration_abandoned`** — emitted on startup when a previous session ended mid-iteration:
+```json
+{"event_type": "iteration_abandoned", "timestamp": "...", "project": "...", "feature": "REQ-F-*", "edge": "{source}→{target}", "data": {"last_event_at": "...", "since_seconds": 12345}}
 ```
 
 **`project_initialized`**:

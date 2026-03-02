@@ -1,0 +1,39 @@
+# Edge Parameterisation: Design → Module Decomposition
+# Reference: ADR-CG-008, Spec §6.7
+
+---
+
+edge: "design→module_decomp"
+pattern: decomposition
+description: |
+  Produce the build architecture: module map, dependency DAG (acyclic), and
+  inter-module interface contracts that reflect the design.
+
+source_analysis:
+  - name: "design_to_module_mapping_gaps"
+    functional_unit: sense
+    criterion: "Identify design components not mapped to any module."
+    required: true
+
+checklist:
+  - name: "dag_is_acyclic"
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "Module dependency graph contains no cycles."
+    required: true
+
+  - name: "interfaces_defined"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Public interfaces between modules are specified and align with design contracts."
+    required: true
+
+  - name: "components_mapped"
+    type: agent
+    functional_unit: evaluate
+    criterion: "Every design component maps to at least one module."
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+

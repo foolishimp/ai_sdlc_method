@@ -1,6 +1,8 @@
 # Implements: REQ-ITER-001, REQ-ITER-002, REQ-LIFE-008, ADR-021
 import re
 import uuid
+import yaml
+import sys
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
@@ -85,8 +87,9 @@ class IterateCommand:
         loader = ConfigLoader(self.workspace_root, design_name=self.design_name)
         topology = GraphTopology(self.workspace_root)
         
-        # Resolve Evaluators
+        # Resolve Edge Configuration and Checklist
         transitions = topology.topology.get("transitions", [])
+        edge_config = {}
         evaluator_types = ["agent", "human"] # Default
         
         edge_parts = re.split(r"->|\u2192|\u2194", edge)
@@ -97,28 +100,52 @@ class IterateCommand:
         for t in transitions:
             if (src_input == t.get("source", "").lower() and tgt_input == t.get("target", "").lower()) or \
                (edge.lower() in t.get("name", "").lower()):
+                edge_config = t
                 evaluator_types = t.get("evaluators", evaluator_types)
                 break
+        
+        resolved_checklist = loader.resolve_checklist(edge_config)
+        if not resolved_checklist and evaluator_types:
+            # Fallback to default checklist based on topology evaluators
+            resolved_checklist = [{"evaluator": et} for et in evaluator_types]
         
         functor_map = {
             "deterministic": DeterministicFunctor(),
             "agent": GeminiFunctor(),
             "human": HumanFunctor()
         }
-        functors = [functor_map[et] for et in evaluator_types if et in functor_map]
         
-        engine = IterateEngine(functors, constraints=loader.constraints, project_root=self.workspace_root.parent)
+        engine = IterateEngine(functor_map=functor_map, constraints=loader.constraints, project_root=self.workspace_root.parent)
         
         if iter_count == 0:
             engine.emit_event("edge_started", feature=feature, edge=normalized_edge, data={"mode": mode_label})
         
         asset_path = Path(asset)
+        
+        # Load feature vector for context (Cascading ADRs)
+        fv_path = self.workspace_root / "features" / "active" / f"{feature}.yml"
+        fv_data = {}
+        if fv_path.exists():
+            with open(fv_path, "r") as f:
+                fv_data = yaml.safe_load(f) or {}
+        
+        # Use iteration count from feature vector if available (REQ-UX-003)
+        if fv_data and "trajectory" in fv_data and normalized_edge in fv_data["trajectory"]:
+            edge_info = fv_data["trajectory"][normalized_edge]
+            if isinstance(edge_info, dict):
+                iter_count = edge_info.get("iteration", 0)
+        else:
+            events = self.store.load_all()
+            iter_count = Projector.get_iteration_count(events, feature, edge)
+
         report = engine.run(asset_path, {
             "asset_name": asset,
             "edge": normalized_edge,
             "iteration_count": iter_count,
-            "mode": mode_label
-        }, mode=mode)
+            "mode": mode_label,
+            "feature_id": feature,
+            "feature_vector": fv_data
+        }, mode=mode, checklist=resolved_checklist)
         
         # Handle Guardrails & Spawns (Recursion)
         if any(not g.passed for g in report.guardrail_results):
@@ -130,7 +157,7 @@ class IterateCommand:
 
         # 4. Record Results (ADR-S-011 + ADR-021)
         status = "converged" if report.converged else ("blocked" if report.spawn else "iterating")
-        event = engine.emit_event("iteration_completed", feature=feature, edge=normalized_edge, delta=report.delta, data={"status": status, "mode": mode_label})
+        event = engine.emit_event("iteration_completed", feature=feature, edge=normalized_edge, data={"status": status, "mode": mode_label, "delta": report.delta})
         
         run_id = event.get("run", {}).get("runId", "unknown")
         

@@ -111,6 +111,41 @@ Each `intent_raised` event carries:
 - The TDD edge config (`tdd.yml`) already has refactor guidance. The change adds intent generation for structural debt and stuck deltas.
 - Protocol enforcement hooks (REQ-LIFE-008) are new — they ensure `iterate()` can't skip event emission silently.
 
+### Confirmed Gap (2026-03-03) — Stage 2: feature_proposal Missing
+
+Cross-implementation review (Gemini comparison report, 2026-03-03T03:00:00Z) confirmed that the consciousness loop pipeline in `imp_claude` is **incomplete**. The pipeline has three stages (ADR-S-008):
+
+| Stage | Description | Claude Status |
+|-------|-------------|---------------|
+| 1. Sense | Signal sources emit `intent_raised` | [IMPLEMENTED] — `/gen-gaps`, observers |
+| 2. Affect Triage | Classify signal, emit `feature_proposal` draft | **[MISSING]** — no `feature_proposal` event type, no triage engine |
+| 3. Human Gate | Human approves/dismisses, `spec_modified` emitted | **[MISSING]** — no homeostasis review command |
+
+**What is missing:**
+
+The `feature_proposal` event type does not exist in the Claude event schema. It is the output of Stage 2 (Affect Triage) — the intermediate between a raw `intent_raised` signal and a human decision to modify the spec. Its purpose is to be a **draft** that can be reviewed, refined, or dismissed without triggering spec modification. The current Claude pipeline goes directly from `intent_raised` to ad-hoc human action — there is no structured proposal that can be queued, reviewed, and formally approved or dismissed.
+
+The full missing pipeline:
+```
+intent_raised (Stage 1 — implemented)
+    ↓
+[AffectTriage: classify ambiguity regime, draft feature entry]
+    ↓
+feature_proposal event → event log (Stage 2 — MISSING)
+    ↓
+[Human review: /gen-review-proposal --list | --approve | --dismiss]
+    ↓
+spec_modified event + FEATURE_VECTORS.md append (Stage 3 — MISSING)
+    ↓
+SpawnCommand: inflate workspace trajectory for new vector
+```
+
+**Note on gen-review.md scope**: The existing `/gen-review` command handles F_H evaluation of **asset candidates within a current edge** (human evaluator role in the TDD loop). That is a different review point. The missing command is a **homeostasis review gate** for proposals to evolve the spec itself — two structurally distinct F_H points.
+
+**Gemini reference**: `imp_gemini/gemini_cli/engine/triage.py` (AffectTriageEngine), `imp_gemini/gemini_cli/commands/review.py` (ReviewCommand). Gemini implements all three stages. Key design decisions to adopt: spec is **append-only** for proposals (existing features never modified by homeostasis pipeline); promotion is idempotent (if REQ-F-* already exists, skip write); `spec_modified` carries `previous_hash`/`new_hash` for audit.
+
+**Follow-on work**: See ACTIVE_TASKS.md — "Implement feature_proposal pipeline (Stage 2+3)".
+
 ---
 
 ## Requirements Addressed

@@ -8,8 +8,9 @@ from gemini_cli.engine.state import EventStore, Projector
 class ReleaseCommand:
     """Generates a release manifest and emits a release_created event."""
     
-    def __init__(self, workspace_root: Path):
+    def __init__(self, workspace_root: Path, design_name: str = "gemini_genesis"):
         self.workspace_root = workspace_root
+        self.design_name = design_name
         self.store = EventStore(workspace_root)
 
     def run(self, version: str):
@@ -23,9 +24,10 @@ class ReleaseCommand:
         coverage_pct = 100 if converged_features else 0
         
         # Emit Release Event
+        project_id = self.design_name.replace("_genesis", "")
         self.store.emit(
             "release_created",
-            project="unknown",
+            project=project_id,
             data={
                 "version": version,
                 "features_included": len(converged_features),

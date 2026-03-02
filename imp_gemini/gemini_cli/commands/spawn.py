@@ -6,12 +6,18 @@ from gemini_cli.engine.state import EventStore
 class SpawnCommand:
     """Creates a new feature vector (Feature, Discovery, Spike, etc.)."""
     
-    def __init__(self, workspace_root: Path):
+    def __init__(self, workspace_root: Path, design_name: str = "gemini_genesis"):
         self.workspace_root = workspace_root
+        self.design_name = design_name
         self.store = EventStore(workspace_root)
 
     def run(self, feature_id: str, intent_id: str, vector_type: str = "feature", parent: str = None):
         fv_path = self.workspace_root / "features" / "active" / f"{feature_id}.yml"
+        
+        # Resolve ADRs from context
+        from gemini_cli.engine.config_loader import ConfigLoader
+        loader = ConfigLoader(self.workspace_root, design_name=self.design_name)
+        adr_keys = list(loader.constraints.get("context", {}).get("adrs", {}).keys())
         
         # 1. Create Feature Vector YAML
         data = {
@@ -20,6 +26,9 @@ class SpawnCommand:
             "vector_type": vector_type,
             "status": "pending",
             "parent": parent,
+            "context": {
+                "adrs": sorted(adr_keys)
+            },
             "trajectory": {
                 "intent": {"status": "converged"}
             }
@@ -36,8 +45,9 @@ class SpawnCommand:
             data={
                 "vector_type": vector_type,
                 "parent": parent,
-                "intent": intent_id
+                "intent": intent_id,
+                "context": data["context"]
             }
         )
         
-        print(f"Spawned {vector_type} vector: {feature_id}")
+        print(f"Spawned {vector_type} vector: {feature_id} (Linked ADRs: {len(adr_keys)})")

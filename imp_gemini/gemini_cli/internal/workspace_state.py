@@ -6,6 +6,7 @@ These functions operate on filesystem paths and return derived state.
 import hashlib
 import json
 import yaml
+import re
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -21,10 +22,13 @@ WORKSPACE_STATES = (
 )
 
 STANDARD_PROFILE_EDGES = [
-    "intent→requirements",
-    "requirements→design",
-    "design→code",
-    "code↔unit_tests",
+    "intent\u2192requirements",
+    "requirements\u2192feature_decomp",
+    "feature_decomp\u2192design",
+    "design\u2192module_decomp",
+    "module_decomp\u2192basis_proj",
+    "basis_proj\u2192code",
+    "code\u2194unit_tests",
 ]
 
 def _workspace_dir(workspace: Path) -> Path:
@@ -83,11 +87,15 @@ def select_next_feature(features: list[dict[str, Any]]) -> Optional[dict[str, An
 def get_next_edge(feature: dict[str, Any]) -> Optional[str]:
     traj = feature.get("trajectory", {})
     for edge in STANDARD_PROFILE_EDGES:
-        parts = edge.replace("↔", "→").split("→")
-        for p in parts:
-            p = p.strip()
-            if traj.get(p, {}).get("status") != "converged":
-                return edge
+        # Check full edge name (e.g. intent\u2192requirements)
+        if traj.get(edge, {}).get("status") == "converged":
+            continue
+            
+        # Also check target asset (legacy compatibility)
+        parts = re.split(r"->|\u2192|\u2194", edge)
+        target = parts[-1].strip()
+        if traj.get(target, {}).get("status") != "converged":
+            return edge
     return None
 
 def detect_workspace_state(workspace: Path) -> str:

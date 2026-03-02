@@ -1,0 +1,61 @@
+context:
+  adrs:
+  - ADR-GG-001
+  - ADR-GG-002
+  - ADR-GG-003
+  - ADR-GG-004
+  - ADR-GG-005
+  - ADR-GG-006
+  - ADR-GG-007
+  - ADR-GG-008
+  - ADR-GG-009
+  - ADR-GG-010
+  - ADR-GG-011
+  - ADR-GG-012
+feature: REQ-F-ADR-LINK-001
+intent: Verify ADR cascading to feature vectors
+parent: null
+status: pending
+trajectory:
+  "design\u2192module_decomp":
+    converged_at: '2026-03-02T16:04:50.538010+00:00'
+    delta: 0
+    engine_run_id: c448bbfc-7d06-4006-a063-fafa6a0ed837
+    iteration: 1
+    mode: interactive
+    status: converged
+    updated_at: '2026-03-02T16:04:50.538008+00:00'
+  "design\u2192test_cases":
+    delta: 1
+    engine_run_id: eba3c506-beda-4bf6-a23e-c037c5a61634
+    iteration: 1
+    mode: interactive
+    status: iterating
+    updated_at: '2026-03-02T15:45:19.108222+00:00'
+  "feature_decomp\u2192design":
+    converged_at: '2026-03-02T16:02:41.754351+00:00'
+    delta: 0
+    engine_run_id: 271bb2c0-e1d8-4e2a-b11f-008f79fa40ac
+    iteration: 1
+    mode: interactive
+    status: converged
+    updated_at: '2026-03-02T16:02:41.754349+00:00'
+  intent:
+    status: converged
+  "intent\u2192requirements":
+    converged_at: '2026-03-02T15:35:37.773789+00:00'
+    delta: 0
+    engine_run_id: 67d29fe2-d57e-4615-a04d-602964170245
+    iteration: 1
+    mode: interactive
+    status: converged
+    updated_at: '2026-03-02T15:35:37.773786+00:00'
+  "requirements\u2192feature_decomp":
+    converged_at: '2026-03-02T16:00:24.459540+00:00'
+    delta: 0
+    engine_run_id: 3d921a3b-bbd6-464d-98b6-32627abd1442
+    iteration: 1
+    mode: interactive
+    status: converged
+    updated_at: '2026-03-02T16:00:24.459538+00:00'
+vector_type: feature
