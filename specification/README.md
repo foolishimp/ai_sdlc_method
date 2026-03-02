@@ -87,7 +87,7 @@ Constraint-Emergence Ontology  (external)
 
 | Document | Derives From | Role | Size |
 |----------|-------------|------|------|
-| [requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | core model | 74 platform-agnostic requirements | 1402 lines |
+| [requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | core model | 79 platform-agnostic requirements | 1402 lines |
 | [features/FEATURE_VECTORS.md](features/FEATURE_VECTORS.md) | requirements | 13 features, dependency graph, build order | 409 lines |
 | [ux/UX.md](ux/UX.md) | core model + requirements | User journeys, MVP, validation scenarios | 1087 lines |
 | [verification/UAT_TEST_CASES.md](verification/UAT_TEST_CASES.md) | requirements + features | BDD acceptance contracts (9 use cases) | 3287 lines |
@@ -104,6 +104,8 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-006](adrs/ADR-S-006-feature-decomposition-node.md) | Feature Decomposition node | Explicit graph node between Requirements and Design; spec/design boundary moves |
 | [ADR-S-007](adrs/ADR-S-007-module-decomposition-basis-projections.md) | Module Decomposition node | Explicit nodes for mapping architecture to code; enables parallelism |
 | [ADR-S-008](adrs/ADR-S-008-sensory-triage-intent-pipeline.md) | Sensory-Triage-Intent | The "Consciousness Loop": how signals become actionable intents |
+| [ADR-S-009](adrs/ADR-S-009-feature-vector-lifecycle-spec-vs-trajectory.md) | Feature Vector Lifecycle | Spec layer = feature definitions; workspace layer = trajectory only; JOIN semantics |
+| [ADR-S-010](adrs/ADR-S-010-event-sourced-spec-evolution.md) | Event-Sourced Spec Evolution | `feature_proposal` and `spec_modified` events; promotion path; Draft Features Queue |
 
 
 ---

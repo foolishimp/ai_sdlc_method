@@ -19,7 +19,7 @@ Platform-agnostic implementation requirements for tooling that delivers the AI S
 
 `REQ-{CATEGORY}-{SEQ}[.MAJOR.MINOR.PATCH]`
 
-Categories: `INTENT`, `GRAPH`, `ITER`, `EVAL`, `CTX`, `FEAT`, `LIFE`, `EDGE`, `TOOL`, `UX`, `COORD`, `SUPV`
+Categories: `INTENT`, `GRAPH`, `ITER`, `EVAL`, `CTX`, `FEAT`, `LIFE`, `EDGE`, `TOOL`, `UX`, `COORD`, `SUPV`, `EVOL`
 
 Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaking). No version suffix = current.
 
@@ -41,6 +41,7 @@ Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaki
 12. [Multi-Agent Coordination](#12-multi-agent-coordination) — Agent identity, event-sourced assignment, work isolation
 13. [Supervision (IntentEngine)](#13-supervision-intentengine) — Universal observer/evaluator composition law
 14. [Runtime Robustness](#14-runtime-robustness) — F_P invocation isolation, supervisor pattern, crash recovery
+15. [Spec Evolution](#15-spec-evolution) — Feature vector lifecycle, spec modification audit, homeostasis promotion path
 
 ---
 
@@ -1371,6 +1372,91 @@ The system shall detect when a previous session was interrupted mid-iteration an
 
 ---
 
+## 15. Spec Evolution
+
+### REQ-EVOL-001: Workspace Vectors Are Trajectory-Only
+
+**Priority**: High | **Phase**: 1
+
+Workspace feature vector files (`.ai-workspace/features/active/*.yml`) shall contain trajectory state and reference fields only. Feature definitions — requirement satisfaction mapping, product-level success criteria, and dependency graph entries — shall reside exclusively in `specification/features/`.
+
+**Acceptance Criteria**:
+- Workspace YAML files do NOT contain `satisfies` lists (REQ-* mappings)
+- Workspace YAML files do NOT contain product-level success criteria or convergence descriptions
+- Workspace YAML files DO contain: feature ID (reference), title (for display), vector type, profile, status, trajectory, functor encoding, time_box, parent/children relationships
+- Health checks flag workspace vectors that contain definition fields as schema violations
+
+**Traces To**: ADR-S-009 (Feature Vector Lifecycle — Spec vs Trajectory), ADR-S-002 (`.ai-workspace/` is not specification)
+
+---
+
+### REQ-EVOL-002: Feature Display Tools Must JOIN Spec and Workspace
+
+**Priority**: High | **Phase**: 1
+
+Any command or tool that displays feature vectors to the user shall join the spec definition layer (`specification/features/`) with the workspace trajectory layer (`.ai-workspace/features/active/`). Features present in the spec but absent from the workspace must be displayed as PENDING. Features in the workspace but absent from the spec must be flagged as ORPHAN.
+
+**Acceptance Criteria**:
+- `gen-status` and equivalent observability commands compute: ACTIVE (in both), PENDING (spec only), ORPHAN (workspace only)
+- PENDING features display: feature ID, title, description from spec
+- ORPHAN features are flagged as workspace health warnings, not silently skipped
+- JOIN failure (spec layer unreadable) is surfaced as a warning, not a silent empty list
+- The total scope (spec features count) is shown alongside the progress (workspace features count)
+
+**Traces To**: ADR-S-009 (JOIN semantics formal requirement), REQ-FEAT-002 (Feature Dependencies — dependency display also requires full scope), REQ-UX-003 (Progressive disclosure — total scope visibility)
+
+---
+
+### REQ-EVOL-003: `feature_proposal` Event Type
+
+**Priority**: High | **Phase**: 2
+
+Implementations shall support the `feature_proposal` event type in the canonical event schema. This event is emitted by the homeostasis pipeline when gap analysis produces a candidate new feature, and it exists in the event log only — it does not modify `specification/` or `.ai-workspace/`.
+
+**Acceptance Criteria**:
+- Event fields: `proposal_id` (PROP-{SEQ}), `proposed_feature_id`, `proposed_title`, `proposed_description`, `proposed_satisfies` (list of REQ keys), `trigger_intent_id` (INT-* causal link), `trigger_signal_id` (originating signal event ID), `source_stage`, `rationale`, `status: "draft"`
+- Emitted by the Conscious Review stage (ADR-S-008 Stage 3) when gap analysis warrants a new feature
+- Does NOT write to any file outside the event log — event log is the sole persistence
+- `proposal_id` is stable and unique; used as the join key for promotion and rejection events
+
+**Traces To**: ADR-S-010 (Event-Sourced Spec Evolution — `feature_proposal` schema and invariants), REQ-SENSE-001 (Interoceptive Monitoring), REQ-SUPV-001 (IntentEngine Interface)
+
+---
+
+### REQ-EVOL-004: `spec_modified` Event Type with Causal Chain
+
+**Priority**: High | **Phase**: 1
+
+Implementations shall emit a `spec_modified` event to the canonical event log whenever `specification/` is modified. This event records the causal chain from the triggering signal to the spec change, enabling a complete audit trail of specification evolution.
+
+**Acceptance Criteria**:
+- Event fields: `file` (path relative to repo root), `what_changed` (human-readable summary), `previous_hash` (sha256 of file before change), `new_hash` (sha256 of file after change), `trigger_event_id` (PROP-{SEQ} | INT-{SEQ} | "manual"), `trigger_type` (feature_proposal | intent_raised | manual)
+- Emitted for ALL spec modifications: feature additions, requirement amendments, ADR updates
+- `trigger_event_id: "manual"` is used for direct author edits not driven by the homeostasis pipeline
+- Implementations SHOULD emit via a post-commit hook (git hook or equivalent) for manual edits
+- Content hashes enable verification: `hash(current file) == most_recent_spec_modified.new_hash` confirms the spec is consistent with the event log
+
+**Traces To**: ADR-S-010 (Event-Sourced Spec Evolution — `spec_modified` schema and audit semantics), ADR-S-008 (Sensory-Triage-Intent — Event-Sourced Provost invariant), REQ-SUPV-003 (Failure Observability — spec divergence as detectable failure)
+
+---
+
+### REQ-EVOL-005: Draft Features Queue in Observability
+
+**Priority**: Medium | **Phase**: 2
+
+The Draft Features Queue — the set of `feature_proposal` events not yet promoted or rejected — shall be surfaced in the system's status and observability commands. This is the human review gate for homeostasis-generated features.
+
+**Acceptance Criteria**:
+- `gen-status` (and equivalent) reads the event log and computes the Draft Features Queue as: `feature_proposal` events with no subsequent `spec_modified` referencing them and no `feature_proposal_rejected`
+- Draft queue entries display: proposal ID, proposed feature ID, proposed title, triggering intent, rationale summary, age (time since emission)
+- Promotion command (`gen-review approve {proposal_id}` or equivalent): appends feature to `specification/features/`, emits `spec_modified`, inflates workspace trajectory (ADR-S-009 inflate operation)
+- Rejection command: emits `feature_proposal_rejected` event with reason; removes entry from queue
+- Empty queue is an observable positive signal (no pending proposals)
+
+**Traces To**: ADR-S-010 (Draft Features Queue — computable from event log), ADR-S-009 (inflate operation triggered by promotion), REQ-UX-005 (Workspace Health — draft queue as health signal), REQ-LIFE-003 (Homeostasis Feedback Loop)
+
+---
+
 ## Requirement Summary
 
 | Category | Count | Critical | High | Medium |
@@ -1389,13 +1475,14 @@ The system shall detect when a previous session was interrupted mid-iteration an
 | Multi-Agent Coordination | 5 | 0 | 3 | 2 |
 | Supervision (IntentEngine) | 3 | 0 | 3 | 0 |
 | Runtime Robustness | 5 | 3 | 2 | 0 |
-| **Total** | **74** | **13** | **49** | **12** |
+| Spec Evolution | 5 | 0 | 4 | 1 |
+| **Total** | **79** | **13** | **53** | **13** |
 
-### Phase 1 (Core Graph Engine): 54 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (F_P invocation isolation, supervisor pattern, crash recovery, failure events, session gap detection).
+### Phase 1 (Core Graph Engine): 57 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (F_P invocation isolation, supervisor pattern, crash recovery, failure events, session gap detection), spec evolution Phase 1 (workspace vectors trajectory-only, JOIN semantics for feature display, `spec_modified` event type).
 
-### Phase 2 (Full Lifecycle + Coordination): 20 requirements
-Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking.
+### Phase 2 (Full Lifecycle + Coordination): 22 requirements
+Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking, spec evolution Phase 2 (`feature_proposal` event type, Draft Features Queue).
 
 ---
 
