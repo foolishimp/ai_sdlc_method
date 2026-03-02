@@ -177,7 +177,7 @@ The spec refers to "project state view" (an auto-regenerated derived view of pro
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems), §4.6 (IntentEngine)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems), §4.6 (IntentEngine)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (primary consumer of sensory signals)
 - [ADR-011](ADR-011-consciousness-loop-at-every-observer.md) — Consciousness Loop (signal source classification taxonomy)
 - [ADR-014](ADR-014-intentengine-binding.md) — IntentEngine Binding (affect triage IS the IntentEngine at sensory level)

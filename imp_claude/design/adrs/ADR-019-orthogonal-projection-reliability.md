@@ -210,8 +210,8 @@ This follows directly from the spec's projection model (PROJECTIONS_AND_INVARIAN
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.1 (Evaluator Types), §4.3 (Three Processing Phases)
-- [PROJECTIONS_AND_INVARIANTS.md](../../../specification/PROJECTIONS_AND_INVARIANTS.md) §2 (Projection Model — valid implementations preserve invariants)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.1 (Evaluator Types), §4.3 (Three Processing Phases)
+- [PROJECTIONS_AND_INVARIANTS.md](../../../specification/core/PROJECTIONS_AND_INVARIANTS.md) §2 (Projection Model — valid implementations preserve invariants)
 - [FUNCTOR_FRAMEWORK_DESIGN.md](../FUNCTOR_FRAMEWORK_DESIGN.md) §13 (Execution Strategies), §4 (Data Model)
 - [FRAMEWORK_COMPARISON_ANALYSIS.md](../FRAMEWORK_COMPARISON_ANALYSIS.md) §9 (Strategy comparison, cost models)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (the LLM projection)

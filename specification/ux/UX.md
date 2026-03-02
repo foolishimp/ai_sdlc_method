@@ -2,7 +2,7 @@
 
 **Version**: 1.0.0
 **Date**: 2026-02-23
-**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0), [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.13.0)
+**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../core/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0), [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.13.0)
 
 ---
 
@@ -18,11 +18,11 @@ This document defines the **user experience** of the AI SDLC methodology. It ans
 
 | Document | What it specifies | This document's relationship |
 |----------|------------------|------------------------------|
-| [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | The formal system (constraints, invariants, symmetries) | Journeys must be **satisfiable** within the formal system |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | Platform-agnostic WHAT (including §11 REQ-UX-* requirements) | Journeys exercise requirements end-to-end; gaps drive new REQ keys |
+| [AI_SDLC_ASSET_GRAPH_MODEL.md](../core/AI_SDLC_ASSET_GRAPH_MODEL.md) | The formal system (constraints, invariants, symmetries) | Journeys must be **satisfiable** within the formal system |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | Platform-agnostic WHAT (including §11 REQ-UX-* requirements) | Journeys exercise requirements end-to-end; gaps drive new REQ keys |
 | [UAT_TEST_CASES.md](../verification/UAT_TEST_CASES.md) | Exhaustive functional use cases per REQ key | Scenarios here are **cross-cutting** — each touches many REQ keys simultaneously |
-| [FEATURE_VECTORS.md](FEATURE_VECTORS.md) | Feature decomposition | Journeys may reveal missing feature vectors |
-| [PROJECTIONS_AND_INVARIANTS.md](PROJECTIONS_AND_INVARIANTS.md) | Projection profiles and vector types | Journeys exercise specific profiles end-to-end |
+| [FEATURE_VECTORS.md](../features/FEATURE_VECTORS.md) | Feature decomposition | Journeys may reveal missing feature vectors |
+| [PROJECTIONS_AND_INVARIANTS.md](../core/PROJECTIONS_AND_INVARIANTS.md) | Projection profiles and vector types | Journeys exercise specific profiles end-to-end |
 
 **This document is a gap amplifier.** Where UAT_TEST_CASES.md validates individual requirements in isolation, the scenarios here validate that requirements compose into coherent user journeys. A scenario that cannot be completed exposes integration gaps.
 

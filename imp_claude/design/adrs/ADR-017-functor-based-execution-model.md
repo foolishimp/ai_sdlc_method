@@ -301,7 +301,7 @@ This ADR resolves the "Actor Model Review and Deterministic Code Backing" active
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §2.7 (Three Layers), §4.1 (Evaluator Types), §4.3 (Three Processing Phases), §4.6 (IntentEngine), §4.6.2 (Ambiguity Classification), §4.6.6 (Consciousness as Relative), §11.1 (Hilbert Space — two compute regimes)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §2.7 (Three Layers), §4.1 (Evaluator Types), §4.3 (Three Processing Phases), §4.6 (IntentEngine), §4.6.2 (Ambiguity Classification), §4.6.6 (Consciousness as Relative), §11.1 (Hilbert Space — two compute regimes)
 - [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) §V (Category Theory / Functors), #45 (Two Compute Regimes), #49 (Teleodynamic Self-Maintenance)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (the execution substrate for all functor renderings)
 - [ADR-009](ADR-009-graph-topology-as-configuration.md) — Graph Topology as Configuration (edge configs already encode functor assignments in evaluator sections)

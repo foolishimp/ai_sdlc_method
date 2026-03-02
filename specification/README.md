@@ -1,98 +1,122 @@
 # Specification — Document Map
 
-This directory contains the **shared contract** for the AI SDLC Asset Graph Model — the formal system that all platform implementations (`imp_claude/`, `imp_gemini/`, `imp_codex/`, `imp_bedrock/`) build against.
+This directory contains the **shared contract** for the AI SDLC Asset Graph Model. All platform implementations (`imp_claude/`, `imp_gemini/`, `imp_codex/`, `imp_bedrock/`) build against it.
 
-Everything here is **tech-agnostic**. No Claude, no MCP, no slash commands. Those belong to the implementation that uses them.
+Everything here is **tech-agnostic**. No Claude, no MCP, no slash commands. Those belong to each implementation.
+
+See [adrs/ADR-S-001-specification-document-hierarchy.md](adrs/ADR-S-001-specification-document-hierarchy.md) for the rationale behind this structure.
 
 ---
 
-## Derivation Hierarchy
-
-Documents derive from each other in a strict chain. Downstream documents must not contradict upstream ones.
+## Directory Structure
 
 ```
-Constraint-Emergence Ontology  (external — github.com/foolishimp/constraint_emergence_ontology)
+specification/
+├── INTENT.md                    ← anchor: the why (upstream of everything)
+│
+├── core/                        ← PRIMARY: the formal system (inputs)
+│   ├── AI_SDLC_ASSET_GRAPH_MODEL.md
+│   ├── PROJECTIONS_AND_INVARIANTS.md
+│   ├── EXECUTIVE_SUMMARY.md
+│   └── GENESIS_BOOTLOADER.md
+│
+├── requirements/                ← DERIVED tier 1: what any implementation must do
+│   └── AISDLC_IMPLEMENTATION_REQUIREMENTS.md
+│
+├── features/                    ← DERIVED tier 2: how requirements decompose into buildable units
+│   └── FEATURE_VECTORS.md
+│
+├── ux/                          ← DERIVED tier 2: how the system presents to users
+│   └── UX.md
+│
+├── verification/                ← DERIVED tier 3: how to verify an implementation satisfies requirements
+│   └── UAT_TEST_CASES.md
+│
+└── adrs/                        ← Spec-level architectural decisions (ADR-S-* series)
+    └── ADR-S-001-specification-document-hierarchy.md
+```
+
+---
+
+## Derivation Chain
+
+```
+Constraint-Emergence Ontology  (external)
         │
         ▼
    INTENT.md                          Why we're building this
         │
         ▼
-AI_SDLC_ASSET_GRAPH_MODEL.md         The formal system — 4 primitives, 1 operation
+   core/AI_SDLC_ASSET_GRAPH_MODEL.md        The formal system — 4 primitives, 1 operation
         │
-        ├──► EXECUTIVE_SUMMARY.md         5-minute digest of the formal system
+        ├──► core/PROJECTIONS_AND_INVARIANTS.md    Graph subsets, profiles, spawn/fold-back
+        ├──► core/EXECUTIVE_SUMMARY.md             5-minute digest
+        ├──► core/GENESIS_BOOTLOADER.md            LLM operational distillation
         │
-        ├──► GENESIS_BOOTLOADER.md        Compressed axiom set for LLM sessions
-        │
-        ├──► PROJECTIONS_AND_INVARIANTS.md  Graph subsets, profiles, spawn/fold-back
-        │
-        ├──► UX.md                         User journeys, MVP, validation scenarios
-        │
-        └──► AISDLC_IMPLEMENTATION_REQUIREMENTS.md   74 platform-agnostic requirements
+        └──► requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md   74 requirements
                     │
-                    └──► FEATURE_VECTORS.md            13 features, dependency graph
-
-../verification/UAT_TEST_CASES.md    Shared acceptance contract (derived from requirements,
-                                     lives outside specification/ — it's verification, not spec)
-
-USER_GUIDE.md                         Practitioner guide (Claude implementation)
+                    ├──► features/FEATURE_VECTORS.md      13 features, dependency graph
+                    │
+                    ├──► ux/UX.md                          User journeys, MVP, validation
+                    │
+                    └──► verification/UAT_TEST_CASES.md    Acceptance contracts (9 use cases)
 ```
+
+**Rule**: downstream documents may not contradict upstream ones. A conflict is always resolved by fixing the downstream document.
 
 ---
 
 ## Document Reference
 
-| Document | Role | Size | When to use |
-|----------|------|------|-------------|
-| [INTENT.md](INTENT.md) | **Foundation** — the why | 67 lines | Start here. Answers: what problem are we solving and what does success look like? |
-| [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | **Formal system** — the what | 1379 lines | The primary reference. Defines the 4 primitives (Graph, Iterate, Evaluators, Spec+Context), the IntentEngine, sensory systems, and the full lifecycle. Read this to understand the model deeply. |
-| [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md) | **Digest** — 5-minute read | 59 lines | Read first for orientation. Covers the entire system in one page: primitives, bootstrap graph, functor encoding, projections, multi-tenancy. |
-| [GENESIS_BOOTLOADER.md](GENESIS_BOOTLOADER.md) | **LLM axiom set** — operational | 352 lines | Load this into an LLM session at the start of any work session. It replaces loading the full spec + design docs. Not a human reading document — it's structured for LLM constraint. |
-| [PROJECTIONS_AND_INVARIANTS.md](PROJECTIONS_AND_INVARIANTS.md) | **Extension** — graph flexibility | 791 lines | Read when you need to: select a profile (full/standard/poc/spike/hotfix/minimal), understand invariants, design spawn/fold-back mechanics, or configure time-boxing. |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | **Requirements** — build contract | 1402 lines | The authoritative list of 74 platform-agnostic requirements (REQ-INTENT through REQ-ROBUST). Every implementation must satisfy these. Each requirement has priority, rationale, and acceptance criteria. |
-| [FEATURE_VECTORS.md](FEATURE_VECTORS.md) | **Build plan** — what to build when | 409 lines | Shows how requirements decompose into 13 buildable feature vectors with a dependency graph and compressed task graph. Use when planning implementation order. |
-| [UX.md](UX.md) | **User experience** — journeys and scenarios | 1087 lines | Defines 7 user journeys, MVP feature set, and validation scenarios. Use when designing the user-facing interaction layer of any implementation. |
-| [USER_GUIDE.md](USER_GUIDE.md) | **Practitioner guide** — how to use Genesis | 1194 lines | Step-by-step guide for using the Genesis methodology day-to-day: installation, first project, working through the graph, REQ key tagging. Specific to the Claude Code implementation. |
+### Primary (core/)
 
-See also: **[../verification/UAT_TEST_CASES.md](../verification/UAT_TEST_CASES.md)** — shared acceptance contract (BDD scenarios for all 9 use cases). Lives in `verification/` not here because test cases are verification artifacts, not specification.
+| Document | Role | Size |
+|----------|------|------|
+| [core/AI_SDLC_ASSET_GRAPH_MODEL.md](core/AI_SDLC_ASSET_GRAPH_MODEL.md) | The formal system — 4 primitives, 1 operation | 1379 lines |
+| [core/PROJECTIONS_AND_INVARIANTS.md](core/PROJECTIONS_AND_INVARIANTS.md) | Graph subsets, profiles, spawn/fold-back, time-boxing | 791 lines |
+| [core/EXECUTIVE_SUMMARY.md](core/EXECUTIVE_SUMMARY.md) | 5-minute digest — start here | 59 lines |
+| [core/GENESIS_BOOTLOADER.md](core/GENESIS_BOOTLOADER.md) | LLM axiom set — load into sessions, not for human reading | 352 lines |
+
+### Derived
+
+| Document | Derives From | Role | Size |
+|----------|-------------|------|------|
+| [requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | core model | 74 platform-agnostic requirements | 1402 lines |
+| [features/FEATURE_VECTORS.md](features/FEATURE_VECTORS.md) | requirements | 13 features, dependency graph, build order | 409 lines |
+| [ux/UX.md](ux/UX.md) | core model + requirements | User journeys, MVP, validation scenarios | 1087 lines |
+| [verification/UAT_TEST_CASES.md](verification/UAT_TEST_CASES.md) | requirements + features | BDD acceptance contracts (9 use cases) | 3287 lines |
 
 ---
 
 ## Reading Paths
 
 ### "I'm new — what is this?"
-1. [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md) — 5 minutes
+1. [core/EXECUTIVE_SUMMARY.md](core/EXECUTIVE_SUMMARY.md) — 5 minutes
 2. [INTENT.md](INTENT.md) — 5 minutes
-3. [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) §0–§3 — 30 minutes
+3. [core/AI_SDLC_ASSET_GRAPH_MODEL.md](core/AI_SDLC_ASSET_GRAPH_MODEL.md) §0–§3 — 30 minutes
 
 ### "I'm building a new implementation (imp_X/)"
-1. [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — full read
-2. [FEATURE_VECTORS.md](FEATURE_VECTORS.md) — for build ordering
-3. [../verification/UAT_TEST_CASES.md](../verification/UAT_TEST_CASES.md) — for acceptance criteria
-4. [PROJECTIONS_AND_INVARIANTS.md](PROJECTIONS_AND_INVARIANTS.md) §3–§7 — for profile design
+1. [requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — full read
+2. [features/FEATURE_VECTORS.md](features/FEATURE_VECTORS.md) — for build ordering
+3. [verification/UAT_TEST_CASES.md](verification/UAT_TEST_CASES.md) — for acceptance criteria
+4. [core/PROJECTIONS_AND_INVARIANTS.md](core/PROJECTIONS_AND_INVARIANTS.md) §3–§7 — for profile design
 
 ### "I'm starting a Genesis work session (LLM)"
-1. Load [GENESIS_BOOTLOADER.md](GENESIS_BOOTLOADER.md) into context — replaces everything else for routine operation
+Load [core/GENESIS_BOOTLOADER.md](core/GENESIS_BOOTLOADER.md) into context — replaces loading the full spec for routine operation.
 
 ### "I need to understand profiles / spawning / time-boxing"
-1. [PROJECTIONS_AND_INVARIANTS.md](PROJECTIONS_AND_INVARIANTS.md) — full read
-
-### "I want to use Genesis on my project today"
-1. [USER_GUIDE.md](USER_GUIDE.md) — installation through first iteration
+[core/PROJECTIONS_AND_INVARIANTS.md](core/PROJECTIONS_AND_INVARIANTS.md) — full read
 
 ### "I'm writing UAT tests for my implementation"
-1. [../verification/UAT_TEST_CASES.md](../verification/UAT_TEST_CASES.md) — use case structure as template
-2. [FEATURE_VECTORS.md](FEATURE_VECTORS.md) — for coverage matrix
+1. [verification/UAT_TEST_CASES.md](verification/UAT_TEST_CASES.md) — use case structure as template
+2. [features/FEATURE_VECTORS.md](features/FEATURE_VECTORS.md) — for coverage matrix
 
 ---
 
-## What Belongs Here vs. Where
+## What Belongs Where
 
-| Belongs in `specification/` | Belongs in `verification/` | Belongs in `imp_*/design/` |
-|-----------------------------|---------------------------|---------------------------|
-| The 4 primitives definition | BDD acceptance scenarios | ADRs binding to specific technology |
-| Platform-agnostic REQ keys | Shared UAT contracts | graph_topology.yml (concrete YAML) |
-| Graph topology (abstract) | | Edge param configs |
-| Evaluator types (F_D/F_P/F_H) | | Slash command specs |
-| User journeys (UX.md) | | pytest test files |
-
-If a document mentions Claude, MCP, Python, or any specific technology — it belongs in `imp_*/`, not here.
+| `specification/core/` | `specification/requirements/` | `specification/features/` | `specification/verification/` | `imp_*/design/` |
+|----------------------|------------------------------|--------------------------|------------------------------|----------------|
+| Formal system | Platform-agnostic REQ keys | Feature decomposition | BDD acceptance contracts | Tech-bound ADRs |
+| 4 primitives definition | Acceptance criteria per REQ | Dependency graph | Shared UAT contracts | Concrete configs |
+| Projection profiles | | Build order | | Platform test files |

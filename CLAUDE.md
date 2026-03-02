@@ -53,20 +53,24 @@ Feature views are generated at every stage by grepping REQ keys across artifacts
 ai_sdlc_method/
 │
 ├── specification/                          # SHARED — the formal system (tech-agnostic)
-│   ├── README.md                           #   Document map, derivation hierarchy, reading paths
-│   ├── INTENT.md                           #   Why — problem and business value
-│   ├── AI_SDLC_ASSET_GRAPH_MODEL.md        #   Formal system — 4 primitives, 1 operation
-│   ├── EXECUTIVE_SUMMARY.md                #   5-minute digest
-│   ├── GENESIS_BOOTLOADER.md               #   LLM axiom set (load into sessions)
-│   ├── PROJECTIONS_AND_INVARIANTS.md       #   Profiles, invariants, spawn/fold-back
-│   ├── AISDLC_IMPLEMENTATION_REQUIREMENTS.md  # 74 platform-agnostic requirements
-│   ├── FEATURE_VECTORS.md                  #   13 features with dependency graph
-│   ├── UX.md                               #   User journeys and validation scenarios
-│   ├── USER_GUIDE.md                       #   Practitioner guide
+│   ├── README.md                           #   Document map and reading paths
+│   ├── INTENT.md                           #   Anchor: the why
+│   ├── core/                              #   PRIMARY: the formal system
+│   │   ├── AI_SDLC_ASSET_GRAPH_MODEL.md   #     4 primitives, 1 operation
+│   │   ├── PROJECTIONS_AND_INVARIANTS.md  #     Profiles, invariants, spawn/fold-back
+│   │   ├── EXECUTIVE_SUMMARY.md           #     5-minute digest
+│   │   └── GENESIS_BOOTLOADER.md         #     LLM axiom set (load into sessions)
+│   ├── requirements/                      #   DERIVED tier 1: what to implement
+│   │   └── AISDLC_IMPLEMENTATION_REQUIREMENTS.md
+│   ├── features/                          #   DERIVED tier 2: feature decomposition
+│   │   └── FEATURE_VECTORS.md
+│   ├── ux/                               #   DERIVED tier 2: user experience
+│   │   └── UX.md
+│   ├── verification/                      #   DERIVED tier 3: acceptance contracts
+│   │   └── UAT_TEST_CASES.md
+│   ├── adrs/                             #   Spec-level decisions (ADR-S-* series)
+│   │   └── ADR-S-001-specification-document-hierarchy.md
 │   └── presentations/
-│
-├── verification/                           # SHARED — acceptance contracts (not spec, not impl)
-│   └── UAT_TEST_CASES.md                   #   BDD acceptance tests (9 use cases, platform-agnostic)
 │
 ├── imp_claude/                             # Claude Code implementation
 │   ├── design/
@@ -133,15 +137,15 @@ See **[specification/README.md](specification/README.md)** for the full document
 |----------|------|------|
 | Spec Index | specification/README.md | Derivation map, reading paths, what-belongs-where |
 | Intent | specification/INTENT.md | Why — problem statement and business value |
-| Asset Graph Model | specification/AI_SDLC_ASSET_GRAPH_MODEL.md | The formal system — 4 primitives, 1 operation |
-| Executive Summary | specification/EXECUTIVE_SUMMARY.md | 5-minute digest — start here for orientation |
-| Genesis Bootloader | specification/GENESIS_BOOTLOADER.md | LLM axiom set — load into sessions, not for human reading |
-| Projections & Invariants | specification/PROJECTIONS_AND_INVARIANTS.md | Graph subsets, profiles, spawn/fold-back, time-boxing |
-| Implementation Reqs | specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 74 platform-agnostic requirements (the build contract) |
-| Feature Vectors | specification/FEATURE_VECTORS.md | 13 features with dependency graph and task plan |
-| UX | specification/UX.md | User journeys, MVP features, validation scenarios |
-| UAT Test Cases | verification/UAT_TEST_CASES.md | Shared acceptance contract — 9 use cases, BDD-style (verification, not spec) |
-| User Guide | specification/USER_GUIDE.md | Practitioner guide for Genesis day-to-day use |
+| Asset Graph Model | specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md | The formal system — 4 primitives, 1 operation |
+| Executive Summary | specification/core/EXECUTIVE_SUMMARY.md | 5-minute digest — start here for orientation |
+| Genesis Bootloader | specification/core/GENESIS_BOOTLOADER.md | LLM axiom set — load into sessions, not for human reading |
+| Projections & Invariants | specification/core/PROJECTIONS_AND_INVARIANTS.md | Graph subsets, profiles, spawn/fold-back, time-boxing |
+| Implementation Reqs | specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md | 74 platform-agnostic requirements (the build contract) |
+| Feature Vectors | specification/features/FEATURE_VECTORS.md | 13 features with dependency graph and task plan |
+| UX | specification/ux/UX.md | User journeys, MVP features, validation scenarios |
+| UAT Test Cases | specification/verification/UAT_TEST_CASES.md | Shared acceptance contract — 9 use cases, BDD-style (verification, not spec) |
+| User Guide | imp_claude/docs/USER_GUIDE.md | Practitioner guide for Genesis day-to-day use |
 
 ### Implementation (Claude Code)
 

@@ -2,7 +2,7 @@
 
 **Version**: 3.13.0
 **Date**: 2026-02-23
-**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
+**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../core/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)
 
 ---
@@ -1398,5 +1398,5 @@ Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop
 
 ---
 
-**Traces To**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0) — every requirement anchored to a specific section.
+**Traces To**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../core/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0) — every requirement anchored to a specific section.
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) — concept numbers (#N) throughout.

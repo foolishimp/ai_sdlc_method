@@ -153,7 +153,7 @@ The design evaluates its own fitness. When ecosystem conditions change (new API 
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems), §4.6 (IntentEngine), §5.3 (Constraint Tolerances)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems), §4.6 (IntentEngine), §5.3 (Constraint Tolerances)
 - [ADR-009](ADR-009-graph-topology-as-configuration.md) — Graph Topology as Configuration (tolerances on topology complexity)
 - [ADR-010](ADR-010-spec-reproducibility.md) — Spec Reproducibility (tolerances on hash computation cost)
 - [ADR-013](ADR-013-multi-agent-coordination.md) — Multi-Agent Coordination (tolerances on event log size and serialiser throughput)

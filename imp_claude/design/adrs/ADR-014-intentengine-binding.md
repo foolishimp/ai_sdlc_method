@@ -140,7 +140,7 @@ Level N's `escalate` becomes Level N+1's reflex:
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.6 (IntentEngine)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.6 (IntentEngine)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (the iterate agent IS the IntentEngine)
 - [ADR-009](ADR-009-graph-topology-as-configuration.md) — Graph Topology as Configuration (edge configs encode ambiguity thresholds)
 - [ADR-011](ADR-011-consciousness-loop-at-every-observer.md) — Consciousness Loop (signal sources are affect-phase observers)

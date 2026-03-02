@@ -47,8 +47,8 @@ Four primitives. One operation. The rest is parameterisation.
 
 | Document | Purpose |
 |----------|---------|
-| [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) | Canonical methodology — the 4 primitives, ontology grounding |
-| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 69 implementation requirements derived from the model |
+| [AI_SDLC_ASSET_GRAPH_MODEL.md](core/AI_SDLC_ASSET_GRAPH_MODEL.md) | Canonical methodology — the 4 primitives, ontology grounding |
+| [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | 69 implementation requirements derived from the model |
 | [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) | Parent theory |
 
 ---
@@ -64,4 +64,4 @@ Four primitives. One operation. The rest is parameterisation.
 
 ## Version
 
-**v3.0** — Asset Graph Model (v2.8), 69 implementation requirements. See [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) for the canonical specification.
+**v3.0** — Asset Graph Model (v2.8), 69 implementation requirements. See [AI_SDLC_ASSET_GRAPH_MODEL.md](core/AI_SDLC_ASSET_GRAPH_MODEL.md) for the canonical specification.
