@@ -252,9 +252,6 @@ The universal observer/evaluator composition law — fractal processing on every
 
 ---
 
-
----
-
 ### REQ-F-ROBUST-001: Runtime Robustness
 
 Resilient F_P invocation with isolation, timeouts, stall detection, and crash recovery.
@@ -270,7 +267,7 @@ Resilient F_P invocation with isolation, timeouts, stall detection, and crash re
 - Failure event emission: guaranteed emission of classification, duration, and error detail
 - Session gap detection: cross-session abandonment events on startup
 
-**Dependencies**: REQ-F-ENGINE-001.|code⟩ (needs iterate() integration)
+**Dependencies**: REQ-F-ENGINE-001.|code⟩ (wraps iterate() invocation path), REQ-F-SUPV-001.|design⟩ (failure events feed triage pipeline)
 
 ## Dependency Graph
 
@@ -293,6 +290,8 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
     │                 │
     │                 └──→ REQ-F-SENSE-001 (Sensory Systems)
     │
+    ├──→ REQ-F-ROBUST-001 (Runtime Robustness) ←── ENGINE.|code⟩ + SUPV.|design⟩ (failure event flow)
+    │
     └──→ REQ-F-TOOL-001 (Developer Tooling)
               │
               ├──→ REQ-F-UX-001 (User Experience)
@@ -301,7 +300,7 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
 ```
 
 **Parallel work** (zero inner product — independent once ENGINE.|design⟩ converges):
-- REQ-F-EVAL-001 ∥ REQ-F-CTX-001 ∥ REQ-F-TRACE-001
+- REQ-F-EVAL-001 ∥ REQ-F-CTX-001 ∥ REQ-F-TRACE-001 ∥ REQ-F-ROBUST-001
 
 **Sequential constraints**:
 - ENGINE.|design⟩ < EVAL.|code⟩ (evaluators need engine interface)
@@ -310,24 +309,34 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
 - TRACE.|code⟩ < LIFE.|code⟩ (lifecycle needs REQ key propagation)
 - LIFE.|code⟩ + EVAL.|code⟩ < SENSE.|code⟩ (sensory systems need gradient mechanics + evaluator pattern)
 - ENGINE.|design⟩ + TRACE.|design⟩ < TOOL.|code⟩ (tooling wraps both)
+- ENGINE.|code⟩ < ROBUST.|code⟩ (robustness wraps iterate() invocation path)
 
 ---
 
 ## Task Graph (Compressed)
 
 ```
-Phase 1a: ENGINE |req⟩ → |design⟩
+Phase 1a: ENGINE |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
                                     ↓
-Phase 1b: EVAL |design⟩ → |code⟩   ∥   CTX |design⟩ → |code⟩   ∥   TRACE |design⟩ → |code⟩
-                    ↓                                                       ↓
-Phase 1c: EDGE |code⟩ ↔ |tests⟩                                TOOL |code⟩ ↔ |tests⟩
-                                                                            ↓
-Phase 2:  LIFE |design⟩ → |code⟩ ↔ |tests⟩ → |uat⟩
+          ROBUST |feat_decomp⟩ → |design⟩ → ... → |code⟩ ↔ |tests⟩  (∥ with EVAL/CTX/TRACE once ENGINE.|design⟩)
+                                    ↓
+Phase 1b: EVAL   |feat_decomp⟩ → |design⟩ → ... → |code⟩ ↔ |tests⟩  ┐
+          CTX    |feat_decomp⟩ → |design⟩ → ... → |code⟩ ↔ |tests⟩  ├ parallel
+          TRACE  |feat_decomp⟩ → |design⟩ → ... → |code⟩ ↔ |tests⟩  ┘
+          SUPV   |feat_decomp⟩ → |design⟩ → ... → |code⟩ ↔ |tests⟩
+                    ↓                                       ↓
+Phase 1c: EDGE   |code⟩ ↔ |tests⟩              TOOL |code⟩ ↔ |tests⟩
+          UX     |code⟩ ↔ |tests⟩  (∥ EDGE)
+                                                            ↓
+Phase 2:  LIFE   |feat_decomp⟩ → |design⟩ → ... → |code⟩ ↔ |tests⟩ → |uat⟩
+          COORD  |feat_decomp⟩ → |design⟩ → ... → |code⟩ ↔ |tests⟩  (∥ LIFE)
                     ↓
-Phase 3:  SENSE |design⟩ → |code⟩ ↔ |tests⟩
+Phase 3:  SENSE  |feat_decomp⟩ → |design⟩ → ... → |code⟩ ↔ |tests⟩
 ```
 
-ENGINE design is the critical path. Once it converges, three features parallelise.
+Note: `...` abbreviates `|mod_decomp⟩ → |basis_proj⟩ →` for readability.
+
+ENGINE design is the critical path. Once it converges, four features parallelise (EVAL, CTX, TRACE, ROBUST).
 
 ---
 
@@ -425,7 +434,7 @@ ENGINE design is the critical path. Once it converges, three features parallelis
 | REQ-F-EDGE-001 | 4 | 1c | EVAL |
 | REQ-F-LIFE-001 | 13 | 2 | ENGINE, TRACE |
 | REQ-F-SENSE-001 | 7 | 3 | LIFE, EVAL |
-| REQ-F-TOOL-001 | 10 | 1c | ENGINE, TRACE |
+| REQ-F-TOOL-001 | 14 | 1c | ENGINE, TRACE |
 | REQ-F-UX-001 | 7 | 1c | TOOL, ENGINE |
 | REQ-F-COORD-001 | 5 | 2 | ENGINE, EVAL, TOOL |
 | REQ-F-SUPV-001 | 2 | 1b | ENGINE, EVAL |

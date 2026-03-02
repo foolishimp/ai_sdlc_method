@@ -53,6 +53,40 @@ A **Basis Projection** is the intersection of a Feature (from Feature Decomposit
 | **Local Interface** | The part of the module interface required by this feature |
 | **Stub/Mock Specs** | What other modules this projection assumes exist |
 
+#### Basis Projection artifact format
+
+Each projection is a short structured document:
+
+```
+Projection: REQ-F-AUTH-001 × auth-module
+─────────────────────────────────────────
+Feature:     REQ-F-AUTH-001 — User Authentication
+Module:      auth-module
+
+Scope in this module:
+  - Validate credentials against the user store
+  - Issue a session token on success
+  - Emit auth_attempted event (success or failure)
+
+Out of scope for this module:
+  - User registration (user-module)
+  - Session expiry enforcement (session-module)
+
+Required interface from other modules:
+  - user-module: lookup_user(id) → User | NotFound
+  - session-module: create_session(user_id) → Token
+
+Exposed interface (for other modules to depend on):
+  - authenticate(credentials) → Token | AuthError
+
+Evaluator contract:
+  - authenticate() returns Token on valid credentials
+  - authenticate() returns AuthError (not exception) on invalid credentials
+  - auth_attempted event emitted on every call
+```
+
+One such document per (feature × module) intersection in the MVP scope. An implementer working on `auth-module` sees exactly what they need to build and what they can stub — with no knowledge of other features' internals required.
+
 ### Markov Criteria
 
 **Module Decomposition** is stable when:
