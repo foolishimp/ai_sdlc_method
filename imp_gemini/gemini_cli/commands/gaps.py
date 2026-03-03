@@ -7,15 +7,23 @@ from gemini_cli.engine.state import EventStore
 class GapsCommand:
     """Scans for REQ keys lacking tests or implementation."""
     
-    def __init__(self, project_root: Path, impl_name: str = "gemini"):
-        self.project_root = project_root
+    def __init__(self, workspace_root: Path, impl_name: str = "gemini"):
+        self.workspace_root = workspace_root
+        # The project root is the parent of .ai-workspace
+        if self.workspace_root.name == ".ai-workspace":
+            self.project_root = self.workspace_root.parent
+        else:
+            self.project_root = self.workspace_root
+            self.workspace_root = self.project_root / ".ai-workspace"
+            
         self.impl_name = impl_name
+        # Look for imp_gemini (or similar) inside the project root
         self.impl_dir = self.project_root / f"imp_{impl_name}"
-        # Support running against external workspaces
-        ws_dir = self.project_root / ".ai-workspace"
-        if not ws_dir.exists() and self.project_root.name == ".ai-workspace":
-            ws_dir = self.project_root
-        self.store = EventStore(ws_dir)
+        # If running from inside the implementation dir already, use project_root
+        if not self.impl_dir.exists():
+            self.impl_dir = self.project_root
+            
+        self.store = EventStore(self.workspace_root)
 
     def run(self):
         print(f"\nTraceability Gap Analysis (Tenant: {self.impl_name})")
@@ -99,16 +107,13 @@ class GapsCommand:
         tags = set()
         search_dir = self.impl_dir if self.impl_dir.exists() else self.project_root
         for path in search_dir.rglob("*"):
-            if path.is_file() and path.suffix in [".py", ".ts", ".js", ".go", ".rs", ".html", ".scala"] and ".ai-workspace" not in str(path):
+            # Skip .ai-workspace and e2e test runs to avoid noise
+            if ".ai-workspace" in str(path) or "tests/e2e/runs" in str(path):
+                continue
+                
+            if path.is_file() and path.suffix in [".py", ".ts", ".js", ".go", ".rs", ".html", ".scala"]:
                 try:
                     content = path.read_text(errors="ignore")
-                    # Match REQ-F-GMON-001 or REQ-GRAPH-001 following the prefix
-                    # We look for REQ- followed by the key, allowing for commas and spaces
-                    # Examples: 
-                    # "# Implements: REQ-ITER-003, REQ-EVAL-002"
-                    # "# Implements: REQ-ITER-003 (Tracking)"
-                    matches = re.findall(r"REQ-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+", content)
-                    # We filter matches that are preceded by the prefix in the same line
                     for line in content.splitlines():
                         if prefix in line:
                             line_matches = re.findall(r"REQ-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+", line)

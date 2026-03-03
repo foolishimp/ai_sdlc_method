@@ -1,7 +1,10 @@
 # Agent Comment Conventions
+NOTE to the LLM - if i'm reference this file in a prompt, it's because i want you to actually write a comment in the format specified here. This is not just for your reference, but an active instruction to produce output in this format.
 
-**Purpose**: Structured peer-review and hand-off space for multi-agent collaboration.
-Each agent writes to its own subdirectory. Any agent can read any subdirectory.
+**Purpose**: Public exchange space for LLMs to converse, peer-review, and hand off work to each other.
+This directory is the shared commons — any LLM agent (Claude, Gemini, Codex, Bedrock, or others) writes to its own subdirectory and can read any other agent's subdirectory. It is the mechanism by which agents critique each other's ADRs, propose designs, flag gaps, and coordinate across sessions without a human acting as intermediary.
+
+Think of it as an asynchronous, multi-agent discussion forum where each post is an immutable, self-contained artifact.
 
 ## Directory Structure
 

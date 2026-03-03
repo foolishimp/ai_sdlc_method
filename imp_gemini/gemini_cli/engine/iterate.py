@@ -1,3 +1,4 @@
+# Implements: REQ-EVENT-001, REQ-EVENT-004
 import yaml
 import re
 import uuid
@@ -149,6 +150,10 @@ class IterateEngine:
         records = []
         for i in range(1, max_iterations + 1):
             current_iteration = base_iteration + i
+            
+            # Emit IterationStarted
+            self.emit_event("iteration_started", feature=feature_id, edge=edge, data={"iteration": current_iteration, "mode": mode})
+
             record = self.iterate_edge(
                 edge=edge,
                 feature_id=feature_id,
@@ -162,22 +167,49 @@ class IterateEngine:
             records.append(record)
             
             # Emit event
-            status = "converged" if record.report.converged else ("blocked" if record.report.spawn else "iterating")
-            event = self.emit_event(
-                "iteration_completed", 
-                feature=feature_id, 
-                edge=edge, 
-                data={"status": status, "delta": record.report.delta, "iteration": current_iteration, "mode": mode}
-            )
+            if record.report.spawn:
+                # If recursion is requested, we treat it as an 'iteration_completed' with 'blocked' status
+                status = "blocked"
+                event = self.emit_event(
+                    "iteration_completed", 
+                    feature=feature_id, 
+                    edge=edge, 
+                    data={"status": status, "delta": record.report.delta, "iteration": current_iteration, "mode": mode}
+                )
+            elif any(not g.passed for g in record.report.guardrail_results):
+                status = "failed"
+                event = self.emit_event(
+                    "iteration_failed", 
+                    feature=feature_id, 
+                    edge=edge, 
+                    data={"reason": "Guardrail validation failed", "iteration": current_iteration, "mode": mode}
+                )
+            else:
+                status = "converged" if record.report.converged else "iterating"
+                event = self.emit_event(
+                    "iteration_completed", 
+                    feature=feature_id, 
+                    edge=edge, 
+                    data={"status": status, "delta": record.report.delta, "iteration": current_iteration, "mode": mode}
+                )
             
             run_id = event.get("run", {}).get("runId", "unknown")
             
             # Update feature vector
             self.update_feature_vector(feature_id, edge, current_iteration, status, record.report.delta, str(asset_path), mode=mode, run_id=run_id)
 
-            if record.report.converged or record.report.spawn:
-                if record.report.converged:
-                    self.emit_event("edge_converged", feature=feature_id, edge=edge, data={"mode": mode})
+            if record.report.spawn:
+                # Saga Invariant: Trigger Compensation
+                self.emit_event(
+                    "compensation_triggered",
+                    feature=feature_id,
+                    edge=edge,
+                    data={"reason": "RECURSION requested by evaluator", "spawn": record.report.spawn.__dict__}
+                )
+                break
+
+            if record.report.converged:
+                self.emit_event("edge_converged", feature=feature_id, edge=edge, data={"mode": mode, "delta": record.report.delta})
                 break
                 
         return records
@@ -298,16 +330,23 @@ class IterateEngine:
             data["trajectory"][traj_key]["converged_at"] = datetime.now(timezone.utc).isoformat()
             
             # Check if all core nodes in standard profile are converged
+            required_edges = [
+                "requirements", "feature_decomp", "design", "module_decomp", 
+                "basis_proj", "code", "unit_tests"
+            ]
             all_core_converged = True
-            for k, v in data["trajectory"].items():
-                if isinstance(v, dict):
-                    if v.get("status") != "converged":
-                        all_core_converged = False
-                        break
+            for req_edge in required_edges:
+                edge_data = data["trajectory"].get(req_edge, {})
+                if not isinstance(edge_data, dict) or edge_data.get("status") != "converged":
+                    all_core_converged = False
+                    break
             
             if all_core_converged:
                 data["status"] = "converged"
+            else:
+                data["status"] = "in_progress" # Ensure it stays in progress
 
+        fv_path.parent.mkdir(parents=True, exist_ok=True)
         with open(fv_path, "w") as f:
             yaml.dump(data, f)
 

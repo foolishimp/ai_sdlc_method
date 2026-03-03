@@ -8,13 +8,13 @@ The methodology is defined by four invariants that must hold in every valid proj
 
 | Primitive | Definition |
 | :--- | :--- |
-| **Graph** | A topology of typed assets connected by admissible transitions. |
-| **Iterate** | The only operation: `iterate(asset, context, evaluators) → candidate`. |
+| **Graph** | A topology of typed asset projections (zoomable). |
+| **Iterate** | The only operation: `iterate(asset, context, evaluators) → Event+`. |
 | **Evaluators** | Convergence criteria ({Human, Agent, Tests}) that compute $\delta$. |
 | **Spec + Context** | The constraint surface that bounds construction. |
 
 ### The Operation
-Every edge in the graph is traversed by calling `iterate()` until evaluators report convergence ($\delta < \epsilon$).
+Every edge in the graph is traversed by calling `iterate()` on an event stream. Each iteration appends events to the stream, and the next candidate is projected from the updated history. Traversal ends when evaluators report convergence.
 
 ## 2. The Asset Graph: Features as Trajectories
 
@@ -50,10 +50,17 @@ A **Projection** is a valid instance of the formal system that selectively enabl
 *   **Profiles**: Named configurations (Minimal, Standard, Full) that define which edges exist, which evaluators are active, and what context is required.
 *   **Logical Completeness**: The full system is always present in the specification; projections omit edges, evaluators, or context that a given project does not require.
 
-## 6. Multi-Tenant by Design
+## 6. Substrate: Asset as Projection
+
+The methodology is event-sourced by design. State is never mutated; it is derived by projecting an append-only, ordered event stream. This ensures:
+*   **Durability**: Process recovery is simply replaying the event stream.
+*   **Compensation**: Compensation logic is expressed as events, not rollbacks.
+*   **Implementation Drift Detection**: Two implementations are spec-equivalent if they produce the same asset projections from the same event stream.
+
+## 7. Multi-Tenant by Design
 
 The methodology is platform-agnostic. The specification defines WHAT; each implementation (`imp_<name>/`) binds HOW to a specific platform. One spec, many designs — each with its own architecture, tooling, and deployment model.
 
-## 7. Protocol Enforcement
+## 8. Protocol Enforcement
 
 Observability is a constraint, not a feature. The system uses **Reflex Hooks** to verify that every iteration emits an event and updates the feature vector state. If the bookkeeping is skipped, the construction is blocked.

@@ -42,6 +42,7 @@ Version semantics: PATCH (clarification), MINOR (criteria change), MAJOR (breaki
 13. [Supervision (IntentEngine)](#13-supervision-intentengine) — Universal observer/evaluator composition law
 14. [Runtime Robustness](#14-runtime-robustness) — F_P invocation isolation, supervisor pattern, crash recovery
 15. [Spec Evolution](#15-spec-evolution) — Feature vector lifecycle, spec modification audit, homeostasis promotion path
+16. [Event Stream & Projections](#16-event-stream--projections) — Append-only substrate, projection contract, saga invariant
 
 ---
 
@@ -167,14 +168,15 @@ An asset shall achieve Markov object status only when it satisfies all evaluator
 
 **Priority**: Critical | **Phase**: 1
 
-The system shall implement a single iteration function for all graph edge traversals.
+The system shall implement a single iteration function for all graph edge traversals, operating on an event stream substrate.
 
 **Acceptance Criteria**:
-- Signature: `iterate(Asset<Tn>, Context[], Evaluators(edge_type)) → Asset<Tn.k+1>`
-- The asset carries intent, lineage, and full history — these are not separate parameters
+- Signature: `iterate(Asset<Tn>, Context[], Evaluators(edge_type)) → Event+`
+- The asset is a projection of the event stream; it carries intent, lineage, and full history
+- `iterate()` produces one or more events which are appended to the stream
 - Same function for all edges; behaviour parameterised by evaluators and context
 - Constructor (#41) implementations are edge-specific (LLM agent, human, compiler, test runner)
-- Iteration repeats until `stable()` reports convergence
+- Iteration repeats until `stable()` reports convergence on the updated projection
 
 **Traces To**: Asset Graph Model §3.1 (Signature) | Ontology #15 (local preorder traversal), #41 (constructor)
 
@@ -1488,3 +1490,69 @@ Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop
 
 **Traces To**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../core/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0) — every requirement anchored to a specific section.
 **Parent Theory**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) — concept numbers (#N) throughout.
+
+## 16. Event Stream & Projections
+
+### REQ-EVENT-001: Append-Only Event Stream
+
+**Priority**: Critical | **Phase**: 1
+
+All methodology operations MUST be expressed as immutable events on an append-only, ordered event stream.
+
+**Acceptance Criteria**:
+- Events once emitted cannot be modified or deleted
+- Stream is ordered (chronological or sequential ID)
+- Event log is the system's foundational durability medium
+- Conformance does not depend on storage technology (file, DB, stream)
+
+**Traces To**: Asset Graph Model §7.4 | ADR-S-012 | Ontology #2
+
+---
+
+### REQ-EVENT-002: Projection Contract
+
+**Priority**: Critical | **Phase**: 1
+
+All observable methodology state (Assets, STATUS, Feature Vectors) MUST be derived by projecting the event stream.
+
+**Acceptance Criteria**:
+- **Determinism**: Same stream + same projector → same asset state
+- **Completeness**: Any prior state can be reconstructed by replaying to that point
+- **Isolation**: Projections are isolated by `instance_id`
+- Implementations MAY use materialised views (e.g. working tree) but MUST stay in sync with the stream
+
+**Traces To**: Asset Graph Model §7.4.2 | ADR-S-012 | Ontology #9, #11
+
+---
+
+### REQ-EVENT-003: Required Event Taxonomy
+
+**Priority**: Critical | **Phase**: 1
+
+Implementations SHALL emit the required event types with mandatory fields as defined in the spec.
+
+**Acceptance Criteria**:
+- Lifecycle: `IterationStarted`, `IterationCompleted`, `IterationFailed`
+- Convergence: `EvaluatorVoted`, `ConsensusReached`, `ConvergenceAchieved`
+- Context: `ContextArrived` (supports push context)
+- Mandatory fields: `instance_id`, `actor`, `timestamp`
+- Aligned with OpenLineage (ADR-S-011)
+
+**Traces To**: Asset Graph Model §7.4.1 | ADR-S-012 | ADR-S-011
+
+---
+
+### REQ-EVENT-004: Saga Invariant (Compensation)
+
+**Priority**: High | **Phase**: 2
+
+The system SHALL enforce consistency across multi-edge transitions using the saga invariant.
+
+**Acceptance Criteria**:
+- If `IterationFailed(edge: B→C)` occurs after `IterationCompleted(edge: A→B)`, the system MUST emit `CompensationTriggered`
+- `CompensationCompleted(edge: A→B)` MUST appear before any further `IterationStarted(edge: A→B)`
+- Compensation is expressed as new events on the stream, not state rollback
+
+**Traces To**: Asset Graph Model §7.2 | ADR-S-012 | Ontology #49
+
+---

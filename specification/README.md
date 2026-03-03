@@ -35,9 +35,8 @@ specification/
 └── adrs/                        ← Spec-level architectural decisions (ADR-S-* series)
     ├── ADR-S-001-specification-document-hierarchy.md
     ├── ADR-S-002-multi-tenancy-model.md
-    ├── ADR-S-003-req-key-format.md
-    ├── ADR-S-004-derivation-constraint.md
-    └── ADR-S-005-spec-versioning-contract.md
+    ├── ...
+    └── ADR-S-012-event-stream-as-formal-model-medium.md
 ```
 
 ---
@@ -87,7 +86,7 @@ Constraint-Emergence Ontology  (external)
 
 | Document | Derives From | Role | Size |
 |----------|-------------|------|------|
-| [requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | core model | 79 platform-agnostic requirements | 1402 lines |
+| [requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | core model | 83 platform-agnostic requirements | 1402 lines |
 | [features/FEATURE_VECTORS.md](features/FEATURE_VECTORS.md) | requirements | 13 features, dependency graph, build order | 409 lines |
 | [ux/UX.md](ux/UX.md) | core model + requirements | User journeys, MVP, validation scenarios | 1087 lines |
 | [verification/UAT_TEST_CASES.md](verification/UAT_TEST_CASES.md) | requirements + features | BDD acceptance contracts (9 use cases) | 3287 lines |
@@ -107,6 +106,7 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-009](adrs/ADR-S-009-feature-vector-lifecycle-spec-vs-trajectory.md) | Feature Vector Lifecycle | Spec layer = feature definitions; workspace layer = trajectory only; JOIN semantics |
 | [ADR-S-010](adrs/ADR-S-010-event-sourced-spec-evolution.md) | Event-Sourced Spec Evolution | `feature_proposal` and `spec_modified` events; promotion path; Draft Features Queue |
 | [ADR-S-011](adrs/ADR-S-011-openlineage-unified-metadata-standard.md) | OpenLineage Unified Metadata | All events follow OL RunEvent schema; custom facets; local-first; causal chaining via ParentRunFacet |
+| [ADR-S-012](adrs/ADR-S-012-event-stream-as-formal-model-medium.md) | Event Stream Medium | All primitives operate on append-only event stream; Asset as projection; Saga invariant |
 
 
 ---

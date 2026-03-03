@@ -112,7 +112,8 @@ class Projector:
             req_facet = facets.get("sdlc_req_keys", {})
             type_facet = facets.get("sdlc_event_type", {})
             
-            if (type_facet.get("type") == "iteration_completed" or "sdlc_delta" in facets) and \
+            e_type = type_facet.get("type")
+            if (e_type in ["iteration_completed", "iteration_started"] or "sdlc_delta" in facets) and \
                req_facet.get("feature_id") == feature and req_facet.get("edge") == edge:
                 count += 1
         return count

@@ -18,8 +18,9 @@ Specifically, the methodology is:
 | **Invariants** | What must survive any valid transformation | The four primitives (Graph, Iterate, Evaluators, Spec+Context) — see §1 |
 | **Symmetries** | What transformations preserve the invariants | Functor renderings F_D ↔ F_P ↔ F_H (§2.9); natural transformations between encodings |
 | **Projections** | How the same invariants produce different instances at different scales | full → standard → spike → minimal (Projections doc §3) |
+| **Substrate** | The medium on which operations occur | Append-only, ordered event stream (ADR-S-012) |
 
-Any implementation that satisfies these constraints is a valid instantiation. Slash commands, manual processes, and alternative toolchains are equally valid — the constraints define the possibility space; implementations fill it.
+Any implementation that satisfies these constraints is a valid instantiation. Slash commands, manual processes, and alternative toolchains are equally valid — the constraints define the possibility space; implementations fill it. State is not stored; it is derived by projecting the event stream.
 
 **The formal system is a generator of valid methodologies** (Projections doc §8). What it generates depends on which projection is applied, which encoding is chosen, and which technology binds the functional units. This document specifies the generator: the constraints, invariants, symmetries, and projections.
 
@@ -31,16 +32,16 @@ Genesis (the methodology tooling) is itself a product, and complies with the sam
 
 ## 1. Overview
 
-The AI SDLC is an instance of the information-driven construction pattern (ontology concept #38): **encoded representation → constructor → constructed structure**. This document formalises the methodology as an **asset graph** with a **universal iteration function**.
+The AI SDLC is an instance of the information-driven construction pattern (ontology concept #38): **encoded representation → constructor → constructed structure**. This document formalises the methodology as an **asset graph** with a **universal iteration function** operating on an **event stream substrate**.
 
 The entire methodology reduces to four primitives:
 
 | Primitive | What it is | Ontology concept |
 |-----------|-----------|-----------------|
-| **Graph** | Topology of admissible asset transitions (zoomable) | #9 Constraint manifold |
-| **Iterate** | Convergence engine — the only operation | #15 Local preorder traversal |
+| **Graph** | Topology of typed asset projections (zoomable) | #9 Constraint manifold |
+| **Iterate** | Event-producing convergence engine — the only operation | #15 Local preorder traversal |
 | **Evaluators** | Convergence test — when is iteration done | #35 Evaluator-as-prompter |
-| **Spec + Context** | Constraint surface — what bounds construction | #40 Encoded representation + #9 |
+| **Spec + Context** | Constraint surface bounding construction | #40 Encoded representation + #9 |
 
 Everything else — stages, agents, TDD, BDD, commands, configurations — is parameterisation of these four primitives for specific graph edges. They are emergence within the constraints the primitives define, not the methodology itself.
 
@@ -52,9 +53,9 @@ Everything else — stages, agents, TDD, BDD, commands, configurations — is pa
 
 ### 2.1 Asset Types and Transitions
 
-An **asset** is a typed artifact produced by the methodology. The asset graph defines admissible transitions between asset types — which constructions can follow which.
+An **asset** is a typed projection derived from the event stream. The asset graph defines admissible transitions between asset types — which constructions can follow which.
 
-Each edge is the same operation: `iterate()` until evaluators converge. The edge is the vector — the iterative process of assurance, disambiguation, discovery, and solutioning that evolves one asset into the next.
+Each edge is the same operation: `iterate()` until evaluators converge. Every iteration produces one or more events which are appended to the stream; the next asset candidate is the projection of the updated stream. The edge is the vector — the iterative process of assurance, disambiguation, discovery, and solutioning that evolves one asset into the next.
 
 A **delivered feature** is the composite of all assets produced along its edges. Software feature delivery is a composite vector:
 
@@ -374,20 +375,22 @@ This functor formalism explains why the four primitives are sufficient: **Graph*
 
 ```
 iterate(
-    Asset<Tn>,              // current asset (carries intent, lineage, full history)
-    Context[],              // standing constraints
+    Asset<Tn>,              // current asset projection
+    Context[],              // standing constraints (spec, design, ADRs, push context)
     Evaluators(edge_type)   // convergence criteria for this edge
-) → Asset<Tn.k+1>          // next iteration candidate
+) → Event+                // one or more events appended to the stream
 ```
 
 The prior asset carries everything forward — intent, lineage, all prior decisions. These aren't separate parameters; they're in the vector. Context[] and Evaluators are the external constraints.
 
-This is the **only operation**. Every edge in the graph is this function called repeatedly until evaluators report convergence, at which point the candidate is promoted:
+This is the **only operation**. Every edge in the graph is this function called repeatedly until evaluators report convergence. Each call appends events to the stream; the next candidate is projected from the updated stream.
 
 ```
 while not stable(candidate, edge_type):
-    candidate = iterate(candidate, context, evaluators)
-return promote(candidate)   // ATn.m becomes ATn+1.0
+    events = iterate(candidate, context, evaluators)
+    stream.append(events)
+    candidate = project(stream, asset_type, instance_id)
+return promote(candidate)   // candidate becomes stable asset projection
 ```
 
 ```mermaid
@@ -1373,7 +1376,7 @@ The methodology is a direct instantiation of concept #38:
 
 ## 9. Summary
 
-1. **Four primitives, one operation.** Graph, Iterate, Evaluators, Spec+Context. `iterate(Asset, Context[], Evaluators) -> Asset'` is the only operation. Everything else is parameterisation.
+1. **Four primitives, one operation.** Graph, Iterate, Evaluators, Spec+Context. `iterate(Asset, Context[], Evaluators) → Event+` is the only operation. Everything else is parameterisation.
 2. **Asset graph.** A directed cyclic graph of typed assets with admissible transitions (zoomable). The SDLC graph is one domain-specific instantiation; the primitives are universal.
 3. **Universal iterate().** One agent, one function, all edges. Behaviour is parameterised by edge config, not hard-coded. Convergence = all evaluators pass.
 4. **Three processing phases + sensory systems.** Reflex (autonomic event emission, protocol hooks), affect (signal triage, severity, escalation), conscious (human + agent evaluators, spec modification). Interoceptive + exteroceptive monitors (§4.5) run continuously and independently of iterate().

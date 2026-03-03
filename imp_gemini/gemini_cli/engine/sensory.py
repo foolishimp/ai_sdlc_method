@@ -1,9 +1,10 @@
-# Implements: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-004
+# Implements: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-SENSE-006
 import os
 import json
 import yaml
 import time
 import subprocess
+import threading
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Any, Optional
@@ -11,7 +12,7 @@ from gemini_cli.engine.state import EventStore
 
 class SensoryService:
     """Independent service that watches the workspace and runs monitors.
-    Implements: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-004
+    Implements: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005
     """
     
     def __init__(self, workspace_root: Path):
@@ -20,12 +21,29 @@ class SensoryService:
         self.store = EventStore(workspace_root)
         self.config_path = Path(__file__).parent.parent / "config" / "sensory_monitors.yml"
         self.config = self._load_config()
+        self.running = False
+        self._last_mtimes = {} # For filesystem monitoring
 
     def _load_config(self) -> Dict:
         if self.config_path.exists():
             with open(self.config_path, "r") as f:
                 return yaml.safe_load(f)
         return {}
+
+    def start_background_service(self, interval: int = 60):
+        """Starts the continuous background sensory loop (REQ-SENSE-003)."""
+        self.running = True
+        print(f"  [SENSE] Background sensory service started (interval: {interval}s)")
+        
+        while self.running:
+            try:
+                self.run_all_monitors()
+            except Exception as e:
+                print(f"  [ERROR] Sensory service loop failure: {e}")
+            time.sleep(interval)
+
+    def stop(self):
+        self.running = False
 
     def run_all_monitors(self):
         """Runs all enabled monitors and emits signals."""
@@ -40,6 +58,9 @@ class SensoryService:
         for monitor in monitors.get("exteroceptive", []):
             if monitor.get("enabled", True):
                 self._run_monitor(monitor, "exteroceptive_signal")
+        
+        # 3. Artifact Write Observation (REQ-SENSE-005)
+        self._check_artifact_writes()
 
     def _run_monitor(self, monitor: Dict, event_type: str):
         monitor_id = monitor.get("id")
@@ -55,19 +76,16 @@ class SensoryService:
             else:
                 # Generic command-based monitor (mostly for exteroceptive)
                 commands = monitor.get("commands", {})
-                # For now, just try to run the first one that matches our environment
-                # In a real implementation, we'd check the project type
                 for cmd_type, cmd in commands.items():
-                    # Simplified check: just try to run it if it looks like it's for our ecosystem
                     if "python" in cmd_type or "pip" in cmd:
                         try:
-                            res = subprocess.check_output(cmd, shell=True, text=True)
+                            # Use timeout to prevent hanging the service
+                            res = subprocess.check_output(cmd, shell=True, text=True, timeout=10)
                             self._emit_signal(event_type, monitor_id, name, {"output": res})
                             break
                         except:
                             continue
         except Exception as e:
-            # Meta-monitoring: sense that sensing failed
             self.store.emit(
                 "interoceptive_signal",
                 project="imp_gemini",
@@ -79,7 +97,6 @@ class SensoryService:
             )
 
     def _emit_signal(self, event_type: str, monitor_id: str, name: str, data: Dict):
-        # ADR-S-008: Every signal carries a Valence Vector (severity, urgency, priority)
         valence = {
             "severity": data.get("severity", "info"),
             "urgency": data.get("urgency", "low"),
@@ -97,44 +114,102 @@ class SensoryService:
             }
         )
 
+    def _check_artifact_writes(self):
+        """Detects new or modified artifacts (REQ-SENSE-005)."""
+        # If this is the very first time we check, we just establish a baseline
+        is_initializing = getattr(self, "_sensory_initialized", False) == False
+        
+        # Scan core directories
+        for folder in ["specification", "design", "code", "tests"]:
+            path = self.project_root / folder
+            if not path.exists(): continue
+            
+            for file in path.rglob("*"):
+                if file.is_file() and file.suffix in [".md", ".py", ".yml"]:
+                    mtime = file.stat().st_mtime
+                    file_str = str(file.relative_to(self.project_root))
+                    
+                    if file_str in self._last_mtimes:
+                        if mtime > self._last_mtimes[file_str]:
+                            self._emit_signal(
+                                "exteroceptive_signal", 
+                                "EXTRO-WRITE-001", 
+                                "artifact_write", 
+                                {"file": file_str, "status": "modified", "severity": "info"}
+                            )
+                    elif not is_initializing:
+                        # New file detected after baseline established
+                        self._emit_signal(
+                            "exteroceptive_signal", 
+                            "EXTRO-WRITE-001", 
+                            "artifact_write", 
+                            {"file": file_str, "status": "new", "severity": "info"}
+                        )
+                    
+                    self._last_mtimes[file_str] = mtime
+        
+        self._sensory_initialized = True
+
     # --- Concrete Monitor Implementations ---
 
     def _monitor_event_freshness(self, monitor: Dict) -> Optional[Dict]:
         events = self.store.load_all()
         if not events:
-            return {"days_since_last_event": 999}
+            return {"days_since_last_event": 999, "severity": "warning"}
         
         last_event = events[-1]
-        last_ts = datetime.fromisoformat(last_event["timestamp"].replace("Z", "+00:00"))
+        ts_str = last_event.get("timestamp") or last_event.get("eventTime")
+        if not ts_str: return None
+        
+        last_ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
         delta = datetime.now(timezone.utc) - last_ts
         days = delta.total_seconds() / (24 * 3600)
         
         threshold = monitor.get("threshold", {})
         if days >= threshold.get("warning", 7):
-            return {"days_since_last_event": round(days, 2), "status": "stale"}
+            return {"days_since_last_event": round(days, 2), "status": "stale", "severity": "warning"}
+        return None
+
+    def _monitor_feature_vector_stall(self, monitor: Dict) -> Optional[Dict]:
+        """INTRO-002: In-progress vectors with no activity."""
+        features_dir = self.workspace_root / "features" / "active"
+        if not features_dir.exists(): return None
+        
+        stalled = []
+        now = datetime.now(timezone.utc)
+        threshold = monitor.get("threshold", {}).get("warning", 14)
+        
+        for path in features_dir.glob("*.yml"):
+            with open(path, "r") as f:
+                data = yaml.safe_load(f)
+                if data and data.get("status") != "converged":
+                    # Check mtime of the file as proxy for last activity
+                    mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+                    days = (now - mtime).days
+                    if days >= threshold:
+                        stalled.append({"feature": data.get("feature"), "days": days})
+        
+        if stalled:
+            return {"stalled_features": stalled, "severity": "warning"}
         return None
 
     def _monitor_status_freshness(self, monitor: Dict) -> Optional[Dict]:
         status_file = self.workspace_root / "STATUS.md"
         if not status_file.exists():
-            return {"status": "missing"}
+            return {"status": "missing", "severity": "warning"}
         
         mtime = datetime.fromtimestamp(status_file.stat().st_mtime, tz=timezone.utc)
         events = self.store.load_all()
         if not events:
             return None
             
-        last_ts = datetime.fromisoformat(events[-1]["timestamp"].replace("Z", "+00:00"))
+        ts_str = events[-1].get("timestamp") or events[-1].get("eventTime")
+        if not ts_str: return None
+        
+        last_ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
         if last_ts > mtime:
             lag = (last_ts - mtime).total_seconds() / (24 * 3600)
             threshold = monitor.get("threshold", {})
             if lag >= threshold.get("warning", 1):
-                return {"status_lag_days": round(lag, 2)}
-        return None
-
-    def _monitor_spec_code_drift(self, monitor: Dict) -> Optional[Dict]:
-        # Reuse GapsCommand logic? Or implement a light version.
-        # For now, just check if any gaps exist.
-        from gemini_cli.commands.gaps import GapsCommand
-        # This is a bit heavy, maybe just a quick scan
+                return {"status_lag_days": round(lag, 2), "severity": "info"}
         return None

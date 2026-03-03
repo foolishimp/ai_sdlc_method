@@ -1,0 +1,108 @@
+context:
+  adrs:
+  - ADR-001-bootstrap-architecture
+  - ADR-001-python-ecosystem
+  - ADR-002-filesystem-storage
+  - ADR-003-event-sourcing
+  - ADR-004-context-loading
+  - ADR-005-spec-hashing
+  - ADR-006-functor-interface
+  - ADR-007-feature-vector-schema
+  - ADR-008-dependency-tracking
+  - ADR-008-universal-iterate-agent
+  - ADR-009-edge-configuration
+  - ADR-009-graph-topology-as-configuration
+  - ADR-010-command-plugin-arch
+  - ADR-010-spec-reproducibility
+  - ADR-011-consciousness-loop-at-every-observer
+  - ADR-011-two-verb-ux
+  - ADR-012-two-command-ux-layer
+  - ADR-013-multi-agent-coordination
+  - ADR-014-intentengine-binding
+  - ADR-015-sensory-service-technology-binding
+  - ADR-016-design-tolerances-as-optimization-triggers
+  - ADR-017-functor-based-execution-model
+  - ADR-GG-001
+  - ADR-GG-002
+  - ADR-GG-003
+  - ADR-GG-004
+  - ADR-GG-005
+  - ADR-GG-006
+  - ADR-GG-007
+  - ADR-GG-008
+  - ADR-GG-009
+  - ADR-GG-010
+  - ADR-GG-011
+  - ADR-GG-012
+feature: REQ-F-SENSE-001
+intent: Implement the Sensory Systems (Interoceptive and Exteroceptive Monitoring)
+  as defined in REQ-SENSE-001..006
+parent: null
+status: converged
+trajectory:
+  basis_proj:
+    asset: design/SENSE_BASIS.md
+    converged_at: '2026-03-03T16:05:55.831485+00:00'
+    delta: 0
+    engine_run_id: d4b75499-5cc5-4ac0-b0a1-90ea87451434
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T16:05:55.831482+00:00'
+  code:
+    asset: gemini_cli/engine/sensory.py
+    converged_at: '2026-03-03T16:09:59.565803+00:00'
+    delta: 0
+    engine_run_id: 1072a15d-232c-4937-9d69-b65246cec9e0
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T16:09:59.565801+00:00'
+  design:
+    asset: design/SENSE_DESIGN.md
+    converged_at: '2026-03-03T16:05:03.098669+00:00'
+    delta: 0
+    engine_run_id: 77086ed2-98b6-46f0-bc4f-f7c60a26a7ea
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T16:05:03.098667+00:00'
+  feature_decomp:
+    asset: specification/REQ-F-SENSE-001.decomp.md
+    converged_at: '2026-03-03T16:04:38.397988+00:00'
+    delta: 0
+    engine_run_id: ef89d37c-bedd-4c38-854b-8fa00b651590
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T16:04:38.397985+00:00'
+  intent:
+    status: converged
+  module_decomp:
+    asset: design/SENSE_MODULES.md
+    converged_at: '2026-03-03T16:05:32.100780+00:00'
+    delta: 0
+    engine_run_id: 5bbda0d8-2236-47cb-9fe9-67493f5f9dba
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T16:05:32.100778+00:00'
+  requirements:
+    asset: specification/SENSE_REQUIREMENTS.md
+    converged_at: '2026-03-03T16:04:20.457310+00:00'
+    delta: 0
+    engine_run_id: 9a09f58e-5873-4fe8-ac6a-1435250cc008
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T16:04:20.457308+00:00'
+  unit_tests:
+    asset: tests/test_sensory.py
+    converged_at: '2026-03-03T16:10:11.190739+00:00'
+    delta: 0
+    engine_run_id: 539452b1-0b71-40d3-a3bd-f726782e2665
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T16:10:11.190732+00:00'
+vector_type: feature

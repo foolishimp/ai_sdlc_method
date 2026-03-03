@@ -1,0 +1,108 @@
+context:
+  adrs:
+  - ADR-001-bootstrap-architecture
+  - ADR-001-python-ecosystem
+  - ADR-002-filesystem-storage
+  - ADR-003-event-sourcing
+  - ADR-004-context-loading
+  - ADR-005-spec-hashing
+  - ADR-006-functor-interface
+  - ADR-007-feature-vector-schema
+  - ADR-008-dependency-tracking
+  - ADR-008-universal-iterate-agent
+  - ADR-009-edge-configuration
+  - ADR-009-graph-topology-as-configuration
+  - ADR-010-command-plugin-arch
+  - ADR-010-spec-reproducibility
+  - ADR-011-consciousness-loop-at-every-observer
+  - ADR-011-two-verb-ux
+  - ADR-012-two-command-ux-layer
+  - ADR-013-multi-agent-coordination
+  - ADR-014-intentengine-binding
+  - ADR-015-sensory-service-technology-binding
+  - ADR-016-design-tolerances-as-optimization-triggers
+  - ADR-017-functor-based-execution-model
+  - ADR-GG-001
+  - ADR-GG-002
+  - ADR-GG-003
+  - ADR-GG-004
+  - ADR-GG-005
+  - ADR-GG-006
+  - ADR-GG-007
+  - ADR-GG-008
+  - ADR-GG-009
+  - ADR-GG-010
+  - ADR-GG-011
+  - ADR-GG-012
+feature: REQ-F-EVENT-001
+intent: Implement the Event Stream substrate and projection contract as defined in
+  ADR-S-012 and REQ-EVENT series
+parent: null
+status: converged
+trajectory:
+  basis_proj:
+    asset: design/REQ-F-EVENT-001.basis.md
+    converged_at: '2026-03-03T15:55:03.592256+00:00'
+    delta: 0
+    engine_run_id: 95c75d81-8d4d-4f56-8b5e-4025e920d20d
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T15:55:03.592253+00:00'
+  code:
+    asset: gemini_cli/engine/iterate.py
+    converged_at: '2026-03-03T15:56:53.115171+00:00'
+    delta: 0
+    engine_run_id: 26ffe9e4-7954-4f0d-af52-0a0b03fd66eb
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T15:56:53.115169+00:00'
+  design:
+    asset: design/REQ-F-EVENT-001.design.md
+    converged_at: '2026-03-03T15:53:06.829161+00:00'
+    delta: 0
+    engine_run_id: 6d7da84c-ba17-4355-a14e-c1a561cb7359
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T15:53:06.829158+00:00'
+  feature_decomp:
+    asset: specification/REQ-F-EVENT-001.decomp.md
+    converged_at: '2026-03-03T15:52:17.563590+00:00'
+    delta: 0
+    engine_run_id: 89cc090d-d477-44ae-8077-7130dd060642
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T15:52:17.563586+00:00'
+  intent:
+    status: converged
+  module_decomp:
+    asset: design/REQ-F-EVENT-001.modules.md
+    converged_at: '2026-03-03T15:53:51.283065+00:00'
+    delta: 0
+    engine_run_id: 1157892b-0cda-4ea1-8135-6c6c6e873912
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T15:53:51.283062+00:00'
+  requirements:
+    asset: ../specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md
+    converged_at: '2026-03-03T15:49:58.677800+00:00'
+    delta: 0
+    engine_run_id: 6ddbeddf-431c-4f2f-9c85-a01ce39ea06f
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T15:49:58.677796+00:00'
+  unit_tests:
+    asset: tests/test_event_stream.py
+    converged_at: '2026-03-03T15:58:21.303181+00:00'
+    delta: 0
+    engine_run_id: e8df5215-9646-47c4-99cf-84abb72723d3
+    iteration: 1
+    mode: headless
+    status: converged
+    updated_at: '2026-03-03T15:58:21.303179+00:00'
+vector_type: feature

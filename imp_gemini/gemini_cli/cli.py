@@ -42,7 +42,9 @@ def main():
     subparsers.add_parser("spec-review", help="Review workspace against specification gradient")
     
     # Sense: Run monitors
-    subparsers.add_parser("sense", help="Run sensory monitors")
+    sense_parser = subparsers.add_parser("sense", help="Run sensory monitors")
+    sense_parser.add_argument("--loop", action="store_true", help="Run in continuous background loop")
+    sense_parser.add_argument("--interval", type=int, default=60, help="Poll interval in seconds (default: 60)")
     
     # Sync: Resolve context sources
     subparsers.add_parser("sync", help="Sync external context sources")
@@ -110,9 +112,15 @@ def main():
         SpecReviewCommand(workspace_root, design_name=design_name).run()
     elif args.command == "sense":
         from gemini_cli.engine.triage import AffectTriageEngine
-        SensoryService(workspace_root).run_all_monitors()
-        AffectTriageEngine(workspace_root).process_signals()
-        print("Sensory monitors executed and signals triaged.")
+        service = SensoryService(workspace_root)
+        if args.loop:
+            # Note: This will block the thread. In a real environment, 
+            # this might be run as a daemon or in a separate process.
+            service.start_background_service(interval=args.interval)
+        else:
+            service.run_all_monitors()
+            AffectTriageEngine(workspace_root).process_signals()
+            print("Sensory monitors executed and signals triaged.")
     elif args.command == "sync":
         from gemini_cli.commands.sync_context import SyncContextCommand
         SyncContextCommand(workspace_root, design_name=design_name).run()

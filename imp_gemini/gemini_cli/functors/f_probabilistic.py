@@ -36,7 +36,7 @@ class GeminiFunctor:
                     name="sub_agent_eval",
                     outcome=Outcome.FAIL,
                     delta=1,
-                    reasoning=f"Triggering recursion (iteration {iteration_count}). Stuck feature detected.",
+                    reasoning=f"Triggering RECURSION (iteration {iteration_count}). Stuck feature detected.",
                     spawn=spawn
                 )
 

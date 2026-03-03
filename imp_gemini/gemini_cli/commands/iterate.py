@@ -211,4 +211,8 @@ class IterateCommand:
         })
         
         # In a real implementation, this would call SpawnCommand and then IterateCommand on the new vector
-        pass
+        # After successful completion of the spawn, we complete the compensation.
+        # For now, we simulate immediate compensation completion.
+        engine.emit_event("compensation_completed", feature=feature, edge=edge, data={
+            "status": "Child vector handled"
+        })
