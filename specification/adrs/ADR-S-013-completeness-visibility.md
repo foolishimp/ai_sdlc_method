@@ -157,6 +157,41 @@ Implementations MAY produce these summaries as CLI output, structured logs, UI n
 
 - **Three summary levels means three new output requirements** for every implementation. Minimal implementations (spike profile) may collapse all three into a single summary line, but must produce something observable.
 
+### 4. Re-entrant Convergence and Feature Origin Invariant
+
+**Feature Decomposition convergence is not a terminal state.** It is the current best understanding. Any new feature — regardless of origin — re-opens the delta and triggers the same process.
+
+**Feature Origin Invariant:**
+
+```
+The process for handling a new feature is identical regardless of how it was discovered:
+
+  discovered gap    → feature_proposal
+  stakeholder req   → feature_proposal
+  homeostasis signal → feature_proposal
+  technical finding → feature_proposal
+```
+
+The model is silent on origin. `feature_proposal` is the universal intake. Once emitted, every feature follows the same path: F_D coverage check, F_D impact assessment, F_H delta approval. The system does not distinguish between "we missed this" and "we were given this" — both are the same operation at the model level.
+
+**Delta approval — not full re-approval:**
+
+When a new feature arrives, the human approves the *delta*, not the whole list. Unchanged features do not need re-approval. The F_H gate is scoped to:
+1. Does this new feature fit the existing decomposition?
+2. Does it cascade into existing features?
+
+**Impact assessment (F_D, deterministic):**
+
+```
+impact_set = { f ∈ FeatureVectors | f shares design, module, or code assets with new_feature }
+
+impact_set = ∅  → additive, no cascade, proceed to F_H delta approval
+impact_set ≠ ∅  → F_P assesses whether shared assets need re-iteration
+                   F_H decides: compensate affected edges or accept as-is (ADR-S-012 saga invariant)
+```
+
+The impact set is computable by graph traversal — no LLM required. Whether impact *forces* re-iteration is judgment (F_P + F_H). The spec defines the computation; the design binds it to technology.
+
 ---
 
 ## Alternatives Considered
