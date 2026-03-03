@@ -119,6 +119,19 @@ def _persist_run(source_dir: pathlib.Path, failed: bool = False) -> pathlib.Path
         )
         status = "FAILED" if failed else "OK"
         print(f"E2E: Archived run ({status}) → {dest}", flush=True)
+
+        # Update e2e_latest symlink to point at this run.
+        # Uses a relative target so the symlink works if the runs/ dir is moved.
+        latest = RUNS_DIR / "e2e_latest"
+        try:
+            if latest.exists() or latest.is_symlink():
+                latest.unlink()
+            latest.symlink_to(dest.name)  # relative: just the directory name
+            print(f"E2E: Updated e2e_latest → {dest.name}", flush=True)
+        except Exception as sym_exc:
+            print(f"E2E: WARNING — could not update e2e_latest symlink: {sym_exc}",
+                  flush=True)
+
         return dest
     except Exception as exc:
         print(f"E2E: WARNING — failed to archive run: {exc}", flush=True)
