@@ -756,7 +756,40 @@ A **feature** is the composite of all assets produced along its trajectory throu
 Feature F = |req⟩ + |feature_decomp⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
 ```
 
-Each component is a stable asset produced by iterating along an edge. The REQ key is the **vector identifier** — it tags which trajectory all these assets belong to. A feature is **complete** when all its edge-produced assets have converged to Markov objects. Components like |module_decomp⟩ and |basis_projections⟩ are present when the graph is zoomed in at the build decomposition level (§2.5); at zoomed-out level they collapse into the Design → Code edge.
+Each component is a stable asset produced by iterating along an edge. The REQ key is the **vector identifier** — it tags which trajectory all these assets belong to. A feature is **complete** when all its edge-produced assets have converged to Markov objects.
+
+#### Feature Decomposition Convergence Criterion
+
+The `requirements → feature_decomp` edge has a two-condition convergence criterion (ADR-S-013):
+
+**Condition A — REQ Coverage (F_D, deterministic):**
+
+```
+coverage_delta = { r ∈ Requirements | ¬∃ f ∈ FeatureVectors : r ∈ f.satisfies }
+converged_A ⟺ |coverage_delta| = 0
+```
+
+Every REQ-* key in the requirements MUST appear in the `satisfies:` field of at least one feature vector. This is a free, LLM-independent check — it answers **"did I get all the features?"** at any point in time.
+
+**Condition B — Human Build Plan Approval (F_H):**
+
+A human actor MUST approve that the decomposition is the right build plan — correct granularity, buildable dependency order, correct MVP boundary. Coverage alone is not sufficient; a list that covers all REQs can still be the wrong decomposition.
+
+**Full criterion:** `converged(feature_decomp) ⟺ coverage_delta = 0 AND human_approved = true`
+
+The F_D check gates the F_H review — human review is not requested until coverage_delta = 0.
+
+#### Convergence Visibility Invariant
+
+For every convergence state transition, a human-readable summary MUST be produced before downstream work begins (ADR-S-013):
+
+| Transition | Required summary |
+|---|---|
+| Any iterate() call completes | Iteration summary: delta, pass/fail per evaluator, converged/continuing/blocked |
+| Edge delta reaches 0 | Edge convergence notice: what passed, what was produced, what is next |
+| All edges in a feature converge | Feature completion: edges converged, REQs satisfied, ready for review |
+
+**Invariant**: convergence MUST be made unambiguously visible before the next downstream edge begins. Silent convergence is non-conformant. Components like |module_decomp⟩ and |basis_projections⟩ are present when the graph is zoomed in at the build decomposition level (§2.5); at zoomed-out level they collapse into the Design → Code edge.
 
 ```mermaid
 graph LR
