@@ -13,7 +13,6 @@ from gemini_cli.functors.f_probabilistic import GeminiFunctor
 from gemini_cli.functors.f_human import HumanFunctor
 from gemini_cli.engine.config_loader import ConfigLoader
 from gemini_cli.engine.topology import GraphTopology
-from gemini_cli.commands.spawn import SpawnCommand
 
 class IterateCommand:
     """Universal Iteration Agent command with Dual-Mode Dispatcher."""
@@ -49,19 +48,22 @@ class IterateCommand:
             print(f"  [DISPATCHER] Edge {edge} matched to affinity: {target_mode}")
 
         if target_mode == "engine":
-            return self._run_engine_traverse(feature, edge, asset, depth)
+            return self._run_engine_traverse(feature, edge, asset, mode, depth)
         else:
-            return self._run_interactive_traverse(feature, edge, asset, depth)
+            return self._run_interactive_traverse(feature, edge, asset, mode, depth)
 
-    def _run_engine_traverse(self, feature, edge, asset, depth):
+    def _run_engine_traverse(self, feature, edge, asset, mode, depth):
         """Level 4: Deterministic Code Traverse (No hooks, guaranteed side-effects)."""
         print(f"\n>>> ENGINE TRAVERSE: {feature} [{edge}]")
         
         # Gap 3: Startup Health Check
         self._run_startup_health_check()
         
+        # Use headless if mode is headless or auto
+        engine_mode = "headless" if mode in ["headless", "auto"] else mode
+        
         # Normal execution
-        success = self._execute_iterate_loop(feature, edge, asset, "headless", depth, mode_label="engine")
+        success = self._execute_iterate_loop(feature, edge, asset, engine_mode, depth, mode_label="engine")
         
         if success:
             # Gap 2: STATUS.md trigger
@@ -70,20 +72,22 @@ class IterateCommand:
             
         return success
 
-    def _run_interactive_traverse(self, feature, edge, asset, depth):
+    def _run_interactive_traverse(self, feature, edge, asset, mode, depth):
         """Level 1/2: Conversational Traverse (Hook-monitored)."""
         print(f"\n>>> INTERACTIVE TRAVERSE: {feature} [{edge}]")
-        # In a real CLI, this would interact with the user or set a context file for hooks
-        return self._execute_iterate_loop(feature, edge, asset, "interactive", depth, mode_label="interactive")
+        # Gap 3: Startup Health Check
+        self._run_startup_health_check()
+        
+        # If mode is headless, we MUST respect it even in interactive path
+        engine_mode = mode if mode != "auto" else "interactive"
+        
+        return self._execute_iterate_loop(feature, edge, asset, engine_mode, depth, mode_label="interactive")
 
     def _execute_iterate_loop(self, feature, edge, asset, mode, depth, mode_label):
         if depth > 3:
             print(f"ERROR: Max recursion depth (3) reached for {feature}")
             return False
 
-        events = self.store.load_all()
-        iter_count = Projector.get_iteration_count(events, feature, edge)
-        
         loader = ConfigLoader(self.workspace_root, design_name=self.design_name)
         topology = GraphTopology(self.workspace_root)
         
@@ -117,6 +121,10 @@ class IterateCommand:
         
         engine = IterateEngine(functor_map=functor_map, constraints=loader.constraints, project_root=self.workspace_root.parent)
         
+        # Determine iteration count
+        events = self.store.load_all()
+        iter_count = Projector.get_iteration_count(events, feature, normalized_edge)
+        
         if iter_count == 0:
             engine.emit_event("edge_started", feature=feature, edge=normalized_edge, data={"mode": mode_label})
         
@@ -128,44 +136,43 @@ class IterateCommand:
         if fv_path.exists():
             with open(fv_path, "r") as f:
                 fv_data = yaml.safe_load(f) or {}
-        
-        # Use iteration count from feature vector if available (REQ-UX-003)
-        if fv_data and "trajectory" in fv_data and normalized_edge in fv_data["trajectory"]:
-            edge_info = fv_data["trajectory"][normalized_edge]
-            if isinstance(edge_info, dict):
-                iter_count = edge_info.get("iteration", 0)
-        else:
-            events = self.store.load_all()
-            iter_count = Projector.get_iteration_count(events, feature, edge)
 
-        report = engine.run(asset_path, {
-            "asset_name": asset,
-            "edge": normalized_edge,
-            "iteration_count": iter_count,
-            "mode": mode_label,
-            "feature_id": feature,
-            "feature_vector": fv_data
-        }, mode=mode, checklist=resolved_checklist)
+        records = engine.run_edge(
+            edge=normalized_edge,
+            feature_id=feature,
+            asset_path=asset_path,
+            context={
+                "asset_name": asset,
+                "edge": normalized_edge,
+                "iteration_count": iter_count,
+                "mode": mode,
+                "feature_id": feature,
+                "feature_vector": fv_data
+            },
+            mode=mode,
+            checklist=resolved_checklist,
+            max_iterations=1 # Only one iteration per command call
+        )
         
-        # Handle Guardrails & Spawns (Recursion)
+        if not records:
+            return False
+            
+        report = records[0].report
+        
+        # Handle Spawns (Recursion) first - escalation takes precedence over hard failure
+        if report.spawn:
+            # Handle recursion if requested
+            self._handle_spawn(report.spawn, feature, normalized_edge, depth, mode)
+            return True # Successfully escalated
+
+        # Handle Guardrail failures
         if any(not g.passed for g in report.guardrail_results):
+            for g in report.guardrail_results:
+                if not g.passed:
+                    print(f"    - {g.name}: {g.message}")
             return False
 
-        if report.spawn:
-            # (Recursive logic simplified for brevity, same as before but passing mode)
-            self._handle_spawn(report.spawn, feature, normalized_edge, depth, mode)
-
-        # 4. Record Results (ADR-S-011 + ADR-021)
-        status = "converged" if report.converged else ("blocked" if report.spawn else "iterating")
-        event = engine.emit_event("iteration_completed", feature=feature, edge=normalized_edge, data={"status": status, "mode": mode_label, "delta": report.delta})
-        
-        run_id = event.get("run", {}).get("runId", "unknown")
-        
-        # Gap 1: Feature Vector Write-back (ADR-021)
-        self._update_feature_vector_v2(feature, normalized_edge, iter_count + 1, status, report.delta, run_id, mode_label)
-        
         if report.converged:
-            engine.emit_event("edge_converged", feature=feature, edge=normalized_edge, data={"mode": mode_label})
             print(f"Success! {normalized_edge} converged ({mode_label}).")
             return True
         
@@ -191,29 +198,17 @@ class IterateCommand:
         except Exception as e:
             print(f"  [HEALTH] WARNING: Event log may be corrupted: {e}")
 
-    def _update_feature_vector_v2(self, feature, edge, iteration, status, delta, run_id, mode):
-        import yaml
-        path = self.workspace_root / "features" / "active" / f"{feature}.yml"
-        if not path.exists(): return
-            
-        with open(path, "r") as f:
-            data = yaml.safe_load(f)
-            
-        data.setdefault("trajectory", {})[edge] = {
-            "status": status,
-            "iteration": iteration,
-            "delta": delta,
-            "mode": mode,
-            "engine_run_id": run_id,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }
-        
-        if status == "converged":
-            data["trajectory"][edge]["converged_at"] = datetime.now(timezone.utc).isoformat()
-
-        with open(path, "w") as f:
-            yaml.dump(data, f)
-
     def _handle_spawn(self, spawn_req, feature, edge, depth, mode):
-        # Recursive spawning logic...
+        print(f"\n[RECURSION] Spawned child vector: {spawn_req.question}")
+        
+        # Emit event
+        loader = ConfigLoader(self.workspace_root, design_name=self.design_name)
+        engine = IterateEngine(constraints=loader.constraints, project_root=self.workspace_root.parent)
+        engine.emit_event("feature_spawned", feature=feature, edge=edge, data={
+            "question": spawn_req.question,
+            "vector_type": spawn_req.vector_type,
+            "parent": feature
+        })
+        
+        # In a real implementation, this would call SpawnCommand and then IterateCommand on the new vector
         pass

@@ -11,6 +11,15 @@ class HumanFunctor:
     """Judgment-based evaluator (Ask the user)."""
     
     def evaluate(self, candidate: str, context: Dict) -> FunctorResult:
+        mode = context.get("mode", "interactive")
+        if mode == "headless":
+            return FunctorResult(
+                name="human_judgment",
+                outcome=Outcome.SKIP,
+                delta=0,
+                reasoning="Human judgment skipped in headless mode."
+            )
+
         print("\n" + "="*40)
         print("HUMAN EVALUATION REQUIRED")
         print("="*40)

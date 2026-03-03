@@ -15,8 +15,24 @@ context:
 feature: REQ-F-ADR-LINK-001
 intent: Verify ADR cascading to feature vectors
 parent: null
-status: pending
+status: converged
 trajectory:
+  "basis_proj\u2192code":
+    converged_at: '2026-03-02T23:14:05.994686+00:00'
+    delta: 0
+    engine_run_id: 9c43c6c4-1ee9-4fd1-bd0d-6eae0f808a62
+    iteration: 1
+    mode: interactive
+    status: converged
+    updated_at: '2026-03-02T23:14:05.994683+00:00'
+  "code\u2192unit_tests":
+    converged_at: '2026-03-02T23:14:17.739512+00:00'
+    delta: 0
+    engine_run_id: 980eb82f-b374-498d-8821-9de477aa80e2
+    iteration: 1
+    mode: interactive
+    status: converged
+    updated_at: '2026-03-02T23:14:17.739509+00:00'
   "design\u2192module_decomp":
     converged_at: '2026-03-02T16:04:50.538010+00:00'
     delta: 0
@@ -50,6 +66,14 @@ trajectory:
     mode: interactive
     status: converged
     updated_at: '2026-03-02T15:35:37.773786+00:00'
+  "module_decomp\u2192basis_proj":
+    converged_at: '2026-03-02T23:13:52.090480+00:00'
+    delta: 0
+    engine_run_id: 37f890a3-fd2e-4920-afd3-48a1d0685fcd
+    iteration: 1
+    mode: interactive
+    status: converged
+    updated_at: '2026-03-02T23:13:52.090471+00:00'
   "requirements\u2192feature_decomp":
     converged_at: '2026-03-02T16:00:24.459540+00:00'
     delta: 0

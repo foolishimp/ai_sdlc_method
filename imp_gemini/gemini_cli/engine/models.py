@@ -32,6 +32,44 @@ class GuardrailResult:
     message: str
 
 @dataclass
+class ConstructResult:
+    """Result of an artifact construction/modification step."""
+    artifact: Optional[str] = None
+    reasoning: str = ""
+    model: str = "unknown"
+    duration_ms: int = 0
+    retries: int = 0
+    traceability: List[str] = field(default_factory=list)
+    source_findings: List[Dict[str, Any]] = field(default_factory=list)
+    evaluations: List[FunctorResult] = field(default_factory=list)
+
+@dataclass
+class IterationRecord:
+    """Record of one iteration \u2014 what happened, what was decided."""
+    edge: str
+    iteration: int
+    report: 'IterationReport'
+    event_emitted: bool = True
+    construct_result: Optional[ConstructResult] = None
+
+@dataclass
+class EngineConfig:
+    """Configuration for the engine."""
+    project_name: str
+    workspace_path: Any # Path
+    edge_params_dir: Any # Path
+    profiles_dir: Any # Path
+    constraints: Dict[str, Any]
+    graph_topology: Dict[str, Any]
+    model: str = "gemini-2.0-flash"
+    max_iterations_per_edge: int = 10
+    gemini_timeout: int = 120
+    deterministic_only: bool = False
+    fd_timeout: int = 120
+    stall_timeout: int = 60
+    sanitize_env: bool = True
+
+@dataclass
 class IterationReport:
     asset_path: str
     delta: int
@@ -40,6 +78,7 @@ class IterationReport:
     guardrail_results: List[GuardrailResult] = field(default_factory=list)
     timestamp: datetime = field(default_factory=lambda: datetime.now())
     spawn: Optional[SpawnRequest] = None
+    construct_result: Optional[ConstructResult] = None
 
 @dataclass
 class FeatureTrajectory:

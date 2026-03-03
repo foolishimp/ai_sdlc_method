@@ -28,7 +28,7 @@ STANDARD_PROFILE_EDGES = [
     "design\u2192module_decomp",
     "module_decomp\u2192basis_proj",
     "basis_proj\u2192code",
-    "code\u2194unit_tests",
+    "code\u2192unit_tests",
 ]
 
 def _workspace_dir(workspace: Path) -> Path:

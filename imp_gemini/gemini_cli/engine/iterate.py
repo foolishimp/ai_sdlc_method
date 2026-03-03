@@ -1,9 +1,21 @@
 import yaml
+import re
+import uuid
 from typing import Dict, Any, List, Protocol, Optional
 from pathlib import Path
 from datetime import datetime, timezone
-from .models import IterationReport, FunctorResult, Outcome, GuardrailResult
+from .models import (
+    IterationReport, 
+    FunctorResult, 
+    Outcome, 
+    GuardrailResult, 
+    EngineConfig, 
+    IterationRecord, 
+    ConstructResult
+)
 from .state import EventStore
+from .config_loader import ConfigLoader
+from .topology import GraphTopology
 
 class Functor(Protocol):
     def evaluate(self, candidate: str, context: Dict) -> FunctorResult: ...
@@ -22,7 +34,6 @@ class IterateEngine:
             self.workspace_root = self.project_root / ".ai-workspace"
         
         if constraints is None:
-            from .config_loader import ConfigLoader
             loader = ConfigLoader(self.workspace_root)
             self.constraints = loader.constraints
         else:
@@ -30,31 +41,49 @@ class IterateEngine:
             
         self.store = EventStore(self.workspace_root)
 
-    def run(self, asset_path: Path, context: Dict, mode: str = "interactive", checklist: List[Dict[str, Any]] = None) -> IterationReport:
-        # 1. Run Guardrails (REQ-SUPV-001)
+    def iterate_edge(
+        self,
+        edge: str,
+        feature_id: str,
+        asset_path: Path,
+        context: Dict[str, Any],
+        iteration: int = 1,
+        mode: str = "auto",
+        checklist: List[Dict[str, Any]] = None,
+        construct: bool = False
+    ) -> IterationRecord:
+        """Run one iteration on a single edge."""
+        
+        # 1. Run Guardrails (Pre-flight)
         from .guardrails import GuardrailEngine
         guardrails = GuardrailEngine(self.constraints)
-        edge = context.get("edge", "")
         gr_results = guardrails.validate_pre_flight(edge, context)
         
         if any(not r.passed for r in gr_results):
-            return IterationReport(
+            report = IterationReport(
                 asset_path=str(asset_path),
-                delta=-1, # Guardrail block code
+                delta=-1,
                 converged=False,
                 functor_results=[],
                 guardrail_results=gr_results
             )
+            return IterationRecord(edge=edge, iteration=iteration, report=report)
 
+        # 2. Construct phase (Stub for now)
+        construct_result = None
         candidate = asset_path.read_text() if asset_path.exists() else ""
-        results = []
         
-        # Determine checks to run: from checklist or from default functors
+        if construct:
+            # TODO: Implement actual construction logic
+            construct_result = ConstructResult(artifact=candidate, reasoning="Construction skipped (stub).")
+            candidate = construct_result.artifact or candidate
+
+        # 3. Evaluate each check
+        results = []
         checks = checklist if checklist else [{"evaluator": f.__class__.__name__.replace("Functor", "").lower()} for f in self.functor_map.values()]
         
         for check in checks:
             eval_type = check.get("evaluator", "agent")
-            # Map evaluator names (standardize)
             if eval_type == "deterministic_shell": eval_type = "deterministic"
             if eval_type == "sub_agent_eval": eval_type = "agent"
             
@@ -66,16 +95,14 @@ class IterateEngine:
             if mode == "headless" and f.__class__.__name__ == "HumanFunctor":
                 continue
                 
-            # Merge check parameters into context for the functor
-            check_context = {**context, **check, "constraints": self.constraints}
+            check_context = {**context, **check, "constraints": self.constraints, "iteration_count": iteration, "mode": mode}
             res = f.evaluate(candidate, check_context)
             results.append(res)
             
-            # If a functor provides a next candidate, update our local candidate for the next functor
             if res.next_candidate is not None:
                 candidate = res.next_candidate
         
-        # Write back the final candidate if it changed
+        # Write back if changed
         if candidate and asset_path.exists() and asset_path.read_text() != candidate:
             asset_path.write_text(candidate)
         elif candidate and not asset_path.exists():
@@ -85,18 +112,148 @@ class IterateEngine:
         total_delta = sum(r.delta for r in results)
         spawn_req = next((r.spawn for r in results if r.spawn), None)
         
-        # 3. Run Post-flight Guardrails (REQ-EDGE-004)
+        # 4. Run Post-flight Guardrails
         post_gr_results = guardrails.validate_post_flight(edge, candidate)
         gr_results.extend(post_gr_results)
         
-        return IterationReport(
+        report = IterationReport(
             asset_path=str(asset_path),
             delta=total_delta if all(r.passed for r in post_gr_results) else -1,
             converged=(total_delta == 0 and not spawn_req and all(r.passed for r in post_gr_results)),
             functor_results=results,
             guardrail_results=gr_results,
-            spawn=spawn_req
+            spawn=spawn_req,
+            construct_result=construct_result
         )
+        
+        return IterationRecord(
+            edge=edge, 
+            iteration=iteration, 
+            report=report, 
+            construct_result=construct_result
+        )
+
+    def run_edge(
+        self,
+        edge: str,
+        feature_id: str,
+        asset_path: Path,
+        context: Dict[str, Any],
+        mode: str = "auto",
+        checklist: List[Dict[str, Any]] = None,
+        construct: bool = False,
+        max_iterations: int = 10
+    ) -> List[IterationRecord]:
+        """Iterate on a single edge until convergence or budget exhaustion."""
+        base_iteration = context.get("iteration_count", 0)
+        records = []
+        for i in range(1, max_iterations + 1):
+            current_iteration = base_iteration + i
+            record = self.iterate_edge(
+                edge=edge,
+                feature_id=feature_id,
+                asset_path=asset_path,
+                context=context,
+                iteration=current_iteration,
+                mode=mode,
+                checklist=checklist,
+                construct=construct
+            )
+            records.append(record)
+            
+            # Emit event
+            status = "converged" if record.report.converged else ("blocked" if record.report.spawn else "iterating")
+            event = self.emit_event(
+                "iteration_completed", 
+                feature=feature_id, 
+                edge=edge, 
+                data={"status": status, "delta": record.report.delta, "iteration": current_iteration, "mode": mode}
+            )
+            
+            run_id = event.get("run", {}).get("runId", "unknown")
+            
+            # Update feature vector
+            self.update_feature_vector(feature_id, edge, current_iteration, status, record.report.delta, str(asset_path), mode=mode, run_id=run_id)
+
+            if record.report.converged or record.report.spawn:
+                if record.report.converged:
+                    self.emit_event("edge_converged", feature=feature_id, edge=edge, data={"mode": mode})
+                break
+                
+        return records
+
+    def run(
+        self,
+        feature_id: str,
+        feature_type: str,
+        asset_path: Path,
+        context: Dict[str, Any] = None,
+        mode: str = "auto",
+        construct: bool = False,
+        config: EngineConfig = None
+    ) -> List[IterationRecord]:
+        """Full graph traversal loop."""
+        if context is None:
+            context = {}
+            
+        # Load profile
+        loader = ConfigLoader(self.workspace_root)
+        profile_name = "standard" # Default
+        # In a real implementation, we would select profile based on feature_type
+        
+        profile_path = self.workspace_root.parent / "gemini_cli" / "config" / "profiles" / f"{profile_name}.yml"
+        if profile_path.exists():
+            with open(profile_path, "r") as f:
+                profile = yaml.safe_load(f)
+        else:
+            profile = {"graph": {"include": ["intent\u2192requirements", "requirements\u2192design", "design\u2192code", "code\u2194unit_tests"]}}
+
+        topology = GraphTopology(self.workspace_root)
+        all_records = []
+        accumulated_context = context.copy()
+        
+        # Traverse edges defined in profile
+        for edge in profile.get("graph", {}).get("include", []):
+            print(f"\n>>> RUNNING EDGE: {edge}")
+            
+            # Resolve checklist for this edge
+            edge_config_path = topology.get_edge_config_path(edge)
+            edge_config = {}
+            if edge_config_path and edge_config_path.exists():
+                with open(edge_config_path, "r") as f:
+                    edge_config = yaml.safe_load(f) or {}
+            
+            resolved_checklist = loader.resolve_checklist(edge_config)
+            
+            records = self.run_edge(
+                edge=edge,
+                feature_id=feature_id,
+                asset_path=asset_path, # In a real implementation, asset_path might change per edge
+                context=accumulated_context,
+                mode=mode,
+                checklist=resolved_checklist,
+                construct=construct,
+                max_iterations=config.max_iterations_per_edge if config else 10
+            )
+            all_records.extend(records)
+            
+            if not records or not records[-1].report.converged:
+                print(f"Edge {edge} failed to converge. Stopping traversal.")
+                break
+                
+            # Context Accumulation (REQ-F-FPC-003)
+            if asset_path.exists():
+                accumulated_context[f"{edge}_artifact"] = asset_path.read_text()
+
+        return all_records
+
+    # Legacy run for backward compatibility
+    def old_run(self, asset_path: Path, context: Dict, mode: str = "interactive", checklist: List[Dict[str, Any]] = None) -> IterationReport:
+        edge = context.get("edge", "")
+        feature_id = context.get("feature_id", "unknown")
+        iteration = context.get("iteration_count", 0) + 1
+        record = self.iterate_edge(edge, feature_id, asset_path, context, iteration, mode, checklist)
+        return record.report
 
     def emit_event(self, event_type: str, feature: str, edge: str, data: Dict[str, Any]):
         project_name = self.constraints.get("project", {}).get("name", "unknown")
@@ -109,7 +266,7 @@ class IterateEngine:
             data=data
         )
 
-    def update_feature_vector(self, feature_id: str, edge: str, iteration: int, status: str, delta: int, asset_path: str = None):
+    def update_feature_vector(self, feature_id: str, edge: str, iteration: int, status: str, delta: int, asset_path: str = None, mode: str = None, run_id: str = None):
         fv_path = self.workspace_root / "features" / "active" / f"{feature_id}.yml"
         
         if fv_path.exists():
@@ -122,37 +279,34 @@ class IterateEngine:
                 "trajectory": {}
             }
         
-        # Map edge (e.g. design→code or design->code) to trajectory key (e.g. code)
-        import re
+        # Map edge to trajectory key
         parts = re.split(r"->|\u2192|\u2194", edge)
         traj_key = parts[-1].strip()
         
-        data["trajectory"][traj_key] = {
+        data.setdefault("trajectory", {})[traj_key] = {
             "status": status,
             "delta": delta,
             "iteration": iteration,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "mode": mode,
+            "engine_run_id": run_id
         }
         if asset_path:
             data["trajectory"][traj_key]["asset"] = asset_path
             
         if status == "converged":
+            data["trajectory"][traj_key]["converged_at"] = datetime.now(timezone.utc).isoformat()
+            
             # Check if all core nodes in standard profile are converged
-            # Safely handle mixed string/dict values in trajectory
             all_core_converged = True
             for k, v in data["trajectory"].items():
                 if isinstance(v, dict):
                     if v.get("status") != "converged":
                         all_core_converged = False
                         break
-                elif isinstance(v, str):
-                    if v != "converged":
-                        all_core_converged = False
-                        break
             
             if all_core_converged:
-                # If everything is converged, we could promote to release
-                pass
+                data["status"] = "converged"
 
         with open(fv_path, "w") as f:
             yaml.dump(data, f)
@@ -175,12 +329,14 @@ class IterateEngine:
             if type_facet.get("type") == "iteration_completed":
                 has_iteration_event = True
                 break
+            # Fallback for simple event format
+            if e.get("event_type") == "iteration_completed":
+                has_iteration_event = True
+                break
                 
         if not has_iteration_event:
             gaps.append("No event emitted.")
         
-        # Check if feature vector was updated by looking at modification times
-        # For simplicity in this implementation, we will just assume if any events happened, it should be fine.
         if not recent_events:
             gaps.append("Feature vector state not updated.")
         

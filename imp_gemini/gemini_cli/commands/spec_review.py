@@ -30,22 +30,25 @@ class SpecReviewCommand:
         # 3. Compute Delta (The Gradient)
         intents_raised = 0
         
-        # Check 1: Orphaned Requirements (Spec exists, no Feature Vector)
+        # Check 1: Unspawned Requirements (Spec exists, no Feature Vector in this workspace)
         req_keys_in_spec = set(requirements.keys())
         req_keys_in_features = set()
         for f in features:
             req_keys_in_features.update(f.get("req_keys", []) or [])
+            # Also check the primary feature ID
+            fid = f.get("feature")
+            if fid: req_keys_in_features.add(fid)
             
-        orphans = req_keys_in_spec - req_keys_in_features
-        if orphans:
-            print(f"\n[GRADIENT] {len(orphans)} Orphaned Requirements Detected:")
-            for req in sorted(orphans):
-                print(f"  ! {req}: No active feature vector found.")
+        unspawned = req_keys_in_spec - req_keys_in_features
+        if unspawned:
+            print(f"\n[GRADIENT] {len(unspawned)} Unspawned Requirements Detected:")
+            for req in sorted(unspawned):
+                print(f"  ! {req}: No active feature vector found in this implementation.")
                 self._raise_intent(
-                    trigger="spec_orphan",
+                    trigger="spec_unspawned",
                     signal_source="gap",
                     affected_req_keys=[req],
-                    description=f"Requirement {req} exists in spec but has no active feature vector."
+                    description=f"Requirement {req} exists in spec but has no active feature vector in imp_gemini."
                 )
                 intents_raised += 1
 

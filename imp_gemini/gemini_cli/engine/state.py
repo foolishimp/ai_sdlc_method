@@ -14,6 +14,7 @@ class EventStore:
 
     def emit(self, event_type: str, project: str, feature: str = "", edge: str = "", delta: int = None, data: Dict = None):
         """Emits a v2 OpenLineage RunEvent."""
+        import fcntl
         ts = datetime.now(timezone.utc).isoformat()
         run_id = str(uuid.uuid4())
         
@@ -54,6 +55,10 @@ class EventStore:
             }
 
         event = {
+            "event_type": event_type, # Backward compatibility
+            "timestamp": ts,           # Backward compatibility
+            "project": project,         # Backward compatibility
+            "data": data or {},         # Backward compatibility (explicit data key)
             "eventType": ol_type,
             "eventTime": ts,
             "run": {"runId": run_id, "facets": facets},
@@ -64,10 +69,22 @@ class EventStore:
             "schemaURL": "https://openlineage.io/spec/1-0-2/OpenLineage.json#RunEvent",
             "_metadata": {"project": project, "original_data": data or {}}
         }
+        
+        # Merge original data for backward compatibility (flattened)
+        if data:
+            for k, v in data.items():
+                if k not in event:
+                    event[k] = v
 
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
+        # Use advisory locking for atomic append
         with open(self.log_path, "a") as f:
-            f.write(json.dumps(event) + "\n")
+            fcntl.flock(f, fcntl.LOCK_EX)
+            try:
+                f.write(json.dumps(event) + "\n")
+                f.flush()
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
         return event
 
     def load_all(self) -> List[Dict]:
