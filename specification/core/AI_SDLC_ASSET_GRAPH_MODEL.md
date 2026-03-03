@@ -441,6 +441,29 @@ Every evaluation is performed by one or more of:
 
 All three are instances of **evaluator-as-prompter** (#35): they compute a delta (#36) between current state and target state, then emit a constraint signal that drives the next iteration.
 
+#### F_D Path-Independence Invariant
+
+**Invariant**: For any F_D evaluator `e` and input `(Asset, Context)`:
+
+```
+e(Asset, Context) = e(Asset, Context)
+```
+
+always — regardless of execution path (engine, interactive session, headless CLI, test harness, or skill invocation).
+
+F_D evaluators MUST satisfy all four properties:
+
+| Property | Requirement |
+|----------|-------------|
+| **Deterministic** | Same input always produces the same output. No randomness, no sampling. |
+| **LLM-free** | No language model calls. Correctness is verifiable without inference. |
+| **Path-independent** | Result is identical whether called from the engine, a CLI, a skill, or a test. |
+| **Side-effect bounded** | The only permitted side effects are append-only writes to the event stream and read-only access to the workspace. No mutation of asset state. |
+
+This invariant is the foundation of the **reliability hierarchy** (§7.4): F_D results are the most trustworthy signal in the system precisely because they can be verified independently of any LLM. When an F_D evaluator and an F_P evaluator disagree, F_D is authoritative.
+
+The invariant also defines the **scope of the deterministic library**: any function that can be proven to satisfy these four properties belongs in the F_D family and MUST be callable from any execution path. Implementations achieve this by isolating F_D functions into a shared, LLM-free module that both the engine and the interactive path import directly — the design binding is an implementation choice, but the path-independence requirement is spec-level.
+
 ### 4.2 Evaluator Composition Per Edge
 
 Different graph edges use different evaluator combinations:

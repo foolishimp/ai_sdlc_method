@@ -83,30 +83,61 @@ Implementations are responsible for defining the compensating event sequence for
 
 The following event types are **required** by the spec. Implementations are conformant if and only if they emit these events with the required fields. Technology choice is irrelevant to conformance.
 
+All events carry universal fields `{ instance_id, actor, causation_id, correlation_id }` plus their type-specific payload below.
+
 ```
 # Iteration lifecycle
-IterationStarted    { asset_type, edge, instance_id, actor, context_refs[] }
-IterationCompleted  { asset_type, edge, instance_id, actor, delta }
-IterationFailed     { asset_type, edge, instance_id, actor, reason }
+IterationStarted    { asset_type, edge, context_refs[] }
+IterationCompleted  { asset_type, edge, delta }
+IterationFailed     { asset_type, edge, reason }
 
 # Convergence
-EvaluatorVoted      { evaluator_type, actor, result, evidence, instance_id }
-ConsensusReached    { threshold, votes_for, votes_total, result, instance_id }
-ConvergenceAchieved { asset_type, edge, instance_id, delta }
+EvaluatorVoted      { evaluator_type, result, evidence }
+ConsensusReached    { threshold, votes_for, votes_total, result }
+ConvergenceAchieved { asset_type, edge, delta }
 
 # Compensation (saga)
-CompensationTriggered { failed_edge, target_edge, instance_id }
-CompensationCompleted { target_edge, instance_id, restored_projection_hash }
+CompensationTriggered { failed_edge, target_edge }
+CompensationCompleted { target_edge, restored_projection_hash }
 
 # Context
-ContextArrived      { source_type, payload_ref, instance_id }
+ContextArrived      { source_type, payload_ref }
 
 # Authorization
-TransitionAuthorized { actor, edge, instance_id, permissions }
-TransitionDenied     { actor, edge, instance_id, reason }
+TransitionAuthorized { edge, permissions }
+TransitionDenied     { edge, reason }
 ```
 
-Every event MUST carry `instance_id` (identifies the workflow instance), `actor` (identity of the subject — human, agent, or system), and conform to the OpenLineage schema defined in ADR-S-011.
+Causal chain examples:
+
+```
+# Saga compensation chain
+IterationFailed(edge: B→C, causation_id: X, correlation_id: ROOT)
+  └─ CompensationTriggered(edge: A→B, causation_id: IterationFailed.runId, correlation_id: ROOT)
+      └─ CompensationCompleted(edge: A→B, causation_id: CompensationTriggered.runId, correlation_id: ROOT)
+
+# Root event — no parent
+IterationStarted(edge: intent→requirements, causation_id: self.runId, correlation_id: self.runId)
+  └─ IterationCompleted(causation_id: IterationStarted.runId, correlation_id: IterationStarted.runId)
+      └─ IterationStarted(edge: requirements→design, causation_id: IterationCompleted.runId, correlation_id: ROOT)
+```
+
+Every event MUST carry three universal fields in addition to its type-specific payload:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `instance_id` | string | Identifies the workflow instance — scopes projection and multi-tenancy |
+| `actor` | string | Identity of the subject that caused the event — human, agent, or system |
+| `causation_id` | UUID | `runId` of the immediate parent event that directly triggered this event |
+| `correlation_id` | UUID | `runId` of the root event of the entire causal chain (the originating intent or signal) |
+
+`causation_id` maps directly to OpenLineage `ParentRunFacet.run.runId` (ADR-S-011) and MUST be populated on every event. It enables causal graph traversal: "show me everything triggered by event X" without chain-walking. `correlation_id` enables root-cause lookup in O(1): "show me everything caused by intent INT-007" across an arbitrarily deep chain.
+
+For root events (those with no triggering parent — e.g., a user-initiated `IterationStarted` or an external `ContextArrived`), `causation_id = correlation_id = this event's own runId`.
+
+Implementations MUST propagate both IDs through the execution context — analogous to distributed tracing span propagation. Every event emitter receives the current `causation_id` and `correlation_id` from its caller and sets them on the emitted event before the next event in the chain is produced.
+
+All events MUST conform to the OpenLineage schema defined in ADR-S-011.
 
 ### Projection as the implementation contract
 
@@ -152,6 +183,8 @@ This establishes **projection as the conformance contract**: two implementations
 - **Saga invariant is testable but not free.** Conformance tests must replay event streams and verify the invariant. Implementations must build or adopt event replay infrastructure. This is non-trivial but the scope is bounded: a single method signature change in the engine (`iterate_edge` returns events rather than mutating state directly).
 
 - **Working tree synchronisation.** Implementations that materialise assets as local files must ensure the working tree stays consistent with the event stream. A sync phase after every event append — updating local artifacts to reflect the new projection — prevents state drift between the stream and the file system.
+
+- **Causal ID propagation is disciplined, not automatic.** `causation_id` and `correlation_id` do not self-populate. Implementations must thread both IDs through the execution context — the same discipline as distributed tracing. The cost is low (two UUID fields per event) and the payoff is free causal graph traversal via standard OpenLineage tooling. Lightweight implementations MAY use `"local"` as `correlation_id` for spike/minimal profiles where full chain tracing is not required.
 
 ---
 
