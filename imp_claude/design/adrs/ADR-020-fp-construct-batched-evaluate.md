@@ -323,4 +323,4 @@ imp_claude/code/genesis/
 - ADR-017: Functor-Based Execution Model
 - FUNCTOR_FRAMEWORK_DESIGN.md v2.1, Appendix A
 - FRAMEWORK_COMPARISON_ANALYSIS.md
-- REQ-F-FPC-001 through REQ-BR-FPC-001 (requirements document)
+- [DESIGN_REQUIREMENTS.md §1](../DESIGN_REQUIREMENTS.md) — formal anchor for REQ-F-FPC-001..006, REQ-NFR-FPC-001..003, REQ-BR-FPC-001, REQ-DATA-FPC-001
