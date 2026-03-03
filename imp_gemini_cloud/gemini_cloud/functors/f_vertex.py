@@ -1,6 +1,6 @@
 import os
 from typing import Dict, Any
-from genesis_core.engine.models import FunctorResult, Outcome, SpawnRequest
+from gemini_cloud.engine.models import FunctorResult, Outcome, SpawnRequest
 
 class VertexFunctor:
     """Probabilistic Functor using Vertex AI Gemini."""

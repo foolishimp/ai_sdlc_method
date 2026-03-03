@@ -25,3 +25,29 @@ class CloudEventStore:
             # Atomic add to Firestore
             self.db.collection(self.collection_path).add(event)
         return event
+
+class CloudProjector:
+    """Projects Firestore events into Feature Vector views."""
+    def __init__(self, db, tenant_id: str, project_id: str):
+        self.db = db
+        self.tenant_id = tenant_id
+        self.project_id = project_id
+
+    def project(self, events: List[Dict]) -> List[Dict]:
+        """Simple projection of events into feature vectors."""
+        features = {}
+        for ev in events:
+            f_id = ev.get("feature")
+            if not f_id: continue
+            
+            if f_id not in features:
+                features[f_id] = {"feature": f_id, "status": "active", "edges": {}}
+            
+            if ev.get("event_type") == "edge_converged":
+                features[f_id]["status"] = "converged"
+            elif ev.get("event_type") == "iteration_completed":
+                edge = ev.get("edge")
+                if edge:
+                    features[f_id]["edges"][edge] = {"delta": ev.get("delta"), "status": ev.get("data", {}).get("status")}
+                    
+        return list(features.values())

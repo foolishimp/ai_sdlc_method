@@ -1,5 +1,5 @@
 import pytest
-from imp_gemini_cloud.code.internal.cloud_state import WorkspaceState, ProjectState
+from gemini_cloud.internal.cloud_state import WorkspaceState, ProjectState
 
 def test_detect_state_uninitialised():
     ws = WorkspaceState(tenant_id="t1", project_id="p1", db=None, mock_data={})
