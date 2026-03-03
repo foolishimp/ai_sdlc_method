@@ -1,29 +1,6 @@
 {
   "_implements": "REQ-TOOL-006 (Methodology Hooks), REQ-SENSE-006, REQ-LIFE-008",
-  "_reference": "ADR-021 (Dual-Mode Traverse) — hooks scoped to Interactive mode only",
-  "_note": "PostToolUse and UserPromptSubmit disabled per ADR-021. Engine mode (genesis evaluate) owns its own protocol enforcement at Level 4. Interactive mode retains SessionStart (workspace health) and Stop (protocol verification). See ADR-021 for rationale.",
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/on-session-start.sh",
-            "statusMessage": "Running workspace health check..."
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/on-stop-check-protocol.sh",
-            "statusMessage": "Checking iterate protocol completion..."
-          }
-        ]
-      }
-    ]
-  }
+  "_reference": "ADR-021 (Dual-Mode Traverse)",
+  "_note": "Hooks removed. Protocol enforcement and workspace health are owned by the engine (genesis evaluate) and explicit skill/slash command invocations. No automatic hooks fire.",
+  "hooks": {}
 }
