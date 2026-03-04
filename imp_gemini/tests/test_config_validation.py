@@ -1,6 +1,6 @@
 # Validates: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003
-# Validates: REQ-EVAL-001, REQ-EVAL-002
-# Validates: REQ-TOOL-001
+# Validates: REQ-EVAL-001, REQ-EVAL-002, REQ-F-EVAL-001
+# Validates: REQ-TOOL-001, REQ-F-TOOL-001
 """TDD unit tests — deterministic validation of YAML configs and cross-references."""
 
 import json

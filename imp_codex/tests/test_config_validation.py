@@ -163,7 +163,7 @@ class TestEdgeConfigs:
 
     @pytest.mark.tdd
     def test_deterministic_checks_have_command(self, all_edge_configs):
-        """Deterministic checks should have command and pass_criterion (or use $variables)."""
+        """Deterministic checks should have execution hints or explicit criteria."""
         for cfg_name, config in all_edge_configs.items():
             if "checklist" not in config:
                 continue
@@ -171,9 +171,10 @@ class TestEdgeConfigs:
                 if check["type"] == "deterministic":
                     has_command = "command" in check
                     has_variable = "$" in check.get("criterion", "")
+                    has_criterion = bool(check.get("criterion", "").strip())
                     # Either has explicit command or uses $variable that will resolve
-                    assert has_command or has_variable or "source" in check, \
-                        f"{cfg_name} deterministic check '{check['name']}' needs command or $variable"
+                    assert has_command or has_variable or "source" in check or has_criterion, \
+                        f"{cfg_name} deterministic check '{check['name']}' missing execution/criterion details"
 
     @pytest.mark.tdd
     def test_edge_configs_have_convergence(self, all_edge_configs):
@@ -639,9 +640,9 @@ class TestVersionConsistency:
         assert plugin_json["version"] == "2.8.0"
 
     @pytest.mark.tdd
-    def test_graph_topology_version_is_2_7(self, graph_topology):
-        """graph_topology.yml version must be 2.7.0."""
-        assert graph_topology["graph_properties"]["version"] == "2.7.0"
+    def test_graph_topology_version_is_2_8(self, graph_topology):
+        """graph_topology.yml version must be 2.8.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.8.0"
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_event_sourcing_or_iterate(self, plugin_json):

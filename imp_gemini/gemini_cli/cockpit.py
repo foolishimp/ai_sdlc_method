@@ -1,5 +1,5 @@
 # AI SDLC Unified Cockpit
-# Implements: REQ-UX-001, REQ-UX-003, REQ-UX-004
+# Implements: REQ-UX-001, REQ-UX-003, REQ-UX-004, REQ-F-UX-001
 
 import argparse
 import sys

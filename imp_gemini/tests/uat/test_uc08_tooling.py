@@ -1,4 +1,4 @@
-# Validates: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-009
+# Validates: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-009, REQ-F-TOOL-001
 import pytest
 from gemini_cli.internal.workspace_state import compute_feature_view, compute_aggregated_view
 

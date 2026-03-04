@@ -1,3 +1,4 @@
+# Implements: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-F-COORD-001, REQ-INTENT-001, REQ-INTENT-002, REQ-INTENT-003, REQ-INTENT-004, REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-009, REQ-F-LIFE-001, REQ-F-TRACE-001, REQ-F-SEARCH-002, REQ-F-ENGINE-001, REQ-F-AUTH-001, REQ-F-BOOT-001, REQ-F-BOOT-002, REQ-F-BOOT-003, REQ-F-GEMINI-INIT-001, REQ-SENSE-006, REQ-NF-BUILD-003, REQ-NF-COMPAT-001, REQ-NFR-PERF-001
 import json
 import uuid
 import re
@@ -28,6 +29,10 @@ class EventStore:
 
         job_name = f"{feature}:{edge}" if feature and edge else event_type
         
+        # Mixed-Mode Traceability (ADR-S-014)
+        regime = data.get("regime", "probabilistic") if data else "probabilistic"
+        parent_run_id = data.get("parent_run_id") if data else None
+        
         facets = {
             "sdlc_req_keys": {
                 "_schemaURL": "https://aisdlc.org/schema/v2.8/facets/sdlc_req_keys.json",
@@ -37,9 +42,16 @@ class EventStore:
             },
             "sdlc_event_type": {
                 "_schemaURL": "https://aisdlc.org/schema/v2.8/facets/sdlc_event_type.json",
-                "type": event_type
+                "type": event_type,
+                "regime": regime
             }
         }
+        
+        if parent_run_id:
+            facets["parent_run_id"] = {
+                "_schemaURL": "https://aisdlc.org/schema/v2.8/facets/parent_run_id.json",
+                "runId": parent_run_id
+            }
         
         if delta is not None:
             facets["sdlc_delta"] = {

@@ -1,4 +1,4 @@
-# Implements: REQ-UX-001, REQ-UX-002
+# Implements: REQ-UX-001, REQ-UX-002, REQ-F-UX-001
 """
 State Manager for Project Genesis.
 Orchestrates high-level routing and state-driven prompts.

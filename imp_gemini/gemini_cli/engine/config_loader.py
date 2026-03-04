@@ -1,4 +1,4 @@
-# Implements: REQ-CTX-001
+# Implements: REQ-CTX-001, REQ-F-CTX-001
 """
 AI SDLC Configuration Loader.
 Resolves $variable references in edge checklists from project_constraints.yml.

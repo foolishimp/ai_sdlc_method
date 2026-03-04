@@ -54,15 +54,22 @@ def ol_event_type(v1_type: str) -> str:
 
 # ── Job name derivation ───────────────────────────────────────────────────────
 
+
 def job_name(v1: dict) -> str:
     """Derive OL job name from v1 event fields."""
     v1_type = v1.get("event_type", "")
     # Edge traversal events — use the edge as the job name
     edge = v1.get("edge") or v1.get("data", {}).get("edge", "")
     if edge and v1_type in (
-        "edge_started", "edge_converged", "iteration_completed",
-        "iteration_abandoned", "evaluator_ran", "edge_released",
-        "claim_rejected", "claim_expired", "convergence_escalated",
+        "edge_started",
+        "edge_converged",
+        "iteration_completed",
+        "iteration_abandoned",
+        "evaluator_ran",
+        "edge_released",
+        "claim_rejected",
+        "claim_expired",
+        "convergence_escalated",
     ):
         return edge
 
@@ -104,7 +111,7 @@ def _spec_job(v1: dict) -> str:
 def _gaps_job(v1: dict) -> str:
     layers = v1.get("data", {}).get("layers_run", [])
     if layers:
-        return f"GAP_VALIDATION:layer_{'_'.join(str(l) for l in layers)}"
+        return f"GAP_VALIDATION:layer_{'_'.join(str(layer) for layer in layers)}"
     return "GAP_VALIDATION"
 
 
@@ -120,6 +127,7 @@ def _spawn_job(v1: dict) -> str:
 
 
 # ── Dataset (inputs/outputs) derivation ──────────────────────────────────────
+
 
 def _datasets(v1: dict, project_root: str) -> tuple[list[dict], list[dict]]:
     """Return (inputs, outputs) as OL Dataset objects."""
@@ -147,14 +155,27 @@ def _datasets(v1: dict, project_root: str) -> tuple[list[dict], list[dict]]:
         parent = data.get("parent_vector", "")
         child = data.get("child_vector", "")
         if parent:
-            inputs.append({"namespace": f"aisdlc://{v1.get('project', '')}", "name": parent, "facets": {}})
+            inputs.append(
+                {
+                    "namespace": f"aisdlc://{v1.get('project', '')}",
+                    "name": parent,
+                    "facets": {},
+                }
+            )
         if child:
-            outputs.append({"namespace": f"aisdlc://{v1.get('project', '')}", "name": child, "facets": {}})
+            outputs.append(
+                {
+                    "namespace": f"aisdlc://{v1.get('project', '')}",
+                    "name": child,
+                    "facets": {},
+                }
+            )
 
     return inputs, outputs
 
 
 # ── Facet builders ────────────────────────────────────────────────────────────
+
 
 def _facet_event_type(v1_type: str) -> dict:
     return {
@@ -217,9 +238,16 @@ def _facet_valence(v1: dict) -> dict | None:
     """Build sdlc:valence from available signal data."""
     v1_type = v1.get("event_type", "")
     # Reflex events: low severity, autonomic
-    if v1_type in ("artifact_modified", "edge_started", "edge_converged",
-                   "evaluator_ran", "telemetry_signal_emitted", "health_checked",
-                   "iteration_completed", "status_generated"):
+    if v1_type in (
+        "artifact_modified",
+        "edge_started",
+        "edge_converged",
+        "evaluator_ran",
+        "telemetry_signal_emitted",
+        "health_checked",
+        "iteration_completed",
+        "status_generated",
+    ):
         return {
             "_producer": FACET_BASE,
             "_schemaURL": _facet("sdlc:valence"),
@@ -228,8 +256,14 @@ def _facet_valence(v1: dict) -> dict | None:
             "urgency": 1,
         }
     # Conscious events: human gate required
-    if v1_type in ("intent_raised", "convergence_escalated", "review_completed",
-                   "spec_modified", "feature_proposal", "release_created"):
+    if v1_type in (
+        "intent_raised",
+        "convergence_escalated",
+        "review_completed",
+        "spec_modified",
+        "feature_proposal",
+        "release_created",
+    ):
         return {
             "_producer": FACET_BASE,
             "_schemaURL": _facet("sdlc:valence"),
@@ -238,9 +272,15 @@ def _facet_valence(v1: dict) -> dict | None:
             "urgency": 5,
         }
     # Affect events: triage required
-    if v1_type in ("finding_raised", "gaps_validated", "interoceptive_signal",
-                   "exteroceptive_signal", "affect_triage", "feature_spawned",
-                   "encoding_escalated"):
+    if v1_type in (
+        "finding_raised",
+        "gaps_validated",
+        "interoceptive_signal",
+        "exteroceptive_signal",
+        "affect_triage",
+        "feature_spawned",
+        "encoding_escalated",
+    ):
         return {
             "_producer": FACET_BASE,
             "_schemaURL": _facet("sdlc:valence"),
@@ -252,6 +292,7 @@ def _facet_valence(v1: dict) -> dict | None:
 
 
 # ── Core conversion ───────────────────────────────────────────────────────────
+
 
 def convert_v1_to_v2(v1: dict, project_root: str = "") -> dict:
     """Convert a single v1 event dict to OL v2 format."""
@@ -326,6 +367,7 @@ def convert_v1_to_v2(v1: dict, project_root: str = "") -> dict:
 
 # ── File migration ────────────────────────────────────────────────────────────
 
+
 def migrate_file(events_path: Path) -> None:
     if not events_path.exists():
         print(f"Error: {events_path} does not exist")
@@ -379,7 +421,7 @@ def migrate_file(events_path: Path) -> None:
     # Write migrated file
     events_path.write_text("\n".join(converted) + "\n", encoding="utf-8")
 
-    print(f"\nMigration complete:")
+    print("\nMigration complete:")
     print(f"  Converted v1→v2: {v1_count}")
     print(f"  Already v2:      {v2_count}")
     print(f"  Skipped (bad JSON): {skip_count}")

@@ -1,4 +1,4 @@
-# Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-002
+# Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-002, REQ-F-UX-001
 """Pure-function workspace state detection utilities.
 These functions operate on filesystem paths and return derived state.
 """

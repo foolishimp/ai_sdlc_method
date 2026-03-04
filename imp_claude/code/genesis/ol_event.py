@@ -18,7 +18,6 @@ Root events (no triggering parent) set causation_id = correlation_id = own runId
 import argparse
 import fcntl
 import json
-import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -177,45 +176,142 @@ def emit_ol_event(events_path: Path, event: dict) -> str:
 # Convenience constructors — one per ADR-S-012 event type
 # ---------------------------------------------------------------------------
 
-def iteration_started(project, instance_id, actor, edge, context_refs=None, **kw) -> dict:
-    return make_ol_event("IterationStarted", edge, project, instance_id, actor,
-                         payload={"edge": edge, "context_refs": context_refs or []}, **kw)
+
+def iteration_started(
+    project, instance_id, actor, edge, context_refs=None, **kw
+) -> dict:
+    return make_ol_event(
+        "IterationStarted",
+        edge,
+        project,
+        instance_id,
+        actor,
+        payload={"edge": edge, "context_refs": context_refs or []},
+        **kw,
+    )
+
 
 def iteration_completed(project, instance_id, actor, edge, delta, **kw) -> dict:
-    return make_ol_event("IterationCompleted", edge, project, instance_id, actor,
-                         payload={"edge": edge, "delta": delta}, **kw)
+    return make_ol_event(
+        "IterationCompleted",
+        edge,
+        project,
+        instance_id,
+        actor,
+        payload={"edge": edge, "delta": delta},
+        **kw,
+    )
+
 
 def iteration_failed(project, instance_id, actor, edge, reason, **kw) -> dict:
-    return make_ol_event("IterationFailed", edge, project, instance_id, actor,
-                         payload={"edge": edge, "reason": reason}, **kw)
+    return make_ol_event(
+        "IterationFailed",
+        edge,
+        project,
+        instance_id,
+        actor,
+        payload={"edge": edge, "reason": reason},
+        **kw,
+    )
 
-def evaluator_voted(project, instance_id, actor, evaluator_type, result, evidence, **kw) -> dict:
-    return make_ol_event("EvaluatorVoted", "EVALUATOR", project, instance_id, actor,
-                         payload={"evaluator_type": evaluator_type, "result": result, "evidence": evidence}, **kw)
+
+def evaluator_voted(
+    project, instance_id, actor, evaluator_type, result, evidence, **kw
+) -> dict:
+    return make_ol_event(
+        "EvaluatorVoted",
+        "EVALUATOR",
+        project,
+        instance_id,
+        actor,
+        payload={
+            "evaluator_type": evaluator_type,
+            "result": result,
+            "evidence": evidence,
+        },
+        **kw,
+    )
+
 
 def convergence_achieved(project, instance_id, actor, edge, delta, **kw) -> dict:
-    return make_ol_event("ConvergenceAchieved", edge, project, instance_id, actor,
-                         payload={"edge": edge, "delta": delta}, **kw)
+    return make_ol_event(
+        "ConvergenceAchieved",
+        edge,
+        project,
+        instance_id,
+        actor,
+        payload={"edge": edge, "delta": delta},
+        **kw,
+    )
 
-def compensation_triggered(project, instance_id, actor, failed_edge, target_edge, **kw) -> dict:
-    return make_ol_event("CompensationTriggered", f"COMPENSATE:{target_edge}", project, instance_id, actor,
-                         payload={"failed_edge": failed_edge, "target_edge": target_edge}, **kw)
 
-def compensation_completed(project, instance_id, actor, target_edge, restored_projection_hash, **kw) -> dict:
-    return make_ol_event("CompensationCompleted", f"COMPENSATE:{target_edge}", project, instance_id, actor,
-                         payload={"target_edge": target_edge, "restored_projection_hash": restored_projection_hash}, **kw)
+def compensation_triggered(
+    project, instance_id, actor, failed_edge, target_edge, **kw
+) -> dict:
+    return make_ol_event(
+        "CompensationTriggered",
+        f"COMPENSATE:{target_edge}",
+        project,
+        instance_id,
+        actor,
+        payload={"failed_edge": failed_edge, "target_edge": target_edge},
+        **kw,
+    )
 
-def context_arrived(project, instance_id, actor, source_type, payload_ref, **kw) -> dict:
-    return make_ol_event("ContextArrived", "CONTEXT", project, instance_id, actor,
-                         payload={"source_type": source_type, "payload_ref": payload_ref}, **kw)
+
+def compensation_completed(
+    project, instance_id, actor, target_edge, restored_projection_hash, **kw
+) -> dict:
+    return make_ol_event(
+        "CompensationCompleted",
+        f"COMPENSATE:{target_edge}",
+        project,
+        instance_id,
+        actor,
+        payload={
+            "target_edge": target_edge,
+            "restored_projection_hash": restored_projection_hash,
+        },
+        **kw,
+    )
+
+
+def context_arrived(
+    project, instance_id, actor, source_type, payload_ref, **kw
+) -> dict:
+    return make_ol_event(
+        "ContextArrived",
+        "CONTEXT",
+        project,
+        instance_id,
+        actor,
+        payload={"source_type": source_type, "payload_ref": payload_ref},
+        **kw,
+    )
+
 
 def transition_authorized(project, instance_id, actor, edge, permissions, **kw) -> dict:
-    return make_ol_event("TransitionAuthorized", edge, project, instance_id, actor,
-                         payload={"edge": edge, "permissions": permissions}, **kw)
+    return make_ol_event(
+        "TransitionAuthorized",
+        edge,
+        project,
+        instance_id,
+        actor,
+        payload={"edge": edge, "permissions": permissions},
+        **kw,
+    )
+
 
 def transition_denied(project, instance_id, actor, edge, reason, **kw) -> dict:
-    return make_ol_event("TransitionDenied", edge, project, instance_id, actor,
-                         payload={"edge": edge, "reason": reason}, **kw)
+    return make_ol_event(
+        "TransitionDenied",
+        edge,
+        project,
+        instance_id,
+        actor,
+        payload={"edge": edge, "reason": reason},
+        **kw,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -235,29 +331,57 @@ def transition_denied(project, instance_id, actor, edge, reason, **kw) -> dict:
 # Prints the emitted runId to stdout.
 # ---------------------------------------------------------------------------
 
+
 def _cli():
     p = argparse.ArgumentParser(description="Emit an OpenLineage event to events.jsonl")
-    p.add_argument("--type", required=True, dest="event_type",
-                   help="Semantic event type (IterationStarted, IterationFailed, …)")
-    p.add_argument("--job", required=True, dest="job_name",
-                   help="Job/edge name (e.g. 'design→code')")
+    p.add_argument(
+        "--type",
+        required=True,
+        dest="event_type",
+        help="Semantic event type (IterationStarted, IterationFailed, …)",
+    )
+    p.add_argument(
+        "--job",
+        required=True,
+        dest="job_name",
+        help="Job/edge name (e.g. 'design→code')",
+    )
     p.add_argument("--project", required=True)
     p.add_argument("--instance-id", required=True)
     p.add_argument("--actor", required=True)
-    p.add_argument("--events-path", required=True, type=Path,
-                   help="Path to events.jsonl")
-    p.add_argument("--causation-id", default=None,
-                   help="runId of triggering event (omit for root events)")
-    p.add_argument("--correlation-id", default=None,
-                   help="runId of chain root (omit for root events)")
-    p.add_argument("--payload", default=None,
-                   help="JSON object of type-specific fields")
-    p.add_argument("--inputs", nargs="*", default=None,
-                   help="Input file paths (relative to project root)")
-    p.add_argument("--outputs", nargs="*", default=None,
-                   help="Output file paths (relative to project root)")
-    p.add_argument("--project-root", default=None,
-                   help="Absolute project root for file:// namespace")
+    p.add_argument(
+        "--events-path", required=True, type=Path, help="Path to events.jsonl"
+    )
+    p.add_argument(
+        "--causation-id",
+        default=None,
+        help="runId of triggering event (omit for root events)",
+    )
+    p.add_argument(
+        "--correlation-id",
+        default=None,
+        help="runId of chain root (omit for root events)",
+    )
+    p.add_argument(
+        "--payload", default=None, help="JSON object of type-specific fields"
+    )
+    p.add_argument(
+        "--inputs",
+        nargs="*",
+        default=None,
+        help="Input file paths (relative to project root)",
+    )
+    p.add_argument(
+        "--outputs",
+        nargs="*",
+        default=None,
+        help="Output file paths (relative to project root)",
+    )
+    p.add_argument(
+        "--project-root",
+        default=None,
+        help="Absolute project root for file:// namespace",
+    )
 
     args = p.parse_args()
     payload = json.loads(args.payload) if args.payload else None

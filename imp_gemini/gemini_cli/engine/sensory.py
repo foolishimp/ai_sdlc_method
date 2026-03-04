@@ -1,4 +1,4 @@
-# Implements: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-SENSE-006
+# Implements: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-SENSE-006, REQ-F-SENSE-001
 import os
 import json
 import yaml
@@ -9,6 +9,7 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Any, Optional
 from gemini_cli.engine.state import EventStore
+from gemini_cli.engine.otlp_relay import OTLPRelay
 
 class SensoryService:
     """Independent service that watches the workspace and runs monitors.
@@ -23,6 +24,10 @@ class SensoryService:
         self.config = self._load_config()
         self.running = False
         self._last_mtimes = {} # For filesystem monitoring
+        
+        # OTLP Projection (ADR-S-014)
+        endpoint = os.environ.get("OTLP_COLLECTOR_ENDPOINT", "http://localhost:6006/v1/traces")
+        self.relay = OTLPRelay(workspace_root, collector_endpoint=endpoint)
 
     def _load_config(self) -> Dict:
         if self.config_path.exists():
@@ -35,6 +40,9 @@ class SensoryService:
         self.running = True
         print(f"  [SENSE] Background sensory service started (interval: {interval}s)")
         
+        # Start the OTLP Relay (ADR-S-014)
+        self.relay.start()
+        
         while self.running:
             try:
                 self.run_all_monitors()
@@ -44,6 +52,7 @@ class SensoryService:
 
     def stop(self):
         self.running = False
+        self.relay.stop()
 
     def run_all_monitors(self):
         """Runs all enabled monitors and emits signals."""

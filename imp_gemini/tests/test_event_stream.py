@@ -1,4 +1,4 @@
-# Validates: REQ-EVENT-001, REQ-EVENT-003, REQ-EVENT-004
+# Validates: REQ-EVENT-001, REQ-EVENT-003, REQ-EVENT-004, REQ-F-EVENT-001
 import pytest
 from pathlib import Path
 from typing import Dict, Any

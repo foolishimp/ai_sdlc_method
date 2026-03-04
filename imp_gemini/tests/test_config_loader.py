@@ -1,4 +1,4 @@
-# Validates: REQ-CTX-001, REQ-CTX-002, REQ-INTENT-004
+# Validates: REQ-CTX-001, REQ-CTX-002, REQ-INTENT-004, REQ-F-CTX-001
 import pytest
 from pathlib import Path
 from gemini_cli.engine.config_loader import ConfigLoader

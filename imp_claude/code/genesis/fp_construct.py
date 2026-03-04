@@ -282,9 +282,7 @@ def _call_claude(
         "--no-session-persistence",
         prompt,
     ]
-    result = run_claude_isolated(
-        cmd, timeout=timeout, stall_timeout=stall_timeout
-    )
+    result = run_claude_isolated(cmd, timeout=timeout, stall_timeout=stall_timeout)
     if result.timed_out or result.returncode != 0:
         return None
     return result.stdout

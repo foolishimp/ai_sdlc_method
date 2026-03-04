@@ -1,4 +1,4 @@
-# Validates: REQ-CLI-001, REQ-CLI-002, REQ-CLI-003
+# Validates: REQ-CLI-001, REQ-CLI-002, REQ-CLI-003, REQ-F-GEMINI-CLI-001, REQ-F-UX-001, REQ-F-TOOL-001
 """
 Dynamic E2E Test: Full CLI Workflow.
 This test runs the 'gemini' CLI through a multi-edge journey.

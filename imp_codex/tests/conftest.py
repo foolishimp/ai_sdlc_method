@@ -3,16 +3,20 @@
 
 import pathlib
 import json
+import shutil
 
 import pytest
 import yaml
 
 # Root paths
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
-SPEC_DIR = PROJECT_ROOT / "specification"
+# Canonical specification root (nested layout)
+SPEC_ROOT = PROJECT_ROOT / "specification"
 
 # Codex implementation paths
 IMP_CODEX = PROJECT_ROOT / "imp_codex"
+# Compatibility mirror so legacy tests can keep using SPEC_DIR / "<doc>.md"
+SPEC_DIR = IMP_CODEX / ".spec_compat"
 DESIGN_DIR = IMP_CODEX / "design"
 PLUGIN_ROOT = IMP_CODEX / "code"
 CONFIG_DIR = PLUGIN_ROOT / "config"
@@ -20,6 +24,31 @@ EDGE_PARAMS_DIR = CONFIG_DIR / "edge_params"
 PROFILES_DIR = CONFIG_DIR / "profiles"
 COMMANDS_DIR = PLUGIN_ROOT / "commands"
 AGENTS_DIR = PLUGIN_ROOT / "agents"
+
+
+def _ensure_spec_compat() -> None:
+    """Mirror nested specification docs into a flat compat directory.
+
+    The repository now stores docs in `specification/{core,features,requirements}`.
+    Most imp_codex tests still reference a flat `SPEC_DIR / <doc>.md` path.
+    """
+    SPEC_DIR.mkdir(parents=True, exist_ok=True)
+
+    mapping = {
+        SPEC_ROOT / "INTENT.md": SPEC_DIR / "INTENT.md",
+        SPEC_ROOT / "core" / "AI_SDLC_ASSET_GRAPH_MODEL.md": SPEC_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md",
+        SPEC_ROOT / "core" / "PROJECTIONS_AND_INVARIANTS.md": SPEC_DIR / "PROJECTIONS_AND_INVARIANTS.md",
+        SPEC_ROOT / "requirements" / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md": SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md",
+        SPEC_ROOT / "features" / "FEATURE_VECTORS.md": SPEC_DIR / "FEATURE_VECTORS.md",
+    }
+
+    for src, dst in mapping.items():
+        if not src.exists():
+            raise FileNotFoundError(f"Required spec document missing: {src}")
+        shutil.copy2(src, dst)
+
+
+_ensure_spec_compat()
 
 
 def pytest_ignore_collect(collection_path, config):  # pragma: no cover

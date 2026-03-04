@@ -39,7 +39,7 @@ VERSION = "2.8.0"
 
 PROJECT_CONSTRAINTS_TEMPLATE = """
 # Project Constraints — {project_name}
-# Implements: REQ-CTX-001 (Context as Constraint Surface)
+# Implements: REQ-CTX-001 (Context as Constraint Surface), REQ-F-CTX-001
 
 project:
   name: "{project_name}"

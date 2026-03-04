@@ -20,6 +20,7 @@ checklist:
     type: deterministic
     functional_unit: evaluate
     criterion: "Per-module scaffolding/build config exists and builds/lints."
+    source: default
     required: true
 
   - name: "code_matches_projection"
@@ -32,8 +33,8 @@ checklist:
     type: deterministic
     functional_unit: evaluate
     criterion: "All code files contain 'Implements: REQ-*' tags as appropriate."
+    source: traceability
     required: true
 
 convergence:
   rule: "all_required_checks_pass"
-

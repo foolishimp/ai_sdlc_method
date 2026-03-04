@@ -530,8 +530,13 @@ def _add_shared_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--fd-timeout",
         type=int,
-        default=120,
-        help="Timeout for deterministic subprocess checks in seconds (default: 120)",
+        default=60,
+        help=(
+            "Stall timeout for F_D subprocess checks in seconds (default: 60). "
+            "Kills the subprocess if it produces NO output for this many seconds. "
+            "NOT a wall-clock timeout — a healthy slow process (e.g. long test suite) "
+            "will run to completion. Wall ceiling = stall_timeout × 20."
+        ),
     )
     parser.add_argument(
         "--stall-timeout",

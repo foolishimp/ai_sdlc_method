@@ -1,4 +1,4 @@
-# Validates: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-005
+# Validates: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-005, REQ-F-SENSE-001
 import pytest
 import time
 import yaml

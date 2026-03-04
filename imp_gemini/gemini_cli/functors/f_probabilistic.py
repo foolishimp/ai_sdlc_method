@@ -19,6 +19,25 @@ class GeminiFunctor:
         """
         Structured delegation to the agent or user.
         """
+        tracer = None
+        span = None
+        try:
+            from opentelemetry import trace
+            tracer = trace.get_tracer(__name__)
+            # Inner Loop Span (OpenInference pattern)
+            span_context = tracer.start_as_current_span(
+                "GeminiFunctor:Evaluate",
+                attributes={
+                    "llm.model_name": self.model_name,
+                    "sdlc.feature_id": context.get("feature_id", "unknown"),
+                    "sdlc.edge_id": context.get("edge", "unknown"),
+                    "input.value": candidate[:1000] # Truncate for telemetry
+                }
+            )
+            span = span_context.__enter__()
+        except ImportError:
+            pass
+
         try:
             if context is None:
                 context = {}
@@ -32,28 +51,47 @@ class GeminiFunctor:
                     question=f"Feature stuck after {iteration_count} iterations. Investigate root cause.",
                     vector_type="discovery"
                 )
-                return FunctorResult(
+                res = FunctorResult(
                     name="sub_agent_eval",
                     outcome=Outcome.FAIL,
                     delta=1,
                     reasoning=f"Triggering RECURSION (iteration {iteration_count}). Stuck feature detected.",
                     spawn=spawn
                 )
+                if span: 
+                    span.set_attribute("output.value", res.reasoning)
+                    span.set_attribute("sdlc.status", "stuck_recursion")
+                return res
 
             if mode == "headless":
-                return self._evaluate_headless(candidate, context)
+                res = self._evaluate_headless(candidate, context)
             else:
-                return self._evaluate_interactive(candidate, context)
+                res = self._evaluate_interactive(candidate, context)
+
+            if span:
+                span.set_attribute("output.value", res.reasoning)
+                span.set_attribute("sdlc.outcome", res.outcome.name)
+                span.set_attribute("sdlc.delta", res.delta)
+            
+            return res
 
         except Exception as e:
+            error_msg = f"Internal error: {str(e)}"
+            if span:
+                span.record_exception(e)
+                span.set_status(trace.Status(trace.StatusCode.ERROR, error_msg))
+            
             print(f"  [ERROR] in GeminiFunctor: {str(e)}")
             traceback.print_exc()
             return FunctorResult(
                 name="sub_agent_eval",
                 outcome=Outcome.ERROR,
                 delta=1,
-                reasoning=f"Internal error: {str(e)}"
+                reasoning=error_msg
             )
+        finally:
+            if span:
+                span_context.__exit__(None, None, None)
 
     def _evaluate_headless(self, candidate: str, context: Dict) -> FunctorResult:
         """Automated heuristic evaluation for headless mode."""

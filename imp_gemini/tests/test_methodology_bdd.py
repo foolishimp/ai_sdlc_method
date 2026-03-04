@@ -1,3 +1,4 @@
+# Validates: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-F-TOOL-001, REQ-EDGE-001, REQ-EDGE-002, REQ-EDGE-003, REQ-EDGE-004, REQ-F-EDGE-001, REQ-EVAL-001, REQ-EVAL-002, REQ-F-EVAL-001, REQ-EVENT-002, REQ-EVENT-003, REQ-GRAPH-001, REQ-GRAPH-003, REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-F-COORD-001, REQ-INTENT-001, REQ-INTENT-002, REQ-INTENT-003, REQ-INTENT-004, REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-009, REQ-F-LIFE-001, REQ-F-TRACE-001, REQ-F-SEARCH-002, REQ-F-ENGINE-001, REQ-F-AUTH-001, REQ-F-BOOT-001, REQ-F-BOOT-002, REQ-F-BOOT-003, REQ-F-GEMINI-INIT-001, REQ-SENSE-006, REQ-NF-BUILD-003, REQ-NF-COMPAT-001, REQ-NFR-PERF-001, REQ-F-ADR-LINK-001
 # Validates: REQ-ITER-001, REQ-ITER-002, REQ-EVAL-003, REQ-TOOL-002, REQ-TOOL-007, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008
 """BDD acceptance tests — methodology workflow coherence validation.
 
@@ -1317,7 +1318,7 @@ class TestEventTypeCompleteness:
     WHEN listing all event types
     THEN all 20 event types are documented with schemas.
 
-    Validates: REQ-LIFE-005, REQ-LIFE-007, REQ-SENSE-001, REQ-SENSE-002, REQ-COORD-003
+    Validates: REQ-LIFE-005, REQ-LIFE-007, REQ-SENSE-001, REQ-SENSE-002, REQ-COORD-003, REQ-F-SENSE-001
     """
 
     REQUIRED_EVENT_TYPES = {
@@ -1410,7 +1411,7 @@ class TestProcessingPhasesInImpl:
     WHEN we check that Claude's agent and design reference them
     THEN all documents reference reflex/affect/conscious with correct mappings.
 
-    Validates: REQ-EVAL-001 (processing_phase field)
+    Validates: REQ-EVAL-001 (processing_phase field), REQ-F-EVAL-001
     """
 
     @pytest.mark.bdd
@@ -1525,7 +1526,7 @@ class TestContextSourcesInImpl:
     WHEN we check design, init command, and iterate agent
     THEN context sources are documented and wired through.
 
-    Validates: REQ-CTX-001, REQ-CTX-002
+    Validates: REQ-CTX-001, REQ-CTX-002, REQ-F-CTX-001
     """
 
     @pytest.mark.bdd
@@ -1564,7 +1565,7 @@ class TestTwoCommandUX:
     WHEN the user invokes Start or Status
     THEN state is detected, features are selected, and routing/observability works.
 
-    Validates: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005
+    Validates: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005, REQ-F-UX-001
     """
 
     @pytest.mark.bdd
