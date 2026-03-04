@@ -27,6 +27,29 @@ PRODUCER = "https://github.com/foolishimp/ai_sdlc_method"
 SCHEMA_URL = "https://openlineage.io/spec/1-0-5/OpenLineage.json"
 FACET_SCHEMA_BASE = "https://github.com/foolishimp/ai_sdlc_method/spec/facets"
 
+# ── Multi-tenancy: map file path prefix → design tenant (REQ-TOOL-012) ────────
+
+_TENANT_PREFIXES = ("imp_claude", "imp_gemini", "imp_codex", "imp_bedrock")
+
+
+def tenant_from_path(file_path: str | Path) -> str | None:
+    """Return the design tenant name from a relative file path, or None.
+
+    Maps the first path component to a tenant:
+      imp_claude/...    → "imp_claude"
+      imp_gemini/...    → "imp_gemini"
+      specification/... → "specification"
+      (anything else)   → None  (caller uses repo-level project name)
+
+    Usage in event emitters:
+      project = tenant_from_path(written_file) or workspace_project_name
+    """
+    first = Path(file_path).parts[0] if file_path else ""
+    if first in _TENANT_PREFIXES or first == "specification":
+        return first
+    return None
+
+
 # ADR-S-011: semantic event type → OL eventType
 _OL_EVENT_TYPE = {
     "IterationStarted": "START",
