@@ -603,47 +603,46 @@ def setup_engine(target: Path, dry_run: bool) -> bool:
 
 
 def setup_bootloader(target: Path, dry_run: bool) -> bool:
-    """Append Genesis Bootloader to CLAUDE.md (idempotent)."""
+    """Install or replace Genesis Bootloader in CLAUDE.md (always upgrades)."""
     claude_md = target / "CLAUDE.md"
 
-    # Check if bootloader already present
-    if claude_md.exists():
-        existing = claude_md.read_text()
-        if BOOTLOADER_START_MARKER in existing:
-            print_info("Genesis Bootloader already in CLAUDE.md")
-            return True
-    else:
-        existing = ""
-
-    # Fetch bootloader content
+    # Fetch bootloader content first — need it regardless
     bootloader = fetch_bootloader()
     if not bootloader:
         print_warn("Could not fetch GENESIS_BOOTLOADER.md — bootloader not installed")
         return False
 
+    existing = claude_md.read_text() if claude_md.exists() else ""
+
     if dry_run:
-        if existing:
+        if BOOTLOADER_START_MARKER in existing:
+            print_info("Would replace Genesis Bootloader in CLAUDE.md")
+        elif existing:
             print_info("Would append Genesis Bootloader to existing CLAUDE.md")
         else:
             print_info("Would create CLAUDE.md with Genesis Bootloader")
         return True
 
-    # Build the section to append
-    separator = "\n\n---\n\n" if existing.strip() else ""
-    bootloader_section = (
-        f"{separator}"
-        f"{BOOTLOADER_START_MARKER}\n"
-        f"{bootloader}\n"
-        f"{BOOTLOADER_END_MARKER}\n"
-    )
+    bootloader_section = f"{BOOTLOADER_START_MARKER}\n{bootloader}\n{BOOTLOADER_END_MARKER}\n"
 
-    with open(claude_md, "a") as f:
-        f.write(bootloader_section)
-
-    if existing:
+    if BOOTLOADER_START_MARKER in existing:
+        # Replace existing bootloader block
+        import re
+        pattern = re.compile(
+            re.escape(BOOTLOADER_START_MARKER) + r".*?" + re.escape(BOOTLOADER_END_MARKER) + r"\n?",
+            re.DOTALL,
+        )
+        updated = pattern.sub(bootloader_section, existing)
+        claude_md.write_text(updated)
+        print_ok(f"Updated Genesis Bootloader in CLAUDE.md")
+    elif existing.strip():
+        with open(claude_md, "a") as f:
+            f.write(f"\n\n---\n\n{bootloader_section}")
         print_ok("Appended Genesis Bootloader to CLAUDE.md")
     else:
+        claude_md.write_text(bootloader_section)
         print_ok("Created CLAUDE.md with Genesis Bootloader")
+
     return True
 
 
