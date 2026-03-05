@@ -1,3 +1,7 @@
+<style>
+table { page-break-inside: avoid; }
+</style>
+
 # Governing AI in Software Engineering: The Case for Spec-Driven Development
 
 
