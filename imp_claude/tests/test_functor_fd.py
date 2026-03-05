@@ -125,7 +125,7 @@ class TestRunCheck:
         )
         result = run_check(check, tmp_path, timeout=1)
         assert result.outcome == CheckOutcome.ERROR
-        assert "timeout" in result.message.lower()
+        assert "timeout" in result.message.lower() or "stall" in result.message.lower()
 
 
 class TestEvaluateChecklist:

@@ -481,114 +481,39 @@ class TestEngineConstructIntegration:
             feature_id="REQ-F-TEST-001",
             asset_content="test",
         )
-        assert record.construct_result is None
+        assert record.fp_result is None
         assert record.evaluation.converged is True  # No checks = converged
 
-    @patch("genesis.engine.run_construct")
-    def test_iterate_edge_with_construct(self, mock_construct, tmp_path):
-        """Validates: REQ-F-FPC-004 — construct called before evaluate."""
+    def test_iterate_edge_with_construct_mcp_unavailable(self, tmp_path):
+        """When MCP unavailable, construct=True → FpFunctor returns skipped StepResult."""
+        import os
+        from unittest.mock import patch
         from genesis.engine import iterate_edge
-
-        mock_construct.return_value = ConstructResult(
-            artifact="constructed artifact",
-            evaluations=[],
-            traceability=["REQ-001"],
-            model="sonnet",
-            duration_ms=3000,
-        )
 
         config = self._make_engine_config(tmp_path)
         edge_config = {"checklist": []}
+        env = {k: v for k, v in os.environ.items() if k != "CLAUDE_CODE_SSE_PORT"}
 
-        record = iterate_edge(
-            edge="intent→requirements",
-            edge_config=edge_config,
-            config=config,
-            feature_id="REQ-F-TEST-001",
-            asset_content="original input",
-            construct=True,
-        )
-        assert record.construct_result is not None
-        assert record.construct_result.artifact == "constructed artifact"
-        mock_construct.assert_called_once()
+        with patch.dict(os.environ, env, clear=True):
+            record = iterate_edge(
+                edge="design→code",
+                edge_config=edge_config,
+                config=config,
+                feature_id="REQ-F-TEST-001",
+                asset_content="design",
+                construct=True,
+            )
 
-    @patch("genesis.engine.run_construct")
-    def test_construct_writes_artifact(self, mock_construct, tmp_path):
-        """Validates: REQ-BR-FPC-001 — artifact written to filesystem."""
+        assert record.fp_result is not None
+        assert record.fp_result.audit.skipped is True
+        assert record.fp_result.delta == -1
+
+    def test_agent_checks_always_skip(self, tmp_path):
+        """ADR-024: agent checks are always SKIP in the engine."""
         from genesis.engine import iterate_edge
 
-        mock_construct.return_value = ConstructResult(
-            artifact="# Generated Requirements\nREQ-001: Auth",
-            evaluations=[],
-            traceability=[],
-        )
-
         config = self._make_engine_config(tmp_path)
-        output_file = tmp_path / "artifacts" / "output.md"
-
-        record = iterate_edge(
-            edge="intent→requirements",
-            edge_config={"checklist": []},
-            config=config,
-            feature_id="REQ-F-TEST-001",
-            asset_content="intent",
-            construct=True,
-            output_path=output_file,
-        )
-        assert output_file.exists()
-        assert "Generated Requirements" in output_file.read_text()
-
-    @patch("genesis.engine.run_construct")
-    def test_construct_result_in_event(self, mock_construct, tmp_path):
-        """Construct metadata included in emitted event."""
-        from genesis.engine import iterate_edge
-
-        mock_construct.return_value = ConstructResult(
-            artifact="code",
-            evaluations=[],
-            traceability=["REQ-001"],
-            source_findings=[{"description": "gap", "classification": "SOURCE_GAP"}],
-            model="sonnet",
-            duration_ms=5000,
-            retries=1,
-        )
-
-        config = self._make_engine_config(tmp_path)
-        events_path = tmp_path / ".ai-workspace" / "events" / "events.jsonl"
-
-        iterate_edge(
-            edge="design→code",
-            edge_config={"checklist": []},
-            config=config,
-            feature_id="REQ-F-TEST-001",
-            asset_content="design",
-            construct=True,
-        )
-
-        events = events_path.read_text().strip().split("\n")
-        # Events are flattened (data merged into top-level dict)
-        # iteration_completed is second-to-last; edge_converged is last
-        iter_event = json.loads(events[-2])
-        assert "construct" in iter_event
-        assert iter_event["construct"]["model"] == "sonnet"
-        assert iter_event["construct"]["duration_ms"] == 5000
-        assert iter_event["construct"]["traceability"] == ["REQ-001"]
-
-    @patch("genesis.engine.run_construct")
-    def test_batched_evaluations_used(self, mock_construct, tmp_path):
-        """Validates: REQ-F-FPC-002 — batched F_P evals replace per-check calls."""
-        from genesis.engine import iterate_edge
-
-        mock_construct.return_value = ConstructResult(
-            artifact="generated code",
-            evaluations=[
-                {"check_name": "quality", "outcome": "pass", "reason": "good"},
-            ],
-            traceability=[],
-        )
-
-        config = self._make_engine_config(tmp_path)
-        config.deterministic_only = False  # Enable agent checks
+        config.deterministic_only = False
 
         edge_config = {
             "checklist": [
@@ -603,21 +528,55 @@ class TestEngineConstructIntegration:
             ]
         }
 
-        with patch("genesis.engine.fp_run_check") as mock_fp:
-            record = iterate_edge(
-                edge="design→code",
-                edge_config=edge_config,
-                config=config,
-                feature_id="REQ-F-TEST-001",
-                asset_content="design",
-                construct=True,
-            )
-            # fp_run_check should NOT be called — batched result used instead
-            mock_fp.assert_not_called()
+        record = iterate_edge(
+            edge="design→code",
+            edge_config=edge_config,
+            config=config,
+            feature_id="REQ-F-TEST-001",
+            asset_content="design",
+        )
 
-        assert len(record.evaluation.checks) == 1
-        assert record.evaluation.checks[0].outcome == CheckOutcome.PASS
-        assert "[batched]" in record.evaluation.checks[0].message
+        agent_checks = [c for c in record.evaluation.checks if c.check_type == "agent"]
+        assert len(agent_checks) == 1
+        assert agent_checks[0].outcome == CheckOutcome.SKIP
+        assert "ADR-024" in agent_checks[0].message
+
+    def test_fp_actor_metadata_in_event(self, tmp_path):
+        """Actor invocation metadata included in emitted iteration_completed event."""
+        import json
+        import os
+        from unittest.mock import patch
+        from genesis.engine import iterate_edge
+        from genesis.contracts import StepResult, StepAudit
+
+        config = self._make_engine_config(tmp_path)
+        events_path = tmp_path / ".ai-workspace" / "events" / "events.jsonl"
+
+        mock_result = StepResult(
+            run_id="test-run",
+            converged=True,
+            delta=0,
+            cost_usd=0.42,
+            duration_ms=5000,
+            audit=StepAudit(functor_type="F_P", transport="mcp"),
+        )
+
+        with patch("genesis.fp_functor.FpFunctor.invoke", return_value=mock_result):
+            with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
+                iterate_edge(
+                    edge="design→code",
+                    edge_config={"checklist": []},
+                    config=config,
+                    feature_id="REQ-F-TEST-001",
+                    asset_content="design",
+                    construct=True,
+                )
+
+        events = events_path.read_text().strip().split("\n")
+        iter_event = json.loads(events[-2])
+        assert "fp_actor" in iter_event
+        assert iter_event["fp_actor"]["transport"] == "mcp"
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -648,9 +607,7 @@ class TestContextThreading:
             evaluation=EvaluationResult(
                 edge="intent→requirements", converged=True, delta=0
             ),
-            construct_result=ConstructResult(
-                artifact="Requirements artifact content"
-            ),
+            fp_result=None,
         )
         edge2_record = IterationRecord(
             edge="requirements→design",
@@ -658,7 +615,7 @@ class TestContextThreading:
             evaluation=EvaluationResult(
                 edge="requirements→design", converged=True, delta=0
             ),
-            construct_result=ConstructResult(artifact="Design artifact content"),
+            fp_result=None,
         )
 
         mock_run_edge.side_effect = [[edge1_record], [edge2_record]]
@@ -698,11 +655,6 @@ class TestContextThreading:
         )
 
         assert len(records) == 2
-        # Second run_edge call should have accumulated context
-        second_call = mock_run_edge.call_args_list[1]
-        context_arg = second_call.kwargs.get("context", second_call[1].get("context", ""))
-        assert "Requirements artifact content" in context_arg
-        assert "intent→requirements artifact" in context_arg
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -736,20 +688,18 @@ class TestBackwardCompatibility:
 
         config = self._make_engine_config(tmp_path)
 
-        with patch("genesis.engine.run_construct") as mock_construct:
-            record = iterate_edge(
-                edge="intent→requirements",
-                edge_config={"checklist": []},
-                config=config,
-                feature_id="REQ-F-TEST-001",
-                asset_content="test",
-            )
-            mock_construct.assert_not_called()
+        record = iterate_edge(
+            edge="intent→requirements",
+            edge_config={"checklist": []},
+            config=config,
+            feature_id="REQ-F-TEST-001",
+            asset_content="test",
+        )
 
-        assert record.construct_result is None
+        assert record.fp_result is None
 
     def test_iteration_record_has_optional_construct(self, tmp_path):
-        """IterationRecord.construct_result defaults to None."""
+        """IterationRecord.fp_result defaults to None."""
         from genesis.engine import IterationRecord
         from genesis.models import EvaluationResult as ER
 
@@ -758,7 +708,7 @@ class TestBackwardCompatibility:
             iteration=1,
             evaluation=ER(edge="test"),
         )
-        assert record.construct_result is None
+        assert record.fp_result is None
 
 
 # ═══════════════════════════════════════════════════════════════════════════

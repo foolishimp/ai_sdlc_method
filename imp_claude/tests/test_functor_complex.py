@@ -229,11 +229,11 @@ class TestAgentDominatedEdge:
             if cr.check_type == "human":
                 assert cr.outcome == CheckOutcome.SKIP
 
-        # Delta = count of required checks that ERROR (all agent)
-        required_agent = sum(
+        # ADR-024: agent checks are always SKIP in the engine (actor self-evaluates)
+        required_agent_skip = sum(
             1 for cr in record.evaluation.checks
             if cr.required and cr.check_type == "agent"
-            and cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR)
+            and cr.outcome == CheckOutcome.SKIP
         )
         # No deterministic checks to provide "free" signal
         det_pass = sum(
@@ -241,7 +241,7 @@ class TestAgentDominatedEdge:
             if cr.check_type == "deterministic" and cr.outcome == CheckOutcome.PASS
         )
         assert det_pass == 0, "intent→requirements should have 0 deterministic passes"
-        assert required_agent > 0, "Expected required agent ERRORs"
+        assert required_agent_skip > 0, "Expected required agent checks to be SKIP (ADR-024)"
 
     def test_intent_requirements_vs_tdd_cost_ratio(self, constraints):
         """Compare agent:deterministic ratio across edges.
@@ -505,11 +505,15 @@ class TestEtaEscalationChain:
             asset_content="",
         )
 
-        # Agent ERRORs produce η_P→H escalations
+        # ADR-024: agent checks are SKIP in engine — no η_P→H escalations from engine.
+        # Agent judgment lives in the actor; the engine escalates only on F_D failures.
         ph_escalations = [e for e in record.evaluation.escalations if "η_P→H:" in e]
-        assert len(ph_escalations) > 0, (
-            f"Expected η_P→H escalations from agent ERRORs, got: {record.evaluation.escalations}"
+        assert len(ph_escalations) == 0, (
+            f"Expected no η_P→H escalations from engine (ADR-024), got: {ph_escalations}"
         )
+        # All agent checks should be SKIP
+        agent_checks = [c for c in record.evaluation.checks if c.check_type == "agent"]
+        assert all(c.outcome == CheckOutcome.SKIP for c in agent_checks)
 
     def test_eta_chain_across_iterations(self, broken_project, broken_config):
         """run_edge() with max_iterations — each iteration has escalations."""

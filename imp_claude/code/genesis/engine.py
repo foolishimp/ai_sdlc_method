@@ -1,22 +1,21 @@
-# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-F-FPC-003 (Context Accumulation), REQ-F-FPC-004 (Engine Construct Integration), REQ-NFR-FPC-001 (4 Calls Per Traversal), REQ-NFR-FPC-002 (Backward Compatible Default), REQ-BR-FPC-001 (Construct Before Evaluate), REQ-ROBUST-007 (Failure Event Emission)
+# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ROBUST-007 (Failure Event Emission)
 """Deterministic engine — owns the graph traversal loop.
 
 F_D controls: routing, emission, delta computation, convergence decisions.
-F_P is called: for agent evaluation via Claude Code CLI.
-F_P is called: for artifact construction via Claude Code CLI (ADR-020).
+F_P is invoked: via MCP actor (ADR-024) — actor self-evaluates agent criteria.
 F_H is called: for human evaluation (future — currently skips).
 
 The LLM cannot skip emission. The deterministic code calls it, takes its
 answer, records everything, then decides what to do next.
 
-Design principle (ADR-019): iterate_edge() is pure evaluation — it computes
+Design principle (ADR-019): iterate_edge() is pure F_D evaluation — it computes
 delta and emits events. Lifecycle decisions (spawn, fold-back) belong to the
 orchestrator (run_edge, run, or CLI).
 
-Design principle (ADR-020): When construct=True, iterate_edge() calls
-fp_construct.run_construct() BEFORE evaluation. The constructed artifact
-replaces the input for evaluation. Batched F_P evaluations from the construct
-response are merged with F_D check results.
+Design principle (ADR-024): When construct=True, iterate_edge() invokes the
+F_P actor via FpFunctor (MCP transport). The actor runs iterate() at finer
+grain and self-evaluates. The engine runs F_D checks on the resulting filesystem
+state. Agent checks are SKIPPED in the engine — they belong to the actor.
 """
 
 from dataclasses import dataclass
@@ -24,15 +23,15 @@ from pathlib import Path
 from typing import Optional
 
 from .config_loader import load_yaml, resolve_checklist
+from .contracts import Intent
 from .fd_emit import emit_event, make_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
-from .fp_construct import HEADLESS_ARTIFACT, batched_check_results, run_construct, run_construct_headless
-from .fp_evaluate import run_check as fp_run_check
+from .fp_functor import FpFunctor
+from .functor import mcp_available
 from .models import (
     CheckOutcome,
     CheckResult,
-    ConstructResult,
     EvaluationResult,
 )
 
@@ -65,7 +64,7 @@ class IterationRecord:
     iteration: int
     evaluation: EvaluationResult
     event_emitted: bool = True
-    construct_result: Optional[ConstructResult] = None
+    fp_result: Optional[object] = None  # StepResult from FpFunctor, if invoked
 
 
 def iterate_edge(
@@ -97,29 +96,23 @@ def iterate_edge(
     - Uses batched F_P evaluations from construct response
     - Falls back to per-check fp_evaluate for unmatched agent checks
     """
-    construct_result = None
+    fp_result = None
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
-    # 1. F_P: Construct artifact (when enabled)
+    # 1. F_P: Construct artifact via MCP actor (ADR-024)
     if construct:
-        # Headless mode: full Claude Code session with tool access.
-        # Claude reads/writes files directly in the workspace.
-        # F_D evaluates filesystem state after the session completes.
-        construct_result = run_construct_headless(
-            workspace_path=config.workspace_path,
+        intent = Intent(
             edge=edge,
-            feature_id=feature_id,
-            edge_config=edge_config,
+            feature=feature_id,
+            grain="iteration",
             constraints=config.constraints,
-            prior_failures=prior_failures,
-            model=config.model,
-            budget_usd=getattr(config, "budget_usd", 2.0),
-            timeout=config.claude_timeout,
+            failures=prior_failures or [],
+            budget_usd=config.budget_usd,
         )
+        fp_result = FpFunctor().invoke(intent, config.workspace_path)
 
-        # Emit fp_failure event on construct failure (REQ-ROBUST-007)
-        if not construct_result.artifact and construct_result.source_findings:
-            classification = construct_result.source_findings[0].get("classification", "UNKNOWN")
+        # Emit fp_failure event if actor was invoked but did not converge (REQ-ROBUST-007)
+        if not fp_result.audit.skipped and not fp_result.converged and fp_result.delta > 0:
             emit_event(
                 events_path,
                 make_event(
@@ -128,33 +121,15 @@ def iterate_edge(
                     feature=feature_id,
                     edge=edge,
                     iteration=iteration,
-                    classification=classification,
-                    duration_ms=construct_result.duration_ms,
-                    retries=construct_result.retries,
+                    transport=fp_result.audit.transport,
+                    cost_usd=fp_result.cost_usd,
+                    duration_ms=fp_result.duration_ms,
                     phase="construct",
                 ),
             )
 
-        # Headless: files written to disk — asset_content stays as-is for
-        # agent checks; F_D checks evaluate the filesystem directly.
-        # JSON-schema mode: write artifact string to output_path if provided.
-        if construct_result.artifact and construct_result.artifact != HEADLESS_ARTIFACT:
-            if output_path:
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                output_path.write_text(construct_result.artifact)
-            asset_content = construct_result.artifact
-
     # 2. F_D: Resolve checklist
     checks = resolve_checklist(edge_config, config.constraints)
-
-    # Build batched evaluation lookup (from construct response)
-    batched_results = {}
-    if construct_result and construct_result.evaluations:
-        agent_checks = [c for c in checks if c.check_type == "agent"]
-        batched = batched_check_results(construct_result, agent_checks)
-        for check, result in zip(agent_checks, batched):
-            if result is not None:
-                batched_results[check.name] = result
 
     # 3. Evaluate each check — dispatch by type
     results: list[CheckResult] = []
@@ -164,26 +139,17 @@ def iterate_edge(
         if check.check_type == "deterministic":
             cr = fd_run_check(check, config.workspace_path, timeout=config.fd_timeout)
         elif check.check_type == "agent":
-            # Use batched result from construct if available
-            if check.name in batched_results:
-                cr = batched_results[check.name]
-            elif config.deterministic_only:
-                cr = CheckResult(
-                    name=check.name,
-                    outcome=CheckOutcome.SKIP,
-                    required=check.required,
-                    check_type=check.check_type,
-                    functional_unit=check.functional_unit,
-                    message="Skipped: deterministic-only mode",
-                )
-            else:
-                cr = fp_run_check(
-                    check,
-                    asset_content=asset_content,
-                    context=context,
-                    model=config.model,
-                    timeout=config.claude_timeout,
-                )
+            # ADR-024: agent checks belong to the actor, not the engine.
+            # The actor self-evaluates against these criteria when invoked.
+            # The engine always skips agent checks — F_D only.
+            cr = CheckResult(
+                name=check.name,
+                outcome=CheckOutcome.SKIP,
+                required=check.required,
+                check_type=check.check_type,
+                functional_unit=check.functional_unit,
+                message="Skipped: agent check — actor self-evaluates (ADR-024)",
+            )
         elif check.check_type == "human":
             cr = CheckResult(
                 name=check.name,
@@ -280,13 +246,14 @@ def iterate_edge(
         escalations=escalations,
     )
 
-    if construct_result:
-        event_data["construct"] = {
-            "model": construct_result.model,
-            "duration_ms": construct_result.duration_ms,
-            "retries": construct_result.retries,
-            "traceability": construct_result.traceability,
-            "source_findings": construct_result.source_findings,
+    if fp_result and not fp_result.audit.skipped:
+        event_data["fp_actor"] = {
+            "transport": fp_result.audit.transport,
+            "converged": fp_result.converged,
+            "cost_usd": fp_result.cost_usd,
+            "duration_ms": fp_result.duration_ms,
+            "artifacts": len(fp_result.artifacts),
+            "spawns": len(fp_result.spawns),
         }
 
     emit_event(
@@ -311,7 +278,7 @@ def iterate_edge(
         edge=edge,
         iteration=iteration,
         evaluation=evaluation,
-        construct_result=construct_result,
+        fp_result=fp_result,
     )
 
 
@@ -377,13 +344,8 @@ def run_edge(
             if cr.required and cr.outcome.value in ("fail", "error") and cr.message
         ]
 
-        # JSON-schema mode: update asset_content from constructed string artifact
-        if (
-            record.construct_result
-            and record.construct_result.artifact
-            and record.construct_result.artifact != HEADLESS_ARTIFACT
-        ):
-            asset_content = record.construct_result.artifact
+        # ADR-024: actor writes files directly to filesystem.
+        # asset_content is not updated — F_D checks read the filesystem directly.
 
         if record.evaluation.converged:
             break
@@ -476,13 +438,8 @@ def run(
         if records and records[-1].evaluation.converged:
             feature_trajectory["trajectory"][edge_key] = {"status": "converged"}
 
-            # Thread constructed artifact as context for next edge (REQ-F-FPC-003)
-            if construct and records[-1].construct_result:
-                last_artifact = records[-1].construct_result.artifact
-                if last_artifact:
-                    accumulated_context += (
-                        f"\n\n--- {edge} artifact ---\n{last_artifact}"
-                    )
+            # ADR-024: actor writes to filesystem; context threading via Intent.context
+            # in future iterations. No string artifact to accumulate here.
 
         elif records and records[-1].evaluation.spawn_requested:
             feature_trajectory["trajectory"][edge_key] = {

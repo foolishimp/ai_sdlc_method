@@ -171,7 +171,7 @@ class TestEventLogIntegrity:
       I want every event in events.jsonl to be well-formed
       So that derived views can be reliably reconstructed
 
-    Validates: REQ-LIFE-005, REQ-LIFE-008
+    Validates: REQ-LIFE-005, REQ-LIFE-008, REQ-EVENT-001, REQ-EVENT-002, REQ-EVENT-003
     """
 
     REQUIRED_EVENT_FIELDS = {"event_type", "timestamp", "project"}
