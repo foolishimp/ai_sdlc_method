@@ -1,5 +1,7 @@
 # Governing AI in Software Engineering: The Case for Spec-Driven Development
 
+*Dimitar Popov*
+
 ---
 
 Every serious organisation operating software systems rests on one assumption: that you can account for what your systems do. Not in general terms — specifically. Which rule does this component enforce? Which control does this process satisfy? When this behaviour changes, what changes with it?
