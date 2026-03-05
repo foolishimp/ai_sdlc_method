@@ -186,7 +186,7 @@ The process is the proof. A methodology that cannot govern its own construction 
 
 ---
 
-*The formal specification, implementation, and architectural decision records are maintained at [github.com/foolishimp/ai_sdlc_method](https://github.com/foolishimp/ai_sdlc_method).*
+*The formal specification, implementation, and architectural decision records are available on request.*
 
 ---
 
