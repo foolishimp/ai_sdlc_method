@@ -4,21 +4,21 @@
 
 ---
 
-Every serious organisation operating software systems rests on one assumption: that you can account for what your systems do. Not in general terms — specifically. Which rule does this component enforce? Which control does this process satisfy? When this behaviour changes, what changes with it?
+ Serious operating software systems rest on the assumption that you can account for what your systems do. Which rule does this component enforce? Which control does this process satisfy? When this behaviour changes, what changes with it?
 
-That assumption is under pressure. AI is writing significant portions of enterprise software today, and the pace is increasing. The tooling is capable. The governance is not keeping up. The result is a growing inventory of production systems where the chain from business requirement to delivered behaviour is informal, undocumented, and unverifiable — exactly the condition that any serious governance framework is designed to prevent.
+AI is now writing significant portions of enterprise software. The tooling has outpaced the governance. The result is a growing inventory of production systems where the chain from business requirement to delivered behaviour is informal, undocumented, and unverifiable.
 
-Spec-Driven Development is the engineering discipline that restores accountability. It is not a process layer on top of AI development. It is the architecture that makes AI development auditable by construction.
+Spec-Driven Development restores that accountability — not as an additional process layer, but as the architecture that makes AI development auditable by construction.
 
 ---
 
 ## A Problem We Have Seen Before
 
-Two decades ago, spreadsheets became the productivity tool that every business adopted enthusiastically. They were fast, flexible, required no IT involvement, and delivered immediate value. Every department built on them.
+Two decades ago, every business adopted spreadsheets enthusiastically. Fast, flexible, no IT involvement required. Every department built on them.
 
-What followed was twenty years of governance reckoning. Business-critical calculations lived in files on personal drives. Pricing logic sat in models that only one person understood. Risk computations were embedded in spreadsheets that no system of record contained. When auditors asked how a number was arrived at, the answer was often a file called FINAL_v3_REVISED.xlsx, last modified by someone who had since left.
+Business-critical calculations ended up on personal drives. Pricing logic lived in models only one person understood. Risk computations sat in spreadsheets outside any system of record. When auditors asked how a number was arrived at, the answer was a file called FINAL_v3_REVISED.xlsx, last modified by someone who had since left.
 
-Organisations spent enormous effort — governance frameworks, data warehouses, validation processes, change management — trying to regain visibility over what their own systems were computing.
+Organisations spent twenty years trying to regain visibility over what their own systems were computing.
 
 AI-generated code is that problem, running at an exponential scale.
 
@@ -32,11 +32,11 @@ Spec-Driven Development is the governance framework built for this moment. It do
 
 ## The Accountability Gap
 
-Consider how a critical business system is built today under AI-assisted development. A developer describes what they need, the AI produces code, the developer reviews it, and the cycle continues until the output looks right. This is faster than writing the code manually. It produces the same accountability problem that has always existed in software development, now at higher velocity.
+Under AI-assisted development today, a developer describes what they need, the AI produces code, the developer reviews it, and the cycle continues until the output looks right. Faster than writing it manually. The same accountability problem as always, now at higher velocity.
 
-The accountability problem is this: the chain from business requirement to live behaviour is a series of informal handoffs. The requirement is stated. Something is built. The developer believes it matches. There is no structural mechanism that verifies the chain is intact — or that detects when it breaks.
+The chain from business requirement to live behaviour is a series of informal handoffs. The requirement is stated. Something is built. The developer believes it matches. There is no mechanism that verifies the chain is intact — or detects when it breaks.
 
-For any organisation that relies on software to run its operations, that gap is not a quality issue. It is a risk issue. An undiscovered deviation between specified behaviour and actual behaviour in a critical system is not a bug to be fixed in the next sprint. It is a control failure. It requires investigation, remediation, and an audit trail demonstrating what went wrong and how it was corrected. The cost is measured in operational disruption and governance failures, not user complaints.
+For any organisation running critical software, that gap is a risk issue, not a quality issue. A deviation between specified behaviour and actual behaviour is not a bug to fix next sprint. It is a control failure — requiring investigation, remediation, and an audit trail. The cost is measured in operational disruption, not user complaints.
 
 Spec-Driven Development applies the logic of formal governance to the software delivery process itself.
 
@@ -48,9 +48,9 @@ The methodology establishes formal governance at every stage of delivery: busine
 
 At each stage, the work produces a deliverable. Before that deliverable is accepted and the next stage begins, a defined set of checks must pass. Some are automated — does the code satisfy the test suite, does the coverage report confirm every requirement has been addressed. Some use AI to evaluate quality — does the architecture honour the constraints that were specified, does the implementation match the design intent. Some require human approval — is the feature decomposition complete, has the architecture been reviewed and accepted.
 
-These are not process steps that teams are asked to follow. They are gates. The system will not advance without them. There is no path around them. The result is a delivery record that reflects what actually happened, not what the team intended to happen.
+These are not steps teams are asked to follow — they are gates. The system will not advance without them. The result is a delivery record of what actually happened, not what the team intended.
 
-This is the same principle that governs any serious quality or compliance framework: independent verification, documented methodology, ongoing monitoring, and a record that can withstand examination. Applied to software delivery.
+Independent verification, documented methodology, ongoing monitoring, a record that can withstand examination. The same principle that governs any serious compliance framework, applied to software delivery.
 
 ---
 
@@ -62,35 +62,33 @@ When the team decomposes requirements into features, an automated check confirms
 
 The same tags appear in the architecture, the code, the test cases, and the production monitoring configuration. At any point — including during an audit or governance examination — you can answer: which test validates this requirement? Which production control is watching it? Which code implements it? Which change introduced it, and when?
 
-This is what complete traceability looks like: not a document that describes the system, but a live record embedded in the delivery process. The document describes what was intended. The record proves what was done.
+Complete traceability is not a document describing the system. It is a live record embedded in the delivery process. The document describes what was intended. The record proves what was done.
 
 ---
 
 ## Production: Continuous Verification, Not Post-Hoc Detection
 
-For any organisation running critical software, the most dangerous failure mode is not a system that crashes. It is a system that drifts — behaving slightly differently from its specification in ways that are not immediately visible, accumulating deviation until something material surfaces.
+The dangerous failure is not a system that crashes. It is a system that drifts — behaving slightly differently from its specification, accumulating deviation until something material surfaces.
 
 Spec-Driven Development closes the loop at production. The live system is monitored using the same requirement tags that governed its construction. When behaviour deviates from the specification — error rates rise, latency profiles shift, outputs fall outside expected ranges — the system identifies which requirement is in drift and initiates a formal response.
 
-That response follows the same governed delivery process that built the system originally. It is specified, reviewed against dependent requirements, built, tested, and deployed with a full audit trail. There are no emergency patches outside the process. The process is the same process, triggered by a production signal instead of a business request.
+That response runs through the same delivery process that built the system — specified, reviewed, built, tested, deployed, with a full audit trail. No emergency patches outside the process. The same process, triggered by a production signal instead of a business request.
 
-This matters for operational resilience. The system does not wait for a user complaint or a risk report to detect that something has changed. It detects it, characterises it against the specification, and starts the correction. The audit trail from production anomaly to remediated deployment is complete and continuous.
+The system does not wait for a user complaint to detect drift. It detects it, identifies which requirement is affected, and initiates the correction. The audit trail from anomaly to remediated deployment is complete and continuous.
 
 ---
 
 ## Risk Management for AI Development Itself
 
-Consider how organisations treat a new hire — even a brilliant graduate from a top institution. Capable. Intelligent. Full of energy. You would not hand them the keys to the business and say "go for it." You would give them context, constraints, and defined expectations. You would review their work. You would not promote them to senior leadership until they had demonstrated judgment in your specific environment — because raw intelligence is not the same as knowing your business.
+Think about how you treat a new hire — even a brilliant graduate from a top institution. You would not hand them the keys to the business and say "go for it." You would give them context, constraints, defined expectations. You would review their work. Raw intelligence is not the same as knowing your business.
 
-An LLM is a brilliant graduate who has read everything ever written, knows every programming language, and has zero knowledge of your organisation. It will answer every question with confidence. It will never say "I don't know your constraints." It will produce something that looks exactly right, even when it isn't — because it has no way to know the difference.
+An LLM has read everything ever written and knows every programming language. It has zero knowledge of your organisation. It answers every question with confidence. It will never say "I don't know your constraints." It produces something that looks exactly right, even when it isn't — because it has no way to know the difference.
 
-Prompt-driven development is handing that graduate the keys and asking them to go for it. There is a specific risk here that conventional frameworks have not yet fully addressed: the AI has no knowledge of your requirements. It is capable, fast, and entirely unaware of what your business actually needs.
+Prompt-driven development is handing that graduate the keys. What gets built depends on the developer's skill at articulating requirements to the model. That is a key-person dependency dressed up as productivity tooling — not repeatable, not auditable, not scalable.
 
-In prompt-driven development, the developer's skill at articulating requirements to the model determines what gets built. That is not a repeatable, auditable, or scalable governance mechanism. It is a key-person dependency dressed up as productivity tooling.
+Spec-Driven Development separates the specification — what the system must do — from the construction — how it is built. The specification is formal, versioned, and independent of any particular AI model or developer. The AI works against it and is evaluated by whether its output satisfies it. When the model misunderstands something, the model iterates. The specification does not change.
 
-Spec-Driven Development separates the specification — what the system must do — from the construction — how it is built. The specification is the asset. It is formal, versioned, requirement-tagged, and independent of any particular AI model or developer. The AI models do the construction work against that specification and are evaluated by whether their output satisfies it. The specification does not change because the model misunderstood something. The model iterates until it satisfies the specification.
-
-This is the correct inversion of control. The business requirement governs the AI. Not the other way around.
+The business requirement governs the AI, not the other way around.
 
 ---
 
@@ -110,7 +108,7 @@ What it is: **total visibility and control over what AI is building, why it is b
 
 Spec-Driven Development changes where the competitive advantage in technology sits.
 
-AI removes the scarcity in code construction. Building software is no longer the bottleneck. The bottleneck — and therefore the source of advantage — shifts to the quality of specification: the precision with which the business translates its requirements into something that can govern AI construction.
+AI removes the scarcity in code construction. Building software is no longer the bottleneck. The bottleneck shifts to the quality of specification — the precision with which the business translates its requirements into something that can govern AI construction.
 
 Teams with rigorous specification practice will build faster, with fewer findings, with cleaner audit trails, and with production systems that stay aligned to their specifications. They will deliver more features per delivery cycle, respond to change with lower operational risk, and withstand audit examination without reconstruction effort.
 
@@ -120,7 +118,7 @@ Teams without that practice will build faster than before, accumulate unverifiab
 
 ## Genuine Agility
 
-The most profound consequence of this model is not audit capability or governance compliance. It is agility in the original sense of the word — the actual ability to respond to change.
+The biggest change this model enables is genuine agility — the actual ability to respond to change.
 
 In conventional development, changing a system is expensive. Requirements must be re-gathered, designs revised, code rewritten, tests updated, deployments re-run. The cost of change increases as a system matures. Organisations learn to resist it.
 
@@ -128,9 +126,9 @@ When the specification is the source of truth and AI does the construction work,
 
 A new market opportunity does not require assembling a team and planning a programme. It requires specifying what the new capability must do. The construction follows from the specification, at a speed that was previously impossible.
 
-A single person with a clear specification and governed AI construction has the productive leverage that previously required a team. Not because the work is trivial — because the work is correctly divided: human judgment defines what the system must do, AI constructs it, and the methodology guarantees the result can be accounted for.
+A single person with a clear specification and governed AI construction has the productive leverage that previously required a team — because the work is correctly divided. Human judgment defines what the system must do. AI constructs it. The methodology guarantees it can be accounted for.
 
-This is what genuine agility looks like: not faster sprints, but a fundamentally different relationship with change. The specification is the system. Change the specification, and the system follows.
+The specification is the system. Change the specification, and the system follows.
 
 The specification is not a technical document. It is not written by engineers and handed to developers. It is the organisation's knowledge of itself — what it does, what rules it operates under, what it must never get wrong. The WHAT. Expressed precisely enough that a machine can build against it.
 
@@ -152,7 +150,7 @@ The process is the proof. A methodology that cannot govern its own construction 
 
 ## Theoretical Foundations
 
-The methodology described in this document is not a set of best practices assembled from experience. It is an application of a published formal theory to the problem of software delivery governance. The following papers establish the theoretical basis.
+This methodology is grounded in published formal theory, not assembled best practices. The following papers establish the theoretical basis.
 
 ---
 
@@ -292,7 +290,7 @@ This document governs what it means for the feature planning stage to be complet
 >
 > *Coverage alone is not sufficient. A feature list can cover every requirement and still be the wrong plan — wrong granularity, wrong sequencing, wrong MVP boundary. The automated check gates the human review. The human review gates advancement.*
 
-What is notable here is not just the rule — it is that this rule applies uniformly to every implementation, every team, every delivery. There is no version of this methodology where a project skips the coverage check because the team felt confident. The gate is not a guideline.
+This rule applies uniformly — every implementation, every team, every delivery. There is no version of this methodology where a project skips the coverage check because the team felt confident. The gate is not a guideline.
 
 ---
 
@@ -311,7 +309,7 @@ This document governs how work is recorded at runtime. Every unit of work — ev
 >
 > *An artifact written to the system without a corresponding COMPLETE record is uncommitted work. On restart, the system detects the open transaction, compares the current state of every affected file against the fingerprints recorded at the start, and flags any file that was modified but never committed. This is how the system detects crashes, partial writes, and incomplete AI outputs.*
 
-The fingerprint referred to here is a SHA-256 hash — a standard cryptographic technique that produces a unique, verifiable signature for any file. If the file changes by a single character, the hash changes. This is not novel technology. What is novel is applying it systematically to every artifact at every stage of software delivery, so that the audit trail is mathematically verifiable rather than document-based.
+The fingerprint is a SHA-256 hash — a standard technique that produces a unique signature for any file. Change a single character and the hash changes. The technique is standard. Applying it to every artifact at every stage of delivery is what makes the audit trail mathematically verifiable rather than document-based.
 
 ---
 
