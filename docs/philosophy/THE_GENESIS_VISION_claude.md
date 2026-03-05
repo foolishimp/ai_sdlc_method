@@ -80,9 +80,9 @@ The system does not wait for a user complaint to detect drift. It detects it, id
 
 ## Risk Management for AI Development Itself
 
-Think about how you treat a new hire — even a brilliant graduate from a top institution. You would not hand them the keys to the business and say "go for it." You would give them context, constraints, defined expectations. You would review their work. Raw intelligence is not the same as knowing your business.
+Imagine a brilliant graduate from a top institution. You would not hand them the keys to the business and say "go for it." You would give them context, constraints, defined expectations. You would review their work. Raw intelligence is not the same as knowing your business.
 
-An LLM has read everything ever written and knows every programming language. It has zero knowledge of your organisation. It answers every question with confidence. It will never say "I don't know your constraints." It produces something that looks exactly right, even when it isn't — because it has no way to know the difference.
+An LLM has read everything ever written and knows every programming language. It has zero knowledge of your organisation. It will answer every question with confidence and never say "I don't know your constraints." It produces something that looks exactly right, even when it isn't — because it has no way to know the difference.
 
 Prompt-driven development is handing that graduate the keys. What gets built depends on the developer's skill at articulating requirements to the model. That is a key-person dependency dressed up as productivity tooling — not repeatable, not auditable, not scalable.
 
