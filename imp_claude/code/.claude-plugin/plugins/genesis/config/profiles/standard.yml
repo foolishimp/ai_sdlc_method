@@ -7,15 +7,24 @@
 ---
 
 profile: standard
-description: "Normal feature development — team with CI/CD"
-version: "1.0.0"
+description: "Normal feature development — full decomposition chain, team with CI/CD"
+version: "1.1.0"
 
-# Graph: core development edges
+# Graph: full decomposition chain
+# Each intermediate node manages constructor complexity and makes pruning visible.
+# Zoom note: poc/spike profiles collapse this — they skip decomposition entirely
+# (requirements→design directly). There is no "requirements→design" shortcut
+# in standard — if complexity warrants a standard profile, it warrants explicit
+# decomposition. That is the point.
 graph:
   include:
     - "intent→requirements"
-    - "requirements→design"
-    - "design→code"
+    - "requirements→feature_decomposition"
+    - "feature_decomposition→design_recommendations"
+    - "design_recommendations→design"
+    - "design→module_decomposition"
+    - "module_decomposition→basis_projections"
+    - "basis_projections→code"
     - "code↔unit_tests"
   optional:
     - "design→test_cases"
@@ -28,7 +37,13 @@ evaluators:
   overrides:
     "intent→requirements":
       evaluators: [agent, human]
-    "requirements→design":
+    "requirements→feature_decomposition":
+      evaluators: [agent, human]
+    "feature_decomposition→design_recommendations":
+      evaluators: [agent, human]
+    "design_recommendations→design":
+      evaluators: [agent, human]
+    "design→module_decomposition":
       evaluators: [agent, human]
     "design→uat_tests":
       evaluators: [agent, human]
