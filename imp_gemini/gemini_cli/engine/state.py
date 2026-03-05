@@ -2,37 +2,79 @@
 import json
 import uuid
 import re
+import hashlib
+import fcntl
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 
 class EventStore:
+    """Canonical write-ahead ledger for the SDLC.
+    Implements Unit of Work transactions with content-addressable artifact tracking.
+    """
+    
     def __init__(self, workspace_root: Path):
         self.workspace_root = workspace_root
         self.log_path = workspace_root / "events" / "events.jsonl"
         # Job namespace from project_constraints.yml
         self.namespace = "aisdlc://ai_sdlc_method"
 
-    def emit(self, event_type: str, project: str, feature: str = "", edge: str = "", delta: int = None, data: Dict = None):
-        """Emits a v2 OpenLineage RunEvent."""
-        import fcntl
+    def _hash_file(self, path: Path) -> Optional[str]:
+        """Compute SHA-256 hash of a file for content-addressable versioning."""
+        if not path.exists() or not path.is_file():
+            return None
+        sha256 = hashlib.sha256()
+        with open(path, "rb") as f:
+            while chunk := f.read(8192):
+                sha256.update(chunk)
+        return sha256.hexdigest()
+
+    def _get_artifact_facets(self, path: Path) -> Dict[str, Any]:
+        """Generate OpenLineage dataset facets for an artifact."""
+        h = self._hash_file(path)
+        if not h:
+            return {}
+        return {
+            "sdlc:contentHash": {
+                "algorithm": "sha256",
+                "hash": h
+            }
+        }
+
+    def emit(
+        self, 
+        event_type: str, 
+        project: str, 
+        feature: str = "", 
+        edge: str = "", 
+        delta: int = None, 
+        data: Dict = None,
+        eventType: str = "OTHER", # OpenLineage eventType (START, COMPLETE, FAIL)
+        inputs: List[Path] = None,
+        outputs: List[Path] = None,
+        parent_run_id: str = None
+    ) -> Dict[str, Any]:
+        """Emits a v2 OpenLineage RunEvent with Unit of Work metadata."""
         ts = datetime.now(timezone.utc).isoformat()
         run_id = str(uuid.uuid4())
         
-        ol_type = "OTHER"
-        if event_type == "edge_started":
-            ol_type = "START"
-        elif event_type == "edge_converged" or (event_type == "iteration_completed" and delta == 0):
-            ol_type = "COMPLETE"
-        elif "failed" in event_type or "error" in event_type:
-            ol_type = "FAIL"
+        # Determine OL event type if not explicitly provided
+        ol_type = eventType
+        if ol_type == "OTHER":
+            if event_type == "edge_started":
+                ol_type = "START"
+            elif event_type == "edge_converged" or (event_type == "iteration_completed" and delta == 0):
+                ol_type = "COMPLETE"
+            elif "failed" in event_type or "error" in event_type:
+                ol_type = "FAIL"
 
         job_name = f"{feature}:{edge}" if feature and edge else event_type
         
         # Mixed-Mode Traceability (ADR-S-014)
         regime = data.get("regime", "probabilistic") if data else "probabilistic"
-        parent_run_id = data.get("parent_run_id") if data else None
+        parent_run_id = parent_run_id or (data.get("parent_run_id") if data else None)
         
+        # Map Mandate to Intent (Mandate == Intent)
         facets = {
             "sdlc_req_keys": {
                 "_schemaURL": "https://aisdlc.org/schema/v2.8/facets/sdlc_req_keys.json",
@@ -44,6 +86,12 @@ class EventStore:
                 "_schemaURL": "https://aisdlc.org/schema/v2.8/facets/sdlc_event_type.json",
                 "type": event_type,
                 "regime": regime
+            },
+            "sdlc_intent": {
+                "_schemaURL": "https://aisdlc.org/schema/v2.8/facets/sdlc_intent.json",
+                "mandate": data.get("checklist", []),
+                "constraints": data.get("constraints", {}),
+                "description": data.get("description", f"Process delta for {feature}:{edge}")
             }
         }
         
@@ -70,7 +118,7 @@ class EventStore:
             "event_type": event_type, # Backward compatibility
             "timestamp": ts,           # Backward compatibility
             "project": project,         # Backward compatibility
-            "data": data or {},         # Backward compatibility (explicit data key)
+            "data": data or {},         # Backward compatibility
             "eventType": ol_type,
             "eventTime": ts,
             "run": {"runId": run_id, "facets": facets},
@@ -82,6 +130,23 @@ class EventStore:
             "_metadata": {"project": project, "original_data": data or {}}
         }
         
+        # Add artifacts with hashes
+        if inputs:
+            for p in inputs:
+                event["inputs"].append({
+                    "namespace": f"file://{project}",
+                    "name": str(p.relative_to(self.workspace_root.parent) if self.workspace_root.parent in p.parents else p),
+                    "facets": self._get_artifact_facets(p)
+                })
+        
+        if outputs:
+            for p in outputs:
+                event["outputs"].append({
+                    "namespace": f"file://{project}",
+                    "name": str(p.relative_to(self.workspace_root.parent) if self.workspace_root.parent in p.parents else p),
+                    "facets": self._get_artifact_facets(p)
+                })
+
         # Merge original data for backward compatibility (flattened)
         if data:
             for k, v in data.items():

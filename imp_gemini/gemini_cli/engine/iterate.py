@@ -1,47 +1,142 @@
 # Implements: REQ-EDGE-001, REQ-EDGE-002, REQ-EDGE-003, REQ-EDGE-004, REQ-F-EDGE-001, REQ-EVAL-001, REQ-EVAL-002, REQ-F-EVAL-001, REQ-EVENT-002, REQ-EVENT-003, REQ-GRAPH-001, REQ-GRAPH-003
-# Implements: REQ-EVENT-001, REQ-EVENT-004, REQ-F-EVENT-001, REQ-FEAT-001, REQ-FEAT-002, REQ-FEAT-003
-import yaml
-import re
-import uuid
-from typing import Dict, Any, List, Protocol, Optional
+# Implements: REQ-EVENT-001, REQ-EVENT-004, REQ-ITER-001, REQ-ITER-002
+import json
+import time
 from pathlib import Path
+from typing import List, Dict, Any, Optional
+import shutil
 from datetime import datetime, timezone
-from .models import (
-    IterationReport, 
-    FunctorResult, 
-    Outcome, 
-    GuardrailResult, 
-    EngineConfig, 
-    IterationRecord, 
-    ConstructResult
-)
-from .state import EventStore
-from .config_loader import ConfigLoader
-from .topology import GraphTopology
 
-class Functor(Protocol):
-    def evaluate(self, candidate: str, context: Dict) -> FunctorResult: ...
+from .models import IterationRecord, IterationReport, FunctorResult, Outcome, ConstructResult
+from .state import EventStore
 
 class IterateEngine:
-    def __init__(self, functor_map: Dict[str, Functor] = None, constraints: Dict[str, Any] = None, project_root: Path = None):
-        self.functor_map = functor_map or {}
-        self.project_root = project_root or Path.cwd()
-        # Find workspace root (parent of .ai-workspace)
-        if (self.project_root / ".ai-workspace").exists():
-            self.workspace_root = self.project_root / ".ai-workspace"
-        elif self.project_root.name == ".ai-workspace":
-            self.workspace_root = self.project_root
-            self.project_root = self.workspace_root.parent
-        else:
-            self.workspace_root = self.project_root / ".ai-workspace"
+    """Universal iteration engine for all graph edges.
+    Implements the Markov Blanket pattern via project fingerprinting and run archival.
+    """
+    
+    def __init__(self, functor_map: Dict[str, Any], project_root: Path, constraints: Dict[str, Any] = None):
+        self.functor_map = functor_map
+        self.project_root = project_root
+        self.workspace_root = project_root / ".ai-workspace"
         
+        # Load constraints if not provided
         if constraints is None:
-            loader = ConfigLoader(self.workspace_root)
-            self.constraints = loader.constraints
+            constraints_path = self.workspace_root / "context" / "project_constraints.yml"
+            if constraints_path.exists():
+                import yaml
+                self.constraints = yaml.safe_load(constraints_path.read_text())
+            else:
+                self.constraints = {}
         else:
             self.constraints = constraints
             
         self.store = EventStore(self.workspace_root)
+
+    def _get_project_fingerprint(self) -> tuple[float, int]:
+        """Return (latest_mtime, total_file_count) for key project locations.
+        Implementation of the Markov Blanket boundary check.
+        """
+        latest = 0.0
+        count = 0
+        sentinel_dirs = [
+            self.project_root / "code",
+            self.project_root / "tests",
+            self.project_root / "specification",
+            self.project_root / ".ai-workspace" / "events",
+            self.project_root / ".ai-workspace" / "features",
+        ]
+        for d in sentinel_dirs:
+            if not d.exists():
+                continue
+            try:
+                mt = d.stat().st_mtime
+                if mt > latest:
+                    latest = mt
+                for child in d.iterdir():
+                    count += 1
+                    try:
+                        mt = child.stat().st_mtime
+                        if mt > latest:
+                            latest = mt
+                    except OSError:
+                        continue
+            except OSError:
+                continue
+        return latest, count
+
+    def _archive_iteration(self, feature_id: str, edge: str, iteration: int, failed: bool = False):
+        """Archive the project state for this iteration to ensure audit reproducibility."""
+        ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        status = "FAILED" if failed else "OK"
+        archive_name = f"run_{feature_id}_{edge.replace('→', '_').replace('↔', '_')}_iter{iteration}_{status}_{ts}"
+        archive_dir = self.project_root / "runs" / archive_name
+        archive_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Copy key directories (Markov Blanket)
+        for d in ["code", "tests", "specification", ".ai-workspace"]:
+            src = self.project_root / d
+            if src.exists():
+                # Avoid recursive copy
+                shutil.copytree(src, archive_dir / d, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".git", "runs"), dirs_exist_ok=True)
+        
+        # Update latest symlink
+        latest = self.project_root / "runs" / "latest"
+        latest.parent.mkdir(parents=True, exist_ok=True)
+        if latest.exists() or latest.is_symlink():
+            latest.unlink()
+        try:
+            latest.symlink_to(archive_dir.name)
+        except Exception:
+            pass
+            
+        return archive_dir
+
+    def detect_integrity_gaps(self) -> List[Dict[str, Any]]:
+        """Find discrepancies between the Event Ledger (committed) and Filesystem (actual)."""
+        events = self.store.load_all()
+        last_committed_hashes = {}
+        
+        # Replay ledger to find the last committed hash for each artifact
+        for ev in events:
+            if ev.get("eventType") == "COMPLETE":
+                for output in ev.get("outputs", []):
+                    name = output.get("name")
+                    facets = output.get("facets", {})
+                    h = facets.get("sdlc:contentHash", {}).get("hash")
+                    if name and h:
+                        last_committed_hashes[name] = h
+        
+        gaps = []
+        for rel_path, committed_hash in last_committed_hashes.items():
+            full_path = self.project_root / rel_path
+            if not full_path.exists():
+                gaps.append({"path": rel_path, "type": "MISSING_ARTIFACT", "expected": committed_hash})
+                continue
+                
+            actual_hash = self.store._hash_file(full_path)
+            if actual_hash != committed_hash:
+                gaps.append({
+                    "path": rel_path, 
+                    "type": "UNCOMMITTED_CHANGE", 
+                    "expected": committed_hash, 
+                    "actual": actual_hash
+                })
+        
+        # Check for open transactions (START without COMPLETE/FAIL)
+        starts = {ev["run"]["runId"]: ev for ev in events if ev.get("eventType") == "START"}
+        for ev in events:
+            if ev.get("eventType") in ("COMPLETE", "FAIL"):
+                parent_id = ev.get("run", {}).get("facets", {}).get("parent_run_id", {}).get("runId")
+                if parent_id:
+                    starts.pop(parent_id, None)
+                # Also pop direct runId
+                starts.pop(ev["run"]["runId"], None)
+        
+        for run_id, ev in starts.items():
+            gaps.append({"type": "OPEN_TRANSACTION", "run_id": run_id, "event": ev.get("event_type")})
+            
+        return gaps
 
     def iterate_edge(
         self,
@@ -54,8 +149,20 @@ class IterateEngine:
         checklist: List[Dict[str, Any]] = None,
         construct: bool = False
     ) -> IterationRecord:
-        """Run one iteration on a single edge."""
+        """Run one iteration on a single edge as a Unit of Work transaction."""
         
+        # 0. Transaction BEGIN
+        start_event = self.store.emit(
+            event_type="iteration_started",
+            project=context.get("project", "imp_gemini"),
+            feature=feature_id,
+            edge=edge,
+            data={**context, "iteration": iteration, "mode": mode, "regime": "probabilistic" if mode == "prefect" else "deterministic"},
+            eventType="START",
+            inputs=[asset_path] if asset_path.exists() else []
+        )
+        transaction_id = start_event["run"]["runId"]
+
         # 1. Run Guardrails (Pre-flight)
         from .guardrails import GuardrailEngine
         guardrails = GuardrailEngine(self.constraints)
@@ -68,6 +175,17 @@ class IterateEngine:
                 converged=False,
                 functor_results=[],
                 guardrail_results=gr_results
+            )
+            self._archive_iteration(feature_id, edge, iteration, failed=True)
+            self.store.emit(
+                event_type="iteration_failed",
+                project=context.get("project", "imp_gemini"),
+                feature=feature_id,
+                edge=edge,
+                delta=-1,
+                data={"reason": "pre-flight guardrail failure", "results": [r.passed for r in gr_results]},
+                eventType="FAIL",
+                parent_run_id=transaction_id
             )
             return IterationRecord(edge=edge, iteration=iteration, report=report)
 
@@ -84,25 +202,69 @@ class IterateEngine:
         results = []
         checks = checklist if checklist else [{"evaluator": f.__class__.__name__.replace("Functor", "").lower()} for f in self.functor_map.values()]
         
-        for check in checks:
-            eval_type = check.get("evaluator", "agent")
-            if eval_type == "deterministic_shell": eval_type = "deterministic"
-            if eval_type == "sub_agent_eval": eval_type = "agent"
+        if mode == "prefect":
+            # Run the entire edge iteration as a Prefect Flow (Markov Autonomous Vector)
+            from .prefect import run_sdlc_workflow
             
-            f = self.functor_map.get(eval_type)
-            if not f:
-                continue
+            # Identify the primary probabilistic agent for this edge
+            agent_functor = next((f for f in self.functor_map.values() if f.__class__.__name__ == "ProbabilisticFunctor"), None)
+            if not agent_functor:
+                # Fallback to 'agent' key or first functor
+                agent_functor = self.functor_map.get("agent") or list(self.functor_map.values())[0]
+
+            workflow_res = run_sdlc_workflow(
+                edge=edge,
+                feature_id=feature_id,
+                asset_path=asset_path,
+                context={**context, "checklist": checks, "parent_run_id": transaction_id},
+                agent_class=agent_functor.__class__,
+                config=self.constraints
+            )
+            # Map back from workflow result
+            if workflow_res.get("status") == "success":
+                from .models import FunctorResult, Outcome
+                res_data = workflow_res.get("result_data", {})
+                res = FunctorResult(
+                    name=f"prefect_{edge}_agent",
+                    outcome=Outcome.PASS if res_data.get("delta") == 0 else Outcome.FAIL,
+                    delta=res_data.get("delta", 0),
+                    reasoning=res_data.get("message", "Autonomous vector traversal complete."),
+                    next_candidate=None
+                )
+                results.append(res)
+            else:
+                report = IterationReport(asset_path=str(asset_path), delta=-1, converged=False, functor_results=[])
+                self._archive_iteration(feature_id, edge, iteration, failed=True)
+                self.store.emit(
+                    event_type="iteration_failed",
+                    project=context.get("project", "imp_gemini"),
+                    feature=feature_id,
+                    edge=edge,
+                    delta=-1,
+                    data={"reason": "prefect workflow failed", "error": workflow_res.get("error")},
+                    eventType="FAIL",
+                    parent_run_id=transaction_id
+                )
+                return IterationRecord(edge=edge, iteration=iteration, report=report)
+        else:
+            for check in checks:
+                eval_type = check.get("evaluator", "agent")
+                if eval_type == "deterministic_shell": eval_type = "deterministic"
+                if eval_type == "sub_agent_eval": eval_type = "agent"
                 
-            # Skip human functors in headless mode
-            if mode == "headless" and f.__class__.__name__ == "HumanFunctor":
-                continue
+                f = self.functor_map.get(eval_type)
+                if not f:
+                    continue
+                    
+                if mode == "headless" and f.__class__.__name__ == "HumanFunctor":
+                    continue
+                    
+                check_context = {**context, **check, "constraints": self.constraints, "iteration_count": iteration, "mode": mode, "parent_run_id": transaction_id}
+                res = f.evaluate(candidate, check_context)
+                results.append(res)
                 
-            check_context = {**context, **check, "constraints": self.constraints, "iteration_count": iteration, "mode": mode}
-            res = f.evaluate(candidate, check_context)
-            results.append(res)
-            
-            if res.next_candidate is not None:
-                candidate = res.next_candidate
+                if res.next_candidate is not None:
+                    candidate = res.next_candidate
         
         # Write back if changed
         if candidate and asset_path.exists() and asset_path.read_text() != candidate:
@@ -128,6 +290,24 @@ class IterateEngine:
             construct_result=construct_result
         )
         
+        # 5. Transaction COMMIT
+        self._archive_iteration(feature_id, edge, iteration, failed=not report.converged)
+        self.store.emit(
+            event_type="iteration_completed",
+            project=context.get("project", "imp_gemini"),
+            feature=feature_id,
+            edge=edge,
+            delta=report.delta,
+            data={
+                "converged": report.converged, 
+                "functor_results": [r.outcome.value for r in results],
+                "guardrail_results": [r.passed for r in post_gr_results]
+            },
+            eventType="COMPLETE",
+            outputs=[asset_path] if asset_path.exists() else [],
+            parent_run_id=transaction_id
+        )
+        
         return IterationRecord(
             edge=edge, 
             iteration=iteration, 
@@ -144,253 +324,48 @@ class IterateEngine:
         mode: str = "auto",
         checklist: List[Dict[str, Any]] = None,
         construct: bool = False,
-        max_iterations: int = 10
+        max_iterations: int = 10,
+        stall_timeout: int = 300
     ) -> List[IterationRecord]:
-        """Iterate on a single edge until convergence or budget exhaustion."""
+        """Iterate on a single edge until convergence or budget exhaustion.
+        Implements semantic stall detection via project fingerprinting.
+        """
         base_iteration = context.get("iteration_count", 0)
         records = []
+        
+        last_mtime, last_count = self._get_project_fingerprint()
+        last_activity = time.time()
+        
         for i in range(1, max_iterations + 1):
-            current_iteration = base_iteration + i
+            iter_num = base_iteration + i
             
-            # Emit IterationStarted
-            self.emit_event("iteration_started", feature=feature_id, edge=edge, data={"iteration": current_iteration, "mode": mode})
-
+            # Run one iteration
             record = self.iterate_edge(
                 edge=edge,
                 feature_id=feature_id,
                 asset_path=asset_path,
                 context=context,
-                iteration=current_iteration,
+                iteration=iter_num,
                 mode=mode,
                 checklist=checklist,
                 construct=construct
             )
             records.append(record)
             
-            # Emit event
-            if record.report.spawn:
-                # If recursion is requested, we treat it as an 'iteration_completed' with 'blocked' status
-                status = "blocked"
-                event = self.emit_event(
-                    "iteration_completed", 
-                    feature=feature_id, 
-                    edge=edge, 
-                    data={"status": status, "delta": record.report.delta, "iteration": current_iteration, "mode": mode}
-                )
-            elif any(not g.passed for g in record.report.guardrail_results):
-                status = "failed"
-                event = self.emit_event(
-                    "iteration_failed", 
-                    feature=feature_id, 
-                    edge=edge, 
-                    data={"reason": "Guardrail validation failed", "iteration": current_iteration, "mode": mode}
-                )
-            else:
-                status = "converged" if record.report.converged else "iterating"
-                event = self.emit_event(
-                    "iteration_completed", 
-                    feature=feature_id, 
-                    edge=edge, 
-                    data={"status": status, "delta": record.report.delta, "iteration": current_iteration, "mode": mode}
-                )
-            
-            run_id = event.get("run", {}).get("runId", "unknown")
-            
-            # Update feature vector
-            self.update_feature_vector(feature_id, edge, current_iteration, status, record.report.delta, str(asset_path), mode=mode, run_id=run_id)
-
-            if record.report.spawn:
-                # Saga Invariant: Trigger Compensation
-                self.emit_event(
-                    "compensation_triggered",
-                    feature=feature_id,
-                    edge=edge,
-                    data={"reason": "RECURSION requested by evaluator", "spawn": record.report.spawn.__dict__}
-                )
-                break
-
             if record.report.converged:
-                self.emit_event("edge_converged", feature=feature_id, edge=edge, data={"mode": mode, "delta": record.report.delta})
+                break
+                
+            if record.report.spawn:
+                break
+                
+            # Semantic Stall Detection
+            cur_mtime, cur_count = self._get_project_fingerprint()
+            if cur_mtime > last_mtime or cur_count != last_count:
+                last_mtime = cur_mtime
+                last_count = cur_count
+                last_activity = time.time()
+            elif time.time() - last_activity > stall_timeout:
+                # Delta unchanged AND no project file changes = STALL
                 break
                 
         return records
-
-    def run(
-        self,
-        feature_id: str,
-        feature_type: str,
-        asset_path: Path,
-        context: Dict[str, Any] = None,
-        mode: str = "auto",
-        construct: bool = False,
-        config: EngineConfig = None
-    ) -> List[IterationRecord]:
-        """Full graph traversal loop."""
-        if context is None:
-            context = {}
-            
-        # Load profile
-        loader = ConfigLoader(self.workspace_root)
-        profile_name = "standard" # Default
-        # In a real implementation, we would select profile based on feature_type
-        
-        profile_path = self.workspace_root.parent / "gemini_cli" / "config" / "profiles" / f"{profile_name}.yml"
-        if profile_path.exists():
-            with open(profile_path, "r") as f:
-                profile = yaml.safe_load(f)
-        else:
-            profile = {"graph": {"include": ["intent\u2192requirements", "requirements\u2192design", "design\u2192code", "code\u2194unit_tests"]}}
-
-        topology = GraphTopology(self.workspace_root)
-        all_records = []
-        accumulated_context = context.copy()
-        
-        # Traverse edges defined in profile
-        for edge in profile.get("graph", {}).get("include", []):
-            print(f"\n>>> RUNNING EDGE: {edge}")
-            
-            # Resolve checklist for this edge
-            edge_config_path = topology.get_edge_config_path(edge)
-            edge_config = {}
-            if edge_config_path and edge_config_path.exists():
-                with open(edge_config_path, "r") as f:
-                    edge_config = yaml.safe_load(f) or {}
-            
-            resolved_checklist = loader.resolve_checklist(edge_config)
-            
-            records = self.run_edge(
-                edge=edge,
-                feature_id=feature_id,
-                asset_path=asset_path, # In a real implementation, asset_path might change per edge
-                context=accumulated_context,
-                mode=mode,
-                checklist=resolved_checklist,
-                construct=construct,
-                max_iterations=config.max_iterations_per_edge if config else 10
-            )
-            all_records.extend(records)
-            
-            if not records or not records[-1].report.converged:
-                print(f"Edge {edge} failed to converge. Stopping traversal.")
-                break
-                
-            # Context Accumulation (REQ-F-FPC-003)
-            if asset_path.exists():
-                accumulated_context[f"{edge}_artifact"] = asset_path.read_text()
-
-        return all_records
-
-    # Legacy run for backward compatibility
-    def old_run(self, asset_path: Path, context: Dict, mode: str = "interactive", checklist: List[Dict[str, Any]] = None) -> IterationReport:
-        edge = context.get("edge", "")
-        feature_id = context.get("feature_id", "unknown")
-        iteration = context.get("iteration_count", 0) + 1
-        record = self.iterate_edge(edge, feature_id, asset_path, context, iteration, mode, checklist)
-        return record.report
-
-    def emit_event(self, event_type: str, feature: str, edge: str, data: Dict[str, Any]):
-        project_name = self.constraints.get("project", {}).get("name", "unknown")
-        return self.store.emit(
-            event_type=event_type,
-            project=project_name,
-            feature=feature,
-            edge=edge,
-            delta=data.get("delta"),
-            data=data
-        )
-
-    def update_feature_vector(self, feature_id: str, edge: str, iteration: int, status: str, delta: int, asset_path: str = None, mode: str = None, run_id: str = None):
-        fv_path = self.workspace_root / "features" / "active" / f"{feature_id}.yml"
-        
-        if fv_path.exists():
-            with open(fv_path, "r") as f:
-                data = yaml.safe_load(f)
-        else:
-            data = {
-                "feature": feature_id,
-                "status": "in_progress",
-                "trajectory": {}
-            }
-        
-        # Map edge to trajectory key
-        parts = re.split(r"->|\u2192|\u2194", edge)
-        traj_key = parts[-1].strip()
-        
-        data.setdefault("trajectory", {})[traj_key] = {
-            "status": status,
-            "delta": delta,
-            "iteration": iteration,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-            "mode": mode,
-            "engine_run_id": run_id
-        }
-        if asset_path:
-            data["trajectory"][traj_key]["asset"] = asset_path
-            
-        if status == "converged":
-            data["trajectory"][traj_key]["converged_at"] = datetime.now(timezone.utc).isoformat()
-            
-            # Check if all core nodes in standard profile are converged
-            required_edges = [
-                "requirements", "feature_decomp", "design", "module_decomp", 
-                "basis_proj", "code", "unit_tests"
-            ]
-            all_core_converged = True
-            for req_edge in required_edges:
-                edge_data = data["trajectory"].get(req_edge, {})
-                if not isinstance(edge_data, dict) or edge_data.get("status") != "converged":
-                    all_core_converged = False
-                    break
-            
-            if all_core_converged:
-                data["status"] = "converged"
-            else:
-                data["status"] = "in_progress" # Ensure it stays in progress
-
-        fv_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(fv_path, "w") as f:
-            yaml.dump(data, f)
-
-    def verify_protocol(self, start_time: datetime) -> List[str]:
-        """Checks if the required events were emitted since start_time."""
-        events = self.store.load_all()
-        recent_events = []
-        for e in events:
-            ts_str = e.get("eventTime")
-            if ts_str:
-                ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
-                if ts >= start_time:
-                    recent_events.append(e)
-        
-        gaps = []
-        has_iteration_event = False
-        for e in recent_events:
-            type_facet = e.get("run", {}).get("facets", {}).get("sdlc_event_type", {})
-            if type_facet.get("type") == "iteration_completed":
-                has_iteration_event = True
-                break
-            # Fallback for simple event format
-            if e.get("event_type") == "iteration_completed":
-                has_iteration_event = True
-                break
-                
-        if not has_iteration_event:
-            gaps.append("No event emitted.")
-        
-        if not recent_events:
-            gaps.append("Feature vector state not updated.")
-        
-        return gaps
-
-    def validate_invariants(self, events: List[Dict]) -> List[str]:
-        violations = []
-        last_deltas = {}
-        for ev in events:
-            if ev.get("event_type") == "iteration_completed":
-                key = (ev.get("feature"), ev.get("edge"))
-                delta = ev.get("delta")
-                if delta is not None:
-                    if key in last_deltas and delta > last_deltas[key]:
-                        violations.append(f"INVARIANT_VIOLATION: Delta increased for {key}")
-                    last_deltas[key] = delta
-        return violations
