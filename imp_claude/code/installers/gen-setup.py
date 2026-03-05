@@ -39,7 +39,6 @@ What gets created:
         INTENT.md                  - Intent template
 """
 
-import os
 import sys
 import json
 import argparse
@@ -517,12 +516,7 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
 
 
 def setup_commands(target: Path, dry_run: bool) -> bool:
-    """Install /gen-* commands into .claude/commands/ by fetching from GitHub.
-
-    Always fetches the released version — this is intentional.
-    The installer is the released binary; it installs the released commands.
-    Dev symlinks (for working on the next version) are set up separately.
-    """
+    """Fetch /gen-* commands from GitHub into .claude/commands/."""
     commands_dir = target / ".claude" / "commands"
 
     if dry_run:
@@ -537,8 +531,7 @@ def setup_commands(target: Path, dry_run: bool) -> bool:
             with urllib.request.urlopen(url, timeout=10) as r:
                 content = r.read().decode("utf-8")
             dest = commands_dir / f"{cmd}.md"
-            if dest.is_symlink():
-                dest.unlink()  # break symlink before writing — don't write through to source
+            dest.unlink(missing_ok=True)
             dest.write_text(content)
         except Exception as e:
             print_warn(f"Could not fetch {cmd}.md: {e}")
@@ -805,7 +798,7 @@ def cmd_install(args) -> int:
         print()
         print("  What was created:")
         print("    .claude/settings.json          Plugin config (GitHub marketplace)")
-        print("    .claude/commands/gen-*.md      Slash commands (symlinked or fetched)")
+        print("    .claude/commands/gen-*.md      Slash commands (fetched from GitHub)")
         if not args.no_workspace:
             print("    .ai-workspace/events/          Event log (source of truth)")
             print("    .ai-workspace/features/        Feature vector storage")
