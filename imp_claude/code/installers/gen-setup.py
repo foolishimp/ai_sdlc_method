@@ -541,6 +541,14 @@ def setup_commands(target: Path, dry_run: bool) -> bool:
     if failed:
         print_warn(f"Failed: {', '.join(failed)}")
 
+    # Write version stamp so users can distinguish installed vs dev source
+    stamp = commands_dir / ".genesis-installed"
+    stamp.write_text(
+        f"version: {VERSION}\n"
+        f"installed: {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')}\n"
+        f"source: github:{GITHUB_REPO}@main\n"
+    )
+
     return True
 
 
@@ -677,6 +685,13 @@ def cmd_verify(args) -> int:
         missing = [cmd for cmd in COMMANDS if cmd not in present]
         print_error(f"Commands: {len(present)}/{len(COMMANDS)} present — missing: {', '.join(missing)}")
         failed += 1
+
+    # Version stamp
+    stamp = commands_dir / ".genesis-installed"
+    if stamp.exists():
+        print_ok(f"Installed version:\n{stamp.read_text().strip()}")
+    else:
+        print_warn("No version stamp — run installer to record version")
 
     # Check settings content
     settings_file = target / ".claude" / "settings.json"
