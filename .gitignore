@@ -62,7 +62,6 @@ package-lock.json
 # Developer Workspace - ignore active session state
 .ai-workspace/session/current_session.md
 .ai-workspace/session/history/
-.ai-workspace/comments/
 scripts/
 **/scripts/
 imp_gemini/tests/engine_mock_asset.txt
