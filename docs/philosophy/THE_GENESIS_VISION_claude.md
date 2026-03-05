@@ -107,8 +107,6 @@ The business requirement governs the AI, not the other way around.
 
 ## What This Is and Is Not
 
-Spec-Driven Development is not anti-AI. The methodology depends on AI — to construct code, to evaluate quality, to run automated checks that would be impractical for humans alone.
-
 It is not bureaucracy. It does not add review meetings, sign-off chains, or documentation overhead for its own sake. The gates are automated where automation is sufficient and human where judgment is genuinely required.
 
 It is not a replacement for skilled people. It is the process that makes skilled people more effective — because they spend their time on specification and judgment rather than on prompt iteration and rework.
