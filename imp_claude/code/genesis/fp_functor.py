@@ -55,6 +55,9 @@ class FpFunctor:
             duration_ms = int((time.monotonic() - t0) * 1000)
             return _parse_actor_result(intent, raw, duration_ms, state)
         except Exception as exc:  # noqa: BLE001
+            # Result not yet available (actor pending or fold-back missing).
+            # skipped=True: orchestrator treats this as "no result" not a failure.
+            # delta=-1 is the sentinel for "no measurement taken".
             duration_ms = int((time.monotonic() - t0) * 1000)
             return StepResult(
                 run_id=intent.run_id,
@@ -65,7 +68,7 @@ class FpFunctor:
                 audit=StepAudit(
                     functor_type="F_P",
                     transport="mcp",
-                    skipped=False,
+                    skipped=True,
                     stall_killed=False,
                 ),
             )

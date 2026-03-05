@@ -26,6 +26,25 @@
 
 ---
 
+## MVP — Emit edge_started + Align Gap Detection (Codex item 3)
+
+**Priority**: HIGH — recovery correctness
+**Status**: Not Started
+**Release Target**: MVP
+
+**Description**:
+The session-gap recovery scanner in `workspace_state.py` depends on `edge_started` events to detect abandoned iterations. The engine does not emit them. Recovery scanner is broken against real engine runs — it can't distinguish "never started" from "started but crashed".
+
+**Tasks**:
+1. Emit `edge_started` event at the top of `run_edge()` in `engine.py` (before first `iterate_edge()` call)
+2. Fields: `feature`, `edge`, `iteration: 1`, consistent with `iteration_completed` schema
+3. Verify `workspace_state.find_incomplete_edges()` correctly pairs `edge_started` with `edge_converged` / `iteration_completed`
+4. Add test: emit `edge_started` then simulate crash → recovery scanner detects the incomplete edge
+
+**Reference**: `imp_claude/code/genesis/engine.py:run_edge()`, `imp_claude/code/genesis/workspace_state.py:find_incomplete_edges()`
+
+---
+
 ## MVP — Delete Dead Code (ADR-020 residue)
 
 **Priority**: HIGH — clarity before dogfood
@@ -63,6 +82,15 @@ Every F_P invocation currently skips — the MCP actor is never reached. F_D eva
 6. Budget enforcement: pass `--max-budget-usd` to actor invocation
 
 **Reference**: `imp_claude/code/genesis/fp_functor.py:119`, ADR-024, ADR-023
+
+---
+
+## Resolved: fp_functor skipped consistency (Codex item 6)
+
+**Status**: Done — 2026-03-05
+**Commit**: pending
+
+`fp_functor.py` error path (MCP available, fold-back file missing) returned `skipped=False, delta=-1` — contradictory semantics that mislead the orchestrator into treating "actor not yet complete" as a hard failure. Fixed to `skipped=True`: delta=-1 is the sentinel for "no measurement taken", orchestrator correctly ignores it.
 
 ---
 
@@ -132,6 +160,29 @@ Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_pr
 3. Saga compensation: `CompensationTriggered` / `CompensationCompleted` events — REQ-EVENT-004
 4. Verify projection contract (determinism, completeness, isolation) — REQ-EVENT-002
 5. Write ADR-025: pragmatic exception for `asset_content: str` vs full event-sourced projection
+
+---
+
+## Post-MVP: Topology / Profile Disagreement (Codex item 7)
+
+**Priority**: Medium
+**Status**: Needs Decision
+**Release Target**: 3.0
+**Source**: Codex matrix item 7 + Gemini tournament strategy (2026-03-05/06)
+
+**Description**:
+`graph_topology.yml` contains `module_decomposition` and `basis_projections` nodes but standard profiles walk `design → code` directly, skipping them. Two sub-issues:
+
+1. **Node-insertion gap**: the standard execution path doesn't traverse the full topology. Either the nodes are wrong (remove them) or the profile is wrong (add them to the walk).
+2. **Tournament sub-graph**: Gemini/Codex dialogue produced `parallel_spawn → tournament_arbitration → tournament_merge` as explicit topology nodes (v2.9.0). Gemini implemented this in their tenant. Before Claude adopts, it needs **ADR-S-018** (tournament sub-graph spec ADR) ratified at the spec level — topology extensions are shared schema, not tenant-local.
+
+**Tasks**:
+1. Audit standard profile walk against topology nodes — identify which nodes are actually traversed
+2. Decide: remove unused nodes or add them to the standard profile walk
+3. Write ADR-S-018: tournament sub-graph pattern (parallel_spawn, tournament_arbitration, tournament_merge, tournament_commit), OL `run.facets.parent` causal links, merge provenance fields
+4. After ADR-S-018 ratified: update Claude's `graph_topology.yml` and add feature vectors for tournament nodes
+
+**Reference**: `imp_claude/code/.claude-plugin/plugins/genesis/config/graph_topology.yml`, Gemini `20260306T123000_STRATEGY_TOURNAMENT-TOPOLOGY-REFINEMENT.md`, Codex `20260305T152022_REVIEW_Tournament-Pattern_Node-vs-Edge-Modeling.md`
 
 ---
 
