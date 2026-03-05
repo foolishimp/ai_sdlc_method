@@ -37,6 +37,16 @@ Each invocation of `iterate()` for a single edge is a **transaction** with expli
 
 The **COMPLETE event is the commit point**. Writing it atomically to `events.jsonl` is the commit. Everything before the COMPLETE is uncommitted. An artifact written to disk without a corresponding COMPLETE is an uncommitted side effect.
 
+### Custom facet schema requirements (errata applied 2026-03-06)
+
+Per ADR-S-011 §custom facets, all `sdlc:*` facets MUST include `_producer` and `_schemaURL` fields. Implementations that omit these fields produce invalid facets that break observability consumers.
+
+**Normative rule:** Every `sdlc:*` facet emitted by any implementation MUST include:
+```json
+"_producer": { "name": "<engine-name>", "version": "<version>" },
+"_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/<facet-name>.json"
+```
+
 ### Content hashes on all outputs
 
 Every COMPLETE event MUST include `sdlc:contentHash` facets on all `outputs[]`:
@@ -47,14 +57,24 @@ Every COMPLETE event MUST include `sdlc:contentHash` facets on all `outputs[]`:
   "run": {
     "runId": "uuid",
     "facets": {
-      "sdlc:delta": { "delta": 0.0, "checks_passed": 12, "checks_total": 12 }
+      "sdlc:delta": {
+        "_producer": { "name": "genesis-engine", "version": "1.0" },
+        "_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/delta.json",
+        "delta": 0.0, "checks_passed": 12, "checks_total": 12
+      }
     }
   },
   "inputs": [
     {
       "namespace": "file:///project",
       "name": "imp_claude/design/adrs/ADR-020.md",
-      "facets": { "sdlc:contentHash": { "algorithm": "sha256", "hash": "abc..." } }
+      "facets": {
+        "sdlc:contentHash": {
+          "_producer": { "name": "genesis-engine", "version": "1.0" },
+          "_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/contentHash.json",
+          "algorithm": "sha256", "hash": "abc..."
+        }
+      }
     }
   ],
   "outputs": [
@@ -62,8 +82,16 @@ Every COMPLETE event MUST include `sdlc:contentHash` facets on all `outputs[]`:
       "namespace": "file:///project",
       "name": "src/converter.py",
       "facets": {
-        "sdlc:contentHash":  { "algorithm": "sha256", "hash": "def..." },
-        "sdlc:previousHash": { "hash": "xyz..." }
+        "sdlc:contentHash": {
+          "_producer": { "name": "genesis-engine", "version": "1.0" },
+          "_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/contentHash.json",
+          "algorithm": "sha256", "hash": "def..."
+        },
+        "sdlc:previousHash": {
+          "_producer": { "name": "genesis-engine", "version": "1.0" },
+          "_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/previousHash.json",
+          "hash": "xyz..."
+        }
       }
     }
   ]
@@ -72,9 +100,9 @@ Every COMPLETE event MUST include `sdlc:contentHash` facets on all `outputs[]`:
 
 `sdlc:previousHash` records the hash of the input artifact before modification. This makes the transition auditable: given any COMPLETE event, you can verify the artifact at any point in its history.
 
-### START events record input state
+### START events record input manifest (errata applied 2026-03-06)
 
-Every START event MUST record the content hash of the primary input artifact:
+Every START event MUST record the content hashes of **all** input artifacts, not just the primary one. A single `sdlc:inputHash` is insufficient for edges that modify multiple files (e.g., `code↔unit_tests` touches both `src/` and `tests/`).
 
 ```json
 {
@@ -82,14 +110,25 @@ Every START event MUST record the content hash of the primary input artifact:
   "run": {
     "runId": "uuid",
     "facets": {
-      "sdlc:inputHash": { "algorithm": "sha256", "hash": "xyz..." },
-      "sdlc:edge":      { "edge": "design→code", "feature": "REQ-F-CONV-001" }
+      "sdlc:inputManifest": {
+        "_producer": { "name": "genesis-engine", "version": "1.0" },
+        "_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/inputManifest.json",
+        "artifacts": [
+          { "path": "src/engine.py",       "hash": "abc..." },
+          { "path": "tests/test_engine.py", "hash": "def..." }
+        ]
+      },
+      "sdlc:edge": {
+        "_producer": { "name": "genesis-engine", "version": "1.0" },
+        "_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/edge.json",
+        "edge": "code↔unit_tests", "feature": "REQ-F-ENGINE-001"
+      }
     }
   }
 }
 ```
 
-This enables recovery: if a session crashes after START but before COMPLETE, the engine can verify whether the artifact was modified (current hash ≠ input hash in START event) and flag it as an uncommitted write.
+This enables recovery: if a session crashes after START but before COMPLETE, the engine compares current filesystem hashes against the **full manifest**, not just the primary artifact. Any hash mismatch indicates an uncommitted write.
 
 ### Causal chain for spawns
 
@@ -100,7 +139,11 @@ When a step spawns a child unit of work, the child's START and COMPLETE events M
   "run": {
     "runId": "uuid-child",
     "facets": {
-      "parent": { "run": { "runId": "uuid-parent" } }
+      "parent": {
+        "_producer": { "name": "genesis-engine", "version": "1.0" },
+        "_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/parent.json",
+        "run": { "runId": "uuid-parent" }
+      }
     }
   }
 }
@@ -116,9 +159,12 @@ On startup, every implementation MUST scan the event log and flag open transacti
 For each START event:
   If no corresponding COMPLETE/FAIL/ABORT with same runId exists:
     → Open transaction detected (crash during execution)
-    → Compare current artifact hash against sdlc:inputHash in START event
-    → If hashes differ: artifact was modified but not committed → emit gap_detected
-    → If hashes equal: execution had not started → safe to retry
+    → Load sdlc:inputManifest from START event
+    → For each artifact in manifest:
+        Compute current filesystem hash
+        If current hash ≠ manifest hash: artifact was modified but not committed
+    → If any hash differs: emit gap_detected (uncommitted write)
+    → If all hashes equal: execution had not started → safe to retry
 ```
 
 The `gap_detected` event is emitted to `events.jsonl` and surfaces in `/gen-status`. It does not block execution — it is an advisory signal for human or homeostasis review.

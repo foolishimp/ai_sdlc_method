@@ -36,14 +36,18 @@ invoke(intent: Intent, state: State) → StepResult
 
 ```
 Intent:
-  edge:         str          # e.g. "design→code"
-  feature:      str          # e.g. "REQ-F-CONV-001"
-  grain:        str          # "iteration" | "edge" | "feature" (ADR-S-017)
-  constraints:  dict         # from project_constraints.yml
-  context:      list[Asset]  # spec, prior artifacts, context sources
-  budget_usd:   float        # maximum cost for this invocation
-  run_id:       UUID         # OL runId for transaction linkage (ADR-S-015)
+  edge:             str          # e.g. "design→code"
+  feature:          str          # e.g. "REQ-F-CONV-001"
+  grain:            str          # "iteration" | "edge" | "feature" (ADR-S-017)
+  constraints:      dict         # from project_constraints.yml
+  context:          list[Asset]  # spec, prior artifacts, context sources
+  budget_usd:       float        # cost cap — passed as --max-budget-usd to actor; NOT a timeout
+  wall_timeout_ms:  int          # hard wall clock — engine kills the invocation after this
+  stall_timeout_ms: int          # silence threshold — engine kills after no liveness signal
+  run_id:           UUID         # OL runId for transaction linkage (ADR-S-015)
 ```
+
+`budget_usd` is a **cost cap**, not a time limit. For MCP actor invocations it maps to `--max-budget-usd` passed to the Claude Code actor, which enforces the cap internally. The engine does not monitor cost in real-time. `wall_timeout_ms` and `stall_timeout_ms` are the engine's kill triggers — they are time-based, not cost-based. (Errata applied 2026-03-06: previously `budget_usd` was conflated with wall-clock termination.)
 
 Intent is the first primitive of the Asset Graph Model applied to a specific invocation. It is not a new concept — it is the scoped form of the project-level Intent node.
 
@@ -96,11 +100,28 @@ The engine calls `invoke()` without knowing the transport. The registry resolves
 - **Grain**: finer grain may prefer F_D; coarser grain may require F_P or F_H
 - **Environment**: interactive Claude session → MCP transport available; CI → subprocess only
 
-### Liveness monitoring is part of the contract
+### Liveness monitoring is part of the contract (errata applied 2026-03-06)
 
-Any F_P or F_H functor that runs longer than `intent.budget_usd` or crosses a stall threshold MUST be terminated and return a `StepResult` with `converged=False`, `audit.budget_capped=True` or `audit.stall_killed=True`. The engine treats this as an unconverged step and re-iterates or escalates.
+Any F_P or F_H functor that crosses a timeout threshold MUST be terminated and return a `StepResult` with `converged=False`, `audit.budget_capped=True` or `audit.stall_killed=True`. The engine treats this as an unconverged step and re-iterates or escalates.
 
-Liveness is monitored via **filesystem activity** (files written to artifact directories), not via transport-layer byte counting. This is the semantic proxy established by the E2E runner: a functor producing artifacts is alive; a functor that has stopped writing is stalled.
+**Kill triggers** (time-based, from Intent):
+- `wall_timeout_ms` exceeded → kill regardless of activity → `audit.stall_killed=True` (wall)
+- `stall_timeout_ms` with no liveness signal → kill → `audit.stall_killed=True` (stall)
+- `budget_usd` exceeded → actor enforces internally → engine observes via cost_usd on StepResult
+
+**Liveness signal is pluggable** — the correct signal depends on the functor transport:
+
+```
+liveness_signal:
+  - filesystem_activity    # local filesystem writes (F_D subprocess checks)
+  - event_append_progress  # OL events appended to stream (cloud/event-store actors)
+  - heartbeat              # explicit keepalive signal from transport layer
+  - human_ack              # F_H acknowledgement from human
+```
+
+F_D functors use `filesystem_activity` (output bytes from subprocess). F_P actors invoked via MCP use `event_append_progress` or transport-layer liveness (MCP connection alive = functor alive). Cloud actors (Prefect, etc.) use task heartbeats. The engine implementation selects the correct signal for its transport; the spec does not mandate filesystem monitoring universally.
+
+**Note on F_H:** Human functors use escalation and timeout-based status transitions, not hard kill. `stall_timeout_ms` for F_H triggers an escalation event, not a process kill.
 
 ### What the contract does NOT specify
 
