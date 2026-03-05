@@ -21,7 +21,7 @@ import yaml
 
 from conftest import (
     CONFIG_DIR, EDGE_PARAMS_DIR, PROFILES_DIR, COMMANDS_DIR,
-    AGENTS_DIR, PLUGIN_ROOT, SPEC_DIR, DESIGN_DIR, load_yaml,
+    AGENTS_DIR, PLUGIN_ROOT, SPEC_DIR, SPEC_REQUIREMENTS, SPEC_FEATURES, DESIGN_DIR, load_yaml,
 )
 
 
@@ -1442,7 +1442,7 @@ class TestFailureObservability:
     @pytest.mark.bdd
     def test_req_supv_003_in_spec(self):
         """REQ-SUPV-003 must exist in the implementation requirements."""
-        spec_path = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        spec_path = SPEC_REQUIREMENTS
         with open(spec_path) as f:
             content = f.read()
         assert "REQ-SUPV-003" in content, \
@@ -2026,15 +2026,16 @@ class TestDeveloperToolingAcceptanceCriteria:
 
     @pytest.mark.bdd
     def test_hooks_json_exists_with_two_hooks(self):
-        """hooks.json must define UserPromptSubmit and Stop hooks."""
+        """hooks.json must exist. Hooks were removed (ADR-021) — engine + skills own enforcement.
+        The file is kept as a documented placeholder with an empty hooks dict."""
         hooks_dir = COMMANDS_DIR.parent / "hooks"
         hooks_json = hooks_dir / "hooks.json"
         assert hooks_json.exists(), "hooks.json missing"
         import json
         with open(hooks_json) as f:
             data = json.load(f)
-        assert "UserPromptSubmit" in data["hooks"]
-        assert "Stop" in data["hooks"]
+        # Hooks intentionally removed per ADR-021; file must have valid JSON with hooks key
+        assert "hooks" in data, "hooks.json must have 'hooks' key"
 
     @pytest.mark.bdd
     def test_iterate_start_hook_exists(self):
@@ -2928,7 +2929,7 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_requirements_have_observer_reqs(self):
         """Implementation requirements must contain REQ-LIFE-010, 011, 012."""
-        with open(SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md") as f:
+        with open(SPEC_REQUIREMENTS) as f:
             content = f.read()
         assert "REQ-LIFE-010" in content
         assert "REQ-LIFE-011" in content
@@ -2937,7 +2938,7 @@ class TestObserverAgents:
     @pytest.mark.bdd
     def test_feature_vectors_include_observer_reqs(self):
         """Feature vectors must list REQ-LIFE-010, 011, 012 in REQ-F-LIFE-001."""
-        with open(SPEC_DIR / "FEATURE_VECTORS.md") as f:
+        with open(SPEC_FEATURES) as f:
             content = f.read()
         assert "REQ-LIFE-010" in content
         assert "REQ-LIFE-011" in content

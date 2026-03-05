@@ -1,0 +1,18 @@
+feature: REQ-F-EVENT-001
+title: Event Stream & Projections
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: pending
+priority: medium
+created: "2026-03-05T00:00:00Z"
+updated: "2026-03-05T00:00:00Z"
+parent_id: REQ-F-ENGINE-001
+trajectory:
+  intent: pending
+  requirements: pending
+  feature_decomposition: pending
+  design: pending
+  code: pending
+  unit_tests: pending
+  uat_tests: pending

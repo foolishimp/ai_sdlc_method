@@ -457,24 +457,32 @@ class TestEdgeRouting:
         assert route.profile == "standard"
 
     def test_mid_feature_routes_to_next(self, standard_profile):
-        """Some edges converged → routes to first unconverged."""
+        """Some edges converged → routes to first unconverged (standard profile v2.9+ chain)."""
+        # Standard profile: intent→req→feat_decomp→design_rec→design→mod_decomp→basis_proj→code↔tests
+        # Mark first 4 as converged; next edge should be design→module_decomposition
         trajectory = {
             "trajectory": {
                 "intent_requirements": {"status": "converged"},
-                "requirements_design": {"status": "converged"},
-                "design_code": {"status": "iterating"},
+                "requirements_feature_decomposition": {"status": "converged"},
+                "feature_decomposition_design_recommendations": {"status": "converged"},
+                "design_recommendations_design": {"status": "converged"},
+                "design_module_decomposition": {"status": "iterating"},
             }
         }
         route = select_next_edge(trajectory, {}, standard_profile)
-        assert route.selected_edge == "design→code"
+        assert route.selected_edge == "design→module_decomposition"
 
     def test_all_converged_returns_empty(self, standard_profile):
-        """All edges converged → no next edge."""
+        """All edges converged → no next edge (standard profile v2.9+ full chain)."""
         trajectory = {
             "trajectory": {
                 "intent_requirements": {"status": "converged"},
-                "requirements_design": {"status": "converged"},
-                "design_code": {"status": "converged"},
+                "requirements_feature_decomposition": {"status": "converged"},
+                "feature_decomposition_design_recommendations": {"status": "converged"},
+                "design_recommendations_design": {"status": "converged"},
+                "design_module_decomposition": {"status": "converged"},
+                "module_decomposition_basis_projections": {"status": "converged"},
+                "basis_projections_code": {"status": "converged"},
                 "code_unit_tests": {"status": "converged"},
             }
         }

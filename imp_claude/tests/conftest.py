@@ -11,6 +11,18 @@ import yaml
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
 SPEC_DIR = PROJECT_ROOT / "specification"
 
+# Spec sub-directories (restructured 2026-03-05: docs moved into sub-dirs)
+SPEC_CORE_DIR = SPEC_DIR / "core"
+SPEC_REQUIREMENTS_DIR = SPEC_DIR / "requirements"
+SPEC_FEATURES_DIR = SPEC_DIR / "features"
+
+# Canonical spec document paths
+SPEC_MODEL = SPEC_CORE_DIR / "AI_SDLC_ASSET_GRAPH_MODEL.md"
+SPEC_PROJECTIONS = SPEC_CORE_DIR / "PROJECTIONS_AND_INVARIANTS.md"
+SPEC_REQUIREMENTS = SPEC_REQUIREMENTS_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+SPEC_FEATURES = SPEC_FEATURES_DIR / "FEATURE_VECTORS.md"
+SPEC_INTENT = SPEC_DIR / "INTENT.md"
+
 # Claude implementation paths
 IMP_CLAUDE = PROJECT_ROOT / "imp_claude"
 DESIGN_DIR = IMP_CLAUDE / "design"
@@ -268,9 +280,8 @@ def read_events(workspace):
 def spec_req_keys():
     """Extract all REQ keys from implementation requirements doc."""
     import re
-    req_file = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
     keys = set()
-    with open(req_file) as f:
+    with open(SPEC_REQUIREMENTS) as f:
         for line in f:
             keys.update(re.findall(r'REQ-[A-Z]+-\d+', line))
     return keys
@@ -280,9 +291,8 @@ def spec_req_keys():
 def feature_vector_req_keys():
     """Extract all REQ-F-* keys from feature vectors doc."""
     import re
-    fv_file = SPEC_DIR / "FEATURE_VECTORS.md"
     keys = set()
-    with open(fv_file) as f:
+    with open(SPEC_FEATURES) as f:
         for line in f:
             keys.update(re.findall(r'REQ-F-[A-Z]+-\d+', line))
     return keys

@@ -269,6 +269,22 @@ Resilient F_P invocation with isolation, timeouts, stall detection, and crash re
 
 **Dependencies**: REQ-F-ENGINE-001.|code⟩ (wraps iterate() invocation path), REQ-F-SUPV-001.|design⟩ (failure events feed triage pipeline)
 
+### REQ-F-FP-001: F_P Construct & Batched Evaluate
+
+LLM judgment construction loop for the engine — construct via single claude invocation per edge, then evaluate.
+
+**Satisfies**: REQ-ITER-001, REQ-ITER-002, REQ-ITER-003, REQ-EVAL-002
+
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- `run_construct()` produces valid artifact via single LLM call per edge (Strategy C unlock)
+- `iterate_edge()` calls construct before evaluate when construct=True
+- Full 4-edge traversal uses ≤4 LLM calls (vs 37 cold-start calls today)
+- Cross-validating hybrid: engine delta_D as hard gate, LLM delta_P as soft construction
+
+**Dependencies**: REQ-F-ENGINE-001.|code⟩ (engine loop, evaluate, emit), REQ-F-EVAL-001.|code⟩ (evaluator framework for F_P agent checks)
+
 ### REQ-F-EVOL-001: Spec Evolution Pipeline
 
 The event-sourced pipeline for proposing, reviewing, and promoting new features from homeostasis signals into the specification.
@@ -465,7 +481,6 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 | REQ-SUPV-001 | REQ-F-SUPV-001 |
 | REQ-SUPV-002 | REQ-F-SUPV-001 |
 | REQ-SUPV-003 | REQ-F-SENSE-001 |
-
 | REQ-ROBUST-001 | REQ-F-ROBUST-001 |
 | REQ-ROBUST-002 | REQ-F-ROBUST-001 |
 | REQ-ROBUST-003 | REQ-F-ROBUST-001 |
