@@ -15,7 +15,7 @@ Spec-Driven Development restores that accountability — not as an additional pr
 
 ---
 
-## History repeating itself, an opporunity to break the cycle
+## History repeating itself, an opportunity to break the cycle
 
 Two decades ago, every business adopted spreadsheets enthusiastically. Fast, flexible, no IT involvement required. Every department built on them.
 
@@ -223,8 +223,6 @@ Included as evidence that the constraint specification method generalises beyond
 
 ---
 
----
-
 # For Technical Leaders: What Changes at Each Stage
 
 The table below shows what each stage of the delivery lifecycle looks like under three approaches: conventional development, AI prompt-driven development, and Spec-Driven Development. The question after each stage is the one that an auditor, a risk officer, or a senior technical reviewer would ask.
@@ -351,8 +349,6 @@ This document governs how work is recorded at runtime. Every unit of work — ev
 > *An artifact written to the system without a corresponding COMPLETE record is uncommitted work. On restart, the system detects the open transaction, compares the current state of every affected file against the fingerprints recorded at the start, and flags any file that was modified but never committed. This is how the system detects crashes, partial writes, and incomplete AI outputs.*
 
 The fingerprint is a SHA-256 hash — a standard technique producing a unique signature for any file. Change a single character, the hash changes. Applying it to every artifact at every stage is what makes the audit trail mathematically verifiable rather than document-based.
-
----
 
 ---
 
