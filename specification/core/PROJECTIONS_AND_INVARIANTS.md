@@ -98,96 +98,77 @@ What projections cannot change:
 
 This strengthens the existing invariant that "every edge has at least one evaluator" (§2.2): not only must every edge have an evaluator, but every edge traversal must produce a classified observation (observer) with a typed output (evaluator), and the output must route through the ambiguity classification. This is what it means for the four primitives to compose into a universal processing unit.
 
-### 2.5 Decomposition Invariant
+### 2.5 Intermediate Nodes as Computational Complexity Management
 
-Every edge that maps source entities to finer-grained target entities must satisfy three conditions. Call this a **decomposition edge** — any edge where the target asset decomposes the source into a more granular representation (requirements → feature_decomposition, feature_decomposition → design, design → module_decomposition, module_decomposition → basis_projections).
+The graph A→B→C→D→E and the graph A→E are both valid projections. Neither is architecturally more correct. The question of which to use is a **computational tractability** decision, not an architectural one.
 
-**The invariant** (must hold at every decomposition edge):
+**Why intermediate nodes exist**
 
-```
-∀ decomposition edge (S → T) in the graph:
-    ∃ M : S_entities → P(T_entities)          // n-n mapping: each source entity maps to a set of target entities
-    ∧ ∃ DAG_T over T_entities                  // dependency graph at the target level
-    ∧ ∀ t ∈ T_entities:
-        priority(t) = max{ priority(s) : t ∈ M(s) }    // priority propagation through the mapping
-    ∧ ∃ construction_order = topo_sort(DAG_T, priority) // build order = DAG + propagated priority
-```
+A constructor (human or AI) that leaps A→E in one step must internally traverse the full possibility space between A and E. For simple transformations this is tractable. As complexity grows — more features, more dependencies, more interdependencies between choices — the internal pruning required becomes unreliable. The constructor makes implicit choices that are invisible and unchecked. The output becomes less predictable.
 
-In plain terms, three things must be established at every decomposition edge before construction proceeds:
-
-| Step | What it produces | Why it matters |
-|------|-----------------|----------------|
-| **Map** | n-n relationship: which source entities produce which target entities | Without mapping, source priorities cannot propagate — target construction order is guessed |
-| **DAG** | Dependency graph at the target level | Without DAG, there is no mechanically correct build order |
-| **Propagate** | `target_priority = max(source_priority)` for all sources that contribute | Without propagation, a critical feature's modules may be deprioritised below medium-priority work |
-
-**Why n-n, not 1-1**: A feature spans multiple modules; a module implements multiple features. A requirement traces to multiple design components; a component implements multiple requirements. The mapping is always many-to-many — any encoding that assumes otherwise will lose priority information at the crossing.
-
-**Why max, not sum or average**: Priority is a bound on urgency, not a quantity. A module that implements one critical feature and five low-priority features is a critical-path dependency. Averaging would obscure this.
-
-**The pattern repeats at every level**:
+Intermediate nodes partition this complexity:
 
 ```
-spec
-  features + dependency_dag + mvp_priority
-       │  M = feature → [design components]
-       ▼
-design
-  components + dependency_dag + propagated_priority
-       │  M = component → [modules]
-       ▼
-module_decomposition
-  modules + dependency_dag + propagated_priority
-       │  M = (feature × module) → [basis_projections]
-       ▼
-basis_projections
-  per-(feature × module) scopes + propagated_priority
-       │  construction_order = topo_sort(module_dag, priority)
-       ▼
-code  (implemented in derived priority order)
+A ──────────────────────────────────────→ E   (one large, opaque leap)
+
+A ──→ B ──→ C ──→ D ──→ E               (four smaller, visible steps)
 ```
 
-At each level, the construction order is mechanically derivable from the mapping + DAG + propagated priorities. Nothing is scheduled by hand. The task ordering at every level **emerges** from the feature priorities at the spec level.
+Each intermediate node does three things:
 
-**What projections may vary**: lightweight projections may collapse multiple levels (e.g., spike goes from intent directly to code, skipping decomposition levels). When levels are collapsed, the mapping constraint relaxes — but it does not disappear. Even a single-edge projection must identify *which* source constraints the target must satisfy. The invariant degrades gracefully with projection depth.
+| Effect | What happens |
+|--------|-------------|
+| **Complexity partitioning** | Each step navigates a narrower possibility space than the full A→E leap |
+| **Context injection** | The intermediate artifact becomes explicit Context[] for the next step — choices made at C are visible and available to the constructor at D |
+| **Visible pruning** | Each step commits to choices that eliminate incompatible branches — the pruning that was internal becomes external and inspectable by evaluators |
 
-**Candidate invariant**: *At every decomposition edge, the n-n mapping, target DAG, and priority propagation must be explicitly established before construction proceeds. Construction order is derived, never assigned.*
+**Example**: going from feature_decomposition → design directly (B→E) is valid. The constructor internally decides which components to create, how to group features, which dependencies matter. The output is a design, but the decomposition decisions are embedded invisibly in it.
+
+Adding intermediate steps (B→C = feature×module mapping, C→D = module priority ordering, D→E = design per module) makes those same decisions explicit artifacts. Evaluators can check them. The constructor at each step has a narrower task. The final design is more constrained because the decomposition choices are committed — the possibility space at E is much smaller than it was.
+
+**The decision of when to add intermediate nodes** is a projection decision (§3):
+
+- **Low complexity**: A→E is tractable. Constructor handles the full leap. Skip intermediates.
+- **Moderate complexity**: Add one or two intermediate nodes where the implicit choices are most likely to diverge or be wrong.
+- **High complexity**: Add enough nodes so that at each step, the constructor's task is within its reliable operating range. Each intermediate artifact is an explicit constraint surface for the next.
+
+There is no universal rule for how many intermediate steps are right. The right number is however many are needed to keep each individual step within the constructor's reliable range — and no more.
+
+**Priority and ordering as emergent benefits**: When intermediate nodes explicitly capture decomposition decisions (feature→module mapping, module dependency DAG, priority ordering), priority propagates naturally through the artifact chain. This is not an invariant — it is an emergent benefit of making the decomposition explicit. The task ordering at each level becomes derivable from the intermediate artifacts rather than having to be re-inferred at the final step.
+
+```
+If C = {feature → module mapping + module priority ordering}
+Then at D, the constructor knows: which modules exist, which depend on which, which to do first.
+Without C, the constructor at D must re-derive all of this from scratch — or guess.
+```
+
+**Candidate principle**: *Intermediate graph nodes are not architectural requirements. They are a tool for managing constructor complexity. Add them when the A→E leap exceeds reliable constructor range. Their value is visibility and progressive pruning, not structural correctness.*
 
 ### 2.6 Zoom as Constrained Computation
 
-Zoom (Asset Graph Model §2.5) is formally equivalent to **context density**. `iterate()` is the same function at every zoom level; what changes is what is loaded into `Context[]`.
+Zoom (Asset Graph Model §2.5) is formally equivalent to **context density**. `iterate()` is the same function at every zoom level; what changes is what is loaded into `Context[]` and how many intermediate steps are present in the graph.
 
 ```
-iterate(intent, {priority_list}  → code)   // zoom-out: feature-level context
-iterate(intent, {module_list}    → code)   // zoom-in:  module-level context
-iterate(intent, {basis_proj}     → code)   // finest:   per-(feature × module) context
+iterate(intent, {priority_list}  → code)   // zoom-out: few intermediate nodes, coarse context
+iterate(intent, {module_list}    → code)   // zoom-in:  more intermediate nodes, finer context
+iterate(intent, {basis_proj}     → code)   // finest:   full intermediate chain, maximally constrained
 ```
 
-These are not three different operations. They are the same `iterate()` call with different context density. The context **constrains** the construction: more decomposition context narrows the possibility space, producing a finer-grained and more constrained output.
+These are not three different operations. They are the same `iterate()` call with different context density — which is itself a product of how many intermediate steps have been taken before this call.
 
-**The formal relationship**:
+**Zoom in = add intermediate steps** that produce finer context. Each intermediate artifact narrows the possibility space for the next step. By the time the constructor reaches the final step, much of the possibility space has already been pruned away by the intermediate commitments.
 
-```
-zoom_level(iterate_call) = |decomposition_context loaded into Context[]|
-```
+**Zoom out = skip intermediate steps** and let the constructor handle the full leap. This is faster and may be correct when the transformation is simple enough that the internal pruning is reliable.
 
-Where `|·|` is the number of decomposition levels present in context. A call with only the priority list has one decomposition level. A call with feature list + module list + basis projections has three.
+**The same implementation supports every zoom level.** Any implementation of iterate() that parameterises by context automatically handles all zoom levels. The implementor does not need to choose a fixed granularity — the graph topology (which intermediate nodes to include) is the zoom configuration.
 
-**Implications**:
+**Coarser context = faster, less constrained construction.** The constructor makes more implicit choices. This is the trade-off of skipping levels: speed at the cost of visibility and constraint surface.
 
-1. **There is no separate zoom operation**. Zoom is an artifact of context density. Going from coarse to fine means loading one more level of decomposition context before calling iterate(). No new graph structure. No new function.
+**Finer context = slower, more constrained construction.** The constructor is given explicit intermediate artifacts. The decision space is narrower. The output is more predictable and reproducible.
 
-2. **The same implementation supports every zoom level**. Any implementation of iterate() that parameterises by context automatically handles all zoom levels. The implementor does not need to choose a fixed granularity.
+**The task list self-emerges from context density.** When intermediate nodes explicitly record decomposition decisions (feature priorities, module ordering), the construction sequence at any zoom level is derivable from those records rather than being manually assigned. This is not guaranteed — it is a consequence of having explicit intermediate artifacts to project from.
 
-3. **Coarser context = faster, less constrained construction**. `iterate(intent, {priority_list} → code)` has fewer constraints — the constructor makes more architectural choices implicitly. This is the trade-off of collapsing levels: speed at the cost of constraint surface.
-
-4. **Finer context = slower, more constrained construction**. `iterate(intent, {basis_proj} → code)` is maximally constrained — the constructor is told exactly which feature's scope within which module to implement. The decision space is narrow. The output is predictable.
-
-5. **The task list is a projection of context density**. If the feature priority list is in context, the task order for the iteration session is derivable from it. If the module list is also in context, finer task ordering within each feature is derivable. The task list **self-emerges** from context rather than being manually authored.
-
-**The practical upshot**: a practitioner who wants coarser-grain iteration loads the priority list into context and calls iterate(). A practitioner who wants finer-grain iteration loads the decomposition results into context and calls the same iterate(). The methodology has one verb and one knob — the knob is context density.
-
-**Candidate invariant**: *iterate() is zoom-invariant. Context density is the zoom parameter. The task order at any zoom level is a deterministic projection of the source priorities through the decomposition mappings at that level.*
+**Candidate principle**: *iterate() is zoom-invariant. Zoom level is determined by graph granularity (how many intermediate nodes) combined with context density (what those nodes produce). The appropriate zoom level for any given transformation is a function of the complexity of that transformation and the constructor's reliable operating range.*
 
 ### 2.7 Projections as Functors
 
@@ -872,11 +853,11 @@ The formal system is a **generator of valid methodologies**, not a single method
 
 **Projection profiles** are named configurations for common use cases: full, standard, poc, spike, hotfix, minimal. They compose hierarchically following the constraint accumulation principle.
 
-**The Decomposition Invariant** (§2.5): At every edge that maps source entities to target entities, three things must be established — the n-n mapping, the target dependency DAG, and priority propagation (`target_priority = max(source_priority)`). The construction order at every level is a deterministic topological sort of the target DAG weighted by propagated priorities. Nothing is scheduled by hand; task ordering self-emerges from the spec's feature priorities.
+**Intermediate Nodes as Complexity Management** (§2.5): Intermediate graph nodes are not architectural requirements. They are a tool for managing constructor complexity. A→E is valid; A→B→C→D→E is the same path with the internal pruning made external and visible. Each intermediate node partitions complexity, injects context for the next step, and commits choices that eliminate incompatible branches. Add intermediate nodes when the direct leap exceeds the constructor's reliable range — and not otherwise.
 
-**Zoom as Constrained Computation** (§2.6): iterate() is zoom-invariant. Context density is the zoom parameter. `iterate(intent, {priority_list} → code)` and `iterate(intent, {module_list} → code)` are the same function call at different context densities — not two different operations. Loading more decomposition levels into Context[] zooms in; removing them zooms out. The task list at any zoom level is a deterministic projection of source priorities through the decomposition mappings at that level.
+**Zoom as Constrained Computation** (§2.6): iterate() is zoom-invariant. Zoom level is determined by graph granularity (how many intermediate nodes) and the context density they produce. `iterate(intent, {priority_list} → code)` and `iterate(intent, {module_list} → code)` are the same call at different context densities. Zoom in by adding intermediate steps; zoom out by removing them. The task ordering at any zoom level self-emerges from the intermediate artifacts that are present — it is not separately assigned.
 
-Four primitives. One operation. Valid projections at every scale. Task order derived, never assigned.
+Four primitives. One operation. Valid projections at every scale. Complexity managed by graph granularity, not architectural prescription.
 
 ---
 
