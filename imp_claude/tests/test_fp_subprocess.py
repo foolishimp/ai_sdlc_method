@@ -1,22 +1,28 @@
 # Validates: REQ-ROBUST-001 (Actor Isolation), REQ-ROBUST-002 (Supervisor Pattern)
-"""Tests for fp_subprocess — isolated F_P process manager."""
+"""Tests for fp_subprocess — Claude transport adapter (env sanitization + run_claude_isolated).
+
+fp_subprocess is a thin adapter over proc.run_bounded(). These tests cover:
+  - clean_env(): Claude nesting guard removal
+  - run_claude_isolated(): adapter contract (delegates to run_bounded)
+
+Process kill and stall detection are tested in test_proc.py (the total-function primitive).
+"""
 
 import os
-import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from genesis.fp_subprocess import (
     SubprocessResult,
     _NESTING_GUARD_VARS,
-    _kill_process_group,
     clean_env,
     run_claude_isolated,
 )
+from genesis.proc import BoundedResult
 
 
-# ── clean_env tests ──────────────────────────────────────────────────
+# ── clean_env tests ───────────────────────────────────────────────────────────
 
 
 class TestCleanEnv:
@@ -55,23 +61,36 @@ class TestCleanEnv:
         )
 
 
-# ── run_claude_isolated tests ────────────────────────────────────────
+# ── run_claude_isolated tests ─────────────────────────────────────────────────
+
+
+def _bounded(
+    stdout="", stderr="", returncode=0,
+    timed_out=False, stall_killed=False, wall_killed=False,
+    duration_ms=10, pid=12345, error="",
+) -> BoundedResult:
+    """Helper: build a BoundedResult for patching run_bounded."""
+    r = BoundedResult(
+        stdout=stdout, stderr=stderr, returncode=returncode,
+        timed_out=timed_out, stall_killed=stall_killed, wall_killed=wall_killed,
+        duration_ms=duration_ms, pid=pid, error=error,
+    )
+    return r
 
 
 class TestRunClaudeIsolated:
-    """Validates: REQ-ROBUST-001, REQ-ROBUST-002."""
+    """Validates: REQ-ROBUST-001, REQ-ROBUST-002.
 
-    @patch("genesis.fp_subprocess.subprocess.Popen")
-    def test_success(self, mock_popen_cls):
-        """Successful subprocess returns stdout and zero exit code."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 12345
-        mock_proc.communicate.return_value = ("hello world", "")
-        mock_proc.returncode = 0
-        mock_proc.poll.return_value = 0
-        mock_popen_cls.return_value = mock_proc
+    Patches proc.run_bounded — the total-function primitive — so tests are
+    fast and deterministic without spawning real subprocesses.
+    """
 
-        result = run_claude_isolated(["echo", "hello"], timeout=10)
+    @patch("genesis.fp_subprocess.run_bounded")
+    def test_success(self, mock_run):
+        """Successful call returns stdout and zero exit code."""
+        mock_run.return_value = _bounded(stdout="hello world", returncode=0, pid=12345)
+
+        result = run_claude_isolated(["claude", "-p", "hi"], timeout=10)
 
         assert isinstance(result, SubprocessResult)
         assert result.stdout == "hello world"
@@ -80,128 +99,75 @@ class TestRunClaudeIsolated:
         assert result.stall_killed is False
         assert result.error == ""
         assert result.pid == 12345
-        assert result.duration_ms >= 0
 
-    @patch("genesis.fp_subprocess.subprocess.Popen")
-    def test_nonzero_exit(self, mock_popen_cls):
-        """Nonzero exit code is captured with error message."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 12345
-        mock_proc.communicate.return_value = ("", "error output")
-        mock_proc.returncode = 1
-        mock_proc.poll.return_value = 1
-        mock_popen_cls.return_value = mock_proc
+    @patch("genesis.fp_subprocess.run_bounded")
+    def test_nonzero_exit(self, mock_run):
+        """Nonzero exit code is captured."""
+        mock_run.return_value = _bounded(
+            stderr="error output", returncode=1, error="Exit code 1"
+        )
 
-        result = run_claude_isolated(["false"], timeout=10)
+        result = run_claude_isolated(["claude", "-p", "hi"], timeout=10)
 
         assert result.returncode == 1
         assert result.timed_out is False
-        assert "Exited with code 1" in result.error
         assert result.stderr == "error output"
 
-    @patch("genesis.fp_subprocess.subprocess.Popen")
-    def test_os_error(self, mock_popen_cls):
-        """OSError on Popen returns error result without crashing."""
-        mock_popen_cls.side_effect = OSError("No such file")
+    @patch("genesis.fp_subprocess.run_bounded")
+    def test_wall_timeout(self, mock_run):
+        """Wall timeout is reflected in timed_out flag."""
+        mock_run.return_value = _bounded(
+            returncode=-1, timed_out=True, wall_killed=True,
+            error="Wall timeout: 10s exceeded"
+        )
 
-        result = run_claude_isolated(["nonexistent_binary"], timeout=10)
-
-        assert result.returncode == -1
-        assert "Failed to start subprocess" in result.error
-        assert result.duration_ms >= 0
-
-    @patch("genesis.fp_subprocess.subprocess.Popen")
-    def test_timeout_kills_process(self, mock_popen_cls):
-        """Wall timeout triggers process group kill and sets timed_out."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 12345
-        poll_results = [None] * 100 + [0]
-        mock_proc.poll.side_effect = poll_results
-
-        def slow_communicate():
-            time.sleep(0.5)
-            return ("partial", "")
-
-        mock_proc.communicate.side_effect = slow_communicate
-        mock_proc.returncode = -9
-        mock_popen_cls.return_value = mock_proc
-
-        with patch("genesis.fp_subprocess._kill_process_group"):
-            result = run_claude_isolated(
-                ["sleep", "999"], timeout=1, stall_timeout=0
-            )
+        result = run_claude_isolated(["claude", "-p", "hi"], timeout=10)
 
         assert result.timed_out is True
-        assert result.duration_ms > 0
+        assert result.stall_killed is False
 
-    @patch("genesis.fp_subprocess.subprocess.Popen")
-    def test_start_new_session(self, mock_popen_cls):
-        """Popen called with start_new_session=True for process group isolation."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 1
-        mock_proc.communicate.return_value = ("", "")
-        mock_proc.returncode = 0
-        mock_proc.poll.return_value = 0
-        mock_popen_cls.return_value = mock_proc
+    @patch("genesis.fp_subprocess.run_bounded")
+    def test_stall_killed(self, mock_run):
+        """Stall kill is reflected in stall_killed flag."""
+        mock_run.return_value = _bounded(
+            returncode=-1, timed_out=True, stall_killed=True,
+            error="Stall: no output for 30s"
+        )
 
-        run_claude_isolated(["echo"], timeout=10)
+        result = run_claude_isolated(["claude", "--print", "hi"], timeout=120, stall_timeout=30)
 
-        call_kwargs = mock_popen_cls.call_args[1]
-        assert call_kwargs["start_new_session"] is True
+        assert result.timed_out is True
+        assert result.stall_killed is True
 
-    @patch("genesis.fp_subprocess.subprocess.Popen")
-    def test_env_sanitized_by_default(self, mock_popen_cls):
-        """By default, environment is sanitized (nesting guards removed)."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 1
-        mock_proc.communicate.return_value = ("", "")
-        mock_proc.returncode = 0
-        mock_proc.poll.return_value = 0
-        mock_popen_cls.return_value = mock_proc
+    @patch("genesis.fp_subprocess.run_bounded")
+    def test_env_sanitized_by_default(self, mock_run):
+        """By default, sanitized env is passed to run_bounded."""
+        mock_run.return_value = _bounded()
 
         with patch.dict(os.environ, {"CLAUDECODE": "1"}):
-            run_claude_isolated(["echo"], timeout=10)
+            run_claude_isolated(["claude"], timeout=10)
 
-        call_kwargs = mock_popen_cls.call_args[1]
-        assert "CLAUDECODE" not in call_kwargs["env"]
+        _, kwargs = mock_run.call_args
+        assert kwargs["env"] is not None
+        assert "CLAUDECODE" not in kwargs["env"]
 
-    @patch("genesis.fp_subprocess.subprocess.Popen")
-    def test_env_not_sanitized_when_disabled(self, mock_popen_cls):
-        """When sanitize_env=False, environment is passed as None (inherit)."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 1
-        mock_proc.communicate.return_value = ("", "")
-        mock_proc.returncode = 0
-        mock_proc.poll.return_value = 0
-        mock_popen_cls.return_value = mock_proc
+    @patch("genesis.fp_subprocess.run_bounded")
+    def test_env_not_sanitized_when_disabled(self, mock_run):
+        """When sanitize_env=False, env=None is passed (inherit)."""
+        mock_run.return_value = _bounded()
 
-        run_claude_isolated(["echo"], timeout=10, sanitize_env=False)
+        run_claude_isolated(["claude"], timeout=10, sanitize_env=False)
 
-        call_kwargs = mock_popen_cls.call_args[1]
-        assert call_kwargs["env"] is None
+        _, kwargs = mock_run.call_args
+        assert kwargs["env"] is None
 
+    @patch("genesis.fp_subprocess.run_bounded")
+    def test_timeout_forwarded(self, mock_run):
+        """timeout and stall_timeout are forwarded to run_bounded."""
+        mock_run.return_value = _bounded()
 
-# ── _kill_process_group tests ────────────────────────────────────────
+        run_claude_isolated(["claude"], timeout=45, stall_timeout=20)
 
-
-class TestKillProcessGroup:
-    """Validates: REQ-ROBUST-001 — process tree cleanup."""
-
-    def test_kill_terminates_process(self):
-        """SIGTERM kills the process group; falls back to proc.kill()."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 99999
-        mock_proc.poll.return_value = None
-
-        with patch("genesis.fp_subprocess.os.getpgid", side_effect=ProcessLookupError):
-            _kill_process_group(mock_proc)
-            mock_proc.kill.assert_called_once()
-
-    def test_kill_handles_already_dead(self):
-        """If process is already dead, no error raised."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 99999
-        mock_proc.kill.side_effect = ProcessLookupError
-
-        with patch("genesis.fp_subprocess.os.getpgid", side_effect=ProcessLookupError):
-            _kill_process_group(mock_proc)
+        _, kwargs = mock_run.call_args
+        assert kwargs["wall_timeout"] == 45.0
+        assert kwargs["stall_timeout"] == 20.0
