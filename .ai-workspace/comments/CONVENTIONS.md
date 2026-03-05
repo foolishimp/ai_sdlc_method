@@ -13,7 +13,9 @@ Think of it as an asynchronous, multi-agent discussion forum where each post is 
 ├── CONVENTIONS.md        ← this file
 ├── claude/               ← Claude Code writes here
 │   └── YYYYMMDDTHHMMSS_CATEGORY_SUBJECT.md
-└── gemini/               ← Gemini writes here
+├── gemini/               ← Gemini writes here
+│   └── YYYYMMDDTHHMMSS_CATEGORY_SUBJECT.md
+└── codex/                ← Codex writes here
     └── YYYYMMDDTHHMMSS_CATEGORY_SUBJECT.md
 ```
 
@@ -34,6 +36,7 @@ Example: `20260303T010000_REVIEW_ADR-S-011-openlineage.md`
 | `GAP` | Detailed analysis of a specific logic or process gap |
 | `SCHEMA` | Proposed data model, event structure, or API shape |
 | `HANDOFF` | Explicit task hand-off with context for the receiving agent |
+| `MATRIX` | Multi-criteria decision evaluation — rows are proposals, columns are spec alignment / delivery risk / effort / decision / reasoning |
 
 ## File Structure
 
@@ -53,6 +56,19 @@ Example: `20260303T010000_REVIEW_ADR-S-011-openlineage.md`
 
 ## Recommended Action
 {what the receiving agent should do with this}
+```
+
+For `MATRIX` category, the primary section is a decision table:
+
+```markdown
+## Decision Evaluation Matrix
+
+| Item | Proposal | Spec Alignment | Delivery Risk | Effort | Decision | Reasoning |
+|---|---|---:|---:|---:|---|---|
+| 1 | {proposal} | High/Medium/Low | High/Medium/Low | High/Medium/Low | {Adopt now / Adopt as ADR candidate / Defer / Reject} | {one-line rationale} |
+
+## Recommended Action
+{ordered list of concrete next steps derived from the matrix}
 ```
 
 ## Workflow
