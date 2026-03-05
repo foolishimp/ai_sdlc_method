@@ -16,14 +16,14 @@ The Markov step (edge traversal) is the **unit of work**. It is fractal: a unit 
 A single edge traversal is the atomic unit of work:
 
 ```
-T(Asset_n, Mandate) → (Asset_{n+1}, OLEvent)
+T(Asset_n, Intent) → (Asset_{n+1}, OLEvent)
 ```
 
 **Atomic** means: from the outside, either both happen (new artifact version + committed event) or neither does. Partial execution is detectable and recoverable.
 
-**Unit** means: it is self-contained. The step carries its full mandate (edge config, spec, constraints, context hashes). It does not depend on the execution history of prior steps — only on the current input state.
+**Unit** means: it is self-contained. The step carries its full intent (edge config, spec, constraints, context hashes). It does not depend on the execution history of prior steps — only on the current input state.
 
-**Fractal** means: a unit of work can spawn child units of the same type. The spawn is structurally identical to the parent — same mandate format, same event schema, same artifact versioning. The recursion terminates when the child converges without spawning further.
+**Fractal** means: a unit of work can spawn child units of the same type. The spawn is structurally identical to the parent — same intent format, same event schema, same artifact versioning. The recursion terminates when the child converges without spawning further.
 
 ---
 

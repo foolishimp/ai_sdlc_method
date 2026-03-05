@@ -60,7 +60,7 @@ At every zoom level, the same four primitives apply without modification:
 |---|---|---|---|---|
 | Project | Full SDLC topology | `/gen-start --auto` | Feature convergence | Project constraints |
 | Feature | Feature vector trajectory | `/gen-iterate --edge` | Edge convergence | Edge config + spec |
-| Edge traversal | Invoke mandate | F_P construct call | Delta = 0 | Mandate + context |
+| Edge traversal | Invoke intent  | F_P construct call | Delta = 0 | Intent + context  |
 | Sub-graph (spawn) | Child topology | Child iterate | Child evaluators | Child constraints |
 | Iteration | Single LLM call | anthropic.messages.create | F_D checks + F_P eval | Prompt + context |
 

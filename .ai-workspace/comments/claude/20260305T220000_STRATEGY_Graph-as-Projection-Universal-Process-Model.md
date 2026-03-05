@@ -136,11 +136,11 @@ Or: keep `sdlc:*` for the SDLC view, and allow other views to define their own f
 
 ### 2. The invocation contract is grain-parameterised
 
-The `Mandate` in pre-ADR-024 needs a `grain` field:
+The `Intent` in pre-ADR-024 needs a `grain` field:
 
 ```python
 @dataclass
-class Mandate:
+class Intent:
     graph_id: str        # which graph topology
     edge: str            # which transition in that graph
     feature: str         # which unit at this grain

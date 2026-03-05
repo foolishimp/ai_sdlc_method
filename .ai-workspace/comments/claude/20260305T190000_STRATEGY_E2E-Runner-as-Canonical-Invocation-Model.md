@@ -17,7 +17,7 @@ The E2E runner implements the full iterate() cycle:
 
 ```
 scaffold(project_dir)          → build Asset (spec, workspace, configs, feature vectors)
-run_claude_headless(prompt)    → invoke agent with mandate
+run_claude_headless(prompt)    → invoke agent with intent
 validate(project_dir)          → Evaluators inspect output (events, vectors, code, tests)
 archive(project_dir)           → persist run for inspection and replay
 ```
@@ -58,7 +58,7 @@ os.killpg(pgid, signal.SIGTERM)  # SIGKILL after 5s if still alive
 
 ### 4. Session-scoped, once-per-run semantics
 
-The mandate executes once. All validators inspect the same output. This is the correct model for "give the agent a mandate and evaluate the result" — not "call Claude 22 times for 22 checks." The session-scoped fixture enforces this structurally.
+The intent executes once. All validators inspect the same output. This is the correct model for "give the agent an intent and evaluate the result" — not "call Claude 22 times for 22 checks." The session-scoped fixture enforces this structurally.
 
 ### 5. Run archive with manifest and symlink
 
@@ -108,7 +108,7 @@ result = call_claude_tool(prompt, cwd=project_dir)
 
 The scaffolding, filesystem stall detection, archival, and validation logic are transport-agnostic and should be shared across both paths. The MCP path eliminates the watchdog thread, SIGTERM/SIGKILL escalation, and nesting-guard environment sanitisation. Everything else stays.
 
-The mandate format is also transport-agnostic: `'/gen-start --auto --feature "REQ-F-CONV-001"'` is a valid prompt for both subprocess and MCP invocation.
+The intent format is also transport-agnostic: `'/gen-start --auto --feature "REQ-F-CONV-001"'` is a valid prompt for both subprocess and MCP invocation.
 
 ---
 
@@ -135,6 +135,6 @@ Engine F_P runs should produce the same archive structure as E2E runs: versioned
 
 ## Connection to the Broader Architecture
 
-The E2E runner embodies the methodology's own evaluation model: give the agent a complete mandate, let it work autonomously, evaluate the output against the spec. The semantic tool era (c4h: `SemanticExtract`, `SemanticMerge`, explicit typed calls) is over — the agent is capable enough to work within its mandate without Python orchestrating individual operations. The runner's job is mandate delivery, liveness monitoring, and result preservation — not semantic scaffolding.
+The E2E runner embodies the methodology's own evaluation model: give the agent a complete intent, let it work autonomously, evaluate the output against the spec. The semantic tool era (c4h: `SemanticExtract`, `SemanticMerge`, explicit typed calls) is over — the agent is capable enough to work within its intent without Python orchestrating individual operations. The runner's job is intent delivery, liveness monitoring, and result preservation — not semantic scaffolding.
 
-This is the model to standardise across all F_P invocations. The transport (subprocess vs MCP) is a detail. The mandate format, stall detection approach, budget governance, and archive contract are the invariants.
+This is the model to standardise across all F_P invocations. The transport (subprocess vs MCP) is a detail. The intent format, stall detection approach, budget governance, and archive contract are the invariants.

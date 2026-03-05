@@ -66,9 +66,9 @@ This is the property that makes parallelism natural: independent vectors = indep
 The Markov framing makes the invocation contract precise. Any functor executing a step must satisfy:
 
 ```
-invoke(mandate: Mandate, state: ProjectDir) → StepResult
+invoke(intent: Intent, state: ProjectDir) → StepResult
 
-Mandate  = { edge: str, feature: str, constraints: dict, context: list[Asset] }
+Intent   = { edge: str, feature: str, constraints: dict, context: list[Asset] }
 StepResult = {
     converged: bool,
     delta: float,          # 0.0 = converged, >0 = gap remaining
@@ -83,7 +83,7 @@ StepResult = {
 The engine doesn't care which functor executed the step. It inspects `StepResult` and decides whether to converge, re-iterate, or spawn.
 
 **The E2E runner already implements this contract** — informally:
-- `mandate` = the prompt string (`/gen-start --auto --feature "REQ-F-CONV-001"`)
+- `intent` = the prompt string (`/gen-start --auto --feature "REQ-F-CONV-001"`)
 - `state` = `project_dir` (the scaffolded filesystem)
 - `StepResult` = `ClaudeRunResult` + `_count_converged_edges()` + the archived project dir
 
@@ -98,24 +98,24 @@ Under this framing, the subprocess vs MCP debate (ADR-023) is resolved cleanly: 
 ```python
 # Both satisfy the same invocation contract:
 
-def run_via_subprocess(mandate, state) -> StepResult:
+def run_via_subprocess(intent, state) -> StepResult:
     # claude -p, watchdog, budget cap, process group kill
     ...
 
-def run_via_mcp(mandate, state) -> StepResult:
+def run_via_mcp(intent, state) -> StepResult:
     # claude_code tool call, MCP timeout, filesystem poll
     ...
 
-def run_via_api(mandate, state) -> StepResult:
+def run_via_api(intent, state) -> StepResult:
     # anthropic.Anthropic().messages.create(stream=True)
     ...
 
-def run_via_human(mandate, state) -> StepResult:
+def run_via_human(intent, state) -> StepResult:
     # prompt human, wait for approval, record decision
     ...
 ```
 
-The engine calls `invoke(mandate, state)`. The functor registry resolves to the appropriate implementation based on transport availability and edge affinity (ADR-021). The Markov step is identical in all cases.
+The engine calls `invoke(intent, state)`. The functor registry resolves to the appropriate implementation based on transport availability and edge affinity (ADR-021). The Markov step is identical in all cases.
 
 ---
 
@@ -143,7 +143,7 @@ The genesis_monitor should be able to consume archived runs as historical state 
 
 The spec defines `iterate(Asset, Context[], Evaluators) → Asset'`. In Markov terms:
 - `Asset` = state_n
-- `Context[]` = the mandate context (spec, constraints, prior artifacts)
+- `Context[]` = the intent context (spec, constraints, prior artifacts)
 - `Evaluators` = the convergence test applied to state_{n+1}
 - The functor is the computation engine that produces state_{n+1}
 
@@ -151,7 +151,7 @@ The spec does not prescribe the functor. The Markov step is the invariant. The f
 
 ## Recommended Action
 
-1. **ADR-024**: Formalise the invocation contract as typed interfaces (`Mandate`, `StepResult`, `invoke()`). All functor implementations (subprocess, MCP, API, human) must satisfy this interface. The engine calls `invoke()` without knowing the transport.
+1. **ADR-024**: Formalise the invocation contract as typed interfaces (`Intent`, `StepResult`, `invoke()`). All functor implementations (subprocess, MCP, API, human) must satisfy this interface. The engine calls `invoke()` without knowing the transport.
 
 2. **Update ADR-017**: Add a Markov framing section. The functor categories (F_D, F_P, F_H) are computation engines for Markov steps. The natural transformation η is the runtime mechanism for switching computation engines when ambiguity changes.
 
