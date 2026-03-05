@@ -10,6 +10,24 @@ Spec-Driven Development is the engineering discipline that restores accountabili
 
 ---
 
+## A Problem We Have Seen Before
+
+Two decades ago, spreadsheets became the productivity tool that every business adopted enthusiastically. They were fast, flexible, required no IT involvement, and delivered immediate value. Every department built on them.
+
+What followed was twenty years of governance reckoning. Business-critical calculations lived in files on personal drives. Pricing logic sat in models that only one person understood. Risk computations were embedded in spreadsheets that no system of record contained. When auditors asked how a number was arrived at, the answer was often a file called FINAL_v3_REVISED.xlsx, last modified by someone who had since left.
+
+Organisations spent enormous effort — governance frameworks, data warehouses, validation processes, change management — trying to regain visibility over what their own systems were computing.
+
+AI-generated code is that problem, running at an exponential scale.
+
+A developer can now produce in an afternoon what previously took a team a week. That capability is already in use across the enterprise. The code it produces is in production systems, running business logic, making decisions. And unless something specific was done to prevent it, nobody — including the developer — can fully account for what it does, which business requirement it satisfies, or what changes when something goes wrong.
+
+The spreadsheet problem was contained by what a spreadsheet could do. AI has no such limit. It writes entire systems.
+
+Spec-Driven Development is the governance framework built for this moment. It does not slow AI down. It gives organisations the full productivity of AI construction with complete visibility into what is being built, why, and whether it matches what the business asked for. The spreadsheet era ended in governance debt. This one does not have to.
+
+---
+
 ## The Accountability Gap
 
 Consider how a critical business system is built today under AI-assisted development. A developer describes what they need, the AI produces code, the developer reviews it, and the cycle continues until the output looks right. This is faster than writing the code manually. It produces the same accountability problem that has always existed in software development, now at higher velocity.
@@ -67,6 +85,18 @@ In prompt-driven development, the developer's skill at articulating requirements
 Spec-Driven Development separates the specification — what the system must do — from the construction — how it is built. The specification is the asset. It is formal, versioned, requirement-tagged, and independent of any particular AI model or developer. The AI models do the construction work against that specification and are evaluated by whether their output satisfies it. The specification does not change because the model misunderstood something. The model iterates until it satisfies the specification.
 
 This is the correct inversion of control. The business requirement governs the AI. Not the other way around.
+
+---
+
+## What This Is and Is Not
+
+Spec-Driven Development is not anti-AI. The methodology depends on AI — to construct code, to evaluate quality, to run automated checks that would be impractical for humans alone. AI is faster and more capable inside this process than outside it.
+
+It is not bureaucracy. It does not add review meetings, sign-off chains, or documentation overhead for its own sake. The gates are automated where automation is sufficient and human where judgment is genuinely required.
+
+It is not a replacement for skilled people. It is the process that makes skilled people more effective — because they spend their time on specification and judgment rather than on prompt iteration and rework.
+
+What it is: **total visibility and control over what AI is building, why it is building it, and whether the result matches what the organisation asked for.** The same visibility that organisations have spent years trying to recover from the spreadsheet era — delivered by construction, not by retrospective governance effort.
 
 ---
 
