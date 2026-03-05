@@ -130,6 +130,10 @@ A single person with a clear specification and governed AI construction has the 
 
 This is what genuine agility looks like: not faster sprints, but a fundamentally different relationship with change. The specification is the system. Change the specification, and the system follows.
 
+The specification is not a technical document. It is not written by engineers and handed to developers. It is the organisation's knowledge of itself — what it does, what rules it operates under, what it must never get wrong. The WHAT. Expressed precisely enough that a machine can build against it.
+
+That precision is the competitive asset. Organisations that know themselves clearly enough to write it down can regenerate their systems on demand. Organisations that cannot will find that AI builds faster, but builds the wrong thing faster.
+
 ---
 
 ## Current Status
