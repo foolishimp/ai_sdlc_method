@@ -52,7 +52,8 @@ CLI session (user)
                        grain:       "iteration",
                        failures:    ["tests_pass: 3 tests fail...", ...],
                        constraints: {language: python, ...},
-                       budget_usd:  2.0,
+                       budget_usd:  2.0,   # cost cap → --max-budget-usd (NOT a timeout)
+                       max_depth:   3,     # recursion depth limit (separate from cost)
                        run_id:      uuid
                      }
                      actor runs iterate() at grain="iteration"
@@ -103,7 +104,7 @@ The actor model is recursive by construction (ADR-S-017 §deepest invariant):
 - The actor runs `iterate()` — the same four primitives at finer grain
 - The actor may spawn sub-actors (zoom in) if its problem has sub-structure
 - Each sub-actor receives a further-constrained `Intent`
-- Recursion terminates via `budget_usd` (hard cap) and grain depth limit
+- Recursion terminates via two independent bounds: `budget_usd` (cost cap — not a timeout) and `max_depth` (structural spawn depth limit). These are separate: cost and structure are orthogonal constraints.
 
 This is the connection to the recursive LLM model: the actor is not a special construct. It is the model applied recursively. The engine does not know or care how deep the recursion goes — it waits for `StepResult` (fold-back) and re-evaluates with F_D.
 
@@ -199,7 +200,7 @@ def _mcp_available() -> bool:
 - [ADR-S-017](../../../specification/adrs/ADR-S-017-variable-grain-zoom-morphism.md) — spawn = zoom in; actor = finer grain invocation; budget_usd = zoom budget
 - [ADR-S-015](../../../specification/adrs/ADR-S-015-unit-of-work-transaction-model.md) — StepResult populates COMPLETE event; parentRunId encodes recursion
 - [ADR-023](ADR-023-mcp-as-primary-agent-transport.md) — MCP as primary F_P transport
-- [ADR-019](ADR-019-engine-llm-orthogonal-projections.md) — engine (F_D) and agent (F_P) as orthogonal projections; F_D-only is valid
+- [ADR-019](ADR-019-orthogonal-projection-reliability.md) — engine (F_D) and agent (F_P) as orthogonal projections; F_D-only is valid
 - [ADR-020](ADR-020-fp-construct-batched-evaluate.md) — superseded by this ADR
 - Recursive LLM reference implementation: `/Users/jim/src/apps/recursive-llm/`
 - Strategy comment: `.ai-workspace/comments/claude/20260305T200000_STRATEGY_Edge-Traversal-as-Markov-Functor.md`

@@ -42,6 +42,7 @@ Intent:
   constraints:      dict         # from project_constraints.yml
   context:          list[Asset]  # spec, prior artifacts, context sources
   budget_usd:       float        # cost cap — passed as --max-budget-usd to actor; NOT a timeout
+  max_depth:        int          # spawn depth limit — recursion structure bound (NOT cost)
   wall_timeout_ms:  int          # hard wall clock — engine kills the invocation after this
   stall_timeout_ms: int          # silence threshold — engine kills after no liveness signal
   run_id:           UUID         # OL runId for transaction linkage (ADR-S-015)

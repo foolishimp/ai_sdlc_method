@@ -21,11 +21,15 @@ The gap tool (`/gen-gaps` layer 1) shall treat this file as a valid requirements
 
 ## §1 F_P Construct & Batched Evaluate (FPC series)
 
+> **SUPERSEDED BY ADR-024 (2026-03-06):** The transport model in this section (claude -p subprocess, ConstructResult, batched evaluate response schema) was defined against ADR-020, which ADR-024 supersedes. The requirements below are preserved as a **historical baseline** so that `/gen-gaps` does not flag existing `REQ-F-FPC-*` tags in legacy code as orphaned. When fp_functor.py/contracts.py (ADR-024) are implemented, the old code carrying these tags will be deleted and these requirements will be moved to a deprecated appendix.
+>
+> **New contract**: F_P construct is now an MCP actor invocation delivering `Intent → StepResult` (ADR-S-016 + ADR-024). New design-tier requirements for the MCP actor contract will be added to §3 when implementation begins.
+
 **Spec parent**: REQ-ITER-001 (Universal Iteration), REQ-ITER-003 (Functor Encoding), REQ-EVAL-002 (Evaluator Composition)
-**Design ADR**: ADR-020 (F_P Construct & Batched Evaluate)
+**Design ADR**: ADR-020 (superseded by ADR-024)
 **Feature**: REQ-F-FP-001 (F_P Construct & Batched Evaluate)
 
-These requirements define the Claude-specific implementation of the F_P construct phase — how the engine generates artifacts by invoking `claude -p` once per edge, batching evaluation into the same call, and threading context across edges.
+These requirements define the original (ADR-020) Claude-specific implementation of the F_P construct phase — `claude -p` once per edge, batched evaluate response. **Do not implement these; implement ADR-024 instead.**
 
 ### REQ-F-FPC-001: Single LLM Call Per Edge (Construct)
 

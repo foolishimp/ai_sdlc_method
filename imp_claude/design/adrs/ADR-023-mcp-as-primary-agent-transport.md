@@ -89,9 +89,11 @@ The calling Claude receives the result as a tool response and proceeds. No subpr
 
 ### Fallback transport: subprocess (CI / headless mode)
 
-When running from CI or any context without an active Claude Code session (no MCP server available), `fp_subprocess.py` is used as before. The fallback is detected by checking whether the `CLAUDE_CODE_MCP_AVAILABLE` environment variable is set, or by attempting a lightweight MCP ping at engine startup.
+When running from CI or any context without an active Claude Code session (no MCP server available), `fp_subprocess.py` is used as before. The fallback is detected by checking whether `CLAUDE_CODE_SSE_PORT` is set in the environment — this is the canonical indicator that an active Claude Code session exists (see ADR-024 §Transport selection for the definitive detection logic).
 
 The subprocess path is not deprecated — it is the correct transport for headless/CI contexts where no interactive session exists. It is wrong only as the *primary* transport when a better one is available.
+
+**Note (ADR-024 update):** ADR-024 strengthens this: for F_P actor invocations specifically, the fallback is not subprocess but **skip** (return `StepResult(skipped=True)`). The subprocess path for F_P (`claude -p`) is removed entirely. ADR-024 is the authority for F_P transport; ADR-023 remains the authority for *why* MCP is primary.
 
 ### F_D evaluate: no change
 
@@ -100,17 +102,13 @@ Deterministic checks (pytest, lint, type_check, coverage) run as direct subproce
 ### Transport selection
 
 ```python
-def select_transport() -> Literal["mcp", "subprocess"]:
-    """Select F_P invocation transport.
+def _mcp_available() -> bool:
+    """Canonical MCP availability check — shared by ADR-023 and ADR-024.
 
-    MCP preferred when:
-      - Running from within a Claude Code session (CLAUDE_CODE_SSE_PORT set, or MCP server reachable)
-      - @steipete/claude-code-mcp is installed (node_modules present)
-
-    Subprocess fallback when:
-      - No MCP server reachable (CI, headless, bare shell)
-      - MCP ping fails at engine startup
+    CLAUDE_CODE_SSE_PORT is set by Claude Code when running inside an active session.
+    This is the single detection point used by all transport selection logic.
     """
+    return bool(os.environ.get("CLAUDE_CODE_SSE_PORT"))
 ```
 
 ---

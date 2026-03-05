@@ -68,6 +68,8 @@ In practice: removing `UserPromptSubmit` and `PostToolUse` from `hooks.json` is 
 
 ### Engine mode — protocol in code
 
+> **Transport update (ADR-024):** The construct step below originally used `claude -p` subprocess. ADR-024 supersedes that: F_P construct is now an MCP actor invocation (when `CLAUDE_CODE_SSE_PORT` is present) or skipped (no fallback subprocess). ADR-024 is the authority for F_P transport; this section describes the *structure* of engine mode, not the transport mechanism.
+
 When `--mode engine` is selected, `gen-iterate` executes:
 
 ```
@@ -80,8 +82,8 @@ python -m genesis evaluate \
 
 The engine is responsible for:
 
-1. **Construct**: Invoke `claude -p` once per edge (F_P construct) to generate/modify the asset
-2. **Evaluate**: Run all F_D checks (pytest, coverage, lint, format, type_check) + F_P agent checks
+1. **Construct**: Invoke F_P actor (MCP, per ADR-024) to generate/modify the asset
+2. **Evaluate**: Run all F_D checks (pytest, coverage, lint, format, type_check)
 3. **Emit**: Write `iteration_completed` event (OL format, ADR-S-011) to `events.jsonl` — Level 4 guaranteed
 4. **Update**: Write trajectory update to the feature vector `.yml`
 5. **Report**: Return JSON result to the calling interactive session
@@ -109,7 +111,7 @@ gen-iterate invokes:
     --edge "design→code" --feature REQ-F-FP-001 --construct
 
 Engine runs:
-  F_P construct (claude -p, 1 LLM call)
+  F_P construct (MCP actor, per ADR-024 — no claude -p)
   F_D evaluate (pytest, coverage, lint, format, type_check)
   emits OL RunEvent to events.jsonl (Level 4)
   updates REQ-F-FP-001.yml trajectory
