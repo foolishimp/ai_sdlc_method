@@ -116,6 +116,22 @@ Teams without that practice will build faster than before, accumulate unverifiab
 
 ---
 
+## Genuine Agility
+
+The most profound consequence of this model is not audit capability or governance compliance. It is agility in the original sense of the word — the actual ability to respond to change.
+
+In conventional development, changing a system is expensive. Requirements must be re-gathered, designs revised, code rewritten, tests updated, deployments re-run. The cost of change increases as a system matures. Organisations learn to resist it.
+
+When the specification is the source of truth and AI does the construction work, this relationship inverts. A regulatory change does not trigger a project. It triggers a specification update. The AI rebuilds what needs rebuilding against the new constraints, the same evaluators confirm conformance, and the audit trail records exactly what changed, why, and when.
+
+A new market opportunity does not require assembling a team and planning a programme. It requires specifying what the new capability must do. The construction follows from the specification, at a speed that was previously impossible.
+
+A single person with a clear specification and governed AI construction has the productive leverage that previously required a team. Not because the work is trivial — because the work is correctly divided: human judgment defines what the system must do, AI constructs it, and the methodology guarantees the result can be accounted for.
+
+This is what genuine agility looks like: not faster sprints, but a fundamentally different relationship with change. The specification is the system. Change the specification, and the system follows.
+
+---
+
 ## Current Status
 
 This methodology is being developed using itself. One specification. Three independent AI development agents working against it simultaneously, each producing a distinct implementation. Each implementation is evaluated against the same formal criteria. The outputs are compared, gaps are identified, and the specification evolves accordingly.
