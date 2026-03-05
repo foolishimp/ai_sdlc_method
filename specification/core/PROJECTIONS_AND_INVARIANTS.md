@@ -1,7 +1,7 @@
 # AI SDLC — Project Genesis: Projections and Invariants
 
-**Version**: 1.1.0
-**Date**: 2026-02-20
+**Version**: 1.2.0
+**Date**: 2026-03-05
 **Extends**: [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
 **Foundation**: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) (§V, §VIII-B)
 
@@ -98,7 +98,98 @@ What projections cannot change:
 
 This strengthens the existing invariant that "every edge has at least one evaluator" (§2.2): not only must every edge have an evaluator, but every edge traversal must produce a classified observation (observer) with a typed output (evaluator), and the output must route through the ambiguity classification. This is what it means for the four primitives to compose into a universal processing unit.
 
-### 2.5 Projections as Functors
+### 2.5 Decomposition Invariant
+
+Every edge that maps source entities to finer-grained target entities must satisfy three conditions. Call this a **decomposition edge** — any edge where the target asset decomposes the source into a more granular representation (requirements → feature_decomposition, feature_decomposition → design, design → module_decomposition, module_decomposition → basis_projections).
+
+**The invariant** (must hold at every decomposition edge):
+
+```
+∀ decomposition edge (S → T) in the graph:
+    ∃ M : S_entities → P(T_entities)          // n-n mapping: each source entity maps to a set of target entities
+    ∧ ∃ DAG_T over T_entities                  // dependency graph at the target level
+    ∧ ∀ t ∈ T_entities:
+        priority(t) = max{ priority(s) : t ∈ M(s) }    // priority propagation through the mapping
+    ∧ ∃ construction_order = topo_sort(DAG_T, priority) // build order = DAG + propagated priority
+```
+
+In plain terms, three things must be established at every decomposition edge before construction proceeds:
+
+| Step | What it produces | Why it matters |
+|------|-----------------|----------------|
+| **Map** | n-n relationship: which source entities produce which target entities | Without mapping, source priorities cannot propagate — target construction order is guessed |
+| **DAG** | Dependency graph at the target level | Without DAG, there is no mechanically correct build order |
+| **Propagate** | `target_priority = max(source_priority)` for all sources that contribute | Without propagation, a critical feature's modules may be deprioritised below medium-priority work |
+
+**Why n-n, not 1-1**: A feature spans multiple modules; a module implements multiple features. A requirement traces to multiple design components; a component implements multiple requirements. The mapping is always many-to-many — any encoding that assumes otherwise will lose priority information at the crossing.
+
+**Why max, not sum or average**: Priority is a bound on urgency, not a quantity. A module that implements one critical feature and five low-priority features is a critical-path dependency. Averaging would obscure this.
+
+**The pattern repeats at every level**:
+
+```
+spec
+  features + dependency_dag + mvp_priority
+       │  M = feature → [design components]
+       ▼
+design
+  components + dependency_dag + propagated_priority
+       │  M = component → [modules]
+       ▼
+module_decomposition
+  modules + dependency_dag + propagated_priority
+       │  M = (feature × module) → [basis_projections]
+       ▼
+basis_projections
+  per-(feature × module) scopes + propagated_priority
+       │  construction_order = topo_sort(module_dag, priority)
+       ▼
+code  (implemented in derived priority order)
+```
+
+At each level, the construction order is mechanically derivable from the mapping + DAG + propagated priorities. Nothing is scheduled by hand. The task ordering at every level **emerges** from the feature priorities at the spec level.
+
+**What projections may vary**: lightweight projections may collapse multiple levels (e.g., spike goes from intent directly to code, skipping decomposition levels). When levels are collapsed, the mapping constraint relaxes — but it does not disappear. Even a single-edge projection must identify *which* source constraints the target must satisfy. The invariant degrades gracefully with projection depth.
+
+**Candidate invariant**: *At every decomposition edge, the n-n mapping, target DAG, and priority propagation must be explicitly established before construction proceeds. Construction order is derived, never assigned.*
+
+### 2.6 Zoom as Constrained Computation
+
+Zoom (Asset Graph Model §2.5) is formally equivalent to **context density**. `iterate()` is the same function at every zoom level; what changes is what is loaded into `Context[]`.
+
+```
+iterate(intent, {priority_list}  → code)   // zoom-out: feature-level context
+iterate(intent, {module_list}    → code)   // zoom-in:  module-level context
+iterate(intent, {basis_proj}     → code)   // finest:   per-(feature × module) context
+```
+
+These are not three different operations. They are the same `iterate()` call with different context density. The context **constrains** the construction: more decomposition context narrows the possibility space, producing a finer-grained and more constrained output.
+
+**The formal relationship**:
+
+```
+zoom_level(iterate_call) = |decomposition_context loaded into Context[]|
+```
+
+Where `|·|` is the number of decomposition levels present in context. A call with only the priority list has one decomposition level. A call with feature list + module list + basis projections has three.
+
+**Implications**:
+
+1. **There is no separate zoom operation**. Zoom is an artifact of context density. Going from coarse to fine means loading one more level of decomposition context before calling iterate(). No new graph structure. No new function.
+
+2. **The same implementation supports every zoom level**. Any implementation of iterate() that parameterises by context automatically handles all zoom levels. The implementor does not need to choose a fixed granularity.
+
+3. **Coarser context = faster, less constrained construction**. `iterate(intent, {priority_list} → code)` has fewer constraints — the constructor makes more architectural choices implicitly. This is the trade-off of collapsing levels: speed at the cost of constraint surface.
+
+4. **Finer context = slower, more constrained construction**. `iterate(intent, {basis_proj} → code)` is maximally constrained — the constructor is told exactly which feature's scope within which module to implement. The decision space is narrow. The output is predictable.
+
+5. **The task list is a projection of context density**. If the feature priority list is in context, the task order for the iteration session is derivable from it. If the module list is also in context, finer task ordering within each feature is derivable. The task list **self-emerges** from context rather than being manually authored.
+
+**The practical upshot**: a practitioner who wants coarser-grain iteration loads the priority list into context and calls iterate(). A practitioner who wants finer-grain iteration loads the decomposition results into context and calls the same iterate(). The methodology has one verb and one knob — the knob is context density.
+
+**Candidate invariant**: *iterate() is zoom-invariant. Context density is the zoom parameter. The task order at any zoom level is a deterministic projection of the source priorities through the decomposition mappings at that level.*
+
+### 2.7 Projections as Functors
 
 A projection is a functor: `Functor(Spec, Encoding) → Executable Methodology` (Asset Graph Model §2.9).
 
@@ -116,7 +207,7 @@ This explains why the five things that can vary (§2.2) are precisely the encodi
 
 And why the four things that cannot vary are the functor's preconditions — without a graph there is no domain, without iteration there is no application, without evaluation there is no classification, without context there is no constraint surface. Remove any one and the functor is undefined.
 
-Named profiles (§3.2) are named encodings. Zoom operations (Asset Graph Model §2.5) are encoding refinements — making implicit functional units explicit. The natural transformation η between categories (F_D → F_P → F_H) is the IntentEngine's escalation mechanism — the functor adapts its encoding when ambiguity exceeds the current category's capacity.
+Named profiles (§3.2) are named encodings. Zoom operations (Asset Graph Model §2.5, and §2.6 above) are context density adjustments — loading more decomposition levels into Context[] makes implicit functional units explicit. The natural transformation η between categories (F_D → F_P → F_H) is the IntentEngine's escalation mechanism — the functor adapts its encoding when ambiguity exceeds the current category's capacity.
 
 ---
 
@@ -739,11 +830,13 @@ This gives a partial order on projections. The full SDLC graph is the top elemen
 
 | Asset Graph Model section | What this document adds |
 |--------------------------|------------------------|
-| §2.5 Graph Scaling (Zoom) | Generalised to projections — zoom is one dimension of four |
+| §2.5 Graph Scaling (Zoom) | Generalised to projections — zoom is one dimension of four; formalised as context density (§2.6) |
 | §3.3 Convergence | Extended to time-boxing and question-answered criteria |
 | §6 Feature Vectors | Generalised to multiple vector types with spawning and fold-back |
 | §7.1 Beyond Testing | Discovery/spike/PoC vectors formalise the "discover" phase |
 | §7.4 Self-Maintaining Specification | Fold-back enriches Context[] — the specification learns from exploration |
+| *(new)* Decomposition edges | §2.5: n-n mapping + DAG + priority propagation invariant at every decomposition edge |
+| *(new)* Zoom as context | §2.6: zoom-invariant iterate(); context density is the zoom parameter; task order self-emerges |
 
 ### 10.2 What This Does Not Change
 
@@ -779,7 +872,11 @@ The formal system is a **generator of valid methodologies**, not a single method
 
 **Projection profiles** are named configurations for common use cases: full, standard, poc, spike, hotfix, minimal. They compose hierarchically following the constraint accumulation principle.
 
-Four primitives. One operation. Valid projections at every scale.
+**The Decomposition Invariant** (§2.5): At every edge that maps source entities to target entities, three things must be established — the n-n mapping, the target dependency DAG, and priority propagation (`target_priority = max(source_priority)`). The construction order at every level is a deterministic topological sort of the target DAG weighted by propagated priorities. Nothing is scheduled by hand; task ordering self-emerges from the spec's feature priorities.
+
+**Zoom as Constrained Computation** (§2.6): iterate() is zoom-invariant. Context density is the zoom parameter. `iterate(intent, {priority_list} → code)` and `iterate(intent, {module_list} → code)` are the same function call at different context densities — not two different operations. Loading more decomposition levels into Context[] zooms in; removing them zooms out. The task list at any zoom level is a deterministic projection of source priorities through the decomposition mappings at that level.
+
+Four primitives. One operation. Valid projections at every scale. Task order derived, never assigned.
 
 ---
 
