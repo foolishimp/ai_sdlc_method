@@ -62,11 +62,24 @@ PLUGIN_JSON_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN
 GRAPH_TOPOLOGY_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/config/graph_topology.yml"
 BOOTLOADER_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/specification/core/GENESIS_BOOTLOADER.md"
 COMMANDS_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/commands"
+ENGINE_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/imp_claude/code/genesis"
 
 COMMANDS = [
     "gen-checkpoint", "gen-escalate", "gen-gaps", "gen-init",
     "gen-iterate", "gen-release", "gen-review", "gen-spawn",
     "gen-spec-review", "gen-start", "gen-status", "gen-trace", "gen-zoom",
+]
+
+ENGINE_FILES = [
+    "__init__.py", "__main__.py", "config_loader.py", "contracts.py",
+    "dispatch.py", "engine.py", "fd_classify.py", "fd_emit.py",
+    "fd_evaluate.py", "fd_route.py", "fd_sense.py", "fd_spawn.py",
+    "fp_functor.py", "functor.py", "models.py", "ol_event.py",
+    "proc.py", "workspace_state.py",
+]
+
+ENGINE_SCRIPTS = [
+    "scripts/migrate_events_v1_to_v2.py",
 ]
 
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
@@ -552,6 +565,43 @@ def setup_commands(target: Path, dry_run: bool) -> bool:
     return True
 
 
+def setup_engine(target: Path, dry_run: bool) -> bool:
+    """Fetch genesis engine source from GitHub into .genesis/genesis/.
+
+    Installed at: .genesis/genesis/
+    Invoked as:   PYTHONPATH=.genesis python -m genesis evaluate ...
+    """
+    engine_dir = target / ".genesis" / "genesis"
+
+    if dry_run:
+        print_info(f"Would fetch {len(ENGINE_FILES)} engine files from GitHub → .genesis/genesis/")
+        return True
+
+    engine_dir.mkdir(parents=True, exist_ok=True)
+    (engine_dir / "scripts").mkdir(exist_ok=True)
+
+    failed = []
+    for filename in ENGINE_FILES + ENGINE_SCRIPTS:
+        url = f"{ENGINE_URL_BASE}/{filename}"
+        try:
+            with urllib.request.urlopen(url, timeout=10) as r:
+                content = r.read().decode("utf-8")
+            dest = engine_dir / filename
+            dest.unlink(missing_ok=True)
+            dest.write_text(content)
+        except Exception as e:
+            print_warn(f"Could not fetch {filename}: {e}")
+            failed.append(filename)
+
+    installed = len(ENGINE_FILES) + len(ENGINE_SCRIPTS) - len(failed)
+    total = len(ENGINE_FILES) + len(ENGINE_SCRIPTS)
+    print_ok(f"Installed {installed}/{total} engine files from GitHub → .genesis/genesis/")
+    if failed:
+        print_warn(f"Failed: {', '.join(failed)}")
+
+    return True
+
+
 def setup_bootloader(target: Path, dry_run: bool) -> bool:
     """Append Genesis Bootloader to CLAUDE.md (idempotent)."""
     claude_md = target / "CLAUDE.md"
@@ -686,6 +736,19 @@ def cmd_verify(args) -> int:
         print_error(f"Commands: {len(present)}/{len(COMMANDS)} present — missing: {', '.join(missing)}")
         failed += 1
 
+    # Engine check
+    engine_dir = target / ".genesis" / "genesis"
+    engine_main = engine_dir / "__main__.py"
+    if engine_main.exists():
+        engine_files_present = sum(1 for f in ENGINE_FILES if (engine_dir / f).exists())
+        total = len(ENGINE_FILES) + len(ENGINE_SCRIPTS)
+        print_ok(f"Engine: {engine_files_present}/{len(ENGINE_FILES)} files in .genesis/genesis/")
+        print_info("  Run: PYTHONPATH=.genesis python -m genesis evaluate ...")
+        passed += 1
+    else:
+        print_error("Engine not installed — .genesis/genesis/__main__.py missing")
+        failed += 1
+
     # Version stamp
     stamp = commands_dir / ".genesis-installed"
     if stamp.exists():
@@ -786,6 +849,12 @@ def cmd_install(args) -> int:
         success = False
     print()
 
+    # 2c. Install genesis engine
+    print("--- Engine ---")
+    if not setup_engine(target, args.dry_run):
+        success = False
+    print()
+
     # 3. Create workspace
     if not args.no_workspace:
         print("--- Workspace (v2) ---")
@@ -814,6 +883,7 @@ def cmd_install(args) -> int:
         print("  What was created:")
         print("    .claude/settings.json          Plugin config (GitHub marketplace)")
         print("    .claude/commands/gen-*.md      Slash commands (fetched from GitHub)")
+        print("    .genesis/genesis/              Engine source (PYTHONPATH=.genesis python -m genesis)")
         if not args.no_workspace:
             print("    .ai-workspace/events/          Event log (source of truth)")
             print("    .ai-workspace/features/        Feature vector storage")
