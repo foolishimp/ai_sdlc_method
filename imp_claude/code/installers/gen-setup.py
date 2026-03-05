@@ -39,6 +39,7 @@ What gets created:
         INTENT.md                  - Intent template
 """
 
+import os
 import sys
 import json
 import argparse
@@ -60,7 +61,14 @@ MARKETPLACE_NAME = "genesis"
 PLUGIN_BASE = f"imp_claude/code/.claude-plugin/plugins/genesis"
 PLUGIN_JSON_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/plugin.json"
 GRAPH_TOPOLOGY_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/config/graph_topology.yml"
-BOOTLOADER_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/specification/GENESIS_BOOTLOADER.md"
+BOOTLOADER_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/specification/core/GENESIS_BOOTLOADER.md"
+COMMANDS_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/commands"
+
+COMMANDS = [
+    "gen-checkpoint", "gen-escalate", "gen-gaps", "gen-init",
+    "gen-iterate", "gen-release", "gen-review", "gen-spawn",
+    "gen-spec-review", "gen-start", "gen-status", "gen-trace", "gen-zoom",
+]
 
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
@@ -508,6 +516,55 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
     return True
 
 
+def setup_commands(target: Path, dry_run: bool) -> bool:
+    """Install /gen-* commands into .claude/commands/.
+
+    Dev repo (local plugin exists): create symlinks → plugin source.
+    Production install: fetch each command from GitHub and write files.
+    """
+    commands_dir = target / ".claude" / "commands"
+
+    # Detect dev repo: plugin commands directory exists locally
+    local_commands = Path(__file__).resolve().parent.parent / ".claude-plugin" / "plugins" / "genesis" / "commands"
+
+    if local_commands.exists():
+        # Dev repo — symlink mode
+        if dry_run:
+            print_info(f"Would create {len(COMMANDS)} symlinks in .claude/commands/ → local plugin")
+            return True
+        commands_dir.mkdir(parents=True, exist_ok=True)
+        for cmd in COMMANDS:
+            link = commands_dir / f"{cmd}.md"
+            target_cmd = local_commands / f"{cmd}.md"
+            if link.exists() or link.is_symlink():
+                link.unlink()
+            rel = Path(os.path.relpath(target_cmd, link.parent))
+            link.symlink_to(rel)
+        print_ok(f"Symlinked {len(COMMANDS)} commands → {local_commands}")
+    else:
+        # Production — fetch from GitHub
+        if dry_run:
+            print_info(f"Would fetch {len(COMMANDS)} commands from GitHub")
+            return True
+        commands_dir.mkdir(parents=True, exist_ok=True)
+        failed = []
+        for cmd in COMMANDS:
+            url = f"{COMMANDS_URL_BASE}/{cmd}.md"
+            try:
+                with urllib.request.urlopen(url, timeout=10) as r:
+                    content = r.read().decode("utf-8")
+                (commands_dir / f"{cmd}.md").write_text(content)
+            except Exception as e:
+                print_warn(f"Could not fetch {cmd}.md: {e}")
+                failed.append(cmd)
+        installed = len(COMMANDS) - len(failed)
+        print_ok(f"Installed {installed}/{len(COMMANDS)} commands from GitHub")
+        if failed:
+            print_warn(f"Failed: {', '.join(failed)}")
+
+    return True
+
+
 def setup_bootloader(target: Path, dry_run: bool) -> bool:
     """Append Genesis Bootloader to CLAUDE.md (idempotent)."""
     claude_md = target / "CLAUDE.md"
@@ -631,6 +688,17 @@ def cmd_verify(args) -> int:
             print_error("CLAUDE.md missing — re-run installer")
             failed += 1
 
+    # Commands check
+    commands_dir = target / ".claude" / "commands"
+    present = [cmd for cmd in COMMANDS if (commands_dir / f"{cmd}.md").exists()]
+    if len(present) == len(COMMANDS):
+        print_ok(f"Commands: {len(COMMANDS)}/{len(COMMANDS)} gen-*.md present")
+        passed += 1
+    else:
+        missing = [cmd for cmd in COMMANDS if cmd not in present]
+        print_error(f"Commands: {len(present)}/{len(COMMANDS)} present — missing: {', '.join(missing)}")
+        failed += 1
+
     # Check settings content
     settings_file = target / ".claude" / "settings.json"
     if settings_file.exists():
@@ -718,6 +786,12 @@ def cmd_install(args) -> int:
         success = False
     print()
 
+    # 2b. Install /gen-* commands
+    print("--- Commands ---")
+    if not setup_commands(target, args.dry_run):
+        success = False
+    print()
+
     # 3. Create workspace
     if not args.no_workspace:
         print("--- Workspace (v2) ---")
@@ -745,6 +819,7 @@ def cmd_install(args) -> int:
         print()
         print("  What was created:")
         print("    .claude/settings.json          Plugin config (GitHub marketplace)")
+        print("    .claude/commands/gen-*.md      Slash commands (symlinked or fetched)")
         if not args.no_workspace:
             print("    .ai-workspace/events/          Event log (source of truth)")
             print("    .ai-workspace/features/        Feature vector storage")

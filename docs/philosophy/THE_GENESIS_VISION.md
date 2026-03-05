@@ -95,7 +95,31 @@ The table below shows what each stage of the delivery lifecycle looks like under
 
 ---
 
-## VII. Integrity by Construction: The Hard Ledger
+## VII. Genuine Agility: The Cost of Change Inverts
+
+The most profound consequence of this model is not audit capability or compliance. It is agility in the original sense of the word—the actual ability to respond to change.
+
+In conventional development, changing a system is expensive. The cost of change increases as a system matures. Organizations learn to resist it.
+
+When the specification is the source of truth and the AI SDLC does the construction, this relationship inverts. A regulatory change does not trigger a project; it triggers a specification update. The engine rebuilds what needs rebuilding against the new constraints, the evaluators confirm conformance, and the audit trail records exactly what changed. 
+
+The specification is the system. Change the specification, and the system follows.
+
+---
+
+## VIII. What This Is and Is Not
+
+Spec-Driven Development is **not anti-AI**. It depends on AI to construct code, evaluate quality, and run automated checks. AI is faster and more capable inside this process than outside it.
+
+It is **not bureaucracy**. It does not add review meetings, sign-off chains, or documentation overhead for its own sake. The gates are automated where automation is sufficient and human where judgment is genuinely required.
+
+It is **not a replacement for skilled people**. It is the process that makes skilled people more effective—because they spend their time on specification, architecture, and judgment rather than on prompt iteration and rework.
+
+What it is: **total visibility and control over what AI is building, why it is building it, and whether the result matches what the organization asked for.** 
+
+---
+
+## IX. Integrity by Construction: The Hard Ledger
 
 The Genesis Vision replaces "trust" with **Verification**. 
 
@@ -108,14 +132,44 @@ The methodology is a hard engineering ledger that proves the chain of custody fr
 
 ---
 
-## VIII. Conclusion: The Competitive Advantage of Precision
+## Appendix: This Is Not a Prompt
 
-As AI removes the scarcity of code construction, the bottleneck of software engineering shifts to the **quality of specification**.
+A reasonable question is: what makes Spec-Driven Development different from sophisticated prompt engineering? The answer is the nature of the documents that govern AI behavior.
 
-*   Organizations with a rigorous specification practice will build faster, with zero-finding audits, and with production systems that stay aligned to their purpose.
-*   Organizations without this practice will accumulate Generative Debt at a speed that will eventually bankrupt their technical agility.
+A prompt is a natural language instruction. It is interpreted by the model, which applies its best judgment about intent. Two prompts that appear similar can produce meaningfully different outputs.
 
-The **Genesis Vision** is the realization that **The Specification is the System.** The code is a commodity. The intent is the asset.
+A constraint document is different in kind. It specifies rules that must be satisfied, stated precisely enough that a system can check compliance automatically. The model is not interpreting intent—it is working within a defined space and will be evaluated against defined criteria. 
+
+Below are two fragments from this project's constraint documents, demonstrating the difference.
+
+### Fragment 1: The Completeness Gate (ADR-S-013)
+This document governs what it means for the feature planning stage to be complete. This is the formal convergence rule.
+
+> **The feature decomposition stage converges when, and only when, two conditions are both true:**
+>
+> **Condition A — Coverage Check (automated):** Every requirement identifier defined in the requirements document must appear in at least one feature's declared scope. This is computed automatically. If any requirement is missing, the check fails. There is no partial credit.
+>
+> **Condition B — Human Approval:** A human reviewer must explicitly confirm that the feature list is the correct decomposition of the requirements—not merely complete, but correctly structured, correctly ordered, and correctly scoped to the agreed delivery boundary.
+
+This is not a guideline. There is no version of this methodology where a project skips the coverage check because the team felt confident. The gate is absolute.
+
+### Fragment 2: The Execution Contract (ADR-S-015)
+This document governs how work is recorded at runtime. Every stage transition is a transaction.
+
+> **Every stage transition opens a transaction when it begins and closes it only when work is confirmed complete. The closing record is the commit point.**
+>
+> | Phase | What is recorded | Meaning |
+> |---|---|---|
+> | Begin | START — input artifacts fingerprinted | Work has commenced; prior state is on record |
+> | Execute | Nothing | Work is in progress; no commitment yet |
+> | Accept | COMPLETE — output artifacts fingerprinted | Work is confirmed; this is the point of record |
+> | Reject | FAIL or ABORT | Prior state remains authoritative |
+>
+> *An artifact written to the system without a corresponding COMPLETE record is uncommitted work. On restart, the system detects the open transaction, compares the current state of every affected file against the fingerprints recorded at the start, and flags any file that was modified but never committed.*
+
+This is not a request for the AI to "be careful." It is a hard architectural boundary enforced mathematically by SHA-256 hashes. If the file changes by a single character without the commit record, it is invalid.
+
+That is the difference between a prompt and a formal constraint.
 
 ---
 
