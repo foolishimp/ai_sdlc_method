@@ -78,7 +78,11 @@ This matters for operational resilience. The system does not wait for a user com
 
 ## Risk Management for AI Development Itself
 
-There is a specific risk that AI-assisted development introduces that conventional risk frameworks have not yet fully addressed: the AI has no knowledge of your requirements. It is capable, fast, and entirely unaware of what your business actually needs.
+Consider how organisations treat a new hire — even a brilliant graduate from a top institution. Capable. Intelligent. Full of energy. You would not hand them the keys to the business and say "go for it." You would give them context, constraints, and defined expectations. You would review their work. You would not promote them to senior leadership until they had demonstrated judgment in your specific environment — because raw intelligence is not the same as knowing your business.
+
+An LLM is a brilliant graduate who has read everything ever written, knows every programming language, and has zero knowledge of your organisation. It will answer every question with confidence. It will never say "I don't know your constraints." It will produce something that looks exactly right, even when it isn't — because it has no way to know the difference.
+
+Prompt-driven development is handing that graduate the keys and asking them to go for it. There is a specific risk here that conventional frameworks have not yet fully addressed: the AI has no knowledge of your requirements. It is capable, fast, and entirely unaware of what your business actually needs.
 
 In prompt-driven development, the developer's skill at articulating requirements to the model determines what gets built. That is not a repeatable, auditable, or scalable governance mechanism. It is a key-person dependency dressed up as productivity tooling.
 
