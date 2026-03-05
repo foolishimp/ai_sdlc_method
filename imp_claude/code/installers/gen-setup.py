@@ -536,7 +536,10 @@ def setup_commands(target: Path, dry_run: bool) -> bool:
         try:
             with urllib.request.urlopen(url, timeout=10) as r:
                 content = r.read().decode("utf-8")
-            (commands_dir / f"{cmd}.md").write_text(content)
+            dest = commands_dir / f"{cmd}.md"
+            if dest.is_symlink():
+                dest.unlink()  # break symlink before writing — don't write through to source
+            dest.write_text(content)
         except Exception as e:
             print_warn(f"Could not fetch {cmd}.md: {e}")
             failed.append(cmd)
