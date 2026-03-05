@@ -8,7 +8,8 @@
 ## MVP — Wire gen-iterate → Engine (ADR-021)
 
 **Priority**: CRITICAL — blocks dogfood
-**Status**: Not Started
+**Status**: Done — 2026-03-05
+**Commit**: `3c18488`
 **Release Target**: MVP
 
 **Description**:
@@ -29,7 +30,8 @@
 ## MVP — Emit edge_started + Align Gap Detection (Codex item 3)
 
 **Priority**: HIGH — recovery correctness
-**Status**: Not Started
+**Status**: Done — 2026-03-05
+**Commit**: `3c18488`
 **Release Target**: MVP
 
 **Description**:
