@@ -226,10 +226,11 @@ def _build_config(args: argparse.Namespace, workspace: Path) -> EngineConfig | N
         graph_topology=graph_topology,
         model=args.model,
         max_iterations_per_edge=max_iters,
-        claude_timeout=getattr(args, "timeout", 120),
+        claude_timeout=getattr(args, "timeout", 300),
         deterministic_only=getattr(args, "deterministic_only", False),
         fd_timeout=getattr(args, "fd_timeout", 120),
         stall_timeout=getattr(args, "stall_timeout", 60),
+        budget_usd=getattr(args, "budget_usd", 2.0),
     )
 
 
@@ -543,6 +544,13 @@ def _add_shared_args(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=60,
         help="Stall detection timeout for F_P calls in seconds (default: 60, 0=disable)",
+    )
+    parser.add_argument(
+        "--budget-usd",
+        type=float,
+        default=2.0,
+        dest="budget_usd",
+        help="Max spend per construct invocation in USD (default: 2.0)",
     )
 
 

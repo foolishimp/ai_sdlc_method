@@ -27,7 +27,7 @@ from .config_loader import load_yaml, resolve_checklist
 from .fd_emit import emit_event, make_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
-from .fp_construct import batched_check_results, run_construct
+from .fp_construct import HEADLESS_ARTIFACT, batched_check_results, run_construct, run_construct_headless
 from .fp_evaluate import run_check as fp_run_check
 from .models import (
     CheckOutcome,
@@ -49,11 +49,12 @@ class EngineConfig:
     graph_topology: dict
     model: str = "sonnet"
     max_iterations_per_edge: int = 10
-    claude_timeout: int = 120
+    claude_timeout: int = 300  # headless sessions need more time than -p calls
     deterministic_only: bool = False
     fd_timeout: int = 120
     stall_timeout: int = 60
     sanitize_env: bool = True
+    budget_usd: float = 2.0
 
 
 @dataclass
@@ -77,6 +78,7 @@ def iterate_edge(
     iteration: int = 1,
     construct: bool = False,
     output_path: Path | None = None,
+    prior_failures: list[str] | None = None,
 ) -> IterationRecord:
     """Run one iteration on a single edge.
 
@@ -100,23 +102,24 @@ def iterate_edge(
 
     # 1. F_P: Construct artifact (when enabled)
     if construct:
-        construct_result = run_construct(
+        # Headless mode: full Claude Code session with tool access.
+        # Claude reads/writes files directly in the workspace.
+        # F_D evaluates filesystem state after the session completes.
+        construct_result = run_construct_headless(
+            workspace_path=config.workspace_path,
             edge=edge,
-            asset_content=asset_content,
-            context=context,
+            feature_id=feature_id,
             edge_config=edge_config,
             constraints=config.constraints,
+            prior_failures=prior_failures,
             model=config.model,
+            budget_usd=getattr(config, "budget_usd", 2.0),
             timeout=config.claude_timeout,
-            claude_cmd="claude",
         )
 
         # Emit fp_failure event on construct failure (REQ-ROBUST-007)
         if not construct_result.artifact and construct_result.source_findings:
-            classification = "UNKNOWN"
-            for finding in construct_result.source_findings:
-                classification = finding.get("classification", "UNKNOWN")
-                break
+            classification = construct_result.source_findings[0].get("classification", "UNKNOWN")
             emit_event(
                 events_path,
                 make_event(
@@ -132,13 +135,13 @@ def iterate_edge(
                 ),
             )
 
-        # Write constructed artifact to filesystem (REQ-BR-FPC-001)
-        if construct_result.artifact and output_path:
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(construct_result.artifact)
-
-        # Use constructed artifact for evaluation instead of input
-        if construct_result.artifact:
+        # Headless: files written to disk — asset_content stays as-is for
+        # agent checks; F_D checks evaluate the filesystem directly.
+        # JSON-schema mode: write artifact string to output_path if provided.
+        if construct_result.artifact and construct_result.artifact != HEADLESS_ARTIFACT:
+            if output_path:
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path.write_text(construct_result.artifact)
             asset_content = construct_result.artifact
 
     # 2. F_D: Resolve checklist
@@ -350,6 +353,7 @@ def run_edge(
 
     edge_config = load_yaml(edge_config_path)
     records = []
+    prior_failures: list[str] = []
 
     for i in range(1, config.max_iterations_per_edge + 1):
         record = iterate_edge(
@@ -362,11 +366,23 @@ def run_edge(
             iteration=i,
             construct=construct,
             output_path=output_path,
+            prior_failures=prior_failures if prior_failures else None,
         )
         records.append(record)
 
-        # If construct produced an artifact, use it for subsequent iterations
-        if record.construct_result and record.construct_result.artifact:
+        # Collect failures for the next iteration's construct prompt
+        prior_failures = [
+            f"{cr.name}: {cr.message[:300]}"
+            for cr in record.evaluation.checks
+            if cr.required and cr.outcome.value in ("fail", "error") and cr.message
+        ]
+
+        # JSON-schema mode: update asset_content from constructed string artifact
+        if (
+            record.construct_result
+            and record.construct_result.artifact
+            and record.construct_result.artifact != HEADLESS_ARTIFACT
+        ):
             asset_content = record.construct_result.artifact
 
         if record.evaluation.converged:

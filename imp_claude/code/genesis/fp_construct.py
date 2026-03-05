@@ -13,6 +13,7 @@ Design reference: ADR-020, FUNCTOR_FRAMEWORK_DESIGN.md Appendix A.
 import json
 import shutil
 import time
+from pathlib import Path
 
 from .fp_subprocess import run_claude_isolated
 from .models import CheckOutcome, CheckResult, ConstructResult, ResolvedCheck
@@ -20,6 +21,9 @@ from .models import CheckOutcome, CheckResult, ConstructResult, ResolvedCheck
 CLAUDE_CMD = "claude"
 
 MAX_RETRIES = 2
+
+# Sentinel value: headless session ran, files written to disk (not returned as string)
+HEADLESS_ARTIFACT = "[headless]"
 
 _RESPONSE_SCHEMA = json.dumps(
     {
@@ -145,6 +149,150 @@ def run_construct(
 
     # Should not reach here, but defensive
     return ConstructResult(artifact="", model=model)
+
+
+def run_construct_headless(
+    workspace_path: Path,
+    edge: str,
+    feature_id: str,
+    edge_config: dict,
+    constraints: dict | None = None,
+    prior_failures: list[str] | None = None,
+    model: str = "sonnet",
+    budget_usd: float = 2.0,
+    timeout: int = 300,
+    claude_cmd: str = CLAUDE_CMD,
+) -> ConstructResult:
+    """Call Claude Code as a full headless session to construct/fix artifacts.
+
+    Unlike run_construct() which uses --json-schema, this gives Claude full
+    tool access (read/write files, bash) to do real code work. The "artifact"
+    is the filesystem state after the session completes — Claude writes files
+    directly to the workspace.
+
+    Used for code edges where the LLM needs to actually modify files.
+    F_D evaluates the filesystem state after this returns.
+    """
+    if not shutil.which(claude_cmd):
+        return ConstructResult(
+            artifact="",
+            model=model,
+            source_findings=[
+                {
+                    "description": f"Claude CLI not found: {claude_cmd}",
+                    "classification": "TOOL_MISSING",
+                }
+            ],
+        )
+
+    prompt = _build_headless_prompt(edge, feature_id, edge_config, constraints, prior_failures)
+
+    cmd = [
+        claude_cmd,
+        "--print",
+        "--model", model,
+        f"--max-budget-usd={budget_usd}",
+        prompt,
+    ]
+
+    start_ms = int(time.time() * 1000)
+    result = run_claude_isolated(
+        cmd,
+        timeout=timeout,
+        stall_timeout=120,
+        cwd=str(workspace_path),
+    )
+    duration_ms = int(time.time() * 1000) - start_ms
+
+    if result.timed_out:
+        classification = "STALL" if result.stall_killed else "TIMEOUT"
+        return ConstructResult(
+            artifact="",
+            model=model,
+            duration_ms=duration_ms,
+            source_findings=[
+                {
+                    "description": f"Session {classification.lower()} after {timeout}s",
+                    "classification": classification,
+                }
+            ],
+        )
+
+    if result.returncode != 0:
+        return ConstructResult(
+            artifact="",
+            model=model,
+            duration_ms=duration_ms,
+            source_findings=[
+                {
+                    "description": f"Session failed (exit {result.returncode}): {result.stderr[:200]}",
+                    "classification": "SESSION_FAILED",
+                }
+            ],
+        )
+
+    # Success — Claude wrote files to the workspace via its tools.
+    # Return sentinel artifact: files are on disk, not returned as string.
+    return ConstructResult(
+        artifact=HEADLESS_ARTIFACT,
+        model=model,
+        duration_ms=duration_ms,
+        traceability=[feature_id],
+        source_findings=[],
+    )
+
+
+def _build_headless_prompt(
+    edge: str,
+    feature_id: str,
+    edge_config: dict,
+    constraints: dict | None,
+    prior_failures: list[str] | None,
+) -> str:
+    """Build the task prompt for a headless Claude session."""
+    parts = [
+        f"You are a software construction agent working on the [{edge}] edge for feature {feature_id}.",
+        "",
+        "EDGE CRITERIA — your output must satisfy ALL of these:",
+    ]
+
+    checklist = edge_config.get("checklist", [])
+    for check in checklist:
+        ctype = check.get("type", "")
+        name = check.get("name", "unnamed")
+        criterion = check.get("criterion", "")
+        tag = "[F_D]" if ctype == "deterministic" else "[F_P]" if ctype == "agent" else "[F_H]"
+        parts.append(f"  {tag} {name}: {criterion}")
+
+    parts.append("")
+
+    if prior_failures:
+        parts.extend([
+            "FAILING CHECKS FROM LAST EVALUATION — fix these:",
+            *[f"  - {f}" for f in prior_failures],
+            "",
+        ])
+    else:
+        parts.extend([
+            "First iteration — construct an artifact that satisfies all criteria above.",
+            "",
+        ])
+
+    if constraints:
+        project = constraints.get("project", {})
+        if project.get("language"):
+            parts.append(f"Language: {project['language']}")
+        if project.get("name"):
+            parts.append(f"Project: {project['name']}")
+        parts.append("")
+
+    parts.extend([
+        "Use your tools to read the relevant files, understand what is needed, and fix or create them.",
+        "Work autonomously — do not ask for confirmation.",
+        "When done, all F_D checks must pass (run the tests yourself to verify before finishing).",
+    ])
+
+    return "\n".join(parts)
 
 
 def batched_check_results(

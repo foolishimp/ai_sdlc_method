@@ -128,27 +128,26 @@ def run_claude_isolated(
 
     def watchdog():
         nonlocal timed_out, stall_killed
-        last_activity = time.time()
 
         while proc.poll() is None:
             time.sleep(2)
             now = time.time()
 
-            # Wall timeout
+            # Wall timeout (always enforced)
             if now - start > timeout:
                 timed_out = True
                 _kill_process_group(proc)
                 return
 
-            # Stall detection (if enabled)
-            if stall_timeout > 0 and now - last_activity > stall_timeout:
+            # Stall timeout = wall timeout for claude -p calls.
+            # True output-based stall detection requires reading stdout in the
+            # watchdog thread, which conflicts with communicate(). Use wall
+            # timeout as the hard cap instead — set it appropriately per call.
+            if stall_timeout > 0 and now - start > stall_timeout:
                 stall_killed = True
                 timed_out = True
                 _kill_process_group(proc)
                 return
-
-            # Reset activity timer on any poll cycle where process is active
-            last_activity = now
 
     watcher = threading.Thread(target=watchdog, daemon=True)
     watcher.start()
