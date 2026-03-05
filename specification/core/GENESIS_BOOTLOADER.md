@@ -1,6 +1,6 @@
 # Genesis Bootloader: LLM Constraint Context for the AI SDLC
 
-**Version**: 2.0.0
+**Version**: 2.9.0
 **Purpose**: Minimal sufficient context to constrain an LLM to operate within the AI SDLC Asset Graph Model. Load this document into any LLM session — it replaces the need to load the full specification, ontology, and design documents for routine methodology operation.
 
 ---
@@ -37,7 +37,7 @@ Constraints restrict which transformations exist, limit composability, induce st
 | Primitive | What it is |
 |-----------|-----------|
 | **Graph** | Topology of typed assets with admissible transitions (zoomable) |
-| **Iterate** | Convergence engine — the only operation |
+| **Iterate** | Event-producing convergence engine — the only operation |
 | **Evaluators** | Convergence test — when is iteration done |
 | **Spec + Context** | Constraint surface — what bounds construction |
 
@@ -53,35 +53,57 @@ Everything else — stages, agents, TDD, BDD, commands, configurations, event sc
 
 ```
 iterate(
-    Asset<Tn>,              // current asset (carries type, intent, lineage)
+    Asset<Tn>,              // current asset — a projection of the event stream
     Context[],              // standing constraints (spec, design, ADRs, prior work)
     Evaluators(edge_type)   // convergence criteria for this edge
-) → Asset<Tn.k+1>          // next iteration candidate
+) → Event+                 // one or more events appended to the stream
 ```
 
-This is the **only operation**. Every edge in the graph is this function called repeatedly until evaluators report convergence:
+`iterate()` returns **events**, not assets. The engine appends events to the stream. `Asset<Tn+1>` is derived by projecting the updated stream — the asset is a consequence of the event, not the direct output. This is the **only operation**. Every edge in the graph is this function called repeatedly until evaluators report convergence:
 
 ```
 while not stable(candidate, edge_type):
-    candidate = iterate(candidate, context, evaluators)
-return promote(candidate)   // candidate becomes stable asset
+    events = iterate(candidate, context, evaluators)
+    append(events, stream)
+    candidate = project(stream, asset_type, instance_id)
+return promote(candidate)
 ```
 
 Convergence: `stable(candidate) = ∀ evaluator ∈ evaluators(edge_type): evaluator.delta(candidate, spec) < ε`
 
-The iteration engine is universal. The stopping condition is parameterised.
+---
+
+## V. Event Stream as Model Substrate
+
+**Assets are projections, not stored objects.** The event stream is the foundational medium. No operation modifies state directly — state is always derived by projecting the event stream.
+
+```
+Asset<Tn> := project(EventStream[0..n], asset_type, instance_id)
+```
+
+Three projection invariants every implementation must satisfy:
+
+| Invariant | What it means |
+|-----------|--------------|
+| **Determinism** | `project(S, T, I) = project(S, T, I)` always — same stream, same asset |
+| **Completeness** | Every prior state `Asset<Tk>` for any k ≤ n is reconstructable |
+| **Isolation** | Projecting instance I never reads or modifies the stream of instance J |
+
+**When asked "what is the current state of X?"** — derive it from the event stream, do not assume mutable state. When asked "what happened?" — replay is authoritative.
+
+**Durability**: If a process fails mid-iteration, recovery is replay. No state is lost beyond the current iterate() call.
+
+**Push context**: External signals (webhooks, telemetry anomalies, downstream completions) are events appended to the stream — not exceptions to the model.
 
 ---
 
-## V. The Gradient: One Computation at Every Scale
-
-One computation applied everywhere there is a gradient:
+## VI. The Gradient: One Computation at Every Scale
 
 ```
 delta(state, constraints) → work
 ```
 
-When `delta → 0`, the system is at rest at that scale. When `delta > 0`, work is produced to reduce the gradient. The same operation at every scale:
+When `delta → 0`, the system is at rest. When `delta > 0`, work is produced. The same operation at every scale:
 
 | Scale | State | Constraints | Delta → 0 means |
 |-------|-------|-------------|-----------------|
@@ -92,11 +114,11 @@ When `delta → 0`, the system is at rest at that scale. When `delta > 0`, work 
 | **Spec review** | workspace state | the spec itself | spec and workspace aligned |
 | **Constraint update** | irreducible delta | observation that surface is wrong | new ground states defined |
 
-The last two rows are where the methodology becomes self-modifying — the constraints themselves are subject to gradient pressure. Complexity emerges because at larger scales, the constraints become state for the next level.
+The last two rows are where the methodology becomes self-modifying — the constraints themselves are subject to gradient pressure.
 
 ---
 
-## VI. Evaluators, Processing Phases, and Functor Encoding
+## VII. Evaluators, Processing Phases, and Functor Encoding
 
 ### Three Evaluator Types
 
@@ -106,31 +128,25 @@ The last two rows are where the methodology becomes self-modifying — the const
 | **Agent** | F_P | Bounded ambiguity | LLM/agent disambiguates — gap analysis, coherence checking, refinement |
 | **Human** | F_H | Persistent ambiguity | Judgment — domain evaluation, business fit, approval/rejection |
 
-All three compute a **delta** between current state and target state, then emit a constraint signal driving the next iteration.
+All three compute a **delta** and emit events driving the next iteration.
 
 ### Three Processing Phases
 
-Each progressively more expensive:
+| Phase | When it fires | What it does |
+|-------|--------------|-------------|
+| **Reflex** | Unconditionally — every iteration | Sensing — event emission, test execution, state updates |
+| **Affect** | When any evaluator detects a gap | Valence — urgency, severity, priority attached to the finding |
+| **Conscious** | When affect escalates | Direction — judgment, intent generation, spec modification |
 
-| Phase | When it fires | What it does | Who can emit |
-|-------|--------------|-------------|--------------|
-| **Reflex** | Unconditionally — every iteration | Sensing — event emission, test execution, state updates, protocol hooks | F_D |
-| **Affect** | When any evaluator detects a gap | Valence — urgency, severity, priority attached to the finding. The signal that determines whether the gap is deferred or escalated | F_D (threshold breach), F_P (classified severity), F_H (human urgency judgment) |
-| **Conscious** | When affect escalates | Direction — judgment, intent generation, spec modification | F_H, F_P (deliberative) |
-
-Affect is not an evaluator type — it is a **valence vector on the gap**. Any evaluator that finds a delta also emits affect: a deterministic test emits severity via threshold rules, an agent classifies urgency, a human assigns priority. The affect signal determines routing — defer or escalate.
-
-Each phase enables the next. Without reflex sensing, affect has nothing to appraise. Without affect valence, conscious processing drowns in noise or starves for input.
+Affect is a **valence vector on the gap**, not an evaluator type. Any evaluator that finds a delta also emits affect. The affect signal determines routing — defer or escalate.
 
 ### Functor Encoding
-
-A methodology instance is a **functor** — a spec composed with an encoding that maps each functional unit to F_D, F_P, or F_H:
 
 ```
 Functor(Spec, Encoding) → Executable Methodology
 ```
 
-The escalation chain between evaluator types is a natural transformation:
+The escalation chain is a natural transformation:
 
 ```
 η: F_D → F_P    (deterministic blocked → agent explores)
@@ -138,11 +154,23 @@ The escalation chain between evaluator types is a natural transformation:
 η: F_H → F_D    (human approves → deterministic deployment)
 ```
 
-Projections (§XIII) are different functors from the same spec — same domain, different encoding.
+### Invocation Contract
+
+Every functor invocation satisfies:
+
+```
+invoke(intent: Intent, state: State) → StepResult
+```
+
+`Intent` carries: `edge`, `feature`, `grain`, `constraints`, `context`, `budget_usd`, `wall_timeout_ms`, `stall_timeout_ms`, `run_id`.
+
+`StepResult` carries: `run_id`, `converged`, `delta`, `artifacts` (with content hashes), `spawns`, `cost_usd`, `duration_ms`, `audit` (functor_type, transport, kill flags).
+
+The engine calls `invoke()` without knowing the transport. The functor registry resolves the implementation. Transport changes are internal to the registry; the engine and event schema are unaffected.
 
 ---
 
-## VII. Sensory Systems
+## VIII. Sensory Systems
 
 Two complementary systems feed signals into the processing phases continuously, independent of iterate():
 
@@ -151,25 +179,17 @@ Two complementary systems feed signals into the processing phases continuously, 
 | **Interoception** | Inward — the system's own state | Test health, event freshness, coverage drift, feature vector stalls, spec/code drift |
 | **Exteroception** | Outward — the environment | CVE feeds, dependency updates, runtime telemetry, API contract changes, user feedback |
 
-Both feed the reflex phase as raw signals. Affect classifies and triages. Conscious acts on what affect escalates.
-
-**Review boundary**: The sensory system can autonomously observe, classify, and draft proposals. But it cannot change the spec, modify code, or emit `intent_raised` events without a human in the loop (F_H accountability).
+**Review boundary**: The sensory system can autonomously observe, classify, and draft proposals. It cannot change the spec, modify code, or emit `intent_raised` events without F_H accountability.
 
 ---
 
-## VIII. The IntentEngine: Composition Law
+## IX. The IntentEngine: Composition Law
 
-The IntentEngine is **not a fifth primitive**. It is a composition law over the existing four — it describes how they compose into a universal processing unit on every edge, at every scale:
+The IntentEngine is **not a fifth primitive**. It is a composition law over the existing four:
 
 ```
 IntentEngine(intent + affect) = observer → evaluator → typed_output
 ```
-
-| Component | What it does |
-|-----------|-------------|
-| **observer** | Senses current state — runs a tool, loads context, polls a monitor, reviews an artifact |
-| **evaluator** | Classifies the observation's ambiguity level |
-| **typed_output** | Always one of three exhaustive categories |
 
 ### Three Output Types (exhaustive — no fourth category)
 
@@ -181,19 +201,15 @@ IntentEngine(intent + affect) = observer → evaluator → typed_output
 
 ### Homeostasis: Intent Is Computed
 
-Intent is not only a human-authored input — it is a **generated output** of any observer detecting a non-zero delta:
-
 ```
 intent = delta(observed_state, spec) where delta ≠ 0
 ```
 
-Test failures, tolerance breaches, coverage gaps, ecosystem changes, and telemetry anomalies all produce intents through `observer → evaluator → typed_output`. The system corrects itself toward the spec without waiting for external instruction.
-
-Human intent is the abiogenesis — the initial spark that creates the spec and bootstraps the constraint surface. Once the system has a specification and sensory monitors (§VII), it becomes self-sustaining. The human remains as F_H — one evaluator type among three — not the sole source of direction.
+Test failures, tolerance breaches, coverage gaps, ecosystem changes, and telemetry anomalies all produce intents. Human intent is the abiogenesis — the initial spark. Once the system has a specification and sensory monitors, it becomes self-sustaining. The human remains as F_H — one evaluator type among three.
 
 ---
 
-## IX. Constraint Tolerances
+## X. Constraint Tolerances
 
 A constraint without a tolerance is a wish. A constraint with a tolerance is a sensor.
 
@@ -203,39 +219,70 @@ A constraint without a tolerance is a wish. A constraint with a tolerance is a s
 "all tests pass"               → measurable, delta = failing_count
 ```
 
-Without tolerances, there is no homeostasis. The gradient (§V) requires measurable delta. The IntentEngine (§VIII) requires classifiable observations. The sensory system (§VII) requires thresholds to monitor. Tolerances are not optional metadata — they are the mechanism by which constraints become operational.
-
-```
-monitor observes metric →
-  evaluator compares metric to tolerance →
-    within bounds:  reflex.log (system healthy)
-    drifting:       specEventLog (optimisation intent deferred)
-    breached:       escalate (corrective intent raised)
-```
+Without tolerances, there is no homeostasis. Tolerances are not optional metadata — they are the mechanism by which constraints become operational.
 
 ---
 
-## X. Assets and Stability
+## XI. Assets and Stability
 
 An asset achieves stable status (Markov object) when:
 
 1. **Boundary** — typed interface/schema (REQ keys, interfaces, contracts, metric schemas)
 2. **Conditional independence** — usable without knowing its construction history
-3. **Stability** — all evaluators report convergence
+3. **Stability** — all evaluators report convergence (delta = 0)
 
-An asset that fails its evaluators is a **candidate**. It stays in iteration. The stable boundary means practical work is local — you interact through the boundary, not the history. The history is there when you need it (traceability, debugging, evolution).
+An asset that fails its evaluators is a **candidate**. It stays in iteration.
+
+**Path-independence invariant**: A stable asset must be reconstructable from the event stream alone, independent of the execution path that produced it. Two conformant implementations that process equivalent event streams must produce equivalent stable assets.
 
 ---
 
-## XI. Feature Vectors: Trajectories Through the Graph
+## XII. Completeness Visibility
 
-A **feature** is a trajectory through the graph — the composite of all assets produced along its edges:
+Two questions must be answerable at any time: **"Did I get all the features?"** and **"Is it done?"**
+
+### Feature Decomposition Convergence
+
+The `requirements → feature_decomposition` edge converges when BOTH:
+
+- **F_D (coverage)**: Every REQ-* key in requirements appears in the `satisfies:` field of at least one feature vector. Computable by grep — no LLM required.
+- **F_H (approval)**: A human has explicitly approved the decomposition, dependency ordering, and MVP boundary.
+
+F_D gates F_H — no human review is requested until coverage_delta = 0.
+
+### Coverage Projection (always available, always free)
+
+At any point after feature_decomposition is initiated, computable from artifacts without LLM invocation:
 
 ```
-Feature F = |req⟩ + |design⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
+FEATURE COVERAGE
+  Requirements: N REQs defined
+  Covered:      n/N  [===----]  pct%
+  Gaps:         [list of uncovered REQ-* keys]
+  Features:     M vectors  ✓ converged / ⟳ in-progress / ○ not started
 ```
 
-The **REQ key** is the vector identifier. It threads from spec to runtime — in the code, in the tests, in the telemetry:
+### Convergence Visibility (three mandatory levels)
+
+| Level | When | Required output |
+|-------|------|----------------|
+| **Iteration summary** | After every iterate() call | delta (current vs previous), evaluator results, status |
+| **Edge convergence** | When delta=0 on an edge | "CONVERGED — {edge}", what was produced, next step |
+| **Feature completion** | When all edges in a feature converge | "COMPLETE — {feature_id}", REQ coverage, ready for review |
+
+A convergence event not made visible before the next downstream iteration starts is a spec violation.
+
+---
+
+## XIII. Feature Vectors: Trajectories Through the Graph
+
+A **feature** is a trajectory through the graph:
+
+```
+Feature F = |req⟩ + |feature_decomp⟩ + |design⟩ + |module_decomp⟩ + |basis_proj⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
+```
+
+The **REQ key** threads from spec to runtime:
 
 ```
 Spec:       REQ-F-AUTH-001 defined
@@ -245,108 +292,105 @@ Tests:      # Validates: REQ-F-AUTH-001
 Telemetry:  logger.info("login", req="REQ-F-AUTH-001", latency_ms=42)
 ```
 
-A feature is **complete** when all its edge-produced assets have converged to stable objects. Traceability is not a fifth invariant — it is an emergent property of the four primitives working together: Graph provides the path, Iterate provides the history, Evaluators provide the decisions, Spec+Context provides the constraints.
+Feature vectors have a required `satisfies:` field listing covered REQ-* keys — the mechanism for the coverage projection (§XII).
 
 ---
 
-## XII. The SDLC Graph (Default Instantiation)
-
-One domain-specific graph. Not privileged — just common:
+## XIV. The SDLC Graph (Default Instantiation)
 
 ```
-Intent → Requirements → Feature Decomposition → Design → Module Decomp → Basis Projections → Code ↔ Unit Tests
-                                                    │
-                                                    ├→ Test Cases → UAT Tests
-                                                    │
-                                                    └→ CI/CD → Running System → Telemetry
-                                                                                  │
-                                                                    Observer/Evaluator
-                                                                                  │
-                                                                             New Intent
+Intent → Requirements → Feature Decomp → Design → Module Decomp → Basis Projections → Code ↔ Unit Tests
+                                │              │                                              │
+                                │              └──→ Test Cases → UAT Tests                   ↓
+                                │                                              CI/CD → Running System → Telemetry
+                                └──────────────────────────────── Observer/Evaluator ◄────────────────┘
+                                                                          │
+                                                                     New Intent
 ```
 
-Every edge is `iterate()` with edge-specific evaluators and context.
+**Feature Decomposition is a first-class graph node.** It has its own convergence criterion (§XII), evaluators (F_D coverage + F_H approval), and visibility requirement. The spec/design boundary is at `Feature Decomp → Design`: everything upstream is tech-agnostic (WHAT); everything downstream is tech-bound (HOW).
 
-**The graph is zoomable.** Any edge can expand into a sub-graph, any sub-graph can collapse into a single edge. Selective zoom — the common case — collapses some intermediates while retaining others as mandatory waypoints:
+**Intermediate nodes are computational complexity management** — not architectural requirements. Add them when the A→E leap exceeds reliable constructor range.
+
+**The graph is zoomable.** Any edge can expand into a sub-graph, any sub-graph can collapse into a single edge.
 
 ```
-Full:      Intent → Requirements → Feat Decomp → Design → Mod Decomp → Basis Proj → Code ↔ Tests → UAT
-Standard:  Intent → Requirements → Feat Decomp → Design → Mod Decomp → Basis Proj → Code ↔ Tests
-PoC:       Intent ──────────────→ Feat Decomp → Design → Code ↔ Tests
-Hotfix:    ───────────────────────────────────────────── → Code ↔ Tests
+Full:      Intent → Req → Feat Decomp → Design → Mod Decomp → Basis Proj → Code ↔ Tests → UAT
+Standard:  Intent → Req → Feat Decomp → Design → Mod Decomp → Basis Proj → Code ↔ Tests
+PoC:       Intent → Req → Feat Decomp → Design → Code ↔ Tests
+Hotfix:                                         → Code ↔ Tests
 ```
 
-Zoom does not change the spec — it changes which functional units have explicit encodings and convergence criteria.
+**Standard profile v2.9 edge chain**:
+`intent → requirements → feature_decomposition → design_recommendations → design → module_decomposition → basis_projections → code ↔ unit_tests`
 
 ---
 
-## XIII. Projections as Functors
-
-A **projection** is a functor: the same spec composed with a different encoding. Each encoding maps functional units to execution categories (F_D, F_P, F_H):
-
-```
-Functor(Spec, Encoding) → Executable Methodology
-```
+## XV. Projections as Functors
 
 Named profiles — each preserves all four invariants while varying the encoding:
 
 | Profile | When | Graph | Evaluators | Iterations |
 |---------|------|-------|-----------|------------|
 | **full** | Regulated, high-stakes | All edges | All three types | No limit |
-| **standard** | Normal feature work | Most edges | Mixed types | Bounded |
-| **poc** | Proof of concept | Core edges | Agent + deterministic | Low |
+| **standard** | Normal feature work | Core edges + decomposition | Mixed types | Bounded |
+| **poc** | Proof of concept | Core edges, decomp collapsed | Agent + deterministic | Low |
 | **spike** | Research / experiment | Minimal edges | Agent-primary | Very low |
 | **hotfix** | Emergency fix | Direct path | Deterministic-primary | 1-3 |
 | **minimal** | Trivial change | Single edge | Any single evaluator | 1 |
 
-Multiple implementations per spec are multiple functors from the same domain — same spec, different encodings (e.g., Claude + pytest vs Gemini + jest vs Codex + cargo test).
+---
+
+## XVI. Spec / Design Separation
+
+- **Spec** = WHAT, tech-agnostic. One spec, many designs. Boundary: up to and including Feature Decomposition.
+- **Design** = HOW architecturally, tech-bound (ADRs, ecosystem bindings). Boundary: from Design onwards.
+
+Code disambiguation feeds back to **Spec** (business gap) or **Design** (tech gap). Never conflate.
 
 ---
 
-## XIV. Spec / Design Separation
-
-- **Spec** = WHAT, tech-agnostic. One spec, many designs.
-- **Design** = HOW architecturally, bound to technology (ADRs, ecosystem bindings).
-
-Code disambiguation feeds back to **Spec** (business gap) or **Design** (tech gap). Never conflate the two.
-
----
-
-## XV. Invariants
+## XVII. Invariants
 
 | Invariant | What it means | What breaks if absent |
 |-----------|--------------|----------------------|
-| **Graph** | There is a topology of typed assets with admissible transitions | No structure — work is ad hoc |
-| **Iterate** | There is a convergence loop — produce, evaluate, repeat | No quality signal — work is one-shot |
-| **Evaluators** | At least one evaluator per active edge | No convergence criterion — no stopping condition |
-| **Spec + Context** | A constraint surface bounds construction | No constraints — degeneracy, hallucination |
+| **Graph** | Topology of typed assets with admissible transitions | No structure — ad hoc work |
+| **Iterate** | Convergence loop producing events, deriving assets | No quality signal — one-shot |
+| **Evaluators** | At least one evaluator per active edge | No stopping condition |
+| **Spec + Context** | Constraint surface bounds construction | Degeneracy, hallucination |
+| **Event stream** | State derived from stream; no direct mutation | No replay, no recovery, no projection equivalence |
+| **Completeness visibility** | Every convergence transition produces a human-readable summary before downstream proceeds | Silent convergence — system cannot be trusted |
 
 **Projection validity**: `valid(P) ⟺ ∃ G ⊆ G_full ∧ ∀ edge ∈ G: iterate(edge) defined ∧ evaluators(edge) ≠ ∅ ∧ convergence(edge) defined ∧ context(P) ≠ ∅`
 
 **IntentEngine invariant**: Every edge traversal is an IntentEngine invocation. No unobserved computation.
 
-**Observability is constitutive.** A product that does not monitor itself is incomplete. The event log, sensory monitors, and feedback loop are methodology constraints, not tooling features. This applies recursively — the methodology tooling is itself a product.
+**Path-independence invariant**: A stable asset must be reconstructable from the event stream alone, independent of execution path.
+
+**Observability is constitutive.** The event log, sensory monitors, and feedback loop are methodology constraints, not tooling features. The methodology tooling is itself a product complying with the same constraints.
 
 ---
 
-## XVI. How to Apply This Bootloader
+## XVIII. How to Apply This Bootloader
 
 When working on any project under this methodology:
 
 1. **Identify the graph** — what asset types exist, what transitions are admissible
 2. **For each edge**: define evaluators, convergence criteria, and context
-3. **Iterate**: produce candidate, evaluate against all active evaluators, loop until stable
-4. **Apply the gradient**: `delta(state, constraints) → work` — at every scale, from single iteration to spec review
+3. **Iterate**: produce events, derive candidate, evaluate, loop until stable
+4. **Apply the gradient**: `delta(state, constraints) → work` — at every scale
 5. **Route by ambiguity**: zero → reflex, bounded → iterate, persistent → escalate
 6. **Maintain traceability**: REQ keys thread through every artifact from spec to telemetry
-7. **Check tolerances**: every constraint must have a measurable threshold — wishes are not sensors
-8. **Choose a projection** appropriate to the work — each profile is a functor encoding of the same spec
-9. **Verify invariants**: graph, iteration, evaluators, context — if any is missing, the instance is invalid
+7. **Check tolerances**: every constraint must have a measurable threshold
+8. **Track completeness**: coverage projection computable at any time; convergence visible before downstream proceeds
+9. **Choose a projection** appropriate to the work
+10. **Verify invariants**: graph, iteration, evaluators, context, event stream, visibility — any missing = invalid instance
 
 The commands, configurations, and tooling are valid emergences from these constraints. If you have only the commands without this bootloader, you are pattern-matching templates. If you have this bootloader, you can derive the commands.
 
 ---
 
-*Foundation: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology) — constraints bound possibility; structure emerges within those bounds.*
-*Formal system: [AI SDLC Asset Graph Model v2.8](AI_SDLC_ASSET_GRAPH_MODEL.md) — four primitives, one operation.*
-*Projections: [Projections and Invariants](PROJECTIONS_AND_INVARIANTS.md) — the generator of valid methodologies.*
+*Foundation: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)*
+*Formal system: [AI SDLC Asset Graph Model v2.8](AI_SDLC_ASSET_GRAPH_MODEL.md) — four primitives, one operation, event stream substrate*
+*Projections: [Projections and Invariants v1.2](PROJECTIONS_AND_INVARIANTS.md)*
+*Key ADRs: [ADR-S-012](../adrs/ADR-S-012-event-stream-as-formal-model-medium.md) event stream · [ADR-S-013](../adrs/ADR-S-013-completeness-visibility.md) completeness visibility · [ADR-S-016](../adrs/ADR-S-016-invocation-contract.md) invocation contract*
