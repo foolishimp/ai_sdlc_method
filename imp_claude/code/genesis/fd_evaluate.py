@@ -18,9 +18,6 @@ Heartbeat:
 """
 
 import subprocess
-import sys
-import threading
-import time
 from pathlib import Path
 
 from .models import (
@@ -29,6 +26,7 @@ from .models import (
     EvaluationResult,
     ResolvedCheck,
 )
+from .proc import run_bounded
 
 DEFAULT_TIMEOUT = 60  # stall timeout: kill if no output for N seconds
 HEARTBEAT_INTERVAL = 10  # seconds between heartbeat lines on stderr
@@ -82,93 +80,17 @@ def run_check(
 
     wall_timeout = max(timeout * WALL_CEILING, 3600)  # at least 1h ceiling
 
-    try:
-        proc = subprocess.Popen(
-            check.command,
-            shell=True,
-            cwd=str(cwd),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            # Binary mode: enables read1() which returns immediately with available bytes.
-            # Line-by-line text iteration would block on pytest's dot-output (no newlines),
-            # causing false stall detection. read1() solves this at the source.
-            start_new_session=True,
-        )
-    except OSError as e:
-        return CheckResult(
-            name=check.name,
-            outcome=CheckOutcome.ERROR,
-            required=check.required,
-            check_type=check.check_type,
-            functional_unit=check.functional_unit,
-            message=str(e),
-            command=check.command,
-        )
-
-    stdout_buf: list[bytes] = []
-    stderr_buf: list[bytes] = []
-    last_output = [time.monotonic()]
-
-    def _reader(pipe, buf: list[bytes]) -> None:
-        # read1() returns immediately with whatever bytes are available — no newline wait.
-        # This is the key: dot-per-test output (no newlines) still updates last_output.
-        while True:
-            chunk = pipe.read1(4096)  # type: ignore[attr-defined]
-            if not chunk:
-                break
-            buf.append(chunk)
-            last_output[0] = time.monotonic()
-        pipe.close()
-
-    t_out = threading.Thread(
-        target=_reader, args=(proc.stdout, stdout_buf), daemon=True
+    r = run_bounded(
+        check.command,
+        shell=True,
+        cwd=cwd,
+        wall_timeout=wall_timeout,
+        stall_timeout=timeout,
+        heartbeat_interval=HEARTBEAT_INTERVAL,
+        heartbeat_label=check.name,
     )
-    t_err = threading.Thread(
-        target=_reader, args=(proc.stderr, stderr_buf), daemon=True
-    )
-    t_out.start()
-    t_err.start()
 
-    start = time.monotonic()
-    next_hb = start + HEARTBEAT_INTERVAL
-    killed: str | None = None  # "stall" | "wall"
-
-    while proc.poll() is None:
-        time.sleep(1)
-        now = time.monotonic()
-        elapsed = int(now - start)
-        stall = now - last_output[0]
-
-        # Supervisor: stall detection (actor has gone silent)
-        if stall > timeout:
-            _kill(proc)
-            killed = "stall"
-            break
-
-        # Supervisor: wall ceiling (absolute safety net)
-        if now - start > wall_timeout:
-            _kill(proc)
-            killed = "wall"
-            break
-
-        # Heartbeat: supervisor reports liveness to operator
-        if now >= next_hb:
-            print(
-                f"  ⏱  [{check.name}] {elapsed}s elapsed"
-                f"  (last output {int(stall)}s ago)",
-                file=sys.stderr,
-                flush=True,
-            )
-            next_hb += HEARTBEAT_INTERVAL
-
-    t_out.join(5)
-    t_err.join(5)
-    try:
-        proc.wait(timeout=5)
-    except subprocess.TimeoutExpired:
-        _kill(proc)
-
-    if killed == "stall":
+    if r.stall_killed:
         return CheckResult(
             name=check.name,
             outcome=CheckOutcome.ERROR,
@@ -178,25 +100,32 @@ def run_check(
             message=f"Stall: no output for {timeout}s — process may be hung",
             command=check.command,
         )
-    if killed == "wall":
-        elapsed_s = int(time.monotonic() - start)
+    if r.wall_killed:
         return CheckResult(
             name=check.name,
             outcome=CheckOutcome.ERROR,
             required=check.required,
             check_type=check.check_type,
             functional_unit=check.functional_unit,
-            message=f"Wall ceiling reached after {elapsed_s}s (stall_timeout={timeout}s × {WALL_CEILING})",
+            message=f"Wall ceiling reached after {r.duration_ms // 1000}s (stall_timeout={timeout}s × {WALL_CEILING})",
+            command=check.command,
+        )
+    if r.error and not r.stall_killed and not r.wall_killed and r.returncode == -1:
+        return CheckResult(
+            name=check.name,
+            outcome=CheckOutcome.ERROR,
+            required=check.required,
+            check_type=check.check_type,
+            functional_unit=check.functional_unit,
+            message=r.error,
             command=check.command,
         )
 
-    stdout = b"".join(stdout_buf).decode("utf-8", errors="replace")
-    stderr = b"".join(stderr_buf).decode("utf-8", errors="replace")
     completed = subprocess.CompletedProcess(
         check.command,
-        proc.returncode if proc.returncode is not None else -1,
-        stdout,
-        stderr,
+        r.returncode,
+        r.stdout,
+        r.stderr,
     )
     outcome = _interpret_result(completed, check.pass_criterion)
     return CheckResult(
@@ -205,11 +134,11 @@ def run_check(
         required=check.required,
         check_type=check.check_type,
         functional_unit=check.functional_unit,
-        message="" if outcome == CheckOutcome.PASS else stderr or stdout,
+        message="" if outcome == CheckOutcome.PASS else r.stderr or r.stdout,
         command=check.command,
         exit_code=completed.returncode,
-        stdout=stdout,
-        stderr=stderr,
+        stdout=r.stdout,
+        stderr=r.stderr,
     )
 
 
@@ -249,23 +178,6 @@ def evaluate_checklist(
         escalations=escalations,
     )
 
-
-def _kill(proc: subprocess.Popen) -> None:
-    """Kill subprocess and its process group."""
-    import os
-    import signal
-
-    try:
-        pgid = os.getpgid(proc.pid)
-        os.killpg(pgid, signal.SIGTERM)
-        time.sleep(0.5)
-        if proc.poll() is None:
-            os.killpg(pgid, signal.SIGKILL)
-    except (ProcessLookupError, PermissionError, OSError):
-        try:
-            proc.kill()
-        except ProcessLookupError:
-            pass
 
 
 def _interpret_result(

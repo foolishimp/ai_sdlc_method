@@ -1,21 +1,17 @@
 # Implements: REQ-ROBUST-001 (Actor Isolation), REQ-ROBUST-002 (Supervisor Pattern), REQ-SUPV-003 (Failure Observability)
-"""Isolated F_P process manager — wraps all `claude -p` calls.
+"""F_P subprocess runner — wraps all claude -p / claude --print calls.
 
-Every F_P subprocess call runs in its own process group with:
-- Environment sanitization (strip nesting guards)
-- Watchdog thread with wall timeout + stall detection
-- Process group kill (SIGTERM → SIGKILL) on timeout
-- Structured result with duration, timeout status, and error classification
+Thin adapter: builds the cleaned environment, calls run_bounded(), and
+returns SubprocessResult (the shape callers expect).
 
-Patterns extracted from imp_claude/tests/e2e/conftest.py (proven in E2E runs).
+All timeout and kill logic lives in proc.run_bounded() — one auditable path
+for every external process in the engine.
 """
 
 import os
-import signal
-import subprocess
-import threading
-import time
 from dataclasses import dataclass
+
+from .proc import BoundedResult, run_bounded
 
 
 @dataclass
@@ -32,151 +28,66 @@ class SubprocessResult:
     pid: int = 0
 
 
-# ── Environment Sanitization ─────────────────────────────────────────
+# ── Environment sanitization ──────────────────────────────────────────────────
 
-# Nesting guard variables that Claude CLI checks before starting.
-# When engine runs inside a Claude Code session, these must be stripped.
+# Claude CLI nesting guards — must be stripped when engine runs inside a session
 _NESTING_GUARD_VARS = frozenset(
     ["CLAUDECODE", "CLAUDE_CODE_SSE_PORT", "CLAUDE_CODE_ENTRYPOINT"]
 )
 
 
 def clean_env() -> dict[str, str]:
-    """Return env dict with Claude nesting guards removed.
-
-    Extracted from imp_claude/tests/e2e/conftest.py:442-452.
-    """
+    """Return env dict with Claude nesting guard vars removed."""
     env = os.environ.copy()
     for key in _NESTING_GUARD_VARS:
         env.pop(key, None)
     return env
 
 
-# ── Process Group Kill ────────────────────────────────────────────────
-
-
-def _kill_process_group(proc: subprocess.Popen) -> None:
-    """Kill an entire process group (parent + all children).
-
-    Uses SIGTERM first (graceful), then SIGKILL after 5s if still alive.
-    Falls back to proc.kill() if process group operations fail.
-
-    Extracted from imp_claude/tests/e2e/conftest.py:546-568.
-    """
-    try:
-        pgid = os.getpgid(proc.pid)
-        os.killpg(pgid, signal.SIGTERM)
-        for _ in range(50):
-            if proc.poll() is not None:
-                return
-            time.sleep(0.1)
-        os.killpg(pgid, signal.SIGKILL)
-    except (ProcessLookupError, PermissionError, OSError):
-        try:
-            proc.kill()
-        except ProcessLookupError:
-            pass
-
-
-# ── Isolated Runner ──────────────────────────────────────────────────
+# ── Isolated runner ───────────────────────────────────────────────────────────
 
 
 def run_claude_isolated(
     cmd: list[str],
     *,
-    timeout: int = 120,
+    timeout: int = 300,
     stall_timeout: int = 60,
     sanitize_env: bool = True,
     cwd: str | None = None,
 ) -> SubprocessResult:
-    """Run a claude -p command in an isolated process group.
+    """Run a claude command in an isolated process group.
+
+    Total-function guarantee: returns within timeout + 10 seconds, always.
+    Delegates all subprocess management to proc.run_bounded().
 
     Args:
-        cmd: Full command list (e.g., ["claude", "-p", ...]).
-        timeout: Wall-clock timeout in seconds.
-        stall_timeout: Kill if no stdout/stderr growth for this many seconds.
-            Set to 0 to disable stall detection.
+        cmd:          Full command list (e.g., ["claude", "--print", ...]).
+        timeout:      Wall-clock timeout in seconds (hard ceiling).
+        stall_timeout: Kill if no stdout/stderr bytes for this many seconds.
+                       Set to 0 to disable (wall timeout still enforced).
         sanitize_env: Strip Claude nesting guard env vars.
-        cwd: Working directory for the subprocess.
-
-    Returns:
-        SubprocessResult with stdout, stderr, timing, and status flags.
+        cwd:          Working directory.
     """
     env = clean_env() if sanitize_env else None
-    start = time.time()
-    timed_out = False
-    stall_killed = False
 
-    try:
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            env=env,
-            cwd=cwd,
-            start_new_session=True,
-        )
-    except OSError as e:
-        duration_ms = int((time.time() - start) * 1000)
-        return SubprocessResult(
-            error=f"Failed to start subprocess: {e}",
-            duration_ms=duration_ms,
-        )
-
-    pid = proc.pid
-
-    def watchdog():
-        nonlocal timed_out, stall_killed
-
-        while proc.poll() is None:
-            time.sleep(2)
-            now = time.time()
-
-            # Wall timeout (always enforced)
-            if now - start > timeout:
-                timed_out = True
-                _kill_process_group(proc)
-                return
-
-            # Stall timeout = wall timeout for claude -p calls.
-            # True output-based stall detection requires reading stdout in the
-            # watchdog thread, which conflicts with communicate(). Use wall
-            # timeout as the hard cap instead — set it appropriately per call.
-            if stall_timeout > 0 and now - start > stall_timeout:
-                stall_killed = True
-                timed_out = True
-                _kill_process_group(proc)
-                return
-
-    watcher = threading.Thread(target=watchdog, daemon=True)
-    watcher.start()
-
-    try:
-        stdout, stderr = proc.communicate()
-    except Exception:
-        stdout, stderr = "", ""
-        if proc.poll() is None:
-            _kill_process_group(proc)
-
-    watcher.join(timeout=5)
-    duration_ms = int((time.time() - start) * 1000)
-
-    error = ""
-    if timed_out and stall_killed:
-        error = f"Stall detected — no activity for {stall_timeout}s"
-    elif timed_out:
-        error = f"Wall timeout after {timeout}s"
-    elif proc.returncode != 0:
-        error = f"Exited with code {proc.returncode}"
+    r: BoundedResult = run_bounded(
+        cmd,
+        cwd=cwd,
+        env=env,
+        shell=False,
+        wall_timeout=float(timeout),
+        stall_timeout=float(stall_timeout),
+        heartbeat_interval=30.0,
+        heartbeat_label=cmd[0] if cmd else "claude",
+    )
 
     return SubprocessResult(
-        stdout=stdout or "",
-        stderr=stderr or "",
-        returncode=proc.returncode if proc.returncode is not None else -1,
-        timed_out=timed_out,
-        stall_killed=stall_killed,
-        duration_ms=duration_ms,
-        error=error,
-        pid=pid,
+        stdout=r.stdout,
+        stderr=r.stderr,
+        returncode=r.returncode,
+        timed_out=r.timed_out,
+        stall_killed=r.stall_killed,
+        duration_ms=r.duration_ms,
+        error=r.error,
+        pid=r.pid,
     )
