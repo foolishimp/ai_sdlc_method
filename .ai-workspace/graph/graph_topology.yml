@@ -63,17 +63,40 @@ asset_types:
       - mvp_scope_marked           # MVP/deferred boundary explicitly stated
       - human_approved
 
-  module_decomposition:
-    description: "Mapping of architectural components to code modules; dependency DAG; interface contracts"
+  design_recommendations:
+    description: |
+      Synthesis of feature priorities and dependencies into ordered design directives.
+      Produced from feature_decomposition (dependency DAG + MVP scope) before architectural
+      design begins. Answers: what to design first, what cross-cutting concerns the feature
+      set implies, which ADR areas must be resolved before detailed design proceeds.
+      Complexity management: makes the feature→design pruning explicit rather than implicit.
     schema:
-      module_map: object       # component_name → module_path(s)
-      dependency_dag: object   # module → [modules it depends on] — must be acyclic
-      interface_contracts: list  # Public APIs between modules (F_D-verifiable)
-      build_config: object     # Build system scaffolding (package.json, setup.py, etc.)
+      design_order: list       # Ordered list of feature groups to design, derived from dependency DAG + MVP priority
+      cross_cutting: list      # Concerns that span multiple features (auth, observability, error handling, etc.)
+      adr_areas: list          # ADR decisions that must be made before component design (ecosystem, security, etc.)
+      deferred: list           # Features explicitly deferred — design should not design for them yet
+      constraints_from_features: object  # Constraints implied by the feature set (e.g. "3 features need async — event bus likely")
     markov_criteria:
-      - all_components_mapped    # Every design component → at least one module
-      - dependency_dag_acyclic   # No circular module dependencies
-      - interfaces_defined       # All inter-module calls have contracts
+      - all_mvp_features_ordered   # Every MVP feature appears in design_order
+      - cross_cutting_identified   # At least one cross-cutting concern listed (or explicit "none")
+      - adr_areas_named            # ADR areas named (even if "TBD — decide during design")
+      - human_approved
+
+  module_decomposition:
+    description: "Mapping of architectural components to code modules; dependency DAG; interface contracts; feature×module n-n mapping"
+    schema:
+      module_map: object         # component_name → module_path(s)
+      feature_module_map: object # feature_id → [module_paths] — the n-n mapping (many features × many modules)
+      dependency_dag: object     # module → [modules it depends on] — must be acyclic
+      construction_order: list   # Topological sort of dependency_dag, tie-broken by derived feature priority
+      interface_contracts: list  # Public APIs between modules (F_D-verifiable)
+      build_config: object       # Build system scaffolding (package.json, setup.py, etc.)
+    markov_criteria:
+      - all_components_mapped      # Every design component → at least one module
+      - feature_module_map_present # Every MVP feature mapped to its implementing modules
+      - dependency_dag_acyclic     # No circular module dependencies
+      - construction_order_derived # construction_order = topo_sort(dag, feature_priority propagation)
+      - interfaces_defined         # All inter-module calls have contracts
       - human_approved
 
   basis_projections:
@@ -297,14 +320,43 @@ transitions:
     constructor: agent
     edge_config: "edge_params/requirements_feature_decomp.yml"
 
-  - name: "Feature Decomposition → Design"
+  - name: "Feature Decomposition → Design Recommendations"
     source: feature_decomposition
+    target: design_recommendations
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+    edge_config: "edge_params/feature_decomp_design_rec.yml"
+    note: |
+      Synthesises feature priorities + dependency DAG into ordered design directives.
+      Makes the feature→design pruning explicit: what to design first, what cross-cutting
+      concerns exist, which ADR areas must be resolved before component design begins.
+      Zoom-out profiles (poc, spike) skip this and go feature_decomposition → design directly.
+
+  - name: "Design Recommendations → Design"
+    source: design_recommendations
     target: design
     edge_type: standard
     evaluators: [agent, human]
     constructor: agent
     edge_config: "edge_params/requirements_design.yml"
-    note: "PoC/spike profiles may collapse this to Requirements → Design directly (zoom)"
+    note: |
+      Design constrained by design_recommendations: must cover features in recommended order,
+      must resolve all named ADR areas, must address cross-cutting concerns.
+      Reuses requirements_design.yml edge config — adds design_recommendations as required context.
+
+  - name: "Requirements → Design"
+    source: requirements
+    target: design
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+    edge_config: "edge_params/requirements_design.yml"
+    note: |
+      Zoom-out shortcut for poc/spike/hotfix profiles. Skips feature_decomposition and
+      design_recommendations entirely — the constructor handles the full leap internally.
+      Standard/full profiles do NOT use this edge — they route through the decomposition
+      chain. Different profiles, different paths. Not ambiguity — zoom.
 
   - name: "Design → Module Decomposition"
     source: design
