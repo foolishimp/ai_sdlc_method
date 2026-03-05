@@ -4,6 +4,7 @@ table { page-break-inside: avoid; }
 
 # Governing AI in Software Engineering: The Case for Spec-Driven Development
 
+**Dimitar Popov**
 
 ---
 
