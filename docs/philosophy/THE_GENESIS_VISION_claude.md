@@ -4,7 +4,7 @@
 
 ---
 
- Serious operating software systems rest on the assumption that you can account for what your systems do. Which rule does this component enforce? Which control does this process satisfy? When this behaviour changes, what changes with it?
+Software systems rest on the assumption that you can account for what your systems do. Which rule does this component enforce? Which control does this process satisfy? When this behaviour changes, what changes with it?
 
 AI is now writing significant portions of enterprise software. The tooling has outpaced the governance. The result is a growing inventory of production systems where the chain from business requirement to delivered behaviour is informal, undocumented, and unverifiable.
 
@@ -12,7 +12,7 @@ Spec-Driven Development restores that accountability — not as an additional pr
 
 ---
 
-## A Problem We Have Seen Before
+## History repeating itself, an opporunity to break the cycle
 
 Two decades ago, every business adopted spreadsheets enthusiastically. Fast, flexible, no IT involvement required. Every department built on them.
 
@@ -32,19 +32,17 @@ Spec-Driven Development is the governance framework built for this moment. It do
 
 ---
 
-## The Question the Industry Has Been Trying to Answer for Decades
+## Getting it right
 
 After seeing Spec-Driven Development for the first time, the question that comes up is: how do you know it built everything you wanted?
 
-It is the right question. And the industry has been trying to answer it for decades.
+We have spent decades perfecting the process to guarantee that what was specified was built. To this end we have armies of Architects, Business Analysts, Tech Leads, Scrum Masters, Project Managers, Developers and Testers.
 
-The answer has been people. Architects to ensure designs match requirements. Business Analysts to translate business intent into specifications. Tech Leads to ensure developers understood what was meant. Scrum Masters to keep teams aligned to the plan. Project Managers to track coverage and risk. Testers to catch what slipped through.
+It is an expensive and fragile answer. It breaks down when teams grow, people leave, requirements change, or delivery is under pressure — which is most of the time.
 
-This is an expensive and fragile answer. It works when all those people are present, aligned, experienced, and communicating clearly. It breaks down when teams grow, people leave, requirements change, or delivery is under pressure — which is most of the time.
+Spec-Driven Development answers the same question with a mechanism instead of headcount. Every requirement has a unique identifier. The system will not advance until that identifier appears in a feature, a design, a code unit, and a test — as a gate that cannot be bypassed. The answer to "did we build everything we specified?" is not a status report. It is a coverage check that either passes or fails.
 
-Spec-Driven Development answers the same question with a mechanism instead of headcount. Every requirement has a unique identifier. The system will not advance until that identifier appears in a feature, a design, a code unit, and a test. Not as a convention — as a gate that cannot be bypassed. The answer to "did we build everything we specified?" is not a status report from a project manager. It is a coverage check that either passes or fails.
-
-Those coordination roles exist because the question has historically had no structural answer. They are the manual workaround for a missing mechanism. Spec-Driven Development is that mechanism.
+Those roles exist because the question has historically had no structural answer. They are the workaround for a missing mechanism. Spec-Driven Development is that mechanism.
 
 ---
 
