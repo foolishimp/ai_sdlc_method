@@ -1,4 +1,4 @@
-# ADR-014: IntentEngine Binding — Claude Code Implementation
+# ADR-014: IntentEngine Binding — Codex Runtime Implementation
 
 **Status**: Accepted
 **Date**: 2026-02-22
@@ -12,9 +12,9 @@
 
 The specification (§4.6) introduces the **IntentEngine** as a composition law over the four primitives: `IntentEngine(intent + affect) = observer → evaluator → typed_output(reflex.log | specEventLog | escalate)`. This is not a fifth primitive but the universal processing unit that operates on every edge, at every scale, chaining fractally.
 
-The Claude Code implementation must bind this abstract pattern to concrete platform mechanisms. The key decisions are:
+The Codex implementation must bind this abstract pattern to concrete platform mechanisms. The key decisions are:
 
-1. How do the three output types (`reflex.log`, `specEventLog`, `escalate`) map to Claude Code artifacts?
+1. How do the three output types (`reflex.log`, `specEventLog`, `escalate`) map to Codex artifacts?
 2. How is ambiguity classification (zero / bounded / persistent) implemented?
 3. How does affect propagation work across chained invocations?
 4. Where are the thresholds between deterministic and probabilistic compute configured?
@@ -33,7 +33,7 @@ The Claude Code implementation must bind this abstract pattern to concrete platf
 
 ### Output Type Mapping
 
-| Spec output type | Claude Code realisation | Event type | Control flow |
+| Spec output type | Codex realisation | Event type | Control flow |
 |-----------------|----------------------|-----------|-------------|
 | `reflex.log` | Event emission + continue/promote | `iteration_completed`, `edge_converged`, `interoceptive_signal` (within bounds) | Automatic — no human involvement |
 | `specEventLog` | Deferred intent logged for next iteration | `iteration_completed` (with non-zero delta), `affect_triage` (deferred) | Iterate again, or queue for batch review |
@@ -43,7 +43,7 @@ The Claude Code implementation must bind this abstract pattern to concrete platf
 
 The three ambiguity regimes map to the three evaluator types already in the edge configs:
 
-| Ambiguity regime | Evaluator type | Claude Code mechanism |
+| Ambiguity regime | Evaluator type | Codex mechanism |
 |-----------------|---------------|---------------------|
 | **Zero** (reflex) | Deterministic Tests | `pytest`, `tsc`, `eslint`, schema validators — pass/fail, no LLM involved |
 | **Bounded nonzero** (probabilistic) | Agent(intent, context) | Claude LLM invocation with constrained context window — gap analysis, coherence check, candidate generation |
@@ -90,11 +90,11 @@ affect:
   escalation_count: 0    # how many times this vector has escalated
 ```
 
-### Consciousness-as-Relative in Claude Code
+### Consciousness-as-Relative in Codex
 
 Level N's `escalate` becomes Level N+1's reflex:
 
-| Level | Claude Code mechanism | N's escalate becomes N+1's... |
+| Level | Codex mechanism | N's escalate becomes N+1's... |
 |-------|---------------------|------------------------------|
 | Single iteration | iterate agent cycle | Input to next iteration (specEventLog) or spawn/review (escalate) |
 | Edge convergence | Edge completion in `/gen-iterate` | Automatic routing to next edge by `/gen-start` (reflex at feature level) |
@@ -140,7 +140,7 @@ Level N's `escalate` becomes Level N+1's reflex:
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.6 (IntentEngine)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.6 (IntentEngine)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (the iterate agent IS the IntentEngine)
 - [ADR-009](ADR-009-graph-topology-as-configuration.md) — Graph Topology as Configuration (edge configs encode ambiguity thresholds)
 - [ADR-011](ADR-011-consciousness-loop-at-every-observer.md) — Consciousness Loop (signal sources are affect-phase observers)

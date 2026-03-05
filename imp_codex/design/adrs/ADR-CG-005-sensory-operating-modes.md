@@ -38,6 +38,6 @@ Both modes emit the same sensory and triage events (`interoceptive_signal`, `ext
 
 ## References
 
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-SENSE-001..005
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5.4
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-SENSE-001..005
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5.4
 - [AISDLC_V2_DESIGN.md](../AISDLC_V2_DESIGN.md) §1.8

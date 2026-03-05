@@ -77,7 +77,7 @@ This is consistent with the spec principle that the 4 primitives are universal �
 
 ## References
 
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) §11 — REQ-UX-001 through REQ-UX-005
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §7.5 (Event Sourcing), §7.6 (Self-Observation)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) §11 — REQ-UX-001 through REQ-UX-005
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §7.5 (Event Sourcing), §7.6 (Self-Observation)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (preserved by this ADR)
 - [ADR-009](ADR-009-graph-topology-as-configuration.md) — Graph Topology as Configuration (Start reads topology)

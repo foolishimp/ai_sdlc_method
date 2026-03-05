@@ -1,21 +1,21 @@
-# AI SDLC — Codex Runtime Implementation Design (v2.8)
+# AI SDLC — Codex Runtime Implementation Design (v2.1)
 
-**Version**: 2.0.0
-**Date**: 2026-02-20
-**Derived From**: [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) (v1.8.0)
-**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
-**Platform**: Claude Code (ADR-001 — carried forward from v1.x)
+**Version**: 2.1.0
+**Date**: 2026-03-05
+**Derived From**: [FEATURE_VECTORS.md](../../specification/features/FEATURE_VECTORS.md) (v1.9.0)
+**Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
+**Platform**: Codex (tool-calling coding agent runtime)
 
 ---
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Claude Code. It covers all 11 feature vectors defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Codex. It covers all 14 feature vectors defined in FEATURE_VECTORS.md.
 
 **Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
 
 **What carries forward from v1.x**:
-- Claude Code as platform (ADR-001)
+- Codex runtime as target platform (ADR-CG-001)
 - Plugin delivery mechanism
 - Workspace file structure (adapted)
 - Slash commands (adapted)
@@ -27,12 +27,17 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 - Stage-specific skills → evaluator + constructor composition per edge
 - Fixed topology → configurable graph in Context[]
 
-**What v2.0.0 adds** (from spec v2.8.0):
+**What v2.1.0 adds** (from spec v2.8.0 and current ADR-S series):
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
 - Constraint dimension taxonomy at the design edge
 - Event sourcing as the formal execution model
 - Methodology self-observation via TELEM signals
 - Two-command UX layer: Start (routing) + Status (observability)
+
+**Document governance**:
+- Accepted ADRs are authoritative for decisions in their scope.
+- This top-level design is the integration layer showing how those ADR decisions compose.
+- If this document conflicts with an accepted ADR, the ADR wins and this document must be reconciled.
 
 ---
 
@@ -90,9 +95,9 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 │  ├── tasks/           Task management (active, completed)            │
 │  └── snapshots/       Session recovery (immutable checkpoints)       │
 │                                                                      │
-│  .claude/                                                            │
-│  ├── commands/        Slash commands                                  │
-│  └── settings.json    Plugin configuration                           │
+│  .codex/                                                             │
+│  ├── commands/        Command specs                                  │
+│  └── settings.json    Runtime configuration                          │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -100,7 +105,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 
 The v1.x design had separate agents for each stage. The v2.1 design has:
 
-- **One iterate() implementation** — a Claude Code agent that takes (asset, context, evaluators) and produces the next candidate
+- **One iterate() implementation** — a Codex orchestration routine that takes (asset, context, evaluators) and produces the next candidate
 - **Edge parameterisation configs** — YAML files that define: which evaluators, which constructors, what convergence criteria
 - **The graph topology** — a YAML config defining asset types and admissible transitions
 
@@ -108,7 +113,7 @@ The agent IS the iterate() function. It reads the edge parameterisation to know 
 
 ### 1.3 Conceptual Model: Three Instantiation Layers (Spec §2.8)
 
-The spec defines three conceptual layers. Here is how they map to the Claude Code implementation:
+The spec defines three conceptual layers. Here is how they map to the Codex implementation:
 
 ```
 Spec Layer                    Implementation
@@ -182,11 +187,13 @@ events/events.jsonl           ──►  STATUS.md           (Gantt, telemetry, 
                               ──►  gap analysis         (findings aggregated across edges)
 ```
 
-Event types (20): `project_initialized`, `iteration_completed`, `edge_started`, `edge_converged`, `spawn_created`, `spawn_folded_back`, `checkpoint_created`, `review_completed`, `gaps_validated`, `release_created`, `intent_raised`, `spec_modified`, `interoceptive_signal`, `exteroceptive_signal`, `affect_triage`, `draft_proposal`, `claim_rejected`, `edge_released`, `claim_expired`, `convergence_escalated`.
+Canonical event schema is OpenLineage RunEvent (ADR-S-011): top-level `eventType` is one of `START|COMPLETE|FAIL|ABORT|OTHER`, with SDLC semantics carried in `sdlc:event_type` and related `sdlc:*` facets.
 
-Note: `edge_claim` is an inbox-local event in multi-agent mode (ADR-013) — it never appears in the canonical event log. The serialiser transforms it into `edge_started` (granted) or `claim_rejected` (conflict).
+Required event taxonomy and universal causal fields follow ADR-S-012 (`instance_id`, `actor`, `causation_id`, `correlation_id`). Per ADR-S-015, edge traversal is a transaction: `START` opens, `COMPLETE` commits, `FAIL/ABORT` closes without commit.
 
-All methodology commands emit events. The event log is the sole integration contract between the methodology and any external observer (e.g., genesis-monitor). See the iterate agent's **Event Type Reference** for the canonical schema catalogue.
+Note: legacy v1 records with root `event_type` remain valid historical records and MUST NOT be rewritten. Consumers detect schema by key presence (`eventType` vs `event_type`) during migration.
+
+All methodology commands emit events. The event log is the sole integration contract between the methodology and any external observer (e.g., genesis-monitor).
 
 This is an engine-level primitive (Layer 1) — it applies regardless of graph package.
 
@@ -196,7 +203,7 @@ The engine enforces runtime robustness around probabilistic processing (F_P):
 - Isolation: each F_P invocation executes in an isolated boundary so callers can terminate it cleanly on timeout/error without cascading stalls.
 - Supervisor pattern: enforce wall‑clock timeouts, detect stalls (no observable progress), retry on transient failures (bounded), and return structured error on persistent failure.
 - Failure event emission: guarantee emission of structured failure events (classification: timeout/error/stall, duration, retry count, edge, feature) to `events.jsonl`.
-- Crash/session gap recovery: on startup, scan for `edge_started` without corresponding completion and emit `iteration_abandoned` events with feature/edge/timestamps.
+- Crash/session gap recovery: on startup, scan for `START` runs without terminal `COMPLETE|FAIL|ABORT` by `runId`; compare current hashes to `sdlc:inputManifest` and emit `gap_detected` for uncommitted writes (ADR-S-015).
 
 These behaviours integrate with the IntentEngine pipeline (observer → evaluator → typed_output). Failure observability is a prerequisite for homeostasis: unobserved failure yields a zero delta. See ADR‑CG‑009 and ADR‑S‑008 (Sensory‑Triage‑Intent) for the triage path.
 
@@ -315,7 +322,7 @@ The iterate agent instructions mandate these. Protocol violations are logged as 
 | `commands/gen-gaps.md` | Gap cluster → `intent_raised` per domain group |
 | `config/edge_params/feedback_loop.yml` | 7 signal sources with intent templates and `intent_raised` schema |
 | `config/edge_params/tdd.yml` | Intent generation from stuck failures and refactoring needs |
-| All 9 commands | `event_type` field standardised, event emission mandatory |
+| All 9 commands | OpenLineage envelope (`eventType`) + `sdlc:event_type` facet standardised; event emission mandatory |
 
 ### 1.8 Sensory Service (Spec §4.5.4)
 
@@ -407,8 +414,9 @@ Concrete monitors that observe the system's own health state:
 
 Each monitor produces a typed signal:
 ```yaml
-# interoceptive_signal schema
-event_type: interoceptive_signal
+# interoceptive_signal schema (OpenLineage semantic facet payload)
+eventType: OTHER
+'sdlc:event_type': interoceptive_signal
 timestamp: ISO-8601
 monitor_id: "INTRO-001"
 observation: "Last event 12 days ago"
@@ -432,8 +440,9 @@ Concrete monitors that observe the external environment:
 
 Each monitor produces a typed signal:
 ```yaml
-# exteroceptive_signal schema
-event_type: exteroceptive_signal
+# exteroceptive_signal schema (OpenLineage semantic facet payload)
+eventType: OTHER
+'sdlc:event_type': exteroceptive_signal
 timestamp: ISO-8601
 monitor_id: "EXTRO-002"
 external_source: "pip-audit"
@@ -476,8 +485,9 @@ When rule-based classification is insufficient (signal doesn't match any pattern
 
 **Triage output:**
 ```yaml
-# affect_triage schema
-event_type: affect_triage
+# affect_triage schema (OpenLineage semantic facet payload)
+eventType: OTHER
+'sdlc:event_type': affect_triage
 timestamp: ISO-8601
 signal_id: "ref to interoceptive_signal or exteroceptive_signal"
 source_monitor: "INTRO-003"
@@ -508,8 +518,9 @@ All proposals are stored in the service's internal state and surfaced via MCP to
 
 **Draft proposal schema:**
 ```yaml
-# draft_proposal schema
-event_type: draft_proposal
+# draft_proposal schema (OpenLineage semantic facet payload)
+eventType: OTHER
+'sdlc:event_type': draft_proposal
 timestamp: ISO-8601
 trigger_signal: "ref to affect_triage event"
 proposal_type: intent | diff | spec_modification
@@ -575,7 +586,7 @@ A critical architectural distinction:
 
 The sensory service is **part of Genesis** — it is the methodology's own nervous system. `genesis_monitor` is an **external observer** that consumes the telemetry Genesis produces (including sensory signals). The monitor rides the telemetry; it does not generate it.
 
-**Future alignment with OpenTelemetry:** The event log format (`events.jsonl`) is designed to be portable. Each event has `timestamp`, `event_type`, `project`, and typed `data`. This maps naturally to OpenTelemetry spans/events. Future work: emit events as OTLP spans, enabling integration with standard observability platforms (Grafana, Datadog, etc.) without changing the methodology's internal event model.
+**OpenLineage is canonical; OTLP is optional projection:** The event log format (`events.jsonl`) uses OpenLineage as the canonical write schema (ADR-S-011/012/015). OTLP export remains an optional downstream projection for observability platforms (Grafana, Datadog, etc.) without changing the methodology's internal contract.
 
 **Config schema specifications (design-level, not yet executable):**
 
@@ -943,7 +954,8 @@ Each observer is a **Markov object**: it reads its inputs (event log, build arti
 
 **Output event schema**:
 ```yaml
-event_type: observer_signal
+eventType: OTHER
+'sdlc:event_type': observer_signal
 observer_id: dev_observer
 timestamp: ISO-8601
 signal_source: gap | discovery | TELEM
@@ -971,7 +983,8 @@ draft_intents: [{...}]  # optional — pre-formed intent_raised events
 
 **Output event schema**:
 ```yaml
-event_type: observer_signal
+eventType: OTHER
+'sdlc:event_type': observer_signal
 observer_id: cicd_observer
 timestamp: ISO-8601
 signal_source: test_failure | process_gap
@@ -1001,7 +1014,8 @@ draft_intents: [{...}]
 
 **Output event schema**:
 ```yaml
-event_type: observer_signal
+eventType: OTHER
+'sdlc:event_type': observer_signal
 observer_id: ops_observer
 timestamp: ISO-8601
 signal_source: runtime_feedback
@@ -1310,10 +1324,10 @@ transitions:
 
 #### The iterate() Agent
 
-In Claude Code, the iterate() function IS a single agent — the universal constructor. It reads the edge parameterisation to know its role.
+In Codex, the iterate() function is the universal constructor routine. It reads edge parameterisation to determine role and convergence logic.
 
 ```markdown
-<!-- .claude/agents/gen-iterate.md -->
+<!-- imp_codex/code/agents/gen-iterate.md -->
 # AISDLC Iterate Agent
 
 You are the universal iteration function for the AI SDLC Asset Graph Model.
@@ -1452,7 +1466,7 @@ The iterate agent ALWAYS presents work for human review on edges where `human_re
 ```
 .ai-workspace/context/
 ├── adrs/                    # Architecture Decision Records
-│   ├── ADR-001-platform.md
+│   ├── ADR-CG-001-codex-runtime-as-platform.md
 │   └── ...
 ├── data_models/             # Schemas, contracts
 ├── templates/               # Code patterns, standards
@@ -1473,7 +1487,7 @@ timestamp: "2026-02-19T10:30:00Z"
 hash: "sha256:a1b2c3d4..."  # Hash of canonical serialisation
 
 entries:
-  - path: "adrs/ADR-001-platform.md"
+  - path: "adrs/ADR-CG-001-codex-runtime-as-platform.md"
     hash: "sha256:..."
     type: adr
 
@@ -1670,9 +1684,8 @@ validation_enabled: true  # Tooling parses tag format, not comment syntax
 #### Plugin Delivery
 
 ```
-imp_codex/code/.claude-plugin/plugins/gen-methodology/
-├── .claude-plugin/
-│   └── plugin.json              # Metadata (v2.6.0)
+imp_codex/code/
+├── plugin.json                  # Metadata (v2.1.0)
 ├── config/
 │   ├── graph_topology.yml       # Default SDLC graph
 │   ├── evaluator_defaults.yml   # Default evaluator configs
@@ -1801,8 +1814,8 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 
 ### What Carries Forward
 
-- Claude Code as platform (ADR-001)
-- Plugin delivery mechanism (.claude-plugin/)
+- Codex runtime as platform (ADR-CG-001)
+- Plugin delivery mechanism (`imp_codex/code/` package)
 - Markdown-first approach
 - Workspace under .ai-workspace/
 - ACTIVE_TASKS.md for task tracking
@@ -1811,32 +1824,27 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 
 ### Migration Path
 
-1. New projects: `/gen-init` creates v2.6 workspace
-2. Existing v1.x projects: v1.x agents/commands continue to work; v2.6 can be installed alongside
+1. New projects: `/gen-init` creates v2.1 workspace
+2. Existing v1.x projects: v1.x agents/commands continue to work; v2.1 can be installed alongside
 3. No breaking changes to user workflow — commands change but concept is familiar
 
 ---
 
-## 5. ADR Disposition
+## 5. ADR Baseline
 
-### Carried Forward (still valid)
-- **ADR-001**: Claude Code as MVP Platform
-- **ADR-002**: Commands for Workflow Integration (commands change, mechanism same)
-- **ADR-006**: Plugin Configuration and Discovery
+### Active Codex Platform ADRs
+- **ADR-CG-001**: Codex runtime as target platform
+- **ADR-CG-002**: Universal iterate orchestrator
+- **ADR-CG-003**: Review boundary and disambiguation
+- **ADR-CG-004**: Event replay and recovery strategy
+- **ADR-CG-005**: Sensory operating modes
+- **ADR-CG-008**: Module decomposition and basis projections
+- **ADR-CG-009**: Runtime robustness for probabilistic processing
 
-### Superseded
-- **ADR-003**: Agents for Stage Personas → replaced by single iterate agent
-- **ADR-004**: Skills for Reusable Capabilities → replaced by edge parameterisations
-- **ADR-005**: Iterative Refinement Feedback Loops → now inherent in iterate() engine
-- **ADR-007**: Hooks for Methodology Automation → hooks now driven by graph transitions
-
-### New ADRs Needed
-- **ADR-008**: Universal Iterate Agent (single agent, edge-parameterised)
-- **ADR-009**: Graph Topology as Configuration (YAML-based, extensible)
-- **ADR-010**: Spec Reproducibility (canonical serialisation, content-addressable hashing)
-- **ADR-012**: Two-Command UX Layer (Start routing + Status observability)
-- **ADR-013**: Multi-Agent Coordination (event-sourced claims, inbox/serialiser, role-based authority)
-- **ADR-014**: Observer Agents as Markdown Specs (dev, CI/CD, ops — Markov objects closing abiogenesis loop)
+### Core Methodology ADRs Referenced by This Design
+- **ADR-008..017**: Iterate agent, topology/config, reproducibility, UX, coordination, IntentEngine, sensory binding, tolerances, functor execution
+- **ADR-S-011/012/015/016/017**: OpenLineage schema, event stream contract, transaction model, invocation contract, zoom morphism
+- **Note**: ADR-015 is currently kept as a transitional reference binding; Codex-native sensory technology binding should be captured in a future ADR-CG decision.
 
 ---
 
@@ -1855,8 +1863,11 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 | REQ-F-UX-001 | §1.9 Two-Command UX Layer | Converged to UAT (63 tests, 2 xfail) |
 | REQ-F-COORD-001 | §1.10 Multi-Agent Coordination | Converged to UAT (40 tests) |
 | REQ-F-SUPV-001 | §1.12 Telemetry Functor, ADR-017 | Converged to UAT (14 tests) |
+| REQ-F-ROBUST-001 | §1.5.1 Runtime Robustness | Design aligned, implementation convergence in progress |
+| REQ-F-EVENT-001 | §1.5 Event Sourcing + ADR-S-011/012/015 mapping | Design aligned, implementation convergence in progress |
+| REQ-F-EVOL-001 | §1.6/§1.7 consciousness loop + protocol enforcement | Design aligned, implementation convergence in progress |
 
-**11/11 feature vectors covered. 735 tests passing, 3 xfail.**
+**Design coverage target updated to 14/14 feature vectors. Current executable baseline remains 735 tests passing, 3 xfail.**
 
 ---
 
@@ -1880,9 +1891,14 @@ Phase 2:  Product telemetry edges — CI/CD, running system, production homeosta
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.8.0)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 63 implementation requirements (v3.11.0)
-- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) — Feature vector decomposition (v1.8.0, 11 vectors)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.8.0)
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 83 implementation requirements (v3.13.0)
+- [FEATURE_VECTORS.md](../../specification/features/FEATURE_VECTORS.md) — Feature vector decomposition (v1.9.0, 14 vectors)
+- [ADR-S-011](../../specification/adrs/ADR-S-011-openlineage-unified-metadata-standard.md) — Unified OpenLineage metadata standard
+- [ADR-S-012](../../specification/adrs/ADR-S-012-event-stream-as-formal-model-medium.md) — Event stream as formal model
+- [ADR-S-015](../../specification/adrs/ADR-S-015-unit-of-work-transaction-model.md) — Unit-of-work transaction model
+- [ADR-S-016](../../specification/adrs/ADR-S-016-invocation-contract.md) — Invocation contract
+- [ADR-S-017](../../specification/adrs/ADR-S-017-variable-grain-zoom-morphism.md) — Variable grain zoom morphism
 - [ADR-017](adrs/ADR-017-functor-based-execution-model.md) — Functor-based execution model (telemetry encoding)
+- [ADR-CG-001](adrs/ADR-CG-001-codex-runtime-as-platform.md) — Codex runtime platform binding
 - Prior v1.x design (AISDLC_IMPLEMENTATION_DESIGN.md) — superseded, recoverable at tag `v1.x-final`
-- ADR-001 (claude-code-as-mvp-platform) — v1.x platform choice, carried forward as standing decision

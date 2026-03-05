@@ -1122,7 +1122,7 @@ The system shall provide a user experience for expanding any graph edge into a s
 **Acceptance Criteria**:
 - User can request zoom on any edge: `/gen-zoom --edge "design→code" --level in|out|selective`
 - **Zoom in**: creates intermediate asset types as new nodes between source and target. The system:
-  - Proposes intermediate node types based on edge type and project context (e.g., `design→code` proposes `module_decomp → basis_projections → code_per_module`)
+  - Proposes intermediate node types based on edge type and project context (e.g., `design→code` proposes `module_decomposition → basis_projections → code_per_module`)
   - Each intermediate node gets its own asset type entry in the workspace graph topology (`.ai-workspace/graph/graph_topology.yml`)
   - Each new sub-edge inherits parent edge's evaluator types but can be overridden
   - Intent for the zoom (why this decomposition) is captured and traced to the parent edge
@@ -1478,7 +1478,7 @@ The Draft Features Queue — the set of `feature_proposal` events not yet promot
 | Supervision (IntentEngine) | 3 | 0 | 3 | 0 |
 | Runtime Robustness | 5 | 3 | 2 | 0 |
 | Spec Evolution | 5 | 0 | 4 | 1 |
-| **Total** | **79** | **13** | **53** | **13** |
+| **Total** | **83** | **13** | **53** | **13** |
 
 ### Phase 1 (Core Graph Engine): 57 requirements
 Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (F_P invocation isolation, supervisor pattern, crash recovery, failure events, session gap detection), spec evolution Phase 1 (workspace vectors trajectory-only, JOIN semantics for feature display, `spec_modified` event type).

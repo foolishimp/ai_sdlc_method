@@ -150,25 +150,9 @@ These are implementation details. The contract specifies only the interface boun
 
 ---
 
-## Current implementation status
-
-| Field | imp_claude | imp_gemini |
-|---|---|---|
-| `Intent` struct | Implicit (prompt string + edge config) | Implicit (feature + edge params) |
-| `StepResult` | `ClaudeRunResult` (partial) | Prefect result (partial) |
-| `artifacts` with hashes | ❌ not yet | ✅ implemented 2026-03-05 |
-| `spawns` | ❌ not yet | Partial |
-| `StepAudit` | Partial (`stall_killed`, `timed_out`) | Partial |
-| Functor registry | Implicit (fp_subprocess.py) | Implicit (IterateEngine) |
-
-Neither implementation is fully compliant today. This ADR defines the target; implementations converge toward it.
-
----
-
 ## References
 
 - [ADR-S-015](ADR-S-015-unit-of-work-transaction-model.md) — transaction model; `StepResult.artifacts` populates COMPLETE event outputs
 - [ADR-S-017](ADR-S-017-variable-grain-zoom-morphism.md) — grain as a first-class parameter in Intent; spawn = zoom in; fold-back = zoom out
 - [ADR-S-011](ADR-S-011-openlineage-unified-metadata-standard.md) — OL event schema consumed by StepResult
-- [ADR-023](../../imp_claude/design/adrs/ADR-023-mcp-as-primary-agent-transport.md) — MCP transport; one implementation of F_P functor satisfying this contract
-- [ADR-021](../../imp_claude/design/adrs/ADR-021-dual-mode-traverse.md) — edge affinity table used by the functor registry
+- Each implementation's transport ADR — defines the concrete functor registry and transport selection logic (MCP, subprocess, API, human) for that platform. See `imp_*/design/adrs/` for the platform-specific binding.

@@ -149,6 +149,6 @@ entries:
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §5.2 (Spec Reproducibility)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §5.2 (Spec Reproducibility)
 - [AISDLC_V2_DESIGN.md](../AISDLC_V2_DESIGN.md) §2.3 (Context Management)
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-INTENT-004
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-INTENT-004

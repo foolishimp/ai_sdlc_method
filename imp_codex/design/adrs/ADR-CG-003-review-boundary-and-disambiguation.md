@@ -44,6 +44,6 @@ Adopt a **spec-first review boundary**:
 
 ## References
 
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-EVAL-003, REQ-UX-002, REQ-SENSE-005
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../../specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) REQ-EVAL-003, REQ-UX-002, REQ-SENSE-005
 - [ADR-012-two-command-ux-layer.md](ADR-012-two-command-ux-layer.md)
 - [ADR-013-multi-agent-coordination.md](ADR-013-multi-agent-coordination.md)

@@ -18,8 +18,8 @@ Adopt a supervisor pattern and isolation boundary for all F_P invocations:
 
 1. Isolation boundary: execute each F_P call in a boundary that the caller can terminate cleanly on timeout/error. Nested invocations must not deadlock or share mutable state.
 2. Supervisor: enforce wall‑clock timeout; detect stalls (no observable progress) within a configured window; retry transient failures up to a configured limit; on persistent failure, return structured error.
-3. Failure events: guarantee emission of structured failure events to `events.jsonl` for all F_P failures. Include classification (timeout/error/stall), duration, retry count, feature, and edge.
-4. Crash/session gap recovery: on engine startup, scan for `edge_started` without completion events; emit `iteration_abandoned` events describing gaps since last activity.
+3. Failure events: guarantee emission of structured failure events to `events.jsonl` for all F_P failures using OpenLineage terminal events (`FAIL`/`ABORT`) with SDLC semantic facets (classification: timeout/error/stall, duration, retry count, feature, edge).
+4. Crash/session gap recovery: on engine startup, scan for `START` events without terminal `COMPLETE|FAIL|ABORT` for the same `runId`; evaluate `sdlc:inputManifest` drift and emit `gap_detected` for uncommitted writes.
 
 ## Consequences
 
@@ -35,12 +35,14 @@ Trade-offs:
 ## Implementation Notes
 
 - Configuration surface: add supervisor settings (timeouts, stalls, retries) to `intentengine_config.yml` or a dedicated `runtime_robustness.yml`.
-- Event schemas: document `failure_event`/`evaluator_detail` fields and add `iteration_abandoned` to the event catalogue in `agents/gen-iterate.md`.
+- Event schemas: document failure facets and ensure terminal event mapping (`FAIL`/`ABORT`) plus `sdlc:event_type` semantics in `agents/gen-iterate.md`.
 - Startup hook: ensure `/gen-start` (or engine bootstrap) performs gap scan before state detection.
 
 ## References
 
 - Spec §14 Runtime Robustness; FEATURE_VECTORS REQ‑F‑ROBUST‑001  
 - ADR‑S‑008: Sensory‑Triage‑Intent pipeline (failure observability and triage)  
+- ADR‑S‑011: OpenLineage event schema
+- ADR‑S‑015: unit-of-work transaction model and open-transaction recovery
+- ADR‑S‑016: invocation contract (timeout/stall semantics)
 - IntentEngine (§4.6): observer→evaluator→typed_output composition
-

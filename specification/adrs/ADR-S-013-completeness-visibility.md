@@ -27,7 +27,7 @@ Both questions share the same root: the spec defines when convergence occurs but
 
 ### 1. Feature Decomposition Convergence Criterion
 
-The `requirements → feature_decomp` edge converges when two conditions are both satisfied:
+The `requirements → feature_decomposition` edge converges when two conditions are both satisfied:
 
 **Condition A — REQ Coverage (F_D):**
 
@@ -50,7 +50,7 @@ F_D coverage alone is necessary but not sufficient. A feature list can cover all
 **Convergence criterion:**
 
 ```
-converged(feature_decomp) ⟺ coverage_delta = 0 AND human_approved = true
+converged(feature_decomposition) ⟺ coverage_delta = 0 AND human_approved = true
 ```
 
 The F_D check gates the F_H review — no human review is requested until all REQs are covered. This prevents premature approval of an incomplete list.
@@ -76,7 +76,7 @@ FEATURE COVERAGE — {project}
 **Invariant (Coverage Projection Availability)**:
 
 ```
-At any point in time t after feature_decomp is initiated,
+At any point in time t after feature_decomposition is initiated,
 coverage_projection(t) MUST be computable in O(artifacts)
 without LLM invocation.
 ```
@@ -153,7 +153,7 @@ Implementations MAY produce these summaries as CLI output, structured logs, UI n
 
 - **`satisfies:` field is now a required field** on every feature vector. Implementations must enforce its presence and its REQ-* key format. Existing feature vectors without this field are non-conformant.
 
-- **F_H approval is a blocking gate.** The feature_decomp edge cannot mark as converged without explicit human approval, even if coverage_delta=0. This is intentional — it cannot be skipped even in automated pipelines. Spike and minimal profiles may reduce the F_H gate to a single acknowledgement, but cannot eliminate it.
+- **F_H approval is a blocking gate.** The feature_decomposition edge cannot mark as converged without explicit human approval, even if coverage_delta=0. This is intentional — it cannot be skipped even in automated pipelines. Spike and minimal profiles may reduce the F_H gate to a single acknowledgement, but cannot eliminate it.
 
 - **Three summary levels means three new output requirements** for every implementation. Minimal implementations (spike profile) may collapse all three into a single summary line, but must produce something observable.
 
@@ -196,7 +196,7 @@ The impact set is computable by graph traversal — no LLM required. Whether imp
 
 ## Alternatives Considered
 
-**No convergence criterion for feature_decomp — leave it to human judgment**: The human just decides when the list is good enough. Rejected — without a formal criterion, the feature list has no convergence signal and the F_D coverage check is never run. Users have no quantitative answer to "what's missing?"
+**No convergence criterion for feature_decomposition — leave it to human judgment**: The human just decides when the list is good enough. Rejected — without a formal criterion, the feature list has no convergence signal and the F_D coverage check is never run. Users have no quantitative answer to "what's missing?"
 
 **F_D coverage alone, no F_H gate**: Coverage_delta=0 is sufficient for convergence. Rejected — a feature list can cover all REQs and be the wrong decomposition. The human judgment about granularity, dependency order, and MVP boundary cannot be replaced by a coverage check.
 
@@ -210,6 +210,6 @@ The impact set is computable by graph traversal — no LLM required. Whether imp
 
 - [ADR-S-012](ADR-S-012-event-stream-as-formal-model-medium.md) — event stream as source of truth; coverage projection is a read-side projection of the stream
 - [ADR-S-010](ADR-S-010-event-sourced-spec-evolution.md) — feature_proposal and spec_modified events; the coverage projection drives what proposals are needed
-- [ADR-S-004](ADR-S-004-derivation-constraint.md) — downstream may not contradict upstream; coverage criterion enforces this at the feature_decomp boundary
+- [ADR-S-004](ADR-S-004-derivation-constraint.md) — downstream may not contradict upstream; coverage criterion enforces this at the feature_decomposition boundary
 - `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §6.1, §6.4 — feature vector definition and feature views; updated per this ADR
 - `requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md` — new REQ-VIS-* series required

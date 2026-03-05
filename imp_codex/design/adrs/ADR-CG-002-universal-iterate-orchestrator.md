@@ -46,6 +46,6 @@ No edge-specific codepaths are allowed outside configuration and checklist compo
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §3, §7.5
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §3, §7.5
 - [AISDLC_V2_DESIGN.md](../AISDLC_V2_DESIGN.md) §2.1
 - [ADR-008-universal-iterate-agent.md](ADR-008-universal-iterate-agent.md)

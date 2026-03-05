@@ -60,7 +60,7 @@ Each edge is the same operation: `iterate()` until evaluators converge. Every it
 A **delivered feature** is the composite of all assets produced along its edges. Software feature delivery is a composite vector:
 
 ```
-Feature F = |req⟩ + |feature_decomp⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
+Feature F = |req⟩ + |feature_decomposition⟩ + |design⟩ + |module_decomposition⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
 ```
 
 The SDLC asset graph:
@@ -152,8 +152,8 @@ Spike:      Intent ────────────────────�
 
 ```
 Design → Code (zoomed out):   |design⟩ ═══════════════════════════► |code⟩
-Design → Code (zoomed in):    |design⟩ → |module_decomp⟩ → |basis_projections⟩ → |code_per_module⟩
-Design → Code (selective):    |design⟩ → |module_decomp⟩ ═══════════► |code_per_module⟩
+Design → Code (zoomed in):    |design⟩ → |module_decomposition⟩ → |basis_projections⟩ → |code_per_module⟩
+Design → Code (selective):    |design⟩ → |module_decomposition⟩ ═══════════► |code_per_module⟩
 ```
 
 | Intermediate Asset | What it produces | Key evaluators |
@@ -337,12 +337,12 @@ The encoding is the **design-level binding** — it assigns each functional unit
 Zoomed out:   design ═══════════════════════════► code
               (single encoding: F_P)
 
-Zoomed in:    design → module_decomp → basis_projections → code_per_module
+Zoomed in:    design → module_decomposition → basis_projections → code_per_module
               (F_P)    (F_P)           (F_P + F_H)          (F_P + F_D)
                                         ↑ human waypoint     ↑ tests
 ```
 
-The spec defines `module_decomp` and `basis_projections` as functional units regardless of zoom level. The encoding determines whether they are **explicit** (each has its own execution category and convergence criteria) or **implicit** (their computation is subsumed by the encapsulating edge's rendering).
+The spec defines `module_decomposition` and `basis_projections` as functional units regardless of zoom level. The encoding determines whether they are **explicit** (each has its own execution category and convergence criteria) or **implicit** (their computation is subsumed by the encapsulating edge's rendering).
 
 **Multiple implementations per spec (§2.7) are multiple functors from the same domain.** The spec is shared; each implementation applies a different encoding:
 
@@ -753,14 +753,14 @@ Context itself evolves, but on a slower timescale than assets. This is the ontol
 A **feature** is the composite of all assets produced along its trajectory through the graph:
 
 ```
-Feature F = |req⟩ + |feature_decomp⟩ + |design⟩ + |module_decomp⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
+Feature F = |req⟩ + |feature_decomposition⟩ + |design⟩ + |module_decomposition⟩ + |basis_projections⟩ + |code⟩ + |unit_tests⟩ + |uat_tests⟩ + |cicd⟩ + |telemetry⟩
 ```
 
 Each component is a stable asset produced by iterating along an edge. The REQ key is the **vector identifier** — it tags which trajectory all these assets belong to. A feature is **complete** when all its edge-produced assets have converged to Markov objects.
 
 #### Feature Decomposition Convergence Criterion
 
-The `requirements → feature_decomp` edge has a two-condition convergence criterion (ADR-S-013):
+The `requirements → feature_decomposition` edge has a two-condition convergence criterion (ADR-S-013):
 
 **Condition A — REQ Coverage (F_D, deterministic):**
 
@@ -775,7 +775,7 @@ Every REQ-* key in the requirements MUST appear in the `satisfies:` field of at 
 
 A human actor MUST approve that the decomposition is the right build plan — correct granularity, buildable dependency order, correct MVP boundary. Coverage alone is not sufficient; a list that covers all REQs can still be the wrong decomposition.
 
-**Full criterion:** `converged(feature_decomp) ⟺ coverage_delta = 0 AND human_approved = true`
+**Full criterion:** `converged(feature_decomposition) ⟺ coverage_delta = 0 AND human_approved = true`
 
 The F_D check gates the F_H review — human review is not requested until coverage_delta = 0.
 
@@ -789,12 +789,12 @@ For every convergence state transition, a human-readable summary MUST be produce
 | Edge delta reaches 0 | Edge convergence notice: what passed, what was produced, what is next |
 | All edges in a feature converge | Feature completion: edges converged, REQs satisfied, ready for review |
 
-**Invariant**: convergence MUST be made unambiguously visible before the next downstream edge begins. Silent convergence is non-conformant. Components like |module_decomp⟩ and |basis_projections⟩ are present when the graph is zoomed in at the build decomposition level (§2.5); at zoomed-out level they collapse into the Design → Code edge.
+**Invariant**: convergence MUST be made unambiguously visible before the next downstream edge begins. Silent convergence is non-conformant. Components like |module_decomposition⟩ and |basis_projections⟩ are present when the graph is zoomed in at the build decomposition level (§2.5); at zoomed-out level they collapse into the Design → Code edge.
 
 ```mermaid
 graph LR
     R["REQ-F-AUTH-001\n|req⟩"] --> D["REQ-F-AUTH-001\n|design⟩"]
-    D --> MD["REQ-F-AUTH-001\n|module_decomp⟩"]
+    D --> MD["REQ-F-AUTH-001\n|module_decomposition⟩"]
     MD --> ST["REQ-F-AUTH-001\n|basis_projections⟩"]
     ST --> C["REQ-F-AUTH-001\n|code⟩"]
     C <--> T["REQ-F-AUTH-001\n|unit_tests⟩"]
@@ -904,7 +904,7 @@ Basis Projection 3 (full lineage):         model → compiler → runtime → li
 
 ```mermaid
 graph TD
-    MD["|module_decomp⟩\n8 modules, DAG"] --> BP1["|basis_proj_1⟩\nStructural mapping\n4 modules"]
+    MD["|module_decomposition⟩\n8 modules, DAG"] --> BP1["|basis_proj_1⟩\nStructural mapping\n4 modules"]
     MD --> BP2["|basis_proj_2⟩\nLossy aggregation\n4 modules, deeper"]
     MD --> BP3["|basis_proj_3⟩\nFull lineage\n5 modules"]
 
@@ -925,7 +925,7 @@ Each converged basis projection is a Markov object (§2.3):
 - **Stability**: All evaluators for this slice report convergence (compiles, tests pass, REQ keys traced)
 
 The basis projection schedule — the Gantt chart — is a **derived projection** (§7.4.2) computed from:
-- Module dependency DAG (from |module_decomp⟩)
+- Module dependency DAG (from |module_decomposition⟩)
 - Feature-to-module mapping (from REQ key traceability)
 - Feature priority (from requirements / intent)
 - Basis projection convergence events (from events.jsonl)

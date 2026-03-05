@@ -1,8 +1,8 @@
-# AI SDLC - Codex Genesis Implementation Design (v1.1)
+# AI SDLC - Codex Genesis Implementation Design (v1.2)
 
-**Version**: 1.1.0  
-**Date**: 2026-02-23  
-**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)  
+**Version**: 1.2.0  
+**Date**: 2026-03-05  
+**Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)  
 **Reference Implementation**: [AISDLC_V2_DESIGN.md](../../imp_claude/design/AISDLC_V2_DESIGN.md)  
 **Platform**: Codex (tool-calling coding agent runtime)
 
@@ -16,9 +16,14 @@ Primary objective: preserve methodology semantics and feature coverage while map
 
 Core objectives:
 
-1. **Reference parity**: Maintain feature-level compatibility with Claude v2.8 design (all 11 feature vectors).
+1. **Reference parity**: Maintain feature-level compatibility with the current spec baseline (14 feature vectors).
 2. **Native binding**: Map iterate/evaluator/context/tooling to Codex primitives without changing the Asset Graph model.
 3. **Spec-first control**: Keep disambiguation at intent/spec/design layers; use code/runtime observability as secondary unblock and validation controls.
+
+Document governance:
+- Accepted ADRs are authoritative for design decisions in their scope.
+- This document is the cohesive glue for cross-ADR integration and implementation posture.
+- If this document conflicts with an accepted ADR, the ADR wins and this document must be reconciled.
 
 ---
 
@@ -75,7 +80,7 @@ Core objectives:
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1.2 Claude-to-Codex Binding Map
+### 1.2 Reference-to-Codex Binding Map
 
 | Concept | Claude Reference | Codex Genesis |
 | :--- | :--- | :--- |
@@ -88,7 +93,7 @@ Core objectives:
 
 ### 1.3 Universal Iterate Orchestration (Codex)
 
-Codex Genesis keeps the Claude invariant: **one iterate operation, parameterized per edge**.
+Codex Genesis keeps the methodology invariant: **one iterate operation, parameterized per edge**.
 
 Iterate flow:
 
@@ -209,8 +214,11 @@ This section is the explicit parity contract.
 | REQ-F-UX-001 | Claude §1.9 | Codex §4.3 | Aligned |
 | REQ-F-SUPV-001 | Claude §1.9, §2.6 | Codex §2.6, §4.3 | Aligned |
 | REQ-F-COORD-001 | Claude §1.10 | Codex §4.4 + ADR-013 | Aligned |
+| REQ-F-ROBUST-001 | Claude §1.5.1 + ADR-021/024 direction | Codex §4.1 + ADR-CG-009 | Aligned (in progress) |
+| REQ-F-EVENT-001 | Claude ADR-S-011/012/015 alignment | Codex event stream + ADR-CG-004 | Aligned (in progress) |
+| REQ-F-EVOL-001 | Claude consciousness/spec-evolution loop | Codex §4 + observer pipeline | Aligned (in progress) |
 
-**11/11 feature vectors aligned with Claude reference implementation.**
+**14/14 feature vectors targeted for alignment with current specification.**
 
 ---
 
@@ -291,7 +299,12 @@ Progressive disclosure is retained: newcomers use start/status, power users invo
 
 - [AISDLC_V2_DESIGN.md](AISDLC_V2_DESIGN.md) - Codex implementation specification (detailed)
 - [AISDLC_V2_DESIGN.md](../../imp_claude/design/AISDLC_V2_DESIGN.md) - reference implementation
-- [GEMINI_GENESIS_DESIGN.md](../../imp_gemini/design/GEMINI_GENESIS_DESIGN.md) - sibling design
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) - canonical model
-- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) - requirements baseline
-- [FEATURE_VECTORS.md](../../specification/FEATURE_VECTORS.md) - feature vectors
+- [GEMINI_BOOTSTRAP_DESIGN.md](../../imp_gemini/design/GEMINI_BOOTSTRAP_DESIGN.md) - sibling design
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) - canonical model
+- [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) - requirements baseline
+- [FEATURE_VECTORS.md](../../specification/features/FEATURE_VECTORS.md) - feature vectors
+- [ADR-S-011](../../specification/adrs/ADR-S-011-openlineage-unified-metadata-standard.md) - canonical event schema
+- [ADR-S-012](../../specification/adrs/ADR-S-012-event-stream-as-formal-model-medium.md) - event stream conformance contract
+- [ADR-S-015](../../specification/adrs/ADR-S-015-unit-of-work-transaction-model.md) - transaction/commit semantics
+- [ADR-S-016](../../specification/adrs/ADR-S-016-invocation-contract.md) - invocation interface contract
+- [ADR-S-017](../../specification/adrs/ADR-S-017-variable-grain-zoom-morphism.md) - zoom/grain morphism model

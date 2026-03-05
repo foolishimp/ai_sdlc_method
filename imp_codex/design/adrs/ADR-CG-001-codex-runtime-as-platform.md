@@ -74,5 +74,5 @@ Key mappings:
 
 - [CODEX_GENESIS_DESIGN.md](../CODEX_GENESIS_DESIGN.md)
 - [AISDLC_V2_DESIGN.md](../../../imp_claude/design/AISDLC_V2_DESIGN.md)
-- [GEMINI_GENESIS_DESIGN.md](../../../imp_gemini/design/GEMINI_GENESIS_DESIGN.md)
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md)
+- [GEMINI_BOOTSTRAP_DESIGN.md](../../../imp_gemini/design/GEMINI_BOOTSTRAP_DESIGN.md)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md)

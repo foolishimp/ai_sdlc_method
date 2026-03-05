@@ -11,7 +11,9 @@
 
 The specification (§4.5.4) defines the sensory service as a **long-running service** with five capabilities: workspace watching, monitor scheduling, affect triage, homeostatic response generation, and review boundary exposure. The spec is deliberately technology-agnostic — it says "long-running service", "probabilistic agent", and "tool interface" without prescribing HOW.
 
-This ADR records the Claude Code implementation's binding of those abstract concepts to concrete platform technologies.
+This ADR records the reference Claude binding of those abstract concepts to concrete platform technologies.
+
+For Codex design hygiene: this ADR is retained as a transitional reference. Codex-specific sensory transport/runtime bindings should be captured in a dedicated `ADR-CG-*` decision to avoid conflating Claude-native mechanisms with Codex-native ones.
 
 ### Why This ADR Exists
 
@@ -177,7 +179,7 @@ The spec refers to "project state view" (an auto-regenerated derived view of pro
 
 ## References
 
-- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems), §4.6 (IntentEngine)
+- [AI_SDLC_ASSET_GRAPH_MODEL.md](../../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) §4.5 (Sensory Systems), §4.6 (IntentEngine)
 - [ADR-008](ADR-008-universal-iterate-agent.md) — Universal Iterate Agent (primary consumer of sensory signals)
 - [ADR-011](ADR-011-consciousness-loop-at-every-observer.md) — Consciousness Loop (signal source classification taxonomy)
 - [ADR-014](ADR-014-intentengine-binding.md) — IntentEngine Binding (affect triage IS the IntentEngine at sensory level)

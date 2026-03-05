@@ -144,6 +144,8 @@ Without C, the constructor at D must re-derive all of this from scratch — or g
 
 **Candidate principle**: *Intermediate graph nodes are not architectural requirements. They are a tool for managing constructor complexity. Add them when the A→E leap exceeds reliable constructor range. Their value is visibility and progressive pruning, not structural correctness.*
 
+**Profile policy (reconciling §2.5 with ADR-S-006/007)**: The principle above holds at the level of the formal system — intermediates are never structurally mandated by the model itself. However, the SDLC bootstrap graph (standard profile) mandates `feature_decomposition` and `module_decomposition` as explicit nodes in the standard execution chain. This is an empirical claim: for general software development, the direct `requirements → design → code` leap reliably exceeds constructor range, making explicit decomposition nodes the correct default. Profile-specific zoom-out rules override this default: `poc`, `spike`, and `hotfix` profiles may collapse decomposition nodes and traverse directly from `feature_decomposition → design` or `requirements → design`. The formal system makes no mandates; the SDLC standard profile does. Both are consistent — the profile is a projection of the formal system with a specific context-density choice applied.
+
 ### 2.6 Zoom as Constrained Computation
 
 Zoom (Asset Graph Model §2.5) is formally equivalent to **context density**. `iterate()` is the same function at every zoom level; what changes is what is loaded into `Context[]` and how many intermediate steps are present in the graph.
@@ -302,7 +304,7 @@ graph LR
     end
 ```
 
-### 4.2 Feature Vector (zoomed-out form; see Asset Graph Model §6.1 for full form including |module_decomp⟩ + |basis_projections⟩ at zoom)
+### 4.2 Feature Vector (zoomed-out form; see Asset Graph Model §6.1 for full form including |module_decomposition⟩ + |basis_projections⟩ at zoom)
 
 The standard trajectory through the graph producing permanent Markov objects.
 
@@ -865,5 +867,5 @@ Four primitives. One operation. Valid projections at every scale. Complexity man
 
 - **Asset Graph Model** — [AI_SDLC_ASSET_GRAPH_MODEL.md](AI_SDLC_ASSET_GRAPH_MODEL.md) — the formal system this document extends
 - **Constraint-Emergence Ontology** — [github.com/foolishimp/constraint_emergence_ontology](https://github.com/foolishimp/constraint_emergence_ontology) — parent theory
-- **Feature Vector Decomposition** — [FEATURE_VECTORS.md](FEATURE_VECTORS.md) — the standard vector type in detail
-- **Implementation Requirements** — [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — platform-agnostic implementation reqs
+- **Feature Vector Decomposition** — [FEATURE_VECTORS.md](../features/FEATURE_VECTORS.md) — the standard vector type in detail
+- **Implementation Requirements** — [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — platform-agnostic implementation reqs

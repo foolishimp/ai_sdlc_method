@@ -27,7 +27,7 @@ Implementers building AI SDLC tooling for any platform (Claude, Gemini, Codex, o
 
 ## Coverage Matrix
 
-All 69 implementation requirements mapped to use case clusters and scenario counts.
+All 83 implementation requirements mapped to use case clusters and scenario counts.
 
 | REQ Key | Description | UC Cluster | Scenarios |
 |---------|-------------|------------|-----------|
@@ -2649,7 +2649,7 @@ And the next /gen-status displays the pending count
 Given the edge "design→code" for Feature A
 When the user requests zoom: --edge "design→code" --level in
 Then the system proposes intermediate node types:
-  design → module_decomp → basis_projections → code_per_module → code
+  design → module_decomposition → basis_projections → code_per_module → code
 And each intermediate node gets its own asset type in the workspace
 And sub-edges inherit parent evaluators (overridable)
 And a "graph_zoom_in" event is emitted with full before/after topology
@@ -2675,9 +2675,9 @@ And a "graph_zoom_out" event is emitted
 
 ```gherkin
 Given a zoomed edge with 3 intermediate nodes
-When the user selects node "module_decomp" as a mandatory waypoint
+When the user selects node "module_decomposition" as a mandatory waypoint
 And collapses the other intermediates
-Then "module_decomp" becomes an explicit convergence checkpoint
+Then "module_decomposition" becomes an explicit convergence checkpoint
 And the other intermediates are treated as internal to encapsulating edges
 And a "graph_zoom_selective" event is emitted
 ```

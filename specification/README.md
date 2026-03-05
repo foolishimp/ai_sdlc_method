@@ -56,9 +56,9 @@ Constraint-Emergence Ontology  (external)
         ├──► core/EXECUTIVE_SUMMARY.md             5-minute digest
         ├──► core/GENESIS_BOOTLOADER.md            LLM operational distillation
         │
-        └──► requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md   74 requirements
+        └──► requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md   83 requirements
                     │                   (spec/design boundary is downstream of here)
-                    ├──► features/FEATURE_VECTORS.md      13 features, dependency DAG, build order, MVP scope
+                    ├──► features/FEATURE_VECTORS.md      14 features, dependency DAG, build order, MVP scope
                     │           │
                     │           ├──► ux/UX.md              User journeys, MVP, validation
                     │           │
@@ -87,7 +87,7 @@ Constraint-Emergence Ontology  (external)
 | Document | Derives From | Role | Size |
 |----------|-------------|------|------|
 | [requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md](requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) | core model | 83 platform-agnostic requirements | 1402 lines |
-| [features/FEATURE_VECTORS.md](features/FEATURE_VECTORS.md) | requirements | 13 features, dependency graph, build order | 409 lines |
+| [features/FEATURE_VECTORS.md](features/FEATURE_VECTORS.md) | requirements | 14 features, dependency graph, build order | 409 lines |
 | [ux/UX.md](ux/UX.md) | core model + requirements | User journeys, MVP, validation scenarios | 1087 lines |
 | [verification/UAT_TEST_CASES.md](verification/UAT_TEST_CASES.md) | requirements + features | BDD acceptance contracts (9 use cases) | 3287 lines |
 

@@ -21,7 +21,7 @@ The specification (AI_SDLC_ASSET_GRAPH_MODEL v2.8.0, §2.1/§6.7) and ADR‑S‑
 Adopt explicit nodes and edges in the graph package:
 
 ```
-requirements→feature_decomp→design→module_decomp→basis_projections→code
+requirements→feature_decomposition→design→module_decomposition→basis_projections→code
 ```
 
 ### Artifacts and Convergence Criteria
@@ -53,7 +53,7 @@ Trade-offs:
 ## Implementation Notes
 
 Plugin work (subsequent changes):
-- Add asset types: `feature_decomp`, `module_decomp`, `basis_projections` to `graph_topology.yml`.
+- Add asset types: `feature_decomposition`, `module_decomposition`, `basis_projections` to `graph_topology.yml`.
 - Add 5 transitions and corresponding `edge_params/*.yml` parameterisations.
 - Update `agent_roles.yml` `converge_edges` to authorise new edges.
 - Extend feature vector template trajectory to record new nodes.
@@ -64,4 +64,3 @@ Plugin work (subsequent changes):
 - ADR‑S‑006: Feature Decomposition node  
 - ADR‑S‑007: Module Decomposition & Basis Projections  
 - FEATURE_VECTORS.md (updated trajectories and coverage)
-
