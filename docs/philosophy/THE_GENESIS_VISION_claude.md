@@ -70,11 +70,11 @@ Independent verification, documented methodology, ongoing monitoring, a record t
 ```mermaid
 graph LR
     I([Intent]) -->|specifies| R
-    R([Requirements\nREQ-* keys]) -->|decomposes into| F
+    R(["Requirements<br/>REQ-* keys"]) -->|decomposes into| F
     F([Features]) -->|governs| D
-    D([Design\nADRs]) -->|constrains| C
-    C([Code & Tests\ntagged REQ-*]) -->|deploys to| P
-    P([Production\nmonitored by REQ-*]) -->|drift triggers new intent| I
+    D(["Design<br/>ADRs"]) -->|constrains| C
+    C(["Code & Tests<br/>tagged REQ-*"]) -->|deploys to| P
+    P(["Production<br/>monitored by REQ-*"]) -->|drift triggers new intent| I
 ```
 
 ---
