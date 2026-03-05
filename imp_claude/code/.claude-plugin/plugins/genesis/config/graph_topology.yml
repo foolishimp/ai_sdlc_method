@@ -345,9 +345,18 @@ transitions:
       must resolve all named ADR areas, must address cross-cutting concerns.
       Reuses requirements_design.yml edge config — adds design_recommendations as required context.
 
-  # Note: zoom-out profiles (poc, spike) skip feature_decomposition entirely via
-  # Requirements → Design directly. There is no feature_decomposition → design shortcut —
-  # if you decompose features, you synthesise recommendations from them.
+  - name: "Requirements → Design"
+    source: requirements
+    target: design
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+    edge_config: "edge_params/requirements_design.yml"
+    note: |
+      Zoom-out shortcut for poc/spike/hotfix profiles. Skips feature_decomposition and
+      design_recommendations entirely — the constructor handles the full leap internally.
+      Standard/full profiles do NOT use this edge — they route through the decomposition
+      chain. Different profiles, different paths. Not ambiguity — zoom.
 
   - name: "Design → Module Decomposition"
     source: design

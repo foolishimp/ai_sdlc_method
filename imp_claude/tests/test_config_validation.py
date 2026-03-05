@@ -105,15 +105,17 @@ class TestGraphTopology:
 
     @pytest.mark.tdd
     def test_bootstrap_graph_edges_present(self, graph_topology):
-        """The bootstrap graph edges must all be present (v2.8.0 — 14 transitions)."""
+        """The bootstrap graph edges must all be present (v2.9.0 — full decomposition chain)."""
         expected_edges = [
             ("intent", "requirements"),
             ("requirements", "feature_decomposition"),
-            ("feature_decomposition", "design"),
+            ("feature_decomposition", "design_recommendations"),  # full chain
+            ("design_recommendations", "design"),
+            ("requirements", "design"),              # zoom-out shortcut (poc/spike/hotfix)
             ("design", "module_decomposition"),
             ("module_decomposition", "basis_projections"),
             ("basis_projections", "code"),
-            ("design", "code"),          # PoC/spike shortcut
+            ("design", "code"),                      # PoC/spike shortcut
             ("code", "unit_tests"),
             ("design", "test_cases"),
             ("design", "uat_tests"),
