@@ -67,6 +67,28 @@ These are not steps teams are asked to follow — they are gates. The result is 
 
 Independent verification, documented methodology, ongoing monitoring, a record that can withstand examination. The same principle that governs any serious compliance framework, applied to software delivery.
 
+```mermaid
+flowchart TD
+    A([Business Intent]) --> B
+    B["Requirements\nEvery item tagged REQ-*"] --> C
+    C{"Coverage gate\nEvery REQ claimed\nby a feature?"}
+    C -->|Gap found| B
+    C -->|"Complete\n+ human approved"| D
+    D["Architecture\nDecision Records\nConstraints locked"] --> E
+    E["Code + Tests\nEvery unit tagged REQ-*"] --> F
+    F{"Conformance gate\nAll checks pass?"}
+    F -->|Fail| E
+    F -->|Pass| G
+    G["Deployment\nArtifacts fingerprinted\nAudit trail sealed"] --> H
+    H(["Production\nMonitored by REQ-* keys\nDrift detected automatically"])
+    H -->|"Specification drift\ntriggers new intent"| A
+
+    style C fill:#fff8e1,stroke:#f0a500
+    style F fill:#fff8e1,stroke:#f0a500
+    style A fill:#e8f5e9,stroke:#388e3c
+    style H fill:#e8f5e9,stroke:#388e3c
+```
+
 ---
 
 ## Traceability: From Requirement to Production
