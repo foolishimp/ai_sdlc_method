@@ -321,6 +321,18 @@ def run_edge(
     edge_config = load_yaml(edge_config_path)
     records = []
     prior_failures: list[str] = []
+    events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
+
+    # Emit edge_started — recovery scanner depends on this (REQ-ROBUST-008)
+    emit_event(
+        events_path,
+        make_event(
+            "edge_started",
+            config.project_name,
+            feature=feature_id,
+            edge=edge,
+        ),
+    )
 
     for i in range(1, config.max_iterations_per_edge + 1):
         record = iterate_edge(

@@ -393,13 +393,14 @@ def cmd_run_edge(args: argparse.Namespace) -> int:
             / f"{child_id}.yml"
         )
 
-    if last and last.construct_result:
-        output["construct"] = {
-            "model": last.construct_result.model,
-            "duration_ms": last.construct_result.duration_ms,
-            "retries": last.construct_result.retries,
-            "artifact_length": len(last.construct_result.artifact),
-            "traceability": last.construct_result.traceability,
+    if last and last.fp_result and not last.fp_result.audit.skipped:
+        fp = last.fp_result
+        output["fp_actor"] = {
+            "transport": fp.audit.transport,
+            "converged": fp.converged,
+            "cost_usd": fp.cost_usd,
+            "duration_ms": fp.duration_ms,
+            "artifacts": len(fp.artifacts),
         }
 
     print(json.dumps(output, indent=2))
@@ -479,15 +480,14 @@ def cmd_construct(args: argparse.Namespace) -> int:
         "source": "engine_cli",
     }
 
-    if record.construct_result:
-        cr = record.construct_result
-        output["construct"] = {
-            "model": cr.model,
-            "duration_ms": cr.duration_ms,
-            "retries": cr.retries,
-            "artifact_length": len(cr.artifact),
-            "traceability": cr.traceability,
-            "source_findings": cr.source_findings,
+    if record.fp_result and not record.fp_result.audit.skipped:
+        fp = record.fp_result
+        output["fp_actor"] = {
+            "transport": fp.audit.transport,
+            "converged": fp.converged,
+            "cost_usd": fp.cost_usd,
+            "duration_ms": fp.duration_ms,
+            "artifacts": len(fp.artifacts),
         }
         if output_file:
             output["output_path"] = str(output_file)

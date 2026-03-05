@@ -7,19 +7,48 @@ Run one iteration of `iterate(Asset, Context[], Evaluators)` on a specific graph
 ## Usage
 
 ```
-/gen-iterate --edge "{source}→{target}" --feature "REQ-F-{DOMAIN}-{SEQ}" [--auto] [--profile {name}]
+/gen-iterate --edge "{source}→{target}" --feature "REQ-F-{DOMAIN}-{SEQ}" [--mode {interactive|engine|auto}] [--profile {name}]
 ```
 
 | Option | Description |
 |--------|-------------|
 | `--edge` | The graph transition to traverse (e.g., "design→code", "code↔unit_tests") |
 | `--feature` | The feature vector (REQ-F-*) being worked on |
-| `--auto` | Auto-iterate until convergence (skip human review on non-human edges) |
+| `--mode` | Execution mode: `interactive` (LLM agent, default), `engine` (F_D deterministic CLI), `auto` (engine for deterministic edges, interactive otherwise) |
 | `--profile` | Projection profile to use (full, standard, poc, spike, hotfix, minimal). Overrides feature vector's profile if set. |
+
+**Deterministic edges** (engine mode applies): `code↔unit_tests`, `design→test_cases`, `design→uat_tests`
 
 ## Instructions
 
 This command is the primary workflow action. It invokes the iterate agent on a specific edge of the asset graph.
+
+### Step 0: Select Execution Mode
+
+Determine the execution mode from `--mode` (default: `interactive`):
+
+**`engine` mode** — delegate entirely to the F_D engine CLI:
+1. Locate the primary asset for the feature+edge (from the feature vector trajectory, or ask the user)
+2. Run via Bash:
+   ```bash
+   PYTHONPATH={plugin_root}/code python -m genesis run-edge \
+     --edge "{edge}" \
+     --feature "{feature}" \
+     --asset "{asset_path}" \
+     --deterministic-only \
+     --max-iterations 10 \
+     --fd-timeout 120
+   ```
+3. Parse the JSON output — it contains `delta`, `converged`, `total_iterations`, `iterations[].checks`
+4. Format as the **Iteration Report** (Step 5) and emit no additional events (engine handles all emission)
+5. If `converged: true` → update feature vector trajectory, proceed to Step 4 (convergence handling)
+6. If `spawn_requested` → present spawn to user as in Step 6
+
+**`auto` mode** — route by edge type:
+- Edge is `code↔unit_tests`, `design→test_cases`, or `design→uat_tests` → use `engine` mode
+- All other edges → use `interactive` mode
+
+**`interactive` mode** — proceed to Step 1 (LLM agent path, current default behaviour)
 
 ### Step 1: Validate Edge
 
