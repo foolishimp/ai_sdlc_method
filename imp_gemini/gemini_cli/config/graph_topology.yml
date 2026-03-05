@@ -1,8 +1,6 @@
 # AI SDLC — Default Graph Topology
-# Version: 2.8.0
-# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md (v2.8.0)
-#
-# Defines asset types and admissible transitions for the v2.8.0 graph.
+# Version: 2.9.0 (Extended with Tournament Pattern)
+# Reference: ADR-S-017 (Zoom Morphism), ADR-S-015 (Unit of Work)
 
 asset_types:
   - name: intent
@@ -17,6 +15,12 @@ asset_types:
     description: "Codebase-level breakdown into modules/packages"
   - name: basis_projections
     description: "Intersection of Feature x Module"
+  - name: parallel_spawn
+    description: "Fan-out point for multi-tenant or parallel exploration"
+  - name: tournament_arbitration
+    description: "Evaluation and selection among parallel candidates"
+  - name: tournament_merge
+    description: "Composite/cherry-picked asset construction"
   - name: code
     description: "Source code implementation"
   - name: unit_tests
@@ -58,10 +62,32 @@ transitions:
     name: "module_decomp→basis_proj"
     evaluators: ["agent", "human"]
 
+  # Standard Path
   - source: basis_projections
     target: code
     name: "basis_proj→code"
     evaluators: ["deterministic", "agent"]
+
+  # Tournament Path (Enabled via profile or edge override)
+  - source: basis_projections
+    target: parallel_spawn
+    name: "basis_proj→tournament_fanout"
+    evaluators: ["agent_spawner"]
+
+  - source: parallel_spawn
+    target: tournament_arbitration
+    name: "spawn→arbitration"
+    evaluators: ["agent", "human"]
+
+  - source: tournament_arbitration
+    target: tournament_merge
+    name: "arbitration→merge"
+    evaluators: ["agent", "human"]
+
+  - source: tournament_merge
+    target: code
+    name: "merge→code"
+    evaluators: ["deterministic"]
 
   - source: code
     target: unit_tests
@@ -103,4 +129,4 @@ graph_properties:
   cyclic: true
   extensible: true
   zoomable: true
-  version: "2.8.0"
+  version: "2.9.0"

@@ -6,7 +6,7 @@
 - Do not create, edit, delete, move, or rename files.
 - Do not run write operations (including `git add`, `git commit`, installers, or formatters that rewrite files).
 - Do not make changes outside `imp_codex` and `.ai-workspace/comments/codex` under any circumstance.
-- Inside `imp_codex` and `.ai-workspace/comments/codex`, changes are allowed only when the user explicitly says: `apply changes`.
+- Inside `imp_codex` and `.ai-workspace/comments/codex`, changes are allowed only when the user explicitly says: `apply changes` or Equivalent but explict term to proceed.
 - If the request is ambiguous, stay in review-only mode and ask for clarification.
 
 ## Scope Priority

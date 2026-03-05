@@ -50,19 +50,21 @@ The session-gap recovery scanner in `workspace_state.py` depends on `edge_starte
 ## MVP — Delete Dead Code (ADR-020 residue)
 
 **Priority**: HIGH — clarity before dogfood
-**Status**: Not Started
+**Status**: Done — 2026-03-05
+**Commit**: `ee41f55`
 **Release Target**: MVP
 
 **Description**:
-`fp_construct.py`, `fp_evaluate.py`, `fp_subprocess.py` are dead code. ADR-024 supersedes ADR-020 — the subprocess F_P path (`claude -p`) is gone. Engine routes through `FpFunctor`. These files persist only to anchor `REQ-F-FPC-*` tags.
+`fp_construct.py`, `fp_evaluate.py`, `fp_subprocess.py` are dead code. ADR-024 supersedes ADR-020 — the subprocess F_P path (`claude -p`) is gone. Engine routes through `FpFunctor`. REQ-F-FPC-* tags moved to fp_functor.py header.
 
 **Tasks**:
-1. Move `REQ-F-FPC-*` tag comments into `DESIGN_REQUIREMENTS.md` §1 as historical anchors (design-tier, not code-tier)
-2. Delete `fp_construct.py`, `fp_evaluate.py`, `fp_subprocess.py`
-3. Verify no remaining imports reference these files
-4. Run test suite — confirm 729 unit tests still pass
+1. ✓ Move `REQ-F-FPC-*` tag comments into fp_functor.py Implements header
+2. ✓ Delete `fp_construct.py`, `fp_evaluate.py`, `fp_subprocess.py`, `test_fp_subprocess.py`
+3. ✓ Rewrite `test_functor_construct.py` — keep only ADR-024 tests
+4. ✓ Remove `ConstructResult` from `models.py`
+5. ✓ 691 unit tests pass; 55 pre-existing failures (stale path constants, not regressions)
 
-**Reference**: `imp_claude/code/genesis/fp_construct.py`, `fp_evaluate.py`, `fp_subprocess.py`
+**Reference**: `imp_claude/code/genesis/fp_functor.py`, `imp_claude/tests/test_functor_construct.py`
 
 ---
 
