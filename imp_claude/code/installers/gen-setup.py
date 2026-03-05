@@ -517,50 +517,33 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
 
 
 def setup_commands(target: Path, dry_run: bool) -> bool:
-    """Install /gen-* commands into .claude/commands/.
+    """Install /gen-* commands into .claude/commands/ by fetching from GitHub.
 
-    Dev repo (local plugin exists): create symlinks → plugin source.
-    Production install: fetch each command from GitHub and write files.
+    Always fetches the released version — this is intentional.
+    The installer is the released binary; it installs the released commands.
+    Dev symlinks (for working on the next version) are set up separately.
     """
     commands_dir = target / ".claude" / "commands"
 
-    # Detect dev repo: plugin commands directory exists locally
-    local_commands = Path(__file__).resolve().parent.parent / ".claude-plugin" / "plugins" / "genesis" / "commands"
+    if dry_run:
+        print_info(f"Would fetch {len(COMMANDS)} commands from GitHub")
+        return True
 
-    if local_commands.exists():
-        # Dev repo — symlink mode
-        if dry_run:
-            print_info(f"Would create {len(COMMANDS)} symlinks in .claude/commands/ → local plugin")
-            return True
-        commands_dir.mkdir(parents=True, exist_ok=True)
-        for cmd in COMMANDS:
-            link = commands_dir / f"{cmd}.md"
-            target_cmd = local_commands / f"{cmd}.md"
-            if link.exists() or link.is_symlink():
-                link.unlink()
-            rel = Path(os.path.relpath(target_cmd, link.parent))
-            link.symlink_to(rel)
-        print_ok(f"Symlinked {len(COMMANDS)} commands → {local_commands}")
-    else:
-        # Production — fetch from GitHub
-        if dry_run:
-            print_info(f"Would fetch {len(COMMANDS)} commands from GitHub")
-            return True
-        commands_dir.mkdir(parents=True, exist_ok=True)
-        failed = []
-        for cmd in COMMANDS:
-            url = f"{COMMANDS_URL_BASE}/{cmd}.md"
-            try:
-                with urllib.request.urlopen(url, timeout=10) as r:
-                    content = r.read().decode("utf-8")
-                (commands_dir / f"{cmd}.md").write_text(content)
-            except Exception as e:
-                print_warn(f"Could not fetch {cmd}.md: {e}")
-                failed.append(cmd)
-        installed = len(COMMANDS) - len(failed)
-        print_ok(f"Installed {installed}/{len(COMMANDS)} commands from GitHub")
-        if failed:
-            print_warn(f"Failed: {', '.join(failed)}")
+    commands_dir.mkdir(parents=True, exist_ok=True)
+    failed = []
+    for cmd in COMMANDS:
+        url = f"{COMMANDS_URL_BASE}/{cmd}.md"
+        try:
+            with urllib.request.urlopen(url, timeout=10) as r:
+                content = r.read().decode("utf-8")
+            (commands_dir / f"{cmd}.md").write_text(content)
+        except Exception as e:
+            print_warn(f"Could not fetch {cmd}.md: {e}")
+            failed.append(cmd)
+    installed = len(COMMANDS) - len(failed)
+    print_ok(f"Installed {installed}/{len(COMMANDS)} commands from GitHub")
+    if failed:
+        print_warn(f"Failed: {', '.join(failed)}")
 
     return True
 
