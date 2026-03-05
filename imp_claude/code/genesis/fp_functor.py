@@ -1,4 +1,4 @@
-# Implements: REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ITER-001 (Universal Iteration)
+# Implements: REQ-ROBUST-001 (Actor Isolation), REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ITER-001 (Universal Iteration)
 """ADR-024 F_P functor — invoke actor via MCP with constrained Intent.
 
 If MCP unavailable → return StepResult(converged=False, delta=-1, skipped=True).

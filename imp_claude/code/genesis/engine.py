@@ -90,11 +90,11 @@ def iterate_edge(
     5. Emit event (deterministic — ALWAYS fires)
     6. Return the record
 
-    When construct=True (ADR-020):
-    - Calls fp_construct.run_construct() BEFORE evaluation
-    - Writes constructed artifact to output_path (if provided)
-    - Uses batched F_P evaluations from construct response
-    - Falls back to per-check fp_evaluate for unmatched agent checks
+    When construct=True (ADR-024):
+    - Invokes FpFunctor (MCP actor) BEFORE F_D evaluation
+    - Actor runs iterate() autonomously and writes to the filesystem directly
+    - Engine runs F_D checks on the resulting filesystem state
+    - Agent checks are always SKIP in the engine — actor self-evaluates
     """
     fp_result = None
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"

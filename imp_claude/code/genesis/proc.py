@@ -11,12 +11,11 @@ Guarantees (the total-function invariants):
   4. Stall detection based on actual output bytes — a process writing output is alive
      even if slow; a process that has gone silent for stall_timeout seconds is killed
 
-This replaces the two ad-hoc subprocess patterns in fd_evaluate.py and
-fp_subprocess.py with a single auditable primitive.
+This provides a single auditable subprocess primitive for all deterministic
+checks in the engine.
 
 Callers:
   fd_evaluate.run_check()   — deterministic checks (pytest, ruff, mypy, ...)
-  fp_subprocess.run_claude_isolated() — F_P claude -p / claude --print calls
 """
 
 import os
