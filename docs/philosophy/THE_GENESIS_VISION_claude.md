@@ -1,6 +1,5 @@
 # Governing AI in Software Engineering: The Case for Spec-Driven Development
 
-*Dimitar Popov*
 
 ---
 
@@ -180,7 +179,7 @@ The process is the proof. A methodology that cannot govern its own construction 
 
 ## Theoretical Foundations
 
-This methodology is grounded in published formal theory, not assembled best practices. The following papers establish the basis.
+This methodology is grounded in ideas I've tried to formalise and test in the following documents.
 
 ---
 
@@ -343,6 +342,80 @@ The fingerprint is a SHA-256 hash — a standard technique producing a unique si
 
 ---
 
-These two fragments represent one layer of the constraint surface. The full specification includes rules governing how requirements are tagged, how architecture decisions are recorded, how tests map to requirements, how production signals link to the specifications they monitor, and how conflicts between requirements are resolved. Each rule is stated precisely, versioned, and applied uniformly.
+---
+
+## Fragment 3: The Derivation Constraint (ADR-S-004)
+
+This document governs how documents relate to each other in the specification hierarchy. When a design document conflicts with a requirement, this rule determines which is wrong.
+
+> **A downstream document may not contradict an upstream document.**
+>
+> In any conflict, the upstream document is authoritative. The downstream document is wrong and must be fixed.
+>
+> Downstream documents may not:
+> - Contradict an upstream statement
+> - Relax an upstream constraint
+> - Silently omit an upstream requirement (omission = violation)
+> - Redefine upstream terminology with a different meaning
+
+The alternatives considered section of this document records three rejected options. One is worth quoting directly:
+
+> *"Downstream can override with justification" — rejected. The downstream document will always have a rationale. "Justification" becomes a bypass.*
+
+That sentence captures something important: a governance rule that can be argued around is not a governance rule.
+
+---
+
+## Fragment 4: One Agent for All Stages (ADR-008)
+
+This document governs how the AI construction mechanism is implemented. The methodology defines one operation applied at every stage. The implementation must reflect that.
+
+> **The agent has no hard-coded knowledge of "stages". It reads:**
+> - The edge type (which transition is being traversed)
+> - The evaluator configuration (which checks constitute convergence)
+> - The context (which constraints bound construction)
+> - The asset type schema (what the output must satisfy)
+>
+> *Using multiple stage-specific agents would be the implementation contradicting its own theory.*
+
+New stages require only a configuration file. No new code. No new agent. The methodology is extensible by design, not by accident.
+
+---
+
+## Fragment 5: Design That Monitors Itself (ADR-016)
+
+This document governs how architectural decisions are maintained over time. Every technology choice implies tolerances. Every tolerance is something the system can monitor.
+
+> **When a tolerance is breached, the pipeline fires:**
+>
+> Tolerance breached → monitor detects → severity classified →
+>
+> Zero ambiguity: log and auto-tune
+> Bounded: generate optimisation intent — "reduce overhead"
+> Persistent: propose rebinding — "replace this technology with X"
+>
+> *A persistent breach means the binding decision itself should be revisited. The ADR that made the choice becomes the target of a new design iteration. The methodology doesn't just maintain the system — it evolves the design.*
+
+This is how the system avoids becoming legacy: not through scheduled rewrites, but through continuous monitoring of its own architectural fitness.
+
+---
+
+## Fragment 6: Zoom as a Model Concept (ADR-S-017)
+
+This document resolves what happens when the delivery unit changes scale — from a single AI invocation to a full feature, from a feature to a programme.
+
+> **Spawn is zoom in. Fold-back is zoom out.**
+>
+> When a step discovers sub-structure requiring its own convergence loop, it spawns a child unit of work. The child is structurally identical to the parent — same format, same event schema, same artifact versioning — but at finer grain.
+>
+> The parent graph still sees the original transition as one step. The zoomed view sees the internal structure. Both are valid simultaneously.
+>
+> *Spawn and fold-back are not special mechanisms added to support recursion. They are the natural expression of zoom in/out in a model that is scale-invariant by construction.*
+
+Scale-invariance means the same governance rules apply whether the unit of work is a single check or an entire programme. There is no "project-level process" that bypasses the methodology. The methodology is the process at every level.
+
+---
+
+These fragments are six of over thirty constraint documents in the specification. Each governs a specific aspect of how conforming implementations must behave. Each was written, reviewed, and recorded before a line of code was produced.
 
 That is the difference between a prompt and a specification.
