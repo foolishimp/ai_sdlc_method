@@ -39,7 +39,7 @@ v2/
 │       ├── design_code.yml
 │       ├── design_tests.yml
 │       └── feedback_loop.yml
-├── plugin.json                    # Plugin metadata (v2.8.0)
+├── plugin.json                    # Plugin metadata (v2.9.0)
 └── README.md                      # This file
 ```
 

@@ -1,7 +1,7 @@
 # AI SDLC — Default Graph Topology
 # Implements: REQ-GRAPH-001, REQ-GRAPH-002, REQ-GRAPH-003, REQ-LIFE-001, REQ-LIFE-002
-# Version: 2.8.0
-# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md (v2.8.0)
+# Version: 2.9.0
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md (v2.9.0)
 #
 # This file defines the asset types and admissible transitions for the
 # default SDLC graph. Projects can extend or modify this topology.
@@ -455,4 +455,4 @@ graph_properties:
   cyclic: true         # Feedback loop: telemetry → intent
   extensible: true     # Add new asset types/transitions via YAML
   zoomable: true       # Any edge can expand into a sub-graph
-  version: "2.8.0"
+  version: "2.9.0"

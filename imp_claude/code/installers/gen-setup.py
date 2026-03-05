@@ -72,7 +72,7 @@ COMMANDS = [
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
-VERSION = "2.8.0"
+VERSION = "2.9.0"
 
 
 # =============================================================================

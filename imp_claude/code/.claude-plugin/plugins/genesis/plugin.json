@@ -1,6 +1,6 @@
 {
   "name": "genesis",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "AI SDLC Asset Graph Model v2.8 — universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, methodology self-observation, three processing phases (reflex/affect/conscious), sensory systems, IntentEngine. 4 agents, 13 commands, configurable YAML topology.",
   "author": {
     "name": "foolishimp"
