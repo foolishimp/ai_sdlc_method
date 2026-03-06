@@ -124,7 +124,9 @@ def classify_signal_source(event: dict) -> str:
     event_type = event.get("event_type", "")
 
     signal_map = {
+        "iteration_started": "iteration",
         "iteration_completed": "iteration",
+        "iteration_abandoned": "iteration",
         "edge_started": "edge_transition",
         "edge_converged": "convergence",
         "spawn_created": "spawn",
@@ -138,6 +140,13 @@ def classify_signal_source(event: dict) -> str:
         "intent_raised": event.get("data", {}).get("signal_source", "unknown"),
         "encoding_escalated": "escalation",
         "artifact_modified": "artifact",
+        # Consciousness loop Stage 2+3 (ADR-011)
+        "feature_proposal": "proposal",
+        "feature_proposal_dismissed": "proposal",
+        "spec_modified": "spec_evolution",
+        # F_D / F_P failure observability (REQ-ROBUST-007)
+        "fp_failure": "failure",
+        "evaluator_detail": "evaluation",
     }
 
     return signal_map.get(event_type, "unknown")
