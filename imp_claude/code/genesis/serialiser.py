@@ -27,6 +27,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from .role_authority import (
+    check_role_authority,
+    convergence_action,
+    emit_convergence_escalated,
+    load_role_config,
+    normalise_edge,
+)
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # CLAIM RESOLUTION
@@ -169,20 +177,29 @@ def process_inbox(
     project: str,
     instance_id: str = "serialiser",
     timeout_seconds: int = CLAIM_TIMEOUT_SECONDS,
+    roles_config: Optional[dict[str, Any]] = None,
 ) -> dict[str, int]:
     """Process all pending inbox events and write results to events.jsonl.
 
     Resolution logic:
-    - edge_claim: if (feature, edge) is unclaimed → emit edge_started (granted)
+    - edge_claim: if (feature, edge) is unclaimed AND role has authority
+                    → emit edge_started (granted)
                   if already claimed by another agent → emit claim_rejected
+                  if role lacks authority → emit convergence_escalated, count as escalated
     - edge_released: emit edge_released to events.jsonl, update claim map
     - Other event types: forwarded verbatim to events.jsonl
 
     After processing claims, check for stale claims and emit claim_expired
     for each one that has timed out.
 
-    Returns counts: {granted, rejected, forwarded, expired, errors}.
+    Returns counts: {granted, rejected, forwarded, expired, errors, escalated}.
     """
+    if roles_config is None:
+        try:
+            roles_config = load_role_config()
+        except FileNotFoundError:
+            roles_config = {}
+
     ws_dir = workspace / ".ai-workspace" if (workspace / ".ai-workspace").exists() else workspace
     events_path = ws_dir / "events" / "events.jsonl"
     inbox_dir = ws_dir / "events" / "inbox"
@@ -207,6 +224,7 @@ def process_inbox(
         "forwarded": 0,
         "expired": 0,
         "errors": 0,
+        "escalated": 0,
     }
 
     for agent_id, event_file, ev in inbox_items:
@@ -220,6 +238,26 @@ def process_inbox(
                 held_by = active_claims.get(key)
 
                 if held_by is None or held_by == agent_id:
+                    # Role authority check (REQ-COORD-005)
+                    agent_role = ev.get("agent_role", "full_stack")
+                    if not check_role_authority(agent_role, edge, roles_config):
+                        action = convergence_action(agent_role, edge, roles_config)
+                        emit_convergence_escalated(
+                            events_path=events_path,
+                            project=project,
+                            agent_id=agent_id,
+                            agent_role=agent_role,
+                            feature=feature,
+                            edge=edge,
+                            reason=f"role '{agent_role}' not authorised to converge '{edge}'",
+                            action=action,
+                        )
+                        counts["escalated"] += 1
+                        # "warn" still grants; "escalate"/"reject" block
+                        if action != "warn":
+                            event_file.unlink(missing_ok=True)
+                            continue
+
                     # Grant: emit edge_started
                     granted_event = {
                         "event_type": "edge_started",

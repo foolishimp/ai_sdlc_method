@@ -237,10 +237,27 @@ ADR-025 written — pragmatic exception for `asset_content: str` vs full event-s
 
 ---
 
+## Done: ADR-013 Inbox Staging Serialiser (REQ-COORD-002/005)
+
+**Status**: Done — 2026-03-07
+**Commits**: `91c0596` (serialiser), `TBD` (role authority)
+**Release Target**: 3.1
+
+**Tasks**:
+1. ✓ `serialiser.py` — `stage_claim`, `stage_release`, `process_inbox`, `detect_stale_claims`
+2. ✓ `role_authority.py` — `check_role_authority`, `check_convergence_gate`, `emit_convergence_escalated`
+3. ✓ Role authority integrated into `process_inbox` — escalated/warn/reject actions
+4. ✓ 55 tests covering serialiser + role authority
+5. ✓ `agent_roles.yml` config already existed — wired to Python implementation
+
+**Implements**: REQ-COORD-002 (Feature Assignment via Events), REQ-COORD-005 (Role-Based Evaluator Authority)
+
+---
+
 ## Backlog
 
 - **ADR-S-014**: OTLP/Phoenix — no design ADR, no implementation in imp_claude
-- **ADR-013 Inbox staging**: `edge_claim`/`claim_rejected`, Markov parallelism (REQ-COORD-004/005)
+- **REQ-COORD-004**: Markov-Aligned Parallelism — inner product of feature vectors for safe parallelism (Medium, Phase 2)
 - **Task #37**: Ecosystem E(t) as Feedback Loop Edge (Low)
 - **Task #34**: Propagate Insights Back to Ontology (Low)
 
@@ -264,7 +281,7 @@ ADR-025 written — pragmatic exception for `asset_content: str` vs full event-s
 | Feature Vectors | 15 vectors (REQ-F-TOURNAMENT-001 added), 83/83 covered |
 | Claude Design (ADRs 008-026) | 19 ADRs; ADR-025 done, ADR-026 done |
 | Claude Code | Engine CLI + OL taxonomy + instance graph + consciousness loop Stage 2+3 |
-| Tests | 760 unit passing; `test_consciousness_loop`, `test_event_taxonomy`, `test_instance_graph` added |
+| Tests | 905 unit passing; `test_serialiser` (26), `test_role_authority` (29), `test_spec_workspace_join` (19), `test_spec_modified_hook` (8) added |
 | Gemini Design | Complete (ADRs GG-001-008) |
 | Codex Design | Complete (ADR-CG-001) |
 

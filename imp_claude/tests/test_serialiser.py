@@ -243,7 +243,7 @@ class TestProcessInbox:
 
     def test_empty_inbox_returns_zero_counts(self, workspace: Path) -> None:
         counts = process_inbox(workspace, project="test-proj")
-        assert counts == {"granted": 0, "rejected": 0, "forwarded": 0, "expired": 0, "errors": 0}
+        assert counts == {"granted": 0, "rejected": 0, "forwarded": 0, "expired": 0, "errors": 0, "escalated": 0}
 
     def test_same_agent_claiming_same_edge_is_idempotent(self, workspace: Path) -> None:
         """Agent re-claiming its own edge should be granted (re-affirmation)."""
@@ -257,3 +257,82 @@ class TestProcessInbox:
         # Should be granted (agent already holds the claim)
         assert counts["granted"] == 1
         assert counts["rejected"] == 0
+
+
+# ── Role Authority Integration (REQ-COORD-005) ────────────────────────────────
+
+_ROLES_CONFIG = {
+    "roles": {
+        "tdd_engineer": {
+            "description": "TDD only",
+            "converge_edges": ["code_unit_tests"],
+        },
+        "architect": {
+            "description": "architecture",
+            "converge_edges": ["design_code", "intent_requirements", "requirements_design"],
+        },
+        "full_stack": {
+            "description": "all edges",
+            "converge_edges": ["all"],
+        },
+    },
+    "authority": {
+        "human_authority": "universal",
+        "outside_authority_action": "escalate",
+    },
+}
+
+_WARN_ROLES_CONFIG = {
+    "roles": _ROLES_CONFIG["roles"],
+    "authority": {
+        "outside_authority_action": "warn",
+    },
+}
+
+
+class TestRoleAuthorityInProcessInbox:
+    def test_authorised_role_claim_granted(self, workspace: Path) -> None:
+        stage_claim(workspace, "agent-1", "REQ-F-A", "design→code", agent_role="architect")
+        counts = process_inbox(workspace, project="test-proj", roles_config=_ROLES_CONFIG)
+        assert counts["granted"] == 1
+        assert counts["escalated"] == 0
+
+    def test_unauthorised_role_escalated_not_granted(self, workspace: Path) -> None:
+        stage_claim(workspace, "agent-1", "REQ-F-A", "design→code", agent_role="tdd_engineer")
+        counts = process_inbox(workspace, project="test-proj", roles_config=_ROLES_CONFIG)
+        assert counts["granted"] == 0
+        assert counts["escalated"] == 1
+
+        # No edge_started emitted, convergence_escalated was emitted
+        events = _read_events(workspace)
+        escalated = [e for e in events if e.get("event_type") == "convergence_escalated"]
+        started = [e for e in events if e.get("event_type") == "edge_started"]
+        assert len(escalated) == 1
+        assert len(started) == 0
+        assert escalated[0]["agent_id"] == "agent-1"
+        assert escalated[0]["data"]["agent_role"] == "tdd_engineer"
+
+    def test_warn_action_grants_and_emits_escalation(self, workspace: Path) -> None:
+        stage_claim(workspace, "agent-1", "REQ-F-A", "design→code", agent_role="tdd_engineer")
+        counts = process_inbox(workspace, project="test-proj", roles_config=_WARN_ROLES_CONFIG)
+        # warn → still grants
+        assert counts["granted"] == 1
+        assert counts["escalated"] == 1
+
+        events = _read_events(workspace)
+        escalated = [e for e in events if e.get("event_type") == "convergence_escalated"]
+        assert len(escalated) == 1
+        assert escalated[0]["data"]["action"] == "warn"
+
+    def test_full_stack_role_never_escalated(self, workspace: Path) -> None:
+        stage_claim(workspace, "agent-1", "REQ-F-A", "running_system→telemetry", agent_role="full_stack")
+        counts = process_inbox(workspace, project="test-proj", roles_config=_ROLES_CONFIG)
+        assert counts["granted"] == 1
+        assert counts["escalated"] == 0
+
+    def test_no_roles_config_defaults_to_full_stack_behaviour(self, workspace: Path) -> None:
+        """Empty roles_config → fail-open, all roles permitted."""
+        stage_claim(workspace, "agent-1", "REQ-F-A", "design→code", agent_role="tdd_engineer")
+        counts = process_inbox(workspace, project="test-proj", roles_config={})
+        assert counts["granted"] == 1
+        assert counts["escalated"] == 0
