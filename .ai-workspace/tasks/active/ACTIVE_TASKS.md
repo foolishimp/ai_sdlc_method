@@ -143,12 +143,12 @@ Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_pr
 **Commits**: `c5fea45` (draft proposals queue), `b9d0a7c` (spec_modified event)
 
 **Tasks**:
-1. Enforce workspace vector schema (trajectory fields only — no `satisfies`) — REQ-EVOL-001
-   → vectors are clean; no automated checker yet
+1. ✓ Enforce workspace vector schema (no `satisfies`, no `success_criteria`) — REQ-EVOL-001
+   → added `workspace_vector_schema` check to `verify_genesis_compliance()` + 5 tests
 2. JOIN display in `gen-status`: ACTIVE / PENDING / ORPHAN across spec + workspace — REQ-EVOL-002
    → **NEXT TASK**
-3. `spec_modified` event on any `specification/` change (post-commit hook or equivalent) — REQ-EVOL-004
-   → event type + constructor done; post-commit hook not written
+3. ✓ `spec_modified` event on any `specification/` change — REQ-EVOL-004
+   → `post-commit-spec-watch.sh` + installed to `.git/hooks/post-commit` (`0cd8357`)
 4. ✓ `feature_proposal` event type + Draft Queue surfaced in `gen-status` — REQ-EVOL-003, REQ-EVOL-005
 5. Add `# Implements: REQ-EVOL-*` tags throughout — partial
 

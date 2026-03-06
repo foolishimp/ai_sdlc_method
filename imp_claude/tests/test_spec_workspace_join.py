@@ -1,5 +1,6 @@
+# Validates: REQ-EVOL-001 (Workspace Vector Schema Enforcement)
 # Validates: REQ-EVOL-002 (Feature Display Tools Must JOIN Spec and Workspace)
-"""Tests for compute_spec_workspace_join() — spec+workspace JOIN categorisation."""
+"""Tests for spec+workspace JOIN and workspace vector schema enforcement."""
 
 import textwrap
 from pathlib import Path
@@ -10,6 +11,7 @@ import yaml
 from genesis.workspace_state import (
     compute_spec_workspace_join,
     extract_spec_feature_ids,
+    verify_genesis_compliance,
 )
 
 
@@ -198,3 +200,111 @@ class TestComputeSpecWorkspaceJoin:
         # No ID appears in multiple categories (spec-side intersection check)
         spec_workspace_overlap = set(result["active"]) | set(result["completed"])
         assert not (set(result["pending"]) & spec_workspace_overlap)
+
+
+# ── Workspace Vector Schema (REQ-EVOL-001) ────────────────────────────────────
+
+
+def _build_minimal_workspace(tmp_path: Path) -> Path:
+    """Build a minimal workspace that passes all compliance checks except the one under test."""
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    # CLAUDE.md with bootloader marker
+    (workspace / "CLAUDE.md").write_text("<!-- GENESIS_BOOTLOADER_START -->")
+    # .ai-workspace
+    ws_dir = workspace / ".ai-workspace"
+    (ws_dir / "features" / "active").mkdir(parents=True)
+    (ws_dir / "features" / "completed").mkdir(parents=True)
+    # Minimal graph topology
+    (ws_dir / "graph").mkdir()
+    (ws_dir / "graph" / "graph_topology.yml").write_text(
+        "graph_properties:\n  version: '2.9'\nasset_types:\n  intent:\n"
+        "    description: intent\ntransitions:\n  - source: intent\n"
+        "    target: requirements\n    name: intent→requirements\n"
+    )
+    # project_constraints with at least one non-empty mandatory dimension
+    (ws_dir / "context").mkdir()
+    (ws_dir / "context" / "project_constraints.yml").write_text(
+        "project:\n  name: test\nconstraint_dimensions:\n"
+        "  ecosystem_compatibility:\n    mandatory: true\n    language: Python 3.11\n"
+    )
+    # specification/INTENT.md
+    spec_dir = workspace / "specification"
+    spec_dir.mkdir()
+    (spec_dir / "INTENT.md").write_text("# Intent\nThis is a test project.\n")
+    return workspace
+
+
+class TestWorkspaceVectorSchema:
+    """REQ-EVOL-001: workspace vectors must not contain definition fields."""
+
+    def test_clean_vectors_pass_schema_check(self, tmp_path: Path) -> None:
+        workspace = _build_minimal_workspace(tmp_path)
+        active = workspace / ".ai-workspace" / "features" / "active"
+        (active / "REQ-F-TEST-001.yml").write_text(
+            "feature: REQ-F-TEST-001\ntitle: Test\nstatus: pending\n"
+        )
+
+        result = verify_genesis_compliance(workspace)
+        schema_result = next(
+            (r for r in result["results"] if r["name"] == "workspace_vector_schema"), None
+        )
+        assert schema_result is not None
+        assert schema_result["status"] == "pass"
+
+    def test_satisfies_field_triggers_violation(self, tmp_path: Path) -> None:
+        workspace = _build_minimal_workspace(tmp_path)
+        active = workspace / ".ai-workspace" / "features" / "active"
+        (active / "REQ-F-BAD-001.yml").write_text(
+            "feature: REQ-F-BAD-001\ntitle: Bad\n"
+            "satisfies:\n  - REQ-GRAPH-001\n  - REQ-EVAL-001\n"
+        )
+
+        result = verify_genesis_compliance(workspace)
+        schema_result = next(
+            (r for r in result["results"] if r["name"] == "workspace_vector_schema"), None
+        )
+        assert schema_result is not None
+        assert schema_result["status"] == "fail"
+        assert "satisfies" in schema_result["description"]
+
+    def test_success_criteria_field_triggers_violation(self, tmp_path: Path) -> None:
+        workspace = _build_minimal_workspace(tmp_path)
+        active = workspace / ".ai-workspace" / "features" / "active"
+        (active / "REQ-F-BAD-002.yml").write_text(
+            "feature: REQ-F-BAD-002\ntitle: Bad\n"
+            "success_criteria: Must converge on all edges\n"
+        )
+
+        result = verify_genesis_compliance(workspace)
+        schema_result = next(
+            (r for r in result["results"] if r["name"] == "workspace_vector_schema"), None
+        )
+        assert schema_result is not None
+        assert schema_result["status"] == "fail"
+
+    def test_completed_directory_also_checked(self, tmp_path: Path) -> None:
+        workspace = _build_minimal_workspace(tmp_path)
+        completed = workspace / ".ai-workspace" / "features" / "completed"
+        (completed / "REQ-F-OLD-001.yml").write_text(
+            "feature: REQ-F-OLD-001\ntitle: Old\n"
+            "satisfies:\n  - REQ-TOOL-001\n"
+        )
+
+        result = verify_genesis_compliance(workspace)
+        schema_result = next(
+            (r for r in result["results"] if r["name"] == "workspace_vector_schema"), None
+        )
+        assert schema_result["status"] == "fail"
+        assert "REQ-F-OLD-001.yml" in schema_result["description"]
+
+    def test_empty_features_dir_passes_schema_check(self, tmp_path: Path) -> None:
+        workspace = _build_minimal_workspace(tmp_path)
+        # No feature files
+
+        result = verify_genesis_compliance(workspace)
+        schema_result = next(
+            (r for r in result["results"] if r["name"] == "workspace_vector_schema"), None
+        )
+        assert schema_result is not None
+        assert schema_result["status"] == "pass"

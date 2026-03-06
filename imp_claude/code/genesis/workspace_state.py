@@ -726,6 +726,48 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
         except Exception:
             pass
 
+    # 5. Workspace Vector Schema (REQ-EVOL-001)
+    # Workspace YAMLs must NOT contain definition fields (satisfies, success_criteria)
+    _FORBIDDEN_WORKSPACE_KEYS = {"satisfies", "success_criteria"}
+    violations: list[str] = []
+    _ws_dir = _workspace_dir(workspace)
+    for subdir in ("active", "completed"):
+        fv_dir = _ws_dir / "features" / subdir
+        if not fv_dir.exists():
+            continue
+        for path in sorted(fv_dir.glob("*.yml")):
+            try:
+                with open(path) as f:
+                    data = yaml.safe_load(f) or {}
+                for key in _FORBIDDEN_WORKSPACE_KEYS:
+                    if key in data:
+                        violations.append(f"{path.name}: has forbidden key '{key}'")
+            except (yaml.YAMLError, OSError):
+                pass
+
+    if violations:
+        results.append(
+            {
+                "name": "workspace_vector_schema",
+                "status": "fail",
+                "description": (
+                    f"Workspace vectors contain definition fields ({len(violations)} violations): "
+                    + "; ".join(violations[:3])
+                    + (" ..." if len(violations) > 3 else "")
+                ),
+            }
+        )
+        failed += 1
+    else:
+        results.append(
+            {
+                "name": "workspace_vector_schema",
+                "status": "pass",
+                "description": "Workspace vectors contain no definition fields (satisfies, success_criteria)",
+            }
+        )
+        passed += 1
+
     return {"passed": passed, "failed": failed, "results": results}
 
 
