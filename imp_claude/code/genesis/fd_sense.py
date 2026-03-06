@@ -231,6 +231,128 @@ def sense_event_log_integrity(events_path: Path) -> SenseResult:
     )
 
 
+def sense_status_freshness(
+    status_path: Path,
+    events_path: Path,
+    threshold_hours: int = 24,
+) -> SenseResult:
+    """INTRO-004: Check if STATUS.md is stale compared to events.jsonl.
+
+    Compares the file modification times of STATUS.md and events.jsonl.
+    If STATUS.md hasn't been updated after the most recent event, it's stale.
+    """
+    monitor = "status_freshness"
+
+    if not events_path.exists():
+        return SenseResult(
+            monitor_name=monitor,
+            value=None,
+            threshold=threshold_hours,
+            breached=False,
+            detail="events.jsonl does not exist — nothing to compare",
+        )
+
+    if not status_path.exists():
+        return SenseResult(
+            monitor_name=monitor,
+            value=None,
+            threshold=threshold_hours,
+            breached=True,
+            detail="STATUS.md does not exist",
+        )
+
+    try:
+        events_mtime = events_path.stat().st_mtime
+        status_mtime = status_path.stat().st_mtime
+        lag_hours = (events_mtime - status_mtime) / 3600.0
+
+        # Positive lag means events are newer than STATUS.md (stale)
+        breached = lag_hours > threshold_hours
+        return SenseResult(
+            monitor_name=monitor,
+            value=round(lag_hours, 2),
+            threshold=threshold_hours,
+            breached=breached,
+            detail=f"STATUS.md is {lag_hours:.1f}h behind events.jsonl"
+            + (" — STALE" if breached else ""),
+        )
+    except OSError as e:
+        return SenseResult(
+            monitor_name=monitor,
+            value=None,
+            threshold=threshold_hours,
+            breached=True,
+            detail=f"Failed to stat files: {e}",
+        )
+
+
+def sense_spec_code_drift(
+    spec_path: Path,
+    code_dirs: list[Path],
+    threshold_untagged: int = 1,
+) -> SenseResult:
+    """INTRO-006: Detect drift between REQ keys in spec vs REQ tags in code.
+
+    Extracts all REQ-F-* keys from the spec file (FEATURE_VECTORS.md or
+    AISDLC_IMPLEMENTATION_REQUIREMENTS.md), then scans code_dirs for
+    Implements:/Validates: tags. Reports untagged keys.
+    """
+    monitor = "spec_code_drift"
+
+    if not spec_path.exists():
+        return SenseResult(
+            monitor_name=monitor,
+            value=None,
+            threshold=threshold_untagged,
+            breached=True,
+            detail=f"Spec file not found: {spec_path}",
+        )
+
+    # Extract REQ keys from spec
+    spec_text = spec_path.read_text(errors="replace")
+    _req_key_re = re.compile(r"\bREQ-[A-Z]+(?:-[A-Z]+)*-\d+\b")
+    spec_keys = set(_req_key_re.findall(spec_text))
+
+    if not spec_keys:
+        return SenseResult(
+            monitor_name=monitor,
+            value=0,
+            threshold=threshold_untagged,
+            breached=False,
+            detail="No REQ keys found in spec file",
+        )
+
+    # Scan code dirs for tagged keys
+    tagged_keys: set[str] = set()
+    for code_dir in code_dirs:
+        if not code_dir.exists():
+            continue
+        for fpath in code_dir.rglob("*"):
+            if fpath.is_dir():
+                continue
+            suffix = fpath.suffix.lower()
+            if suffix not in {".py", ".js", ".ts", ".java", ".scala", ".go", ".rs", ".kt", ".rb"}:
+                continue
+            try:
+                content = fpath.read_text(errors="replace")
+                tagged_keys.update(_REQ_TAG_PATTERN.findall(content))
+            except OSError:
+                continue
+
+    untagged = spec_keys - tagged_keys
+    untagged_count = len(untagged)
+    breached = untagged_count > threshold_untagged
+
+    return SenseResult(
+        monitor_name=monitor,
+        value=untagged_count,
+        threshold=threshold_untagged,
+        breached=breached,
+        detail=f"{len(tagged_keys)}/{len(spec_keys)} spec keys tagged in code"
+        + (f", untagged: {sorted(untagged)[:5]}" if untagged else ""),
+    )
+
+
 def _last_line(path: Path) -> str:
     """Read the last non-empty line of a file efficiently."""
     with open(path, "rb") as f:

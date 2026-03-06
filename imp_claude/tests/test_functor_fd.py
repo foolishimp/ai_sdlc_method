@@ -31,6 +31,8 @@ from genesis.fd_sense import (
     sense_event_log_integrity,
     sense_feature_stall,
     sense_req_tag_coverage,
+    sense_spec_code_drift,
+    sense_status_freshness,
 )
 from genesis.fd_route import lookup_encoding, select_next_edge, select_profile
 from genesis.dispatch import dispatch, lookup_and_dispatch
@@ -440,6 +442,77 @@ class TestSenseEventLogIntegrity:
     def test_missing_file(self, tmp_path):
         result = sense_event_log_integrity(tmp_path / "nope.jsonl")
         assert result.breached is True
+
+
+class TestSenseStatusFreshness:
+    """INTRO-004: STATUS.md vs events.jsonl lag."""
+
+    def test_fresh_status_not_breached(self, tmp_path):
+        import time
+        events = tmp_path / "events.jsonl"
+        status = tmp_path / "STATUS.md"
+        # Write events first, then status (status is newer)
+        events.write_text('{"event_type":"x","timestamp":"2026-01-01T00:00:00Z","project":"p"}\n')
+        time.sleep(0.05)
+        status.write_text("# Status\n")
+        result = sense_status_freshness(status, events, threshold_hours=24)
+        assert result.breached is False
+
+    def test_stale_status_breached(self, tmp_path):
+        import time
+        status = tmp_path / "STATUS.md"
+        events = tmp_path / "events.jsonl"
+        # Write status first, then events (events are newer by > threshold)
+        status.write_text("# Old status\n")
+        time.sleep(0.05)
+        events.write_text('{"event_type":"x","timestamp":"2026-01-01T00:00:00Z","project":"p"}\n')
+        # threshold_hours=0 → any lag is stale
+        result = sense_status_freshness(status, events, threshold_hours=0)
+        assert result.breached is True
+
+    def test_missing_status_breached(self, tmp_path):
+        events = tmp_path / "events.jsonl"
+        events.write_text('{"event_type":"x","timestamp":"now","project":"p"}\n')
+        result = sense_status_freshness(tmp_path / "STATUS.md", events)
+        assert result.breached is True
+
+    def test_missing_events_not_breached(self, tmp_path):
+        # No events → nothing to compare against
+        result = sense_status_freshness(tmp_path / "STATUS.md", tmp_path / "events.jsonl")
+        assert result.breached is False
+
+
+class TestSenseSpecCodeDrift:
+    """INTRO-006: REQ keys in spec vs tagged in code."""
+
+    def test_all_keys_tagged_no_drift(self, tmp_path):
+        spec = tmp_path / "spec.md"
+        spec.write_text("REQ-F-AUTH-001 is required.\n")
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "auth.py").write_text("# Implements: REQ-F-AUTH-001\n")
+        result = sense_spec_code_drift(spec, [src], threshold_untagged=0)
+        assert result.breached is False
+
+    def test_untagged_key_detected(self, tmp_path):
+        spec = tmp_path / "spec.md"
+        spec.write_text("REQ-F-AUTH-001 is required.\nREQ-F-API-001 too.\n")
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "auth.py").write_text("# Implements: REQ-F-AUTH-001\n")  # REQ-F-API-001 missing
+        result = sense_spec_code_drift(spec, [src], threshold_untagged=0)
+        assert result.breached is True
+        assert result.value == 1  # 1 untagged key
+
+    def test_missing_spec_breached(self, tmp_path):
+        result = sense_spec_code_drift(tmp_path / "no_spec.md", [tmp_path])
+        assert result.breached is True
+
+    def test_empty_spec_not_breached(self, tmp_path):
+        spec = tmp_path / "spec.md"
+        spec.write_text("# No requirements here\n")
+        result = sense_spec_code_drift(spec, [tmp_path], threshold_untagged=1)
+        assert result.breached is False
 
 
 # ═══════════════════════════════════════════════════════════════════════════
