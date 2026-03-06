@@ -1,4 +1,4 @@
-# Implements: REQ-EVENT-001 (OpenLineage event construction), REQ-EVENT-003 (Required Event Taxonomy), REQ-EVENT-004 (Saga Invariant), ADR-S-011, ADR-S-012
+# Implements: REQ-EVENT-001 (OpenLineage event construction), REQ-EVENT-003 (Required Event Taxonomy), REQ-EVENT-004 (Saga Invariant), REQ-EVOL-003 (feature_proposal event), REQ-EVOL-004 (spec_modified event), ADR-S-011, ADR-S-012
 """
 OpenLineage event constructor — builds spec-compliant RunEvents.
 
@@ -72,6 +72,8 @@ _OL_EVENT_TYPE = {
     "FeatureProposed": "OTHER",       # intent_raised → affect triage → draft proposal
     "FeatureApproved": "COMPLETE",    # human approves proposal → inflates workspace
     "FeatureDismissed": "OTHER",      # human dismisses proposal → archived
+    # Spec evolution (REQ-EVOL-004, ADR-S-010)
+    "SpecModified": "COMPLETE",       # specification/ file changed — causal chain recorded
 }
 
 
@@ -376,6 +378,38 @@ def feature_dismissed(project, instance_id, actor, feature, reason, **kw) -> dic
         instance_id,
         actor,
         payload={"feature": feature, "reason": reason},
+        **kw,
+    )
+
+
+def spec_modified(
+    project, instance_id, actor, file, what_changed,
+    previous_hash, new_hash, trigger_event_id, trigger_type, **kw
+) -> dict:
+    """Emit spec_modified event (REQ-EVOL-004) — records every specification/ change.
+
+    Args:
+        file:             Path relative to repo root (e.g. specification/features/FEATURE_VECTORS.md)
+        what_changed:     Human-readable summary of the change
+        previous_hash:    sha256 of file before change (sha256:<hex>)
+        new_hash:         sha256 of file after change (sha256:<hex>)
+        trigger_event_id: PROP-{SEQ} | INT-{SEQ} | "manual"
+        trigger_type:     feature_proposal | intent_raised | manual
+    """
+    return make_ol_event(
+        "SpecModified",
+        f"SPEC_MODIFIED:{file}",
+        project,
+        instance_id,
+        actor,
+        payload={
+            "file": file,
+            "what_changed": what_changed,
+            "previous_hash": previous_hash,
+            "new_hash": new_hash,
+            "trigger_event_id": trigger_event_id,
+            "trigger_type": trigger_type,
+        },
         **kw,
     )
 

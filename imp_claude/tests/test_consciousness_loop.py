@@ -613,3 +613,133 @@ class TestReviewQueueDirectoryStructure:
             data = yaml.safe_load(f)
         assert data["status"] == "approved"
         assert data["feature_id"] == "REQ-F-TEST-001"
+
+
+# ── SpecModified event (REQ-EVOL-004) ────────────────────────────────
+
+
+class TestSpecModifiedEvent:
+    """Validates: spec_modified OL event (REQ-EVOL-004, ADR-S-010)."""
+
+    def test_spec_modified_maps_to_complete(self):
+        """SpecModified maps to COMPLETE — a terminal spec-change event."""
+        from genesis.ol_event import _OL_EVENT_TYPE
+
+        assert "SpecModified" in _OL_EVENT_TYPE
+        assert _OL_EVENT_TYPE["SpecModified"] == "COMPLETE"
+
+    def test_spec_modified_returns_complete_event(self):
+        """spec_modified() produces a COMPLETE OL event."""
+        from genesis.ol_event import spec_modified
+
+        ev = spec_modified(
+            project="test",
+            instance_id="inst-001",
+            actor="human",
+            file="specification/features/FEATURE_VECTORS.md",
+            what_changed="Added REQ-F-AUTH-005 feature vector",
+            previous_hash="sha256:aabbcc",
+            new_hash="sha256:ddeeff",
+            trigger_event_id="PROP-001",
+            trigger_type="feature_proposal",
+        )
+        assert ev["eventType"] == "COMPLETE"
+
+    def test_spec_modified_job_name_is_spec_modified_prefixed(self):
+        """Job name is SPEC_MODIFIED:{file} for tracing."""
+        from genesis.ol_event import spec_modified
+
+        ev = spec_modified(
+            project="test",
+            instance_id="inst-001",
+            actor="human",
+            file="specification/features/FEATURE_VECTORS.md",
+            what_changed="Added feature",
+            previous_hash="sha256:aabb",
+            new_hash="sha256:ccdd",
+            trigger_event_id="PROP-001",
+            trigger_type="feature_proposal",
+        )
+        assert ev["job"]["name"] == "SPEC_MODIFIED:specification/features/FEATURE_VECTORS.md"
+
+    def test_spec_modified_payload_has_all_required_fields(self):
+        """Payload carries file, hashes, trigger_event_id, trigger_type (REQ-EVOL-004)."""
+        from genesis.ol_event import spec_modified
+
+        ev = spec_modified(
+            project="test",
+            instance_id="inst-001",
+            actor="human",
+            file="specification/features/FEATURE_VECTORS.md",
+            what_changed="Added REQ-F-AUTH-005",
+            previous_hash="sha256:aabb",
+            new_hash="sha256:ccdd",
+            trigger_event_id="PROP-001",
+            trigger_type="feature_proposal",
+        )
+        payload = ev["run"]["facets"]["sdlc:payload"]
+        assert payload["file"] == "specification/features/FEATURE_VECTORS.md"
+        assert payload["what_changed"] == "Added REQ-F-AUTH-005"
+        assert payload["previous_hash"] == "sha256:aabb"
+        assert payload["new_hash"] == "sha256:ccdd"
+        assert payload["trigger_event_id"] == "PROP-001"
+        assert payload["trigger_type"] == "feature_proposal"
+
+    def test_spec_modified_manual_trigger(self):
+        """Manual edits use trigger_event_id='manual' and trigger_type='manual'."""
+        from genesis.ol_event import spec_modified
+
+        ev = spec_modified(
+            project="test",
+            instance_id="inst-001",
+            actor="human",
+            file="specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md",
+            what_changed="Corrected §4.1 iterate() signature",
+            previous_hash="sha256:1111",
+            new_hash="sha256:2222",
+            trigger_event_id="manual",
+            trigger_type="manual",
+        )
+        payload = ev["run"]["facets"]["sdlc:payload"]
+        assert payload["trigger_event_id"] == "manual"
+        assert payload["trigger_type"] == "manual"
+
+    def test_spec_modified_approval_sequence(self, tmp_path):
+        """Full approval sequence: feature_approved → spec_modified."""
+        from genesis.ol_event import feature_approved, spec_modified, emit_ol_event
+
+        events_path = tmp_path / "events.jsonl"
+
+        ev_approved = feature_approved(
+            project="test",
+            instance_id="inst-001",
+            actor="human",
+            feature="REQ-F-AUTH-005",
+        )
+        approval_run_id = ev_approved["run"]["runId"]
+        emit_ol_event(events_path, ev_approved)
+
+        ev_spec = spec_modified(
+            project="test",
+            instance_id="inst-001",
+            actor="human",
+            file="specification/features/FEATURE_VECTORS.md",
+            what_changed="Added REQ-F-AUTH-005 via PROP-001 approval",
+            previous_hash="sha256:aabb",
+            new_hash="sha256:ccdd",
+            trigger_event_id="PROP-001",
+            trigger_type="feature_proposal",
+            causation_id=approval_run_id,
+            correlation_id=approval_run_id,
+        )
+        emit_ol_event(events_path, ev_spec)
+
+        lines = events_path.read_text().strip().splitlines()
+        assert len(lines) == 2
+        approved, modified = [json.loads(l) for l in lines]
+        assert approved["eventType"] == "COMPLETE"
+        assert modified["eventType"] == "COMPLETE"
+
+        # Causal chain: spec_modified causation_id = feature_approved run_id
+        causation = modified["run"]["facets"]["sdlc:universal"]["causation_id"]
+        assert causation == approval_run_id
