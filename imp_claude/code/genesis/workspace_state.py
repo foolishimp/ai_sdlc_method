@@ -1,5 +1,6 @@
 # Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-002, REQ-ROBUST-003, REQ-ROBUST-008
 # Implements: REQ-FEAT-002 (Feature Dependencies), REQ-UX-003 (Project-Wide Observability)
+# Implements: REQ-EVOL-001 (Workspace Vector Schema Enforcement)
 # Implements: REQ-EVOL-002 (Feature Display Tools Must JOIN Spec and Workspace)
 """Pure-function workspace state detection utilities.
 

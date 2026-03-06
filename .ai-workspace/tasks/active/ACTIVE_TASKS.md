@@ -135,24 +135,19 @@ Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_pr
 
 ---
 
-## Post-MVP: Spec Evolution Pipeline (REQ-F-EVOL-001)
+## Done: Spec Evolution Pipeline (REQ-F-EVOL-001)
 
 **Priority**: High
-**Status**: In Progress — task 4 done 2026-03-07
+**Status**: Done — 2026-03-07
 **Release Target**: 3.1
-**Commits**: `c5fea45` (draft proposals queue), `b9d0a7c` (spec_modified event)
+**Commits**: `7c4bfda` (REQ-EVOL-002 JOIN), `0cd8357` (REQ-EVOL-004 hook), `d799006` (REQ-EVOL-001 schema), `c5fea45` (REQ-EVOL-005 proposals queue), `b9d0a7c` (spec_modified event)
 
 **Tasks**:
-1. ✓ Enforce workspace vector schema (no `satisfies`, no `success_criteria`) — REQ-EVOL-001
-   → added `workspace_vector_schema` check to `verify_genesis_compliance()` + 5 tests
-2. JOIN display in `gen-status`: ACTIVE / PENDING / ORPHAN across spec + workspace — REQ-EVOL-002
-   → **NEXT TASK**
-3. ✓ `spec_modified` event on any `specification/` change — REQ-EVOL-004
-   → `post-commit-spec-watch.sh` + installed to `.git/hooks/post-commit` (`0cd8357`)
-4. ✓ `feature_proposal` event type + Draft Queue surfaced in `gen-status` — REQ-EVOL-003, REQ-EVOL-005
-5. Add `# Implements: REQ-EVOL-*` tags throughout — partial
-
-**Depends On**: Consciousness Loop Stage 2+3 (shared event types) ✓
+1. ✓ Workspace vector schema enforcement (no `satisfies`, `success_criteria`) — REQ-EVOL-001
+2. ✓ JOIN display in `gen-status` — compute_spec_workspace_join() + 14 tests — REQ-EVOL-002
+3. ✓ spec_modified post-commit hook + 8 tests — REQ-EVOL-004
+4. ✓ feature_proposal event type + Draft Queue in gen-status — REQ-EVOL-003, REQ-EVOL-005
+5. ✓ REQ-EVOL-* Implements tags throughout
 
 ---
 
