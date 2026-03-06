@@ -254,12 +254,46 @@ ADR-025 written — pragmatic exception for `asset_content: str` vs full event-s
 
 ---
 
+## Done: REQ-CTX-002 Context Hierarchy
+
+**Status**: Done — 2026-03-07
+**Commit**: `c4c35f1`
+
+`deep_merge()`, `merge_contexts()`, `load_context_hierarchy()` in `config_loader.py`.
+Levels: global → org → team → project. Later contexts override earlier; nested objects deep-merged.
+30 new tests (46 total in test_config_loader.py).
+
+---
+
+## Done: REQ-EVAL-003 Human Accountability
+
+**Status**: Done — 2026-03-07
+**Commit**: `9133713`
+
+`human_audit.py`: `emit_human_gate_entered()`, `emit_human_decision()`, `requires_human_review()`,
+`get_human_gates()`, `get_human_decisions()`, `get_pending_gates()`, `get_override_decisions()`, `audit_summary()`.
+Attribution guard rejects AI-sounding actor names. Override capability always available.
+33 tests in test_human_audit.py.
+
+---
+
+## Done: Fix 3 Pre-existing Test Failures (orphan TOURNAMENT vector)
+
+**Status**: Done — 2026-03-07
+**Commit**: `bba2af8`
+
+REQ-F-TOURNAMENT-001 was in workspace but not in FEATURE_VECTORS.md. Fixed by:
+- Adding `### REQ-F-TOURNAMENT-001` section to spec
+- Fixing tournament vector requirements (invalid REQ-GRAPH-004 → valid existing keys)
+- Updating test count assertion 15 → 16
+- Updating summary table 14 → 16 feature vectors (adding FP-001 + TOURNAMENT-001)
+
+---
+
 ## Backlog
 
 - **ADR-S-014**: OTLP/Phoenix — no design ADR, no implementation in imp_claude
 - **INTRO-005**: Build Health monitor — needs CI/CD integration (complex)
-- **REQ-LIFE-009**: Spec Review as Gradient Check — compute delta(workspace, spec)
-- **REQ-TOOL-010**: Spec/Design Boundary Enforcement — tech-agnostic requirements checker
 - **Task #37**: Ecosystem E(t) as Feedback Loop Edge (Low)
 - **Task #34**: Propagate Insights Back to Ontology (Low)
 
@@ -280,10 +314,10 @@ ADR-025 written — pragmatic exception for `asset_content: str` vs full event-s
 |----------|--------|
 | Spec (Asset Graph Model) | Complete — 4 primitives, 18 spec ADRs (ADR-S-018 tournament) |
 | Implementation Requirements | 83 requirements (REQ-EVOL + REQ-EVENT added 2026-03-05) |
-| Feature Vectors | 15 vectors (REQ-F-TOURNAMENT-001 added), 83/83 covered |
+| Feature Vectors | 16 vectors (FP-001 + TOURNAMENT-001 in spec), 83/83 covered |
 | Claude Design (ADRs 008-026) | 19 ADRs; ADR-025 done, ADR-026 done |
 | Claude Code | Engine CLI + OL taxonomy + instance graph + consciousness loop Stage 2+3 |
-| Tests | 980 unit passing; +REQ-COORD-004/005 (60), +REQ-TOOL-009 (31), +INTRO-004/006 (8) |
+| Tests | 1078 unit passing (0 pre-existing failures); +REQ-CTX-002, +REQ-EVAL-003, +spec fixes |
 | Gemini Design | Complete (ADRs GG-001-008) |
 | Codex Design | Complete (ADR-CG-001) |
 
