@@ -587,9 +587,9 @@ class TestMethodologySelfConsistency:
 
     @pytest.mark.uat
     def test_eleven_active_feature_vectors(self):
-        """There must be exactly 15 active feature vectors (grew from 11 with FP, ROBUST, EVOL, EVENT)."""
+        """There must be exactly 16 active feature vectors (grew from 11 with FP, ROBUST, EVOL, EVENT, TOURNAMENT)."""
         vectors = list(FEATURES_DIR.glob("*.yml"))
-        assert len(vectors) == 15, f"Expected 15 active vectors, got {len(vectors)}"
+        assert len(vectors) == 16, f"Expected 16 active vectors, got {len(vectors)}"
 
     @pytest.mark.uat
     def test_all_features_converged(self):

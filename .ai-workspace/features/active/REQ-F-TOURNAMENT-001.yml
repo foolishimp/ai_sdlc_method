@@ -22,9 +22,11 @@ description: |
   - Add edge configs for these new transitions.
 
 requirements:
-  - REQ-GRAPH-004
-  - REQ-EVENT-005
-  - REQ-EVENT-006
+  - REQ-GRAPH-001
+  - REQ-GRAPH-002
+  - REQ-COORD-001
+  - REQ-COORD-002
+  - REQ-EVENT-003
 
 dependencies:
   - feature: REQ-F-ENGINE-001
