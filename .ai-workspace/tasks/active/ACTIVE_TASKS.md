@@ -151,19 +151,19 @@ Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_pr
 
 ---
 
-## Post-MVP: Event Stream Contract (REQ-F-EVENT-001)
+## Done: Event Stream Contract (REQ-F-EVENT-001)
 
 **Priority**: Medium
-**Status**: In Progress — tasks 1-3+5 done 2026-03-07
+**Status**: Done — 2026-03-07
 **Release Target**: 3.1
-**Commits**: `06e6c15` (taxonomy), `b9d0a7c` (spec_modified), `cc07366` (classify fix)
+**Commits**: `06e6c15` (taxonomy), `b9d0a7c` (spec_modified), `cc07366` (classify fix), `6917c7f` (projection contract), `e565f10` (ADR-025)
 
 **Tasks**:
-1. ✓ Add `IterationStarted`, `EvaluatorVoted`, `ConsensusReached`, `ContextArrived` to `ol_event.py` `_OL_EVENT_TYPE` — REQ-EVENT-003
-2. ✓ Emit `IterationStarted` at top of `iterate_edge()` in `engine.py` — REQ-EVENT-003
-3. ✓ Saga compensation: `CompensationTriggered` / `CompensationCompleted` events — REQ-EVENT-004
-4. Verify projection contract (determinism, completeness, isolation) — REQ-EVENT-002
-5. ✓ Write ADR-025: pragmatic exception for `asset_content: str` vs full event-sourced projection (`e565f10`)
+1. ✓ Full OL event taxonomy in `ol_event.py` `_OL_EVENT_TYPE` — REQ-EVENT-003
+2. ✓ Emit `IterationStarted` in `iterate_edge()` — REQ-EVENT-003
+3. ✓ Saga compensation events — REQ-EVENT-004
+4. ✓ Projection contract tests (determinism, completeness, isolation) — REQ-EVENT-002
+5. ✓ ADR-025: pragmatic exception for `asset_content: str`
 
 ---
 
