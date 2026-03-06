@@ -1,5 +1,6 @@
 # Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-002, REQ-ROBUST-003, REQ-ROBUST-008
 # Implements: REQ-FEAT-002 (Feature Dependencies), REQ-UX-003 (Project-Wide Observability)
+# Implements: REQ-EVOL-002 (Feature Display Tools Must JOIN Spec and Workspace)
 """Pure-function workspace state detection utilities.
 
 These functions operate on filesystem paths (workspace directories) and return
@@ -15,12 +16,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, Union
 
 import yaml
+
+_REQ_F_PATTERN = re.compile(r"\bREQ-F-[A-Z]+-\d+\b")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -277,6 +281,87 @@ def get_active_features(workspace: Path) -> list[dict[str, Any]]:
         if data:
             features.append(data)
     return features
+
+
+def extract_spec_feature_ids(spec_features_path: Path) -> list[str]:
+    """Extract REQ-F-* IDs from specification/features/FEATURE_VECTORS.md.
+
+    Returns a sorted deduplicated list. If the file is unreadable, returns [].
+    Used by compute_spec_workspace_join() for the spec side of the JOIN (REQ-EVOL-002).
+    """
+    if not spec_features_path.exists():
+        return []
+    try:
+        text = spec_features_path.read_text(encoding="utf-8")
+    except OSError:
+        return []
+    ids = sorted(set(_REQ_F_PATTERN.findall(text)))
+    return ids
+
+
+def compute_spec_workspace_join(
+    workspace: Path,
+    spec_features_path: Optional[Path] = None,
+) -> dict[str, Any]:
+    """JOIN spec feature definitions with workspace trajectory state (REQ-EVOL-002).
+
+    Categorises every known REQ-F-* ID as:
+      ACTIVE   — in spec AND in workspace (active or in_progress)
+      COMPLETED — in spec AND in workspace (completed/converged)
+      PENDING  — in spec AND NOT in workspace
+      ORPHAN   — in workspace AND NOT in spec
+
+    Returns a dict with keys: spec_ids, workspace_ids, active, completed, pending, orphan,
+    spec_readable (bool), spec_count, workspace_count.
+    """
+    ws_dir = _workspace_dir(workspace)
+
+    # Resolve spec path: default to specification/features/FEATURE_VECTORS.md
+    if spec_features_path is None:
+        project_root = ws_dir.parent if ws_dir.name == ".ai-workspace" else workspace
+        spec_features_path = project_root / "specification" / "features" / "FEATURE_VECTORS.md"
+
+    spec_readable = spec_features_path.exists()
+    spec_ids: set[str] = set(extract_spec_feature_ids(spec_features_path))
+
+    # Collect workspace feature IDs from active + completed directories
+    workspace_active: set[str] = set()
+    workspace_completed: set[str] = set()
+
+    for subdir, bucket in (
+        ("active", workspace_active),
+        ("completed", workspace_completed),
+    ):
+        features_dir = ws_dir / "features" / subdir
+        if features_dir.exists():
+            for path in features_dir.glob("*.yml"):
+                try:
+                    with open(path) as f:
+                        data = yaml.safe_load(f) or {}
+                    fid = data.get("feature") or data.get("id", "")
+                    if fid:
+                        bucket.add(fid)
+                except (yaml.YAMLError, OSError):
+                    pass
+
+    workspace_ids = workspace_active | workspace_completed
+
+    active = sorted(spec_ids & workspace_active)
+    completed = sorted(spec_ids & workspace_completed)
+    pending = sorted(spec_ids - workspace_ids)
+    orphan = sorted(workspace_ids - spec_ids)
+
+    return {
+        "spec_readable": spec_readable,
+        "spec_count": len(spec_ids),
+        "workspace_count": len(workspace_ids),
+        "spec_ids": sorted(spec_ids),
+        "workspace_ids": sorted(workspace_ids),
+        "active": active,
+        "completed": completed,
+        "pending": pending,
+        "orphan": orphan,
+    }
 
 
 def detect_stuck_features(

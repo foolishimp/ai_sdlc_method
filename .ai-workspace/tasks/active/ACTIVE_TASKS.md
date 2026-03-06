@@ -138,32 +138,37 @@ Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_pr
 ## Post-MVP: Spec Evolution Pipeline (REQ-F-EVOL-001)
 
 **Priority**: High
-**Status**: Not Started
+**Status**: In Progress — task 4 done 2026-03-07
 **Release Target**: 3.1
+**Commits**: `c5fea45` (draft proposals queue), `b9d0a7c` (spec_modified event)
 
 **Tasks**:
 1. Enforce workspace vector schema (trajectory fields only — no `satisfies`) — REQ-EVOL-001
+   → vectors are clean; no automated checker yet
 2. JOIN display in `gen-status`: ACTIVE / PENDING / ORPHAN across spec + workspace — REQ-EVOL-002
+   → **NEXT TASK**
 3. `spec_modified` event on any `specification/` change (post-commit hook or equivalent) — REQ-EVOL-004
-4. `feature_proposal` event type + Draft Queue surfaced in `gen-status` — REQ-EVOL-003, REQ-EVOL-005
-5. Add `# Implements: REQ-EVOL-*` tags throughout
+   → event type + constructor done; post-commit hook not written
+4. ✓ `feature_proposal` event type + Draft Queue surfaced in `gen-status` — REQ-EVOL-003, REQ-EVOL-005
+5. Add `# Implements: REQ-EVOL-*` tags throughout — partial
 
-**Depends On**: Consciousness Loop Stage 2+3 (shared event types)
+**Depends On**: Consciousness Loop Stage 2+3 (shared event types) ✓
 
 ---
 
 ## Post-MVP: Event Stream Contract (REQ-F-EVENT-001)
 
 **Priority**: Medium
-**Status**: Not Started
+**Status**: In Progress — tasks 1-3+5 done 2026-03-07
 **Release Target**: 3.1
+**Commits**: `06e6c15` (taxonomy), `b9d0a7c` (spec_modified), `cc07366` (classify fix)
 
 **Tasks**:
-1. Add `IterationStarted`, `EvaluatorVoted`, `ConsensusReached`, `ContextArrived` to `ol_event.py` `_OL_EVENT_TYPE` — REQ-EVENT-003
-2. Emit `IterationStarted` at top of `iterate_edge()` in `engine.py` — REQ-EVENT-003
-3. Saga compensation: `CompensationTriggered` / `CompensationCompleted` events — REQ-EVENT-004
+1. ✓ Add `IterationStarted`, `EvaluatorVoted`, `ConsensusReached`, `ContextArrived` to `ol_event.py` `_OL_EVENT_TYPE` — REQ-EVENT-003
+2. ✓ Emit `IterationStarted` at top of `iterate_edge()` in `engine.py` — REQ-EVENT-003
+3. ✓ Saga compensation: `CompensationTriggered` / `CompensationCompleted` events — REQ-EVENT-004
 4. Verify projection contract (determinism, completeness, isolation) — REQ-EVENT-002
-5. Write ADR-025: pragmatic exception for `asset_content: str` vs full event-sourced projection
+5. ✓ Write ADR-025: pragmatic exception for `asset_content: str` vs full event-sourced projection (`e565f10`)
 
 ---
 
@@ -200,30 +205,27 @@ Captured the architectural insight that bootstrap scaffolding can be dissolved o
 
 ---
 
-## Post-MVP: ADR-S-012 Decision (ADR-025)
+## Done: ADR-S-012 Decision (ADR-025)
 
-**Priority**: Medium — design decision, one paragraph
-**Status**: Needs Decision
-**Release Target**: 3.0
+**Status**: Done — 2026-03-07
+**Commit**: `e565f10`
 
-**Description**:
-ADR-S-012 mandates `iterate() → Event+` (assets as event projections). Engine passes `asset_content: str`. Write ADR-025 to formally record the pragmatic exception and define the 3.x migration path.
-
-**Effort**: Write ADR-025 — ~1 page. No code change.
+ADR-025 written — pragmatic exception for `asset_content: str` vs full event-sourced projection. Defines 3.x migration path.
 
 ---
 
 ## Post-MVP: Functor Execution Model Config (ADR-017)
 
 **Priority**: Medium
-**Status**: Not Started
+**Status**: In Progress — tasks 1-3 done 2026-03-07
 **Release Target**: 3.0
+**Commit**: `6ad072b`
 
 **Tasks**:
-1. Add `mode` (headless | interactive | auto) and `valence` (high | medium | low) to `project_constraints.yml`
-2. Add `valence` field to feature vector affect schema
-3. Annotate edge configs with starting-functor comments
-4. Integration tests for escalation paths (η_D→P and η_P→H)
+1. ✓ Add `mode` (headless | interactive | auto) and `valence` (high | medium | low) to `project_constraints.yml`
+2. ✓ Add `valence` field to feature vector affect schema (already in template)
+3. ✓ Annotate edge configs with starting-functor comments (tdd.yml, intent_requirements.yml, requirements_design.yml, design_code.yml)
+4. Integration tests for escalation paths (η_D→P and η_P→H) — requires live LLM, deferred
 
 ---
 
@@ -234,9 +236,9 @@ ADR-S-012 mandates `iterate() → Event+` (assets as event projections). Engine 
 **Release Target**: 3.1
 
 **Remaining**:
-4. ✓ Add `project_instance_graph(events) → InstanceGraph` — full event replay projection (with tests)
-5. Add zoom level 1 overlay to `graph.py`
-6. Add topology version check to `on-session-start.sh`
+4. ✓ Add `project_instance_graph(events) → InstanceGraph` — full event replay projection (with tests) — `3c6f9d0`
+5. Add zoom level 1 overlay to `graph.py` — BLOCKED (genesis_monitor not in imp_claude)
+6. ✓ Add topology version check to `on-session-start.sh` — `0b98323`
 
 ---
 
@@ -258,20 +260,18 @@ ADR-S-012 mandates `iterate() → Event+` (assets as event projections). Engine 
 
 ---
 
-## Current State (2026-03-05)
+## Current State (2026-03-07)
 
 | Artifact | Status |
 |----------|--------|
-| Spec (Asset Graph Model) | Complete — 4 primitives, 17 spec ADRs |
+| Spec (Asset Graph Model) | Complete — 4 primitives, 18 spec ADRs (ADR-S-018 tournament) |
 | Implementation Requirements | 83 requirements (REQ-EVOL + REQ-EVENT added 2026-03-05) |
-| Feature Vectors | 14 vectors, 83/83 covered (v1.9.0) |
-| Claude Design (ADRs 008-024) | 17 ADRs; ADR-025 (event-sourced exception) pending |
-| Claude Code | Engine CLI + contracts/functor/fp_functor (ADR-024 MVP) |
-| Tests | 729 unit passing; 143 engine/functor; 55 stale path failures |
+| Feature Vectors | 15 vectors (REQ-F-TOURNAMENT-001 added), 83/83 covered |
+| Claude Design (ADRs 008-026) | 19 ADRs; ADR-025 done, ADR-026 done |
+| Claude Code | Engine CLI + OL taxonomy + instance graph + consciousness loop Stage 2+3 |
+| Tests | 760 unit passing; `test_consciousness_loop`, `test_event_taxonomy`, `test_instance_graph` added |
 | Gemini Design | Complete (ADRs GG-001-008) |
 | Codex Design | Complete (ADR-CG-001) |
-
-**Gap analysis**: `.ai-workspace/comments/claude/` (pending — write after tasks updated)
 
 ---
 
