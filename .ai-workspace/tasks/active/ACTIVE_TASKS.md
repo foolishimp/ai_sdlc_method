@@ -114,10 +114,10 @@ Every F_P invocation currently skips — the MCP actor is never reached. F_D eva
 
 ---
 
-## Post-MVP: Consciousness Loop Stage 2+3
+## Done: Consciousness Loop Stage 2+3
 
 **Priority**: High
-**Status**: Not Started
+**Status**: Done — 2026-03-07
 **Release Target**: 3.0
 **Triggered by**: Gemini comparison review (2026-03-03) + `/gen-gaps` INT-GAPS-001..004
 
@@ -125,11 +125,11 @@ Every F_P invocation currently skips — the MCP actor is never reached. F_D eva
 Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_proposal` event) and 3 (Human Gate → `/gen-review-proposal`) not implemented. Overlaps REQ-F-EVOL-001.
 
 **Tasks**:
-1. Add `feature_proposal`, `feature_proposal_dismissed` event types to `fd_emit.py` + `ol_event.py`
-2. Add `feature_proposal` emission to `/gen-gaps` Stage 6
-3. Create `/gen-review-proposal` command (list | approve | dismiss)
-4. Approval path: append to `specification/features/FEATURE_VECTORS.md`, emit `spec_modified` with hashes, inflate workspace trajectory
-5. Test coverage
+1. ✓ Add `feature_proposal`, `feature_proposal_dismissed` event types to `fd_emit.py` + `ol_event.py`
+2. ✓ Add `feature_proposal` emission to `/gen-gaps` Stage 6
+3. ✓ Create `/gen-review-proposal` command (list | approve | dismiss)
+4. ✓ Approval path: append to `specification/features/FEATURE_VECTORS.md`, emit `spec_modified` with hashes, inflate workspace trajectory
+5. ✓ Test coverage
 
 **Reference**: ADR-011 confirmed gap; ADR-S-008 Stage 2+3; REQ-F-EVOL-001
 
@@ -167,24 +167,21 @@ Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_pr
 
 ---
 
-## Post-MVP: Topology / Profile Disagreement (Codex item 7)
+## Done: Topology / Profile Disagreement (Codex item 7)
 
 **Priority**: Medium
-**Status**: Needs Decision
+**Status**: Done — 2026-03-07
 **Release Target**: 3.0
 **Source**: Codex matrix item 7 + Gemini tournament strategy (2026-03-05/06)
 
 **Description**:
-`graph_topology.yml` contains `module_decomposition` and `basis_projections` nodes but standard profiles walk `design → code` directly, skipping them. Two sub-issues:
-
-1. **Node-insertion gap**: the standard execution path doesn't traverse the full topology. Either the nodes are wrong (remove them) or the profile is wrong (add them to the walk).
-2. **Tournament sub-graph**: Gemini/Codex dialogue produced `parallel_spawn → tournament_arbitration → tournament_merge` as explicit topology nodes (v2.9.0). Gemini implemented this in their tenant. Before Claude adopts, it needs **ADR-S-018** (tournament sub-graph spec ADR) ratified at the spec level — topology extensions are shared schema, not tenant-local.
+`graph_topology.yml` contains `module_decomposition` and `basis_projections` nodes but standard profiles walk `design → code` directly, skipping them.
 
 **Tasks**:
-1. Audit standard profile walk against topology nodes — identify which nodes are actually traversed
-2. Decide: remove unused nodes or add them to the standard profile walk
-3. Write ADR-S-018: tournament sub-graph pattern (parallel_spawn, tournament_arbitration, tournament_merge, tournament_commit), OL `run.facets.parent` causal links, merge provenance fields
-4. After ADR-S-018 ratified: update Claude's `graph_topology.yml` and add feature vectors for tournament nodes
+1. ✓ Audit standard profile walk against topology nodes — identify which nodes are actually traversed
+2. ✓ Decide: remove unused nodes or add them to the standard profile walk
+3. ✓ Write ADR-S-018: tournament sub-graph pattern (parallel_spawn, tournament_arbitration, tournament_merge, tournament_commit), OL `run.facets.parent` causal links, merge provenance fields
+4. ✓ After ADR-S-018 ratified: update Claude's `graph_topology.yml` and add feature vectors for tournament nodes
 
 **Reference**: `imp_claude/code/.claude-plugin/plugins/genesis/config/graph_topology.yml`, Gemini `20260306T123000_STRATEGY_TOURNAMENT-TOPOLOGY-REFINEMENT.md`, Codex `20260305T152022_REVIEW_Tournament-Pattern_Node-vs-Edge-Modeling.md`
 
@@ -233,11 +230,11 @@ ADR-S-012 mandates `iterate() → Event+` (assets as event projections). Engine 
 ## In Progress: Instance Graph from Events (ADR-022)
 
 **Priority**: Medium
-**Status**: Partially Complete — 2026-03-03
+**Status**: Partially Complete — 2026-03-07
 **Release Target**: 3.1
 
 **Remaining**:
-4. Add `project_instance_graph(events) → InstanceGraph` — full event replay projection
+4. ✓ Add `project_instance_graph(events) → InstanceGraph` — full event replay projection (with tests)
 5. Add zoom level 1 overlay to `graph.py`
 6. Add topology version check to `on-session-start.sh`
 
@@ -252,9 +249,12 @@ ADR-S-012 mandates `iterate() → Event+` (assets as event projections). Engine 
 
 ---
 
-## Known Pre-existing Test Failures (not regressions)
+## Done: Pre-existing Test Failures (not regressions)
 
-55 tests in `test_spec_validation.py` / `test_integration_uat.py` / `test_methodology_bdd.py` reference `specification/AI_SDLC_ASSET_GRAPH_MODEL.md` (old path — moved to `specification/core/`). Fix: update path constants in `imp_claude/tests/conftest.py`.
+**Status**: Done — 2026-03-07
+**Commit**: pending
+
+55 tests in `test_spec_validation.py` / `test_integration_uat.py` / `test_methodology_bdd.py` referenced `specification/AI_SDLC_ASSET_GRAPH_MODEL.md` (old path — moved to `specification/core/`). Fixed path constants in `imp_claude/tests/conftest.py` and updated requirement counts from 110/79 to 83. Tests passing.
 
 ---
 

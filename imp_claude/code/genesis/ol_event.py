@@ -56,6 +56,10 @@ _OL_EVENT_TYPE = {
     "ConvergenceAchieved": "COMPLETE",
     "IterationFailed": "FAIL",
     "IterationAbandoned": "ABORT",
+    # Consciousness loop Stage 2+3 (ADR-011, ADR-S-008)
+    "FeatureProposed": "OTHER",       # intent_raised → affect triage → draft proposal
+    "FeatureApproved": "COMPLETE",    # human approves proposal → inflates workspace
+    "FeatureDismissed": "OTHER",      # human dismisses proposal → archived
 }
 
 
@@ -310,6 +314,44 @@ def transition_denied(project, instance_id, actor, edge, reason, **kw) -> dict:
         instance_id,
         actor,
         payload={"edge": edge, "reason": reason},
+        **kw,
+    )
+
+
+def feature_proposed(
+    project, instance_id, actor, feature, description, **kw
+) -> dict:
+    return make_ol_event(
+        "FeatureProposed",
+        f"PROPOSE:{feature}",
+        project,
+        instance_id,
+        actor,
+        payload={"feature": feature, "description": description},
+        **kw,
+    )
+
+
+def feature_approved(project, instance_id, actor, feature, **kw) -> dict:
+    return make_ol_event(
+        "FeatureApproved",
+        f"APPROVE:{feature}",
+        project,
+        instance_id,
+        actor,
+        payload={"feature": feature},
+        **kw,
+    )
+
+
+def feature_dismissed(project, instance_id, actor, feature, reason, **kw) -> dict:
+    return make_ol_event(
+        "FeatureDismissed",
+        f"DISMISS:{feature}",
+        project,
+        instance_id,
+        actor,
+        payload={"feature": feature, "reason": reason},
         **kw,
     )
 
