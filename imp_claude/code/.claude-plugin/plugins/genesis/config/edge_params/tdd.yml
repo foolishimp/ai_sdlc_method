@@ -1,6 +1,16 @@
 # Edge Parameterisation: Code ↔ Unit Tests (TDD Co-Evolution)
 # Implements: REQ-EDGE-001
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §4.1
+#
+# Functor Encoding (ADR-017):
+#   evaluate  → starts F_D  (pytest, coverage, lint, format — deterministic)
+#              η_D→P if syntax passes but design coherence is suspect
+#   evaluate  → starts F_P  (req_tags, code_quality, test_quality — agent)
+#              η_P→H if agent finds persistent ambiguity (blocked by requirement)
+#   construct → starts F_P  (TDD cycle is agent-driven)
+#              η_P→H if agent cannot determine next test from spec
+#   emit      → always F_D  (category-fixed)
+#   decide    → always F_H  (human approves convergence — category-fixed)
 
 ---
 

@@ -1,6 +1,15 @@
 # Edge Parameterisation: Design → Code
 # Implements: REQ-TOOL-013 (Output Directory Binding)
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2, §3
+#
+# Functor Encoding (ADR-017):
+#   construct → starts F_P  (actor generates code from design via MCP — ADR-024)
+#              η_P→H if actor cannot resolve design ambiguity (missing ADR)
+#   evaluate  → starts F_D  (syntax, lint, tests — deterministic gate)
+#              η_D→P if deterministic passes but structural coherence is suspect
+#   sense     → starts F_D  (file watcher, compile check — deterministic)
+#   emit      → always F_D
+#   decide    → always F_H  (human code review gate — category-fixed)
 
 ---
 

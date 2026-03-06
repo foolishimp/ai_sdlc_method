@@ -1,5 +1,13 @@
 # Edge Parameterisation: Intent → Requirements
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2, §3
+#
+# Functor Encoding (ADR-017):
+#   construct → starts F_P  (agent extracts requirements from intent)
+#              η_P→H if intent is too vague to decompose
+#   evaluate  → starts F_P  (agent checks completeness, testability)
+#              η_P→H at human review gate (required)
+#   emit      → always F_D
+#   decide    → always F_H  (human approves requirements — category-fixed)
 
 ---
 

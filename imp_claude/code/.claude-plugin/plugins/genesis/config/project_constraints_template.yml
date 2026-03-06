@@ -279,6 +279,31 @@ structure:
   root_code_policy: reject     # reject | warn
 
 # ═══════════════════════════════════════════════════════════════════════
+# FUNCTOR EXECUTION MODEL (ADR-017)
+# ═══════════════════════════════════════════════════════════════════════
+# Controls how functional units are rendered (F_D / F_P / F_H) and
+# how aggressively the system escalates between categories.
+#
+# mode:
+#   headless    — no human gates (F_H skipped, escalation stops at F_P)
+#   interactive — human gates active (full escalation chain D→P→H)
+#   auto        — engine decides per-edge: headless for F_D-only edges,
+#                 interactive when F_P/F_H evaluators are present
+#
+# valence (η threshold — how urgently ambiguity triggers escalation):
+#   high   — escalate quickly; any unresolved delta → escalate
+#   medium — escalate after N failures or when delta is stuck 3+ iters
+#   low    — defer escalation; try more F_P iterations before F_H
+#
+# starting_functor per edge is documented in each edge_params/*.yml.
+# Project-level defaults here; features can override via affect.valence.
+
+functor:
+  mode: interactive          # headless | interactive | auto
+  valence: medium            # high | medium | low
+  eta_threshold: 3           # iterations before η_P→H escalation fires
+
+# ═══════════════════════════════════════════════════════════════════════
 # EVALUATOR OVERRIDES
 # ═══════════════════════════════════════════════════════════════════════
 # Override edge evaluator composition or add project-specific checks.

@@ -1,5 +1,14 @@
 # Edge Parameterisation: Requirements → Design
 # Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2, §3
+#
+# Functor Encoding (ADR-017):
+#   construct → starts F_P  (agent produces architecture from requirements)
+#              η_P→H if architectural decision cannot be made without domain judgment
+#   evaluate  → starts F_P  (agent checks design completeness, ADR coverage)
+#              η_P→H at mandatory constraint dimensions resolution
+#   classify  → starts F_D  (constraint dimension check is rule-based)
+#   emit      → always F_D
+#   decide    → always F_H  (human approves design + constraint bindings — category-fixed)
 
 ---
 
