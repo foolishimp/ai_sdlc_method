@@ -27,22 +27,71 @@ This command is the primary workflow action. It invokes the iterate agent on a s
 
 Determine the execution mode from `--mode` (default: `interactive`):
 
-**`engine` mode** — delegate entirely to the F_D engine CLI:
+**`engine` mode** — F_D deterministic gate + optional F_P actor dispatch loop:
+
+**Phase A: F_D evaluation (always runs first)**
 1. Locate the primary asset for the feature+edge (from the feature vector trajectory, or ask the user)
 2. Run via Bash:
    ```bash
-   PYTHONPATH={plugin_root}/code python -m genesis run-edge \
+   PYTHONPATH={plugin_root}/code python -m genesis evaluate \
      --edge "{edge}" \
      --feature "{feature}" \
      --asset "{asset_path}" \
      --deterministic-only \
-     --max-iterations 10 \
      --fd-timeout 120
    ```
-3. Parse the JSON output — it contains `delta`, `converged`, `total_iterations`, `iterations[].checks`
-4. Format as the **Iteration Report** (Step 5) and emit no additional events (engine handles all emission)
-5. If `converged: true` → update feature vector trajectory, proceed to Step 4 (convergence handling)
-6. If `spawn_requested` → present spawn to user as in Step 6
+3. Parse the JSON output — it contains `delta`, `converged`, `evaluators`, `checks`
+4. If `converged: true` → format as **Iteration Report** (Step 5), update feature vector, proceed to Step 4
+5. If `spawn_requested` → present spawn to user as in Step 6
+
+**Phase B: F_P actor dispatch (runs when F_D delta > 0 and edge supports construction)**
+
+Construction edges: `code↔unit_tests`, `design→test_cases`, `design→uat_tests`, `intent→requirements`, `requirements→design`
+
+If the edge is a construction edge AND delta > 0 AND remaining budget > 0:
+
+6. Build the actor mandate — a structured prompt containing:
+   ```
+   # Actor Mandate
+   Edge: {edge}
+   Feature: {feature}
+   Asset: {asset_path}
+   Budget: ${budget_usd}
+
+   ## F_D Failures (must be resolved)
+   {list of failing checks from Phase A, with check name, expected, observed}
+
+   ## Your Task
+   You are a recursive construction actor. Your job is to modify {asset_path} (and
+   any related files) so that all F_D checks pass. You have full tool access — read
+   files, write code, run tests, verify output. Work iteratively until the failures
+   are resolved. Do NOT emit a result — modify the files directly. When done, output
+   only: DONE: {summary of changes made}
+   ```
+
+7. Invoke the MCP `claude_code` tool with the actor mandate:
+   - Use `mcp__claude-code-runner__claude_code` or equivalent MCP tool
+   - Set `max_budget_usd` to the remaining iteration budget (default: $2.00 per actor call)
+   - The actor has full tool access and will modify files directly in the workspace
+
+8. After actor completes, re-run Phase A (F_D evaluation) on the now-modified asset:
+   ```bash
+   PYTHONPATH={plugin_root}/code python -m genesis evaluate \
+     --edge "{edge}" \
+     --feature "{feature}" \
+     --asset "{asset_path}" \
+     --deterministic-only \
+     --fd-timeout 120 \
+     --iteration {n+1}
+   ```
+
+9. If converged → proceed to Step 4 (convergence handling)
+10. If not converged and budget remains → repeat Phase B (up to 3 actor calls per edge)
+11. If budget exhausted or 3 actor calls completed without convergence → report stuck delta, emit `intent_raised`
+
+**Budget tracking**: deduct actor cost from `budget_usd` after each call. Stop dispatching actors when `remaining_budget < $0.50` (reserve for final F_D evaluation).
+
+**Why this architecture**: The engine (Python) cannot call MCP tools — MCP tools are the LLM layer's capability. gen-iterate IS the LLM layer, so it owns the F_P dispatch loop. The engine stays pure F_D. The actor modifies files directly (full tool access); the engine then re-evaluates the modified files. No fold-back file coordination needed in synchronous mode.
 
 **`auto` mode** — route by edge type:
 - Edge is `code↔unit_tests`, `design→test_cases`, or `design→uat_tests` → use `engine` mode
