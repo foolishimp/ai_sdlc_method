@@ -78,11 +78,11 @@ class TestRequirementsLineage:
 
     @pytest.mark.tdd
     def test_requirement_count_updated(self):
-        """Total requirement count should reflect additions (was 35, ..., 69, now 79)."""
+        """Total requirement count should reflect additions."""
         req_path = SPEC_REQUIREMENTS
         with open(req_path) as f:
             content = f.read()
-        assert "**79**" in content or "| **Total** | **79**" in content
+        assert "**83**" in content or "| **Total** | **83**" in content
 
     @pytest.mark.bdd
     def test_consciousness_loop_reqs_exist_in_spec(self):
@@ -115,12 +115,12 @@ class TestSensoryRequirements:
             assert req in content, f"{req} not found in implementation requirements"
 
     @pytest.mark.tdd
-    def test_requirement_count_is_69(self):
-        """Total requirement count must be 79 (grew from 69 with EVENT, EVOL, ROBUST additions)."""
+    def test_requirement_count_is_83(self):
+        """Total requirement count must be 83."""
         req_path = SPEC_REQUIREMENTS
         with open(req_path) as f:
             content = f.read()
-        assert "**79**" in content or "| **Total** | **79**" in content
+        assert "**83**" in content or "| **Total** | **83**" in content
 
     @pytest.mark.tdd
     def test_sensory_category_count_is_5(self):

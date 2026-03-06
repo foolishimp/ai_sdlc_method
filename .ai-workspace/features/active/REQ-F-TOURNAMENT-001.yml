@@ -1,0 +1,45 @@
+feature: REQ-F-TOURNAMENT-001
+title: Tournament Pattern Sub-Graph Implementation
+intent: INT-TOURNAMENT-001
+vector_type: feature
+profile: standard
+status: pending
+priority: medium
+created: "2026-03-07T00:00:00Z"
+updated: "2026-03-07T00:00:00Z"
+parent_id: REQ-F-ENGINE-001
+spawned_by: adr_s_018
+
+description: |
+  Implement the Tournament Pattern as an explicit topological sub-graph.
+  Following ADR-S-018, the engine must support traversing:
+  parallel_spawn → tournament_arbitration → tournament_merge.
+  
+  Scope:
+  - Support `feature_spawned` events with OpenLineage `run.facets.parent`.
+  - Implement F_P or F_H arbitration step for ranking candidates.
+  - Implement `tournament_merge` fold-back with explicit merge_provenance facet.
+  - Add edge configs for these new transitions.
+
+requirements:
+  - REQ-GRAPH-004
+  - REQ-EVENT-005
+  - REQ-EVENT-006
+
+dependencies:
+  - feature: REQ-F-ENGINE-001
+    status: resolved
+  - feature: REQ-F-COORD-001
+    status: in_progress
+    note: "Tournament involves multiple F_P runs which might require coordination"
+
+trajectory:
+  intent_requirements:
+    status: converged
+    note: "ADR-S-018 ratified and graph_topology.yml updated."
+  requirements_design:
+    status: pending
+  design_code:
+    status: pending
+  code_unit_tests:
+    status: pending

@@ -1,4 +1,4 @@
-# Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability), REQ-F-FPC-005 (CLI Construct Mode), REQ-ROBUST-008 (Session Gap Detection)
+# Implements: REQ-ITER-001 (Universal Iterate), REQ-SUPV-003 (Failure Observability), REQ-ROBUST-008 (Session Gap Detection)
 """CLI entry point for the genesis engine.
 
 Usage:

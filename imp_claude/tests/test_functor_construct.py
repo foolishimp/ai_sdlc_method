@@ -15,12 +15,12 @@ from genesis.models import CheckOutcome
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# ENGINE INTEGRATION (REQ-F-FPC-004, REQ-BR-FPC-001)
+# ENGINE INTEGRATION
 # ═══════════════════════════════════════════════════════════════════════════
 
 
 class TestEngineConstructIntegration:
-    """Validates: REQ-F-FPC-004 — iterate_edge() calls construct before evaluate."""
+    """Validates engine iterate_edge() calls construct before evaluate."""
 
     def _make_engine_config(self, tmp_path):
         from genesis.engine import EngineConfig
@@ -147,12 +147,12 @@ class TestEngineConstructIntegration:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# CONTEXT THREADING (REQ-F-FPC-003)
+# CONTEXT THREADING
 # ═══════════════════════════════════════════════════════════════════════════
 
 
 class TestContextThreading:
-    """Validates: REQ-F-FPC-003 — context accumulated between edges in run()."""
+    """Validates context accumulated between edges in run()."""
 
     @patch("genesis.engine.run_edge")
     @patch("genesis.engine.select_next_edge")
@@ -279,12 +279,12 @@ class TestBackwardCompatibility:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# CLI CONSTRUCT COMMAND (REQ-F-FPC-005)
+# CLI CONSTRUCT COMMAND
 # ═══════════════════════════════════════════════════════════════════════════
 
 
 class TestCLIConstruct:
-    """Validates: REQ-F-FPC-005 — construct subcommand in CLI."""
+    """Validates construct subcommand in CLI."""
 
     def test_construct_subcommand_registered(self):
         """construct subcommand is available in argparse."""

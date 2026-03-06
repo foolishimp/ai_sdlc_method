@@ -640,14 +640,14 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_8(self, plugin_json):
-        """plugin.json version must be 2.8.0."""
-        assert plugin_json["version"] == "2.8.0"
+    def test_plugin_version_is_2_9(self, plugin_json):
+        """plugin.json version must be 2.9.0."""
+        assert plugin_json["version"] == "2.9.0"
 
     @pytest.mark.tdd
-    def test_graph_topology_version_is_2_8(self, graph_topology):
-        """graph_topology.yml version must be 2.8.0."""
-        assert graph_topology["graph_properties"]["version"] == "2.8.0"
+    def test_graph_topology_version_is_2_9(self, graph_topology):
+        """graph_topology.yml version must be 2.9.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.9.0"
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_event_sourcing_or_iterate(self, plugin_json):

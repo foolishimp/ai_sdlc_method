@@ -200,6 +200,33 @@ asset_types:
       - collecting
       - tagged_with_req_keys
 
+  parallel_spawn:
+    description: "Transaction boundary where a parent feature fans out into multiple parallel child vectors"
+    schema:
+      parent_run_id: string
+      spawned_children: list
+    markov_criteria:
+      - children_spawned
+
+  tournament_arbitration:
+    description: "Evaluation phase where candidates are compared against design constraints"
+    schema:
+      child_candidates: list
+      evaluation_results: object
+    markov_criteria:
+      - all_candidates_evaluated
+      - ranking_produced
+
+  tournament_merge:
+    description: "Node where the winning candidate is selected or a composite asset is constructed"
+    schema:
+      selected_candidates: list
+      merge_provenance: object
+      merged_asset: string
+    markov_criteria:
+      - merge_provenance_recorded
+      - output_hash_generated
+
 # ═══════════════════════════════════════════
 # Constraint Dimensions (Spec §2.6.1)
 # ═══════════════════════════════════════════
@@ -445,6 +472,34 @@ transitions:
     evaluators: [agent, human]
     constructor: agent
     edge_config: "edge_params/feedback_loop.yml"
+
+  - name: "Basis Projections → Parallel Spawn"
+    source: basis_projections
+    target: parallel_spawn
+    edge_type: standard
+    evaluators: [deterministic]
+    constructor: agent
+
+  - name: "Parallel Spawn → Tournament Arbitration"
+    source: parallel_spawn
+    target: tournament_arbitration
+    edge_type: standard
+    evaluators: [agent, deterministic]
+    constructor: agent
+
+  - name: "Tournament Arbitration → Tournament Merge"
+    source: tournament_arbitration
+    target: tournament_merge
+    edge_type: standard
+    evaluators: [agent, human]
+    constructor: agent
+
+  - name: "Tournament Merge → Code"
+    source: tournament_merge
+    target: code
+    edge_type: standard
+    evaluators: [agent, deterministic]
+    constructor: agent
 
 # ═══════════════════════════════════════════
 # Graph Properties
