@@ -190,6 +190,19 @@ Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_pr
 
 ---
 
+## Done: ADR-026 — Minimal Installer Footprint (Ladder Lift)
+
+**Status**: Done — 2026-03-07
+**Commit**: pending
+**Release Target**: 3.0
+
+**Description**:
+Captured the architectural insight that bootstrap scaffolding can be dissolved once the system is capable of deriving it. ADR-026 defines the permanent installer footprint (3 operations: settings.json, events.jsonl touch, bootloader injection) and promotes `/gen-start` UNINITIALISED handler as the owner of lazy workspace scaffolding. `/gen-init` demoted to power-user escape hatch.
+
+**Artifact**: `imp_claude/design/adrs/ADR-026-minimal-installer-footprint.md`
+
+---
+
 ## Post-MVP: ADR-S-012 Decision (ADR-025)
 
 **Priority**: Medium — design decision, one paragraph

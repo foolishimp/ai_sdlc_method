@@ -1,0 +1,71 @@
+timestamp: "2026-03-06T19:06:47Z"
+message: "Pre-autonomous session: ADR-026 captured (minimal installer footprint / ladder lift). Going to bed — autonomous backlog work begins."
+context_hash: "sha256:65bf151f38e4293e0aa6e7aba575a9b317e269238ca733af82118dadc5e50b1e"
+git_ref: "7b8d7f2d43d268c66769faf121be687ae944b82e"
+
+feature_states:
+  - feature: REQ-F-ENGINE-001
+    status: converged
+
+  - feature: REQ-F-CTX-001
+    status: converged
+
+  - feature: REQ-F-EVAL-001
+    status: converged
+
+  - feature: REQ-F-EDGE-001
+    status: converged
+
+  - feature: REQ-F-COORD-001
+    status: converged
+
+  - feature: REQ-F-LIFE-001
+    status: converged
+
+  - feature: REQ-F-SUPV-001
+    status: converged
+
+  - feature: REQ-F-TRACE-001
+    status: converged
+
+  - feature: REQ-F-UX-001
+    status: converged
+
+  - feature: REQ-F-SENSE-001
+    status: converged
+
+  - feature: REQ-F-TOOL-001
+    status: converged
+
+  - feature: REQ-F-FP-001
+    status: converged
+
+  - feature: REQ-F-ROBUST-001
+    status: in_progress
+    note: "Stale — all trajectory edges converged but feature not closed. fp_subprocess.py deleted (ADR-024). Needs closure with pivot note."
+
+  - feature: REQ-F-EVOL-001
+    status: pending
+    current_edge: intent
+
+  - feature: REQ-F-EVENT-001
+    status: pending
+    current_edge: intent
+
+tasks:
+  converged: 12
+  in_progress: 1
+  pending: 2
+  blocked: 0
+
+adrs_written_this_session:
+  - ADR-026-minimal-installer-footprint.md
+
+backlog_items:
+  - Close REQ-F-ROBUST-001 (stale status closure)
+  - Write ADR-025 (event-sourced exception, ~1 page)
+  - Implement fp_functor._mcp_invoke() (MVP blocker)
+  - Instance Graph from Events ADR-022 steps 4-6
+  - Consciousness Loop Stage 2+3 (new event types + gen-review-proposal)
+  - Start REQ-F-EVENT-001 (intent→requirements→design)
+  - Draft ADR-S-018 (tournament topology, mark needs-ratification)
