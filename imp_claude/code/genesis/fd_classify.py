@@ -1,4 +1,4 @@
-# Implements: REQ-ITER-003 (Functor Encoding Tracking)
+# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-COORD-002 (Feature Assignment via Events)
 """F_D classify — deterministic classification of REQ tags, source findings, signals."""
 
 import re
@@ -147,6 +147,12 @@ def classify_signal_source(event: dict) -> str:
         # F_D / F_P failure observability (REQ-ROBUST-007)
         "fp_failure": "failure",
         "evaluator_detail": "evaluation",
+        # Multi-agent coordination (ADR-013, REQ-COORD-002)
+        "edge_claim": "coordination",
+        "claim_rejected": "coordination",
+        "claim_expired": "coordination",
+        "edge_released": "coordination",
+        "convergence_escalated": "escalation",
     }
 
     return signal_map.get(event_type, "unknown")

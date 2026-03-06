@@ -1,4 +1,4 @@
-# Implements: REQ-EVENT-001 (OpenLineage event construction), REQ-EVENT-003 (Required Event Taxonomy), REQ-EVENT-004 (Saga Invariant), REQ-EVOL-003 (feature_proposal event), REQ-EVOL-004 (spec_modified event), ADR-S-011, ADR-S-012
+# Implements: REQ-EVENT-001 (OpenLineage event construction), REQ-EVENT-003 (Required Event Taxonomy), REQ-EVENT-004 (Saga Invariant), REQ-EVOL-003 (feature_proposal event), REQ-EVOL-004 (spec_modified event), REQ-COORD-002 (Multi-Agent Coordination), ADR-S-011, ADR-S-012
 """
 OpenLineage event constructor — builds spec-compliant RunEvents.
 
@@ -74,6 +74,12 @@ _OL_EVENT_TYPE = {
     "FeatureDismissed": "OTHER",      # human dismisses proposal → archived
     # Spec evolution (REQ-EVOL-004, ADR-S-010)
     "SpecModified": "COMPLETE",       # specification/ file changed — causal chain recorded
+    # Multi-agent coordination (ADR-013, REQ-COORD-002)
+    "EdgeClaimed": "OTHER",           # agent claims a feature+edge — pending serialiser confirmation
+    "ClaimRejected": "FAIL",          # serialiser rejects claim (conflict or role violation)
+    "ClaimExpired": "OTHER",          # stale claim detected (no follow-up within timeout)
+    "EdgeReleased": "OTHER",          # agent voluntarily releases a claim
+    "ConvergenceEscalated": "OTHER",  # convergence outside agent role authority → human gate
 }
 
 
@@ -378,6 +384,87 @@ def feature_dismissed(project, instance_id, actor, feature, reason, **kw) -> dic
         instance_id,
         actor,
         payload={"feature": feature, "reason": reason},
+        **kw,
+    )
+
+
+def edge_claimed(
+    project, instance_id, actor, agent_id, agent_role, feature, edge, **kw
+) -> dict:
+    """Emit EdgeClaimed — agent proposes to work on feature+edge (ADR-013, REQ-COORD-002)."""
+    return make_ol_event(
+        "EdgeClaimed",
+        f"CLAIM:{feature}:{edge}",
+        project,
+        instance_id,
+        actor,
+        payload={
+            "agent_id": agent_id,
+            "agent_role": agent_role,
+            "feature": feature,
+            "edge": edge,
+        },
+        **kw,
+    )
+
+
+def claim_rejected(
+    project, instance_id, actor, agent_id, feature, edge, reason, held_by, **kw
+) -> dict:
+    """Emit ClaimRejected — serialiser rejects a claim (ADR-013, REQ-COORD-002)."""
+    return make_ol_event(
+        "ClaimRejected",
+        f"CLAIM:{feature}:{edge}",
+        project,
+        instance_id,
+        actor,
+        payload={
+            "agent_id": agent_id,
+            "feature": feature,
+            "edge": edge,
+            "reason": reason,
+            "held_by": held_by,
+        },
+        **kw,
+    )
+
+
+def claim_expired(
+    project, instance_id, actor, agent_id, feature, edge, seconds_idle, **kw
+) -> dict:
+    """Emit ClaimExpired — stale claim detected by serialiser (ADR-013)."""
+    return make_ol_event(
+        "ClaimExpired",
+        f"CLAIM:{feature}:{edge}",
+        project,
+        instance_id,
+        actor,
+        payload={
+            "agent_id": agent_id,
+            "feature": feature,
+            "edge": edge,
+            "seconds_idle": seconds_idle,
+        },
+        **kw,
+    )
+
+
+def edge_released(
+    project, instance_id, actor, agent_id, feature, edge, reason, **kw
+) -> dict:
+    """Emit EdgeReleased — agent voluntarily releases a claim (ADR-013)."""
+    return make_ol_event(
+        "EdgeReleased",
+        f"CLAIM:{feature}:{edge}",
+        project,
+        instance_id,
+        actor,
+        payload={
+            "agent_id": agent_id,
+            "feature": feature,
+            "edge": edge,
+            "reason": reason,
+        },
         **kw,
     )
 
