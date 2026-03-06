@@ -1,4 +1,4 @@
-# Implements: REQ-EVENT-001 (OpenLineage event construction), ADR-S-011, ADR-S-012
+# Implements: REQ-EVENT-001 (OpenLineage event construction), REQ-EVENT-003 (Required Event Taxonomy), REQ-EVENT-004 (Saga Invariant), ADR-S-011, ADR-S-012
 """
 OpenLineage event constructor — builds spec-compliant RunEvents.
 
@@ -51,11 +51,23 @@ def tenant_from_path(file_path: str | Path) -> str | None:
 
 # ADR-S-011: semantic event type → OL eventType
 _OL_EVENT_TYPE = {
+    # Core iteration lifecycle (REQ-EVENT-003)
     "IterationStarted": "START",
     "IterationCompleted": "COMPLETE",
-    "ConvergenceAchieved": "COMPLETE",
     "IterationFailed": "FAIL",
     "IterationAbandoned": "ABORT",
+    # Convergence events (REQ-EVENT-003)
+    "EvaluatorVoted": "OTHER",        # one evaluator cast a vote — intermediate
+    "ConsensusReached": "COMPLETE",   # all required evaluators passed — terminal
+    "ConvergenceAchieved": "COMPLETE",# alias: full edge convergence
+    # Context events (REQ-EVENT-003)
+    "ContextArrived": "OTHER",        # new context pushed into iteration
+    # Transition gate events
+    "TransitionAuthorized": "COMPLETE",  # gate passed — edge may proceed
+    "TransitionDenied": "FAIL",          # gate denied — edge blocked
+    # Saga compensation (REQ-EVENT-004)
+    "CompensationTriggered": "OTHER",  # failure on B→C → compensate A→B
+    "CompensationCompleted": "COMPLETE",  # compensation done — chain restored
     # Consciousness loop Stage 2+3 (ADR-011, ADR-S-008)
     "FeatureProposed": "OTHER",       # intent_raised → affect triage → draft proposal
     "FeatureApproved": "COMPLETE",    # human approves proposal → inflates workspace
@@ -233,6 +245,18 @@ def evaluator_voted(
             "result": result,
             "evidence": evidence,
         },
+        **kw,
+    )
+
+
+def consensus_reached(project, instance_id, actor, edge, evaluator_count, **kw) -> dict:
+    return make_ol_event(
+        "ConsensusReached",
+        edge,
+        project,
+        instance_id,
+        actor,
+        payload={"edge": edge, "evaluator_count": evaluator_count},
         **kw,
     )
 

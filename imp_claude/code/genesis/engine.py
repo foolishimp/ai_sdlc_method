@@ -99,6 +99,18 @@ def iterate_edge(
     fp_result = None
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
+    # Emit IterationStarted — required by REQ-EVENT-003 event taxonomy
+    emit_event(
+        events_path,
+        make_event(
+            "iteration_started",
+            config.project_name,
+            feature=feature_id,
+            edge=edge,
+            iteration=iteration,
+        ),
+    )
+
     # 1. F_P: Construct artifact via MCP actor (ADR-024)
     if construct:
         intent = Intent(
@@ -410,7 +422,7 @@ def run(
 
     Routes through edges in profile order, iterating each until convergence.
     When construct=True, threads context between edges: each converged edge's
-    artifact is appended to the context for the next edge (REQ-F-FPC-003).
+    artifact is appended to the context for the next edge.
     """
     profile_name = select_profile(feature_type, config.profiles_dir)
     profile = load_yaml(config.profiles_dir / f"{profile_name}.yml")
