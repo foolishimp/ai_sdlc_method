@@ -257,7 +257,9 @@ ADR-025 written — pragmatic exception for `asset_content: str` vs full event-s
 ## Backlog
 
 - **ADR-S-014**: OTLP/Phoenix — no design ADR, no implementation in imp_claude
-- **REQ-COORD-004**: Markov-Aligned Parallelism — inner product of feature vectors for safe parallelism (Medium, Phase 2)
+- **INTRO-005**: Build Health monitor — needs CI/CD integration (complex)
+- **REQ-LIFE-009**: Spec Review as Gradient Check — compute delta(workspace, spec)
+- **REQ-TOOL-010**: Spec/Design Boundary Enforcement — tech-agnostic requirements checker
 - **Task #37**: Ecosystem E(t) as Feedback Loop Edge (Low)
 - **Task #34**: Propagate Insights Back to Ontology (Low)
 
@@ -281,7 +283,7 @@ ADR-025 written — pragmatic exception for `asset_content: str` vs full event-s
 | Feature Vectors | 15 vectors (REQ-F-TOURNAMENT-001 added), 83/83 covered |
 | Claude Design (ADRs 008-026) | 19 ADRs; ADR-025 done, ADR-026 done |
 | Claude Code | Engine CLI + OL taxonomy + instance graph + consciousness loop Stage 2+3 |
-| Tests | 905 unit passing; `test_serialiser` (26), `test_role_authority` (29), `test_spec_workspace_join` (19), `test_spec_modified_hook` (8) added |
+| Tests | 980 unit passing; +REQ-COORD-004/005 (60), +REQ-TOOL-009 (31), +INTRO-004/006 (8) |
 | Gemini Design | Complete (ADRs GG-001-008) |
 | Codex Design | Complete (ADR-CG-001) |
 
