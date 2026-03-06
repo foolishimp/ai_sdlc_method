@@ -1,4 +1,5 @@
 # Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-002, REQ-ROBUST-003, REQ-ROBUST-008
+# Implements: REQ-FEAT-002 (Feature Dependencies), REQ-UX-003 (Project-Wide Observability)
 """Pure-function workspace state detection utilities.
 
 These functions operate on filesystem paths (workspace directories) and return
@@ -14,6 +15,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -838,3 +841,165 @@ def detect_workspace_state(workspace: Path) -> str:
         return "ALL_BLOCKED"
 
     return "IN_PROGRESS"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# INSTANCE GRAPH PROJECTION (ADR-022)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+@dataclass
+class InstanceNode:
+    """A feature instance positioned on the asset graph topology (zoom level 1).
+
+    The node is computed by replaying events — it is a derived projection,
+    never stored directly. ADR-022: topology is the type system; instances
+    are the runtime state derived from the event log.
+    """
+
+    feature_id: str             # REQ-F-*
+    zoom_level: int             # 0=topology, 1=feature, 2=sub-feature
+    current_edge: str           # last edge_started or edge_converged edge
+    status: str                 # pending | in_progress | converged | archived
+    delta: int                  # last known delta (-1 = unknown)
+    parent_id: Optional[str]    # parent feature for zoom level 2+
+    converged_edges: list[str] = field(default_factory=list)
+
+
+@dataclass
+class InstanceGraph:
+    """The runtime state of the asset graph — which feature instances exist,
+    where each sits in the topology, and what their convergence state is.
+
+    This is a projection of the event log, not a stored document.
+    Reconstruct at any time by replaying events up to a watermark.
+
+    ADR-022: topology (graph_topology.yml) defines the type system;
+    InstanceGraph defines the instance state.
+    """
+
+    nodes: list[InstanceNode]
+    as_of: datetime             # event log watermark (timestamp of last event replayed)
+    topology_version: str       # from graph_topology.yml graph_properties.version
+
+
+def project_instance_graph(
+    events: list[dict[str, Any]],
+    topology_version: str = "unknown",
+) -> InstanceGraph:
+    """Replay events to derive the current instance graph (ADR-022, Step 4).
+
+    Mutation sequence:
+      feature_spawned / project_initialized  → node added
+      edge_started                           → node.current_edge = edge, status = in_progress
+      iteration_completed                    → node.delta = delta
+      edge_converged                         → node.converged_edges.add(edge)
+      feature_converged / ALL_CONVERGED      → node.status = archived
+
+    Returns an InstanceGraph positioned at the watermark of the last event.
+    """
+    nodes: dict[str, InstanceNode] = {}  # feature_id → InstanceNode
+    last_timestamp: Optional[str] = None
+
+    for ev in events:
+        et = ev.get("event_type", "")
+        feature = ev.get("feature", "")
+        edge = ev.get("edge", "")
+        ts = ev.get("timestamp")
+        if ts:
+            last_timestamp = ts
+
+        # OL-wrapped events carry event_type in facets
+        if not et:
+            run_facets = ev.get("run", {}).get("facets", {})
+            et = run_facets.get("sdlc:event_type", {}).get("type", "")
+
+        if et in ("project_initialized",) and not feature:
+            # project-level event — no node to create
+            continue
+
+        if not feature:
+            continue
+
+        # Ensure node exists
+        if feature not in nodes:
+            parent = ev.get("parent_id") or ev.get("data", {}).get("parent_id")
+            nodes[feature] = InstanceNode(
+                feature_id=feature,
+                zoom_level=2 if parent else 1,
+                current_edge="",
+                status="pending",
+                delta=-1,
+                parent_id=parent,
+            )
+
+        node = nodes[feature]
+
+        if et == "edge_started":
+            node.current_edge = edge
+            node.status = "in_progress"
+
+        elif et == "iteration_completed":
+            raw_delta = ev.get("delta")
+            if raw_delta is None:
+                raw_delta = ev.get("data", {}).get("delta")
+            if raw_delta is not None:
+                try:
+                    node.delta = int(raw_delta)
+                except (TypeError, ValueError):
+                    pass
+            if edge:
+                node.current_edge = edge
+            node.status = "in_progress"
+
+        elif et == "edge_converged":
+            if edge and edge not in node.converged_edges:
+                node.converged_edges.append(edge)
+            node.current_edge = edge
+            node.status = "in_progress"
+
+        elif et in ("feature_converged",):
+            node.status = "archived"
+
+    # Infer converged status from trajectory files when events are sparse
+    # (handles workspace_state where feature.status = "converged" in yml)
+    as_of = (
+        datetime.fromisoformat(last_timestamp.replace("Z", "+00:00"))
+        if last_timestamp
+        else datetime.now(timezone.utc)
+    )
+
+    return InstanceGraph(
+        nodes=list(nodes.values()),
+        as_of=as_of,
+        topology_version=topology_version,
+    )
+
+
+def summarise_instance_graph(graph: InstanceGraph) -> dict[str, Any]:
+    """Produce a concise summary of the instance graph for display."""
+    by_status: dict[str, list[str]] = {
+        "pending": [],
+        "in_progress": [],
+        "converged": [],
+        "archived": [],
+    }
+    by_edge: dict[str, list[str]] = {}
+
+    for node in graph.nodes:
+        bucket = by_status.setdefault(node.status, [])
+        bucket.append(node.feature_id)
+        if node.current_edge:
+            by_edge.setdefault(node.current_edge, []).append(node.feature_id)
+
+    return {
+        "topology_version": graph.topology_version,
+        "as_of": graph.as_of.isoformat(),
+        "total_nodes": len(graph.nodes),
+        "by_status": {k: len(v) for k, v in by_status.items()},
+        "active_edges": {
+            edge: features
+            for edge, features in by_edge.items()
+            if features
+        },
+    }

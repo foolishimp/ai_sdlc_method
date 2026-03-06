@@ -135,7 +135,32 @@ if [ -f "$EDGE_FILE" ]; then
 fi
 
 # -----------------------------------------------------------------------
-# Check 4: STATUS.md freshness
+# Check 4: Graph topology version drift (ADR-022)
+# Warn when workspace graph_topology.yml is stale vs plugin reference.
+# -----------------------------------------------------------------------
+WORKSPACE_TOPO="$WORKSPACE/graph/graph_topology.yml"
+PLUGIN_TOPO=""
+
+# Resolve plugin topology path — try CLAUDE_PLUGIN_ROOT env, then fallback
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "$CLAUDE_PLUGIN_ROOT/config/graph_topology.yml" ]; then
+  PLUGIN_TOPO="$CLAUDE_PLUGIN_ROOT/config/graph_topology.yml"
+fi
+
+if [ -f "$WORKSPACE_TOPO" ] && [ -f "$PLUGIN_TOPO" ]; then
+  WORKSPACE_VER=$(grep 'version:' "$WORKSPACE_TOPO" 2>/dev/null | head -1 | \
+    sed 's/.*version: *"\{0,1\}\([^"]*\)"\{0,1\}.*/\1/' | tr -d ' ' || true)
+  PLUGIN_VER=$(grep 'version:' "$PLUGIN_TOPO" 2>/dev/null | head -1 | \
+    sed 's/.*version: *"\{0,1\}\([^"]*\)"\{0,1\}.*/\1/' | tr -d ' ' || true)
+
+  if [ -n "$WORKSPACE_VER" ] && [ -n "$PLUGIN_VER" ] && [ "$WORKSPACE_VER" != "$PLUGIN_VER" ]; then
+    ISSUES="${ISSUES}  [!] Graph topology stale: workspace=${WORKSPACE_VER} plugin=${PLUGIN_VER}\n"
+    ISSUES="${ISSUES}      Fix: cp \$CLAUDE_PLUGIN_ROOT/config/graph_topology.yml $WORKSPACE/graph/graph_topology.yml\n"
+    ISSUE_COUNT=$((ISSUE_COUNT + 1))
+  fi
+fi
+
+# -----------------------------------------------------------------------
+# Check 5: STATUS.md freshness
 # -----------------------------------------------------------------------
 STATUS_FILE="$WORKSPACE/STATUS.md"
 if [ -f "$STATUS_FILE" ] && [ -f "$EVENTS_FILE" ]; then
