@@ -82,6 +82,9 @@ ENGINE_SCRIPTS = [
     "scripts/migrate_events_v1_to_v2.py",
 ]
 
+HOOKS_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/hooks"
+POST_COMMIT_HOOK_SCRIPT = "post-commit-spec-watch.sh"
+
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
@@ -646,6 +649,79 @@ def setup_bootloader(target: Path, dry_run: bool) -> bool:
     return True
 
 
+def setup_git_hooks(target: Path, dry_run: bool) -> bool:
+    """Install post-commit-spec-watch.sh into .git/hooks/post-commit (REQ-EVOL-004).
+
+    Only runs if .git/ exists in target. Non-destructive — appends a call to the
+    hook script rather than replacing an existing post-commit hook. Idempotent.
+    """
+    import os
+    git_dir = target / ".git"
+    if not git_dir.is_dir():
+        print_info("No .git/ found — skipping git hooks install")
+        return True  # not an error for non-git projects
+
+    hooks_dir = git_dir / "hooks"
+    hook_file = hooks_dir / "post-commit"
+    hook_script_name = POST_COMMIT_HOOK_SCRIPT
+
+    # The hook wrapper installed in .git/hooks/post-commit calls the genesis script
+    # which lives in the repo and is fetched from GitHub into .claude/genesis/hooks/
+    genesis_hook_dest = target / ".claude" / "genesis" / "hooks" / hook_script_name
+    genesis_hook_url = f"{HOOKS_URL_BASE}/{hook_script_name}"
+
+    if dry_run:
+        if genesis_hook_dest.exists():
+            print_info(f"Would update: .claude/genesis/hooks/{hook_script_name}")
+        else:
+            print_info(f"Would fetch: {hook_script_name} → .claude/genesis/hooks/")
+        if hook_file.exists():
+            print_info("Would append genesis hook to existing .git/hooks/post-commit")
+        else:
+            print_info("Would create .git/hooks/post-commit with genesis hook")
+        return True
+
+    # Fetch the hook script
+    try:
+        with urllib.request.urlopen(genesis_hook_url, timeout=10) as resp:
+            hook_content = resp.read().decode("utf-8")
+    except Exception as e:
+        print_warn(f"Could not fetch {hook_script_name} from GitHub: {e}")
+        print_warn("Skipping git hook install — run manually later")
+        return True  # not fatal
+
+    # Write to .claude/genesis/hooks/
+    genesis_hook_dest.parent.mkdir(parents=True, exist_ok=True)
+    genesis_hook_dest.write_text(hook_content)
+    genesis_hook_dest.chmod(0o755)
+
+    # Install/update .git/hooks/post-commit
+    hooks_dir.mkdir(exist_ok=True)
+    GENESIS_MARKER = "# genesis:spec-watch"
+
+    if hook_file.exists():
+        existing = hook_file.read_text()
+        if GENESIS_MARKER in existing:
+            print_info(".git/hooks/post-commit already has genesis hook — skipping")
+            return True
+        # Append to existing hook
+        with open(hook_file, "a") as f:
+            f.write(f"\n{GENESIS_MARKER}\n")
+            f.write(f'"{genesis_hook_dest}"\n')
+        print_ok("Appended genesis spec-watch to .git/hooks/post-commit")
+    else:
+        hook_file.write_text(
+            "#!/bin/bash\n"
+            f"{GENESIS_MARKER}\n"
+            f'"{genesis_hook_dest}"\n'
+            "exit 0\n"
+        )
+        hook_file.chmod(0o755)
+        print_ok("Created .git/hooks/post-commit with genesis spec-watch hook")
+
+    return True
+
+
 def setup_specification(target: Path, project_name: str, dry_run: bool) -> bool:
     """Create specification/ directory with INTENT.md template if absent."""
     spec_dir = target / "specification"
@@ -747,6 +823,15 @@ def cmd_verify(args) -> int:
     else:
         print_error("Engine not installed — .genesis/genesis/__main__.py missing")
         failed += 1
+
+    # Git hook check (advisory — not all projects use git)
+    git_hook = target / ".git" / "hooks" / "post-commit"
+    if (target / ".git").is_dir():
+        if git_hook.exists() and "genesis:spec-watch" in git_hook.read_text():
+            print_ok("Git post-commit hook: spec_modified events active")
+            passed += 1
+        else:
+            print_warn("Git post-commit hook: not installed (run installer to add REQ-EVOL-004 events)")
 
     # Version stamp
     stamp = commands_dir / ".genesis-installed"
@@ -869,6 +954,12 @@ def cmd_install(args) -> int:
         # 3b. Append bootloader to CLAUDE.md
         print("--- Genesis Bootloader ---")
         if not setup_bootloader(target, args.dry_run):
+            success = False
+        print()
+
+        # 3c. Install git post-commit hook for spec_modified events (REQ-EVOL-004)
+        print("--- Git Hooks ---")
+        if not setup_git_hooks(target, args.dry_run):
             success = False
         print()
 
