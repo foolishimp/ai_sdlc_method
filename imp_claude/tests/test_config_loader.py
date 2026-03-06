@@ -1,5 +1,5 @@
-# Validates: REQ-ITER-003, REQ-CTX-001
-"""Tests for genesis config_loader — YAML loading and $variable resolution."""
+# Validates: REQ-ITER-003, REQ-CTX-001, REQ-CTX-002
+"""Tests for genesis config_loader — YAML loading, $variable resolution, and context hierarchy."""
 
 import pathlib
 import textwrap
@@ -12,12 +12,175 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
 from genesis.config_loader import (
+    deep_merge,
+    load_context_hierarchy,
     load_yaml,
+    merge_contexts,
     resolve_checklist,
     resolve_variable,
     resolve_variables,
 )
 from genesis.models import ResolvedCheck
+
+
+# ── deep_merge ────────────────────────────────────────────────────────────
+
+
+class TestDeepMerge:
+
+    def test_scalar_override(self):
+        base = {"language": "python"}
+        override = {"language": "typescript"}
+        result = deep_merge(base, override)
+        assert result["language"] == "typescript"
+
+    def test_scalar_addition(self):
+        base = {"a": 1}
+        override = {"b": 2}
+        result = deep_merge(base, override)
+        assert result == {"a": 1, "b": 2}
+
+    def test_nested_dict_merged_not_replaced(self):
+        base = {"tools": {"linter": {"command": "ruff"}, "runner": {"command": "pytest"}}}
+        override = {"tools": {"runner": {"args": "-v"}}}
+        result = deep_merge(base, override)
+        # runner merged: both command and args present
+        assert result["tools"]["runner"]["command"] == "pytest"
+        assert result["tools"]["runner"]["args"] == "-v"
+        # linter unchanged
+        assert result["tools"]["linter"]["command"] == "ruff"
+
+    def test_nested_scalar_override(self):
+        base = {"thresholds": {"coverage": 0.80, "complexity": 10}}
+        override = {"thresholds": {"coverage": 0.90}}
+        result = deep_merge(base, override)
+        assert result["thresholds"]["coverage"] == 0.90
+        assert result["thresholds"]["complexity"] == 10
+
+    def test_does_not_mutate_base(self):
+        base = {"a": {"b": 1}}
+        override = {"a": {"c": 2}}
+        deep_merge(base, override)
+        assert "c" not in base["a"]
+
+    def test_does_not_mutate_override(self):
+        base = {"a": {"b": 1}}
+        override = {"a": {"c": 2}}
+        deep_merge(base, override)
+        assert "b" not in override["a"]
+
+    def test_empty_base(self):
+        override = {"x": 42}
+        assert deep_merge({}, override) == {"x": 42}
+
+    def test_empty_override(self):
+        base = {"x": 42}
+        assert deep_merge(base, {}) == {"x": 42}
+
+    def test_override_replaces_scalar_with_dict(self):
+        base = {"tools": "old_scalar"}
+        override = {"tools": {"runner": "pytest"}}
+        result = deep_merge(base, override)
+        assert result["tools"] == {"runner": "pytest"}
+
+    def test_override_replaces_dict_with_scalar(self):
+        base = {"tools": {"runner": "pytest"}}
+        override = {"tools": "none"}
+        result = deep_merge(base, override)
+        assert result["tools"] == "none"
+
+
+# ── merge_contexts ─────────────────────────────────────────────────────────
+
+
+class TestMergeContexts:
+
+    def test_single_context(self):
+        ctx = {"language": "python"}
+        assert merge_contexts(ctx) == {"language": "python"}
+
+    def test_no_contexts_returns_empty(self):
+        assert merge_contexts() == {}
+
+    def test_three_levels_last_wins(self):
+        global_ctx = {"thresholds": {"coverage": 0.70}, "language": "python"}
+        org_ctx = {"thresholds": {"coverage": 0.80}}
+        project_ctx = {"thresholds": {"coverage": 0.95}}
+        result = merge_contexts(global_ctx, org_ctx, project_ctx)
+        assert result["thresholds"]["coverage"] == 0.95
+        assert result["language"] == "python"  # from global, not overridden
+
+    def test_deep_merge_across_levels(self):
+        global_ctx = {"tools": {"linter": {"command": "ruff"}, "runner": {"command": "pytest"}}}
+        project_ctx = {"tools": {"runner": {"args": "-v"}}}
+        result = merge_contexts(global_ctx, project_ctx)
+        assert result["tools"]["linter"]["command"] == "ruff"
+        assert result["tools"]["runner"]["command"] == "pytest"
+        assert result["tools"]["runner"]["args"] == "-v"
+
+    def test_later_empty_dict_does_not_clobber(self):
+        ctx1 = {"a": {"b": 1, "c": 2}}
+        ctx2 = {"a": {}}
+        result = merge_contexts(ctx1, ctx2)
+        assert result["a"]["b"] == 1
+        assert result["a"]["c"] == 2
+
+
+# ── load_context_hierarchy ─────────────────────────────────────────────────
+
+
+class TestLoadContextHierarchy:
+
+    def _write_yaml(self, path: pathlib.Path, data: dict) -> pathlib.Path:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(yaml.dump(data))
+        return path
+
+    def test_single_file(self, tmp_path):
+        f = self._write_yaml(tmp_path / "project.yml", {"language": "python"})
+        result = load_context_hierarchy([f])
+        assert result["language"] == "python"
+
+    def test_missing_file_skipped_by_default(self, tmp_path):
+        project = self._write_yaml(tmp_path / "project.yml", {"x": 1})
+        result = load_context_hierarchy([tmp_path / "missing.yml", project])
+        assert result == {"x": 1}
+
+    def test_stop_on_missing_raises(self, tmp_path):
+        import pytest
+        with pytest.raises(FileNotFoundError):
+            load_context_hierarchy([tmp_path / "missing.yml"], stop_on_missing=True)
+
+    def test_three_level_hierarchy(self, tmp_path):
+        global_f = self._write_yaml(tmp_path / "global.yml", {
+            "thresholds": {"coverage": 0.70},
+            "tools": {"runner": {"command": "pytest"}},
+        })
+        org_f = self._write_yaml(tmp_path / "org.yml", {
+            "thresholds": {"coverage": 0.80},
+        })
+        project_f = self._write_yaml(tmp_path / "project.yml", {
+            "thresholds": {"coverage": 0.95},
+            "tools": {"runner": {"args": "-v"}},
+        })
+        result = load_context_hierarchy([global_f, org_f, project_f])
+        assert result["thresholds"]["coverage"] == 0.95
+        assert result["tools"]["runner"]["command"] == "pytest"  # from global
+        assert result["tools"]["runner"]["args"] == "-v"         # from project
+
+    def test_empty_file_list(self):
+        result = load_context_hierarchy([])
+        assert result == {}
+
+    def test_all_files_missing_returns_empty(self, tmp_path):
+        result = load_context_hierarchy([tmp_path / "a.yml", tmp_path / "b.yml"])
+        assert result == {}
+
+    def test_project_overrides_global_scalar(self, tmp_path):
+        global_f = self._write_yaml(tmp_path / "global.yml", {"language": "python"})
+        project_f = self._write_yaml(tmp_path / "project.yml", {"language": "typescript"})
+        result = load_context_hierarchy([global_f, project_f])
+        assert result["language"] == "typescript"
 
 
 # ── resolve_variable ─────────────────────────────────────────────────────

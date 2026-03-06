@@ -1,5 +1,5 @@
-# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-CTX-001 (Context as Constraint Surface)
-"""YAML loading and $variable resolution for edge configs and project constraints."""
+# Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-CTX-001 (Context as Constraint Surface), REQ-CTX-002 (Context Hierarchy)
+"""YAML loading, $variable resolution, and context hierarchy composition for edge configs and project constraints."""
 
 import pathlib
 import re
@@ -21,6 +21,66 @@ def load_yaml(path: pathlib.Path) -> dict:
         if doc is not None:
             result.update(doc)
     return result
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTEXT HIERARCHY — REQ-CTX-002
+# ═══════════════════════════════════════════════════════════════════════
+# Levels: global → organisation → team → project
+# Later contexts override earlier; objects are deep-merged, scalars replaced.
+
+
+def deep_merge(base: dict, override: dict) -> dict:
+    """Deep-merge two dicts: scalars in override replace base; nested dicts are merged recursively.
+
+    Returns a new dict — neither input is mutated.
+    """
+    result = dict(base)
+    for key, value in override.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = deep_merge(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def merge_contexts(*contexts: dict) -> dict:
+    """Merge an ordered sequence of context dicts (global → project).
+
+    Later entries override earlier ones. Objects are deep-merged; scalars replaced.
+    Returns a new merged dict.
+    """
+    result: dict = {}
+    for ctx in contexts:
+        result = deep_merge(result, ctx)
+    return result
+
+
+def load_context_hierarchy(
+    context_files: list[pathlib.Path],
+    *,
+    stop_on_missing: bool = False,
+) -> dict:
+    """Load and merge a hierarchy of context YAML files in order.
+
+    Files are merged left-to-right (first file = lowest priority, last = highest).
+    Missing files are silently skipped unless ``stop_on_missing=True``.
+
+    Args:
+        context_files: Ordered list of paths: [global, org, team, project, ...]
+        stop_on_missing: If True, raise FileNotFoundError for missing files.
+
+    Returns:
+        Deep-merged dict of all found context files.
+    """
+    contexts: list[dict] = []
+    for path in context_files:
+        if not path.exists():
+            if stop_on_missing:
+                raise FileNotFoundError(f"Context file not found: {path}")
+            continue
+        contexts.append(load_yaml(path))
+    return merge_contexts(*contexts)
 
 
 def resolve_variable(ref: str, constraints: dict) -> Optional[str]:
