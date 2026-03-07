@@ -11,7 +11,7 @@ table { page-break-inside: avoid; }
 
 AI has removed the scarcity in code construction. Any organisation can now build faster. That is not a competitive position — it is a baseline.
 
-The differentiating question is risk management. AI constructs output against what was described in the prompt. Assumptions that were never formally stated become exposure that surfaces in production — not at delivery.
+The differentiating question is risk management. AI constructs output against what was described in the prompt. Assumptions that were never formally stated become exposure that surfaces in production.
 
 ## The Compounding Problem
 
