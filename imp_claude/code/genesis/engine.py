@@ -18,6 +18,7 @@ grain and self-evaluates. The engine runs F_D checks on the resulting filesystem
 state. Agent checks are SKIPPED in the engine — they belong to the actor.
 """
 
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -78,6 +79,8 @@ def iterate_edge(
     construct: bool = False,
     output_path: Path | None = None,
     prior_failures: list[str] | None = None,
+    edge_run_id: str | None = None,
+    edge_correlation_id: str | None = None,
 ) -> IterationRecord:
     """Run one iteration on a single edge.
 
@@ -95,12 +98,19 @@ def iterate_edge(
     - Actor runs iterate() autonomously and writes to the filesystem directly
     - Engine runs F_D checks on the resulting filesystem state
     - Agent checks are always SKIP in the engine — actor self-evaluates
+
+    edge_run_id / edge_correlation_id thread the OL causal chain:
+      EdgeStarted (root) → IterationStarted → EvaluatorDetail/FpFailure
+                                             → IterationCompleted → EdgeConverged
     """
     fp_result = None
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
     # Emit IterationStarted — required by REQ-EVENT-003 event taxonomy
-    emit_ol_event(
+    # causation_id = EdgeStarted runId; correlation_id = same (edge-scoped chain)
+    # input_hash: content-addressable identity of the asset under evaluation (ADR-010)
+    input_hash = "sha256:" + hashlib.sha256(asset_content.encode()).hexdigest()
+    iter_run_id = emit_ol_event(
         events_path,
         make_ol_event(
             "IterationStarted",
@@ -108,7 +118,14 @@ def iterate_edge(
             config.project_name,
             feature_id,
             "genesis-engine",
-            payload={"feature": feature_id, "edge": edge, "iteration": iteration},
+            causation_id=edge_run_id,
+            correlation_id=edge_correlation_id,
+            payload={
+                "feature": feature_id,
+                "edge": edge,
+                "iteration": iteration,
+                "input_hash": input_hash,
+            },
         ),
     )
 
@@ -134,6 +151,8 @@ def iterate_edge(
                     config.project_name,
                     feature_id,
                     "genesis-engine",
+                    causation_id=iter_run_id,
+                    correlation_id=edge_correlation_id,
                     payload={
                         "feature": feature_id,
                         "edge": edge,
@@ -199,6 +218,8 @@ def iterate_edge(
                     config.project_name,
                     feature_id,
                     "genesis-engine",
+                    causation_id=iter_run_id,
+                    correlation_id=edge_correlation_id,
                     payload={
                         "feature": feature_id,
                         "edge": edge,
@@ -279,7 +300,7 @@ def iterate_edge(
             "spawns": len(fp_result.spawns),
         }
 
-    emit_ol_event(
+    completed_run_id = emit_ol_event(
         events_path,
         make_ol_event(
             "IterationCompleted",
@@ -287,6 +308,8 @@ def iterate_edge(
             config.project_name,
             feature_id,
             "genesis-engine",
+            causation_id=iter_run_id,
+            correlation_id=edge_correlation_id,
             payload=event_data,
         ),
     )
@@ -300,6 +323,8 @@ def iterate_edge(
                 config.project_name,
                 feature_id,
                 "genesis-engine",
+                causation_id=completed_run_id,
+                correlation_id=edge_correlation_id,
                 payload={"feature": feature_id, "edge": edge, "iteration": iteration},
             ),
         )
@@ -357,8 +382,9 @@ def run_edge(
     prior_failures: list[str] = []
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
-    # Emit EdgeStarted — recovery scanner depends on this (REQ-ROBUST-008)
-    emit_ol_event(
+    # Emit EdgeStarted — root of the causal chain for this edge traversal.
+    # edge_run_id threads through all child events (T-005: transaction model).
+    edge_run_id = emit_ol_event(
         events_path,
         make_ol_event(
             "EdgeStarted",
@@ -382,6 +408,8 @@ def run_edge(
             construct=construct,
             output_path=output_path,
             prior_failures=prior_failures if prior_failures else None,
+            edge_run_id=edge_run_id,
+            edge_correlation_id=edge_run_id,
         )
         records.append(record)
 

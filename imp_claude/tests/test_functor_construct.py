@@ -146,6 +146,151 @@ class TestEngineConstructIntegration:
         assert iter_event["fp_actor"]["transport"] == "mcp"
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# RUNID THREADING (T-005: Transaction Model)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestRunIdThreading:
+    """Validates: T-005 — OL runId causation chain through edge traversal."""
+
+    def _make_engine_config(self, tmp_path):
+        from genesis.engine import EngineConfig
+
+        events_dir = tmp_path / ".ai-workspace" / "events"
+        events_dir.mkdir(parents=True)
+        (events_dir / "events.jsonl").touch()
+
+        return EngineConfig(
+            project_name="test-project",
+            workspace_path=tmp_path,
+            edge_params_dir=tmp_path / "edge_params",
+            profiles_dir=tmp_path / "profiles",
+            constraints={},
+            graph_topology={},
+            deterministic_only=True,
+        )
+
+    def test_iteration_started_carries_input_hash(self, tmp_path):
+        """IterationStarted event includes input_hash for content-addressable manifests."""
+        from genesis.engine import iterate_edge
+
+        config = self._make_engine_config(tmp_path)
+        events_path = tmp_path / ".ai-workspace" / "events" / "events.jsonl"
+
+        iterate_edge(
+            edge="design→code",
+            edge_config={"checklist": []},
+            config=config,
+            feature_id="REQ-F-TEST-001",
+            asset_content="my design content",
+        )
+
+        raw_events = [json.loads(e) for e in events_path.read_text().strip().split("\n") if e.strip()]
+        events = [normalize_event(e) for e in raw_events]
+        started = next(e for e in events if e.get("event_type") == "iteration_started")
+        assert "input_hash" in started
+        assert started["input_hash"].startswith("sha256:")
+
+    def test_causation_chain_threads_through_edge(self, tmp_path):
+        """Events in an edge traversal are causally linked via run IDs."""
+        from genesis.engine import run_edge, EngineConfig
+        import yaml
+
+        # Create minimal edge config
+        events_dir = tmp_path / ".ai-workspace" / "events"
+        events_dir.mkdir(parents=True)
+        events_path = events_dir / "events.jsonl"
+
+        edge_params_dir = tmp_path / "edge_params"
+        edge_params_dir.mkdir()
+        (edge_params_dir / "design_code.yml").write_text(yaml.dump({"checklist": []}))
+
+        config = EngineConfig(
+            project_name="test-project",
+            workspace_path=tmp_path,
+            edge_params_dir=edge_params_dir,
+            profiles_dir=tmp_path / "profiles",
+            constraints={},
+            graph_topology={},
+            deterministic_only=True,
+            max_iterations_per_edge=1,
+        )
+
+        run_edge(
+            edge="design→code",
+            config=config,
+            feature_id="REQ-F-TEST-001",
+            profile={},
+            asset_content="content",
+        )
+
+        raw_events = [json.loads(e) for e in events_path.read_text().strip().split("\n") if e.strip()]
+
+        # Find EdgeStarted — the root of the causal chain
+        edge_started = next(e for e in raw_events
+                            if e.get("run", {}).get("facets", {}).get("sdlc:event_type", {}).get("type") == "EdgeStarted")
+        edge_run_id = edge_started["run"]["runId"]
+
+        # IterationStarted should cite EdgeStarted as causation
+        iter_started = next(e for e in raw_events
+                            if e.get("run", {}).get("facets", {}).get("sdlc:event_type", {}).get("type") == "IterationStarted")
+        universal = iter_started["run"]["facets"]["sdlc:universal"]
+        assert universal["causation_id"] == edge_run_id, "IterationStarted must cite EdgeStarted as causation"
+        assert universal["correlation_id"] == edge_run_id, "All events share the edge's correlation_id"
+
+        iter_run_id = iter_started["run"]["runId"]
+
+        # IterationCompleted causation → IterationStarted
+        iter_completed = next(e for e in raw_events
+                              if e.get("run", {}).get("facets", {}).get("sdlc:event_type", {}).get("type") == "IterationCompleted")
+        completed_universal = iter_completed["run"]["facets"]["sdlc:universal"]
+        assert completed_universal["causation_id"] == iter_run_id
+
+    def test_edge_converged_causation_is_iteration_completed(self, tmp_path):
+        """EdgeConverged cites IterationCompleted as its cause — commits the transaction."""
+        from genesis.engine import run_edge, EngineConfig
+        import yaml
+
+        events_dir = tmp_path / ".ai-workspace" / "events"
+        events_dir.mkdir(parents=True)
+        events_path = events_dir / "events.jsonl"
+
+        edge_params_dir = tmp_path / "edge_params"
+        edge_params_dir.mkdir()
+        (edge_params_dir / "design_code.yml").write_text(yaml.dump({"checklist": []}))
+
+        config = EngineConfig(
+            project_name="test-project",
+            workspace_path=tmp_path,
+            edge_params_dir=edge_params_dir,
+            profiles_dir=tmp_path / "profiles",
+            constraints={},
+            graph_topology={},
+            deterministic_only=True,
+            max_iterations_per_edge=1,
+        )
+
+        run_edge(
+            edge="design→code",
+            config=config,
+            feature_id="REQ-F-TEST-001",
+            profile={},
+            asset_content="content",
+        )
+
+        raw_events = [json.loads(e) for e in events_path.read_text().strip().split("\n") if e.strip()]
+
+        iter_completed = next(e for e in raw_events
+                              if e.get("run", {}).get("facets", {}).get("sdlc:event_type", {}).get("type") == "IterationCompleted")
+        completed_run_id = iter_completed["run"]["runId"]
+
+        edge_converged = next(e for e in raw_events
+                              if e.get("run", {}).get("facets", {}).get("sdlc:event_type", {}).get("type") == "EdgeConverged")
+        converged_universal = edge_converged["run"]["facets"]["sdlc:universal"]
+        assert converged_universal["causation_id"] == completed_run_id, (
+            "EdgeConverged (commit point) must cite IterationCompleted as causation"
+        )
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONTEXT THREADING
