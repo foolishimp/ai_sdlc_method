@@ -13,23 +13,7 @@ AI makes code construction fast for every organisation. The differentiator is wh
 
 ---
 
-## The Vibe Coding Problem
-
-Many organisations with mature development processes have adopted AI as a developer accelerator — a faster way to produce code within existing workflows. This is rational. The results are initially compelling.
-
-The number one failure mode of vibe coding is not that it produces obviously wrong output. It is that it produces output that looks right — and frequently is functional — within the hour. The cost surfaces days later, in debugging sessions that undo the time saved many times over.
-
-The structural reason is straightforward. AI produces output against what was described in the prompt. Without formal requirements, design constraints, and acceptance criteria as active context, there is no mechanism to verify that what was built matches what the business needs. The gap between functional and correct is only visible when the edge cases, the integration points, or the production conditions expose it.
-
-The specific patterns that create the hidden cost:
-
-- **Deferred debugging** — functional on first run, breaks on edge cases the prompt didn't describe; the gap between "works" and "correct" is invisible until it isn't
-- **Architectural drift** — the AI builds what seems reasonable for the prompt; without design constraints as active context, it diverges from what was decided
-- **Test coverage that validates the prompt, not the requirement** — AI writes tests against its own output; gaps in the original prompt become gaps in coverage
-- **Context that resets each session** — prior decisions, constraints, and organisational rules are not carried forward; each invocation starts from what the developer remembers to include
-- **Untraceable production behaviour** — when something fails, there is no chain from the live behaviour back to the requirement that was supposed to govern it
-
----
+AI-generated code looks functional quickly — the gap between functional and correct only becomes visible when edge cases, integration points, or production conditions expose it.
 
 ## The Compounding Problem
 
@@ -68,16 +52,16 @@ The competitive consequence is not that governed organisations build better soft
 
 Business requirements are formalised as machine-checkable constraints before construction begins. The AI builds against the specification. Nothing advances until it passes. The governance processes the organisation already has are placed *inside* the AI construction loop — not beside it.
 
-Each vibe coding failure mode has a direct structural response:
+Each failure mode has a direct structural response:
 
-| Vibe coding failure | Spec-Driven response |
+| Failure mode | Spec-Driven response |
 |---|---|
-| Requirements bypass | Formal REQ keys defined before construction; AI cannot proceed without them |
+| Unverified requirements | Formal REQ keys defined before construction; AI cannot proceed without them |
 | Architectural drift | ADRs and design constraints loaded as mandatory context on every invocation |
-| Test coverage theatre | Coverage is a verifiable number — every REQ key must appear in a passing test |
-| Context amnesia | The specification is the persistent context; it survives model and session changes |
-| "Looks right" acceptance | Formal evaluators — automated, AI-assisted, and human — gate every output |
-| Untraceable production | The same REQ identifiers that governed construction monitor production behaviour |
+| Test coverage gaps | Coverage is a verifiable number — every REQ key must appear in a passing test |
+| Context that resets per session | The specification is the persistent context; it survives model and session changes |
+| Plausibility review | Formal evaluators — automated, AI-assisted, and human — gate every output |
+| Untraceable production behaviour | The same REQ identifiers that governed construction monitor production behaviour |
 
 The consequence is not a heavier process. It is AI construction that operates within the governance the organisation already requires — automatically, at every stage, without depending on individual discipline.
 
