@@ -1,0 +1,39 @@
+{% if features %}
+<div class="grid">
+    {% for f in features %}
+    <article class="card">
+        <header>
+            <strong>{{ f.feature_id }}</strong>
+            <span class="badge badge-{{ f.status }}">{{ f.status }}</span>
+        </header>
+        <p><small>{{ f.title }}</small></p>
+        
+        <table>
+            <thead>
+                <tr><th>Edge</th><th>Status</th><th>Hash</th></tr>
+            </thead>
+            <tbody>
+                {% for node, traj in f.trajectory.items() %}
+                <tr>
+                    <td>{{ node }}</td>
+                    <td><span class="status-{{ traj.status }}">{{ traj.status }}</span></td>
+                    <td>
+                        {% if traj.latest_hash %}
+                            <code title="Committed Hash">{{ traj.latest_hash[:8] }}</code>
+                            {% if traj.archive_path %}
+                                <br><small><a href="/runs/{{ traj.archive_path | urlencode }}" target="_blank">Archive</a></small>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<p><em>No feature vectors discovered.</em></p>
+{% endif %}

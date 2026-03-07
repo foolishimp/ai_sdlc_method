@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} — Genesis Monitor{% endblock %}
+
+{% block head_extra %}
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'neutral'
+        });
+    </script>
+    <style>
+        .design-tenant-nav {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: var(--pico-spacing);
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--pico-muted-border-color);
+        }
+        .design-tenant-nav a { white-space: nowrap; }
+        .design-tenant-nav small { opacity: 0.7; font-size: 0.8em; margin-left: 0.25em; }
+    </style>
+{% endblock %}
+
+{% block scripts %}
+        <script>
+            document.body.addEventListener("htmx:afterSwap", function(evt) {
+                if (typeof mermaid !== "undefined") {
+                    // Re-run mermaid on the newly swapped content
+                    mermaid.run({
+                        nodes: document.querySelectorAll(".mermaid")
+                    });
+                }
+            });
+
+            // Inject ?design= into every HTMX fragment request automatically
+            document.addEventListener('htmx:configRequest', function(evt) {
+                const design = new URLSearchParams(window.location.search).get('design');
+                if (design) {
+                    evt.detail.parameters['design'] = design;
+                }
+            });
+        </script>
+    {% endblock %}
+
+{% block content %}
+
+
+    <script>
+        // Capture design param once at page load; re-initialises on full page nav
+        const _currentDesign = new URLSearchParams(window.location.search).get('design') || '';
+
+        // Store timestamps and density for the global control plane
+        window.eventTimestamps = [
+            {% for ev in all_events | sort(attribute="timestamp") %}"{{ ev.timestamp.isoformat() }}"{% if not loop.last %}, {% endif %}{% endfor %}
+        ];
+        window.eventDensity = {{ (density or []) | tojson }};
+        
+        function initGlobalScrubber() {
+            const startSlider = document.getElementById("range-start");
+            const endSlider = document.getElementById("range-end");
+            const heatmap = document.getElementById("heatmap-gradient");
+            
+            if (!startSlider || !window.eventTimestamps.length) return;
+            
+            // Build heatmap gradient
+            if (window.eventDensity) {
+                let gradient = "linear-gradient(to right, ";
+                window.eventDensity.forEach((d, i) => {
+                    const alpha = 0.1 + (d * 0.8);
+                    gradient += `rgba(0, 210, 255, ${alpha}) ${i}%, `;
+                });
+                gradient = gradient.slice(0, -2) + ")";
+                heatmap.style.background = gradient;
+            }
+            
+            const updateLabels = () => {
+                const sIdx = Math.floor((startSlider.value / 100) * (window.eventTimestamps.length - 1));
+                const eIdx = Math.floor((endSlider.value / 100) * (window.eventTimestamps.length - 1));
+                
+                const sDate = new Date(window.eventTimestamps[sIdx]);
+                const eDate = new Date(window.eventTimestamps[eIdx]);
+                
+                document.getElementById("label-start").innerText = sDate.toLocaleDateString();
+                document.getElementById("label-end").innerText = eIdx === window.eventTimestamps.length - 1 ? "Now" : eDate.toLocaleDateString();
+                document.getElementById("event-count-display").innerText = `${eIdx - sIdx + 1} Events`;
+                
+                const diff = Math.abs(eDate - sDate) / (1000 * 60 * 60);
+                document.getElementById("time-window-display").innerText = diff < 24 ? `${diff.toFixed(1)}h duration` : `${(diff/24).toFixed(1)}d duration`;
+            };
+            
+            const triggerReload = () => {
+                const eIdx = Math.floor((endSlider.value / 100) * (window.eventTimestamps.length - 1));
+                const isLive = (eIdx === window.eventTimestamps.length - 1);
+                const parts = [];
+                if (!isLive) parts.push("t=" + encodeURIComponent(window.eventTimestamps[eIdx]));
+                if (_currentDesign) parts.push("design=" + encodeURIComponent(_currentDesign));
+                const tParam = parts.length ? "?" + parts.join("&") : "";
+
+                document.querySelectorAll("[hx-get]").forEach(el => {
+                    const getAttr = el.getAttribute("hx-get");
+                    if (getAttr && getAttr.includes("/fragments/")) {
+                        const basePath = getAttr.split("?")[0];
+                        const target = el.getAttribute("hx-target") || el; // Use element itself if no target
+                        htmx.ajax("GET", basePath + tParam, {target: target});
+                    }
+                });
+                
+                // Toggle SSE back on if we are at the end
+                const display = document.getElementById("label-end");
+                if (isLive) {
+                    display.innerText = "Live (Now)";
+                    display.style.color = "inherit";
+                } else {
+                    display.style.color = "var(--pico-primary)";
+                }
+            };
+            
+            startSlider.oninput = () => {
+                if (parseInt(startSlider.value) >= parseInt(endSlider.value)) startSlider.value = endSlider.value - 1;
+                startSlider.style.zIndex = "100";
+                endSlider.style.zIndex = "10";
+                updateLabels();
+            };
+            
+            endSlider.oninput = () => {
+                if (parseInt(endSlider.value) <= parseInt(startSlider.value)) endSlider.value = startSlider.value + 1;
+                endSlider.style.zIndex = "100";
+                startSlider.style.zIndex = "10";
+                updateLabels();
+            };
+            
+            endSlider.oninput = () => {
+                if (parseInt(endSlider.value) <= parseInt(startSlider.value)) endSlider.value = startSlider.value + 1;
+                updateLabels();
+            };
+            
+            startSlider.onchange = triggerReload;
+            endSlider.onchange = triggerReload;
+            
+            updateLabels();
+        }
+        
+        // Run on load
+        document.addEventListener("DOMContentLoaded", initGlobalScrubber);
+        // Also run if HTMX reloads the main content
+        document.body.addEventListener("htmx:afterOnLoad", initGlobalScrubber);
+    </script>
+<hgroup>
+    <h1>{{ project.name }}
+        {% if project.has_bootloader %}
+            <span class="badge" style="background: rgba(33, 150, 243, 0.15); color: #42a5f5; font-size: 0.5em; vertical-align: middle;" title="Genesis Bootloader installed in CLAUDE.md">Bootloader</span>
+        {% endif %}
+    </h1>
+    <p>{{ project.path }}</p>
+</hgroup>
+
+{% if available_designs %}
+<nav class="design-tenant-nav" aria-label="Design tenants">
+  <a href="/project/{{ project.project_id }}{% if t %}?t={{ t }}{% endif %}"
+     {% if not design %}aria-current="page"{% endif %}>
+    All tenants
+    <small>({{ project.events | length }})</small>
+  </a>
+  {% for d in available_designs %}
+  <a href="/project/{{ project.project_id }}?design={{ d }}{% if t %}&amp;t={{ t }}{% endif %}"
+     {% if d == design %}aria-current="page"{% endif %}>
+    {{ d }}
+    <small>({{ design_counts.get(d, 0) }})</small>
+  </a>
+  {% endfor %}
+</nav>
+{% endif %}
+
+    <div class="grid-2">
+    <!-- Asset Graph -->
+    <div class="card">
+        <h3>Asset Graph</h3>
+        <div id="graph-section"
+             hx-get="/fragments/project/{{ project.project_id }}/graph"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_graph.html" %}
+        </div>
+    </div>
+
+    <!-- Convergence -->
+    <div class="card">
+        <h3>Edge Convergence</h3>
+        <div id="convergence-section"
+             hx-get="/fragments/project/{{ project.project_id }}/convergence"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_convergence.html" %}
+        </div>
+    </div>
+</div>
+
+<!-- Edge Status Table -->
+<div class="card">
+    <h3>Edge Status</h3>
+    <div id="edges-section"
+         hx-get="/fragments/project/{{ project.project_id }}/edges"
+         hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+         hx-swap="innerHTML">
+        {% include "fragments/_edges.html" %}
+    </div>
+</div>
+
+
+    
+
+    <div class="grid-2">
+    <!-- Feature Vectors -->
+    <div class="card">
+        <h3>Feature Vectors</h3>
+        <div id="features-section"
+             hx-get="/fragments/project/{{ project.project_id }}/features"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_features.html" %}
+        </div>
+    </div>
+
+    <!-- Gantt -->
+    <div class="card">
+        <h3>Timeline</h3>
+        <div id="gantt-section"
+             hx-get="/fragments/project/{{ project.project_id }}/gantt"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_gantt.html" %}
+        </div>
+    </div>
+</div>
+
+
+    
+
+    <div class="grid-2">
+    <!-- TELEM Signals -->
+    <div class="card">
+        <h3>TELEM Signals</h3>
+        <div id="telem-section"
+             hx-get="/fragments/project/{{ project.project_id }}/telem"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_telem.html" %}
+        </div>
+    </div>
+
+    <!-- Recent Events -->
+    <div class="card">
+        <h3>Recent Events</h3>
+        <div id="events-section"
+             hx-get="/fragments/project/{{ project.project_id }}/events"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML"
+             class="event-feed">
+            {% with events = recent_events %}{% include "fragments/_events.html" %}{% endwith %}
+        </div>
+    </div>
+</div>
+
+<!-- Vector Relationships & Constraint Dimensions -->
+
+    
+
+    <div class="grid-2">
+    <!-- Spawn Tree -->
+    <div class="card">
+        <h3>Vector Relationships</h3>
+        <div id="spawn-tree-section"
+             hx-get="/fragments/project/{{ project.project_id }}/spawn-tree"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_spawn_tree.html" %}
+        </div>
+    </div>
+
+    <!-- Constraint Dimensions -->
+    <div class="card">
+        <h3>Constraint Dimensions</h3>
+        <div id="dimensions-section"
+             hx-get="/fragments/project/{{ project.project_id }}/dimensions"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_dimensions.html" %}
+        </div>
+    </div>
+</div>
+
+<!-- Processing Phases & Consciousness -->
+
+    
+
+    <div class="grid-2">
+    <!-- Phase Summary -->
+    <div class="card">
+        <h3>Processing Phases</h3>
+        <div id="regimes-section"
+             hx-get="/fragments/project/{{ project.project_id }}/regimes"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_regimes.html" %}
+        </div>
+    </div>
+
+    <!-- Consciousness Timeline -->
+    <div class="card">
+        <h3>Consciousness Loop</h3>
+        <div id="consciousness-section"
+             hx-get="/fragments/project/{{ project.project_id }}/consciousness"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% include "fragments/_consciousness.html" %}
+        </div>
+    </div>
+</div>
+
+<!-- Protocol Compliance -->
+<div class="card">
+    <h3>Protocol Compliance (v2.8)</h3>
+    <div id="compliance-section"
+         hx-get="/fragments/project/{{ project.project_id }}/compliance"
+         hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+         hx-swap="innerHTML">
+        {% include "fragments/_compliance.html" %}
+    </div>
+</div>
+
+<!-- Test Traceability -->
+<div class="card">
+    <h3>Test Traceability</h3>
+    <div id="traceability-section"
+         hx-get="/fragments/project/{{ project.project_id }}/traceability"
+         hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+         hx-swap="innerHTML">
+        {% include "fragments/_traceability.html" %}
+    </div>
+</div>
+
+<!-- Feature → Module Map (Zoom 2 — design-layer bipartite graph) -->
+<div class="card">
+    <h3>Feature → Module Map <small style="font-weight: normal; color: var(--pico-muted-color);">Zoom 2 — which modules implement which features</small></h3>
+    <div id="feature-module-map-section"
+         hx-get="/fragments/project/{{ project.project_id }}/feature-module-map"
+         hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+         hx-swap="innerHTML">
+        {% include "fragments/_feature_module_map.html" %}
+    </div>
+</div>
+{% endblock %}

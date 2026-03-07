@@ -1,0 +1,26 @@
+feature: REQ-F-CONV-001
+title: "Temperature Conversion Functions"
+status: pending
+vector_type: feature
+profile: standard
+priority: high
+
+intent: "Provide 6 bidirectional temperature conversion functions between Celsius, Fahrenheit, and Kelvin"
+
+requirements:
+  - REQ-F-CONV-001
+  - REQ-F-CONV-002
+
+trajectory:
+  requirements:
+    status: pending
+    iteration: 0
+  design:
+    status: pending
+    iteration: 0
+  code:
+    status: pending
+    iteration: 0
+  unit_tests:
+    status: pending
+    iteration: 0

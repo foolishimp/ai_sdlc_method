@@ -53,7 +53,7 @@ The transition from theoretical system to practical MVP requires an environment 
 ### 1. Testbed Location
 
 ```
-ai_sdlc_examples/local_projects/genesis_testbed/
+projects/eco_system/
 ├── README.md
 ├── Makefile                   # init, snapshot, restore, validate, status
 ├── project/                   # The target project (genesis operates here)
@@ -186,4 +186,4 @@ This makes the full cost of the traversal visible as a historical record. Each f
 - E2E tests: `imp_claude/tests/e2e/` — complementary, not replaced
 - Engine CLI: `imp_claude/code/genesis/__main__.py` — the `--deterministic-only` evaluator
 - ADR-S-020: Hamiltonian as iteration cost — tracked in snapshot manifests
-- Genesis monitor: `ai_sdlc_examples/local_projects/genisis_monitor` — can point at testbed project/
+- Genesis monitor: `projects/genesis_monitor/imp_fastapi` — can point at testbed project/

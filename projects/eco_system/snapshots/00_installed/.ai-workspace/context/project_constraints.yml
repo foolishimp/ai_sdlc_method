@@ -1,0 +1,63 @@
+---
+project:
+  name: "temperature-converter"
+  version: "0.1.0"
+  default_profile: standard
+
+context_sources: []
+
+language:
+  primary: python
+  version: "3.12"
+  secondary: []
+
+tools:
+  syntax_checker:
+    command: "python -m py_compile"
+    args: ""
+    pass_criterion: "exit code 0"
+  test_runner:
+    command: "pytest"
+    args: "-v --tb=short"
+    pass_criterion: "exit code 0"
+  coverage:
+    command: "pytest"
+    args: "--cov=src --cov-report=term-missing"
+    pass_criterion: "coverage percentage >= $thresholds.test_coverage_minimum"
+  linter:
+    required: false
+    command: "ruff check"
+    args: "."
+    pass_criterion: "exit code 0, zero violations"
+  formatter:
+    required: false
+    command: "ruff format"
+    args: "--check ."
+    pass_criterion: "exit code 0"
+  type_checker:
+    required: false
+    command: "mypy"
+    args: "src/"
+    pass_criterion: "exit code 0, zero errors"
+
+thresholds:
+  test_coverage_minimum: 90
+  max_complexity: 10
+  max_line_length: 120
+
+dimensions:
+  ecosystem_compatibility:
+    language: python
+    version: "3.12"
+    frameworks: []
+    package_manager: pip
+  deployment_target:
+    platform: library
+    distribution: pypi
+  security_model:
+    authentication: none
+    data_protection: none
+  build_system:
+    tool: pip
+    module_structure: single_module
+    ci_integration: github_actions

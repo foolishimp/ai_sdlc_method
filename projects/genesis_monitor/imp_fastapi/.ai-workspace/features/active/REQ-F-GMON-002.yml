@@ -1,0 +1,38 @@
+encoding:
+  active_units: 2
+  mode: constructive
+  valence: +
+feature: REQ-F-GMON-002
+profile: standard
+requirements:
+- REQ-F-DASH-001
+- REQ-F-DASH-002
+- REQ-F-STREAM-001
+- REQ-F-STREAM-002
+status: converged
+title: Real-time Dashboard & Streaming
+trajectory:
+  basis_projections:
+    status: converged
+  "basis_proj\u2192code": converged
+  code:
+    status: converged
+  "code\u2194unit_tests": converged
+  design:
+    status: converged
+  "design\u2192module_decomp": converged
+  feature_decomposition:
+    status: converged
+  "feature_decomp\u2192design": converged
+  intent:
+    status: converged
+  "intent\u2192requirements": converged
+  module_decomposition:
+    status: converged
+  "module_decomp\u2192basis_proj": converged
+  requirements:
+    status: converged
+  "requirements\u2192feature_decomp": converged
+  unit_tests:
+    status: converged
+vector_type: feature

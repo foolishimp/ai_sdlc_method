@@ -13,7 +13,7 @@
 
 ADR-022 defined the instance graph: a projection of `events.jsonl` into the current position of each feature in the graph. The blocked item in ACTIVE_TASKS.md "Add zoom level 1 overlay to `graph.py` — BLOCKED (genesis_monitor not in imp_claude)" reflected that the visualisation layer was missing.
 
-The genesis monitor exists as a separate FastAPI project at `ai_sdlc_examples/local_projects/genisis_monitor`. It reads `events.jsonl` from a monitored project workspace and provides real-time projections:
+The genesis monitor exists as a separate FastAPI project at `projects/genesis_monitor/imp_fastapi`. It reads `events.jsonl` from a monitored project workspace and provides real-time projections:
 - `projections/convergence.py` — EdgeConvergence table from events
 - `projections/temporal.py` — feature trajectory reconstruction with time scrubbing
 - `projections/graph.py` — graph topology view
@@ -30,7 +30,7 @@ The monitor is already capable of reading the methodology's events. The gap was:
 
 ### 1. Genesis Monitor is the Canonical Visualisation Tool for Trajectory Data
 
-The genesis monitor (`ai_sdlc_examples/local_projects/genisis_monitor`) is designated as the **canonical external visualisation tool** for the methodology's (graph × time) trajectory data.
+The genesis monitor (`projects/genesis_monitor/imp_fastapi`) is designated as the **canonical external visualisation tool** for the methodology's (graph × time) trajectory data.
 
 It is **external** to `imp_claude/` — consistent with the multi-tenancy model (ADR-S-002). The monitor is not methodology code; it is an observer of the event stream, reading `events.jsonl` as the sole integration contract.
 
@@ -84,7 +84,7 @@ For dogfooding: the genesis monitor can be pointed at `ai_sdlc_method/.ai-worksp
 ### Negative
 
 - The genesis monitor is a separate process — not automatically started when the methodology is used. Developers must start it manually. This is acceptable: it is an optional visualisation layer, not required for methodology operation.
-- The monitor location (`ai_sdlc_examples/`) is outside the main repo. This is a known trade-off — the monitor is a separate project being developed under the genesis methodology itself (dogfooding).
+- The monitor is housed at `projects/genesis_monitor/` in the main repo — a first-class downstream sub-project. Its reference implementation is `projects/genesis_monitor/imp_fastapi/`.
 
 ### Neutral
 
@@ -97,7 +97,7 @@ For dogfooding: the genesis monitor can be pointed at `ai_sdlc_method/.ai-worksp
 - ADR-022: Instance Graph from Events (blocked item resolved)
 - ADR-S-019: Markov Blankets — sensory system reads without perturbing internal states
 - ADR-S-020: Phase Space and Hamiltonian — the projection the monitor implements
-- Genesis Monitor location: `ai_sdlc_examples/local_projects/genisis_monitor`
+- Genesis Monitor location: `projects/genesis_monitor/imp_fastapi`
   - Stack: Python FastAPI + SSE + HTML/CSS templates
   - Key modules: `projections/convergence.py`, `projections/temporal.py`, `models/core.py`
   - `EdgeConvergence.hamiltonian` — H added 2026-03-07

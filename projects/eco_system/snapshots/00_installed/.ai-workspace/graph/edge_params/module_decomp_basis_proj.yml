@@ -1,0 +1,228 @@
+# Edge Parameterisation: Module Decomposition → Basis Projections
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2.1, ADR-S-007
+
+---
+
+edge: "module_decomposition→basis_projections"
+pattern: basis_projections
+description: |
+  Generate one Basis Projection per (feature × module) intersection.
+  A Basis Projection is the minimal specification an implementer needs to build
+  their part of a feature within a specific module — no knowledge of other features required.
+  The set of all projections for feature F must sum to the full intent of F.
+  Enables orthogonal parallel construction: multiple agents work on isolated projections simultaneously.
+
+# Basis projection outputs
+outputs:
+  projections:
+    description: "One document per (feature × module) intersection in MVP scope"
+    required: true
+    template: |
+      ## Projection: {REQ-F-XXX-NNN} × {module-name}
+
+      **Feature**: {REQ-F-ID} — {Feature Name}
+      **Module**: {module-name}
+
+      ### Scope in this module
+
+      - {What part of the feature lives in this module — specific responsibilities}
+
+      ### Out of scope for this module
+
+      - {Capabilities that belong to other modules — with module name}
+
+      ### Required interface from other modules
+
+      - `{module-name}`: `{function_name}({args}) → {ReturnType}` — {why needed}
+
+      ### Exposed interface (for other modules to depend on)
+
+      - `{function_name}({args}) → {ReturnType} | {ErrorType}`
+
+      ### Evaluator contract
+
+      - `{function_name}()` returns `{ReturnType}` when {condition}
+      - `{function_name}()` returns `{ErrorType}` (not exception) when {condition}
+      - {observable side effect — e.g., event emitted}
+
+# Document structure
+document_structure:
+  required_sections:
+    - title: "Projection Index"
+      description: "Table: feature × module → projection ID for all MVP projections"
+    - title: "Projections"
+      description: "One section per (feature × module) intersection using the template above"
+    - title: "Feature Coverage Check"
+      description: "For each feature: list of projections; confirm sum = full feature intent"
+  recommended_sections:
+    - title: "Stub/Mock Registry"
+      description: "What each projection assumes exists from other modules (for parallel construction)"
+    - title: "Construction Order"
+      description: "Recommended build sequence considering projection dependencies"
+
+# ═══════════════════════════════════════════════════════════════════════
+# SOURCE ANALYSIS CHECKS (Backward — analyse module decomposition)
+# ═══════════════════════════════════════════════════════════════════════
+
+source_analysis:
+
+  - name: "intersections_identifiable"
+    functional_unit: sense
+    criterion: |
+      For each MVP feature, identify which modules it touches:
+      - Some features are contained within one module (trivial projection)
+      - Others span multiple modules (the projection reveals the coordination surface)
+      Flag any feature that is unclear about which modules it needs — this indicates
+      either the feature intent is underspecified or the module map is too coarse.
+      Record each as SOURCE_AMBIGUITY.
+    required: true
+
+  - name: "interface_contracts_sufficient"
+    functional_unit: sense
+    criterion: |
+      Check that the interface contracts from Module Decomposition are precise enough
+      to use as projection stubs. If a contract is too vague (e.g., returns "object"),
+      flag as SOURCE_GAP — the projection cannot specify evaluator contracts without
+      knowing the actual return type.
+    required: true
+
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR CHECKLIST (Forward — evaluate the basis projections)
+# ═══════════════════════════════════════════════════════════════════════
+
+checklist:
+
+  # ─── Coverage ────────────────────────────────────────────────────────
+
+  - name: "all_mvp_features_projected"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Every feature in the MVP scope has at least one basis projection.
+      No MVP feature is skipped.
+    source: default
+    required: true
+
+  - name: "projections_sum_to_feature"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      For each feature F, the union of all projections (F × M1), (F × M2), ..., (F × Mn)
+      covers the complete intent of F.
+      - No capability is in scope in zero projections (gap)
+      - No capability is in scope in two projections (overlap/conflict)
+      Check the "out of scope" sections — they must reference a different projection that
+      owns the capability.
+    source: default
+    required: true
+
+  # ─── Module interface consistency ─────────────────────────────────────
+
+  - name: "projections_consistent_with_module_interface"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      All projections for module M agree on the module interface:
+      - Exposed interfaces in projections match the contracts in Module Decomposition
+      - No projection exposes a function not in the module's interface contract
+      - No projection requires a function from another module that isn't in that module's contract
+    source: default
+    required: true
+
+  # ─── Evaluator contracts ─────────────────────────────────────────────
+
+  - name: "evaluator_contracts_testable"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Each projection's Evaluator Contract section defines at least:
+      - One success case: function returns expected type when condition met
+      - One failure/error case: function returns error type (not exception) when condition fails
+      - Any observable side effects (events emitted, state changed)
+      Vague contracts ("should work correctly") are rejected.
+    source: default
+    required: true
+
+  # ─── Projection isolation ─────────────────────────────────────────────
+
+  - name: "projection_is_self_contained"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      An implementer working on one projection should be able to work independently:
+      - Required interfaces from other modules are clearly specified (can be stubbed)
+      - Out-of-scope sections reference specific modules/projections (no ambiguity)
+      - No projection requires reading another projection's internals to understand its own scope
+    source: default
+    required: true
+
+  # ─── Human validation ───────────────────────────────────────────────
+
+  - name: "human_approves_projections"
+    type: human
+    functional_unit: evaluate
+    criterion: |
+      Human confirms:
+      1. Projection boundaries are sensible — no confusing scope splits
+      2. Evaluator contracts match business intent — tests will catch real bugs
+      3. Coverage check passes — no capability gaps or double-counting
+    source: default
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTEXT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+context_guidance:
+  required:
+    - "Module Decomposition artifact (source asset) — module map, dependency DAG, interface contracts"
+    - "Feature Decomposition artifact — MVP scope, feature intents, dependency order"
+    - "Design document — component responsibilities, ADRs"
+  recommended:
+    - "project_constraints.yml — performance_envelope and error_handling dimensions affect evaluator contracts"
+    - "INT-* intent documents — to understand the user goals that each feature satisfies"
+  notes: |
+    A Basis Projection is the atomic unit of parallel construction.
+    Write projections so that a developer (or agent) implementing one projection
+    needs zero knowledge of other projections' internals.
+    The required_interfaces section is their entire dependency surface.
+
+# ═══════════════════════════════════════════════════════════════════════
+# AGENT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+agent_guidance: |
+  When generating basis projections:
+
+  1. BUILD the intersection matrix:
+     - Rows: MVP features (from Feature Decomposition)
+     - Columns: modules (from Module Decomposition)
+     - Cell = projection exists? Yes/No
+     - Most features touch 2-4 modules; a feature touching 7+ modules is a warning sign
+
+  2. FOR EACH non-empty cell, write a projection document:
+     a. SCOPE: What part of this feature must this module implement?
+        Be specific — "validate credentials against user store" not "handle auth"
+     b. OUT OF SCOPE: What is explicitly NOT this module's job?
+        Reference the module that owns it.
+     c. REQUIRED INTERFACES: What does this projection need to stub?
+        Copy from Module Decomposition interface contracts.
+     d. EXPOSED INTERFACE: What does this projection add to the module's public API?
+        Must match Module Decomposition contracts exactly.
+     e. EVALUATOR CONTRACT: Write the test conditions.
+        These become the basis projection's acceptance tests.
+
+  3. COVERAGE CHECK: For each feature, review all its projections.
+     - Union of scopes = feature intent? Yes/No
+     - Any gaps? Any overlaps?
+     - Fix before submitting.
+
+  4. ISOLATION CHECK: For each projection, ask:
+     "Can a developer implement this using only: the module's source, the stub interfaces, and this document?"
+     If no — the projection is incomplete.
+
+  5. Present to human for approval — especially evaluator contracts (they are the acceptance bar)
+  6. Report: source findings, checklist results, process gaps
