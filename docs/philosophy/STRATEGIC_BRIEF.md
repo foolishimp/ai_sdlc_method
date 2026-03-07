@@ -83,7 +83,20 @@ Every delivery cycle on Trajectory 1 adds to the liability. Every cycle on Traje
 
 ---
 
-## The Durable Advantage
+## Legacy Systems as Specification Inputs
+
+Spec-Driven Development changes the relationship with legacy systems entirely.
+
+Legacy code is not primarily a technology problem. It is a knowledge problem — decades of business rules, edge cases, and regulatory adaptations encoded in a form that is expensive to maintain and impossible to fully explain. Traditional modernisation fails because it is a rewrite: high risk, long duration, and a near-certain loss of the rules that made the original system work.
+
+AI changes the economics of comprehension. A codebase that would take a team months to understand can be read, classified, and formalised into a specification. The business rules are already there — in the logic, the conditionals, the exception handlers, the data transformations. AI extracts them. Spec-Driven Development makes them formal.
+
+- **Legacy becomes source material, not a constraint.** The existing system is the most complete record of how the business actually operates. Comprehending it produces a specification that captures rules no living person could reconstruct from memory.
+- **Tech debt decouples from business value.** Once the behaviour is specified, the technology that implements it is replaceable. Regeneration from a clean specification is not a rewrite — it is a governed construction against proven requirements.
+- **Modernisation becomes a one-time comprehension exercise.** Extract the spec from the legacy system. Validate it against the business. Regenerate in the target technology. The audit trail covers both what the legacy system did and what the new system does — and proves they match.
+- **The organisation stops being hostage to legacy.** The specification is the asset. Any conforming AI system, on any technology, built in any future period, can implement it. Technology choices become operational decisions, not existential constraints.
+
+The organisations with the most complex legacy estates — and therefore the most accumulated business knowledge — are the ones with the most to gain. Their legacy is not a liability to be paid down. Under Spec-Driven Development, it is the richest possible input to a governed AI construction process.
 
 As construction becomes fully automated, specification quality becomes the only remaining differentiator.
 
