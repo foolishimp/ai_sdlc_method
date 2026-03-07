@@ -37,10 +37,10 @@ Without a governing methodology:
 With a governing methodology:
 - AI constructs against a formal specification that is independent of any individual, model, or session
 - The organisation's rules, constraints, and decisions are active context on every invocation
-- Output is evaluated against defined criteria before it advances — not reviewed for plausibility after
-- When direction changes, the specification maps the impact — what behaviour is affected, what tests would break, what decisions need revisiting — before a line of code changes
+- Output is evaluated against defined criteria before it advances
+- When direction changes, the specification maps the impact — what behaviour is affected, what tests would break, what decisions need revisiting
 
-The competitive consequence is not that governed organisations build better software in isolation. It is that as AI capability improves across the whole market, the quality ceiling is determined by the specification, not the model. Organisations with rigorous specifications will extract more from every generation of AI tooling. Organisations without them will plateau at the limit of what can be articulated in a prompt.
+As AI capability improves across the market, the quality ceiling shifts from the model to the specification. Organisations with rigorous specifications extract more from each generation of tooling.
 
 *Theoretical grounding: Popov, 2026 — Emergent Reasoning in Large Language Models; Programming LLM Reasoning: A Meta-Template for Constraint Specifications.*
 
@@ -48,7 +48,7 @@ The competitive consequence is not that governed organisations build better soft
 
 ## What Spec-Driven Development Addresses
 
-Business requirements are formalised as machine-checkable constraints before construction begins. The AI builds against the specification. Nothing advances until it passes. The governance processes the organisation already has are placed *inside* the AI construction loop — not beside it.
+Business requirements are formalised as machine-checkable constraints before construction begins. The AI builds against the specification. Nothing advances until it passes. The governance processes the organisation already has are placed *inside* the AI construction loop.
 
 Each failure mode has a direct structural response:
 
@@ -61,7 +61,7 @@ Each failure mode has a direct structural response:
 | Plausibility review | Formal evaluators — automated, AI-assisted, and human — gate every output |
 | Untraceable production behaviour | The same REQ identifiers that governed construction monitor production behaviour |
 
-The consequence is not a heavier process. It is AI construction that operates within the governance the organisation already requires — automatically, at every stage, without depending on individual discipline.
+The consequence is not a heavier process. It is AI construction that operates within the governance the organisation already requires.
 
 ---
 
@@ -72,13 +72,13 @@ Two trajectories are now open:
 **Trajectory 1 — AI-fast, ungoverned**
 - Builds and deploys at AI velocity
 - Accumulates unverifiable behaviour with every cycle
-- Cannot account for what systems do when the moment of examination arrives
+- Cannot account for what systems do under examination
 
 **Trajectory 2 — AI-fast, governed**
 - Builds equally fast, against formal specifications
 - Every delivery cycle adds to a specification corpus — a formalised record of business rules and constraints
 - That corpus becomes a durable organisational asset; it can regenerate systems on demand and cannot be replicated by copying code
-- When market or business direction shifts, the corpus enables impact assessment before construction begins — the organisation knows what it has and can change what needs changing
+- When direction shifts, the corpus enables impact assessment before construction begins
 
 Every delivery cycle on Trajectory 1 adds to the liability. Every cycle on Trajectory 2 adds to the asset.
 
@@ -97,9 +97,9 @@ AI changes the economics of comprehension. A codebase that would take a team mon
 - **Modernisation becomes a comprehension exercise, not a reconstruction.** Extract the spec from the legacy system. Validate it against the business. Regenerate in the target technology. The audit trail covers both what the legacy system did and what the new system does.
 - **Technology choices become operational decisions.** The specification is the asset. Any conforming implementation, on any technology, can be built against it.
 
-As construction becomes fully automated, specification quality becomes the only remaining differentiator.
+Specification quality compounds and cannot be copied.
 
-- Organisations that know themselves precisely enough to write it down can direct any AI system — current or future — to build exactly what they need
+- Organisations that know themselves precisely enough to write it down can direct any AI system to build exactly what they need
 - Organisations that hold that knowledge informally — in individuals, undocumented conventions, systems that work but cannot be explained — face a structural disadvantage that AI makes larger, not smaller
 - **The specification is the organisation's knowledge of itself.** Held formally, it is a reliable basis for governed AI construction. Held informally, it produces inconsistent results as teams, models, and sessions change.
 
@@ -109,7 +109,7 @@ As construction becomes fully automated, specification quality becomes the only 
 
 One formal specification. Three independent AI development agents building distinct implementations simultaneously, each evaluated against the same criteria.
 
-Genesis is one instantiation of spec-driven development — one of several emergent tooling approaches to the same methodology. The methodology is what generates the advantage; the tooling is replaceable against the same specification.
+Genesis is one implementation of spec-driven development — one of several tooling approaches to the same methodology. The methodology is what generates the advantage; the tooling is replaceable against the same specification.
 
 The process is the demonstration: a governance framework that cannot govern its own construction is not a governance framework.
 
