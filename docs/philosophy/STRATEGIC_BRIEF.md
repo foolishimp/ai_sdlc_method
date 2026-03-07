@@ -25,8 +25,6 @@ AI-assisted delivery without formal governance accumulates a liability.
 
 ## The Framework Decision
 
-Better prompts do not close the governance gap. The issue is not instruction quality — it is whether a formal methodology governs what AI builds.
-
 Every organisation in your competitive market is moving toward AI-assisted development. Access to the same models is not a differentiator. The differentiator is what the AI is building against.
 
 Without a governing methodology:
