@@ -9,11 +9,9 @@ table { page-break-inside: avoid; }
 
 ---
 
-AI makes code construction fast for every organisation. The differentiator is what governs what gets built.
+AI has removed the scarcity in code construction. Any organisation can now build faster. That is not a competitive position — it is a baseline.
 
----
-
-AI-generated code looks functional quickly — the gap between functional and correct only becomes visible when edge cases, integration points, or production conditions expose it.
+The differentiating question is risk management. AI constructs output against what was described in the prompt. Assumptions that were never formally stated become exposure that surfaces in production — not at delivery.
 
 ## The Compounding Problem
 
