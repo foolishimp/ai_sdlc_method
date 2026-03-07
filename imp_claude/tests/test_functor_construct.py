@@ -229,6 +229,29 @@ class TestFpActorResultMissing:
             with pytest.raises(FpActorResultMissing):
                 FpFunctor().invoke(intent, tmp_path)
 
+    def test_intent_manifest_written_before_result_check(self, tmp_path):
+        """T-008: intent manifest written to agents dir for actor to discover."""
+        from genesis.fp_functor import FpFunctor
+        from genesis.contracts import FpActorResultMissing, Intent
+        import json
+
+        intent = Intent(edge="design→code", feature="REQ-F-TEST-001")
+
+        with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
+            try:
+                FpFunctor().invoke(intent, tmp_path)
+            except FpActorResultMissing:
+                pass
+
+        # Manifest must be written even when no fold-back result exists yet
+        manifest_path = tmp_path / ".ai-workspace" / "agents" / f"fp_intent_{intent.run_id}.json"
+        assert manifest_path.exists(), "Intent manifest not written — actor cannot discover its work"
+        manifest = json.loads(manifest_path.read_text())
+        assert manifest["run_id"] == intent.run_id
+        assert manifest["edge"] == "design→code"
+        assert manifest["status"] == "pending"
+        assert "result_path" in manifest
+
 
 class TestRunIdThreading:
     """Validates: T-005 — OL runId causation chain through edge traversal."""

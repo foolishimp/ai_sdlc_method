@@ -104,28 +104,57 @@ When done, emit a JSON result to stdout:
 
 
 def _mcp_invoke(prompt: str, workspace: Path, intent: Intent) -> dict:
-    """Invoke the actor via MCP claude_code tool.
+    """Drive the F_P actor via the fold-back protocol.
 
-    At MVP this is a stub — the actual MCP tool call is issued by the
-    calling Claude session's gen-iterate skill, not by Python code.
-    The engine records intent and waits for the result to be injected
-    via the fold-back mechanism (StepResult written to workspace state).
+    Architecture: The Python engine cannot issue MCP tool calls — MCP is the
+    LLM layer's capability (ADR-023: no subprocess, no claude -p, ever).
+    Instead, the engine uses the fold-back protocol:
 
-    When the full MCP client library is available, this will issue:
-        mcp_client.call_tool("claude_code", {
-            "prompt": prompt,
-            "model": "claude-sonnet-4-6",
-            "max_budget_usd": intent.budget_usd,
-        })
+    1. ENGINE writes intent manifest → `.ai-workspace/agents/fp_intent_{run_id}.json`
+    2. ENGINE checks for fold-back result → `.ai-workspace/agents/fp_result_{run_id}.json`
+    3. ACTOR (invoked by gen-iterate via MCP tool call) reads the intent manifest,
+       does the work, and writes the fold-back result.
+
+    The fold-back protocol makes the intent durable — if gen-iterate can see the
+    workspace (it always can, it owns the session), it can discover pending intents
+    and invoke the actor. T-008 implements this handshake.
+
+    Future: when a Python MCP client library is available, this function will issue
+    the tool call directly: `mcp_client.call_tool("claude_code", {...})`.
+    Until then, the fold-back file IS the actor invocation contract.
     """
-    # MVP stub: check if a fold-back result exists in workspace state
-    result_path = workspace / ".ai-workspace" / "agents" / f"fp_result_{intent.run_id}.json"
+    agents_dir = workspace / ".ai-workspace" / "agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+
+    # Step 1: Write intent manifest — actor reads this to understand its mandate.
+    manifest = {
+        "run_id": intent.run_id,
+        "edge": intent.edge,
+        "feature": intent.feature,
+        "grain": intent.grain,
+        "budget_usd": intent.budget_usd,
+        "max_depth": intent.max_depth,
+        "failures": intent.failures,
+        "constraints": intent.constraints,
+        "prompt": prompt,
+        "result_path": str(agents_dir / f"fp_result_{intent.run_id}.json"),
+        "status": "pending",
+    }
+    intent_path = agents_dir / f"fp_intent_{intent.run_id}.json"
+    intent_path.write_text(json.dumps(manifest, indent=2))
+
+    # Step 2: Check for fold-back result (actor may have already run in this session).
+    result_path = agents_dir / f"fp_result_{intent.run_id}.json"
     if result_path.exists():
         return json.loads(result_path.read_text())
 
     # No fold-back result found — raise observable failure (not a silent skip).
-    # The engine catches FpActorResultMissing and emits FpFailure.
-    raise FpActorResultMissing(f"MCP actor result not yet available (run_id={intent.run_id})")
+    # gen-iterate reads the intent manifest and invokes the actor via MCP tool call.
+    # The actor writes the result to result_path, then the engine retries on next iteration.
+    raise FpActorResultMissing(
+        f"Actor not yet invoked (run_id={intent.run_id}). "
+        f"Intent written to: {intent_path}"
+    )
 
 
 def _parse_actor_result(
