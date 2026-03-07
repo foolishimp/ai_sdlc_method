@@ -290,12 +290,16 @@ The system shall manage Context[] as the standing constraint surface bounding co
 The system shall support hierarchical context composition.
 
 **Acceptance Criteria**:
-- Levels: global → organisation → team → project
+- Levels: methodology → organisation → policy → domain → prior → project
 - Later contexts override earlier contexts
 - Deep merge for objects
 - Customisation without forking
+- Context sources listed in feature vector YAML (`context_sources` field)
+- Aggregate `context_hash` (SHA-256 of sorted file manifests) emitted on each `IterationStarted` event
 
-**Traces To**: Asset Graph Model §5.4 (Context Stability) | Ontology #23 (scale-dependent time)
+**Note**: Supersedes earlier 4-level model (`global → organisation → team → project`). The 6-level hierarchy aligns with ADR-S-022 and adds methodology-level and policy-level scopes needed for multi-tenant deployments. Implementation updated in T-COMPLY-002.
+
+**Traces To**: Asset Graph Model §5.4 (Context Stability) | ADR-S-022 (Context Hierarchy) | Ontology #23 (scale-dependent time)
 
 ---
 

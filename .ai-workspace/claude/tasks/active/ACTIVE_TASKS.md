@@ -14,18 +14,18 @@
 ### 1.0 Tasks (Gate 1) — engine complete + robustness tier 1
 
 ```
-T-COMPLY-001 (event contract)   ←── start here; blocks 005/007/008
-T-COMPLY-005 (transactions)     ←── after 001; runId, manifests, crash recovery
-T-COMPLY-007 (stub removal)     ←── after 001; fold-back contract made honest
-T-COMPLY-008 (MCP actor)        ←── after 007; closes the engine — cannot ship 007 without 008
+T-COMPLY-001 (event contract)   ✅ DONE — OL emit path, RunState contract
+T-COMPLY-005 (transactions)     ✅ DONE — runId threading, input_hash, causation chain
+T-COMPLY-007 (stub removal)     ✅ DONE — fold-back contract, FpActorResultMissing
+T-COMPLY-008 (actor dispatch)   ← LLM-layer task: gen-iterate reads manifests, dispatches actor
 ```
 
 ### 1.1 Tasks (post-1.0)
 
 ```
-T-COMPLY-002 (context)          ←── 6-level hierarchy (4-level works, spec delta)
+T-COMPLY-002 (context)          ←── 6-level hierarchy (REQ-CTX-002 spec updated 2026-03-07; implement in config_loader.py)
 T-COMPLY-003 (instance graph)   ←── profile-coverage derivation (subtle bug, low user visibility)
-T-COMPLY-004 (FPC anchoring)    ←── spec documentation only
+T-COMPLY-004 (FPC audit)        ←── design-tier tag audit only (no shared spec changes)
 T-COMPLY-006 (H-metric)         ←── observability display feature
 ```
 
@@ -81,18 +81,17 @@ Two bugs: archives on `feature_converged` event (spec derives from profile cover
 
 ---
 
-### T-COMPLY-004: Anchor REQ-F-FPC-* Keys in Spec
+### T-COMPLY-004: F_P Functor Implement-Tag Audit (design-tier only)
 
 **ADRs**: none needed
-**Files**: `imp_claude/code/genesis/fp_functor.py`, `specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md`, `specification/features/FEATURE_VECTORS.md`
+**Files**: `imp_claude/code/genesis/fp_functor.py`
 
-11 `REQ-F-FPC-*` keys in `fp_functor.py` are real working code with no spec anchor. Every `Implements:` tag must resolve to a spec requirement.
+**Scope clarification** (Codex review 2026-03-07): `fp_functor.py` currently declares `Implements: REQ-ROBUST-001, REQ-ROBUST-002, REQ-ITER-001`. These are valid shared spec keys. There are no `REQ-F-FPC-*` keys — the original task description was stale. This task is design-tier documentation cleanup only; no shared spec anchoring required.
 
-1. Read `fp_functor.py` — extract all 11 `REQ-F-FPC-*` keys with descriptions
-2. Add formal requirements to `AISDLC_IMPLEMENTATION_REQUIREMENTS.md` — new `§ F_P Functor Construct` section
-3. Update `FEATURE_VECTORS.md` — add FPC keys to `REQ-F-FP-001` requirements list
-4. Update spec summary table (coverage counts)
-5. Update `REQ-F-ROBUST-001` feature YAML — `status: converged` (currently stale `in_progress`)
+1. Verify all `Implements:` tags in `fp_functor.py` resolve to existing spec keys (REQ-ROBUST-*, REQ-ITER-*)
+2. Add any missing design-tier ADR references to the file header (Claude implementation ADRs only)
+3. Update `REQ-F-ROBUST-001` feature YAML — `status: converged` if currently stale
+4. No changes to `AISDLC_IMPLEMENTATION_REQUIREMENTS.md` or `FEATURE_VECTORS.md` required
 
 ---
 
@@ -145,17 +144,29 @@ V (delta) computed. H = T + V not computed. `gen-status` has no H column.
 
 ---
 
-### T-COMPLY-008: F_P Construct via MCP Actor (ADR-023/024)
+### T-COMPLY-008: F_P Fold-Back Contract — gen-iterate Actor Dispatch
 
 **ADRs**: ADR-023, ADR-024
 **Depends on**: T-COMPLY-007
-**Files**: `imp_claude/code/genesis/fp_functor.py`
+**Status**: Engine side COMPLETE (2026-03-07). LLM-layer side pending.
+**Files**: `imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-iterate.md`
 
-With stub removed (T-COMPLY-007), the actual MCP actor invocation needs implementing to close the construct loop.
+**Architecture clarification** (ADR-023: no subprocess, no `claude -p`, ever):
+The Python engine CANNOT issue MCP tool calls — MCP is the LLM layer's capability. The fold-back file IS the accepted invocation protocol:
 
-1. Implement `_mcp_invoke()` — issue `claude_code` MCP tool call with actor prompt
-2. Wire `CLAUDE_CODE_SSE_PORT` detection to live invocation
-3. Actor writes fold-back to `.ai-workspace/agents/fp_result_{run_id}.json`
-4. `_parse_actor_result()` already reads fold-back correctly — verify it handles `runId` from T-COMPLY-005
-5. Integration test: MCP available + actor completes → `fp_result.converged` populated
-6. Budget enforcement: pass `--max-budget-usd` to actor invocation
+```
+ENGINE:     writes fp_intent_{run_id}.json → .ai-workspace/agents/
+LLM LAYER:  reads manifest → invokes actor via MCP tool call → actor writes fp_result_{run_id}.json
+ENGINE:     reads fp_result on next iteration
+```
+
+Engine side (T-008 DONE): `_mcp_invoke()` writes intent manifest, checks for result, raises `FpActorResultMissing` if absent. `FpActorResultMissing` is the observable signal to the LLM layer.
+
+LLM-layer side (this task): Update `gen-iterate.md` to implement the dispatch loop:
+
+1. After each engine iteration, check `.ai-workspace/agents/` for pending `fp_intent_*.json` manifests
+2. For each pending manifest (status = "pending"): invoke `claude_code` MCP tool with the actor prompt
+3. Actor writes `fp_result_{run_id}.json` → mark manifest status = "dispatched"
+4. Re-run engine — it reads fold-back and continues
+5. Document: actor self-evaluates against F_D checklist, writes `converged + delta + artifacts + spawns`
+6. Test: unit test confirms gen-iterate processes pending manifests before re-invoking engine
