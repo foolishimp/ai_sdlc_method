@@ -16,7 +16,7 @@ def test_iterate_with_guardrail_failure(tmp_path):
     # No REQ tags, but it's pre-flight check that we test here
     # Edge with 'design' requires 'upstream_converged'
     
-    result = engine.run(
+    result = engine.run_once(
         asset_path=asset_path,
         feature="F1",
         edge="requirements→design",
@@ -38,7 +38,7 @@ def test_iterate_with_tagging_guardrail_failure(tmp_path):
     asset_path = project_root / "test.py"
     asset_path.write_text("print('hello')") # Missing REQ tags
     
-    result = engine.run(
+    result = engine.run_once(
         asset_path=asset_path,
         feature="F1",
         edge="design→code",
@@ -63,7 +63,7 @@ def test_iterate_convergence(tmp_path):
     asset_path = project_root / "test.py"
     asset_path.write_text("# Implements: REQ-F1-001\nprint('hello')")
     
-    result = engine.run(
+    result = engine.run_once(
         asset_path=asset_path,
         feature="F1",
         edge="design→code",

@@ -45,12 +45,24 @@ class ConstructResult:
 
 @dataclass
 class IterationRecord:
-    """Record of one iteration \u2014 what happened, what was decided."""
+    """Record of one iteration — what happened, what was decided."""
     edge: str
     iteration: int
     report: 'IterationReport'
     event_emitted: bool = True
     construct_result: Optional[ConstructResult] = None
+
+    @property
+    def converged(self) -> bool:
+        return self.report.converged
+
+    @property
+    def delta(self) -> int:
+        return self.report.delta
+
+    @property
+    def guardrail_results(self) -> List[Any]:
+        return self.report.guardrail_results
 
 @dataclass
 class EngineConfig:

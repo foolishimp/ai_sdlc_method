@@ -5,124 +5,244 @@
 asset_types:
   - name: intent
     description: "The spark of change (INT-*)"
+    schema: { intent_id: string }
+    markov_criteria: [ intent_logged ]
   - name: requirements
     description: "Technology-agnostic WHAT"
+    schema: { req_keys: list }
+    markov_criteria: [ requirements_defined ]
   - name: feature_decomposition
     description: "Product-level breakdown into vectors (REQ-F-*)"
+    schema: { feature_id: string }
+    markov_criteria: [ vectors_created ]
   - name: design
     description: "Technology-bound HOW (Architecture, ADRs)"
+    schema: { adr_keys: list }
+    markov_criteria: [ design_stable ]
   - name: module_decomposition
     description: "Codebase-level breakdown into modules/packages"
+    schema: { modules: list }
+    markov_criteria: [ modules_defined ]
   - name: basis_projections
     description: "Intersection of Feature x Module"
+    schema: { projections: list }
+    markov_criteria: [ projections_stable ]
   - name: parallel_spawn
     description: "Fan-out point for multi-tenant or parallel exploration"
+    schema: { children: list }
+    markov_criteria: [ children_spawned ]
   - name: tournament_arbitration
     description: "Evaluation and selection among parallel candidates"
+    schema: { results: object }
+    markov_criteria: [ candidates_ranked ]
   - name: tournament_merge
     description: "Composite/cherry-picked asset construction"
+    schema: { provenance: object }
+    markov_criteria: [ assets_merged ]
   - name: code
     description: "Source code implementation"
+    schema: { content_hash: string }
+    markov_criteria: [ code_stable ]
   - name: unit_tests
     description: "Logic verification (Code-level)"
+    schema: { coverage: float }
+    markov_criteria: [ tests_passing ]
   - name: test_cases
     description: "Logic/Scenario validation (Design-level)"
+    schema: { cases: list }
+    markov_criteria: [ cases_defined ]
   - name: uat_tests
     description: "User acceptance/Interface contract validation"
+    schema: { uat_results: object }
+    markov_criteria: [ uat_passing ]
   - name: cicd
     description: "Build and deployment pipeline"
+    schema: { status: string }
+    markov_criteria: [ deploy_success ]
   - name: running_system
     description: "The operational artifact"
+    schema: { uri: string }
+    markov_criteria: [ system_alive ]
   - name: telemetry
     description: "Observability data (Metrics, Logs, Traces)"
+    schema: { signals: list }
+    markov_criteria: [ telemetry_logged ]
+
+constraint_dimensions:
+  - name: deployment_target
+    description: "Where the system runs"
+    mandatory: true
+    resolves_via: adr
+    examples: ["Cloud Run", "Edge"]
+  - name: performance_envelope
+    description: "Latency and throughput bounds"
+    mandatory: false
+    resolves_via: design_section
+    examples: ["P99 < 100ms"]
+  - name: build_system
+    description: "How the artifact is constructed"
+    mandatory: true
+    resolves_via: adr
+    examples: ["NPM", "Bazel"]
+  - name: observability
+    description: "Telemetry and logging standards"
+    mandatory: false
+    resolves_via: design_section
+    examples: ["OTLP", "Prometheus"]
+  - name: security_model
+    description: "Authentication and authorization"
+    mandatory: true
+    resolves_via: adr
+    examples: ["OAuth 2.0"]
+  - name: data_governance
+    description: "Privacy and residency rules"
+    mandatory: false
+    resolves_via: design_section
+    examples: ["GDPR", "Encryption"]
+  - name: error_handling
+    description: "Resiliency and failure modes"
+    mandatory: false
+    resolves_via: design_section
+    examples: ["Retries", "Circuit Breakers"]
+  - name: ecosystem_compatibility
+    description: "External dependencies and versions"
+    mandatory: true
+    resolves_via: adr
+    examples: ["Python 3.11", "React 18"]
 
 transitions:
   - source: intent
     target: requirements
     name: "intent→requirements"
     evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
+
+  - source: requirements
+    target: design
+    name: "requirements→design"
+    evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
+
+  - source: design
+    target: code
+    name: "design→code"
+    evaluators: ["agent"]
+    edge_type: standard
+    constructor: agent
 
   - source: requirements
     target: feature_decomposition
     name: "requirements→feature_decomp"
     evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
 
   - source: feature_decomposition
     target: design
     name: "feature_decomp→design"
     evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
 
   - source: design
     target: module_decomposition
     name: "design→module_decomp"
     evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
 
   - source: module_decomposition
     target: basis_projections
     name: "module_decomp→basis_proj"
     evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
 
-  # Standard Path
   - source: basis_projections
     target: code
     name: "basis_proj→code"
     evaluators: ["deterministic", "agent"]
+    edge_type: standard
+    constructor: agent
 
-  # Tournament Path (Enabled via profile or edge override)
   - source: basis_projections
     target: parallel_spawn
     name: "basis_proj→tournament_fanout"
     evaluators: ["agent_spawner"]
+    edge_type: standard
+    constructor: agent
 
   - source: parallel_spawn
     target: tournament_arbitration
     name: "spawn→arbitration"
     evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
 
   - source: tournament_arbitration
     target: tournament_merge
     name: "arbitration→merge"
     evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
 
   - source: tournament_merge
     target: code
     name: "merge→code"
     evaluators: ["deterministic"]
+    edge_type: standard
+    constructor: agent
 
   - source: code
     target: unit_tests
     name: "code↔unit_tests"
     evaluators: ["deterministic", "agent"]
+    edge_type: co_evolution
+    constructor: agent
 
   - source: design
     target: test_cases
     name: "design→test_cases"
     evaluators: ["agent"]
+    edge_type: standard
+    constructor: agent
 
   - source: module_decomposition
     target: uat_tests
     name: "module_decomp→uat_tests"
     evaluators: ["agent", "human"]
+    edge_type: standard
+    constructor: agent
 
   - source: code
     target: cicd
     name: "code→cicd"
     evaluators: ["deterministic"]
+    edge_type: standard
+    constructor: agent
 
   - source: cicd
     target: running_system
     name: "cicd→running_system"
     evaluators: ["deterministic"]
+    edge_type: standard
+    constructor: agent
 
   - source: running_system
     target: telemetry
     name: "running_system→telemetry"
     evaluators: ["deterministic"]
+    edge_type: standard
+    constructor: agent
 
   - source: telemetry
     target: intent
     name: "telemetry→intent"
     evaluators: ["agent", "human"]
+    edge_type: co_evolution
+    constructor: agent
 
 graph_properties:
   directed: true

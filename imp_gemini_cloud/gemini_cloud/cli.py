@@ -143,7 +143,7 @@ def main():
         print(f"\n[ITERATE] {args.feature} / {args.edge} (Mode: {args.mode})")
         print("-" * 60)
         
-        result = engine.run(
+        result = engine.run_once(
             asset_path=asset_path,
             feature=args.feature,
             edge=args.edge,

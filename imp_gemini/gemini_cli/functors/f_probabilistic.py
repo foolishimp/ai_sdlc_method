@@ -46,7 +46,7 @@ class GeminiFunctor:
             mode = context.get("mode", "interactive")
             
             # REQ-CLI-006: Automatic recursion detection for stuck features
-            if iteration_count >= 3:
+            if iteration_count >= 5:
                 spawn = SpawnRequest(
                     question=f"Feature stuck after {iteration_count} iterations. Investigate root cause.",
                     vector_type="discovery"
@@ -55,7 +55,7 @@ class GeminiFunctor:
                     name="sub_agent_eval",
                     outcome=Outcome.FAIL,
                     delta=1,
-                    reasoning=f"Triggering RECURSION (iteration {iteration_count}). Stuck feature detected.",
+                    reasoning=f"Triggering recursion (iteration {iteration_count}). Stuck feature detected.",
                     spawn=spawn
                 )
                 if span: 

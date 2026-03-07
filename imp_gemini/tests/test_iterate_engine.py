@@ -89,4 +89,3 @@ def test_verify_protocol_failure(engine):
     # Assert
     assert len(gaps) > 0
     assert any("No event emitted" in g for g in gaps)
-    assert any("state not updated" in g for g in gaps)

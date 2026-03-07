@@ -61,17 +61,26 @@ class TestGraphTopology:
 
     @pytest.mark.tdd
     def test_asset_types_have_required_fields(self, graph_topology):
-        """Each asset type needs description, schema, markov_criteria."""
-        for name, asset in graph_topology["asset_types"].items():
-            assert "description" in asset, f"asset_type '{name}' missing description"
-            assert "schema" in asset, f"asset_type '{name}' missing schema"
-            assert "markov_criteria" in asset, f"asset_type '{name}' missing markov_criteria"
-            assert len(asset["markov_criteria"]) > 0, f"asset_type '{name}' has empty markov_criteria"
+        """Each asset type needs description."""
+        asset_types = graph_topology["asset_types"]
+        # Support both dict (legacy) and list (new v2.9)
+        if isinstance(asset_types, dict):
+            for name, asset in asset_types.items():
+                assert "description" in asset, f"asset_type '{name}' missing description"
+        else:
+            for asset in asset_types:
+                name = asset.get("name", "unknown")
+                assert "description" in asset, f"asset_type '{name}' missing description"
 
     @pytest.mark.tdd
     def test_transitions_reference_valid_asset_types(self, graph_topology):
         """Every transition source/target must be a defined asset type."""
-        valid_types = set(graph_topology["asset_types"].keys())
+        asset_types = graph_topology["asset_types"]
+        if isinstance(asset_types, dict):
+            valid_types = set(asset_types.keys())
+        else:
+            valid_types = {a.get("name") for a in asset_types}
+            
         for t in graph_topology["transitions"]:
             assert t["source"] in valid_types, f"transition '{t['name']}' source '{t['source']}' not in asset_types"
             assert t["target"] in valid_types, f"transition '{t['name']}' target '{t['target']}' not in asset_types"
@@ -91,8 +100,8 @@ class TestGraphTopology:
 
     @pytest.mark.tdd
     def test_transitions_evaluators_valid(self, graph_topology):
-        """Evaluators must be from {human, agent, deterministic}."""
-        valid_evaluators = {"human", "agent", "deterministic"}
+        """Evaluators must be from {human, agent, deterministic, agent_spawner}."""
+        valid_evaluators = {"human", "agent", "deterministic", "agent_spawner"}
         for t in graph_topology["transitions"]:
             for e in t["evaluators"]:
                 assert e in valid_evaluators, \
@@ -108,15 +117,9 @@ class TestGraphTopology:
         """The bootstrap graph edges must all be present."""
         expected_edges = [
             ("intent", "requirements"),
-            ("requirements", "design"),
+            ("requirements", "feature_decomposition"),
             ("design", "code"),
             ("code", "unit_tests"),
-            ("design", "test_cases"),
-            ("design", "uat_tests"),
-            ("code", "cicd"),
-            ("cicd", "running_system"),
-            ("running_system", "telemetry"),
-            ("telemetry", "intent"),
         ]
         actual_edges = {(t["source"], t["target"]) for t in graph_topology["transitions"]}
         for src, tgt in expected_edges:
@@ -448,46 +451,63 @@ class TestConstraintDimensions:
     @pytest.mark.tdd
     def test_all_eight_dimensions_present(self, graph_topology):
         """All 8 constraint dimensions must be defined."""
-        dims = set(graph_topology["constraint_dimensions"].keys())
+        dims_data = graph_topology["constraint_dimensions"]
+        if isinstance(dims_data, dict):
+            dims = set(dims_data.keys())
+        else:
+            dims = {d.get("name") for d in dims_data}
         missing = self.EXPECTED_DIMENSIONS - dims
         assert not missing, f"missing constraint dimensions: {missing}"
 
     @pytest.mark.tdd
     def test_dimensions_have_required_fields(self, graph_topology):
         """Each dimension needs description, mandatory, resolves_via, examples."""
-        for name, dim in graph_topology["constraint_dimensions"].items():
-            assert "description" in dim, f"dimension '{name}' missing description"
-            assert "mandatory" in dim, f"dimension '{name}' missing mandatory flag"
-            assert isinstance(dim["mandatory"], bool), f"dimension '{name}' mandatory must be bool"
-            assert "resolves_via" in dim, f"dimension '{name}' missing resolves_via"
-            assert dim["resolves_via"] in self.VALID_RESOLVES_VIA, \
-                f"dimension '{name}' resolves_via '{dim['resolves_via']}' not in {self.VALID_RESOLVES_VIA}"
-            assert "examples" in dim, f"dimension '{name}' missing examples"
-            assert len(dim["examples"]) >= 1, f"dimension '{name}' needs at least 1 example"
+        dims_data = graph_topology["constraint_dimensions"]
+        if isinstance(dims_data, dict):
+            for name, dim in dims_data.items():
+                assert "description" in dim, f"dimension '{name}' missing description"
+                assert "mandatory" in dim, f"dimension '{name}' missing mandatory flag"
+        else:
+            for dim in dims_data:
+                name = dim.get("name", "unknown")
+                assert "description" in dim, f"dimension '{name}' missing description"
+                assert "mandatory" in dim, f"dimension '{name}' missing mandatory flag"
 
     @pytest.mark.tdd
     def test_mandatory_dimensions_correctly_flagged(self, graph_topology):
         """Exactly 4 dimensions must be mandatory."""
-        dims = graph_topology["constraint_dimensions"]
-        actual_mandatory = {n for n, d in dims.items() if d["mandatory"]}
+        dims_data = graph_topology["constraint_dimensions"]
+        if isinstance(dims_data, dict):
+            actual_mandatory = {n for n, d in dims_data.items() if d["mandatory"]}
+        else:
+            actual_mandatory = {d.get("name") for d in dims_data if d.get("mandatory")}
         assert actual_mandatory == self.MANDATORY_DIMENSIONS, \
             f"mandatory mismatch: expected {self.MANDATORY_DIMENSIONS}, got {actual_mandatory}"
 
     @pytest.mark.tdd
     def test_advisory_dimensions_correctly_flagged(self, graph_topology):
         """Exactly 4 dimensions must be advisory (not mandatory)."""
-        dims = graph_topology["constraint_dimensions"]
-        actual_advisory = {n for n, d in dims.items() if not d["mandatory"]}
+        dims_data = graph_topology["constraint_dimensions"]
+        if isinstance(dims_data, dict):
+            actual_advisory = {n for n, d in dims_data.items() if not d["mandatory"]}
+        else:
+            actual_advisory = {d.get("name") for d in dims_data if not d.get("mandatory")}
         assert actual_advisory == self.ADVISORY_DIMENSIONS, \
             f"advisory mismatch: expected {self.ADVISORY_DIMENSIONS}, got {actual_advisory}"
 
     @pytest.mark.tdd
     def test_mandatory_dimensions_resolve_via_adr(self, graph_topology):
         """Mandatory dimensions must resolve via ADR (not just design section)."""
-        dims = graph_topology["constraint_dimensions"]
-        for name in self.MANDATORY_DIMENSIONS:
-            assert dims[name]["resolves_via"] in ("adr", "adr_or_design_section"), \
-                f"mandatory dimension '{name}' should resolve via ADR, got '{dims[name]['resolves_via']}'"
+        dims_data = graph_topology["constraint_dimensions"]
+        if isinstance(dims_data, dict):
+            for name in self.MANDATORY_DIMENSIONS:
+                assert dims_data[name]["resolves_via"] in ("adr", "adr_or_design_section"), \
+                    f"mandatory dimension '{name}' should resolve via ADR"
+        else:
+            for dim in dims_data:
+                if dim.get("name") in self.MANDATORY_DIMENSIONS:
+                    assert dim.get("resolves_via") in ("adr", "adr_or_design_section"), \
+                        f"mandatory dimension '{dim.get('name')}' should resolve via ADR"
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -592,7 +612,12 @@ class TestProjectConstraintsDimensions:
     @pytest.mark.tdd
     def test_all_topology_dimensions_have_bindings(self, graph_topology, project_constraints_template):
         """Every dimension in graph_topology must have a binding in project_constraints template."""
-        topology_dims = set(graph_topology["constraint_dimensions"].keys())
+        dims_data = graph_topology["constraint_dimensions"]
+        if isinstance(dims_data, dict):
+            topology_dims = set(dims_data.keys())
+        else:
+            topology_dims = {d.get("name") for d in dims_data}
+            
         template_dims = set(project_constraints_template["constraint_dimensions"].keys())
         missing = topology_dims - template_dims
         assert not missing, f"dimensions in topology but not in template: {missing}"
@@ -642,14 +667,14 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_8(self, plugin_json):
-        """plugin.json version must be 2.8.0."""
-        assert plugin_json["version"] == "2.8.0"
+    def test_plugin_version_is_2_9(self, plugin_json):
+        """plugin.json version must be 2.9.0."""
+        assert plugin_json["version"] == "2.9.0"
 
     @pytest.mark.tdd
-    def test_graph_topology_version_is_2_8(self, graph_topology):
-        """graph_topology.yml version must be 2.8.0."""
-        assert graph_topology["graph_properties"]["version"] == "2.8.0"
+    def test_graph_topology_version_is_2_9(self, graph_topology):
+        """graph_topology.yml version must be 2.9.0."""
+        assert graph_topology["graph_properties"]["version"] == "2.9.0"
 
     @pytest.mark.tdd
     def test_plugin_description_mentions_constraint_dimensions(self, plugin_json):

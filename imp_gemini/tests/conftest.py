@@ -91,11 +91,12 @@ def all_commands():
 def spec_req_keys():
     """Extract all REQ keys from implementation requirements doc."""
     import re
-    req_file = SPEC_DIR / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+    req_file = SPEC_DIR / "requirements" / "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
     keys = set()
-    with open(req_file) as f:
-        for line in f:
-            keys.update(re.findall(r'REQ-[A-Z]+-\d+', line))
+    if req_file.exists():
+        with open(req_file) as f:
+            for line in f:
+                keys.update(re.findall(r'REQ-[A-Z]+-\d+', line))
     return keys
 
 
@@ -103,9 +104,10 @@ def spec_req_keys():
 def feature_vector_req_keys():
     """Extract all REQ-F-* keys from feature vectors doc."""
     import re
-    fv_file = SPEC_DIR / "FEATURE_VECTORS.md"
+    fv_file = SPEC_DIR / "features" / "FEATURE_VECTORS.md"
     keys = set()
-    with open(fv_file) as f:
-        for line in f:
-            keys.update(re.findall(r'REQ-F-[A-Z]+-\d+', line))
+    if fv_file.exists():
+        with open(fv_file) as f:
+            for line in f:
+                keys.update(re.findall(r'REQ-F-[A-Z]+-\d+', line))
     return keys

@@ -52,11 +52,11 @@ class GuardrailEngine:
         
         # REQ-EDGE-004: Tagging Discipline
         if any(keyword in edge.lower() for keyword in ["code", "test", "design", "requirements"]):
-            if not self.tag_validator.validate(candidate):
-                results.append(GuardrailResult(
-                    name="tagging_discipline",
-                    passed=False,
-                    message="Artifact is missing mandatory 'Implements: REQ-*' or 'Validates: REQ-*' tag."
-                ))
+            passed = self.tag_validator.validate(candidate)
+            results.append(GuardrailResult(
+                name="tagging_discipline",
+                passed=passed,
+                message="Artifact has mandatory REQ tags." if passed else "Artifact is missing mandatory 'Implements: REQ-*' or 'Validates: REQ-*' tag."
+            ))
         
         return results

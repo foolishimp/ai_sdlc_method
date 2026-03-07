@@ -44,7 +44,7 @@ class EventStore:
     def emit(
         self, 
         event_type: str, 
-        project: str, 
+        project: str = "unknown", 
         feature: str = "", 
         edge: str = "", 
         delta: int = None, 
@@ -55,6 +55,12 @@ class EventStore:
         parent_run_id: str = None
     ) -> Dict[str, Any]:
         """Emits a v2 OpenLineage RunEvent with Unit of Work metadata."""
+        # Handle legacy positional calls: emit(type, project, feature, data) 
+        # where delta might have been data in the old signature
+        if isinstance(delta, dict) and data is None:
+            data = delta
+            delta = None
+
         ts = datetime.now(timezone.utc).isoformat()
         run_id = str(uuid.uuid4())
         
@@ -102,6 +108,10 @@ class EventStore:
             }
 
         event = {
+            "event_type": event_type, # Backward compatibility
+            "timestamp": ts,           # Backward compatibility
+            "project": project,         # Backward compatibility
+            "data": data or {},         # Backward compatibility (explicit data key)
             "eventType": ol_type,
             "eventTime": ts,
             "run": {"runId": run_id, "facets": facets},
@@ -154,3 +164,94 @@ class EventStore:
                         if "eventType" in ev: events.append(ev)
                     except: continue
         return events
+
+class Projector:
+    @staticmethod
+    def get_iteration_count(events: List[Dict], feature: str, edge: str) -> int:
+        count = 0
+        for ev in events:
+            facets = ev.get("run", {}).get("facets", {})
+            req_facet = facets.get("sdlc_req_keys", {})
+            type_facet = facets.get("sdlc_event_type", {})
+            
+            e_type = type_facet.get("type")
+            if (e_type in ["iteration_completed", "iteration_started"] or "sdlc_delta" in facets) and \
+               req_facet.get("feature_id") == feature and req_facet.get("edge") == edge:
+                count += 1
+        return count
+
+    @staticmethod
+    def get_feature_status(events: List[Dict], project_root: Path = None) -> Dict[str, Dict]:
+        status = {}
+        
+        if project_root:
+            spec_features_path = project_root / "specification" / "features" / "FEATURE_VECTORS.md"
+            if spec_features_path.exists():
+                content = spec_features_path.read_text()
+                feat_matches = re.finditer(r"### (REQ-F-[A-Z0-9-]+): (.*)", content)
+                for m in feat_matches:
+                    fid, title = m.group(1), m.group(2)
+                    status[fid] = {"title": title, "status": "pending", "trajectory": {}, "source": "spec"}
+
+        for ev in events:
+            facets = ev.get("run", {}).get("facets", {})
+            req_facet = facets.get("sdlc_req_keys", {})
+            type_facet = facets.get("sdlc_event_type", {})
+            
+            feat = req_facet.get("feature_id")
+            edge_name = req_facet.get("edge")
+            ol_type = ev.get("eventType")
+            
+            e_type = None
+            if ol_type == "START": e_type = "edge_started"
+            elif ol_type == "COMPLETE": e_type = "edge_converged"
+            elif ol_type == "OTHER": e_type = type_facet.get("type")
+
+            if not feat: continue
+            if feat not in status: 
+                status[feat] = {"status": "pending", "trajectory": {}, "source": "workspace"}
+            
+            if edge_name:
+                edge_name = edge_name.replace("->", "\u2192").replace("\u2194", "\u2192")
+            
+            if e_type == "edge_started" and edge_name: 
+                status[feat]["trajectory"][edge_name] = "iterating"
+                status[feat]["status"] = "in_progress"
+            elif e_type == "edge_converged" and edge_name: 
+                status[feat]["trajectory"][edge_name] = "converged"
+        
+        for data in status.values():
+            if data["trajectory"]:
+                data["status"] = "converged" if all(s == "converged" for s in data["trajectory"].values()) else "in_progress"
+
+        return status
+
+class DependencyResolver:
+    def __init__(self, events: List[Dict]):
+        self.events = events
+        self.dependencies = self._build_graph()
+
+    def _build_graph(self) -> Dict[str, List[str]]:
+        graph = {}
+        for ev in self.events:
+            facets = ev.get("run", {}).get("facets", {})
+            type_facet = facets.get("sdlc_event_type", {})
+            # Standard backward compatibility
+            e_type = ev.get("event_type") or type_facet.get("type")
+            
+            if e_type == "feature_spawned":
+                data = ev.get("data") or ev.get("_metadata", {}).get("original_data", {})
+                child = facets.get("sdlc_req_keys", {}).get("feature_id") or data.get("feature") or ev.get("feature")
+                parent = data.get("parent")
+                if child and parent:
+                    graph.setdefault(child, []).append(parent)
+        return graph
+
+    def get_all_dependencies(self, feature_id: str) -> List[str]:
+        return self.dependencies.get(feature_id, [])
+
+    def is_blocked(self, feature_id: str, converged_features: List[str]) -> bool:
+        for d in self.get_all_dependencies(feature_id):
+            if d not in converged_features:
+                return True
+        return False

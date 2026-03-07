@@ -60,8 +60,8 @@ class LocalArchiveStore(ArchiveStore):
         return str(archive_dir)
 
 class CloudIterateEngine:
-    """Cloud-native iteration engine following the Canonical Invocation Model.
-    Implements Markov Blanket pattern via pluggable fingerprinting and archiving.
+    """Stateless Cloud-native iteration engine (Reactor Pattern).
+    Follows the Canonical Invocation Model: (State, Intent) -> State'
     """
     
     def __init__(
@@ -90,51 +90,18 @@ class CloudIterateEngine:
             self.workspace_root / "features",
         ])
 
-    def detect_integrity_gaps(self, events: List[Dict]) -> List[Dict[str, Any]]:
-        """Find discrepancies between the Event Ledger (committed) and Filesystem (actual)."""
-        last_committed_hashes = {}
-        for ev in events:
-            if ev.get("eventType") == "COMPLETE":
-                for output in ev.get("outputs", []):
-                    name = output.get("name")
-                    facets = output.get("facets", {})
-                    h = facets.get("sdlc:contentHash", {}).get("hash")
-                    if name and h:
-                        last_committed_hashes[name] = h
-        
-        gaps = []
-        for rel_path, committed_hash in last_committed_hashes.items():
-            full_path = self.project_root / rel_path
-            if not full_path.exists():
-                gaps.append({"path": rel_path, "type": "MISSING_ARTIFACT", "expected": committed_hash})
-                continue
-            if self.store:
-                actual_hash = self.store._hash_file(full_path)
-                if actual_hash != committed_hash:
-                    gaps.append({"path": rel_path, "type": "UNCOMMITTED_CHANGE", "expected": committed_hash, "actual": actual_hash})
-        
-        # Check for open transactions
-        starts = {ev["run"]["runId"]: ev for ev in events if ev.get("eventType") == "START"}
-        for ev in events:
-            if ev.get("eventType") in ("COMPLETE", "FAIL", "ABORT"):
-                parent_id = ev.get("run", {}).get("facets", {}).get("parent_run_id", {}).get("runId")
-                if parent_id: starts.pop(parent_id, None)
-                starts.pop(ev["run"]["runId"], None)
-        for run_id, ev in starts.items():
-            gaps.append({"type": "OPEN_TRANSACTION", "run_id": run_id, "event": ev.get("event_type")})
-        return gaps
-
-    def run(self, asset_path: Path, feature: str, edge: str, context: Dict, mode: str = "interactive", iteration: int = 1, wall_timeout: int = 3600, stall_timeout: int = 300) -> IterationReport:
+    def run_once(self, asset_path: Path, feature: str, edge: str, context: Dict, mode: str = "interactive", iteration: int = 1) -> IterationReport:
+        """Perform a single metabolic pass (Stateless)."""
         edge_config = load_yaml(self.config_root / "edge_params" / f"{edge}.yml") if (self.config_root / "edge_params" / f"{edge}.yml").exists() else {"evaluators": ["agent"]}
         current_context = {**context, "edge_config": edge_config, "constraints": self.constraints, "feature_id": feature, "edge": edge}
         
-        # Emit START
+        # 1. START transaction
         transaction_id = None
         if self.store:
             start_ev = self.store.emit(event_type="iteration_started", feature=feature, edge=edge, eventType="START", inputs=[asset_path] if asset_path.exists() else [])
             transaction_id = start_ev["run"]["runId"]
 
-        # Pre-flight Guardrails
+        # 2. Pre-flight Guardrails
         gr_results = self.guardrails.validate_pre_flight(edge, current_context)
         if any(not r.passed for r in gr_results):
             report = IterationReport(asset_path=str(asset_path), delta=-1, converged=False, functor_results=[], guardrail_results=gr_results)
@@ -143,39 +110,30 @@ class CloudIterateEngine:
                 self.store.emit(event_type="iteration_failed", feature=feature, edge=edge, delta=-1, data={"reason": "pre-flight guardrail failure"}, eventType="FAIL", parent_run_id=transaction_id)
             return report
 
+        # 3. Construct/Load
         candidate = asset_path.read_text() if asset_path.exists() else f"# Next candidate for {feature} / {edge}"
         
-        start_time = time.time(); last_mtime, last_count = self.liveness.get_signal()
-        last_activity = time.time()
-
+        # 4. Evaluate (Stateless Functors)
         results = []
         for eval_type in edge_config.get("evaluators", ["agent"]):
             functor_key = self._map_eval_to_functor(eval_type)
             functor = self.functors.get(functor_key)
             if not functor or (mode == "headless" and functor_key == "F_H"): continue
             
-            # Wall-clock timeout check
-            if time.time() - start_time > wall_timeout: break
-            
             res = functor.evaluate(candidate, current_context)
             results.append(res)
             if res.next_candidate is not None: candidate = res.next_candidate
-            
-            # Stall Detection
-            cur_mtime, cur_count = self.liveness.get_signal()
-            if cur_mtime > last_mtime or cur_count != last_count:
-                last_mtime, last_count = cur_mtime, cur_count; last_activity = time.time()
-            elif time.time() - last_activity > stall_timeout: break
 
-        # Post-flight Guardrails
+        # 5. Post-flight Guardrails
         post_gr_results = self.guardrails.validate_post_flight(edge, candidate)
         gr_results.extend(post_gr_results)
 
+        # 6. Compute Convergence
         total_delta = sum(r.delta for r in results) if all(r.passed for r in post_gr_results) else -1
         spawn_req = next((r.spawn for r in results if r.spawn), None)
         converged = (total_delta == 0 and not spawn_req and all(r.passed for r in post_gr_results))
         
-        # Write candidate if changed
+        # 7. Write Side-effects
         if candidate and asset_path.exists() and asset_path.read_text() != candidate:
             asset_path.write_text(candidate)
         elif candidate and not asset_path.exists():
@@ -184,6 +142,7 @@ class CloudIterateEngine:
 
         self.archiver.archive_iteration(feature, edge, iteration, failed=not converged)
         
+        # 8. COMPLETE transaction
         if self.store:
             self.store.emit(
                 event_type="iteration_completed", feature=feature, edge=edge, delta=total_delta, 

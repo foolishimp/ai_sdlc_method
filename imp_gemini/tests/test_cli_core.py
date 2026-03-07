@@ -34,12 +34,12 @@ def test_iterate_engine_convergence(workspace):
         def evaluate(self, candidate, context):
             passed = "pass" in candidate
             return FunctorResult(
-                name="mock", 
+                name="mock",
                 outcome=Outcome.PASS if passed else Outcome.FAIL,
                 delta=0 if passed else 1,
-                reasoning="test"
+                reasoning="test",
+                next_candidate="# Implements: REQ-TEST-001\npass" if passed else candidate
             )
-
     engine = IterateEngine(functors=[MockFunctor()])
     asset_path = workspace / "asset.txt"
     
