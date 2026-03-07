@@ -19,7 +19,7 @@ import re
 import pytest
 import yaml
 
-from conftest import (
+from .conftest import (
     CONFIG_DIR, EDGE_PARAMS_DIR, PROFILES_DIR, COMMANDS_DIR,
     AGENTS_DIR, PLUGIN_ROOT, SPEC_DIR, DESIGN_DIR, load_yaml,
 )
@@ -1338,7 +1338,7 @@ class TestEventTypeCompleteness:
 
     @pytest.mark.bdd
     def test_all_event_types_in_agent_reference(self):
-        """Iterate agent must document all 20 event types."""
+        """Iterate agent must document the Codex-local event reference set."""
         with open(AGENTS_DIR / "gen-iterate.md") as f:
             content = f.read()
         for event_type in self.REQUIRED_EVENT_TYPES:
@@ -1346,7 +1346,7 @@ class TestEventTypeCompleteness:
 
     @pytest.mark.bdd
     def test_all_event_types_in_design_doc(self):
-        """Design document must list all event types."""
+        """Design document must reference the Codex-local event reference set."""
         design_path = DESIGN_DIR / "AISDLC_V2_DESIGN.md"
         with open(design_path) as f:
             content = f.read()

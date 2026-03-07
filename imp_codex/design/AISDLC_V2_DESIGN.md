@@ -10,7 +10,7 @@
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Codex. It covers all 14 feature vectors defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Codex. It covers all 15 feature vectors currently defined in FEATURE_VECTORS.md.
 
 **Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
 
@@ -195,6 +195,8 @@ Note: legacy v1 records with root `event_type` remain valid historical records a
 
 All methodology commands emit events. The event log is the sole integration contract between the methodology and any external observer (e.g., genesis-monitor).
 
+Operational command events remain part of the Codex-local compatibility surface: `project_initialized`, `spawn_created`, `spawn_folded_back`, `checkpoint_created`, `review_completed`, `gaps_validated`, and `release_created`.
+
 This is an engine-level primitive (Layer 1) — it applies regardless of graph package.
 
 #### 1.5.1 Runtime Robustness for Probabilistic Processing (Spec §14, REQ‑ROBUST‑001/002/003/007/008)
@@ -317,12 +319,12 @@ The iterate agent instructions mandate these. Protocol violations are logged as 
 
 | File | What was added |
 |---|---|
-| `agents/gen-iterate.md` | Event Type Reference (16 command/coordination types), gradient observer table, `intent_raised` emission from backward/inward gap detection |
+| `agents/gen-iterate.md` | Event Type Reference (command, coordination, operational, and sensory types including `checkpoint_created`), gradient observer table, `intent_raised` emission from backward/inward gap detection |
 | `commands/gen-iterate.md` | Stuck delta detection (>3 iterations), refactoring signal, source escalation → `intent_raised` |
 | `commands/gen-gaps.md` | Gap cluster → `intent_raised` per domain group |
 | `config/edge_params/feedback_loop.yml` | 7 signal sources with intent templates and `intent_raised` schema |
 | `config/edge_params/tdd.yml` | Intent generation from stuck failures and refactoring needs |
-| All 9 commands | OpenLineage envelope (`eventType`) + `sdlc:event_type` facet standardised; event emission mandatory |
+| All 13 commands | OpenLineage envelope (`eventType`) + `sdlc:event_type` facet standardised; event emission mandatory |
 
 ### 1.8 Sensory Service (Spec §4.5.4)
 
@@ -1867,7 +1869,7 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 | REQ-F-EVENT-001 | §1.5 Event Sourcing + ADR-S-011/012/015 mapping | Design aligned, implementation convergence in progress |
 | REQ-F-EVOL-001 | §1.6/§1.7 consciousness loop + protocol enforcement | Design aligned, implementation convergence in progress |
 
-**Design coverage target updated to 14/14 feature vectors. Current executable baseline remains 735 tests passing, 3 xfail.**
+**Design coverage target updated to 15/15 feature vectors. Current executable baseline is the `imp_codex` test suite plus documented xfail exceptions.**
 
 ---
 

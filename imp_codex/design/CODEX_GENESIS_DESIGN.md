@@ -16,7 +16,7 @@ Primary objective: preserve methodology semantics and feature coverage while map
 
 Core objectives:
 
-1. **Reference parity**: Maintain feature-level compatibility with the current spec baseline (14 feature vectors).
+1. **Reference parity**: Maintain feature-level compatibility with the current spec baseline (15 feature vectors).
 2. **Native binding**: Map iterate/evaluator/context/tooling to Codex primitives without changing the Asset Graph model.
 3. **Spec-first control**: Keep disambiguation at intent/spec/design layers; use code/runtime observability as secondary unblock and validation controls.
 
@@ -218,7 +218,7 @@ This section is the explicit parity contract.
 | REQ-F-EVENT-001 | Claude ADR-S-011/012/015 alignment | Codex event stream + ADR-CG-004 | Aligned (in progress) |
 | REQ-F-EVOL-001 | Claude consciousness/spec-evolution loop | Codex §4 + observer pipeline | Aligned (in progress) |
 
-**14/14 feature vectors targeted for alignment with current specification.**
+**15/15 feature vectors targeted for alignment with current specification.**
 
 ---
 

@@ -10,7 +10,7 @@ import re
 import pytest
 import yaml
 
-from conftest import (
+from .conftest import (
     CONFIG_DIR, EDGE_PARAMS_DIR, PROFILES_DIR, COMMANDS_DIR,
     AGENTS_DIR, PLUGIN_ROOT, SPEC_DIR, DESIGN_DIR, load_yaml,
 )
@@ -884,11 +884,17 @@ class TestSensoryRequirements:
 
     @pytest.mark.tdd
     def test_design_doc_claims_all_feature_vectors(self):
-        """Design doc must claim all feature vectors covered (11 including SUPV-001)."""
+        """Design doc must claim the current spec feature-vector coverage."""
         design_path = DESIGN_DIR / "AISDLC_V2_DESIGN.md"
+        feature_vectors_path = SPEC_DIR / "FEATURE_VECTORS.md"
         with open(design_path) as f:
             content = f.read()
-        assert "11/11 feature vectors covered" in content
+        with open(feature_vectors_path) as f:
+            expected_count = len(re.findall(r"^### REQ-F-", f.read(), re.MULTILINE))
+        assert (
+            f"{expected_count}/{expected_count} feature vectors" in content
+            or f"all {expected_count} feature vectors" in content
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════

@@ -65,8 +65,8 @@ features_included:
 
 coverage:
   requirements: 14/20 (70%)
-  design: 14/14 (100%)
-  code: 14/14 (100%)
+  design: 15/15 (100%)
+  code: 15/15 (100%)
   tests: 12/14 (86%)
   uat: 8/14 (57%)
 

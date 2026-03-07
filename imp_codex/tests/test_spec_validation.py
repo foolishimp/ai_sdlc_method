@@ -12,7 +12,7 @@ import re
 
 import pytest
 
-from conftest import SPEC_DIR
+from .conftest import SPEC_DIR
 
 
 # ═══════════════════════════════════════════════════════════════════════
