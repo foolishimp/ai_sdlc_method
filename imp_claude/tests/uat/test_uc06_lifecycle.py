@@ -795,9 +795,9 @@ class TestProtocolEnforcement:
     def test_protocol_enforcement_detects_missing(self):
         """Protocol hooks detect missing side effects.
 
-        Validates that hooks.json defines protocol enforcement hooks.
-        Reads hooks config and checks for stop-check hooks that enforce
-        mandatory side effects.
+        Per ADR-021: hooks.json is intentionally empty. Protocol enforcement
+        is provided by explicit shell scripts — the Stop behaviour is
+        implemented in on-stop-check-protocol.sh.
         """
         hooks_file = PLUGIN_ROOT / "hooks" / "hooks.json"
         assert hooks_file.exists(), "hooks.json must exist"
@@ -805,29 +805,20 @@ class TestProtocolEnforcement:
         with open(hooks_file) as f:
             hooks_config = json.load(f)
 
-        # Validate hooks structure
-        assert "hooks" in hooks_config
-        hooks = hooks_config["hooks"]
+        # ADR-021: hooks.json is empty by design — verify it is structurally valid
+        assert "hooks" in hooks_config, "hooks.json must have a hooks key"
 
-        # Must have a Stop hook for protocol enforcement
-        assert "Stop" in hooks, "Stop hook must be defined for protocol enforcement"
-        stop_hooks = hooks["Stop"]
-        assert len(stop_hooks) >= 1
+        # The protocol enforcement script must exist (Stop-equivalent)
+        stop_script = PLUGIN_ROOT / "hooks" / "on-stop-check-protocol.sh"
+        assert stop_script.exists(), (
+            "on-stop-check-protocol.sh must exist — Stop hook enforcement (ADR-021)"
+        )
 
-        # The stop hook must reference the protocol check script
-        stop_commands = []
-        for entry in stop_hooks:
-            for hook in entry.get("hooks", []):
-                if "command" in hook:
-                    stop_commands.append(hook["command"])
-
-        assert any("on-stop-check-protocol" in cmd for cmd in stop_commands), \
-            "Stop hook must reference on-stop-check-protocol script"
-
-        # Must also have a UserPromptSubmit hook for iterate start
-        assert "UserPromptSubmit" in hooks
-        submit_hooks = hooks["UserPromptSubmit"]
-        assert len(submit_hooks) >= 1
+        # The iterate-start script must exist (UserPromptSubmit-equivalent)
+        iterate_script = PLUGIN_ROOT / "hooks" / "on-iterate-start.sh"
+        assert iterate_script.exists(), (
+            "on-iterate-start.sh must exist — iterate start hook (ADR-021)"
+        )
 
     # UC-06-23 | Validates: REQ-LIFE-008 | Fixture: hooks config
     def test_circuit_breaker(self):

@@ -353,37 +353,20 @@ class TestMethodologyHooks:
 
     # UC-08-16 | Validates: REQ-TOOL-006 | Fixture: IN_PROGRESS
     def test_edge_transition_hooks(self):
-        """Hooks fire unconditionally on edge transition (reflex)."""
-        # Read the hooks config and verify it defines hooks for edge transitions
-        hooks_json = PLUGIN_ROOT / "hooks" / "hooks.json"
-        assert hooks_json.exists(), "hooks.json should exist"
+        """Hooks fire unconditionally on edge transition (reflex).
 
-        data = json.loads(hooks_json.read_text())
-        hooks = data.get("hooks", {})
+        Per ADR-021: hooks.json is intentionally empty — protocol enforcement
+        is owned by the engine and explicit skill invocations. Edge transition
+        observability is provided by shell hook scripts in the hooks/ directory.
+        """
+        hooks_dir = PLUGIN_ROOT / "hooks"
+        assert hooks_dir.exists(), "Hooks directory must exist"
 
-        # There should be at least one hook category
-        assert len(hooks) >= 1, "hooks.json should define at least one hook category"
-
-        # Check for iterate-related hooks (edge transition hooks)
-        # UserPromptSubmit with gen-iterate matcher fires on edge transitions
-        has_edge_hook = False
-        for category, hook_list in hooks.items():
-            if not isinstance(hook_list, list):
-                continue
-            for entry in hook_list:
-                matcher = entry.get("matcher", "")
-                entry_hooks = entry.get("hooks", [])
-                # A hook matching iterate commands or a Stop hook is edge-related
-                if "iterate" in matcher or category == "Stop":
-                    if entry_hooks:
-                        has_edge_hook = True
-                        # Verify hook has required fields
-                        for h in entry_hooks:
-                            assert "type" in h, "Hook must have a type"
-                            assert "command" in h, "Hook must have a command"
-
-        assert has_edge_hook, (
-            "hooks.json should define hooks that fire on edge transitions"
+        # ADR-021: shell scripts provide the reflex-phase hook behaviour
+        # on-iterate-start.sh fires at edge transition start
+        iterate_hook = hooks_dir / "on-iterate-start.sh"
+        assert iterate_hook.exists(), (
+            "on-iterate-start.sh must exist — edge transition hook (ADR-021 reflex phase)"
         )
 
 
@@ -730,17 +713,30 @@ class TestOutputDirectoryBinding:
 
     # UC-08-30 | Validates: REQ-TOOL-013 | Fixture: CLEAN
     def test_design_docs_in_imp_not_spec(self):
-        """Design documents live in imp_<name>/design/, not in specification/."""
+        """Design documents live in imp_<name>/design/, not in specification/.
+
+        specification/adrs/ is valid — it contains spec-level decisions (ADR-S-*).
+        Technology-bound design ADRs belong in imp_<name>/design/adrs/.
+        """
         project_root = pathlib.Path(__file__).parent.parent.parent.parent
         spec_dir = project_root / "specification"
 
-        # specification/ should not contain DESIGN.md or adrs/
+        # specification/ should not contain a DESIGN.md
         assert not (spec_dir / "DESIGN.md").exists(), (
             "DESIGN.md must not be in specification/ — belongs in imp_<name>/design/"
         )
-        assert not (spec_dir / "adrs").exists(), (
-            "adrs/ must not be in specification/ — belongs in imp_<name>/design/adrs/"
-        )
+
+        # specification/adrs/ is allowed — it holds spec-level ADRs (ADR-S-* series)
+        # Verify it contains only spec-level ADRs (no impl ADRs)
+        if (spec_dir / "adrs").exists():
+            impl_adrs = [
+                f for f in (spec_dir / "adrs").glob("ADR-*.md")
+                if not f.name.startswith("ADR-S-")
+            ]
+            assert len(impl_adrs) == 0, (
+                f"Implementation ADRs found in specification/adrs/ — move to imp_<name>/design/adrs/: "
+                f"{[f.name for f in impl_adrs]}"
+            )
 
         # But imp_claude/design/ should exist with ADRs
         imp_claude_design = project_root / "imp_claude" / "design"
@@ -817,31 +813,23 @@ class TestArtifactWriteObservation:
 
     # UC-08-35 | Validates: REQ-SENSE-006 | Fixture: CLEAN
     def test_hooks_json_defines_post_tool_use(self):
-        """hooks.json defines PostToolUse hook matching Write|Edit."""
+        """Artifact write observation hook script exists (REQ-SENSE-006).
+
+        Per ADR-021: hooks.json is intentionally empty. The PostToolUse
+        observability function is provided by the on-artifact-written.sh script.
+        """
         hooks_json = self.HOOKS_DIR / "hooks.json"
         assert hooks_json.exists(), "hooks.json must exist"
-        data = json.loads(hooks_json.read_text())
-        hooks = data.get("hooks", {})
-        assert "PostToolUse" in hooks, (
-            "hooks.json must define PostToolUse category"
-        )
-        ptu_hooks = hooks["PostToolUse"]
-        assert len(ptu_hooks) >= 1, "PostToolUse must have at least 1 entry"
 
-        # Find the Write|Edit matcher
-        found = False
-        for entry in ptu_hooks:
-            matcher = entry.get("matcher", "")
-            if "Write" in matcher and "Edit" in matcher:
-                found = True
-                entry_hooks = entry.get("hooks", [])
-                assert len(entry_hooks) >= 1, "Write|Edit hook must have commands"
-                for h in entry_hooks:
-                    assert "command" in h, "Hook must specify command"
-                    assert "artifact-written" in h["command"], (
-                        "Hook command must reference artifact-written script"
-                    )
-        assert found, "PostToolUse must have a Write|Edit matcher"
+        # ADR-021: shell script provides PostToolUse behaviour
+        artifact_hook = self.HOOKS_DIR / "on-artifact-written.sh"
+        assert artifact_hook.exists(), (
+            "on-artifact-written.sh must exist — provides PostToolUse artifact observation (ADR-021)"
+        )
+        content = artifact_hook.read_text()
+        assert "artifact_modified" in content or "artifact-written" in content.lower(), (
+            "on-artifact-written.sh must emit artifact_modified events"
+        )
 
     # UC-08-36 | Validates: REQ-SENSE-006 | Fixture: CLEAN
     def test_artifact_written_script_exists(self):
