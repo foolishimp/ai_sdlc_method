@@ -1360,6 +1360,31 @@ This is the same relationship as:
 
 The event sourcing model is an engine-level primitive (§2.8, Layer 1) — it applies regardless of which graph package or project binding is in use.
 
+#### 7.4.4 CQRS: Command/Query Separation and Workspace Isolation
+
+The event sourcing model implements **CQRS (Command/Query Responsibility Segregation)**: the write side and the read side are structurally separate.
+
+**Command side (write)**: `events.jsonl` — append-only, immutable, owned exclusively by the workspace. Every `iterate()` invocation appends to this log. No external agent modifies it.
+
+**Query side (read)**: All projections — `STATUS.md`, feature vectors, task lists, gap analysis. Derived views computed from the event log on demand. They can be discarded and reconstructed at any time.
+
+**Workspace as bounded event log**: Each `.ai-workspace/` is a complete, self-contained CQRS unit. The project IS its event accumulation. A workspace without an event log has no history; a workspace with one can reconstruct any past state.
+
+**Fractal composition**: Because the command side is isolated per workspace, workspaces compose without coupling. A parent project builds a read model by projecting across child event logs — consuming their query side without writing to their command side. The child workspaces are unaware of the parent's read model.
+
+```
+parent/.ai-workspace/events/events.jsonl       ← parent command side (isolated)
+  └─ parent read model (projects across children)
+       ├─ child_a/.ai-workspace/events/events.jsonl  ← child A command side (isolated)
+       └─ child_b/.ai-workspace/events/events.jsonl  ← child B command side (isolated)
+```
+
+**Independent version evolution**: Because each workspace's command side is fully isolated, the spec version, graph topology, and evaluator configuration can evolve independently per workspace. A workspace on spec v2.8 and one on v3.0 coexist without conflict. The `context_hash` field on each event records the exact spec state that governed that iteration — version history is encoded in the log, not managed externally.
+
+A parent read model aggregates events from workspaces at different spec versions without requiring version alignment. New projections can be defined at any time to read across the full event history, including events produced under prior spec versions.
+
+This is the structural basis for scaling the methodology from a single project to an organisation of projects without coordination cost.
+
 ### 7.5 Methodology Self-Observation
 
 The methodology observes itself using the same evaluator pattern it uses for artifacts. The observer/evaluator at the telemetry→intent edge (§7.3) applies not only to the running system but to the **methodology's own performance**.
