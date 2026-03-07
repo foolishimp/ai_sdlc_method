@@ -119,40 +119,88 @@ def classify_source_finding(description: str) -> ClassificationResult:
 def classify_signal_source(event: dict) -> str:
     """Deterministic signal source classification from event fields.
 
-    Maps event_type to signal source category.
+    Maps event_type to signal source category. Falls back to OL eventType
+    for raw OL events that normalize_event could not convert (no sdlc:event_type facet).
     """
     event_type = event.get("event_type", "")
 
     signal_map = {
+        # Core iteration lifecycle
         "iteration_started": "iteration",
         "iteration_completed": "iteration",
+        "iteration_failed": "failure",
         "iteration_abandoned": "iteration",
+        # Edge lifecycle
         "edge_started": "edge_transition",
         "edge_converged": "convergence",
+        # Spawn lifecycle
         "spawn_created": "spawn",
         "spawn_folded_back": "spawn",
-        "checkpoint_created": "checkpoint",
-        "review_completed": "review",
-        "gaps_validated": "traceability",
-        "release_created": "release",
-        "project_initialized": "lifecycle",
-        "health_checked": "health",
-        "intent_raised": event.get("data", {}).get("signal_source", "unknown"),
-        "encoding_escalated": "escalation",
-        "artifact_modified": "artifact",
-        # Consciousness loop Stage 2+3 (ADR-011)
-        "feature_proposal": "proposal",
-        "feature_proposal_dismissed": "proposal",
-        "spec_modified": "spec_evolution",
-        # F_D / F_P failure observability (REQ-ROBUST-007)
-        "fp_failure": "failure",
+        "feature_spawned": "spawn",
+        # Convergence / evaluation
+        "evaluator_voted": "evaluation",
+        "evaluator_ran": "evaluation",
         "evaluator_detail": "evaluation",
-        # Multi-agent coordination (ADR-013, REQ-COORD-002)
+        "consensus_reached": "convergence",
+        "convergence_achieved": "convergence",
+        # Coordination (ADR-013)
         "edge_claim": "coordination",
+        "edge_claimed": "coordination",
         "claim_rejected": "coordination",
         "claim_expired": "coordination",
         "edge_released": "coordination",
         "convergence_escalated": "escalation",
+        # Escalation / encoding
+        "encoding_escalated": "escalation",
+        "transition_authorized": "convergence",
+        "transition_denied": "failure",
+        # Consciousness loop / proposals (ADR-011)
+        "feature_proposal": "proposal",
+        "feature_proposed": "proposal",
+        "feature_approved": "proposal",
+        "feature_dismissed": "proposal",
+        "feature_proposal_dismissed": "proposal",
+        # Spec evolution (REQ-EVOL-004)
+        "spec_modified": "spec_evolution",
+        # Sensory systems (REQ-SENSE-*)
+        "telemetry_signal_emitted": "telemetry",
+        "exteroceptive_signal": "sensory",
+        "observer_signal": "sensory",
+        # Intent / homeostasis
+        "intent_raised": event.get("data", {}).get("signal_source", "homeostasis"),
+        "finding_raised": "health",
+        # Lifecycle
+        "project_initialized": "lifecycle",
+        "status_generated": "lifecycle",
+        "context_arrived": "lifecycle",
+        # Artifact / artifact hooks
+        "artifact_modified": "artifact",
+        # Traceability / gaps
+        "gaps_validated": "traceability",
+        # Checkpoints / reviews / releases
+        "checkpoint_created": "checkpoint",
+        "review_completed": "review",
+        "release_created": "release",
+        # F_D / F_P failures (REQ-ROBUST-007)
+        "fp_failure": "failure",
+        "command_error": "failure",
+        # Saga compensation (REQ-EVENT-004)
+        "compensation_triggered": "failure",
+        "compensation_completed": "convergence",
+        # Health
+        "health_checked": "health",
     }
 
-    return signal_map.get(event_type, "unknown")
+    if event_type:
+        return signal_map.get(event_type, "unknown")
+
+    # Fallback: raw OL event with no sdlc:event_type facet — use top-level eventType
+    ol_type = event.get("eventType", "")
+    ol_fallback = {
+        "START": "iteration",
+        "COMPLETE": "convergence",
+        "FAIL": "failure",
+        "ABORT": "iteration",
+        "OTHER": "lifecycle",
+    }
+    return ol_fallback.get(ol_type, "unknown")

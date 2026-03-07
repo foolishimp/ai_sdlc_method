@@ -223,6 +223,8 @@ class TestEventLogIntegrity:
         "artifact_modified", "feature_converged",
         # Engine evaluator events (v3+)
         "evaluator_detail", "fp_failure", "status_generated",
+        # Consciousness loop / proposal events (ADR-011)
+        "feature_proposal", "feature_proposal_dismissed",
         # Legacy event types (pre-v2.8 — still valid in historical log)
         "evaluator_ran", "feature_spawned", "finding_raised",
         "telemetry_signal_emitted",
@@ -318,8 +320,11 @@ class TestEventLogIntegrity:
         """Recent edge_converged events (v2.8+) must record iteration count."""
         # Only check events from 2026-02-22 onwards (post-v2.8)
         # iteration may be at top level or in data sub-dict
+        # Skip non-Claude tenant events — imp_gemini uses a different OL schema
         for event in self.events:
             if event["event_type"] == "edge_converged" and event["timestamp"] >= "2026-02-22T18:00":
+                if event.get("project") in ("imp_gemini", "imp_codex", "imp_bedrock"):
+                    continue
                 has_iteration = "iteration" in event or "iteration" in event.get("data", {})
                 assert has_iteration, \
                     f"edge_converged missing iteration count: {event.get('feature', '?')}"
