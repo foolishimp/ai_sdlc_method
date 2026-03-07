@@ -1,8 +1,8 @@
 # Genesis Monitor — Requirements Specification
 
-**Version**: 3.1.0
-**Date**: 2026-03-03
-**Status**: Converged — iterate(intent→requirements) for INT-GMON-009
+**Version**: 3.2.0
+**Date**: 2026-03-08
+**Status**: Iterating — iterate(intent→requirements) for INT-GMON-010 (graph trail visualization)
 **Feature**: REQ-F-GMON-001, REQ-F-GMON-002, REQ-F-MTEN-001
 **Source Asset**: docs/specification/INTENT.md v3.0.0 (5 intent items, 32 outcomes)
 **Methodology**: AI SDLC Asset Graph Model v2.8
@@ -48,6 +48,7 @@ Genesis Monitor is a real-time web dashboard that observes AI SDLC methodology e
 | REQ-F-ETIM-* | INT-GMON-005 (Edge timestamps) |
 | REQ-F-CTOL-* | INT-GMON-005 (Constraint tolerances) |
 | REQ-F-MTEN-* | INT-GMON-009 (Multi-design tenancy) |
+| REQ-F-GVIZ-* | INT-GMON-010 (Event trail graph visualization) |
 
 ### 1.4 Target Implementation
 
@@ -1212,3 +1213,97 @@ The event log supports replay (reconstruct project state at any past moment), wh
 2. The selected projection is reflected in the URL as a query parameter (`?tenant=imp_claude&profile=standard`).
 3. All views respect the active projection — event counts, convergence state, and artifact links are scoped to the projection.
 4. The temporal scrubber (existing REQ-F-NAV-001) applies within the selected projection.
+
+---
+
+## 31. Event Trail Graph (v3.2 — graph-primary navigation)
+
+**Intent**: The timeline table is difficult to navigate in isolation — a long list of rows does not convey the *shape* of the project's execution history. The primary navigation surface should be a visual graph showing the methodology asset types as nodes and EdgeRuns as arcs connecting them. This is not a static diagram of the graph topology — it is the literal trail of execution events laid over that topology. The user sees where the project has been, how many times each edge has been traversed, and the outcome of each traversal. The graph contextualises the table: selecting a node or arc filters the table to the matching runs.
+
+The trail metaphor is deliberate. Like a forest trail worn into the ground by repeated passage, arcs that have been traversed many times appear more prominent. A single clean convergence is a thin, solid arc. Five iterations before converging is a heavier arc. A failed traversal is a red scar. The visual encodes the *effort* of construction, not just its outcome.
+
+**New Intent Item**: INT-GMON-010 — Graph-primary navigation: the user understands the project by reading the execution trail across the methodology graph, not by reading a table.
+
+### REQ-F-GVIZ-001: Topology Node Layout
+
+**Priority**: Critical
+**Traces To**: INT-GMON-010
+
+**Statement**: The asset type nodes of the methodology graph are rendered as named nodes arranged to reflect the standard SDLC topology order — from left (inception) to right (production). The layout makes the direction of iteration visible at a glance.
+
+**Acceptance Criteria**:
+1. Each distinct asset type that appears as a source or target in at least one EdgeRun is rendered as a labelled node.
+2. Nodes are ordered left-to-right following the canonical SDLC chain: intent → requirements → feature_decomposition → design → module_decomposition → basis_projections → code → unit_tests → uat_tests → cicd → telemetry. Unknown asset types are appended at the right.
+3. Node label uses the display name from `graph_topology.yml` if available; falls back to the raw identifier.
+4. Nodes that have no EdgeRuns in the current view (due to active filter) are rendered faded but remain in position to preserve spatial orientation.
+5. Each node shows a count badge: total runs for which this node was either source or target.
+
+### REQ-F-GVIZ-002: EdgeRun Arc Rendering — The Trail
+
+**Priority**: Critical
+**Traces To**: INT-GMON-010
+
+**Statement**: Every EdgeRun in the current view is rendered as an arc connecting its source node to its target node. Multiple runs on the same (source, target) pair are rendered as parallel arcs, forming a visible bundle. The bundle's visual weight reflects cumulative traversal effort.
+
+**Acceptance Criteria**:
+1. Each EdgeRun is a distinct arc. If N runs exist for the same (source, target) pair, N distinct arcs are drawn, offset so they are individually distinguishable.
+2. Arc **weight** (stroke width) is proportional to the iteration count for that run: a single-iteration convergence is thin; a run requiring many iterations is thick. The relationship is logarithmic to prevent extreme widths.
+3. Arc **style** encodes convergence status:
+   - Converged: solid line.
+   - In progress: dashed line.
+   - Failed or aborted: visually distinct (e.g. dotted, or rendered in a warning colour).
+4. Arc **colour** encodes the feature vector: each distinct feature (REQ-F-*) is assigned a stable colour from a palette. The same feature always gets the same colour within a session.
+5. Arc **opacity** encodes recency: the most recent run on an edge is fully opaque; older runs fade proportionally. The oldest run in the visible set is at minimum 30% opacity.
+6. Bidirectional edges (e.g. `code↔unit_tests`) are rendered with arcs in both directions (two arc bundles), distinguished by direction.
+7. The arc for an `in_progress` run animates (e.g. a travelling dash or pulse) to indicate live activity.
+
+### REQ-F-GVIZ-003: Interactive Selection and Table Synchronisation
+
+**Priority**: Critical
+**Traces To**: INT-GMON-010
+
+**Statement**: The graph and the table are synchronised. Selecting a node or arc in the graph filters the table to the matching runs; applying a table filter highlights the corresponding arcs in the graph. The two views are always consistent.
+
+**Acceptance Criteria**:
+1. Clicking an arc selects that EdgeRun's (feature, edge) pair. The table below scrolls to and highlights the matching rows. All non-matching rows are visually de-emphasised (not hidden — the user can still scroll to them).
+2. Clicking a node selects all EdgeRuns touching that asset type (as source or target). The table is filtered to those runs.
+3. Clicking the graph background clears the selection (returns to unfiltered state).
+4. Hovering an arc shows a tooltip containing: feature ID, edge name, run count, iteration count, delta, status, start time.
+5. The table's filter bar reflects the active graph selection (feature and/or edge fields are populated). Editing the filter bar updates the graph highlight.
+6. The active selection is reflected in the URL as query parameters (`?feature=REQ-F-001&edge=code↔unit_tests`), making it bookmarkable and shareable.
+7. On page load, if filter query params are present, the graph renders with the corresponding arcs pre-highlighted.
+
+### REQ-F-GVIZ-004: Effort and Health Encoding at the Node Level
+
+**Priority**: High
+**Traces To**: INT-GMON-010
+
+**Statement**: Nodes encode the aggregate health and effort of all traversals that pass through them — providing an at-a-glance "heat map" of the methodology graph.
+
+**Acceptance Criteria**:
+1. Node **size** scales with the total number of EdgeRuns touching that node (source + target combined). A node with many runs is larger than one with few.
+2. Node **colour fill** reflects aggregate convergence health: all converged → green; any in_progress → amber; any failed → red tint; no runs → neutral.
+3. A node with in-progress runs pulses (animation) to draw attention to active work.
+4. Clicking a node shows a tooltip: asset type name, total runs, converged count, in_progress count, failed count, features active at this node.
+
+### REQ-F-GVIZ-005: Feature Legend and Colour Identity
+
+**Priority**: High
+**Traces To**: INT-GMON-010
+
+**Statement**: A legend maps feature IDs to their assigned colours and provides per-feature filtering controls.
+
+**Acceptance Criteria**:
+1. A legend is shown alongside the graph listing each feature that appears in the current view, with its colour swatch, feature ID, and total run count.
+2. Clicking a legend entry toggles that feature's visibility: its arcs are hidden/shown in the graph, and the table is filtered accordingly.
+3. The legend shows the feature's current status icon (converged, in_progress, failed, pending).
+4. Features are sorted in the legend by: status (in_progress first, then failed, then converged), then by feature ID.
+5. A "select all / deselect all" control is available for the legend.
+
+---
+
+## 32. Requirements Summary
+
+**Total REQ-F-GVIZ keys**: 5 (REQ-F-GVIZ-001 through REQ-F-GVIZ-005)
+**All graph visualization requirements**: INT-GMON-010
+**Iteration**: v3.2 — graph-primary navigation
