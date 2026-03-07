@@ -69,12 +69,12 @@ In the methodology:
 - **Feature level**: feature vector trajectory as internal states, the build graph as external
 - **Edge level**: candidate asset as internal state, evaluators as sensory input
 
-This is the basis of the lineage DAG (ADR-027): live lineage connections ARE sensory couplings between Markov blankets at adjacent scales.
+This is the basis of the lineage DAG (**ADR-027**, implementation): live lineage connections ARE sensory couplings between Markov blankets at adjacent scales.
 
 **Evolutionary stages** (where the methodology currently sits and where it is going):
-- **Prokaryote** (current): single-cell, working blanket, no bounded nucleus — the project workspace IS the cell
-- **Eukaryote** (next): design tenant as a bounded nucleus within the workspace — internal specialisation
-- **Multicellular** (future): projects coupled through live lineage — the first primitive multicellular structure; tournament pattern (ADR-S-018) is the first division of labour
+- **Prokaryote** (current): single-cell, working blanket, no bounded nucleus — the project workspace IS the cell.
+- **Eukaryote** (next): bounded sub-structures (e.g. design tenants) within the workspace — internal specialisation.
+- **Multicellular** (future): projects coupled through live lineage — the first primitive multicellular structure; tournament pattern (ADR-S-018) is the first division of labour.
 
 ---
 
@@ -84,10 +84,10 @@ This is the basis of the lineage DAG (ADR-027): live lineage connections ARE sen
 
 The specification explicitly adopts the Friston active inference framework as the **formal theoretical foundation** of the methodology. This is not a metaphor or analogy — it is a structural identity:
 
-- The Markov blanket definition IS the definition of a valid project workspace boundary
-- iterate() IS discrete-time active inference (free energy minimisation)
-- The three evaluator types IS the exhaustive taxonomy of prediction error under irreducible uncertainty
-- Convergence IS free energy minimisation to a stable prior (the spec)
+- The Markov blanket definition IS the definition of a valid project workspace boundary.
+- iterate() IS discrete-time active inference (free energy minimisation).
+- The three evaluator types IS the exhaustive taxonomy of prediction error under irreducible uncertainty.
+- Convergence IS free energy minimisation to a stable prior (the spec).
 
 These identities are stated explicitly in the specification (§2.10, §3.3) and referenced from relevant sections.
 
@@ -99,10 +99,10 @@ Consequence: the workspace must be observable. An unobservable workspace = a Mar
 
 ### 3. Nested Blankets Define the Context Hierarchy
 
-The lineage DAG (ADR-027) is the instantiation of nested Markov blankets in the methodology:
-- Live lineage sources = sensory couplings between blankets at adjacent levels
-- Static lineage sources = information transferred at blanket formation (cell division / project inception)
-- `load_context_hierarchy()` = the merge operation that collapses the DAG into an effective constraint surface
+The lineage DAG (**ADR-027**, implementation) is the instantiation of nested Markov blankets in the methodology:
+- Live lineage sources = sensory couplings between blankets at adjacent levels.
+- Static lineage sources = information transferred at blanket formation (cell division / project inception).
+- `load_context_hierarchy()` = the merge operation that collapses the DAG into an effective constraint surface.
 
 The context hierarchy is not a configuration pattern — it is the formal expression of nested Markov blankets in the SDLC domain.
 
@@ -110,11 +110,11 @@ The context hierarchy is not a configuration pattern — it is the formal expres
 
 The prokaryote/eukaryote/multicellular classification is adopted as the **architecture roadmap** for the methodology's own development:
 
-| Stage | Feature | Current Status |
-|-------|---------|---------------|
-| Prokaryote | Working Markov blanket — workspace, events, monitors | Complete |
-| Eukaryote | Bounded nucleus — design tenant as internal specialisation | Partially implemented (ADR-027) |
-| Multicellular | Live lineage coupling between projects | Designed (ADR-027 §4, §8); not yet implemented |
+| Stage | Feature |
+|-------|---------|
+| Prokaryote | Working Markov blanket — workspace, events, monitors |
+| Eukaryote | Bounded nucleus — internal specialisation (tenants) |
+| Multicellular | Live lineage coupling between projects |
 
 This framing supersedes vague "future work" descriptions — each stage has a formal biological analogue that predicts what must be implemented and why.
 

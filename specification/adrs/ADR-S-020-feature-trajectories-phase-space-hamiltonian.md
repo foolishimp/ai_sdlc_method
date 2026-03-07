@@ -90,7 +90,7 @@ The "point map" view — showing all in-flight features at their current (edge, 
 
 The Gantt chart (§7.4.2) is a further projection: it projects the (graph × time) space onto a calendar timeline. The phase space representation is more fundamental — calendar time is a derived view.
 
-### 2. The Hamiltonian H = T + V is the Canonical Iteration Cost Metric
+### The Hamiltonian H = T + V is the Canonical Iteration Cost Metric
 
 The Hamiltonian is adopted as the **canonical cost metric** for feature traversal:
 
@@ -98,16 +98,16 @@ The Hamiltonian is adopted as the **canonical cost metric** for feature traversa
 |--------|-----------|----------------|
 | T | Total iterations completed to date | `iteration` field in events, accumulated |
 | V | Current delta (failing evaluator count) | `delta` field or evaluator results in events |
-| H = T + V | Total iteration cost | Derived from T and V at any point |
+| H = T + V | Total Traversal Cost (Sunk + Remaining) | Derived from T and V at any point |
 
-H has four diagnostic patterns:
+**H diagnostic patterns (assuming dt = 1 iteration):**
 
-| Pattern | Interpretation | Action |
-|---------|---------------|--------|
-| H decreasing monotonically | Healthy convergence | None — proceed |
-| H stuck (flat across iterations) | Blocked feature | Escalate (η: F_D→F_P or F_P→F_H) |
-| H oscillating | Conflicting constraints | Human review of evaluator disagreement |
-| H at convergence (V=0) | Complete — H=T is sunk cost | Promote asset, begin next edge |
+| Pattern | Interpretation | Logic |
+|---------|---------------|-------|
+| **dH/dt < 0** | Super-linear convergence | Resolving > 1 check per iteration |
+| **dH/dt = 0** | Unit-efficient convergence | Resolving exactly 1 check per iteration (Healthy) |
+| **dH/dt > 0** | High-friction / Dense surface | Resolving < 1 check per iteration (Inefficient) |
+| **dH/dt = 1** | Blocked feature | dV/dt = 0. Effort (T) spent with zero progress (V) |
 
 H is computed from the event log — it does not require any additional instrumentation.
 
@@ -134,13 +134,18 @@ Implementation note: `EdgeConvergence.hamiltonian` was added to `models/core.py`
 
 ### 5. Convergence Rate as Constraint Surface Density Observable
 
-The convergence rate `−dH/dt` (discrete: ΔH per iteration) is a direct observable of the density of the constraint surface at that point in the graph:
+The delta drop rate `−dV/dt` (how fast failing evaluators resolve per iteration) is the direct observable of constraint surface density:
 
-- **High convergence rate** (H drops quickly) → sparse constraint surface → few conflicts → well-specified requirements
-- **Low convergence rate** (H drops slowly) → dense constraint surface → many constraints → rich, overlapping requirements or ambiguous spec
-- **Zero convergence rate** (H flat) → blocked → constraint surface has no admissible direction of travel from this position without a change in the constraint surface itself (spec update or evaluator relaxation)
+- **−dV/dt > 1** (super-linear convergence) → sparse constraint surface → few conflicts → well-specified requirements
+- **−dV/dt = 1** (unit-efficient convergence) → normal, healthy traversal — one check resolved per iteration
+- **−dV/dt = 0** (delta unchanging) → blocked → constraint surface has no admissible direction of travel from this position without a change in the constraint surface itself (spec update or evaluator relaxation)
 
-This makes constraint surface density **empirically observable** from the event log — without requiring any additional instrumentation beyond the existing iteration events.
+The H diagnostic in §2 captures the same patterns via `dH/dt = 1 + dV/dt`:
+- dH/dt < 0 ↔ −dV/dt > 1 (super-linear) — H drops
+- dH/dt = 0 ↔ −dV/dt = 1 (healthy) — H flat
+- dH/dt = 1 ↔ −dV/dt = 0 (blocked) — H rises at rate 1
+
+H is the **cost metric** (sunk + remaining); `−dV/dt` is the **convergence signal**. Both are empirically observable from `events.jsonl` without additional instrumentation.
 
 ---
 
@@ -170,9 +175,9 @@ This makes constraint surface density **empirically observable** from the event 
 
 **§6.8 (Feature Vectors — Hamiltonian)**: This ADR is the decision record for §6.8.
 
-**§7.1 (The Gradient)**: H integrates the gradient across a trajectory. The gradient at a single point is `delta(state, constraints) → work`; H accumulates that work:
+**§7.1 (The Gradient)**: H tracks the gradient across a trajectory. The gradient at a single point is `delta(state, constraints) → work`; H accumulates that work:
 ```
-H_total = T + V_current = Σ_edges(iterations_per_edge) + current_delta
+H_total = T + V_current
 ```
 
 **ADR-S-019 (Markov Blankets)**: The phase space trajectory is the trajectory of the internal state through the blanket's configuration space. H is the free energy integrated over the trajectory — the total prediction error the system has had to resolve.
@@ -185,8 +190,5 @@ H_total = T + V_current = Σ_edges(iterations_per_edge) + current_delta
 - §7.1: The Gradient — single-point delta that H accumulates
 - ADR-S-019: Markov Blankets and Active Inference — free energy connection
 - ADR-S-012: Event Stream as Formal Model Medium — events.jsonl as time axis
-- ADR-022: Instance Graph from Events — position map (H adds momentum and cost)
-- Genesis Monitor: `ai_sdlc_examples/local_projects/genisis_monitor`
-  - `models/core.py`: `EdgeConvergence.hamiltonian`
-  - `projections/convergence.py`: `build_convergence_table_from_events()` — H computation
+- **ADR-022 (implementation)**: Project Instance Graph — position map (H adds momentum and cost)
 - Constraint-Emergence Ontology §VI: Hamiltonian as manifold-level description of constraint propagation

@@ -1069,21 +1069,21 @@ For each (feature, edge, iteration_k):
 | **p** | Convergence rate = −d(delta)/d(iteration) (momentum) | Slope of `delta_curve` |
 | **H(q, p)** | Total cost at position q with momentum p | T + V at any iteration |
 
-**H as a diagnostic:**
+**H diagnostic (assuming dt = 1 iteration):**
 
-| H pattern | Interpretation |
-|-----------|---------------|
-| H decreasing monotonically | Healthy convergence — energy dissipated as work done |
-| H stuck (flat across iterations) | Blocked feature — delta not decreasing despite iterations |
-| H oscillating | Conflicting constraints — evaluators disagree across iterations |
-| H at convergence | V=0, H=T — sunk cost only, no remaining gradient |
+| H pattern | Interpretation | Logic |
+|-----------|---------------|-------|
+| **dH/dt < 0** | Efficient convergence | Resolving > 1 check per iteration |
+| **dH/dt = 0** | Unit-efficient convergence | Resolving exactly 1 check per iteration (Healthy) |
+| **dH/dt > 0** | High-friction / Dense surface | Resolving < 1 check per iteration (Inefficient) |
+| **dH/dt = 1** | Blocked feature | dV/dt = 0. Effort spent with zero progress |
 
 **Connection to §7.1 (The Gradient):**
 
-The Hamiltonian integrates the gradient across a trajectory. Where §7.1 defines `delta(state, constraints) → work` at a single scale, H accumulates that work across the full traversal:
+The Hamiltonian tracks the gradient across a trajectory. Where §7.1 defines `delta(state, constraints) → work` at a single scale, H accumulates that work (T) alongside the remaining potential (V):
 
 ```
-H_total = Σ_k delta_k   (discrete sum — T counts iterations, V is the current term)
+H_total = T + V_current
 ```
 
 A high initial H (when T=0) means the constraint surface is **dense** — many failing checks, much potential energy to dissipate. The convergence rate `−dH/dt` is a direct observable of constraint surface density: rapid convergence = sparse constraints, slow convergence = dense or conflicting constraints.
