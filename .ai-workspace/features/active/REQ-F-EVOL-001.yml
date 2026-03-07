@@ -1,18 +1,62 @@
+constraints:
+  acceptance_criteria:
+  - workspace_schema_violation_raised_on_forbidden_fields
+  - spec_modified_emitted_before_spec_file_write
+  - no_autonomous_spec_promotion
+  - gen_status_shows_ACTIVE_PENDING_ORPHAN_categories
+  - spec_hash_verifiable_from_event_log
+  - draft_features_queue_computable_from_events_alone
+created: '2026-03-05T00:00:00Z'
 feature: REQ-F-EVOL-001
-title: Spec Evolution Pipeline
 intent: INT-AISDLC-001
-vector_type: feature
-profile: standard
-status: pending
-priority: medium
-created: "2026-03-05T00:00:00Z"
-updated: "2026-03-05T00:00:00Z"
 parent_id: REQ-F-LIFE-001
+priority: medium
+profile: standard
+status: in_progress
+title: Spec Evolution Pipeline
 trajectory:
-  intent: pending
-  requirements: pending
-  feature_decomposition: pending
-  design: pending
-  code: pending
-  unit_tests: pending
-  uat_tests: pending
+  code:
+    asset: imp_claude/code/genesis/workspace_state.py
+    asset_hash: sha256:7fb1bb972047cf63cb57755f260d86b808866e072e56a7b7af1ba208b47a9cda
+    converged_at: '2026-03-07T13:15:00Z'
+    iteration: 1
+    started_at: '2026-03-07T12:05:00Z'
+    status: converged
+  design:
+    asset: imp_claude/design/adrs/ADR-030-spec-evolution-pipeline-design.md
+    asset_hash: sha256:f2be936158697dcb9e5951587acdc2e5fc7a014945602dc8e8a113b3f02c0576
+    converged_at: '2026-03-07T12:01:35Z'
+    iteration: 1
+    started_at: '2026-03-07T11:59:30Z'
+    status: converged
+  feature_decomposition:
+    asset: imp_claude/design/adrs/ADR-030-spec-evolution-pipeline-design.md
+    asset_hash: sha256:f2be936158697dcb9e5951587acdc2e5fc7a014945602dc8e8a113b3f02c0576
+    converged_at: '2026-03-07T12:01:35Z'
+    iteration: 1
+    status: converged
+  intent:
+    asset: imp_claude/design/features/REQ-F-EVOL-001-requirements.md
+    asset_hash: sha256:0aaa2bcb6256b9ad976e1edce9826b5865c83065f6215315cacd47aa661a8597
+    converged_at: '2026-03-07T11:57:00Z'
+    iteration: 2
+    started_at: '2026-03-07T10:52:00Z'
+    status: converged
+  requirements:
+    asset: imp_claude/design/features/REQ-F-EVOL-001-feature-decomp.md
+    asset_hash: sha256:c7ed149e7d6c7718877c48acab3f7b5b8354c43115296589e2d9c9aded767106
+    converged_at: '2026-03-07T11:59:15Z'
+    iteration: 1
+    started_at: '2026-03-07T11:59:15Z'
+    status: converged
+  uat_tests:
+    status: pending
+  unit_tests:
+    asset: imp_claude/tests/test_spec_evolution.py
+    asset_hash: sha256:62ef1b643b48e951e3395d4679683a99f015d2e4fe532f77340766fbc1f97c5a
+    converged_at: '2026-03-08T00:30:00Z'
+    iteration: 1
+    started_at: '2026-03-07T13:20:00Z'
+    status: converged
+updated: '2026-03-08T00:30:00Z'
+vector_type: feature

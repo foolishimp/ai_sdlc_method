@@ -34,18 +34,22 @@ import yaml
 # DELTA TYPES
 # ═══════════════════════════════════════════════════════════════════════
 
-DELTA_PENDING = "PENDING"      # Spec defines feature, no workspace vector exists
-DELTA_ORPHAN  = "ORPHAN"       # Workspace vector exists, not in spec
-DELTA_STALE   = "STALE"        # Workspace vector exists but status is in_progress and very old
+DELTA_PENDING = "PENDING"  # Spec defines feature, no workspace vector exists
+DELTA_ORPHAN = "ORPHAN"  # Workspace vector exists, not in spec
+DELTA_STALE = "STALE"  # Workspace vector exists but status is in_progress and very old
+DELTA_SPEC_DRIFT = (
+    "SPEC_DRIFT"  # Spec file content doesn't match last spec_modified event hash
+)
+# Implements: REQ-EVOL-NFR-002 (Spec Hash Verification)
 
 # Signal source classification (REQ-LIFE-006)
-SIGNAL_GAP          = "gap"            # traceability gap
-SIGNAL_PROCESS_GAP  = "process_gap"    # methodology deficiency
-SIGNAL_REFACTORING  = "refactoring"    # structural debt
+SIGNAL_GAP = "gap"  # traceability gap
+SIGNAL_PROCESS_GAP = "process_gap"  # methodology deficiency
+SIGNAL_REFACTORING = "refactoring"  # structural debt
 
 # Severity levels
-SEVERITY_INFO     = "info"
-SEVERITY_WARNING  = "warning"
+SEVERITY_INFO = "info"
+SEVERITY_WARNING = "warning"
 SEVERITY_CRITICAL = "critical"
 
 
@@ -58,12 +62,12 @@ SEVERITY_CRITICAL = "critical"
 class DeltaItem:
     """A single non-zero gradient item."""
 
-    delta_type: str                    # PENDING | ORPHAN | STALE
-    feature_id: str                    # REQ key or workspace ID
-    signal_source: str                 # gap | process_gap | refactoring
-    severity: str                      # info | warning | critical
-    description: str                   # human-readable delta description
-    recommended_action: str            # what to do about it
+    delta_type: str  # PENDING | ORPHAN | STALE
+    feature_id: str  # REQ key or workspace ID
+    signal_source: str  # gap | process_gap | refactoring
+    severity: str  # info | warning | critical
+    description: str  # human-readable delta description
+    recommended_action: str  # what to do about it
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -73,11 +77,11 @@ class WorkspaceGradient:
 
     spec_count: int
     workspace_count: int
-    pending: list[DeltaItem]         # spec → no workspace
-    orphans: list[DeltaItem]         # workspace → no spec
-    stale: list[DeltaItem]           # workspace → very old in-progress
-    total_delta: int                  # sum of all non-zero items
-    is_at_rest: bool                  # total_delta == 0
+    pending: list[DeltaItem]  # spec → no workspace
+    orphans: list[DeltaItem]  # workspace → no spec
+    stale: list[DeltaItem]  # workspace → very old in-progress
+    total_delta: int  # sum of all non-zero items
+    is_at_rest: bool  # total_delta == 0
 
     def all_items(self) -> list[DeltaItem]:
         return self.pending + self.orphans + self.stale
@@ -137,7 +141,11 @@ def get_workspace_feature_ids(workspace: Path) -> dict[str, dict[str, Any]]:
 
     Scans both active/ and completed/ directories.
     """
-    ws_dir = workspace / ".ai-workspace" if (workspace / ".ai-workspace").exists() else workspace
+    ws_dir = (
+        workspace / ".ai-workspace"
+        if (workspace / ".ai-workspace").exists()
+        else workspace
+    )
     features: dict[str, dict[str, Any]] = {}
 
     for status_dir in ("active", "completed"):
@@ -238,10 +246,16 @@ def compute_workspace_gradient(
     Stateless and idempotent: same state + same spec = same result.
     """
     # Resolve spec path
-    ws_dir = workspace / ".ai-workspace" if (workspace / ".ai-workspace").exists() else workspace
+    ws_dir = (
+        workspace / ".ai-workspace"
+        if (workspace / ".ai-workspace").exists()
+        else workspace
+    )
     if spec_features_path is None:
         project_root = ws_dir.parent if ws_dir.name == ".ai-workspace" else workspace
-        spec_features_path = project_root / "specification" / "features" / "FEATURE_VECTORS.md"
+        spec_features_path = (
+            project_root / "specification" / "features" / "FEATURE_VECTORS.md"
+        )
 
     spec_ids = set(extract_spec_req_keys(spec_features_path))
     workspace_vectors = get_workspace_feature_ids(workspace)
@@ -254,8 +268,7 @@ def compute_workspace_gradient(
     # ORPHAN: in workspace, not in spec
     orphan_ids = workspace_ids - spec_ids
     orphans = [
-        _classify_orphan(fid, workspace_vectors[fid])
-        for fid in sorted(orphan_ids)
+        _classify_orphan(fid, workspace_vectors[fid]) for fid in sorted(orphan_ids)
     ]
 
     # STALE: in both, but workspace is stuck
@@ -313,7 +326,10 @@ def generate_intent_proposals(
                     "severity": item.severity,
                     "recommended_action": item.recommended_action,
                     "draft": True,
-                    "causal_chain": {"source": "gen-spec-review", "delta_type": item.delta_type},
+                    "causal_chain": {
+                        "source": "gen-spec-review",
+                        "delta_type": item.delta_type,
+                    },
                 },
             }
         )

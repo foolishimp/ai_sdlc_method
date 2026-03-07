@@ -38,16 +38,18 @@ from typing import Any, Optional
 DECISION_APPROVE = "approve"
 DECISION_REJECT = "reject"
 DECISION_OVERRIDE_APPROVE = "override_approve"  # overrides AI suggestion
-DECISION_OVERRIDE_REJECT = "override_reject"    # overrides AI suggestion
-DECISION_DEFER = "defer"                        # defer to next iteration
+DECISION_OVERRIDE_REJECT = "override_reject"  # overrides AI suggestion
+DECISION_DEFER = "defer"  # defer to next iteration
 
-_VALID_DECISIONS = frozenset([
-    DECISION_APPROVE,
-    DECISION_REJECT,
-    DECISION_OVERRIDE_APPROVE,
-    DECISION_OVERRIDE_REJECT,
-    DECISION_DEFER,
-])
+_VALID_DECISIONS = frozenset(
+    [
+        DECISION_APPROVE,
+        DECISION_REJECT,
+        DECISION_OVERRIDE_APPROVE,
+        DECISION_OVERRIDE_REJECT,
+        DECISION_DEFER,
+    ]
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -63,10 +65,12 @@ class HumanGateEvent:
     feature: str
     edge: str
     iteration: int
-    actor: str                       # identity of the human reviewer
-    trigger: str                     # what caused the gate: "evaluator_required", "escalated", "manual"
+    actor: str  # identity of the human reviewer
+    trigger: str  # what caused the gate: "evaluator_required", "escalated", "manual"
     timestamp: str
-    suggestions: list[dict[str, Any]] = field(default_factory=list)  # AI suggestions (advisory)
+    suggestions: list[dict[str, Any]] = field(
+        default_factory=list
+    )  # AI suggestions (advisory)
     project: str = ""
 
 
@@ -75,15 +79,15 @@ class HumanDecisionEvent:
     """Record of a human decision at a gate."""
 
     event_id: str
-    gate_event_id: str               # links to the HumanGateEvent
+    gate_event_id: str  # links to the HumanGateEvent
     feature: str
     edge: str
     iteration: int
-    actor: str                       # human who decided — NEVER "ai" or agent name
-    decision: str                    # approve | reject | override_approve | override_reject | defer
-    reason: str                      # human-authored justification
+    actor: str  # human who decided — NEVER "ai" or agent name
+    decision: str  # approve | reject | override_approve | override_reject | defer
+    reason: str  # human-authored justification
     timestamp: str
-    overrides_ai: bool               # True when AI suggested differently
+    overrides_ai: bool  # True when AI suggested differently
     project: str = ""
     extra: dict[str, Any] = field(default_factory=dict)
 
@@ -215,7 +219,16 @@ def emit_human_decision(
         )
 
     # Attribution guard — reject AI-sounding actor names for accountability
-    _ai_markers = ("agent", "llm", "claude", "gemini", "gpt", "openai", "anthropic", "codex")
+    _ai_markers = (
+        "agent",
+        "llm",
+        "claude",
+        "gemini",
+        "gpt",
+        "openai",
+        "anthropic",
+        "codex",
+    )
     actor_lower = actor.lower()
     if any(marker in actor_lower for marker in _ai_markers):
         raise ValueError(
@@ -273,7 +286,8 @@ def get_human_gates(
 ) -> list[dict[str, Any]]:
     """Return all human_gate_entered events, optionally filtered by feature/edge."""
     return [
-        ev for ev in events
+        ev
+        for ev in events
         if ev.get("event_type") == "human_gate_entered"
         and (feature is None or ev.get("feature") == feature)
         and (edge is None or ev.get("edge") == edge)
@@ -288,7 +302,8 @@ def get_human_decisions(
 ) -> list[dict[str, Any]]:
     """Return all human_decision events, optionally filtered by feature/edge/actor."""
     return [
-        ev for ev in events
+        ev
+        for ev in events
         if ev.get("event_type") == "human_decision"
         and (feature is None or ev.get("feature") == feature)
         and (edge is None or ev.get("edge") == edge)
@@ -307,7 +322,8 @@ def get_pending_gates(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if ev.get("event_type") == "human_decision"
     }
     return [
-        ev for ev in events
+        ev
+        for ev in events
         if ev.get("event_type") == "human_gate_entered"
         and ev.get("event_id", "") not in decided_gate_ids
     ]
@@ -316,9 +332,9 @@ def get_pending_gates(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def get_override_decisions(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Return all human decisions that overrode an AI suggestion."""
     return [
-        ev for ev in events
-        if ev.get("event_type") == "human_decision"
-        and ev.get("overrides_ai", False)
+        ev
+        for ev in events
+        if ev.get("event_type") == "human_decision" and ev.get("overrides_ai", False)
     ]
 
 

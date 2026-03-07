@@ -24,7 +24,7 @@ import subprocess
 import sys
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -36,13 +36,13 @@ class BoundedResult:
     stderr: str = ""
     returncode: int = -1
     # Termination cause — exactly one will be True on non-zero exit, or all False on success
-    stall_killed: bool = False   # no output for stall_timeout seconds
-    wall_killed: bool = False    # exceeded wall_timeout seconds
+    stall_killed: bool = False  # no output for stall_timeout seconds
+    wall_killed: bool = False  # exceeded wall_timeout seconds
     # Convenience
-    timed_out: bool = False      # stall_killed or wall_killed
+    timed_out: bool = False  # stall_killed or wall_killed
     duration_ms: int = 0
     pid: int = 0
-    error: str = ""              # human-readable termination reason
+    error: str = ""  # human-readable termination reason
 
 
 def run_bounded(
@@ -119,8 +119,12 @@ def run_bounded(
         except Exception:
             pass
 
-    t_out = threading.Thread(target=_reader, args=(proc.stdout, stdout_chunks), daemon=True)
-    t_err = threading.Thread(target=_reader, args=(proc.stderr, stderr_chunks), daemon=True)
+    t_out = threading.Thread(
+        target=_reader, args=(proc.stdout, stdout_chunks), daemon=True
+    )
+    t_err = threading.Thread(
+        target=_reader, args=(proc.stderr, stderr_chunks), daemon=True
+    )
     t_out.start()
     t_err.start()
 

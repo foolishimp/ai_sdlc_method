@@ -29,7 +29,6 @@ from .ol_event import emit_ol_event, make_ol_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
 from .fp_functor import FpFunctor
-from .functor import mcp_available
 from .models import (
     CheckOutcome,
     CheckResult,
@@ -169,7 +168,12 @@ def iterate_edge(
             fp_result = None  # F_D evaluation proceeds without F_P result
 
         # Emit FpFailure event if actor was invoked but did not converge (REQ-ROBUST-007)
-        if fp_result and not fp_result.audit.skipped and not fp_result.converged and fp_result.delta > 0:
+        if (
+            fp_result
+            and not fp_result.audit.skipped
+            and not fp_result.converged
+            and fp_result.delta > 0
+        ):
             emit_ol_event(
                 events_path,
                 make_ol_event(

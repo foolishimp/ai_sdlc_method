@@ -24,8 +24,7 @@ from .contracts import Intent, StepResult
 class Functor(Protocol):
     """Every functor satisfies: invoke(Intent, Path) → StepResult."""
 
-    def invoke(self, intent: Intent, state: Path) -> StepResult:
-        ...
+    def invoke(self, intent: Intent, state: Path) -> StepResult: ...
 
 
 # ── Registry ──────────────────────────────────────────────────────────────────
@@ -46,6 +45,7 @@ def get_functor(edge: str, grain: str = "iteration") -> Functor:
     one for F_D. Grain-specific routing is future work.
     """
     from .fp_functor import FpFunctor
+
     return FpFunctor()
 
 

@@ -18,7 +18,14 @@ from unittest.mock import patch
 
 import pytest
 
-from genesis.contracts import Intent, SpawnRecord, StepAudit, StepResult, VersionedArtifact
+from genesis.contracts import (
+    FpActorResultMissing,
+    Intent,
+    SpawnRecord,
+    StepAudit,
+    StepResult,
+    VersionedArtifact,
+)
 from genesis.fp_functor import FpFunctor
 from genesis.functor import mcp_available
 
@@ -179,14 +186,17 @@ class TestFpFunctorMcpAvailable:
 
         assert result.audit.budget_capped is True
 
-    def test_no_result_file_returns_skipped(self, tmp_path):
-        """MCP available but no fold-back result yet → skipped (not crashed)."""
+    def test_no_result_file_raises_fp_actor_result_missing(self, tmp_path):
+        """MCP available but no fold-back result yet → FpActorResultMissing raised.
+
+        When MCP IS available, the actor must respond. Missing result is an observable
+        failure (not a transparent skip). The engine catches this and emits FpFailure.
+        ADR-024 / T-COMPLY-008 fold-back protocol.
+        """
         intent = Intent(edge="e", feature="f")
         with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
-            result = FpFunctor().invoke(intent, tmp_path)
-
-        assert result.converged is False
-        assert result.delta == -1
+            with pytest.raises(FpActorResultMissing):
+                FpFunctor().invoke(intent, tmp_path)
 
     def test_spawn_records_parsed(self, tmp_path):
         intent = Intent(edge="e", feature="f")

@@ -21,7 +21,14 @@ import json
 import time
 from pathlib import Path
 
-from .contracts import FpActorResultMissing, Intent, SpawnRecord, StepAudit, StepResult, VersionedArtifact
+from .contracts import (
+    FpActorResultMissing,
+    Intent,
+    SpawnRecord,
+    StepAudit,
+    StepResult,
+    VersionedArtifact,
+)
 from .functor import mcp_available
 
 

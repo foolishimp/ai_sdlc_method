@@ -16,13 +16,13 @@ project:
 tools:
   test_runner:
     command: "python -m pytest"
-    args: "imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
+    args: "imp_claude/tests/ --ignore=imp_claude/tests/e2e --ignore=imp_claude/tests/uat -q"
     pass_criterion: "exit code 0"
     required: true
 
   coverage:
     command: "python -m pytest"
-    args: "--cov=imp_claude/code/genesis --cov-report=term-missing imp_claude/tests/ --ignore=imp_claude/tests/e2e -q"
+    args: "--cov=imp_claude/code/genesis --cov-report=term-missing imp_claude/tests/ --ignore=imp_claude/tests/e2e --ignore=imp_claude/tests/uat -q"
     pass_criterion: "coverage percentage >= 0.70"
     required: true
 

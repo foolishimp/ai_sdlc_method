@@ -32,7 +32,6 @@ from .role_authority import (
     convergence_action,
     emit_convergence_escalated,
     load_role_config,
-    normalise_edge,
 )
 
 
@@ -88,9 +87,7 @@ def get_active_claims(events: list[dict[str, Any]]) -> dict[tuple[str, str], str
     return claimed
 
 
-def get_last_event_time(
-    events: list[dict[str, Any]], agent_id: str
-) -> Optional[float]:
+def get_last_event_time(events: list[dict[str, Any]], agent_id: str) -> Optional[float]:
     """Return the unix timestamp of the most recent event from agent_id, or None."""
     last: Optional[float] = None
     for ev in events:
@@ -200,7 +197,11 @@ def process_inbox(
         except FileNotFoundError:
             roles_config = {}
 
-    ws_dir = workspace / ".ai-workspace" if (workspace / ".ai-workspace").exists() else workspace
+    ws_dir = (
+        workspace / ".ai-workspace"
+        if (workspace / ".ai-workspace").exists()
+        else workspace
+    )
     events_path = ws_dir / "events" / "events.jsonl"
     inbox_dir = ws_dir / "events" / "inbox"
 
@@ -356,7 +357,11 @@ def stage_claim(
     Returns the path of the staged file. The serialiser reads and resolves
     claims from inbox/ in lexicographic agent_id + sequence order.
     """
-    ws_dir = workspace / ".ai-workspace" if (workspace / ".ai-workspace").exists() else workspace
+    ws_dir = (
+        workspace / ".ai-workspace"
+        if (workspace / ".ai-workspace").exists()
+        else workspace
+    )
     inbox_agent_dir = ws_dir / "events" / "inbox" / agent_id
     inbox_agent_dir.mkdir(parents=True, exist_ok=True)
 
@@ -384,7 +389,11 @@ def stage_release(
     reason: str = "iteration_complete",
 ) -> Path:
     """Write an edge_released event to the agent's inbox directory."""
-    ws_dir = workspace / ".ai-workspace" if (workspace / ".ai-workspace").exists() else workspace
+    ws_dir = (
+        workspace / ".ai-workspace"
+        if (workspace / ".ai-workspace").exists()
+        else workspace
+    )
     inbox_agent_dir = ws_dir / "events" / "inbox" / agent_id
     inbox_agent_dir.mkdir(parents=True, exist_ok=True)
 

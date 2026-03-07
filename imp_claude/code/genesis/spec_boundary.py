@@ -34,44 +34,129 @@ from typing import Optional
 
 # Languages and runtimes that belong in design, not spec
 TECH_LANGUAGES = {
-    "python", "javascript", "typescript", "java", "scala", "kotlin",
-    "go", "golang", "rust", "ruby", "php", "c#", "c++", "swift",
-    "node.js", "nodejs", "jvm", "clr", ".net",
+    "python",
+    "javascript",
+    "typescript",
+    "java",
+    "scala",
+    "kotlin",
+    "go",
+    "golang",
+    "rust",
+    "ruby",
+    "php",
+    "c#",
+    "c++",
+    "swift",
+    "node.js",
+    "nodejs",
+    "jvm",
+    "clr",
+    ".net",
 }
 
 # Web frameworks
 TECH_FRAMEWORKS = {
-    "django", "flask", "fastapi", "spring", "spring boot", "rails",
-    "express", "next.js", "nextjs", "nuxt", "angular", "react", "vue",
-    "svelte", "htmx", "fastify", "gin", "echo", "fiber", "axum",
-    "actix", "rocket", "play framework",
+    "django",
+    "flask",
+    "fastapi",
+    "spring",
+    "spring boot",
+    "rails",
+    "express",
+    "next.js",
+    "nextjs",
+    "nuxt",
+    "angular",
+    "react",
+    "vue",
+    "svelte",
+    "htmx",
+    "fastify",
+    "gin",
+    "echo",
+    "fiber",
+    "axum",
+    "actix",
+    "rocket",
+    "play framework",
 }
 
 # Databases and storage
 TECH_DATABASES = {
-    "postgresql", "postgres", "mysql", "sqlite", "mongodb", "redis",
-    "cassandra", "dynamodb", "firestore", "elasticsearch", "opensearch",
-    "clickhouse", "snowflake", "bigquery", "redshift", "oracle",
+    "postgresql",
+    "postgres",
+    "mysql",
+    "sqlite",
+    "mongodb",
+    "redis",
+    "cassandra",
+    "dynamodb",
+    "firestore",
+    "elasticsearch",
+    "opensearch",
+    "clickhouse",
+    "snowflake",
+    "bigquery",
+    "redshift",
+    "oracle",
 }
 
 # Infrastructure and cloud
 TECH_INFRA = {
-    "docker", "kubernetes", "k8s", "helm", "terraform", "ansible",
-    "aws", "azure", "gcp", "google cloud", "lambda", "ec2", "s3",
-    "cloudformation", "pulumi", "nomad", "consul",
+    "docker",
+    "kubernetes",
+    "k8s",
+    "helm",
+    "terraform",
+    "ansible",
+    "aws",
+    "azure",
+    "gcp",
+    "google cloud",
+    "lambda",
+    "ec2",
+    "s3",
+    "cloudformation",
+    "pulumi",
+    "nomad",
+    "consul",
 }
 
 # Build and package tools
 TECH_BUILD = {
-    "pip", "poetry", "pipenv", "conda", "npm", "yarn", "pnpm",
-    "maven", "gradle", "sbt", "cargo", "bundler", "composer",
-    "webpack", "vite", "esbuild", "rollup", "bazel",
+    "pip",
+    "poetry",
+    "pipenv",
+    "conda",
+    "npm",
+    "yarn",
+    "pnpm",
+    "maven",
+    "gradle",
+    "sbt",
+    "cargo",
+    "bundler",
+    "composer",
+    "webpack",
+    "vite",
+    "esbuild",
+    "rollup",
+    "bazel",
 }
 
 # Test frameworks (acceptable in spec only as concepts, not named tools)
 TECH_TEST_TOOLS = {
-    "pytest", "jest", "junit", "rspec", "mocha", "jasmine",
-    "playwright", "cypress", "selenium", "testcontainers",
+    "pytest",
+    "jest",
+    "junit",
+    "rspec",
+    "mocha",
+    "jasmine",
+    "playwright",
+    "cypress",
+    "selenium",
+    "testcontainers",
 }
 
 # All tech keywords combined
@@ -96,6 +181,7 @@ _ACCEPTABLE_CONTEXTS = [
     r"regardless of",
 ]
 _ACCEPTABLE_RE = re.compile("|".join(_ACCEPTABLE_CONTEXTS), re.IGNORECASE)
+
 
 # Regex for whole-word matching (surrounded by non-word chars)
 def _build_keyword_pattern(keywords: frozenset[str]) -> re.Pattern[str]:

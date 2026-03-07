@@ -2,6 +2,7 @@
 # Implements: REQ-FEAT-002 (Feature Dependencies), REQ-UX-003 (Project-Wide Observability)
 # Implements: REQ-EVOL-001 (Workspace Vector Schema Enforcement)
 # Implements: REQ-EVOL-002 (Feature Display Tools Must JOIN Spec and Workspace)
+# Implements: REQ-EVOL-004 (spec_modified event + spec hash verification)
 """Pure-function workspace state detection utilities.
 
 These functions operate on filesystem paths (workspace directories) and return
@@ -25,9 +26,36 @@ from typing import Any, Optional, Union
 
 import yaml
 
+from .contracts import WorkspaceSchemaViolation
 from .ol_event import normalize_event
 
 _REQ_F_PATTERN = re.compile(r"\bREQ-F-[A-Z]+-\d+\b")
+
+# Fields that belong in specification/features/, NOT in workspace trajectory files.
+# Implements: REQ-EVOL-001, REQ-EVOL-DATA-001
+FORBIDDEN_WORKSPACE_KEYS: frozenset[str] = frozenset(
+    {
+        "satisfies",  # spec: REQ-* mapping
+        "success_criteria",  # spec: product outcomes
+        "dependencies",  # spec: feature dependency graph
+        "what_converges",  # spec: convergence description
+        "phase",  # spec: release phase assignment
+    }
+)
+
+
+def load_feature_vector(path: Path) -> dict[str, Any]:
+    """Load a workspace feature vector YAML with schema enforcement.
+
+    Raises WorkspaceSchemaViolation if any forbidden definition field is
+    present — definition fields belong in specification/features/, not here.
+    Implements: REQ-EVOL-001 (Workspace Vectors Are Trajectory-Only)
+    """
+    data: dict[str, Any] = yaml.safe_load(path.read_text()) or {}
+    for key in FORBIDDEN_WORKSPACE_KEYS:
+        if key in data:
+            raise WorkspaceSchemaViolation(str(path), key)
+    return data
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -327,7 +355,9 @@ def compute_spec_workspace_join(
     # Resolve spec path: default to specification/features/FEATURE_VECTORS.md
     if spec_features_path is None:
         project_root = ws_dir.parent if ws_dir.name == ".ai-workspace" else workspace
-        spec_features_path = project_root / "specification" / "features" / "FEATURE_VECTORS.md"
+        spec_features_path = (
+            project_root / "specification" / "features" / "FEATURE_VECTORS.md"
+        )
 
     spec_readable = spec_features_path.exists()
     spec_ids: set[str] = set(extract_spec_feature_ids(spec_features_path))
@@ -735,8 +765,7 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
             pass
 
     # 5. Workspace Vector Schema (REQ-EVOL-001)
-    # Workspace YAMLs must NOT contain definition fields (satisfies, success_criteria)
-    _FORBIDDEN_WORKSPACE_KEYS = {"satisfies", "success_criteria"}
+    # Workspace YAMLs must NOT contain definition fields — module-level FORBIDDEN_WORKSPACE_KEYS
     violations: list[str] = []
     _ws_dir = _workspace_dir(workspace)
     for subdir in ("active", "completed"):
@@ -747,7 +776,7 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
             try:
                 with open(path) as f:
                     data = yaml.safe_load(f) or {}
-                for key in _FORBIDDEN_WORKSPACE_KEYS:
+                for key in FORBIDDEN_WORKSPACE_KEYS:
                     if key in data:
                         violations.append(f"{path.name}: has forbidden key '{key}'")
             except (yaml.YAMLError, OSError):
@@ -776,7 +805,122 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
         )
         passed += 1
 
+    # 6. Spec Hash Consistency (REQ-EVOL-NFR-002)
+    drift = verify_spec_hashes(workspace)
+    if drift:
+        results.append(
+            {
+                "name": "spec_hash_consistency",
+                "status": "warn",
+                "description": (
+                    f"SPEC_DRIFT: {len(drift)} spec file(s) have content that doesn't "
+                    f"match last spec_modified event: "
+                    + "; ".join(d["file"] for d in drift[:3])
+                    + (" ..." if len(drift) > 3 else "")
+                ),
+            }
+        )
+    else:
+        results.append(
+            {
+                "name": "spec_hash_consistency",
+                "status": "pass",
+                "description": "All tracked spec files match their last spec_modified event hash",
+            }
+        )
+        passed += 1
+
     return {"passed": passed, "failed": failed, "results": results}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SPEC HASH VERIFICATION (REQ-EVOL-NFR-002)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def verify_spec_hashes(
+    workspace: Path,
+    spec_dir: Optional[Path] = None,
+) -> list[dict[str, Any]]:
+    """Compare current spec file hashes against last spec_modified event per file.
+
+    Returns list of SPEC_DRIFT dicts for files that have drifted:
+      {"file": str, "expected_hash": str, "actual_hash": str, "event_timestamp": str}
+
+    A file not in the event log at all is NOT reported as drift — drift only occurs
+    when a spec_modified event was emitted and the current file no longer matches.
+
+    Implements: REQ-EVOL-NFR-002 (Spec Hash Verification)
+    """
+    ws_dir = _workspace_dir(workspace)
+    events_file = ws_dir / "events" / "events.jsonl"
+
+    if not events_file.exists():
+        return []
+
+    # Resolve project root for relative path resolution
+    project_root = ws_dir.parent if ws_dir.name == ".ai-workspace" else workspace
+    if spec_dir is None:
+        spec_dir = project_root / "specification"
+
+    # Collect most recent spec_modified event per file path
+    last_spec_event: dict[str, dict] = {}
+    try:
+        with open(events_file) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                # Handle both flat and OL-wrapped formats
+                ev = normalize_event(event)
+                if ev.get("event_type") not in ("spec_modified", "SpecModified"):
+                    continue
+                file_path = ev.get("data", {}).get("file") or ev.get("file")
+                if file_path:
+                    last_spec_event[file_path] = ev
+    except OSError:
+        return []
+
+    drift = []
+    for file_path, event in last_spec_event.items():
+        expected = event.get("data", {}).get("new_hash") or event.get("new_hash")
+        if not expected:
+            continue
+
+        abs_path = project_root / file_path
+        if not abs_path.exists():
+            # File was deleted after event — that's drift too
+            drift.append(
+                {
+                    "file": file_path,
+                    "expected_hash": expected,
+                    "actual_hash": "FILE_MISSING",
+                    "event_timestamp": event.get("timestamp", ""),
+                }
+            )
+            continue
+
+        try:
+            content = abs_path.read_bytes()
+        except OSError:
+            continue
+
+        actual = "sha256:" + hashlib.sha256(content).hexdigest()
+        if actual != expected:
+            drift.append(
+                {
+                    "file": file_path,
+                    "expected_hash": expected,
+                    "actual_hash": actual,
+                    "event_timestamp": event.get("timestamp", ""),
+                }
+            )
+
+    return drift
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -992,12 +1136,12 @@ class InstanceNode:
     are the runtime state derived from the event log.
     """
 
-    feature_id: str             # REQ-F-*
-    zoom_level: int             # 0=topology, 1=feature, 2=sub-feature
-    current_edge: str           # last edge_started or edge_converged edge
-    status: str                 # pending | in_progress | converged | archived
-    delta: int                  # last known delta (-1 = unknown)
-    parent_id: Optional[str]    # parent feature for zoom level 2+
+    feature_id: str  # REQ-F-*
+    zoom_level: int  # 0=topology, 1=feature, 2=sub-feature
+    current_edge: str  # last edge_started or edge_converged edge
+    status: str  # pending | in_progress | converged | archived
+    delta: int  # last known delta (-1 = unknown)
+    parent_id: Optional[str]  # parent feature for zoom level 2+
     converged_edges: list[str] = field(default_factory=list)
 
 
@@ -1014,8 +1158,8 @@ class InstanceGraph:
     """
 
     nodes: list[InstanceNode]
-    as_of: datetime             # event log watermark (timestamp of last event replayed)
-    topology_version: str       # from graph_topology.yml graph_properties.version
+    as_of: datetime  # event log watermark (timestamp of last event replayed)
+    topology_version: str  # from graph_topology.yml graph_properties.version
 
 
 def project_instance_graph(
@@ -1133,8 +1277,6 @@ def summarise_instance_graph(graph: InstanceGraph) -> dict[str, Any]:
         "total_nodes": len(graph.nodes),
         "by_status": {k: len(v) for k, v in by_status.items()},
         "active_edges": {
-            edge: features
-            for edge, features in by_edge.items()
-            if features
+            edge: features for edge, features in by_edge.items() if features
         },
     }

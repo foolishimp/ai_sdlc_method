@@ -53,41 +53,41 @@ def tenant_from_path(file_path: str | Path) -> str | None:
 _OL_EVENT_TYPE = {
     # Core iteration lifecycle (REQ-EVENT-003)
     "IterationStarted": "START",
-    "IterationCompleted": "OTHER",    # non-terminal — convergence not yet declared
+    "IterationCompleted": "OTHER",  # non-terminal — convergence not yet declared
     "IterationFailed": "FAIL",
     "IterationAbandoned": "ABORT",
     # Convergence events (REQ-EVENT-003)
-    "EvaluatorVoted": "OTHER",        # one evaluator cast a vote — intermediate
-    "ConsensusReached": "COMPLETE",   # all required evaluators passed — terminal
-    "ConvergenceAchieved": "COMPLETE",# alias: full edge convergence
+    "EvaluatorVoted": "OTHER",  # one evaluator cast a vote — intermediate
+    "ConsensusReached": "COMPLETE",  # all required evaluators passed — terminal
+    "ConvergenceAchieved": "COMPLETE",  # alias: full edge convergence
     # Context events (REQ-EVENT-003)
-    "ContextArrived": "OTHER",        # new context pushed into iteration
+    "ContextArrived": "OTHER",  # new context pushed into iteration
     # Transition gate events
     "TransitionAuthorized": "COMPLETE",  # gate passed — edge may proceed
-    "TransitionDenied": "FAIL",          # gate denied — edge blocked
+    "TransitionDenied": "FAIL",  # gate denied — edge blocked
     # Saga compensation (REQ-EVENT-004)
     "CompensationTriggered": "OTHER",  # failure on B→C → compensate A→B
     "CompensationCompleted": "COMPLETE",  # compensation done — chain restored
     # Consciousness loop Stage 2+3 (ADR-011, ADR-S-008)
-    "FeatureProposed": "OTHER",       # intent_raised → affect triage → draft proposal
-    "FeatureApproved": "COMPLETE",    # human approves proposal → inflates workspace
-    "FeatureDismissed": "OTHER",      # human dismisses proposal → archived
+    "FeatureProposed": "OTHER",  # intent_raised → affect triage → draft proposal
+    "FeatureApproved": "COMPLETE",  # human approves proposal → inflates workspace
+    "FeatureDismissed": "OTHER",  # human dismisses proposal → archived
     # Spec evolution (REQ-EVOL-004, ADR-S-010)
-    "SpecModified": "COMPLETE",       # specification/ file changed — causal chain recorded
+    "SpecModified": "COMPLETE",  # specification/ file changed — causal chain recorded
     # Engine lifecycle events (REQ-EVENT-003)
-    "EdgeStarted": "OTHER",            # edge traversal begins
-    "EdgeConverged": "COMPLETE",       # edge fully converged — terminal
-    "FpFailure": "OTHER",              # F_P actor failed to converge (REQ-ROBUST-007)
-    "EvaluatorDetail": "OTHER",        # per-check evaluator result (REQ-ROBUST-007)
-    "CommandError": "OTHER",           # engine CLI command error (REQ-SUPV-003)
+    "EdgeStarted": "OTHER",  # edge traversal begins
+    "EdgeConverged": "COMPLETE",  # edge fully converged — terminal
+    "FpFailure": "OTHER",  # F_P actor failed to converge (REQ-ROBUST-007)
+    "EvaluatorDetail": "OTHER",  # per-check evaluator result (REQ-ROBUST-007)
+    "CommandError": "OTHER",  # engine CLI command error (REQ-SUPV-003)
     # Spawn lifecycle
-    "SpawnCreated": "OTHER",           # child vector created
-    "SpawnFoldedBack": "COMPLETE",     # child results folded back to parent
+    "SpawnCreated": "OTHER",  # child vector created
+    "SpawnFoldedBack": "COMPLETE",  # child results folded back to parent
     # Multi-agent coordination (ADR-013, REQ-COORD-002)
-    "EdgeClaimed": "OTHER",           # agent claims a feature+edge — pending serialiser confirmation
-    "ClaimRejected": "FAIL",          # serialiser rejects claim (conflict or role violation)
-    "ClaimExpired": "OTHER",          # stale claim detected (no follow-up within timeout)
-    "EdgeReleased": "OTHER",          # agent voluntarily releases a claim
+    "EdgeClaimed": "OTHER",  # agent claims a feature+edge — pending serialiser confirmation
+    "ClaimRejected": "FAIL",  # serialiser rejects claim (conflict or role violation)
+    "ClaimExpired": "OTHER",  # stale claim detected (no follow-up within timeout)
+    "EdgeReleased": "OTHER",  # agent voluntarily releases a claim
     "ConvergenceEscalated": "OTHER",  # convergence outside agent role authority → human gate
 }
 
@@ -205,7 +205,7 @@ def emit_ol_event(events_path: Path, event: dict) -> str:
     return event["run"]["runId"]
 
 
-import re as _re
+import re as _re  # noqa: E402 — intentional late import (normalize_event helpers only)
 
 
 def normalize_event(raw: dict) -> dict:
@@ -405,9 +405,7 @@ def transition_denied(project, instance_id, actor, edge, reason, **kw) -> dict:
     )
 
 
-def feature_proposed(
-    project, instance_id, actor, feature, description, **kw
-) -> dict:
+def feature_proposed(project, instance_id, actor, feature, description, **kw) -> dict:
     return make_ol_event(
         "FeatureProposed",
         f"PROPOSE:{feature}",
@@ -525,8 +523,16 @@ def edge_released(
 
 
 def spec_modified(
-    project, instance_id, actor, file, what_changed,
-    previous_hash, new_hash, trigger_event_id, trigger_type, **kw
+    project,
+    instance_id,
+    actor,
+    file,
+    what_changed,
+    previous_hash,
+    new_hash,
+    trigger_event_id,
+    trigger_type,
+    **kw,
 ) -> dict:
     """Emit spec_modified event (REQ-EVOL-004) — records every specification/ change.
 

@@ -333,7 +333,17 @@ def sense_spec_code_drift(
             if fpath.is_dir():
                 continue
             suffix = fpath.suffix.lower()
-            if suffix not in {".py", ".js", ".ts", ".java", ".scala", ".go", ".rs", ".kt", ".rb"}:
+            if suffix not in {
+                ".py",
+                ".js",
+                ".ts",
+                ".java",
+                ".scala",
+                ".go",
+                ".rs",
+                ".kt",
+                ".rb",
+            }:
                 continue
             try:
                 content = fpath.read_text(errors="replace")

@@ -44,7 +44,19 @@ _STAGE_EXTENSIONS: dict[str, set[str]] = {
     "spec": {".md", ".rst", ".txt"},
     "design": {".md", ".rst", ".txt", ".yml", ".yaml"},
     "code": {".py", ".js", ".ts", ".java", ".scala", ".go", ".rs", ".rb", ".kt", ".cs"},
-    "tests": {".py", ".js", ".ts", ".java", ".scala", ".go", ".rs", ".rb", ".kt", ".feature", ".gherkin"},
+    "tests": {
+        ".py",
+        ".js",
+        ".ts",
+        ".java",
+        ".scala",
+        ".go",
+        ".rs",
+        ".rb",
+        ".kt",
+        ".feature",
+        ".gherkin",
+    },
     "config": {".yml", ".yaml", ".json", ".toml", ".ini"},
 }
 
@@ -67,11 +79,11 @@ _STAGE_DIR_HINTS: dict[str, list[str]] = {
 class ArtifactMatch:
     """A single file that references a REQ key."""
 
-    path: Path                       # absolute path to the file
-    rel_path: str                    # relative to project root
-    line_numbers: list[int]          # lines where the key appears
-    tag_types: list[str]             # ["implements", "validates", "bare", ...]
-    stage_hint: str                  # inferred stage: spec/design/code/tests/telemetry/unknown
+    path: Path  # absolute path to the file
+    rel_path: str  # relative to project root
+    line_numbers: list[int]  # lines where the key appears
+    tag_types: list[str]  # ["implements", "validates", "bare", ...]
+    stage_hint: str  # inferred stage: spec/design/code/tests/telemetry/unknown
 
 
 @dataclass
@@ -81,8 +93,8 @@ class FeatureView:
     req_key: str
     matches_by_stage: dict[str, list[ArtifactMatch]] = field(default_factory=dict)
     missing_stages: list[str] = field(default_factory=list)
-    coverage: int = 0        # number of stages with at least one match
-    total_stages: int = 0    # number of expected stages
+    coverage: int = 0  # number of stages with at least one match
+    total_stages: int = 0  # number of expected stages
     coverage_pct: float = 0.0
 
     def summary(self) -> str:
@@ -102,8 +114,17 @@ class FeatureView:
 
 # Files/dirs to skip when scanning
 _SKIP_DIRS = {
-    ".git", "__pycache__", ".pytest_cache", "node_modules", ".venv",
-    "venv", ".ai-workspace", "dist", "build", ".mypy_cache", ".tox",
+    ".git",
+    "__pycache__",
+    ".pytest_cache",
+    "node_modules",
+    ".venv",
+    "venv",
+    ".ai-workspace",
+    "dist",
+    "build",
+    ".mypy_cache",
+    ".tox",
 }
 _SKIP_EXTENSIONS = {".pyc", ".pyo", ".class", ".so", ".dylib", ".dll", ".exe"}
 
@@ -284,8 +305,7 @@ def build_all_feature_views(
     Returns: {req_key: FeatureView}
     """
     return {
-        key: build_feature_view(key, project_root, expected_stages)
-        for key in req_keys
+        key: build_feature_view(key, project_root, expected_stages) for key in req_keys
     }
 
 

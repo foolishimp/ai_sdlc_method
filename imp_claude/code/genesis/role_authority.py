@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import json
 import re
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -214,7 +213,11 @@ def check_convergence_gate(
     allowed = action == "warn"  # warn allows convergence, escalate/reject block it
 
     # Emit convergence_escalated event
-    ws_dir = workspace / ".ai-workspace" if (workspace / ".ai-workspace").exists() else workspace
+    ws_dir = (
+        workspace / ".ai-workspace"
+        if (workspace / ".ai-workspace").exists()
+        else workspace
+    )
     events_path = ws_dir / "events" / "events.jsonl"
     emit_convergence_escalated(
         events_path=events_path,

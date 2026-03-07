@@ -83,7 +83,7 @@ def compute_parallelism_matrix(
     """
     matrix: dict[tuple[str, str], int] = {}
     for i, fa in enumerate(features):
-        for fb in features[i + 1:]:
+        for fb in features[i + 1 :]:
             ip = compute_inner_product(fa, fb, feature_module_map)
             matrix[(fa, fb)] = ip
     return matrix
@@ -105,7 +105,7 @@ def find_orthogonal_groups(
     # Build conflict edges: features that share at least one module
     conflicts: dict[str, set[str]] = {f: set() for f in features}
     for i, fa in enumerate(features):
-        for fb in features[i + 1:]:
+        for fb in features[i + 1 :]:
             if not is_orthogonal(fa, fb, feature_module_map):
                 conflicts[fa].add(fb)
                 conflicts[fb].add(fa)
@@ -153,7 +153,7 @@ def get_parallelism_advice(
     """
     advice: list[dict[str, Any]] = []
     for i, fa in enumerate(features):
-        for fb in features[i + 1:]:
+        for fb in features[i + 1 :]:
             ip = compute_inner_product(fa, fb, feature_module_map)
             orthogonal = ip == 0
             entry: dict[str, Any] = {
@@ -210,15 +210,19 @@ def route_features_to_agents(
     # Detect non-orthogonal within the same agent's assignment
     for agent, agent_features in assignments.items():
         for i, fa in enumerate(agent_features):
-            for fb in agent_features[i + 1:]:
+            for fb in agent_features[i + 1 :]:
                 if not is_orthogonal(fa, fb, feature_module_map):
                     warnings.append(
                         {
                             "agent_id": agent,
                             "feature_a": fa,
                             "feature_b": fb,
-                            "inner_product": compute_inner_product(fa, fb, feature_module_map),
-                            "shared_modules": shared_modules(fa, fb, feature_module_map),
+                            "inner_product": compute_inner_product(
+                                fa, fb, feature_module_map
+                            ),
+                            "shared_modules": shared_modules(
+                                fa, fb, feature_module_map
+                            ),
                             "advice": "build shared modules before diverging",
                         }
                     )

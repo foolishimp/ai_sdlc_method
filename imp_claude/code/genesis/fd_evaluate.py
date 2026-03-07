@@ -179,7 +179,6 @@ def evaluate_checklist(
     )
 
 
-
 def _interpret_result(
     result: subprocess.CompletedProcess, pass_criterion: str | None
 ) -> CheckOutcome:
