@@ -1,0 +1,11 @@
+feature: unknown
+status: in_progress
+trajectory:
+  code:
+    asset: /private/var/folders/rz/r6wxvr0n15d906k2s0jw8j2h0000gn/T/pytest-of-jim/pytest-7/test_iterate_engine_convergenc0/.ai-workspace/asset.txt
+    delta: 0
+    engine_run_id: null
+    iteration: 1
+    mode: auto
+    status: converged
+    updated_at: '2026-03-07T17:09:16.675209+00:00'

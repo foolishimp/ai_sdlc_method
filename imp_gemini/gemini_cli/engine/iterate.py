@@ -15,6 +15,7 @@ from .stateless import run_iteration
 class Functor(Protocol):
     def evaluate(self, candidate: str, context: Dict) -> FunctorResult: ...
 
+# Implements: REQ-ITER-001, REQ-ITER-002, REQ-ROBUST-002, REQ-GRAPH-004, REQ-EVOL-001, REQ-F-EVOL-001, ADR-S-018
 class IterateEngine:
     """Universal iteration engine for all graph edges.
     Implements the Markov Blanket pattern via project fingerprinting and run archival.
@@ -232,6 +233,72 @@ class IterateEngine:
                 last_mtime, last_count = cur_mtime, cur_count; last_activity = time.time()
             elif time.time() - last_activity > stall_timeout: break
         return records
+
+    def run_tournament(self, edge: str, feature_id: str, context: Dict[str, Any], candidates: List[str]) -> IterationRecord:
+        """Execute a parallel competitive tournament (ADR-S-018).
+        Spawns N child vectors, evaluates them, and merges the winner.
+        """
+        # 1. Parallel Spawn
+        transaction_id = str(uuid.uuid4())
+        spawn_event = self.store.emit(
+            event_type="feature_spawned",
+            feature=feature_id,
+            edge=edge,
+            data={"children_count": len(candidates), "type": "tournament"},
+            eventType="START"
+        )
+        parent_run_id = spawn_event["run"]["runId"]
+
+        print(f"  [TOURNAMENT] Spawning {len(candidates)} parallel candidates...")
+        child_runs = []
+        for i, c_content in enumerate(candidates):
+            child_id = f"{feature_id}-V{i+1}"
+            child_ev = self.store.emit(
+                event_type="feature_spawned",
+                feature=child_id,
+                data={"parent": feature_id, "type": "candidate"},
+                parent_run_id=parent_run_id
+            )
+            child_runs.append({"id": child_id, "run_id": child_ev["run"]["runId"]})
+
+        # 2. Tournament Arbitration
+        print(f"  [TOURNAMENT] Arbitrating candidates...")
+        # In this stateless pass, we assume candidates are already built or we build them adhoc
+        # Route to specialized 'arbitrator_agent'
+        arbitrator = self.functor_map.get("agent")
+        res = arbitrator.evaluate("\n---\n".join(candidates), {
+            **context,
+            "edge": "tournament_arbitration",
+            "mode": "arbitration"
+        })
+
+        # 3. Merge and Fold-back
+        winner_idx = 0 # Default to first for stub
+        if "winner_index" in res.reasoning.lower():
+            # Heuristic extraction for now
+            try: winner_idx = int(re.search(r"winner_index: (\d+)", res.reasoning).group(1))
+            except: pass
+
+        self.store.emit(
+            event_type="iteration_completed",
+            feature=feature_id,
+            edge=edge,
+            delta=res.delta,
+            data={
+                "status": "converged" if res.delta == 0 else "iterating",
+                "merge_provenance": {
+                    "winner": child_runs[winner_idx]["id"],
+                    "candidates": [c["id"] for c in child_runs],
+                    "selection_policy": "single_winner"
+                }
+            },
+            eventType="COMPLETE",
+            parent_run_id=parent_run_id
+        )
+
+        return IterationRecord(edge=edge, iteration=1, report=IterationReport(
+            asset_path="", delta=res.delta, converged=(res.delta == 0), functor_results=[res]
+        ))
 
     def verify_protocol(self, start_time: datetime) -> List[str]:
         events = self.store.load_all()

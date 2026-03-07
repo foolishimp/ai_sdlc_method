@@ -1,47 +1,28 @@
+context:
+  adrs:
+  - ADR-GG-001
+  - ADR-GG-002
+  - ADR-GG-003
+  - ADR-GG-004
+  - ADR-GG-005
+  - ADR-GG-006
+  - ADR-GG-007
+  - ADR-GG-008
+  - ADR-GG-009
+  - ADR-GG-010
+  - ADR-GG-011
+  - ADR-GG-012
 feature: REQ-F-ENGINE-001
-intent: INT-001
+intent: Core graph traversal engine implementation
 parent: null
 status: converged
 trajectory:
-  intent:
-    status: converged
-  "intent\u2192requirements": converged
-  requirements:
-    delta: 0
-    status: converged
-    updated_at: '2026-02-26T22:07:18.865475+00:00'
-  "requirements\u2192feature_decomp": converged
-  feature_decomposition:
-    delta: 0
-    status: converged
-    updated_at: '2026-03-02T01:00:00.000000+00:00'
-  "feature_decomp\u2192design": converged
-  design:
-    delta: 0
-    status: converged
-    updated_at: '2026-02-26T22:07:40.492731+00:00'
-  "design\u2192module_decomp": converged
-  module_decomposition:
-    delta: 0
-    status: converged
-    updated_at: '2026-03-02T01:00:00.000000+00:00'
-  "module_decomp\u2192basis_proj": converged
-  basis_projections:
-    delta: 0
-    status: converged
-    updated_at: '2026-03-02T01:00:00.000000+00:00'
-  "basis_proj\u2192code": converged
-  code:
-    asset: gemini_cli/engine/iterate.py
-    delta: 0
-    iteration: 3
-    status: converged
-    updated_at: '2026-02-26T22:11:58.308364+00:00'
-  code↔unit_tests: converged
-  unit_tests:
-    asset: gemini_cli/engine/iterate.py
-    delta: 0
-    iteration: 1
-    status: converged
-    updated_at: '2026-02-26T22:30:54.867448+00:00'
+  intent: {status: converged}
+  "intent\u2192requirements": {status: converged}
+  "requirements\u2192feature_decomp": {status: converged}
+  "feature_decomp\u2192design": {status: converged}
+  "design\u2192module_decomp": {status: converged}
+  "module_decomp\u2192basis_proj": {status: converged}
+  "basis_proj\u2192code": {status: converged}
+  "code\u2194unit_tests": {status: converged}
 vector_type: feature

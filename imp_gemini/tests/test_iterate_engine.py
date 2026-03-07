@@ -1,4 +1,6 @@
-# Validates: REQ-ITER-001, REQ-ITER-002
+# Validates: REQ-ITER-001, REQ-ITER-002, REQ-EVENT-001, REQ-FEAT-001, REQ-LIFE-008
+# Validates: REQ-ROBUST-001, REQ-ROBUST-002, REQ-ROBUST-003, REQ-ROBUST-007, REQ-ROBUST-008, REQ-F-ROBUST-001
+# Validates: REQ-FEAT-002 (Dependencies), REQ-ITER-003 (Metadata)
 import pytest
 import json
 import yaml

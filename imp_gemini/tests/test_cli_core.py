@@ -1,16 +1,19 @@
 # Validates: REQ-CLI-002, REQ-CLI-003, REQ-CLI-005, REQ-CLI-006
+# Validates: REQ-UX-006 (Escalation Awareness), REQ-UX-007 (Spec Boundary)
 """
 E2E Unit Tests for the Gemini CLI Core.
 Validates Event Sourcing, Universal Iteration, and Recursive Spawning.
 """
 
 import pytest
-import json
+# Validates: REQ-CLI-001, REQ-CLI-002, REQ-CLI-003, REQ-CLI-004, REQ-CLI-006, REQ-F-CLI-001
+import pytest
 from pathlib import Path
 from gemini_cli.engine.state import EventStore, Projector
 from gemini_cli.engine.iterate import IterateEngine
 from gemini_cli.functors.f_probabilistic import GeminiFunctor, SpawnRequest
 from gemini_cli.engine.models import Outcome, FunctorResult
+
 
 @pytest.fixture
 def workspace(tmp_path):

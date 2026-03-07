@@ -1,4 +1,4 @@
-# Implements: REQ-ITER-001, REQ-ITER-002, REQ-LIFE-008, ADR-021
+# Implements: REQ-ITER-001, REQ-ITER-002, REQ-LIFE-008, REQ-TOOL-003, ADR-021
 import re
 import uuid
 import yaml
@@ -13,9 +13,12 @@ from gemini_cli.functors.f_probabilistic import GeminiFunctor
 from gemini_cli.functors.f_human import HumanFunctor
 from gemini_cli.engine.config_loader import ConfigLoader
 from gemini_cli.engine.topology import GraphTopology
+from gemini_cli.engine.models import Outcome
 
 class IterateCommand:
-    """Universal Iteration Agent command with Dual-Mode Dispatcher."""
+    """Universal Iteration Agent command with Dual-Mode Dispatcher.
+    Implements: REQ-TOOL-003 (Workflow Commands)
+    """
     
     # ADR-021: Edge-mode affinity table
     AFFINITY_TABLE = {
@@ -186,11 +189,11 @@ class IterateCommand:
 
         # 7. Display Results
         for res in report.functor_results:
-            icon = "\u2705" if res.outcome == Outcome.PASS else "\u274c"
+            icon = "[PASS]" if res.outcome == Outcome.PASS else "[FAIL]"
             print(f"    {icon} {res.name}: {res.reasoning} (Delta: {res.delta})")
             
         for g in report.guardrail_results:
-            icon = "\ud83d\udee1\ufe0f" if g.passed else "\u26a0\ufe0f"
+            icon = "[SAFE]" if g.passed else "[WARN]"
             print(f"    {icon} Guardrail {g.name}: {g.message}")
 
         # 8. Handle Recursion

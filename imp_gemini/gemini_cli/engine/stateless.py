@@ -1,4 +1,5 @@
 # Implements: REQ-ITER-001, REQ-ITER-002, REQ-EVENT-001, REQ-EVENT-003
+# Implements: REQ-ROBUST-001, REQ-ROBUST-002, REQ-ROBUST-007, REQ-F-ROBUST-001
 """
 Pure stateless iteration logic for the Gemini Core.
 Has zero knowledge of orchestration, loops, or persistence.

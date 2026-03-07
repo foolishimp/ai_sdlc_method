@@ -1,5 +1,6 @@
 # Implements: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-F-TOOL-001
 # Implements: REQ-CLI-001, REQ-CLI-002, REQ-CLI-003, REQ-CLI-004, REQ-CLI-006, REQ-F-GEMINI-CLI-001, REQ-F-UX-001, REQ-F-TOOL-001
+# Implements: REQ-UX-001 (State-Driven Routing), REQ-UX-004 (Automatic Selection)
 """
 Gemini CLI: The Generic SDLC Cockpit.
 """
@@ -127,6 +128,50 @@ def main():
         SyncContextCommand(workspace_root, design_name=design_name).run()
     elif args.command == "start":
         state_mgr = StateManager(workspace_root=str(workspace_root.absolute()))
+        store = EventStore(workspace_root)
+        
+        # ADR-S-015: Transaction Integrity Check
+        events = store.load_all()
+        open_starts = {}
+        for ev in events:
+            if ev.get("eventType") == "START":
+                open_starts[ev["run"]["runId"]] = ev
+            elif ev.get("eventType") in ("COMPLETE", "FAIL", "ABORT"):
+                run_id = ev["run"]["runId"]
+                parent_id = ev.get("run", {}).get("facets", {}).get("parent_run_id", {}).get("runId")
+                if parent_id: open_starts.pop(parent_id, None)
+                open_starts.pop(run_id, None)
+        
+        if open_starts:
+            print("\n[RECOVERY] Detected open transaction(s). Verifying integrity...")
+            for rid, ev in open_starts.items():
+                manifest = ev.get("run", {}).get("facets", {}).get("sdlc_manifest", {})
+                inputs = manifest.get("inputs", [])
+                
+                integrity_failure = False
+                for inp in inputs:
+                    path = project_root / inp["path"]
+                    expected_hash = inp["hash"]
+                    if not path.exists():
+                        print(f"  [ERROR] Input artifact missing: {inp['path']}")
+                        integrity_failure = True
+                        break
+                    actual_hash = store._hash_file(path)
+                    if actual_hash != expected_hash:
+                        print(f"  [ERROR] Input artifact mutated: {inp['path']}")
+                        print(f"          Expected: {expected_hash[:8]}")
+                        print(f"          Actual:   {actual_hash[:8]}")
+                        integrity_failure = True
+                        break
+                
+                if integrity_failure:
+                    print(f"\n  [ABORT] Cannot resume transaction {rid[:8]}. Filesystem has mutated.")
+                    print("  Action: Manually resolve conflicts or revert to last stable checkpoint.")
+                    store.emit("transaction_aborted", feature=ev.get("feature", "unknown"), data={"reason": "integrity_failure", "run_id": rid}, eventType="ABORT")
+                    sys.exit(1)
+                else:
+                    print(f"  [RESUME] Transaction {rid[:8]} is stable. Resuming...")
+
         current_state = state_mgr.get_current_state()
         print(f"\nDetected State: {current_state.value}")
         if current_state == ProjectState.UNINITIALISED:

@@ -3,6 +3,7 @@
 # Validates: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-COORD-005
 # Validates: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005, REQ-UX-006, REQ-UX-007, REQ-F-UX-001
 # Validates: REQ-SUPV-001, REQ-SUPV-002, REQ-SUPV-003
+# Validates: REQ-EVOL-001, REQ-EVOL-002, REQ-EVOL-003, REQ-EVOL-004, REQ-EVOL-005
 """Spec-level validation tests.
 
 These tests validate the specification documents (technology-agnostic).

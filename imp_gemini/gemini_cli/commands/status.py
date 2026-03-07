@@ -1,15 +1,18 @@
-# Implements: REQ-UX-003, REQ-UX-005, REQ-TOOL-003
+# Implements: REQ-UX-003 (Project-Wide Observability), REQ-UX-005 (Recovery), REQ-TOOL-003 (Workflow Commands)
+# Implements: REQ-EVOL-002 (JOIN Spec and Workspace)
 import yaml
 import re
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List, Any
-from gemini_cli.engine.state import Projector, EventStore
 from gemini_cli.internal.state_machine import StateManager, ProjectState
+from gemini_cli.engine.state import Projector, EventStore, TaskProjector
 
 class StatusCommand:
-    """Provides situational awareness and regenerates STATUS.md."""
-    
+    """Provides situational awareness and regenerates STATUS.md.
+    Implements: REQ-UX-003 (Project-Wide Observability)
+    """
+
     def __init__(self, workspace_root: Path):
         self.workspace_root = workspace_root
         self.project_root = workspace_root.parent
@@ -20,20 +23,32 @@ class StatusCommand:
         events = self.store.load_all()
         status_data = Projector.get_feature_status(events, project_root=self.project_root)
         current_state = self.state_mgr.get_current_state()
-        
+
         print("\nAI SDLC CURRENT STATUS")
         print("="*30)
         print(f"Project State: {current_state.value}")
-        
+
         for feat, data in status_data.items():
             print(f"\nFeature: {feat}")
             for edge, state in data["trajectory"].items():
-                marker = "✓" if state == "converged" else "●"
+                status_str = state.get("status") if isinstance(state, dict) else state
+                marker = "\u2713" if status_str == "converged" else "\u25cf"
                 print(f"  {marker} {edge:<20} {state}")
 
-        # Regenerate STATUS.md
+        # 1. Regenerate root STATUS.md
         self._generate_status_md(status_data, current_state, events)
         print(f"\nUpdated {self.workspace_root / 'STATUS.md'}")
+
+        # 2. Regenerate tenant-scoped ACTIVE_TASKS.md (ADR-S-023)
+        self._update_tenant_tasks(events, status_data)
+
+    def _update_tenant_tasks(self, events: List[Dict], features: Dict[str, Dict]):
+        tenant_task_dir = self.workspace_root / "gemini" / "tasks" / "active"
+        tenant_task_dir.mkdir(parents=True, exist_ok=True)
+
+        content = TaskProjector.project_tasks(events, features, self.workspace_root, tenant="gemini")
+        (tenant_task_dir / "ACTIVE_TASKS.md").write_text(content)
+        print(f"Updated {tenant_task_dir / 'ACTIVE_TASKS.md'}")
 
     def _generate_status_md(self, status_data: Dict, current_state: ProjectState, events: List[Dict]):
         status_file = self.workspace_root / "STATUS.md"

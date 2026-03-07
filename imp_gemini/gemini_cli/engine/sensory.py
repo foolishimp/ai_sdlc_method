@@ -23,7 +23,8 @@ class SensoryService:
         self.config_path = Path(__file__).parent.parent / "config" / "sensory_monitors.yml"
         self.config = self._load_config()
         self.running = False
-        self._last_mtimes = {} # For filesystem monitoring
+        self._last_mtimes = {} 
+        self.pid_file = workspace_root / "SENSORY_PID"
         
         # OTLP Projection (ADR-S-014)
         endpoint = os.environ.get("OTLP_COLLECTOR_ENDPOINT", "http://localhost:6006/v1/traces")
@@ -35,22 +36,59 @@ class SensoryService:
                 return yaml.safe_load(f)
         return {}
 
-    def start_background_service(self, interval: int = 60):
-        """Starts the continuous background sensory loop (REQ-SENSE-003)."""
+    def is_service_running(self) -> bool:
+        """Check if the background process is alive via PID file."""
+        if not self.pid_file.exists():
+            return False
+        try:
+            pid = int(self.pid_file.read_text().strip())
+            os.kill(pid, 0) # Throws ProcessLookupError if not running
+            return True
+        except (OSError, ValueError):
+            return False
+
+    def run_continuous_loop(self, interval: int = 60):
+        """The main execution loop for the background process."""
+        # Write PID
+        self.pid_file.write_text(str(os.getpid()))
         self.running = True
-        print(f"  [SENSE] Background sensory service started (interval: {interval}s)")
         
         # Start the OTLP Relay (ADR-S-014)
         self.relay.start()
         
-        while self.running:
-            try:
-                self.run_all_monitors()
-            except Exception as e:
-                print(f"  [ERROR] Sensory service loop failure: {e}")
-            time.sleep(interval)
+        try:
+            while self.running:
+                try:
+                    self.run_all_monitors()
+                except Exception as e:
+                    # Log error to event stream
+                    self.store.emit("interoceptive_signal", project="imp_gemini", data={"severity": "error", "message": f"Sensory loop error: {e}"})
+                time.sleep(interval)
+        finally:
+            if self.pid_file.exists():
+                self.pid_file.unlink()
+
+    def start_background_service(self):
+        """Triggers the background process via shell (ADR-GG-005)."""
+        if self.is_service_running():
+            print("  [SENSE] Sensory service is already running.")
+            return
+
+        # Use the relative path to the entry point
+        cmd = f"python3 -m gemini_cli.engine.sensory_loop --workspace {self.workspace_root}"
+        print(f"  [SENSE] Launching background sensory process...")
+        subprocess.Popen(cmd.split(), cwd=self.project_root, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def stop(self):
+        """Stops the background process."""
+        if self.pid_file.exists():
+            try:
+                pid = int(self.pid_file.read_text().strip())
+                os.kill(pid, 15) # SIGTERM
+                print(f"  [SENSE] Stopped sensory service (PID: {pid})")
+            except OSError:
+                pass
+            self.pid_file.unlink()
         self.running = False
         self.relay.stop()
 

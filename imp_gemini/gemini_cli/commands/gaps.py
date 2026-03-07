@@ -1,15 +1,17 @@
 
+# Implements: REQ-TOOL-005, REQ-LIFE-006, REQ-EVOL-003, REQ-F-EVOL-001
 import re
 from pathlib import Path
-from typing import List, Set
+from typing import List, Set, Dict
 from gemini_cli.engine.state import EventStore
 
 class GapsCommand:
-    """Scans for REQ keys lacking tests or implementation."""
+    """Scans for REQ keys lacking tests or implementation.
+    Implements: REQ-EVOL-003 (Feature Proposal Emission).
+    """
     
     def __init__(self, workspace_root: Path, impl_name: str = "gemini"):
         self.workspace_root = workspace_root
-        # The project root is the parent of .ai-workspace
         if self.workspace_root.name == ".ai-workspace":
             self.project_root = self.workspace_root.parent
         else:
@@ -17,9 +19,7 @@ class GapsCommand:
             self.workspace_root = self.project_root / ".ai-workspace"
             
         self.impl_name = impl_name
-        # Look for imp_gemini (or similar) inside the project root
         self.impl_dir = self.project_root / f"imp_{impl_name}"
-        # If running from inside the implementation dir already, use project_root
         if not self.impl_dir.exists():
             self.impl_dir = self.project_root
             
@@ -35,7 +35,7 @@ class GapsCommand:
             print("No REQ keys found in specification.")
             return
 
-        # 2. Scan Code and Tests (scoped to implementation directory)
+        # 2. Scan Code and Tests
         impl_tags = self._scan_tags("Implements: ")
         test_tags = self._scan_tags("Validates: ")
         
@@ -62,8 +62,9 @@ class GapsCommand:
             print("No gaps detected! Full traceability achieved. 🎉")
         else:
             print(f"\nTotal Gaps: {gaps_found}")
-            # Emit intent_raised for the gap cluster (REQ-LIFE-006)
-            self.store.emit(
+            
+            # 4. Emit intent_raised (REQ-LIFE-006)
+            raised_ev = self.store.emit(
                 "intent_raised",
                 project="imp_gemini",
                 data={
@@ -73,30 +74,41 @@ class GapsCommand:
                     "description": f"Found {gaps_found} traceability gaps requiring implementation or testing."
                 }
             )
-            print(f"Emitted intent_raised event for {gaps_found} gaps.")
+            
+            # 5. Emit feature_proposal (REQ-EVOL-003)
+            # We propose a single 'T-COMPLY' feature to resolve the gap cluster
+            self.store.emit(
+                "feature_proposal",
+                project="imp_gemini",
+                data={
+                    "proposal_id": f"PROP-{raised_ev['run']['runId'][:8]}",
+                    "feature_id": f"REQ-F-COMPLY-{raised_ev['run']['runId'][:4]}",
+                    "title": f"Traceability Compliance for {self.impl_name} Tenant",
+                    "requirements": [r["req"] for r in missing_reqs],
+                    "intent_id": raised_ev["run"]["runId"],
+                    "rationale": f"Automated proposal to close {gaps_found} traceability gaps.",
+                    "status": "draft"
+                }
+            )
+            
+            print(f"Emitted intent_raised and feature_proposal for {gaps_found} gaps.")
 
     def _load_req_keys(self) -> Set[str]:
         keys = set()
-        # Look in both REQUIREMENTS.md and active features
-        # Search paths: 
-        # 1. Project-specific specification/
-        # 2. .ai-workspace/spec/
-        # 3. Shared root specification/ (e.g., ai_sdlc_method/specification/)
-        search_paths = [
-            self.project_root / "specification",
-            self.project_root / ".ai-workspace" / "spec",
-            # If we are in an implementation directory, check the shared parent specification
-            self.project_root.parent / "specification" if self.project_root.name.startswith("imp_") else None
-        ]
         
-        for spec_dir in search_paths:
-            if spec_dir and spec_dir.exists():
-                for path in spec_dir.glob("*.md"):
-                    content = path.read_text(errors="ignore")
-                    # Match REQ-F-GMON-001 or REQ-GRAPH-001
-                    keys.update(re.findall(r"(REQ-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+)", content))
+        # Recursively find all REQ keys in the project root
+        # Focus on authoritative specification sources, skip illustrative docs
+        skip_dirs = [".ai-workspace", "tests/e2e/runs", "specification/ux", "specification/verification", "specification/presentations"]
         
-        active_features = self.project_root / ".ai-workspace" / "features" / "active"
+        for path in self.project_root.rglob("*.md"):
+            if any(s in str(path) for s in skip_dirs):
+                continue
+            if path.is_file():
+                content = path.read_text(errors="ignore")
+                # Match REQ-F-GMON-001 or REQ-GRAPH-001
+                keys.update(re.findall(r"(REQ-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+)", content))
+        
+        active_features = self.workspace_root / "features" / "active"
         if active_features.exists():
             for path in active_features.glob("*.yml"):
                 content = path.read_text(errors="ignore")
@@ -105,19 +117,26 @@ class GapsCommand:
 
     def _scan_tags(self, prefix: str) -> Set[str]:
         tags = set()
-        search_dir = self.impl_dir if self.impl_dir.exists() else self.project_root
-        for path in search_dir.rglob("*"):
-            # Skip .ai-workspace and e2e test runs to avoid noise
-            if ".ai-workspace" in str(path) or "tests/e2e/runs" in str(path):
-                continue
-                
-            if path.is_file() and path.suffix in [".py", ".ts", ".js", ".go", ".rs", ".html", ".scala"]:
-                try:
-                    content = path.read_text(errors="ignore")
-                    for line in content.splitlines():
-                        if prefix in line:
-                            line_matches = re.findall(r"REQ-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+", line)
-                            tags.update(line_matches)
-                except:
+        search_dirs = [self.impl_dir if self.impl_dir.exists() else self.project_root]
+        
+        # Explicitly add tests/ if it exists within the impl_dir or project_root
+        tests_dir = search_dirs[0] / "tests"
+        if tests_dir.exists():
+            search_dirs.append(tests_dir)
+            
+        for search_dir in search_dirs:
+            for path in search_dir.rglob("*"):
+                # Skip .ai-workspace and e2e test runs to avoid noise
+                if ".ai-workspace" in str(path) or "tests/e2e/runs" in str(path):
                     continue
+                    
+                if path.is_file() and path.suffix in [".py", ".ts", ".js", ".go", ".rs", ".html", ".scala"]:
+                    try:
+                        content = path.read_text(errors="ignore")
+                        for line in content.splitlines():
+                            if prefix in line:
+                                line_matches = re.findall(r"REQ-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+", line)
+                                tags.update(line_matches)
+                    except:
+                        continue
         return tags

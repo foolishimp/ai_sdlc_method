@@ -10,14 +10,17 @@ from typing import Dict, Any, Union
 from gemini_cli.engine.models import FunctorResult, Outcome, SpawnRequest
 
 class GeminiFunctor:
-    """Functor that delegates work to the interactive Gemini CLI (Sub-Agent)."""
+    """Functor that delegates work to the interactive Gemini CLI (Sub-Agent).
+    Implements: ADR-S-016 (Intent Payload Contract).
+    """
     
-    def __init__(self, model_name: str = "gemini-2.0-flash"):
+    def __init__(self, model_name: str = "gemini-2.0-flash", sub_agent_id: str = "aisdlc_investigator"):
         self.model_name = model_name
+        self.sub_agent_id = sub_agent_id
 
     def evaluate(self, candidate: str, context: Dict) -> FunctorResult:
         """
-        Structured delegation to the agent or user.
+        Structured delegation to the specialized sub-agent.
         """
         tracer = None
         span = None

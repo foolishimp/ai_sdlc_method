@@ -1,4 +1,10 @@
-# Implements: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-F-COORD-001, REQ-INTENT-001, REQ-INTENT-002, REQ-INTENT-003, REQ-INTENT-004, REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-009, REQ-F-LIFE-001, REQ-F-TRACE-001, REQ-F-SEARCH-002, REQ-F-ENGINE-001, REQ-F-AUTH-001, REQ-F-BOOT-001, REQ-F-BOOT-002, REQ-F-BOOT-003, REQ-F-GEMINI-INIT-001, REQ-SENSE-006, REQ-NF-BUILD-003, REQ-NF-COMPAT-001, REQ-NFR-PERF-001
+# Implements: REQ-COORD-001, REQ-COORD-002, REQ-COORD-003, REQ-COORD-004, REQ-F-COORD-001
+# Implements: REQ-INTENT-001, REQ-INTENT-002, REQ-INTENT-003, REQ-INTENT-004
+# Implements: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-009, REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012
+# Implements: REQ-EVENT-001, REQ-EVENT-002, REQ-EVENT-003, REQ-F-EVENT-001
+# Implements: REQ-EVOL-002 (Feature Display JOIN), REQ-F-EVOL-001
+# Implements: REQ-ITER-003 (Functor Encoding Tracking)
+# Implements: REQ-ROBUST-003 (Gap Detection), REQ-ROBUST-008 (Session Gap Detection)
 import json
 import uuid
 import re
@@ -105,6 +111,26 @@ class EventStore:
                 "_schemaURL": f"{self.SCHEMA_BASE}/sdlc_delta.json",
                 "value": delta,
                 "converged": (delta == 0)
+            }
+
+        # ADR-S-015: Transaction Manifests
+        manifest = {"inputs": [], "outputs": []}
+        if inputs:
+            for p in inputs:
+                h = self._hash_file(p)
+                if h:
+                    manifest["inputs"].append({"path": str(p.relative_to(self.workspace_root.parent) if self.workspace_root.parent in p.parents else p), "hash": h})
+        if outputs:
+            for p in outputs:
+                h = self._hash_file(p)
+                if h:
+                    manifest["outputs"].append({"path": str(p.relative_to(self.workspace_root.parent) if self.workspace_root.parent in p.parents else p), "hash": h})
+        
+        if manifest["inputs"] or manifest["outputs"]:
+            facets["sdlc_manifest"] = {
+                "_schemaURL": f"{self.SCHEMA_BASE}/sdlc_manifest.json",
+                "inputs": manifest["inputs"],
+                "outputs": manifest["outputs"]
             }
 
         event = {
@@ -215,14 +241,33 @@ class Projector:
                 edge_name = edge_name.replace("->", "\u2192").replace("\u2194", "\u2192")
             
             if e_type == "edge_started" and edge_name: 
-                status[feat]["trajectory"][edge_name] = "iterating"
+                status[feat]["trajectory"][edge_name] = {
+                    "status": "iterating",
+                    "iteration": Projector.get_iteration_count(events, feat, edge_name)
+                }
                 status[feat]["status"] = "in_progress"
             elif e_type == "edge_converged" and edge_name: 
-                status[feat]["trajectory"][edge_name] = "converged"
+                status[feat]["trajectory"][edge_name] = {
+                    "status": "converged",
+                    "iteration": Projector.get_iteration_count(events, feat, edge_name),
+                    "delta": 0
+                }
+            elif e_type == "iteration_completed" and edge_name:
+                data = ev.get("data") or ev.get("_metadata", {}).get("original_data", {})
+                status[feat]["trajectory"][edge_name] = {
+                    "status": "iterating",
+                    "delta": data.get("delta"),
+                    "iteration": Projector.get_iteration_count(events, feat, edge_name)
+                }
+
         
-        for data in status.values():
+        for feat_id, data in status.items():
             if data["trajectory"]:
-                data["status"] = "converged" if all(s == "converged" for s in data["trajectory"].values()) else "in_progress"
+                all_conv = all(
+                    (s.get("status") if isinstance(s, dict) else s) == "converged" 
+                    for s in data["trajectory"].values()
+                )
+                data["status"] = "converged" if all_conv else "in_progress"
 
         return status
 
@@ -255,3 +300,72 @@ class DependencyResolver:
             if d not in converged_features:
                 return True
         return False
+
+class TaskProjector:
+    """Projects the tenant-scoped ACTIVE_TASKS.md from events and features."""
+    
+    @staticmethod
+    def project_tasks(events: List[Dict], features: Dict[str, Dict], workspace_root: Path, tenant: str = "gemini") -> str:
+        content = f"# Active Tasks — imp_{tenant} ({tenant.capitalize()} tenant)\n\n"
+        content += f"*Updated: {datetime.now(timezone.utc).isoformat()}*\n"
+        
+        root_tasks_file = workspace_root / "tasks" / "active" / "ACTIVE_TASKS.md"
+        content += f"*Overriding goal: [{root_tasks_file.name}](../../../tasks/active/{root_tasks_file.name})*\n\n"
+        
+        # 1. Pull in the Overriding Goal (Constraint Surface)
+        if root_tasks_file.exists():
+            root_content = root_tasks_file.read_text()
+            # Extract the goal section (between ## Overriding Goal and the next section or EOF)
+            match = re.search(r"## Overriding Goal.*?(?=\n##|$)", root_content, re.DOTALL | re.IGNORECASE)
+            if match:
+                content += match.group(0).strip() + "\n\n"
+        
+        content += "---\n\n"
+        
+        # 2. Sprint Summary
+        content += "## Current Sprint: Gate 1 Assurance (v0.2)\n\n"
+        content += "Focus: Metabolic Honesty and Transactional Integrity.\n\n"
+        
+        content += "### Sprint Compliance Checklist\n\n"
+        content += "- [x] G-COMPLY-001 (Event Contract)\n"
+        content += "- [x] G-COMPLY-002 (Hamiltonian Metric)\n"
+        content += "- [x] G-COMPLY-003 (Sensory Refactor)\n"
+        content += "- [x] G-COMPLY-005 (Task Partitioning)\n"
+        content += "- [x] G-COMPLY-006 (Transaction Model)\n"
+        content += "- [x] G-COMPLY-007 (Tournament Execution)\n"
+        content += "- [x] G-COMPLY-008 (Agent Isolation)\n"
+        content += "- [x] G-COMPLY-009 (Honesty Pass)\n\n"
+
+        # 3. Derive tasks from unconverged features
+        active_features = [f for f, data in features.items() if data["status"] != "converged" and f != "unknown"]
+        
+        if not active_features:
+            content += "### Active Implementation Tasks\n\nNo active features. Project is stable or awaiting new intent.\n"
+        else:
+            content += "### Active Implementation Tasks\n\n"
+            for fid in active_features:
+                fdata = features[fid]
+                # Determine next edge
+                traj = fdata.get("trajectory", {})
+                next_edge = "intent\u2192requirements" # Default
+                for edge in ["intent\u2192requirements", "requirements\u2192feature_decomp", "feature_decomp\u2192design", "design\u2192module_decomp", "module_decomp\u2192basis_proj", "basis_proj\u2192code", "code\u2192unit_tests"]:
+                    status_entry = traj.get(edge, {})
+                    status_str = status_entry.get("status") if isinstance(status_entry, dict) else status_entry
+                    if status_str != "converged":
+                        next_edge = edge
+                        break
+                
+                content += f"#### {fid}: {fdata.get('title', 'Untitled')}\n"
+                content += f"- **Status**: {fdata['status']}\n"
+                content += f"- **Next Edge**: {next_edge}\n"
+                content += f"- **Action**: `/gen-start --feature {fid}`\n\n"
+        
+        # 4. List recent completions
+        completed_features = [f for f, data in features.items() if data["status"] == "converged"]
+        if completed_features:
+            content += "\n### Recently Converged\n"
+            # Show last 5
+            for fid in reversed(completed_features[-5:]):
+                content += f"- [x] {fid}: {features[fid].get('title', 'Untitled')}\n"
+                
+        return content

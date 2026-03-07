@@ -88,13 +88,17 @@ def get_next_edge(feature: dict[str, Any]) -> Optional[str]:
     traj = feature.get("trajectory", {})
     for edge in STANDARD_PROFILE_EDGES:
         # Check full edge name (e.g. intent\u2192requirements)
-        if traj.get(edge, {}).get("status") == "converged":
+        edge_entry = traj.get(edge, {})
+        status_str = edge_entry.get("status") if isinstance(edge_entry, dict) else edge_entry
+        if status_str == "converged":
             continue
             
         # Also check target asset (legacy compatibility)
         parts = re.split(r"->|\u2192|\u2194", edge)
         target = parts[-1].strip()
-        if traj.get(target, {}).get("status") != "converged":
+        target_entry = traj.get(target, {})
+        target_status = target_entry.get("status") if isinstance(target_entry, dict) else target_entry
+        if target_status != "converged":
             return edge
     return None
 
