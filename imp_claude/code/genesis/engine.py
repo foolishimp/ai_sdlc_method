@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Optional
 
 from .config_loader import load_yaml, resolve_checklist
-from .contracts import Intent
+from .contracts import FpActorResultMissing, Intent
 from .ol_event import emit_ol_event, make_ol_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
@@ -139,10 +139,37 @@ def iterate_edge(
             failures=prior_failures or [],
             budget_usd=config.budget_usd,
         )
-        fp_result = FpFunctor().invoke(intent, config.workspace_path)
+        try:
+            fp_result = FpFunctor().invoke(intent, config.workspace_path)
+        except FpActorResultMissing as exc:
+            # MCP is available but no fold-back result — observable failure (T-007).
+            # Emit FpFailure so the event log records the gap; continue F_D only.
+            emit_ol_event(
+                events_path,
+                make_ol_event(
+                    "FpFailure",
+                    edge,
+                    config.project_name,
+                    feature_id,
+                    "genesis-engine",
+                    causation_id=iter_run_id,
+                    correlation_id=edge_correlation_id,
+                    payload={
+                        "feature": feature_id,
+                        "edge": edge,
+                        "iteration": iteration,
+                        "transport": "mcp",
+                        "cost_usd": 0.0,
+                        "duration_ms": 0,
+                        "phase": "construct",
+                        "error": str(exc),
+                    },
+                ),
+            )
+            fp_result = None  # F_D evaluation proceeds without F_P result
 
         # Emit FpFailure event if actor was invoked but did not converge (REQ-ROBUST-007)
-        if not fp_result.audit.skipped and not fp_result.converged and fp_result.delta > 0:
+        if fp_result and not fp_result.audit.skipped and not fp_result.converged and fp_result.delta > 0:
             emit_ol_event(
                 events_path,
                 make_ol_event(
@@ -290,7 +317,7 @@ def iterate_edge(
         escalations=escalations,
     )
 
-    if fp_result and not fp_result.audit.skipped:
+    if fp_result is not None and not fp_result.audit.skipped:
         event_data["fp_actor"] = {
             "transport": fp_result.audit.transport,
             "converged": fp_result.converged,

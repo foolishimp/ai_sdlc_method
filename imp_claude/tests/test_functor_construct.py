@@ -151,6 +151,85 @@ class TestEngineConstructIntegration:
 # ═══════════════════════════════════════════════════════════════════════════
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# T-007: FpActorResultMissing exception path
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestFpActorResultMissing:
+    """Validates T-007: FpActorResultMissing is observable, not a silent skip."""
+
+    def _make_engine_config(self, tmp_path):
+        from genesis.engine import EngineConfig
+
+        events_dir = tmp_path / ".ai-workspace" / "events"
+        events_dir.mkdir(parents=True)
+        (events_dir / "events.jsonl").touch()
+
+        return EngineConfig(
+            project_name="test-project",
+            workspace_path=tmp_path,
+            edge_params_dir=tmp_path / "edge_params",
+            profiles_dir=tmp_path / "profiles",
+            constraints={},
+            graph_topology={},
+            deterministic_only=True,
+        )
+
+    def test_mcp_available_no_result_emits_fp_failure(self, tmp_path):
+        """When MCP available but fold-back missing → FpFailure event emitted."""
+        from genesis.engine import iterate_edge
+        from genesis.contracts import FpActorResultMissing
+
+        config = self._make_engine_config(tmp_path)
+        events_path = tmp_path / ".ai-workspace" / "events" / "events.jsonl"
+
+        with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
+            record = iterate_edge(
+                edge="design→code",
+                edge_config={"checklist": []},
+                config=config,
+                feature_id="REQ-F-TEST-001",
+                asset_content="design",
+                construct=True,
+            )
+
+        events = [normalize_event(json.loads(e)) for e in events_path.read_text().strip().split("\n") if e.strip()]
+        fp_failure_events = [e for e in events if e.get("event_type") == "fp_failure"]
+        assert len(fp_failure_events) == 1
+        assert fp_failure_events[0].get("error")
+
+    def test_mcp_available_no_result_fp_result_is_none(self, tmp_path):
+        """When FpActorResultMissing → fp_result is None, F_D checks still run."""
+        from genesis.engine import iterate_edge
+
+        config = self._make_engine_config(tmp_path)
+
+        with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
+            record = iterate_edge(
+                edge="design→code",
+                edge_config={"checklist": []},
+                config=config,
+                feature_id="REQ-F-TEST-001",
+                asset_content="design",
+                construct=True,
+            )
+
+        assert record.fp_result is None
+        assert record.evaluation.converged is True  # No checks = converged
+
+    def test_fp_actor_result_missing_is_distinct_from_skip(self, tmp_path):
+        """FpActorResultMissing is raised by functor, not suppressed as skipped=True."""
+        from genesis.fp_functor import FpFunctor
+        from genesis.contracts import FpActorResultMissing, Intent
+
+        intent = Intent(edge="design→code", feature="REQ-F-TEST-001")
+
+        with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
+            with pytest.raises(FpActorResultMissing):
+                FpFunctor().invoke(intent, tmp_path)
+
+
 class TestRunIdThreading:
     """Validates: T-005 — OL runId causation chain through edge traversal."""
 

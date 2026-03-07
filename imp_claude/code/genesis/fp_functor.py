@@ -1,7 +1,8 @@
 # Implements: REQ-ROBUST-001 (Actor Isolation), REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ITER-001 (Universal Iteration)
 """ADR-024 F_P functor — invoke actor via MCP with constrained Intent.
 
-If MCP unavailable → return StepResult(converged=False, delta=-1, skipped=True).
+MCP unavailable → return StepResult(skipped=True). F_D-only mode, not an error.
+MCP available but no result → raise FpActorResultMissing. Observable failure.
 No subprocess fallback. No claude -p. Ever.
 
 The actor:
@@ -20,7 +21,7 @@ import json
 import time
 from pathlib import Path
 
-from .contracts import Intent, SpawnRecord, StepAudit, StepResult, VersionedArtifact
+from .contracts import FpActorResultMissing, Intent, SpawnRecord, StepAudit, StepResult, VersionedArtifact
 from .functor import mcp_available
 
 
@@ -50,28 +51,11 @@ class FpFunctor:
         prompt = _build_actor_prompt(intent, state)
         t0 = time.monotonic()
 
-        try:
-            raw = _mcp_invoke(prompt, state, intent)
-            duration_ms = int((time.monotonic() - t0) * 1000)
-            return _parse_actor_result(intent, raw, duration_ms, state)
-        except Exception as exc:  # noqa: BLE001
-            # Result not yet available (actor pending or fold-back missing).
-            # skipped=True: orchestrator treats this as "no result" not a failure.
-            # delta=-1 is the sentinel for "no measurement taken".
-            duration_ms = int((time.monotonic() - t0) * 1000)
-            return StepResult(
-                run_id=intent.run_id,
-                converged=False,
-                delta=-1,
-                duration_ms=duration_ms,
-                workspace=state,
-                audit=StepAudit(
-                    functor_type="F_P",
-                    transport="mcp",
-                    skipped=True,
-                    stall_killed=False,
-                ),
-            )
+        # FpActorResultMissing propagates — engine handles it as an observable failure,
+        # NOT a silent skip. Other unexpected exceptions also propagate (no broad catch).
+        raw = _mcp_invoke(prompt, state, intent)
+        duration_ms = int((time.monotonic() - t0) * 1000)
+        return _parse_actor_result(intent, raw, duration_ms, state)
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
@@ -139,8 +123,9 @@ def _mcp_invoke(prompt: str, workspace: Path, intent: Intent) -> dict:
     if result_path.exists():
         return json.loads(result_path.read_text())
 
-    # No result yet — raise so caller returns a skipped StepResult
-    raise RuntimeError(f"MCP actor result not yet available (run_id={intent.run_id})")
+    # No fold-back result found — raise observable failure (not a silent skip).
+    # The engine catches FpActorResultMissing and emits FpFailure.
+    raise FpActorResultMissing(f"MCP actor result not yet available (run_id={intent.run_id})")
 
 
 def _parse_actor_result(

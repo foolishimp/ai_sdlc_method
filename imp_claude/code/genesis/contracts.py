@@ -16,6 +16,19 @@ from pathlib import Path
 from typing import Any
 
 
+# ── Exceptions ────────────────────────────────────────────────────────────────
+
+
+class FpActorResultMissing(RuntimeError):
+    """Raised when MCP is available but the actor has not returned a result.
+
+    Distinct from 'MCP unavailable' (which produces a skipped StepResult).
+    When MCP IS available, the actor must respond — this exception signals
+    that the fold-back result is absent, which is an observable failure,
+    not a transparent skip. The engine catches this and emits FpFailure.
+    """
+
+
 # ── Intent ────────────────────────────────────────────────────────────────────
 
 
