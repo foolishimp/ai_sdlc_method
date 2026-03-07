@@ -177,6 +177,37 @@ The multi-tenant event log is the natural consequence of running parallel implem
 
 ---
 
+## INT-GMON-006: One-Stop Observability — Full Feature Lineage and CQRS Workspace Hierarchy
+
+### Problem
+
+The monitor is the designated observability surface for the methodology. Three gaps prevent it from being complete:
+
+**Gap 1 — Incomplete REQ key lineage.** The traceability view cross-references code (`Implements:`) and tests (`Validates:`) but not telemetry (`req=` tags in logs/metrics) or the spec inventory itself. The full lineage is spec → code → tests → telemetry. Missing the spec column means orphan keys (in code but not spec) are invisible. Missing telemetry means production observability gaps are invisible.
+
+**Gap 2 — Flat workspace discovery.** The scanner finds `.ai-workspace/` directories at a single level. The CQRS workspace model (§7.4.4 of the Asset Graph Model) defines workspace hierarchies — a parent project aggregates child workspace event streams without owning them. The monitor cannot traverse or display this hierarchy. Projects like `ai_sdlc_method` contain child workspaces (`projects/genesis_monitor/imp_fastapi/.ai-workspace/`) that are independent CQRS units whose events should be visible in the parent view.
+
+**Gap 3 — STATUS.md not surfaced.** Each workspace generates a `STATUS.md` derived projection. The monitor does not render it. This is the most human-readable summary of project state and is currently only accessible by opening the file directly.
+
+### Expected Outcomes
+
+| ID | Outcome | Measures |
+|----|---------|----------|
+| OUT-036 | Full 4-column REQ lineage | Traceability view shows: Spec (defined in spec inventory) / Code (Implements: tag) / Tests (Validates: tag) / Telemetry (req= tag). Each column is Y/N per REQ key. |
+| OUT-037 | Orphan detection | REQ keys found in code but absent from spec inventory flagged as orphans. REQ keys in spec but absent from all three downstream columns flagged as uncovered. |
+| OUT-038 | Telemetry scanner | Scanner reads source files for `req="REQ-*"` and `req='REQ-*'` patterns and populates telemetry coverage map in TraceabilityReport. |
+| OUT-039 | CQRS workspace tree | Scanner traverses nested `.ai-workspace/` directories. Parent project view shows own events + option to include child workspace events. Child workspaces listed with event counts and link to their own project view. |
+| OUT-040 | Cross-workspace REQ rollup | Parent view aggregates REQ key coverage across all child workspaces — shows which keys are covered at any level of the hierarchy. |
+| OUT-041 | STATUS.md panel | Project view includes a STATUS panel rendering the workspace's `STATUS.md` if present. Auto-refreshed via SSE on file change. |
+
+### Rationale
+
+These three gaps are the difference between a monitoring tool and an observability platform. The lineage gap means the chain from spec to production is incomplete — you can see code and tests but not whether the requirement is monitored in production. The workspace hierarchy gap means the CQRS model (now in §7.4.4) is implemented in the methodology but invisible to its own monitor. The STATUS.md gap means the most actionable derived view is not in the UI.
+
+The monitor's value proposition is that it closes the observation loop on the methodology itself. These three additions complete that closure.
+
+---
+
 ## Traceability
 
 This document is the root asset. All subsequent requirements MUST trace back to INT-GMON-001, INT-GMON-002, or INT-GMON-003 via REQ keys.
@@ -187,4 +218,5 @@ INT-GMON-002 → REQ-GMON-* (dogfood requirements)
 INT-GMON-003 → REQ-GMON-* (technology requirements)
 INT-GMON-004 → REQ-GMON-* (v2.5 alignment requirements)
 INT-GMON-005 → REQ-GMON-* (v2.8/v3.0 alignment requirements)
+INT-GMON-006 → REQ-GMON-* (full lineage + CQRS hierarchy + STATUS panel)
 ```
