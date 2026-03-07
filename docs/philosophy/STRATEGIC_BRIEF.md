@@ -15,28 +15,53 @@ The question that determines competitive position is what happens after the code
 
 ---
 
+## The Vibe Coding Problem
+
+Many organisations with mature development processes have adopted AI as a developer accelerator — a faster way to produce code within existing workflows. This is rational. It is also where the risk is highest.
+
+"Vibe coding" — prompting an AI to build what a developer describes in natural language — routes around the governance processes that mature organisations spent years building. The AI has no knowledge of your architecture decisions, your regulatory constraints, your coding standards, or your business rules. It produces confident, well-structured output against whatever the developer articulated in the moment. The result looks right. It may not be.
+
+The specific failure modes:
+
+- **Requirements bypass** — code is generated from a prompt, not from a formal requirement; the traceability chain breaks at the first step
+- **Architectural drift** — the AI does not load your ADRs or design constraints; it builds what seems reasonable, which diverges from what was decided
+- **Test coverage theatre** — AI writes tests that look complete; without formal coverage checks against requirements, gaps are invisible
+- **Context amnesia** — each session starts fresh; the AI has no memory of prior decisions, constraints, or your organisation's specific rules
+- **"Looks right" acceptance** — developer review replaces formal evaluation; quality depends on the developer's ability to spot what the AI got wrong
+- **Untraceable production** — when something fails in production, there is no chain from the live behaviour back to the requirement that governed it
+
+These are not AI problems. They are governance problems that AI makes worse, because AI produces output faster and with more surface credibility than manual code.
+
+The organisations most at risk are those with the most invested in their governance processes — because vibe coding bypasses precisely the controls they have spent years putting in place.
+
+---
+
 ## The Compounding Problem
 
-Every organisation using AI development today is accumulating a liability it does not yet see.
+Every AI-assisted delivery that bypasses formal governance accumulates a liability.
 
-AI-generated systems enter production with no formal record of what they were asked to do, which business rules they enforce, or what changes when something goes wrong. This is not a quality problem. It is a governance problem — invisible until an audit, a regulatory examination, an incident, or a change request nobody can safely execute.
-
-- Organisations building fast without governance do not have a head start
-- They are accumulating a liability that compounds with every deployment
+- The chain from business requirement to live behaviour becomes informal and unverifiable
+- The liability is invisible until an audit, a regulatory examination, an incident, or a change request nobody can safely execute
 - The remediation cost, when it surfaces, is not a technology project — it is an organisational reconstruction
 
 ---
 
-## What Shifts When Specification Governs Construction
+## What Spec-Driven Development Addresses
 
-Business requirements are formalised as machine-checkable constraints before construction begins. The AI builds against the specification. Nothing advances until it passes.
+Business requirements are formalised as machine-checkable constraints before construction begins. The AI builds against the specification. Nothing advances until it passes. The governance processes the organisation already has are placed *inside* the AI construction loop — not beside it.
 
-The consequences are structural:
+Each vibe coding failure mode has a direct structural response:
 
-- **Traceability is automatic.** Every requirement, design decision, code unit, test, and production monitor carries the same identifier. The chain from business intent to live behaviour is verifiable by any auditor or regulator — without reconstruction effort.
-- **Change is safe.** Update the specification; the AI rebuilds what needs rebuilding; the audit trail records exactly what changed and why. Change stops being expensive.
-- **Parallel construction scales.** One specification governs multiple AI agents simultaneously — each on a different implementation, each evaluated against the same criteria. Coordination overhead is replaced by a shared specification.
-- **The system monitors its own fitness.** Production behaviour is monitored using the same identifiers that governed construction. Drift is detected automatically and initiates a governed response.
+| Vibe coding failure | Spec-Driven response |
+|---|---|
+| Requirements bypass | Formal REQ keys defined before construction; AI cannot proceed without them |
+| Architectural drift | ADRs and design constraints loaded as mandatory context on every invocation |
+| Test coverage theatre | Coverage is a verifiable number — every REQ key must appear in a passing test |
+| Context amnesia | The specification is the persistent context; it survives model and session changes |
+| "Looks right" acceptance | Formal evaluators — automated, AI-assisted, and human — gate every output |
+| Untraceable production | The same REQ identifiers that governed construction monitor production behaviour |
+
+The consequence is not a heavier process. It is AI construction that operates within the governance the organisation already requires — automatically, at every stage, without depending on individual discipline.
 
 ---
 
