@@ -17,22 +17,19 @@ The question that determines competitive position is what happens after the code
 
 ## The Vibe Coding Problem
 
-Many organisations with mature development processes have adopted AI as a developer accelerator — a faster way to produce code within existing workflows. This is rational. It is also where the risk is highest.
+Many organisations with mature development processes have adopted AI as a developer accelerator — a faster way to produce code within existing workflows. This is rational. The results are initially compelling.
 
-"Vibe coding" — prompting an AI to build what a developer describes in natural language — routes around the governance processes that mature organisations spent years building. The AI has no knowledge of your architecture decisions, your regulatory constraints, your coding standards, or your business rules. It produces confident, well-structured output against whatever the developer articulated in the moment. The result looks right. It may not be.
+The number one failure mode of vibe coding is not that it produces obviously wrong output. It is that it produces output that looks right — and frequently is functional — within the hour. The cost surfaces days later, in debugging sessions that undo the time saved many times over. The code worked against the developer's mental model of the requirement. The question of whether that mental model matched the actual requirement, the architecture decision, or the business rule was never formally asked.
 
-The specific failure modes:
+This is the structural gap. AI produces confident, well-structured output against whatever was articulated in the moment. It has no access to the decisions your organisation has made, the constraints it operates under, or the rules it must never get wrong. The output is a plausible interpretation of a prompt — not a governed implementation of a requirement.
 
-- **Requirements bypass** — code is generated from a prompt, not from a formal requirement; the traceability chain breaks at the first step
-- **Architectural drift** — the AI does not load your ADRs or design constraints; it builds what seems reasonable, which diverges from what was decided
-- **Test coverage theatre** — AI writes tests that look complete; without formal coverage checks against requirements, gaps are invisible
-- **Context amnesia** — each session starts fresh; the AI has no memory of prior decisions, constraints, or your organisation's specific rules
-- **"Looks right" acceptance** — developer review replaces formal evaluation; quality depends on the developer's ability to spot what the AI got wrong
-- **Untraceable production** — when something fails in production, there is no chain from the live behaviour back to the requirement that governed it
+The specific patterns that create the hidden cost:
 
-These are not AI problems. They are governance problems that AI makes worse, because AI produces output faster and with more surface credibility than manual code.
-
-The organisations most at risk are those with the most invested in their governance processes — because vibe coding bypasses precisely the controls they have spent years putting in place.
+- **Deferred debugging** — functional on first run, breaks on edge cases the prompt didn't describe; the gap between "works" and "correct" is invisible until it isn't
+- **Architectural drift** — the AI builds what seems reasonable for the prompt; without design constraints as active context, it diverges from what was decided
+- **Test coverage that validates the prompt, not the requirement** — AI writes tests against its own output; gaps in the original prompt become gaps in coverage
+- **Context that resets each session** — prior decisions, constraints, and organisational rules are not carried forward; each invocation starts from what the developer remembers to include
+- **Untraceable production behaviour** — when something fails, there is no chain from the live behaviour back to the requirement that was supposed to govern it
 
 ---
 
