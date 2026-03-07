@@ -19,9 +19,9 @@ The question that determines competitive position is what happens after the code
 
 Many organisations with mature development processes have adopted AI as a developer accelerator — a faster way to produce code within existing workflows. This is rational. The results are initially compelling.
 
-The number one failure mode of vibe coding is not that it produces obviously wrong output. It is that it produces output that looks right — and frequently is functional — within the hour. The cost surfaces days later, in debugging sessions that undo the time saved many times over. The code worked against the developer's mental model of the requirement. The question of whether that mental model matched the actual requirement, the architecture decision, or the business rule was never formally asked.
+The number one failure mode of vibe coding is not that it produces obviously wrong output. It is that it produces output that looks right — and frequently is functional — within the hour. The cost surfaces days later, in debugging sessions that undo the time saved many times over.
 
-This is the structural gap. AI produces confident, well-structured output against whatever was articulated in the moment. It has no access to the decisions your organisation has made, the constraints it operates under, or the rules it must never get wrong. The output is a plausible interpretation of a prompt — not a governed implementation of a requirement.
+The structural reason is straightforward. AI produces output against what was described in the prompt. Without formal requirements, design constraints, and acceptance criteria as active context, there is no mechanism to verify that what was built matches what the business needs. The gap between functional and correct is only visible when the edge cases, the integration points, or the production conditions expose it.
 
 The specific patterns that create the hidden cost:
 
