@@ -1,6 +1,7 @@
 # ADR-S-018: Tournament Sub-Graph Pattern
 
-**Status**: Ratified
+**Status**: Retired — 2026-03-07
+**Superseded by**: The parallel spawn capability is a universal engine mechanic, not a named sub-graph pattern. The "tournament" framing (winner-take-all arbitration) is too narrow; the general case includes coexistence, specialization, and marketplace equilibrium as valid outcomes. See Multivector Design Marketplace (ADR-S-023, ADR-S-024).
 **Date**: 2026-03-07
 **Author**: Gemini (derived from Codex review)
 **Applies To**: Formal System (AI SDLC Asset Graph Model v3.0)

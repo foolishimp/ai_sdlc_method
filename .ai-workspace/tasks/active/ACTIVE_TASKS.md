@@ -14,7 +14,7 @@ Dogfooding is not a test — it is the build process.
 | Version | Gate | Done when | Status |
 |---------|------|-----------|--------|
 | **v0.1** | Dogfooding enabled | Interactive agent path works; can iterate on own codebase using the methodology | ✅ **RELEASED** |
-| **v0.2** | Runtime correct | T-001 + T-005 + T-007 + T-008: OL events, transaction model, F_P engine complete | ❌ open |
+| **v0.2** | Runtime correct | T-001 + T-005 + T-007 + T-008: OL events, transaction model, F_P engine complete | ✅ **RELEASED** |
 | **v0.3** | Observability verified | genesis_monitor correctly parses and displays a v0.2 methodology run end-to-end | ❌ open |
 | **v0.4** | Ecosystem verified | Methodology applied to an external project; converges and all tests pass | ❌ open |
 | **v1.0** | Assurance | v0.3 + v0.4 both green — product-level confidence, not just unit test confidence | ❌ open |
@@ -26,8 +26,8 @@ Dogfooding is not a test — it is the build process.
 | Spec | Complete — ADR-S-001..024 |
 | Implementation Requirements | 83 REQ keys |
 | Feature Vectors | 16 vectors, 83/83 tagged |
-| Tests | 1078 unit passing |
-| Active release | v0.1 — next target v0.2 |
+| Tests | 1093 unit passing (16 new: runId threading, FpActorResultMissing, manifest) |
+| Active release | v0.2 — next target v0.3 (genesis_monitor observability) |
 
 ### Post-1.0 (v1.1 sprint)
 T-002 (context hierarchy), T-003 (instance graph), T-004 (FPC anchoring), T-006 (H-metric)

@@ -328,24 +328,6 @@ The formal event stream contract — append-only durability, projection semantic
 
 ---
 
-### REQ-F-TOURNAMENT-001: Tournament Pattern Sub-Graph
-
-Tournament strategy sub-graph: `parallel_spawn → tournament_arbitration → tournament_merge`. Implements ADR-S-018 as explicit topology nodes with OL causal links and merge provenance.
-
-**Satisfies**: REQ-GRAPH-001, REQ-GRAPH-002, REQ-COORD-001, REQ-COORD-002, REQ-EVENT-003
-
-**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |code⟩ ↔ |tests⟩
-
-**What converges**:
-- `parallel_spawn`, `tournament_arbitration`, `tournament_merge` nodes in `graph_topology.yml` — REQ-GRAPH-001, REQ-GRAPH-002
-- F_P or F_H arbitration step for ranking tournament candidates — REQ-COORD-001
-- `tournament_merge` fold-back with explicit `merge_provenance` facet — REQ-COORD-002
-- `run.facets.parent` causal links emitted for each spawn+arbitration+merge — REQ-EVENT-003
-
-**Phase**: 3 (post-MVP, depends on ENGINE + COORD convergence)
-
-**Dependencies**: REQ-F-ENGINE-001.|code⟩, REQ-F-COORD-001.|code⟩
-
 ---
 
 ## Dependency Graph
@@ -539,8 +521,6 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 | REQ-F-EVENT-001 | 4 | 1b+2 | ENGINE, ROBUST |
 | REQ-F-EVOL-001 | 5 | 1+2 | LIFE, EVENT, TOOL |
 | REQ-F-FP-001 | 4 | 2 | ENGINE, EVAL |
-| REQ-F-TOURNAMENT-001 | 5* | 3 | ENGINE, COORD |
 | **Total** | **83** | | |
 
-16 feature vectors. 83 implementation requirements. Full coverage. Critical path: ENGINE design.
-*TOURNAMENT reuses existing requirements (no new REQ keys); the 5 listed are shared references.
+15 feature vectors. 83 implementation requirements. Full coverage. Critical path: ENGINE design.
