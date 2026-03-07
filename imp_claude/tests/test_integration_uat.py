@@ -229,7 +229,10 @@ class TestEventLogIntegrity:
         # OpenLineage-native normalized events
         "unknown",
         # Engine OL-native CamelCase variants (emitted by genesis engine evaluator)
-        "IterationStarted", "IterationCompleted", "EvaluatorDetail",
+        "IterationStarted", "IterationCompleted", "IterationFailed", "IterationAbandoned",
+        "EvaluatorDetail", "EdgeStarted", "EdgeConverged",
+        "FpFailure", "SpawnCreated", "SpawnFoldedBack",
+        "EdgeClaimed", "EdgeReleased",
     }
 
     @pytest.fixture(autouse=True)
