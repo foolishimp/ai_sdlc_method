@@ -46,6 +46,24 @@ Every AI-assisted delivery that bypasses formal governance accumulates a liabili
 
 ---
 
+## Why This Is Different in Kind, Not Degree
+
+The natural response to vibe coding's failures is better prompts — more detailed instructions, more context, more iteration. This addresses the symptom without touching the cause.
+
+The cause is structural. An LLM operating under natural language instructions traverses the full space of everything it has learned and produces the most plausible output. It has no mechanism to distinguish between a response that satisfies your business rules and one that merely resembles them. Confidence and correctness are unrelated in an unconstrained model. It will always produce something that looks right.
+
+A formal constraint specification does not improve this process — it changes the mechanism entirely.
+
+When an LLM operates within a defined constraint surface — formal requirements, architectural decisions, convergence criteria — the space of outputs it can produce is bounded. Non-conforming outputs are not caught by review after the fact. They are structurally inadmissible. The LLM is no longer a generator finding the most plausible path through its training data. It is a constructor operating within a defined possibility space, evaluated against formal criteria.
+
+The theoretical grounding is published (Popov, 2026: *Emergent Reasoning in Large Language Models*; *Programming LLM Reasoning: A Meta-Template for Constraint Specifications*): hallucination occurs when constraints are absent. More constraints, fewer possible wrong answers. Sufficient constraints, and the system converges on correct output not because it is clever but because the incorrect outputs have been eliminated.
+
+**The difference between vibe coding and Spec-Driven Development is not the quality of the instruction. It is the presence or absence of a constraint methodology.**
+
+This is why better prompting does not close the governance gap. A prompt activates a region of the model's learned structure. A constraint specification bounds the space of admissible transformations. These are different mechanisms. One produces plausible output. The other produces accountable output.
+
+---
+
 ## What Spec-Driven Development Addresses
 
 Business requirements are formalised as machine-checkable constraints before construction begins. The AI builds against the specification. Nothing advances until it passes. The governance processes the organisation already has are placed *inside* the AI construction loop — not beside it.
