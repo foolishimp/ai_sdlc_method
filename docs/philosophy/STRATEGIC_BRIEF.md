@@ -9,9 +9,7 @@ table { page-break-inside: avoid; }
 
 ---
 
-AI has removed the scarcity in code construction. Any organisation can now build faster. That is not a competitive position — it is a baseline.
-
-The question that determines competitive position is what happens after the code is built.
+AI makes code construction fast for every organisation. The differentiator is what governs what gets built.
 
 ---
 
