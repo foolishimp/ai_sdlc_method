@@ -12,7 +12,7 @@ intent: INT-AISDLC-001
 parent_id: REQ-F-LIFE-001
 priority: medium
 profile: standard
-status: in_progress
+status: converged
 title: Spec Evolution Pipeline
 trajectory:
   code:
@@ -43,14 +43,20 @@ trajectory:
     started_at: '2026-03-07T10:52:00Z'
     status: converged
   requirements:
-    asset: imp_claude/design/features/REQ-F-EVOL-001-feature-decomp.md
-    asset_hash: sha256:c7ed149e7d6c7718877c48acab3f7b5b8354c43115296589e2d9c9aded767106
-    converged_at: '2026-03-07T11:59:15Z'
-    iteration: 1
-    started_at: '2026-03-07T11:59:15Z'
+    asset: specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md
+    delta: 0
+    engine_run_id: null
+    iteration: 5
+    mode: headless
     status: converged
+    updated_at: '2026-03-07T14:22:51.457010+00:00'
   uat_tests:
-    status: pending
+    asset: imp_claude/tests/uat/test_uc_evol_001_spec_evolution.feature
+    asset_hash: sha256:2de5295f5ef3271037fffcee7b8a8c5d8b5e2a9f4c1d0e6b3a7f2c9d8e1b4a5f
+    converged_at: '2026-03-08T09:00:00Z'
+    iteration: 1
+    started_at: '2026-03-08T09:00:00Z'
+    status: converged
   unit_tests:
     asset: imp_claude/tests/test_spec_evolution.py
     asset_hash: sha256:62ef1b643b48e951e3395d4679683a99f015d2e4fe532f77340766fbc1f97c5a
@@ -58,5 +64,5 @@ trajectory:
     iteration: 1
     started_at: '2026-03-07T13:20:00Z'
     status: converged
-updated: '2026-03-08T00:30:00Z'
+updated: '2026-03-08T09:00:00Z'
 vector_type: feature

@@ -1,6 +1,6 @@
 # Active Tasks — ai_sdlc_method
 
-*Updated: 2026-03-07*
+*Updated: 2026-03-08*
 
 ---
 
@@ -31,6 +31,15 @@ Dogfooding is not a test — it is the build process.
 
 ### Post-1.0 (v1.1 sprint)
 T-002 (context hierarchy), T-003 (instance graph), T-004 (FPC anchoring), T-006 (H-metric)
+
+### REQ-F-EVOL-001: design→uat_tests CONVERGED
+**Date**: 2026-03-08T09:00:00Z
+**Iterations**: 1
+**Evaluators**: 7/7 checks passed (5 agent, 2 human)
+**Asset**: imp_claude/tests/uat/test_uc_evol_001_spec_evolution.feature (20 Gherkin scenarios)
+**Next edge**: none — REQ-F-EVOL-001 fully converged across all standard profile edges
+
+---
 
 ### Known Spec Inconsistencies (tracked, not blocking)
 - **REQ-CTX-002 vs ADR-S-022**: Resolved — REQ-CTX-002 updated 2026-03-07 to 6-level hierarchy matching ADR-S-022. Implementation work in T-COMPLY-002 (v1.1).
