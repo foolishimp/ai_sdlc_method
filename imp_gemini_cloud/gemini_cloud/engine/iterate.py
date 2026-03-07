@@ -1,38 +1,31 @@
-from typing import Dict, Any, List, Protocol, Optional, Type
+from typing import Dict, Any, List, Protocol, Optional, Type, runtime_checkable
 from pathlib import Path
 import time
 import shutil
 from datetime import datetime, timezone
 from .models import IterationReport, FunctorResult, Outcome, SpawnRequest
+from .guardrails import GuardrailEngine, GuardrailResult
 from gemini_cloud.internal.yaml_loader import load_yaml
 
+@runtime_checkable
 class Functor(Protocol):
     def evaluate(self, candidate: str, context: Dict) -> FunctorResult: ...
 
-class CloudIterateEngine:
-    """Cloud-native iteration engine following the Canonical Invocation Model.
-    Implements Markov Blanket pattern via project fingerprinting and run archival.
-    """
-    
-    def __init__(self, functors: Dict[str, Functor], project_root: Path, config_root: Path = None, store = None):
-        self.functors = functors
-        self.project_root = project_root
-        self.workspace_root = project_root / ".ai-workspace"
-        self.config_root = config_root or Path(__file__).parent.parent / "config"
-        self.store = store
+@runtime_checkable
+class ArchiveStore(Protocol):
+    def archive_iteration(self, feature_id: str, edge: str, iteration: int, failed: bool = False) -> str: ...
 
-    def _get_project_fingerprint(self) -> tuple[float, int]:
-        """Return (latest_mtime, total_file_count) for key project locations."""
+@runtime_checkable
+class LivenessSignal(Protocol):
+    def get_signal(self) -> tuple[float, int]: ...
+
+class FilesystemLiveness(LivenessSignal):
+    def __init__(self, roots: List[Path]):
+        self.roots = roots
+    def get_signal(self) -> tuple[float, int]:
         latest = 0.0
         count = 0
-        sentinel_dirs = [
-            self.project_root / "gemini_cloud",
-            self.project_root / "tests",
-            self.project_root / "specification",
-            self.project_root / ".ai-workspace" / "events",
-            self.project_root / ".ai-workspace" / "features",
-        ]
-        for d in sentinel_dirs:
+        for d in self.roots:
             if not d.exists(): continue
             try:
                 mt = d.stat().st_mtime
@@ -46,15 +39,10 @@ class CloudIterateEngine:
             except OSError: continue
         return latest, count
 
-    def get_liveness_signal(self, transport: str = "filesystem") -> tuple[float, int]:
-        """Pluggable liveness signal (Finding #4)."""
-        if transport == "filesystem":
-            return self._get_project_fingerprint()
-        # In cloud, this could check for Firestore heartbeat updates
-        return time.time(), 0
-
-    def _archive_iteration(self, feature_id: str, edge: str, iteration: int, failed: bool = False):
-        """Archive project state for reproducibility."""
+class LocalArchiveStore(ArchiveStore):
+    def __init__(self, project_root: Path):
+        self.project_root = project_root
+    def archive_iteration(self, feature_id: str, edge: str, iteration: int, failed: bool = False) -> str:
         ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
         status = "FAILED" if failed else "OK"
         archive_name = f"run_{feature_id}_{edge.replace('→', '_').replace('↔', '_')}_iter{iteration}_{status}_{ts}"
@@ -69,7 +57,38 @@ class CloudIterateEngine:
         if latest.exists() or latest.is_symlink(): latest.unlink()
         try: latest.symlink_to(archive_dir.name)
         except Exception: pass
-        return archive_dir
+        return str(archive_dir)
+
+class CloudIterateEngine:
+    """Cloud-native iteration engine following the Canonical Invocation Model.
+    Implements Markov Blanket pattern via pluggable fingerprinting and archiving.
+    """
+    
+    def __init__(
+        self, 
+        functors: Dict[str, Functor], 
+        project_root: Path, 
+        config_root: Path = None, 
+        store = None,
+        constraints: Dict[str, Any] = None,
+        archiver: ArchiveStore = None,
+        liveness: LivenessSignal = None
+    ):
+        self.functors = functors
+        self.project_root = project_root
+        self.workspace_root = project_root / ".ai-workspace"
+        self.config_root = config_root or Path(__file__).parent.parent / "config"
+        self.store = store
+        self.constraints = constraints or {}
+        self.guardrails = GuardrailEngine(self.constraints)
+        self.archiver = archiver or LocalArchiveStore(project_root)
+        self.liveness = liveness or FilesystemLiveness([
+            project_root / "gemini_cloud",
+            project_root / "tests",
+            project_root / "specification",
+            self.workspace_root / "events",
+            self.workspace_root / "features",
+        ])
 
     def detect_integrity_gaps(self, events: List[Dict]) -> List[Dict[str, Any]]:
         """Find discrepancies between the Event Ledger (committed) and Filesystem (actual)."""
@@ -107,9 +126,7 @@ class CloudIterateEngine:
 
     def run(self, asset_path: Path, feature: str, edge: str, context: Dict, mode: str = "interactive", iteration: int = 1, wall_timeout: int = 3600, stall_timeout: int = 300) -> IterationReport:
         edge_config = load_yaml(self.config_root / "edge_params" / f"{edge}.yml") if (self.config_root / "edge_params" / f"{edge}.yml").exists() else {"evaluators": ["agent"]}
-        current_context = context.copy()
-        current_context.update({"edge_config": edge_config})
-        candidate = asset_path.read_text() if asset_path.exists() else f"# Next candidate for {feature} / {edge}"
+        current_context = {**context, "edge_config": edge_config, "constraints": self.constraints, "feature_id": feature, "edge": edge}
         
         # Emit START
         transaction_id = None
@@ -117,7 +134,18 @@ class CloudIterateEngine:
             start_ev = self.store.emit(event_type="iteration_started", feature=feature, edge=edge, eventType="START", inputs=[asset_path] if asset_path.exists() else [])
             transaction_id = start_ev["run"]["runId"]
 
-        start_time = time.time(); last_mtime, last_count = self.get_liveness_signal()
+        # Pre-flight Guardrails
+        gr_results = self.guardrails.validate_pre_flight(edge, current_context)
+        if any(not r.passed for r in gr_results):
+            report = IterationReport(asset_path=str(asset_path), delta=-1, converged=False, functor_results=[], guardrail_results=gr_results)
+            self.archiver.archive_iteration(feature, edge, iteration, failed=True)
+            if self.store:
+                self.store.emit(event_type="iteration_failed", feature=feature, edge=edge, delta=-1, data={"reason": "pre-flight guardrail failure"}, eventType="FAIL", parent_run_id=transaction_id)
+            return report
+
+        candidate = asset_path.read_text() if asset_path.exists() else f"# Next candidate for {feature} / {edge}"
+        
+        start_time = time.time(); last_mtime, last_count = self.liveness.get_signal()
         last_activity = time.time()
 
         results = []
@@ -126,31 +154,45 @@ class CloudIterateEngine:
             functor = self.functors.get(functor_key)
             if not functor or (mode == "headless" and functor_key == "F_H"): continue
             
-            # Wall-clock timeout check (Finding #1)
+            # Wall-clock timeout check
             if time.time() - start_time > wall_timeout: break
             
             res = functor.evaluate(candidate, current_context)
             results.append(res)
+            if res.next_candidate is not None: candidate = res.next_candidate
             
-            # Stall Detection via pluggable signal (Finding #4)
-            cur_mtime, cur_count = self.get_liveness_signal()
+            # Stall Detection
+            cur_mtime, cur_count = self.liveness.get_signal()
             if cur_mtime > last_mtime or cur_count != last_count:
                 last_mtime, last_count = cur_mtime, cur_count; last_activity = time.time()
             elif time.time() - last_activity > stall_timeout: break
 
-        total_delta = sum(r.delta for r in results)
+        # Post-flight Guardrails
+        post_gr_results = self.guardrails.validate_post_flight(edge, candidate)
+        gr_results.extend(post_gr_results)
+
+        total_delta = sum(r.delta for r in results) if all(r.passed for r in post_gr_results) else -1
         spawn_req = next((r.spawn for r in results if r.spawn), None)
-        converged = (total_delta == 0 and not spawn_req)
+        converged = (total_delta == 0 and not spawn_req and all(r.passed for r in post_gr_results))
         
-        self._archive_iteration(feature, edge, iteration, failed=not converged)
+        # Write candidate if changed
+        if candidate and asset_path.exists() and asset_path.read_text() != candidate:
+            asset_path.write_text(candidate)
+        elif candidate and not asset_path.exists():
+            asset_path.parent.mkdir(parents=True, exist_ok=True)
+            asset_path.write_text(candidate)
+
+        self.archiver.archive_iteration(feature, edge, iteration, failed=not converged)
         
         if self.store:
             self.store.emit(
                 event_type="iteration_completed", feature=feature, edge=edge, delta=total_delta, 
-                eventType="COMPLETE", outputs=[asset_path] if asset_path.exists() else [], parent_run_id=transaction_id
+                eventType="COMPLETE", outputs=[asset_path] if asset_path.exists() else [], parent_run_id=transaction_id,
+                data={"converged": converged, "functor_results": [r.outcome.value for r in results]}
             )
         
-        return IterationReport(asset_path=str(asset_path), delta=total_delta, converged=converged, functor_results=results, spawn=spawn_req)
+        return IterationReport(asset_path=str(asset_path), delta=total_delta, converged=converged, functor_results=results, guardrail_results=gr_results, spawn=spawn_req)
 
     def _map_eval_to_functor(self, eval_type: str) -> str:
         return {"deterministic": "F_D", "agent": "F_P", "human": "F_H"}.get(eval_type, "F_P")
+

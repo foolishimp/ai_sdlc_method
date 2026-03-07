@@ -133,10 +133,7 @@ Note: REQ-F-ROBUST-001 shows `status: in_progress` at feature level but all 4 tr
 
 ## Next Actions
 
-1. **Close REQ-F-ROBUST-001** — all trajectory edges converged; mark `status: converged`
-2. **Implement feature_proposal pipeline** — highest-priority open task (ADR-011 Stage 2+3; INT-GAPS-001..004 are accumulating unactioned)
-3. **Complete ADR-022 instance graph** — tasks 4-6 remaining (add project_instance_graph projection + zoom overlay)
-4. **Address INT-GAPS-001 (critical)** — 11 REQ-F-FPC-* orphan keys need spec anchoring or retirement
+1. **Complete ADR-022 instance graph** — tasks 5-6 remaining (add zoom overlay, topology version check)
 
 ---
 

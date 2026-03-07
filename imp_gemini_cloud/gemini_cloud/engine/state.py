@@ -5,6 +5,47 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+class CloudLivenessSignal:
+    """GCP Firestore implementation of liveness heartbeats."""
+    def __init__(self, db, tenant_id: str, project_id: str):
+        self.db = db
+        self.doc_path = f"tenants/{tenant_id}/projects/{project_id}/liveness/current"
+
+    def get_signal(self) -> tuple[float, int]:
+        """In cloud, we check a Firestore heartbeat document."""
+        if not self.db:
+            return time.time(), 0
+        doc = self.db.document(self.doc_path).get()
+        if doc.exists:
+            data = doc.to_dict()
+            return data.get("timestamp", 0.0), data.get("file_count", 0)
+        return 0.0, 0
+
+    def update_heartbeat(self, file_count: int):
+        if self.db:
+            self.db.document(self.doc_path).set({
+                "timestamp": time.time(),
+                "file_count": file_count
+            })
+
+class CloudArchiveStore:
+    """GCP Cloud Storage implementation of the run archiver."""
+    def __init__(self, bucket_name: str, project_id: str, local_root: Path):
+        self.bucket_name = bucket_name
+        self.project_id = project_id
+        self.local_root = local_root
+
+    def archive_iteration(self, feature_id: str, edge: str, iteration: int, failed: bool = False) -> str:
+        ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        status = "FAILED" if failed else "OK"
+        archive_name = f"runs/{self.project_id}/run_{feature_id}_{edge.replace('→', '_').replace('↔', '_')}_iter{iteration}_{status}_{ts}"
+        
+        # In a real implementation, this would use google.cloud.storage
+        # and upload a zip or individual files to gs://{self.bucket_name}/{archive_name}
+        uri = f"gs://{self.bucket_name}/{archive_name}"
+        print(f"[CLOUD ARCHIVE] Simulating upload to {uri}")
+        return uri
+
 class CloudEventStore:
     """GCP Firestore implementation of the Event Store with Unit of Work semantics."""
     def __init__(self, db, tenant_id: str, project_id: str, project_root: Path = None):
