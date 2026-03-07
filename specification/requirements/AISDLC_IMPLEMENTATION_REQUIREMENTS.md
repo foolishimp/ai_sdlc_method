@@ -577,6 +577,25 @@ The system shall provide an ops observer agent — an agent specification execut
 
 ---
 
+### REQ-LIFE-013: Release Readiness Criteria
+
+**Priority**: High | **Phase**: 1
+
+The system shall define and enforce a formal release readiness gate — a set of verifiable criteria that must all pass before any version is considered shippable. Release readiness is not determined by unit test passage alone; it requires demonstrated correctness at the runtime, observability, and ecosystem layers.
+
+**Acceptance Criteria**:
+- Gate 1 — Runtime correct: the engine emits events conforming to the accepted event taxonomy (ADR-S-011); no legacy emit paths remain; the F_P invocation contract is correctly implemented (fold-back file is the transport mechanism; missing fold-back raises a typed exception, not a silent skip)
+- Gate 2 — Observability verified: an observability tool (e.g. genesis_monitor) correctly parses and displays a complete end-to-end methodology run using the live event stream; this gate proves the event contract is correct at the consumer layer, not just the producer layer
+- Gate 3 — Ecosystem verified: the methodology is applied to at least one external project (outside its own repository); the project converges and all tests pass; this gate proves the tool works for a practitioner, not just for its own development
+- Gate 4 — Assurance: Gates 2 and 3 are both green; this is the product-level confidence gate — unit tests verify code, Gates 2 and 3 verify the product
+- Gates are ordered: Gate N cannot be attempted until Gate N-1 passes
+- The bootstrap principle applies: each internal release uses the methodology on itself to build the next version (GCC model — use version N to compile version N+1)
+- Release versions reflect gate passage: v0.x are internal bootstrap releases; v1.0 requires all four gates
+
+**Traces To**: Asset Graph Model §0 (Genesis is a product — products must be deployable), §7.6 (self-observing system) | Ontology #39 (abiogenesis — bootstrap from practice) | UX.md SC-011 (Genesis Builds Genesis) | REQ-LIFE-010 (Dev Observer), REQ-LIFE-011 (CI/CD Observer), REQ-LIFE-012 (Ops Observer)
+
+---
+
 ## 8. Sensory Systems
 
 These requirements specify continuous observation capabilities that run independently of iterate(), feeding signals into the three processing phases (§4.3) via interoception (self-sensing, §4.5.1) and exteroception (environment-sensing, §4.5.2).

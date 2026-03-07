@@ -2,10 +2,10 @@ feature: unknown
 status: in_progress
 trajectory:
   code:
-    asset: /private/var/folders/rz/r6wxvr0n15d906k2s0jw8j2h0000gn/T/pytest-of-jim/pytest-61/test_iterate_engine_aborts_on_0/asset.txt
+    asset: /private/var/folders/rz/r6wxvr0n15d906k2s0jw8j2h0000gn/T/pytest-of-jim/pytest-63/test_iterate_engine_aborts_on_0/asset.txt
     delta: -1
     engine_run_id: null
     iteration: 10
     mode: auto
     status: iterating
-    updated_at: '2026-03-07T04:04:23.802582+00:00'
+    updated_at: '2026-03-07T05:26:47.579953+00:00'

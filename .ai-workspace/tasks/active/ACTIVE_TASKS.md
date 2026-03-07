@@ -4,26 +4,33 @@
 
 ---
 
-## Overriding Goal: Spec-Compliant MVP
+## Overriding Goal: Shippable 1.0 via GCC Bootstrap Model
 
-Bring the Claude Code implementation into full compliance with the accepted spec
-(ADR-S-001..022) before any further feature work. The target is a runtime that
-does what the spec says, with no stubs, no legacy parallel paths, and no
-deprecated markers.
+Each internal release uses the methodology on itself to build the next version.
+Dogfooding is not a test — it is the build process.
 
-**Definition of done**: All 8 T-COMPLY tasks resolved. Tests green. No fd_emit
-references. No skipped=True fallback in the F_P path. Event taxonomy matches
-ADR-S-011 RunState contract. Context merge matches ADR-S-022 6-level hierarchy.
+### Release Ladder
 
-**Current state**:
+| Version | Gate | Done when | Status |
+|---------|------|-----------|--------|
+| **v0.1** | Dogfooding enabled | Interactive agent path works; can iterate on own codebase using the methodology | ✅ **RELEASED** |
+| **v0.2** | Runtime correct | T-001 + T-005 + T-007 + T-008: OL events, transaction model, F_P engine complete | ❌ open |
+| **v0.3** | Observability verified | genesis_monitor correctly parses and displays a v0.2 methodology run end-to-end | ❌ open |
+| **v0.4** | Ecosystem verified | Methodology applied to an external project; converges and all tests pass | ❌ open |
+| **v1.0** | Assurance | v0.3 + v0.4 both green — product-level confidence, not just unit test confidence | ❌ open |
+
+### Current state
 
 | Artifact | Status |
 |----------|--------|
-| Spec | Complete — ADR-S-001..022, 4 primitives, Hamiltonian, Tournament, Sensory |
+| Spec | Complete — ADR-S-001..024 |
 | Implementation Requirements | 83 REQ keys |
 | Feature Vectors | 16 vectors, 83/83 tagged |
 | Tests | 1078 unit passing |
-| Compliance | 8 open T-COMPLY tasks (see Claude tenant below) |
+| Active release | v0.1 — next target v0.2 |
+
+### Post-1.0 (v1.1 sprint)
+T-002 (context hierarchy), T-003 (instance graph), T-004 (FPC anchoring), T-006 (H-metric)
 
 ---
 

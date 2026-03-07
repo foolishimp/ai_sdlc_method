@@ -5,24 +5,28 @@
 
 ---
 
-## SPRINT: Spec Compliance Refactor
+## SPRINT: Shippable 1.0
 
-**Source**: Codex 20260307T165215 + Gemini 20260307T193000 gap reviews
+**Scope**: Gate 1 only — T-001 + T-007. Gates 2/3/4 are cross-tenant assurance tasks.
 **Principle**: Pre-release — no stubs, no legacy paths, no deprecated markers. Migrate or remove.
 **No new ADRs** — all decisions already written.
 
-### Sequencing
+### 1.0 Tasks (Gate 1) — engine complete + robustness tier 1
 
 ```
-T-COMPLY-001 (event contract)   ←── start here, blocks 005/006/007/008
-T-COMPLY-002 (context)          ←── parallel
-T-COMPLY-003 (instance graph)   ←── parallel, blocks 006
-T-COMPLY-004 (FPC anchoring)    ←── parallel, no dependencies
+T-COMPLY-001 (event contract)   ←── start here; blocks 005/007/008
+T-COMPLY-005 (transactions)     ←── after 001; runId, manifests, crash recovery
+T-COMPLY-007 (stub removal)     ←── after 001; fold-back contract made honest
+T-COMPLY-008 (MCP actor)        ←── after 007; closes the engine — cannot ship 007 without 008
+```
 
-T-COMPLY-005 (transactions)     ←── after 001
-T-COMPLY-006 (H-metric)         ←── after 001 + 003
-T-COMPLY-007 (stub removal)     ←── after 001
-T-COMPLY-008 (MCP actor)        ←── after 007
+### 1.1 Tasks (post-1.0)
+
+```
+T-COMPLY-002 (context)          ←── 6-level hierarchy (4-level works, spec delta)
+T-COMPLY-003 (instance graph)   ←── profile-coverage derivation (subtle bug, low user visibility)
+T-COMPLY-004 (FPC anchoring)    ←── spec documentation only
+T-COMPLY-006 (H-metric)         ←── observability display feature
 ```
 
 ---
