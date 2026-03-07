@@ -59,7 +59,7 @@ Each failure mode has a direct structural response:
 | Plausibility review | Formal evaluators — automated, AI-assisted, and human — gate every output |
 | Untraceable production behaviour | The same REQ identifiers that governed construction monitor production behaviour |
 
-The consequence is not a heavier process. It is AI construction that operates within the governance the organisation already requires.
+AI construction operates within the governance the organisation already requires.
 
 ---
 
@@ -84,21 +84,19 @@ Every delivery cycle on Trajectory 1 adds to the liability. Every cycle on Traje
 
 ## Legacy Systems as Specification Inputs
 
-Spec-Driven Development changes the relationship with legacy systems.
-
-Legacy code is not primarily a technology problem. It is a knowledge problem — decades of business rules, edge cases, and regulatory adaptations encoded in a form that is expensive to maintain and difficult to fully explain. Traditional modernisation carries significant risk of losing the rules that made the original system work, because the rewrite reconstructs behaviour from incomplete documentation rather than from the system itself.
+Legacy code encodes decades of business rules, edge cases, and regulatory adaptations in a form that is expensive to maintain and difficult to explain. Traditional modernisation risks losing those rules, because the rewrite works from incomplete documentation rather than from the system itself.
 
 AI changes the economics of comprehension. A codebase that would take a team months to understand can be read, classified, and formalised into a specification. The business rules are already there — in the logic, the conditionals, the exception handlers, the data transformations. AI extracts them. Spec-Driven Development makes them formal.
 
 - **Legacy becomes source material.** The existing system is the most complete record of how the business actually operates. Comprehending it produces a specification that captures rules that are difficult to reconstruct without the codebase as reference.
-- **Tech debt decouples from business value.** Once the behaviour is specified, the technology that implements it is replaceable. Regeneration from a clean specification is not a rewrite — it is a governed construction against proven requirements.
-- **Modernisation becomes a comprehension exercise, not a reconstruction.** Extract the spec from the legacy system. Validate it against the business. Regenerate in the target technology. The audit trail covers both what the legacy system did and what the new system does.
+- **Tech debt decouples from business value.** Once the behaviour is specified, the technology that implements it is replaceable. Regeneration from a clean specification is governed construction against proven requirements.
+- **Modernisation is a comprehension exercise.** Extract the spec from the legacy system. Validate it against the business. Regenerate in the target technology. The audit trail covers both what the legacy system did and what the new system does.
 - **Technology choices become operational decisions.** The specification is the asset. Any conforming implementation, on any technology, can be built against it.
 
 Specification quality compounds and cannot be copied.
 
 - Organisations that know themselves precisely enough to write it down can direct any AI system to build exactly what they need
-- Organisations that hold that knowledge informally — in individuals, undocumented conventions, systems that work but cannot be explained — face a structural disadvantage that AI makes larger, not smaller
+- Organisations that hold that knowledge informally — in individuals, undocumented conventions, systems that work but cannot be explained — face a structural disadvantage that compounds as AI capability improves
 - **The specification is the organisation's knowledge of itself.** Held formally, it is a reliable basis for governed AI construction. Held informally, it produces inconsistent results as teams, models, and sessions change.
 
 ---
