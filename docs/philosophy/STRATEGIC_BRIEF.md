@@ -19,57 +19,62 @@ The question that determines competitive position is what happens after the code
 
 Every organisation using AI development today is accumulating a liability it does not yet see.
 
-AI-generated systems are being deployed into production with no formal record of what they were asked to do, which business rules they enforce, or what changes when something goes wrong. The construction is fast. The accountability — the chain from business intent to live behaviour — is informal, undocumented, and in most cases, irretrievable.
+AI-generated systems enter production with no formal record of what they were asked to do, which business rules they enforce, or what changes when something goes wrong. This is not a quality problem. It is a governance problem — invisible until an audit, a regulatory examination, an incident, or a change request nobody can safely execute.
 
-This is not a quality problem. It is a governance problem. And unlike quality problems, it does not become visible until an audit, a regulatory examination, an incident requiring root-cause analysis, or a change request that nobody can safely execute because nobody can fully account for what the current system does.
-
-Organisations that build fast without governance do not have a head start. They are accumulating a liability that compounds with every deployment.
+- Organisations building fast without governance do not have a head start
+- They are accumulating a liability that compounds with every deployment
+- The remediation cost, when it surfaces, is not a technology project — it is an organisational reconstruction
 
 ---
 
 ## What Shifts When Specification Governs Construction
 
-Spec-Driven Development formalises business requirements as machine-checkable constraints before construction begins. The AI builds against the specification. Every output is evaluated against it. Nothing advances until it passes.
+Business requirements are formalised as machine-checkable constraints before construction begins. The AI builds against the specification. Nothing advances until it passes.
 
-The consequence is structural, not procedural:
+The consequences are structural:
 
-**Traceability is automatic.** Every requirement, design decision, code unit, test, and production monitor carries the same identifier. The chain from business intent to live behaviour is verifiable at any point — by a developer, an auditor, or a regulator — without reconstruction effort.
-
-**Change is safe.** When a regulation changes or a market opportunity requires a different behaviour, the operation is: update the specification. The AI rebuilds what needs rebuilding. The evaluators confirm conformance. The audit trail records exactly what changed and why. Change stops being expensive. It becomes the normal mode of operation.
-
-**Parallel construction scales without coordination overhead.** One specification can govern multiple AI agents working simultaneously — each on a different technology implementation, each evaluated against the same formal criteria. What previously required coordination between teams now requires only a shared specification.
-
-**The system monitors its own fitness.** Production behaviour is monitored using the same identifiers that governed construction. Drift from specified behaviour is detected automatically, traced to the specific requirement in drift, and initiates a governed response. The system does not wait to be told it is failing.
+- **Traceability is automatic.** Every requirement, design decision, code unit, test, and production monitor carries the same identifier. The chain from business intent to live behaviour is verifiable by any auditor or regulator — without reconstruction effort.
+- **Change is safe.** Update the specification; the AI rebuilds what needs rebuilding; the audit trail records exactly what changed and why. Change stops being expensive.
+- **Parallel construction scales.** One specification governs multiple AI agents simultaneously — each on a different implementation, each evaluated against the same criteria. Coordination overhead is replaced by a shared specification.
+- **The system monitors its own fitness.** Production behaviour is monitored using the same identifiers that governed construction. Drift is detected automatically and initiates a governed response.
 
 ---
 
 ## The Competitive Divergence
 
-Two trajectories are now open.
+Two trajectories are now open:
 
-Organisations on the first trajectory are building fast, deploying fast, and accumulating unverifiable behaviour at AI velocity. They will find, when the moment of examination arrives — an acquisition, a regulatory review, a critical incident — that they cannot account for what their systems do. The remediation cost at that point is not a technology project. It is an organisational reconstruction.
+**Trajectory 1 — AI-fast, ungoverned**
+- Builds and deploys at AI velocity
+- Accumulates unverifiable behaviour with every cycle
+- Cannot account for what systems do when the moment of examination arrives
 
-Organisations on the second trajectory are building equally fast, but against formal specifications that make every delivery auditable by construction. They are simultaneously building a specification corpus — a formalised record of their business rules, constraints, and operational requirements — that becomes a durable organisational asset. That corpus can regenerate their systems. It cannot be replicated by copying the code.
+**Trajectory 2 — AI-fast, governed**
+- Builds equally fast, against formal specifications
+- Every delivery cycle adds to a specification corpus — a formalised record of business rules and constraints
+- That corpus becomes a durable organisational asset; it can regenerate systems on demand and cannot be replicated by copying code
 
-The divergence compounds. Every delivery cycle on the first trajectory adds to the liability. Every delivery cycle on the second trajectory adds to the asset.
+Every delivery cycle on Trajectory 1 adds to the liability. Every cycle on Trajectory 2 adds to the asset.
 
 ---
 
 ## The Durable Advantage
 
-The organisations that formalise their specifications now will hold a structural advantage that does not diminish as AI capabilities improve. As construction becomes more automated, specification quality becomes the only remaining differentiator. The organisation that knows itself precisely enough to write it down can direct any AI system — current or future — to build exactly what it needs. The organisation that cannot will always be dependent on the skill of the individual prompting the model.
+As construction becomes fully automated, specification quality becomes the only remaining differentiator.
 
-**The specification is the organisation's knowledge of itself.** What it does. What rules it operates under. What it must never get wrong. Organisations that hold that knowledge in a formal, executable form can act on it at AI speed, respond to change without governance debt, and demonstrate compliance without reconstruction.
-
-Organisations that hold it informally — in the heads of individuals, in undocumented conventions, in systems that work but cannot be fully explained — are operating at a structural disadvantage that AI makes larger, not smaller.
+- Organisations that know themselves precisely enough to write it down can direct any AI system — current or future — to build exactly what they need
+- Organisations that hold that knowledge informally — in individuals, undocumented conventions, systems that work but cannot be explained — face a structural disadvantage that AI makes larger, not smaller
+- **The specification is the organisation's knowledge of itself.** Held formally, it is a competitive asset. Held informally, it is a fragility.
 
 ---
 
 ## Current Proof
 
-This methodology is being validated against itself. One formal specification. Three independent AI development agents building distinct implementations simultaneously, each evaluated against the same criteria. The process is the demonstration: a governance framework that cannot govern its own construction is not a governance framework.
+One formal specification. Three independent AI development agents building distinct implementations simultaneously, each evaluated against the same criteria.
 
-The specification, implementation records, and architectural decision log are available on request.
+The process is the demonstration: a governance framework that cannot govern its own construction is not a governance framework.
+
+*Specification, implementation records, and architectural decision log available on request.*
 
 ---
 
