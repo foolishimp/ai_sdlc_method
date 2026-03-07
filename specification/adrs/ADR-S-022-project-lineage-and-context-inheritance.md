@@ -23,12 +23,16 @@ The methodology formalizes the **Lineage DAG** as the mechanism for context inhe
 
 ### 2. Context Hierarchy
 
-Context is resolved through a prioritized merge sequence (the lineage path):
+Context is resolved through a prioritized merge sequence (the lineage path), as defined in §5.5 of the core model:
+
 1. **Methodology**: Universal axioms and base monitors.
-2. **Organization**: Shared technology standards and platform ADRs.
+2. **Org**: Shared technology standards and platform ADRs.
 3. **Policy**: Compliance and security constraints.
 4. **Domain**: Prior system knowledge and terminology.
-5. **Project**: Local overrides and implementation details.
+5. **Prior**: Preceding workspace state — earlier project iterations, prior releases, parent project context. Enables continuity across iterations without re-specifying settled decisions.
+6. **Project**: Local overrides and implementation details.
+
+Later levels override earlier levels. Nested objects are deep-merged (REQ-CTX-002). This sequence is canonical — `load_context_hierarchy()` implementations must preserve it.
 
 ### 3. Constitutive Observability
 

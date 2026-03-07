@@ -37,7 +37,7 @@ The instance state is reconstructed by replaying the event stream:
 - `edge_started` → Update `current_edge`, set status to `in_progress`.
 - `iteration_completed` → Update `delta`.
 - `edge_converged` → Add to `converged_edges`.
-- `FEATURE_CONVERGED` (or final edge completion) → Set status to `archived`.
+- Derived terminal condition: when `converged_edges` covers all required edges in the feature's active profile → set status to `converged`. This is a projection, not a separate event — the terminal state is computed from `edge_converged` events against the profile's edge list.
 
 ### 3. Visualisation (The Zoom Model)
 

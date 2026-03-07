@@ -64,7 +64,7 @@ This means:
 
 ### The Genesis Monitor
 
-The genesis monitor (the canonical trajectory visualisation tool — see ADR-028) projects `events.jsonl` into convergence tables and temporal reconstructions. It has:
+The genesis monitor (an external observer tool — implementation example only, not a spec requirement) projects `events.jsonl` into convergence tables and temporal reconstructions. It has:
 - `delta_curve: list[int]` per edge — the history of V over iterations
 - `iterations: int` per edge — the T component
 
@@ -121,16 +121,16 @@ The genesis monitor supports both projections:
 - **Iteration space**: convergence table, delta curve, Hamiltonian per edge — iteration count as x-axis
 - **Calendar space**: Gantt chart, temporal reconstruction — wall clock time as x-axis
 
-### 4. The Genesis Monitor Computes H as a Standard Projection
+### 4. External Observers Compute H as a Standard Projection
 
-The genesis monitor is designated as the **canonical visualisation tool** for (graph × time) trajectory data. It must:
+Any external observer of `events.jsonl` (a monitor, dashboard, or analytics tool) can compute H without additional instrumentation. The observer must:
 
 1. Compute `hamiltonian: int = iterations + last_delta` on every `EdgeConvergence` projection
 2. Expose H in the convergence table alongside `iterations` and `delta_curve`
 3. Support a "point map" view: all active features plotted at their current (edge_index, H) coordinates
 4. Colour or size features by H — high H = high remaining cost or high sunk cost
 
-Implementation note: `EdgeConvergence.hamiltonian` was added to `models/core.py` and computed in `projections/convergence.py` in the genesis monitor codebase.
+Any implementation of this projection is non-normative at spec level — the requirement is that H is derivable from `events.jsonl`; the specific tool or schema is an implementation concern.
 
 ### 5. Convergence Rate as Constraint Surface Density Observable
 
