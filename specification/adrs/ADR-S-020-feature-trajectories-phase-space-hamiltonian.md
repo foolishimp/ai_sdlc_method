@@ -64,7 +64,7 @@ This means:
 
 ### The Genesis Monitor
 
-The genesis monitor (a separate FastAPI application at `ai_sdlc_examples/local_projects/genisis_monitor`) already projects `events.jsonl` into convergence tables and temporal reconstructions. It has:
+The genesis monitor (the canonical trajectory visualisation tool — see ADR-028) projects `events.jsonl` into convergence tables and temporal reconstructions. It has:
 - `delta_curve: list[int]` per edge — the history of V over iterations
 - `iterations: int` per edge — the T component
 
@@ -162,7 +162,7 @@ H is the **cost metric** (sunk + remaining); `−dV/dt` is the **convergence sig
 ### Negative
 
 - **Additive only**: H = T + V weights iterations and delta equally. Future refinements may want to weight by iteration cost (e.g., by LLM token cost). ADR-S-020 defers this — uniform weighting is the correct first approximation.
-- **Phase space is not conserved**: Unlike classical Hamiltonian mechanics, H decreases over a healthy traversal (energy is dissipated as work). This is correct for dissipative systems — the methodology is intentionally dissipative (it converges to minima). The Hamiltonian analogy holds at the phase space structure level, not the conservation law level.
+- **Phase space is not conserved**: Unlike classical Hamiltonian mechanics, H is flat (not conserved) during unit-efficient convergence and decreasing during super-linear convergence. The methodology is a dissipative system — it converges to minima. The Hamiltonian analogy holds at the phase space structure level (cost metric over trajectories), not at the conservation law level.
 
 ### Neutral
 
@@ -180,7 +180,7 @@ H is the **cost metric** (sunk + remaining); `−dV/dt` is the **convergence sig
 H_total = T + V_current
 ```
 
-**ADR-S-019 (Markov Blankets)**: The phase space trajectory is the trajectory of the internal state through the blanket's configuration space. H is the free energy integrated over the trajectory — the total prediction error the system has had to resolve.
+**ADR-S-019 (Markov Blankets)**: The phase space trajectory is the trajectory of the internal state through the blanket's configuration space. H = T + V_current bounds the minimum total iterations required: T already spent, V remaining at unit convergence rate. H is not the accumulated free energy over the trajectory (that would be Σ_k delta_k); it is a cost scalar — sunk work plus remaining potential at this point in time.
 
 ---
 
