@@ -176,7 +176,7 @@ class IterateEngine:
         post_gr_results = guardrails.validate_post_flight(edge, candidate); gr_results.extend(post_gr_results)
         report = IterationReport(asset_path=str(asset_path), delta=total_delta if all(r.passed for r in post_gr_results) else -1, converged=(total_delta == 0 and not spawn_req and all(r.passed for r in post_gr_results)), functor_results=results, guardrail_results=gr_results, spawn=spawn_req, construct_result=construct_result)
         self._archive_iteration(feature_id, edge, iteration, failed=not report.converged)
-        self.store.emit(event_type="iteration_completed", project=context.get("project", "imp_gemini"), feature=feature_id, edge=edge, delta=report.delta, data={"converged": report.converged, "functor_results": [r.outcome.value for r in results]}, eventType="COMPLETE", outputs=[asset_path] if asset_path.exists() else [], parent_run_id=transaction_id)
+        self.store.emit(event_type="iteration_completed", project=context.get("project", "imp_gemini"), feature=feature_id, edge=edge, delta=report.delta, data={"iteration": iteration, "converged": report.converged, "functor_results": [r.outcome.value for r in results]}, eventType="COMPLETE", outputs=[asset_path] if asset_path.exists() else [], parent_run_id=transaction_id)
         return IterationRecord(edge=edge, iteration=iteration, report=report, construct_result=construct_result)
 
     def run_edge(self, edge: str, feature_id: str, asset_path: Path, context: Dict[str, Any], mode: str = "auto", checklist: List[Dict[str, Any]] = None, construct: bool = False, max_iterations: int = 10, wall_timeout: int = 3600, stall_timeout: int = 300, parent_run_id: str = None) -> List[IterationRecord]:

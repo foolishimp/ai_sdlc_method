@@ -188,7 +188,7 @@ class CloudIterateEngine:
             self.store.emit(
                 event_type="iteration_completed", feature=feature, edge=edge, delta=total_delta, 
                 eventType="COMPLETE", outputs=[asset_path] if asset_path.exists() else [], parent_run_id=transaction_id,
-                data={"converged": converged, "functor_results": [r.outcome.value for r in results]}
+                data={"iteration": iteration, "converged": converged, "functor_results": [r.outcome.value for r in results]}
             )
         
         return IterationReport(asset_path=str(asset_path), delta=total_delta, converged=converged, functor_results=results, guardrail_results=gr_results, spawn=spawn_req)
