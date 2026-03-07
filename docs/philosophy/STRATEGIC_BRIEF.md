@@ -56,6 +56,7 @@ With a governing methodology:
 - AI constructs against a formal specification that is independent of any individual, model, or session
 - The organisation's rules, constraints, and decisions are active context on every invocation
 - Output is evaluated against defined criteria before it advances — not reviewed for plausibility after
+- When direction changes, the specification maps the impact — what behaviour is affected, what tests would break, what decisions need revisiting — before a line of code changes
 
 The competitive consequence is not that governed organisations build better software in isolation. It is that as AI capability improves across the whole market, the quality ceiling is determined by the specification, not the model. Organisations with rigorous specifications will extract more from every generation of AI tooling. Organisations without them will plateau at the limit of what can be articulated in a prompt.
 
@@ -95,6 +96,7 @@ Two trajectories are now open:
 - Builds equally fast, against formal specifications
 - Every delivery cycle adds to a specification corpus — a formalised record of business rules and constraints
 - That corpus becomes a durable organisational asset; it can regenerate systems on demand and cannot be replicated by copying code
+- When market or business direction shifts, the corpus enables impact assessment before construction begins — the organisation knows what it has and can change what needs changing
 
 Every delivery cycle on Trajectory 1 adds to the liability. Every cycle on Trajectory 2 adds to the asset.
 
@@ -124,6 +126,8 @@ As construction becomes fully automated, specification quality becomes the only 
 ## Current Proof
 
 One formal specification. Three independent AI development agents building distinct implementations simultaneously, each evaluated against the same criteria.
+
+Genesis is one instantiation of spec-driven development — one of several emergent tooling approaches to the same methodology. The methodology is what generates the advantage; the tooling is replaceable against the same specification.
 
 The process is the demonstration: a governance framework that cannot govern its own construction is not a governance framework.
 
