@@ -35,29 +35,33 @@ The specific patterns that create the hidden cost:
 
 ## The Compounding Problem
 
-Every AI-assisted delivery that bypasses formal governance accumulates a liability.
+AI-assisted delivery without formal governance accumulates a liability.
 
 - The chain from business requirement to live behaviour becomes informal and unverifiable
-- The liability is invisible until an audit, a regulatory examination, an incident, or a change request nobody can safely execute
-- The remediation cost, when it surfaces, is not a technology project — it is an organisational reconstruction
+- The liability is not visible until an audit, a regulatory examination, an incident, or a change request that cannot be safely executed
+- The remediation cost, when it surfaces, extends beyond the technology — it requires reconstructing decisions and context that were never recorded
 
 ---
 
-## Why This Is Different in Kind, Not Degree
+## The Framework Decision
 
-The natural response to vibe coding's failures is better prompts — more detailed instructions, more context, more iteration. This addresses the symptom without touching the cause.
+Better prompts do not close the governance gap. The issue is not instruction quality — it is whether a formal methodology governs what AI builds.
 
-The cause is structural. An LLM operating under natural language instructions traverses the full space of everything it has learned and produces the most plausible output. It has no mechanism to distinguish between a response that satisfies your business rules and one that merely resembles them. Confidence and correctness are unrelated in an unconstrained model. It will always produce something that looks right.
+Every organisation in your competitive market is moving toward AI-assisted development. Access to the same models is not a differentiator. The differentiator is what the AI is building against.
 
-A formal constraint specification does not improve this process — it changes the mechanism entirely.
+Without a governing methodology:
+- AI constructs against individual interpretation at the time of the prompt
+- Output quality is bounded by what the developer articulated, not what the business requires
+- Each team, each session, each model upgrade is a fresh start against undocumented constraints
 
-When an LLM operates within a defined constraint surface — formal requirements, architectural decisions, convergence criteria — the space of outputs it can produce is bounded. Non-conforming outputs are not caught by review after the fact. They are structurally inadmissible. The LLM is no longer a generator finding the most plausible path through its training data. It is a constructor operating within a defined possibility space, evaluated against formal criteria.
+With a governing methodology:
+- AI constructs against a formal specification that is independent of any individual, model, or session
+- The organisation's rules, constraints, and decisions are active context on every invocation
+- Output is evaluated against defined criteria before it advances — not reviewed for plausibility after
 
-The theoretical grounding is published (Popov, 2026: *Emergent Reasoning in Large Language Models*; *Programming LLM Reasoning: A Meta-Template for Constraint Specifications*): hallucination occurs when constraints are absent. More constraints, fewer possible wrong answers. Sufficient constraints, and the system converges on correct output not because it is clever but because the incorrect outputs have been eliminated.
+The competitive consequence is not that governed organisations build better software in isolation. It is that as AI capability improves across the whole market, the quality ceiling is determined by the specification, not the model. Organisations with rigorous specifications will extract more from every generation of AI tooling. Organisations without them will plateau at the limit of what can be articulated in a prompt.
 
-**The difference between vibe coding and Spec-Driven Development is not the quality of the instruction. It is the presence or absence of a constraint methodology.**
-
-This is why better prompting does not close the governance gap. A prompt activates a region of the model's learned structure. A constraint specification bounds the space of admissible transformations. These are different mechanisms. One produces plausible output. The other produces accountable output.
+*Theoretical grounding: Popov, 2026 — Emergent Reasoning in Large Language Models; Programming LLM Reasoning: A Meta-Template for Constraint Specifications.*
 
 ---
 
@@ -100,24 +104,22 @@ Every delivery cycle on Trajectory 1 adds to the liability. Every cycle on Traje
 
 ## Legacy Systems as Specification Inputs
 
-Spec-Driven Development changes the relationship with legacy systems entirely.
+Spec-Driven Development changes the relationship with legacy systems.
 
-Legacy code is not primarily a technology problem. It is a knowledge problem — decades of business rules, edge cases, and regulatory adaptations encoded in a form that is expensive to maintain and impossible to fully explain. Traditional modernisation fails because it is a rewrite: high risk, long duration, and a near-certain loss of the rules that made the original system work.
+Legacy code is not primarily a technology problem. It is a knowledge problem — decades of business rules, edge cases, and regulatory adaptations encoded in a form that is expensive to maintain and difficult to fully explain. Traditional modernisation carries significant risk of losing the rules that made the original system work, because the rewrite reconstructs behaviour from incomplete documentation rather than from the system itself.
 
 AI changes the economics of comprehension. A codebase that would take a team months to understand can be read, classified, and formalised into a specification. The business rules are already there — in the logic, the conditionals, the exception handlers, the data transformations. AI extracts them. Spec-Driven Development makes them formal.
 
-- **Legacy becomes source material, not a constraint.** The existing system is the most complete record of how the business actually operates. Comprehending it produces a specification that captures rules no living person could reconstruct from memory.
+- **Legacy becomes source material.** The existing system is the most complete record of how the business actually operates. Comprehending it produces a specification that captures rules that are difficult to reconstruct without the codebase as reference.
 - **Tech debt decouples from business value.** Once the behaviour is specified, the technology that implements it is replaceable. Regeneration from a clean specification is not a rewrite — it is a governed construction against proven requirements.
-- **Modernisation becomes a one-time comprehension exercise.** Extract the spec from the legacy system. Validate it against the business. Regenerate in the target technology. The audit trail covers both what the legacy system did and what the new system does — and proves they match.
-- **The organisation stops being hostage to legacy.** The specification is the asset. Any conforming AI system, on any technology, built in any future period, can implement it. Technology choices become operational decisions, not existential constraints.
-
-The organisations with the most complex legacy estates — and therefore the most accumulated business knowledge — are the ones with the most to gain. Their legacy is not a liability to be paid down. Under Spec-Driven Development, it is the richest possible input to a governed AI construction process.
+- **Modernisation becomes a comprehension exercise, not a reconstruction.** Extract the spec from the legacy system. Validate it against the business. Regenerate in the target technology. The audit trail covers both what the legacy system did and what the new system does.
+- **Technology choices become operational decisions.** The specification is the asset. Any conforming implementation, on any technology, can be built against it.
 
 As construction becomes fully automated, specification quality becomes the only remaining differentiator.
 
 - Organisations that know themselves precisely enough to write it down can direct any AI system — current or future — to build exactly what they need
 - Organisations that hold that knowledge informally — in individuals, undocumented conventions, systems that work but cannot be explained — face a structural disadvantage that AI makes larger, not smaller
-- **The specification is the organisation's knowledge of itself.** Held formally, it is a competitive asset. Held informally, it is a fragility.
+- **The specification is the organisation's knowledge of itself.** Held formally, it is a reliable basis for governed AI construction. Held informally, it produces inconsistent results as teams, models, and sessions change.
 
 ---
 
