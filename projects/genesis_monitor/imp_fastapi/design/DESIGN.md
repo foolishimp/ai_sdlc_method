@@ -1,6 +1,6 @@
 # Genesis Monitor — Implementation Design
 
-**Version**: 1.0.0 (REQ-F-GMON-004 — Full 4-Column REQ Lineage + Telemetry Scanner)
+**Version**: 1.1.0 (REQ-F-GVIZ-001..005 — Event Trail Graph Visualization)
 **Date**: 2026-03-07
 **Feature**: REQ-F-GMON-004
 **Source Asset**: .ai-workspace/spec/REQUIREMENTS.md §28 (REQ-F-LINEAGE-001..004)
@@ -363,3 +363,130 @@ Apply visual distinction via inline style when a row is orphan or uncovered (REQ
 | WU-GMON4-006 | Tests | `tests/test_traceability.py` (new or extend) | all LINEAGE-* |
 
 All WUs implement within the `parsers/` and `projections/` layers. No new files created in `server/`. No new routes.
+
+---
+
+## §GVIZ. Event Trail Graph — REQ-F-GVIZ-001..005
+
+**Feature**: REQ-F-GVIZ-001
+**Date**: 2026-03-08
+**ADR**: ADR-007-d3-event-trail-graph.md
+**Edge**: requirements→design (iteration 1, converged)
+
+### GVIZ.1 Architecture Overview
+
+```
+EventIndex (in-memory)
+    │
+    ▼ _build_graph_data(runs)
+JSON: {nodes, runs, features}
+    │
+    ▼ GET /project/{id}/timeline/graph-data
+Browser (D3.js v7 from CDN)
+    │ fetch()
+    ▼
+SVG rendered in #trail-graph
+    │ click / hover events
+    ▼
+Filter bar + table row de-emphasis (client-side, no reload)
+```
+
+The graph visualization lives entirely in the view layer:
+- Server: one new route, one new pure helper function (no new module)
+- Client: D3.js CDN script embedded in `timeline.html` `{% block head_extra %}`
+- Data: JSON endpoint, same auth/project scope as the timeline page
+
+### GVIZ.2 Server-Side: `_build_graph_data(project_id, runs)`
+
+A file-local helper in `server/routes.py`. Operates on `list[EdgeRun]` from EventIndex.
+
+**Canonical node order** (REQ-F-GVIZ-001 AC-2):
+```python
+_CANONICAL_ORDER = [
+    "intent", "requirements", "feature_decomposition", "design",
+    "module_decomposition", "basis_projections", "code", "unit_tests",
+    "uat_tests", "cicd", "telemetry",
+]
+```
+
+**Edge parsing** — handles `→` and `↔` separators:
+```python
+def _parse_edge(edge: str) -> tuple[str, str]:
+    for sep in ("→", "↔", "->"):
+        if sep in edge:
+            parts = edge.split(sep, 1)
+            return parts[0].strip(), parts[1].strip()
+    return edge.strip(), edge.strip()  # self-loop fallback
+```
+
+**Feature colour assignment** — deterministic by sorted feature list:
+```python
+feature_ids = sorted({r.feature for r in runs if r.feature})
+colour_idx = {fid: i for i, fid in enumerate(feature_ids)}
+```
+D3.js maps `colour_index` → `PALETTE[colour_index % 10]` (Tableau-10).
+
+**Node stats** — per-node counts across all runs touching it (source or target):
+```python
+# for each run: increment node_set[src] and node_set[tgt] stats
+```
+
+### GVIZ.3 Client-Side: D3.js Visualization
+
+**SVG geometry**:
+- Width: 100% of container (responsive). Height: 240px.
+- Nodes: y = SVG midline (fixed). x = evenly spaced by x_order.
+- Arcs: quadratic Bezier `M src Q ctrl tgt`. Control point:
+  - x = midpoint of source.x + target.x
+  - y = midY + offset, where offset = `(i - (n-1)/2) × 30 - 40`
+  - This fans N arcs above the node line without overlap.
+
+**Arc encoding** (REQ-F-GVIZ-002):
+| Visual | Encoding |
+|--------|---------|
+| stroke-width | `log1p(iteration_count) × 2 + 1` |
+| stroke | `PALETTE[colour_index % 10]` |
+| stroke-opacity | `0.3 + 0.7 × (t_run - t_min) / (t_max - t_min)` |
+| stroke-dasharray | `none` (converged), `8 4` (in_progress), `3 3` (failed/aborted) |
+| animation | CSS `stroke-dashoffset` keyframe for in_progress arcs |
+
+**Node encoding** (REQ-F-GVIZ-004):
+| Visual | Encoding |
+|--------|---------|
+| radius | `clamp(8 + log1p(total_runs) × 4, 12, 24)` |
+| fill | red (any failed) > amber (any in_progress) > green (all converged) > neutral |
+| animation | CSS pulse keyframe if any in_progress |
+
+**Interaction** (REQ-F-GVIZ-003):
+1. Arc click → `selectArc(feature, edge)`: populates filter bar inputs, adds `.dimmed` to non-matching arcs, sets `opacity:0.35` on non-matching table rows.
+2. Node click → `selectNode(nodeId)`: sets edge filter to nodeId substring.
+3. SVG background click → clears all selection.
+4. On load: reads URL params → pre-highlights matching arcs.
+
+**Legend** (REQ-F-GVIZ-005): HTML div `#trail-legend`, rendered by D3 after data loads.
+Features sorted: in_progress first, failed, converged. Click → selectArc(feature, null).
+
+### GVIZ.4 New Route
+
+```
+GET /project/{project_id}/timeline/graph-data
+Params: feature?, edge?, status?, t?, design?
+Response: application/json — {project_id, nodes, runs, features}
+```
+
+Reuses the same `_get_index()` helper and filter params as the timeline page.
+Filter params applied so the graph matches the table view (REQ-F-GVIZ-003 AC-7: URL params
+on load pre-highlight matching arcs).
+
+### GVIZ.5 Work Units
+
+| WU | Asset | REQ |
+|----|-------|-----|
+| WU-GVIZ-001 | `_build_graph_data()` helper in routes.py | GVIZ-001,002,004,005 |
+| WU-GVIZ-002 | `GET /timeline/graph-data` route | GVIZ-001 |
+| WU-GVIZ-003 | D3.js SVG section in timeline.html | GVIZ-001,002,003,004 |
+| WU-GVIZ-004 | Feature legend in timeline.html | GVIZ-005 |
+| WU-GVIZ-005 | Tests: graph data, edge parsing, node order | GVIZ-001,002,005 |
+
+No new Python modules. The helper is view-layer aggregation — belongs in `routes.py`.
+No change to `parsers/`, `models/`, or `projections/` layers.

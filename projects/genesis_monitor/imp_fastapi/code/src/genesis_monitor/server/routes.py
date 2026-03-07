@@ -2,6 +2,7 @@
 # Implements: REQ-F-VREL-003, REQ-F-CDIM-002, REQ-F-REGIME-002, REQ-F-CONSC-003, REQ-F-PROTO-001
 # Implements: REQ-F-MTEN-001, REQ-F-MTEN-002, REQ-F-MTEN-003
 # Implements: REQ-F-ELIN-001, REQ-F-ELIN-002, REQ-F-ELIN-003, REQ-F-FLIN-001, REQ-F-FLIN-002
+# Implements: REQ-F-GVIZ-001, REQ-F-GVIZ-002, REQ-F-GVIZ-003, REQ-F-GVIZ-004, REQ-F-GVIZ-005
 """FastAPI route definitions — page routes, fragment routes, SSE endpoint."""
 
 from __future__ import annotations
@@ -10,8 +11,10 @@ import time
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+import math
+
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
 from genesis_monitor.projections import (
@@ -457,6 +460,135 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
                 "error": None,
             },
         )
+
+    # ── Graph visualization helpers (REQ-F-GVIZ-001..005, ADR-007) ───────────────
+
+    _CANONICAL_NODE_ORDER = [
+        "intent", "requirements", "feature_decomposition", "design",
+        "module_decomposition", "basis_projections", "code", "unit_tests",
+        "uat_tests", "cicd", "telemetry",
+    ]
+
+    def _parse_edge_nodes(edge: str) -> tuple[str, str]:
+        """Split 'intent→requirements' or 'code↔unit_tests' into (source, target)."""
+        for sep in ("→", "↔", "->"):
+            if sep in edge:
+                parts = edge.split(sep, 1)
+                return parts[0].strip(), parts[1].strip()
+        clean = edge.strip()
+        return clean, clean  # self-loop fallback
+
+    def _build_graph_data(project_id: str, runs: list) -> dict:
+        """Aggregate EdgeRun list into graph-data JSON for D3.js rendering.
+
+        Returns: {project_id, nodes, runs, features}
+        """
+        # Collect unique nodes and their stats
+        node_stats: dict[str, dict] = {}
+        for run in runs:
+            src, tgt = _parse_edge_nodes(run.edge or "")
+            for nid in [n for n in [src, tgt] if n]:
+                if nid not in node_stats:
+                    node_stats[nid] = {
+                        "id": nid,
+                        "label": nid.replace("_", " ").title(),
+                        "total_runs": 0,
+                        "converged_count": 0,
+                        "in_progress_count": 0,
+                        "failed_count": 0,
+                    }
+                node_stats[nid]["total_runs"] += 1
+                if run.status == "converged":
+                    node_stats[nid]["converged_count"] += 1
+                elif run.status == "in_progress":
+                    node_stats[nid]["in_progress_count"] += 1
+                else:
+                    node_stats[nid]["failed_count"] += 1
+
+        # Sort nodes by canonical SDLC order, unknown types appended at right
+        def _node_order(nid: str) -> int:
+            try:
+                return _CANONICAL_NODE_ORDER.index(nid)
+            except ValueError:
+                return len(_CANONICAL_NODE_ORDER)
+
+        nodes = sorted(node_stats.values(), key=lambda n: _node_order(n["id"]))
+        for i, n in enumerate(nodes):
+            n["x_order"] = i
+
+        # Feature colour assignment: stable, sorted feature list
+        feature_ids = sorted({r.feature for r in runs if r.feature})
+        colour_idx = {fid: i for i, fid in enumerate(feature_ids)}
+
+        # Feature status: most severe wins (in_progress > failed > converged)
+        _severity = {"in_progress": 2, "failed": 1, "aborted": 1, "converged": 0, "": 0}
+        feature_status: dict[str, str] = {}
+        feature_run_count: dict[str, int] = {}
+        for run in runs:
+            if not run.feature:
+                continue
+            feature_run_count[run.feature] = feature_run_count.get(run.feature, 0) + 1
+            cur_sev = _severity.get(feature_status.get(run.feature, ""), 0)
+            new_sev = _severity.get(run.status, 0)
+            if new_sev > cur_sev:
+                feature_status[run.feature] = run.status if run.status != "aborted" else "failed"
+
+        # Build run objects for D3
+        run_dicts = []
+        for run in runs:
+            src, tgt = _parse_edge_nodes(run.edge or "")
+            run_dicts.append({
+                "run_id": run.run_id,
+                "feature": run.feature or "",
+                "edge": run.edge or "",
+                "source": src,
+                "target": tgt,
+                "status": run.status,
+                "iteration_count": run.iteration_count,
+                "final_delta": run.final_delta,
+                "started_at": run.started_at.isoformat(),
+                "colour_index": colour_idx.get(run.feature or "", 0),
+            })
+
+        # Feature summary sorted: in_progress first, failed, converged, then by ID
+        _status_sort = {"in_progress": 0, "failed": 1, "converged": 2}
+        feature_list = [
+            {
+                "id": fid,
+                "colour_index": colour_idx[fid],
+                "run_count": feature_run_count.get(fid, 0),
+                "status": feature_status.get(fid, "converged"),
+            }
+            for fid in feature_ids
+        ]
+        feature_list.sort(key=lambda f: (_status_sort.get(f["status"], 3), f["id"]))
+
+        return {
+            "project_id": project_id,
+            "nodes": nodes,
+            "runs": run_dicts,
+            "features": feature_list,
+        }
+
+    @router.get("/project/{project_id}/timeline/graph-data")
+    async def timeline_graph_data(
+        request: Request,
+        project_id: str,
+        t: str = None,
+        design: str = None,
+        feature: str = None,
+        edge: str = None,
+        status: str = None,
+    ):
+        """JSON graph data for D3.js Event Trail visualization. REQ-F-GVIZ-001."""
+        project = registry.get_project(project_id)
+        if not project:
+            return JSONResponse({"error": "not found"}, status_code=404)
+        idx = _get_index(project, t, design)
+        runs = idx.timeline_fuzzy(feature=feature or None, edge=edge or None, status=status or None)
+        return JSONResponse(_build_graph_data(project_id, runs))
+
+    # ── SSE / health ──────────────────────────────────────────────────────────
 
     @router.get("/events/stream")
     async def sse_stream(request: Request):

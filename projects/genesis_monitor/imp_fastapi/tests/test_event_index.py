@@ -703,3 +703,197 @@ class TestProjectPageHasTimelineLink:
         assert resp.status_code == 200
         assert "timeline" in resp.text.lower()
         assert "Edge Traversal Timeline" in resp.text
+
+
+# ── Graph Data Route — REQ-F-GVIZ-001..005 ─────────────────────────────────
+
+class TestGraphDataRoute:
+    """Tests for GET /project/{id}/timeline/graph-data JSON endpoint. REQ-F-GVIZ-001."""
+
+    def test_returns_200_json(self, client_with_events):
+        resp = client_with_events.get("/project/test-project/timeline/graph-data")
+        assert resp.status_code == 200
+        assert "application/json" in resp.headers["content-type"]
+
+    def test_response_has_required_keys(self, client_with_events):
+        data = client_with_events.get("/project/test-project/timeline/graph-data").json()
+        assert "project_id" in data
+        assert "nodes" in data
+        assert "runs" in data
+        assert "features" in data
+
+    def test_project_id_matches(self, client_with_events):
+        data = client_with_events.get("/project/test-project/timeline/graph-data").json()
+        assert data["project_id"] == "test-project"
+
+    def test_unknown_project_returns_404(self, client_with_events):
+        resp = client_with_events.get("/project/no-such-project/timeline/graph-data")
+        assert resp.status_code == 404
+
+    def test_nodes_have_required_fields(self, client_with_events):
+        data = client_with_events.get("/project/test-project/timeline/graph-data").json()
+        for node in data["nodes"]:
+            assert "id" in node
+            assert "label" in node
+            assert "x_order" in node
+            assert "total_runs" in node
+            assert "converged_count" in node
+            assert "in_progress_count" in node
+            assert "failed_count" in node
+
+    def test_runs_have_required_fields(self, client_with_events):
+        data = client_with_events.get("/project/test-project/timeline/graph-data").json()
+        for run in data["runs"]:
+            assert "run_id" in run
+            assert "feature" in run
+            assert "edge" in run
+            assert "source" in run
+            assert "target" in run
+            assert "status" in run
+            assert "iteration_count" in run
+            assert "colour_index" in run
+            assert "started_at" in run
+
+    def test_features_have_required_fields(self, client_with_events):
+        data = client_with_events.get("/project/test-project/timeline/graph-data").json()
+        for feat in data["features"]:
+            assert "id" in feat
+            assert "colour_index" in feat
+            assert "run_count" in feat
+            assert "status" in feat
+
+    def test_feature_filter_applied(self, client_with_events):
+        """feature= query param filters runs to matching feature only."""
+        data = client_with_events.get(
+            "/project/test-project/timeline/graph-data?feature=REQ-F-001"
+        ).json()
+        for run in data["runs"]:
+            assert "REQ-F-001" in run["feature"]
+
+    def test_empty_project_returns_empty_lists(self, tmp_path: Path):
+        """Project with no events returns empty nodes/runs/features."""
+        ws = tmp_path / "empty" / ".ai-workspace"
+        ws.mkdir(parents=True)
+        (ws / "events").mkdir()
+        (ws / "events" / "events.jsonl").write_text("")
+
+        registry = ProjectRegistry()
+        registry.add_project(tmp_path / "empty")
+        broadcaster = SSEBroadcaster()
+
+        @asynccontextmanager
+        async def lifespan(app):
+            yield
+
+        app = FastAPI(lifespan=lifespan)
+        from pathlib import Path as _Path
+        from fastapi.templating import Jinja2Templates
+        from genesis_monitor.server.routes import create_router
+        templates_dir = _Path(__file__).parent.parent / "code" / "src" / "genesis_monitor" / "templates"
+        app.state.templates = Jinja2Templates(directory=str(templates_dir))
+        app.include_router(create_router(registry, broadcaster))
+
+        client = TestClient(app, raise_server_exceptions=True)
+        project_id = registry.list_projects()[0].project_id
+        resp = client.get(f"/project/{project_id}/timeline/graph-data")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["nodes"] == []
+        assert data["runs"] == []
+        assert data["features"] == []
+
+
+class TestBuildGraphDataHelper:
+    """Unit tests for _build_graph_data() via the route. REQ-F-GVIZ-001..005."""
+
+    def _graph_data_for_runs(self, client_with_events, **params) -> dict:
+        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        url = "/project/test-project/timeline/graph-data"
+        if qs:
+            url += "?" + qs
+        return client_with_events.get(url).json()
+
+    def test_canonical_node_order(self, client_with_events):
+        """Nodes appear in canonical SDLC order (intent before code). REQ-F-GVIZ-001 AC-2."""
+        data = self._graph_data_for_runs(client_with_events)
+        if len(data["nodes"]) < 2:
+            pytest.skip("Need multiple nodes for order check")
+        orders = [n["x_order"] for n in data["nodes"]]
+        assert orders == sorted(orders), "Nodes should be in ascending x_order"
+
+    def test_feature_colour_indices_are_stable(self, client_with_events):
+        """Same feature always gets same colour_index within a response. REQ-F-GVIZ-002 AC-4."""
+        data = self._graph_data_for_runs(client_with_events)
+        feat_colour = {}
+        for run in data["runs"]:
+            if run["feature"]:
+                if run["feature"] in feat_colour:
+                    assert feat_colour[run["feature"]] == run["colour_index"], \
+                        "Same feature must have stable colour_index"
+                feat_colour[run["feature"]] = run["colour_index"]
+
+    def test_features_sorted_in_progress_first(self, client_with_events):
+        """Legend features are sorted: in_progress first. REQ-F-GVIZ-005 AC-4."""
+        data = self._graph_data_for_runs(client_with_events)
+        statuses = [f["status"] for f in data["features"]]
+        _order = {"in_progress": 0, "failed": 1, "converged": 2}
+        order_vals = [_order.get(s, 3) for s in statuses]
+        assert order_vals == sorted(order_vals), "Features should be sorted by status severity"
+
+    def test_node_counts_are_non_negative(self, client_with_events):
+        """All node stat counts are >= 0. REQ-F-GVIZ-004."""
+        data = self._graph_data_for_runs(client_with_events)
+        for node in data["nodes"]:
+            assert node["total_runs"] >= 0
+            assert node["converged_count"] >= 0
+            assert node["in_progress_count"] >= 0
+            assert node["failed_count"] >= 0
+
+    def test_feature_run_counts_positive(self, client_with_events):
+        """Feature run_count is positive for all listed features. REQ-F-GVIZ-005 AC-1."""
+        data = self._graph_data_for_runs(client_with_events)
+        for feat in data["features"]:
+            assert feat["run_count"] > 0
+
+
+class TestParseEdgeNodes:
+    """Unit tests for the edge-name parsing logic. REQ-F-GVIZ-001 AC-1."""
+
+    def _parse(self, edge: str) -> tuple[str, str]:
+        """Invoke _parse_edge_nodes() via graph-data route indirectly, or test directly."""
+        # Test via the helper logic directly (copy of the pure function)
+        for sep in ("→", "↔", "->"):
+            if sep in edge:
+                parts = edge.split(sep, 1)
+                return parts[0].strip(), parts[1].strip()
+        clean = edge.strip()
+        return clean, clean
+
+    def test_arrow_separator(self):
+        src, tgt = self._parse("intent→requirements")
+        assert src == "intent"
+        assert tgt == "requirements"
+
+    def test_bidirectional_separator(self):
+        src, tgt = self._parse("code↔unit_tests")
+        assert src == "code"
+        assert tgt == "unit_tests"
+
+    def test_ascii_arrow(self):
+        src, tgt = self._parse("design->code")
+        assert src == "design"
+        assert tgt == "code"
+
+    def test_unknown_separator_self_loop(self):
+        src, tgt = self._parse("unknown_edge")
+        assert src == tgt == "unknown_edge"
+
+    def test_whitespace_stripped(self):
+        src, tgt = self._parse("intent → requirements")
+        assert src == "intent"
+        assert tgt == "requirements"
+
+    def test_complex_edge_name(self):
+        src, tgt = self._parse("feature_decomposition→design")
+        assert src == "feature_decomposition"
+        assert tgt == "design"

@@ -82,6 +82,33 @@
 
 ---
 
+## Active (v3.5 — INT-GMON-010: Event Trail Graph Visualization)
+
+| # | Title | Status | Feature Vector | Priority |
+|---|-------|--------|----------------|----------|
+| 30 | Spawn REQ-F-GVIZ-001 from INT-GMON-010 | completed | REQ-F-GVIZ-001 | high |
+| 31 | REQ-F-GVIZ-001: requirements CONVERGED | completed | REQ-F-GVIZ-001 | high |
+| 32 | REQ-F-GVIZ-001: design CONVERGED (ADR-007) | completed | REQ-F-GVIZ-001 | high |
+| 33 | REQ-F-GVIZ-001: code↔unit_tests CONVERGED | completed | REQ-F-GVIZ-001 | high |
+
+### REQ-F-GVIZ-001: All Edges CONVERGED
+**Date**: 2026-03-08T01:00:00Z
+**Iterations**: 1 (delta=0 first pass)
+**Evaluators**: 463/463 tests pass
+**Assets**:
+- `design/adrs/ADR-007-d3-event-trail-graph.md` — D3.js v7 technology binding
+- `server/routes.py` — `_build_graph_data()` helper + `GET /timeline/graph-data` route
+- `templates/timeline.html` — D3.js graph section + legend + interaction handlers
+- `tests/test_event_index.py` — 20 new tests (TestGraphDataRoute×9, TestBuildGraphDataHelper×5, TestParseEdgeNodes×6)
+**Key decisions (ADR-007)**:
+- D3.js v7 from CDN (no build step, satisfies REQ-NFR-001 no-framework constraint)
+- JSON endpoint: server computes data, D3 renders SVG client-side
+- Fixed horizontal node layout (canonical SDLC order), quadratic Bezier arcs
+- Arc encoding: weight=log1p(iters)×2+1, colour=feature, opacity=recency, dash=status
+- Node encoding: size=log1p(runs), fill=health, pulse=in_progress
+- Interaction: arc/node click → filter bar + row de-emphasis (no page reload)
+**Feature status**: **CONVERGED** (all 4 edges: requirements, design, code, unit_tests)
+
 ## Dependency Graph
 
 ```

@@ -1,0 +1,135 @@
+feature: REQ-F-GVIZ-001
+title: "Event Trail Graph — D3.js Interactive Visualization"
+intent: INT-GMON-010
+vector_type: feature
+profile: standard
+status: converged
+created: '2026-03-08T00:00:00Z'
+updated: '2026-03-08T01:00:00Z'
+depends_on:
+- REQ-F-GMON-001          # project discovery (has events)
+- REQ-F-ELIN-001          # EventIndex (has EdgeRun data)
+
+description: >
+  Render the methodology asset graph as an interactive "event trail" — nodes are asset types,
+  arcs are EdgeRuns. Arc weight encodes iteration effort (logarithmic stroke width). Arc style
+  encodes status (solid/dashed/dotted). Arc colour encodes feature identity (Tableau-10 palette).
+  Arc opacity encodes recency. Nodes encode aggregate health (size + fill colour + pulse animation).
+  A legend maps features to colours with toggle controls. Selecting an arc or node filters the
+  timeline table below. D3.js v7 from CDN renders the SVG; a new JSON endpoint provides the data.
+
+requirements:
+- REQ-F-GVIZ-001  # Topology node layout
+- REQ-F-GVIZ-002  # EdgeRun arc rendering (trail)
+- REQ-F-GVIZ-003  # Interactive selection and table synchronisation
+- REQ-F-GVIZ-004  # Effort and health encoding at node level
+- REQ-F-GVIZ-005  # Feature legend and colour identity
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-08T00:00:00Z'
+    converged_at: '2026-03-08T00:00:00Z'
+    asset: specification/requirements/REQUIREMENTS.md (§31 REQ-F-GVIZ-001..005)
+    evaluator_results:
+      req_keys_defined: pass
+      traces_to_intent: pass
+      acceptance_criteria_present: pass
+      no_design_specifics_in_reqs: pass
+      priority_assigned: pass
+      terminology_consistent: pass
+    notes: >
+      5 requirements defined in Section 31 of REQUIREMENTS.md (v3.2.0).
+      All trace to INT-GMON-010. Acceptance criteria are testable.
+
+  design:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-08T00:00:00Z'
+    converged_at: '2026-03-08T00:00:00Z'
+    asset: design/adrs/ADR-007-d3-event-trail-graph.md
+    evaluator_results:
+      all_requirements_addressed: pass
+      no_new_requirements_introduced: pass
+      adr_for_significant_decisions: pass
+      backward_compatible: pass
+      layer_separation_maintained: pass
+    notes: >
+      ADR-007 documents the D3.js v7 technology binding. Three options evaluated:
+      Mermaid.js (rejected — no interactivity), server-side SVG (rejected — no animation),
+      D3.js v7 from CDN (accepted). JSON endpoint pattern maintains server/client separation.
+      No new Python dependencies. No build step. DESIGN.md §GVIZ added.
+
+  code:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-08T00:00:00Z'
+    converged_at: '2026-03-08T01:00:00Z'
+    convergence_type: delta_zero
+    asset: |
+      server/routes.py  (new GET /project/{id}/timeline/graph-data + _build_graph_data())
+      templates/timeline.html  (new #trail-graph section + D3.js CDN script)
+    evaluator_results:
+      tests_pass: pass
+      req_tags_in_code: pass
+      req_tags_in_tests: pass
+      code_quality: pass
+      layer_separation_maintained: pass
+    notes: >
+      _build_graph_data() pure helper in routes.py (no new module).
+      D3.js v7 from CDN (no build step). 463/463 tests pass.
+      REQ-F-GVIZ-001..005 tagged in routes.py and timeline.html.
+
+  unit_tests:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-08T01:00:00Z'
+    converged_at: '2026-03-08T01:00:00Z'
+    convergence_type: delta_zero
+    evaluator_results:
+      tests_pass: pass
+      coverage: pass
+      req_tags_in_tests: pass
+    notes: >
+      20 new tests in test_event_index.py (TestGraphDataRoute: 9, TestBuildGraphDataHelper: 5,
+      TestParseEdgeNodes: 6). All pass. 463 total tests pass (up from 443).
+
+work_breakdown:
+- id: WU-GVIZ-001
+  title: "Add _build_graph_data() helper to routes.py — parse edges, compute nodes, assign colours"
+  req:
+  - REQ-F-GVIZ-001
+  - REQ-F-GVIZ-002
+  - REQ-F-GVIZ-004
+  - REQ-F-GVIZ-005
+  status: completed
+
+- id: WU-GVIZ-002
+  title: "Add GET /project/{id}/timeline/graph-data route — JSON endpoint"
+  req:
+  - REQ-F-GVIZ-001
+  status: completed
+
+- id: WU-GVIZ-003
+  title: "Add D3.js graph section to timeline.html — SVG render, arc encoding, node encoding"
+  req:
+  - REQ-F-GVIZ-001
+  - REQ-F-GVIZ-002
+  - REQ-F-GVIZ-003
+  - REQ-F-GVIZ-004
+  status: completed
+
+- id: WU-GVIZ-004
+  title: "Add feature legend to timeline.html — colour identity, toggle, sort order"
+  req:
+  - REQ-F-GVIZ-005
+  status: completed
+
+- id: WU-GVIZ-005
+  title: "Tests — graph_data endpoint, edge parsing, node ordering, feature colour assignment"
+  req:
+  - REQ-F-GVIZ-001
+  - REQ-F-GVIZ-002
+  - REQ-F-GVIZ-005
+  status: completed

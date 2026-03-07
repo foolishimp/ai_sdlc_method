@@ -1,4 +1,4 @@
-<!-- Implements: REQ-F-ELIN-002, REQ-F-ELIN-003 -->
+<!-- Implements: REQ-F-ELIN-002, REQ-F-ELIN-003, REQ-F-GVIZ-001, REQ-F-GVIZ-002, REQ-F-GVIZ-003, REQ-F-GVIZ-004, REQ-F-GVIZ-005 -->
 {% extends "base.html" %}
 {% block title %}{{ project.name }} — Edge Traversal Timeline{% endblock %}
 
@@ -49,7 +49,27 @@
 .filter-bar input, .filter-bar select { font-size: 0.85rem; padding: 4px 8px; height: auto; }
 .col-header { font-size: 0.72rem; color: var(--pico-muted-color); text-transform: uppercase;
               letter-spacing: 0.06em; margin-bottom: 4px; }
+/* Event Trail Graph — REQ-F-GVIZ-001..005 */
+#trail-graph-container { margin-bottom: 1.5rem; }
+#trail-graph-wrap { display: flex; gap: 0.75rem; align-items: flex-start; }
+#trail-graph { flex: 1; min-height: 200px; border: 1px solid var(--pico-muted-border-color);
+               border-radius: 6px; overflow: hidden; background: var(--pico-card-background-color); }
+#trail-legend { width: 200px; border: 1px solid var(--pico-muted-border-color); border-radius: 6px;
+                padding: 8px; font-size: 0.75rem; max-height: 240px; overflow-y: auto;
+                background: var(--pico-card-background-color); flex-shrink: 0; }
+.legend-item { display: flex; align-items: center; gap: 6px; padding: 3px 0;
+               cursor: pointer; border-radius: 3px; }
+.legend-item:hover { background: rgba(128,128,128,0.08); }
+.legend-swatch { display: inline-block; width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+.legend-id { font-family: monospace; font-size: 0.7rem; flex: 1; overflow: hidden;
+             text-overflow: ellipsis; white-space: nowrap; }
+.legend-meta { font-size: 0.68rem; color: var(--pico-muted-color); white-space: nowrap; }
+.arc { cursor: pointer; }
+.arc.dimmed { opacity: 0.12 !important; }
+@keyframes dash-flow { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+@keyframes pulse-node { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
 </style>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -86,6 +106,316 @@
         <span class="stat-label">Failed/Aborted</span>
     </div>
 </div>
+
+<!-- Event Trail Graph — REQ-F-GVIZ-001..005 -->
+<div id="trail-graph-container">
+    <div id="trail-graph-wrap">
+        <div id="trail-graph">
+            <p style="color:var(--pico-muted-color);padding:1rem;font-size:0.85rem;">Loading event trail graph…</p>
+        </div>
+        <div id="trail-legend">
+            <div style="font-size:0.72rem;font-weight:bold;color:var(--pico-muted-color);margin-bottom:4px;">FEATURES</div>
+            <div style="color:var(--pico-muted-color);font-size:0.72rem;">Loading…</div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    "use strict";
+    const PROJECT_ID = {{ project.project_id | tojson }};
+    const PALETTE = [
+        "#4e79a7","#f28e2b","#e15759","#76b7b2","#59a14f",
+        "#edc948","#b07aa1","#ff9da7","#9c755f","#bab0ac"
+    ];
+    const STATUS_ICON = { converged: "✓", in_progress: "●", failed: "✗", aborted: "○", pending: "○" };
+
+    // Read active filters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeFeat = urlParams.get("feature") || "";
+    let activeEdge = urlParams.get("edge") || "";
+
+    // Fetch graph data (same filter params as current page)
+    fetch("/project/" + PROJECT_ID + "/timeline/graph-data" + window.location.search)
+        .then(function (r) { return r.json(); })
+        .then(renderGraph)
+        .catch(function () {
+            document.getElementById("trail-graph").innerHTML =
+                '<p style="color:var(--pico-muted-color);padding:1rem;font-size:0.85rem;">Graph data unavailable.</p>';
+        });
+
+    function renderGraph(data) {
+        const container = document.getElementById("trail-graph");
+        container.innerHTML = "";
+
+        if (!data.nodes || data.nodes.length === 0) {
+            container.innerHTML = '<p style="color:var(--pico-muted-color);padding:1rem;font-size:0.85rem;">No edge runs yet — the trail graph will appear as EdgeRuns are recorded.</p>';
+            renderLegend([]);
+            return;
+        }
+
+        const W = Math.max(container.clientWidth || 700, 400);
+        const H = 220;
+        const ML = 24, MR = 24, MT = 50, MB = 36;
+        const innerW = W - ML - MR;
+        const NY = MT + (H - MT - MB) / 2;
+
+        // Node x positions (evenly spaced by x_order)
+        const nNodes = data.nodes.length;
+        const nodePos = {};
+        data.nodes.forEach(function (n) {
+            nodePos[n.id] = {
+                x: nNodes > 1 ? ML + (n.x_order / (nNodes - 1)) * innerW : W / 2,
+                y: NY
+            };
+        });
+
+        // SVG root
+        const svg = d3.select("#trail-graph")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", H)
+            .attr("viewBox", "0 0 " + W + " " + H)
+            .style("display", "block");
+
+        // Background click clears selection
+        svg.on("click", function () { selectFilter(null, null); });
+
+        // Recency scale
+        const times = data.runs
+            .map(function (r) { return new Date(r.started_at).getTime(); })
+            .filter(function (t) { return !isNaN(t); });
+        const tMin = times.length ? Math.min.apply(null, times) : 0;
+        const tMax = times.length ? Math.max.apply(null, times) : 1;
+
+        // Group runs by (source, target) for bundle offsets
+        const edgeBuckets = {};
+        data.runs.forEach(function (run) {
+            if (!run.source || !run.target) return;
+            const key = run.source + "|" + run.target;
+            if (!edgeBuckets[key]) edgeBuckets[key] = [];
+            edgeBuckets[key].push(run);
+        });
+
+        // Draw arcs
+        const arcEls = [];
+        Object.values(edgeBuckets).forEach(function (bucket) {
+            const n = bucket.length;
+            bucket.forEach(function (run, i) {
+                const src = nodePos[run.source];
+                const tgt = nodePos[run.target];
+                if (!src || !tgt) return;
+
+                // Self-loop: skip (source === target)
+                if (run.source === run.target) return;
+
+                // Bundle offset: fan arcs above midline
+                const offset = (i - (n - 1) / 2) * 28 - 42;
+                const mx = (src.x + tgt.x) / 2;
+                const my = NY + offset;
+                const d = "M" + src.x + "," + src.y + " Q" + mx + "," + my + " " + tgt.x + "," + tgt.y;
+
+                // Encoding
+                const weight = Math.log1p(run.iteration_count || 1) * 2 + 1;
+                const colour = PALETTE[run.colour_index % PALETTE.length];
+                const t = new Date(run.started_at).getTime();
+                const opacity = (tMax === tMin) ? 0.75
+                    : 0.3 + 0.7 * ((t - tMin) / (tMax - tMin));
+
+                let dashArray = "none";
+                let animStyle = "";
+                if (run.status === "in_progress") {
+                    dashArray = "8,4";
+                    animStyle = "animation:dash-flow 0.8s linear infinite;";
+                } else if (run.status === "failed" || run.status === "aborted") {
+                    dashArray = "3,3";
+                }
+
+                const path = svg.append("path")
+                    .attr("class", "arc arc-" + run.status)
+                    .attr("d", d)
+                    .attr("fill", "none")
+                    .attr("stroke", colour)
+                    .attr("stroke-width", weight)
+                    .attr("stroke-opacity", opacity)
+                    .attr("stroke-dasharray", dashArray)
+                    .attr("style", animStyle)
+                    .attr("data-feature", run.feature)
+                    .attr("data-edge", run.edge);
+
+                path.append("title").text(
+                    (run.feature || "—") + "\n" + (run.edge || "—") +
+                    "\nIterations: " + run.iteration_count +
+                    "  Δ: " + (run.final_delta !== null ? run.final_delta : "—") +
+                    "  " + run.status
+                );
+
+                path.on("click", function (event) {
+                    event.stopPropagation();
+                    selectFilter(run.feature, run.edge);
+                });
+
+                arcEls.push({ el: path, feature: run.feature, edge: run.edge });
+            });
+        });
+
+        // Draw nodes
+        data.nodes.forEach(function (node) {
+            const pos = nodePos[node.id];
+            if (!pos) return;
+
+            const r = Math.min(22, Math.max(11, 7 + Math.log1p(node.total_runs) * 4));
+            const fill = node.failed_count > 0 ? "#ef5350"
+                : node.in_progress_count > 0 ? "#ff9800"
+                : node.converged_count > 0 ? "#4caf50"
+                : "var(--pico-muted-border-color)";
+            const pulseStyle = node.in_progress_count > 0
+                ? "animation:pulse-node 1.5s ease-in-out infinite;" : "";
+
+            const ng = svg.append("g")
+                .attr("transform", "translate(" + pos.x + "," + pos.y + ")")
+                .style("cursor", "pointer")
+                .on("click", function (event) {
+                    event.stopPropagation();
+                    selectFilter(null, node.id);
+                });
+
+            ng.append("circle")
+                .attr("r", r)
+                .attr("fill", fill)
+                .attr("fill-opacity", 0.85)
+                .attr("stroke", "var(--pico-muted-border-color)")
+                .attr("stroke-width", 1.5)
+                .attr("style", pulseStyle);
+
+            if (node.total_runs > 0) {
+                ng.append("text")
+                    .attr("text-anchor", "middle")
+                    .attr("dy", "0.35em")
+                    .attr("font-size", "9px")
+                    .attr("fill", "#fff")
+                    .attr("pointer-events", "none")
+                    .text(node.total_runs);
+            }
+
+            // Label above or below based on position
+            ng.append("text")
+                .attr("text-anchor", "middle")
+                .attr("dy", -(r + 8))
+                .attr("font-size", "9px")
+                .attr("font-family", "monospace")
+                .attr("fill", "var(--pico-muted-color)")
+                .attr("pointer-events", "none")
+                .text(node.label || node.id);
+
+            ng.append("title").text(
+                node.label + ": " + node.total_runs + " runs\n" +
+                "✓ " + node.converged_count + "  ● " + node.in_progress_count + "  ✗ " + node.failed_count
+            );
+        });
+
+        // Apply initial highlight from URL params
+        if (activeFeat || activeEdge) {
+            highlightArcs(activeFeat, activeEdge);
+        }
+
+        // Legend
+        renderLegend(data.features);
+
+        // ── Interaction helpers ──────────────────────────────────────────
+
+        function selectFilter(feat, edgeOrNode) {
+            activeFeat = feat || "";
+            activeEdge = edgeOrNode || "";
+
+            // Populate filter bar inputs
+            const fInput = document.querySelector("input[name='feature']");
+            const eInput = document.querySelector("input[name='edge']");
+            if (fInput) fInput.value = activeFeat;
+            if (eInput) eInput.value = activeEdge;
+
+            highlightArcs(activeFeat, activeEdge);
+            dimTableRows(activeFeat, activeEdge);
+        }
+
+        function highlightArcs(feat, edgeOrNode) {
+            const hasFilter = !!(feat || edgeOrNode);
+            arcEls.forEach(function (a) {
+                const match = (!feat || a.feature === feat) &&
+                              (!edgeOrNode || (a.edge && a.edge.includes(edgeOrNode)));
+                a.el.classed("dimmed", hasFilter && !match);
+            });
+        }
+
+        function dimTableRows(feat, edgeOrNode) {
+            const hasFilter = !!(feat || edgeOrNode);
+            document.querySelectorAll(".run-row").forEach(function (row) {
+                if (row.classList.contains("col-header")) return;
+                const rf = (row.querySelector(".run-feature") || {}).textContent || "";
+                const re = (row.querySelector(".run-edge") || {}).textContent || "";
+                const match = (!feat || rf.includes(feat)) &&
+                              (!edgeOrNode || re.includes(edgeOrNode));
+                row.style.opacity = (hasFilter && !match) ? "0.3" : "1";
+            });
+        }
+    }
+
+    function renderLegend(features) {
+        const legend = document.getElementById("trail-legend");
+        if (!legend) return;
+
+        if (!features || features.length === 0) {
+            legend.innerHTML = '<div style="font-size:0.72rem;font-weight:bold;color:var(--pico-muted-color);margin-bottom:4px;">FEATURES</div>' +
+                '<div style="color:var(--pico-muted-color);font-size:0.72rem;">None yet</div>';
+            return;
+        }
+
+        let html = '<div style="font-size:0.72rem;font-weight:bold;color:var(--pico-muted-color);margin-bottom:4px;">FEATURES</div>';
+        html += '<div style="font-size:0.68rem;color:var(--pico-muted-color);margin-bottom:6px;cursor:pointer;" onclick="clearGraphFilter()">clear selection</div>';
+
+        features.forEach(function (f) {
+            const colour = PALETTE[f.colour_index % PALETTE.length];
+            const icon = STATUS_ICON[f.status] || "○";
+            html += '<div class="legend-item" onclick="selectGraphFeature(' + JSON.stringify(f.id) + ')">' +
+                '<span class="legend-swatch" style="background:' + colour + '"></span>' +
+                '<span class="legend-id" title="' + f.id + '">' + f.id + '</span>' +
+                '<span class="legend-meta">' + icon + ' ' + f.run_count + '</span>' +
+                '</div>';
+        });
+
+        legend.innerHTML = html;
+    }
+
+    // Global helpers called from legend onclick
+    window.selectGraphFeature = function (featId) {
+        const fInput = document.querySelector("input[name='feature']");
+        const eInput = document.querySelector("input[name='edge']");
+        if (fInput) fInput.value = featId;
+        if (eInput) eInput.value = "";
+        // Trigger arc highlight by re-reading filter bar
+        const feat = fInput ? fInput.value : featId;
+        document.querySelectorAll(".arc").forEach(function (el) {
+            const match = el.getAttribute("data-feature") === feat;
+            el.classList.toggle("dimmed", !match);
+        });
+        document.querySelectorAll(".run-row").forEach(function (row) {
+            if (row.classList.contains("col-header")) return;
+            const rf = (row.querySelector(".run-feature") || {}).textContent || "";
+            row.style.opacity = rf.includes(feat) ? "1" : "0.3";
+        });
+    };
+
+    window.clearGraphFilter = function () {
+        const fInput = document.querySelector("input[name='feature']");
+        const eInput = document.querySelector("input[name='edge']");
+        if (fInput) fInput.value = "";
+        if (eInput) eInput.value = "";
+        document.querySelectorAll(".arc").forEach(function (el) { el.classList.remove("dimmed"); });
+        document.querySelectorAll(".run-row").forEach(function (row) { row.style.opacity = "1"; });
+    };
+
+}());
+</script>
 
 <!-- Filter bar -->
 <form method="get" class="filter-bar">
