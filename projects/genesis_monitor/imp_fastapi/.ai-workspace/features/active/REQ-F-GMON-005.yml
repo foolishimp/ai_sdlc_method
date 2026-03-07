@@ -1,0 +1,63 @@
+feature: REQ-F-GMON-005
+title: "CQRS Workspace Hierarchy — Nested Discovery and Cross-Workspace Rollup"
+intent: INT-GMON-006
+vector_type: feature
+profile: standard
+status: pending
+created: '2026-03-07T19:00:00Z'
+updated: '2026-03-07T19:00:00Z'
+depends_on:
+- REQ-F-GMON-001
+description: >
+  Extend the workspace scanner from single-level .ai-workspace/ discovery to recursive
+  traversal of nested workspaces (CQRS model per §7.4.4 of the Asset Graph Model).
+  Parent project view shows own events plus an option to include child workspace events.
+  Child workspaces are listed with event counts and links to their own project view.
+  Parent view aggregates REQ key coverage across all child workspaces.
+
+requirements:
+- REQ-F-CQRS-001  # Recursive .ai-workspace/ discovery
+- REQ-F-CQRS-002  # Parent/child workspace relationship model
+- REQ-F-CQRS-003  # Cross-workspace REQ key rollup
+- REQ-F-CQRS-004  # Child workspace listing with event counts and links
+
+trajectory:
+  requirements:
+    status: pending
+  design:
+    status: pending
+  code:
+    status: pending
+  unit_tests:
+    status: pending
+
+work_breakdown:
+- id: WU-GMON5-001
+  title: "Extend scanner.py — recursive .ai-workspace/ traversal, detect parent/child"
+  req:
+  - REQ-F-CQRS-001
+  - REQ-F-CQRS-002
+  status: pending
+- id: WU-GMON5-002
+  title: "Add WorkspaceTree model — parent + children with event counts and paths"
+  req:
+  - REQ-F-CQRS-002
+  status: pending
+- id: WU-GMON5-003
+  title: "Add cross-workspace REQ rollup projection — aggregate coverage across tree"
+  req:
+  - REQ-F-CQRS-003
+  status: pending
+- id: WU-GMON5-004
+  title: "Add child workspace panel to project view — event counts, links, coverage summary"
+  req:
+  - REQ-F-CQRS-004
+  status: pending
+- id: WU-GMON5-005
+  title: "Tests — recursive scanner, parent/child detection, rollup aggregation"
+  req:
+  - REQ-F-CQRS-001
+  - REQ-F-CQRS-002
+  - REQ-F-CQRS-003
+  - REQ-F-CQRS-004
+  status: pending

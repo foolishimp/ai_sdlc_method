@@ -1,0 +1,126 @@
+feature: REQ-F-GMON-004
+title: "Full 4-Column REQ Lineage + Telemetry Scanner"
+intent: INT-GMON-006
+vector_type: feature
+profile: standard
+status: converged
+created: '2026-03-07T19:00:00Z'
+updated: '2026-03-07T20:48:00Z'
+depends_on:
+- REQ-F-GMON-001
+description: >
+  Extend traceability.py from a 2-column view (code + tests) to a full 4-column view:
+  Spec (defined in spec inventory) / Code (Implements: tag) / Tests (Validates: tag) /
+  Telemetry (req= tag). Add telemetry scanner that reads source files for req="REQ-*"
+  patterns. Flag orphan REQ keys (in code but not spec) and uncovered keys (in spec but
+  absent from all downstream columns).
+
+requirements:
+- REQ-F-LINEAGE-001  # Full 4-column traceability matrix
+- REQ-F-LINEAGE-002  # Telemetry scanner (req= pattern)
+- REQ-F-LINEAGE-003  # Orphan and uncovered key detection
+- REQ-F-LINEAGE-004  # Spec inventory cross-reference
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-07T19:10:00Z'
+    converged_at: '2026-03-07T19:10:30Z'
+    asset: .ai-workspace/spec/REQUIREMENTS.md
+    evaluator_results:
+      req_keys_defined: pass
+      traces_to_intent: pass
+      acceptance_criteria_present: pass
+      no_design_specifics_in_reqs: pass
+      priority_assigned: pass
+      terminology_consistent: pass
+  design:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-07T20:00:00Z'
+    converged_at: '2026-03-07T20:30:00Z'
+    asset: design/DESIGN.md
+    evaluator_results:
+      all_requirements_addressed: pass
+      no_new_requirements_introduced: pass
+      adr_for_significant_decisions: pass
+      backward_compatible: pass
+      layer_separation_maintained: pass
+  code:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-07T05:54:00Z'
+    converged_at: '2026-03-07T05:54:35Z'
+    convergence_type: delta_zero
+    asset: imp_fastapi/code/src/genesis_monitor/parsers/traceability.py
+    evaluator_results:
+      tests_pass: pass
+      all_req_tagged: pass
+      orphan_detection_works: pass
+      uncovered_detection_works: pass
+      telemetry_scanner_works: pass
+      spec_inventory_works: pass
+    notes: >
+      37 new tests in test_traceability.py. 0 pre-existing failures introduced.
+      spec_inventory() + telemetry_scanner() added to parsers/traceability.py.
+      build_traceability_view() extended with 4-column rows + orphan/uncovered summary.
+      Template updated to 6-column table with row highlighting.
+  unit_tests:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-07T20:45:00Z'
+    converged_at: '2026-03-07T20:48:00Z'
+    convergence_type: delta_zero
+    evaluator_results:
+      tests_pass: pass
+      req_tags_in_code: pass
+      req_tags_in_tests: pass
+      test_quality: pass
+      code_quality: pass
+    notes: >
+      379/379 tests pass after 2 code fixes (not test fixes):
+      1. Remove premature v2.9 entries (manual_commit, transaction_aborted) from EVENT_TYPE_MAP
+         — count was 30 vs spec-contractual 28.
+      2. Fix ABORT branch in parser to be conditional (iteration_abandoned was incorrectly
+         mapped to transaction_aborted). Pattern now consistent with COMPLETE and FAIL branches.
+      REQ-F-LINEAGE-001..004 all tagged in parsers/traceability.py and projections/traceability.py.
+      test_traceability.py covers: happy path, empty inputs, backward compat (no REQUIREMENTS.md),
+      orphan and uncovered key detection.
+
+work_breakdown:
+- id: WU-GMON4-001
+  title: "Add telemetry_scanner() to traceability.py — grep req= patterns from source"
+  req:
+  - REQ-F-LINEAGE-002
+  status: completed
+- id: WU-GMON4-002
+  title: "Add spec_inventory() — parse REQUIREMENTS.md for defined REQ keys"
+  req:
+  - REQ-F-LINEAGE-004
+  status: completed
+- id: WU-GMON4-003
+  title: "Extend TraceabilityReport model — add telemetry_files and spec_defined columns"
+  req:
+  - REQ-F-LINEAGE-001
+  status: completed
+- id: WU-GMON4-004
+  title: "Extend build_traceability_view() — 4-column matrix with orphan/uncovered flags"
+  req:
+  - REQ-F-LINEAGE-001
+  - REQ-F-LINEAGE-003
+  status: completed
+- id: WU-GMON4-005
+  title: "Update traceability template — add Spec and Telemetry columns, orphan badges"
+  req:
+  - REQ-F-LINEAGE-001
+  - REQ-F-LINEAGE-003
+  status: completed
+- id: WU-GMON4-006
+  title: "Tests — telemetry scanner, spec inventory, orphan detection, 4-column view"
+  req:
+  - REQ-F-LINEAGE-001
+  - REQ-F-LINEAGE-002
+  - REQ-F-LINEAGE-003
+  - REQ-F-LINEAGE-004
+  status: completed

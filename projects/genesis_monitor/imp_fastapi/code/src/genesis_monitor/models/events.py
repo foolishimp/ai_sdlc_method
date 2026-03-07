@@ -359,7 +359,4 @@ EVENT_TYPE_MAP: dict[str, type[Event]] = {
     "encoding_escalated": EncodingEscalatedEvent,
     # artifact write observation
     "artifact_modified": ArtifactModifiedEvent,
-    # v2.9 formal transactions
-    "manual_commit": ManualCommitEvent,
-    "transaction_aborted": TransactionAbortedEvent,
 }

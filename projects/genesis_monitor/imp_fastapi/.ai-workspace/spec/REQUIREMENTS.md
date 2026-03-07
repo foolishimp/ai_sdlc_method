@@ -1046,4 +1046,74 @@ The system MUST propagate the active design filter automatically to all HTMX fra
 | Traceability Projections (TRACE) | 2 | 0 | 2 | 0 |
 | Temporal Navigation (NAV) | 3 | 0 | 2 | 1 |
 | Multi-Design Tenancy (MTEN) | 3 | 0 | 3 | 0 |
-| **Total** | **69** | **13** | **40** | **16** |
+| Full REQ Lineage (LINEAGE) | 4 | 0 | 3 | 1 |
+| **Total** | **73** | **13** | **43** | **17** |
+
+---
+
+## 28. Full REQ Lineage (INT-GMON-006)
+
+### REQ-F-LINEAGE-001: 4-Column Traceability Matrix
+
+**Priority**: High
+**Traces To**: INT-GMON-006 / OUT-036
+
+The system MUST extend the traceability view from 2 columns (code, tests) to 4 columns: Spec (REQ key defined in REQUIREMENTS.md), Code (`# Implements:` tag), Tests (`# Validates:` tag), and Telemetry (`req=` tag in source files). Each column is Y/N per REQ key.
+
+**Acceptance Criteria**:
+- AC-1: `TraceabilityReport` model includes `spec_defined: bool` and `telemetry_files: list[str]` fields per REQ key row
+- AC-2: Traceability view template renders 4 columns: Spec / Code / Tests / Telemetry
+- AC-3: A REQ key present in REQUIREMENTS.md but absent from all 3 downstream columns is flagged as `uncovered`
+- AC-4: Summary statistics include counts for each column independently (spec_count, code_count, test_count, telemetry_count)
+- AC-5: Backward compatible — projects with no REQUIREMENTS.md produce empty spec column (no errors)
+
+### REQ-F-LINEAGE-002: Telemetry Scanner
+
+**Priority**: High
+**Traces To**: INT-GMON-006 / OUT-038
+
+The system MUST scan project source files for `req="REQ-*"` and `req='REQ-*'` patterns to populate the telemetry column of the traceability matrix.
+
+**Acceptance Criteria**:
+- AC-1: Scanner reads all `.py` files under the project path recursively (same scope as code scanner)
+- AC-2: Both double-quoted (`req="REQ-*"`) and single-quoted (`req='REQ-*'`) patterns are matched
+- AC-3: Multiple REQ keys per file are supported
+- AC-4: Scanner result is a dict mapping `REQ-key → list[file_path]`
+- AC-5: Files with no matching patterns produce no entries (not empty lists)
+
+### REQ-F-LINEAGE-003: Orphan and Uncovered Key Detection
+
+**Priority**: High
+**Traces To**: INT-GMON-006 / OUT-037
+
+The system MUST flag two gap classes in the traceability view: orphan keys (present in code or tests but absent from REQUIREMENTS.md) and uncovered keys (defined in REQUIREMENTS.md but absent from all three downstream columns).
+
+**Acceptance Criteria**:
+- AC-1: Orphan keys computed as: (keys in code ∪ keys in tests ∪ keys in telemetry) − keys in spec
+- AC-2: Uncovered keys computed as: keys in spec − (keys in code ∪ keys in tests ∪ keys in telemetry)
+- AC-3: Orphan count and uncovered count included in `TraceabilityReport` summary
+- AC-4: Traceability template renders orphan rows with a distinct visual indicator (e.g., warning badge)
+- AC-5: Uncovered rows rendered with a distinct visual indicator (e.g., gap badge)
+
+### REQ-F-LINEAGE-004: Spec Inventory from REQUIREMENTS.md
+
+**Priority**: Medium
+**Traces To**: INT-GMON-006 / OUT-036
+
+The system MUST parse the project's REQUIREMENTS.md to build a spec inventory — the complete set of formally defined REQ keys. The inventory is the source-of-truth column for the 4-column matrix.
+
+**Acceptance Criteria**:
+- AC-1: Parser extracts REQ keys from Markdown section headings matching `### REQ-F-*` or `### REQ-NFR-*` patterns
+- AC-2: Parser reads from `.ai-workspace/spec/REQUIREMENTS.md` if present, else from `specification/REQUIREMENTS.md` relative to project root, else returns empty inventory
+- AC-3: Inventory returned as `set[str]` of defined REQ key strings
+- AC-4: Malformed or missing REQUIREMENTS.md produces empty inventory (no exception raised)
+
+---
+
+## 29. Source Findings (INT-GMON-006 / REQ-F-GMON-004 iteration)
+
+| # | Type | Finding | Resolution |
+|---|------|---------|------------|
+| 1 | AMBIGUITY | "Spec inventory" — not defined which artifact is authoritative | Resolved: REQUIREMENTS.md section headings (`### REQ-F-*`) are the spec inventory; no separate artifact |
+| 2 | UNDERSPEC | OUT-036 "defined in spec inventory" — defined vs referenced distinction | Resolved: defined = heading in REQUIREMENTS.md; referenced = appears in code/test/telemetry tags |
+| 3 | UNDERSPEC | Telemetry scanner path scope — which directories? | Resolved: same recursive scan path already used for code/tests scanner |

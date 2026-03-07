@@ -1,333 +1,48 @@
-# Active Tasks
+# Active Tasks — ai_sdlc_method
 
-*Last Updated: 2026-03-05*
-*Methodology: AI SDLC Asset Graph Model v3.0.0-beta.1*
-
----
-
-## MVP — Wire gen-iterate → Engine (ADR-021)
-
-**Priority**: CRITICAL — blocks dogfood
-**Status**: Done — 2026-03-05
-**Commit**: `3c18488`
-**Release Target**: MVP
-
-**Description**:
-`gen-iterate.md` and `python -m genesis evaluate` are disconnected. Normal workflow (`/gen-iterate`) runs the LLM agent path; the engine runs only via manual CLI. Until these are the same invocation the workflow cannot be dogfooded through normal slash commands.
-
-**Tasks**:
-1. Add `--mode {interactive|engine|auto}` to `gen-iterate.md` command signature
-2. `auto` mode: delegate to engine for `code↔unit_tests` and `design→test_cases`; interactive for all others
-3. `engine` mode: call `python -m genesis evaluate` with correct `--edge`, `--feature`, `--asset`, `--constraints`, `--deterministic-only` args
-4. Pass through `--fd-timeout` from profile or default
-5. Emit result back to slash command output (delta, converged, evaluators summary)
-6. Add acceptance test: `/gen-iterate --mode engine` on green project → `converged: true`
-
-**Reference**: `imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-iterate.md`, `imp_claude/code/genesis/__main__.py`
+*Updated: 2026-03-07*
 
 ---
 
-## MVP — Emit edge_started + Align Gap Detection (Codex item 3)
+## Overriding Goal: Spec-Compliant MVP
 
-**Priority**: HIGH — recovery correctness
-**Status**: Done — 2026-03-05
-**Commit**: `3c18488`
-**Release Target**: MVP
+Bring the Claude Code implementation into full compliance with the accepted spec
+(ADR-S-001..022) before any further feature work. The target is a runtime that
+does what the spec says, with no stubs, no legacy parallel paths, and no
+deprecated markers.
 
-**Description**:
-The session-gap recovery scanner in `workspace_state.py` depends on `edge_started` events to detect abandoned iterations. The engine does not emit them. Recovery scanner is broken against real engine runs — it can't distinguish "never started" from "started but crashed".
+**Definition of done**: All 8 T-COMPLY tasks resolved. Tests green. No fd_emit
+references. No skipped=True fallback in the F_P path. Event taxonomy matches
+ADR-S-011 RunState contract. Context merge matches ADR-S-022 6-level hierarchy.
 
-**Tasks**:
-1. Emit `edge_started` event at the top of `run_edge()` in `engine.py` (before first `iterate_edge()` call)
-2. Fields: `feature`, `edge`, `iteration: 1`, consistent with `iteration_completed` schema
-3. Verify `workspace_state.find_incomplete_edges()` correctly pairs `edge_started` with `edge_converged` / `iteration_completed`
-4. Add test: emit `edge_started` then simulate crash → recovery scanner detects the incomplete edge
-
-**Reference**: `imp_claude/code/genesis/engine.py:run_edge()`, `imp_claude/code/genesis/workspace_state.py:find_incomplete_edges()`
-
----
-
-## MVP — Delete Dead Code (ADR-020 residue)
-
-**Priority**: HIGH — clarity before dogfood
-**Status**: Done — 2026-03-05
-**Commit**: `ee41f55`
-**Release Target**: MVP
-
-**Description**:
-`fp_construct.py`, `fp_evaluate.py`, `fp_subprocess.py` are dead code. ADR-024 supersedes ADR-020 — the subprocess F_P path (`claude -p`) is gone. Engine routes through `FpFunctor`. REQ-F-FPC-* tags moved to fp_functor.py header.
-
-**Tasks**:
-1. ✓ Move `REQ-F-FPC-*` tag comments into fp_functor.py Implements header
-2. ✓ Delete `fp_construct.py`, `fp_evaluate.py`, `fp_subprocess.py`, `test_fp_subprocess.py`
-3. ✓ Rewrite `test_functor_construct.py` — keep only ADR-024 tests
-4. ✓ Remove `ConstructResult` from `models.py`
-5. ✓ 691 unit tests pass; 55 pre-existing failures (stale path constants, not regressions)
-
-**Reference**: `imp_claude/code/genesis/fp_functor.py`, `imp_claude/tests/test_functor_construct.py`
-
----
-
-## MVP — F_P Construct via MCP Actor (ADR-023/024)
-
-**Priority**: HIGH — needed for full construct→evaluate loop
-**Status**: Stub (`fp_functor._mcp_invoke` raises, always returns `skipped=True`)
-**Release Target**: MVP+1 (can dogfood F_D only without this)
-
-**Description**:
-Every F_P invocation currently skips — the MCP actor is never reached. F_D evaluation works. Full construct loop (code generation, test writing via actor) requires the MCP transport to fire. This is the ADR-024 core unlock.
-
-**Tasks**:
-1. Implement `_mcp_invoke()` in `fp_functor.py` — issue actual `claude_code` MCP tool call with actor prompt
-2. Wire `CLAUDE_CODE_SSE_PORT` detection to live invocation (not just skip)
-3. Actor writes fold-back result to `.ai-workspace/agents/fp_result_{run_id}.json`
-4. `_parse_actor_result()` already correct — reads fold-back, builds `StepResult`
-5. Integration test: MCP available + actor completes → `fp_result.converged` populated
-6. Budget enforcement: pass `--max-budget-usd` to actor invocation
-
-**Reference**: `imp_claude/code/genesis/fp_functor.py:119`, ADR-024, ADR-023
-
----
-
-## Resolved: fp_functor skipped consistency (Codex item 6)
-
-**Status**: Done — 2026-03-05
-**Commit**: pending
-
-`fp_functor.py` error path (MCP available, fold-back file missing) returned `skipped=False, delta=-1` — contradictory semantics that mislead the orchestrator into treating "actor not yet complete" as a hard failure. Fixed to `skipped=True`: delta=-1 is the sentinel for "no measurement taken", orchestrator correctly ignores it.
-
----
-
-## Resolved: ADR-024 MVP — F_P MCP Actor Contracts
-
-**Status**: Done — 2026-03-05
-**Commit**: `a7e6bfd feat(adr-024): F_P MCP actor contracts — REQ-ROBUST-002 + REQ-ITER-001`
-
-`contracts.py`, `functor.py`, `fp_functor.py` written. Engine is purely F_D. Agent checks always SKIP. FpFunctor returns skipped StepResult when MCP unavailable; reads fold-back result when `CLAUDE_CODE_SSE_PORT` set. 143 tests pass.
-
----
-
-## Resolved: Actor Model Review (gates v3.0)
-
-**Status**: Done — ADR-017
-**Resolution**: Functor composition — F_D / F_P / F_H, natural transformation η, valence-tuned escalation.
-
----
-
-## Done: Consciousness Loop Stage 2+3
-
-**Priority**: High
-**Status**: Done — 2026-03-07
-**Release Target**: 3.0
-**Triggered by**: Gemini comparison review (2026-03-03) + `/gen-gaps` INT-GAPS-001..004
-
-**Description**:
-Loop stops at Stage 1 (`intent_raised`). Stages 2 (Affect Triage → `feature_proposal` event) and 3 (Human Gate → `/gen-review-proposal`) not implemented. Overlaps REQ-F-EVOL-001.
-
-**Tasks**:
-1. ✓ Add `feature_proposal`, `feature_proposal_dismissed` event types to `fd_emit.py` + `ol_event.py`
-2. ✓ Add `feature_proposal` emission to `/gen-gaps` Stage 6
-3. ✓ Create `/gen-review-proposal` command (list | approve | dismiss)
-4. ✓ Approval path: append to `specification/features/FEATURE_VECTORS.md`, emit `spec_modified` with hashes, inflate workspace trajectory
-5. ✓ Test coverage
-
-**Reference**: ADR-011 confirmed gap; ADR-S-008 Stage 2+3; REQ-F-EVOL-001
-
----
-
-## Done: Spec Evolution Pipeline (REQ-F-EVOL-001)
-
-**Priority**: High
-**Status**: Done — 2026-03-07
-**Release Target**: 3.1
-**Commits**: `7c4bfda` (REQ-EVOL-002 JOIN), `0cd8357` (REQ-EVOL-004 hook), `d799006` (REQ-EVOL-001 schema), `c5fea45` (REQ-EVOL-005 proposals queue), `b9d0a7c` (spec_modified event)
-
-**Tasks**:
-1. ✓ Workspace vector schema enforcement (no `satisfies`, `success_criteria`) — REQ-EVOL-001
-2. ✓ JOIN display in `gen-status` — compute_spec_workspace_join() + 14 tests — REQ-EVOL-002
-3. ✓ spec_modified post-commit hook + 8 tests — REQ-EVOL-004
-4. ✓ feature_proposal event type + Draft Queue in gen-status — REQ-EVOL-003, REQ-EVOL-005
-5. ✓ REQ-EVOL-* Implements tags throughout
-
----
-
-## Done: Event Stream Contract (REQ-F-EVENT-001)
-
-**Priority**: Medium
-**Status**: Done — 2026-03-07
-**Release Target**: 3.1
-**Commits**: `06e6c15` (taxonomy), `b9d0a7c` (spec_modified), `cc07366` (classify fix), `6917c7f` (projection contract), `e565f10` (ADR-025)
-
-**Tasks**:
-1. ✓ Full OL event taxonomy in `ol_event.py` `_OL_EVENT_TYPE` — REQ-EVENT-003
-2. ✓ Emit `IterationStarted` in `iterate_edge()` — REQ-EVENT-003
-3. ✓ Saga compensation events — REQ-EVENT-004
-4. ✓ Projection contract tests (determinism, completeness, isolation) — REQ-EVENT-002
-5. ✓ ADR-025: pragmatic exception for `asset_content: str`
-
----
-
-## Done: Topology / Profile Disagreement (Codex item 7)
-
-**Priority**: Medium
-**Status**: Done — 2026-03-07
-**Release Target**: 3.0
-**Source**: Codex matrix item 7 + Gemini tournament strategy (2026-03-05/06)
-
-**Description**:
-`graph_topology.yml` contains `module_decomposition` and `basis_projections` nodes but standard profiles walk `design → code` directly, skipping them.
-
-**Tasks**:
-1. ✓ Audit standard profile walk against topology nodes — identify which nodes are actually traversed
-2. ✓ Decide: remove unused nodes or add them to the standard profile walk
-3. ✓ Write ADR-S-018: tournament sub-graph pattern (parallel_spawn, tournament_arbitration, tournament_merge, tournament_commit), OL `run.facets.parent` causal links, merge provenance fields
-4. ✓ After ADR-S-018 ratified: update Claude's `graph_topology.yml` and add feature vectors for tournament nodes
-
-**Reference**: `imp_claude/code/.claude-plugin/plugins/genesis/config/graph_topology.yml`, Gemini `20260306T123000_STRATEGY_TOURNAMENT-TOPOLOGY-REFINEMENT.md`, Codex `20260305T152022_REVIEW_Tournament-Pattern_Node-vs-Edge-Modeling.md`
-
----
-
-## Done: ADR-026 — Minimal Installer Footprint (Ladder Lift)
-
-**Status**: Done — 2026-03-07
-**Commit**: pending
-**Release Target**: 3.0
-
-**Description**:
-Captured the architectural insight that bootstrap scaffolding can be dissolved once the system is capable of deriving it. ADR-026 defines the permanent installer footprint (3 operations: settings.json, events.jsonl touch, bootloader injection) and promotes `/gen-start` UNINITIALISED handler as the owner of lazy workspace scaffolding. `/gen-init` demoted to power-user escape hatch.
-
-**Artifact**: `imp_claude/design/adrs/ADR-026-minimal-installer-footprint.md`
-
----
-
-## Done: ADR-S-012 Decision (ADR-025)
-
-**Status**: Done — 2026-03-07
-**Commit**: `e565f10`
-
-ADR-025 written — pragmatic exception for `asset_content: str` vs full event-sourced projection. Defines 3.x migration path.
-
----
-
-## Post-MVP: Functor Execution Model Config (ADR-017)
-
-**Priority**: Medium
-**Status**: In Progress — tasks 1-3 done 2026-03-07
-**Release Target**: 3.0
-**Commit**: `6ad072b`
-
-**Tasks**:
-1. ✓ Add `mode` (headless | interactive | auto) and `valence` (high | medium | low) to `project_constraints.yml`
-2. ✓ Add `valence` field to feature vector affect schema (already in template)
-3. ✓ Annotate edge configs with starting-functor comments (tdd.yml, intent_requirements.yml, requirements_design.yml, design_code.yml)
-4. Integration tests for escalation paths (η_D→P and η_P→H) — requires live LLM, deferred
-
----
-
-## Done: Instance Graph from Events (ADR-022)
-
-**Status**: Done — 2026-03-07
-**Release Target**: 3.1
-
-**Remaining**:
-4. ✓ Add `project_instance_graph(events) → InstanceGraph` — full event replay projection (with tests) — `3c6f9d0`
-5. ✓ Zoom level 1 overlay — RESOLVED via genesis monitor (ADR-028). Monitor is external; events.jsonl is the integration contract.
-6. ✓ Add topology version check to `on-session-start.sh` — `0b98323`
-
----
-
-## Done: ADR-013 Inbox Staging Serialiser (REQ-COORD-002/005)
-
-**Status**: Done — 2026-03-07
-**Commits**: `91c0596` (serialiser), `TBD` (role authority)
-**Release Target**: 3.1
-
-**Tasks**:
-1. ✓ `serialiser.py` — `stage_claim`, `stage_release`, `process_inbox`, `detect_stale_claims`
-2. ✓ `role_authority.py` — `check_role_authority`, `check_convergence_gate`, `emit_convergence_escalated`
-3. ✓ Role authority integrated into `process_inbox` — escalated/warn/reject actions
-4. ✓ 55 tests covering serialiser + role authority
-5. ✓ `agent_roles.yml` config already existed — wired to Python implementation
-
-**Implements**: REQ-COORD-002 (Feature Assignment via Events), REQ-COORD-005 (Role-Based Evaluator Authority)
-
----
-
-## Done: REQ-CTX-002 Context Hierarchy
-
-**Status**: Done — 2026-03-07
-**Commit**: `c4c35f1`
-
-`deep_merge()`, `merge_contexts()`, `load_context_hierarchy()` in `config_loader.py`.
-Levels: global → org → team → project. Later contexts override earlier; nested objects deep-merged.
-30 new tests (46 total in test_config_loader.py).
-
----
-
-## Done: REQ-EVAL-003 Human Accountability
-
-**Status**: Done — 2026-03-07
-**Commit**: `9133713`
-
-`human_audit.py`: `emit_human_gate_entered()`, `emit_human_decision()`, `requires_human_review()`,
-`get_human_gates()`, `get_human_decisions()`, `get_pending_gates()`, `get_override_decisions()`, `audit_summary()`.
-Attribution guard rejects AI-sounding actor names. Override capability always available.
-33 tests in test_human_audit.py.
-
----
-
-## Done: Fix 3 Pre-existing Test Failures (orphan TOURNAMENT vector)
-
-**Status**: Done — 2026-03-07
-**Commit**: `bba2af8`
-
-REQ-F-TOURNAMENT-001 was in workspace but not in FEATURE_VECTORS.md. Fixed by:
-- Adding `### REQ-F-TOURNAMENT-001` section to spec
-- Fixing tournament vector requirements (invalid REQ-GRAPH-004 → valid existing keys)
-- Updating test count assertion 15 → 16
-- Updating summary table 14 → 16 feature vectors (adding FP-001 + TOURNAMENT-001)
-
----
-
-## Backlog
-
-- **ADR-S-014**: OTLP/Phoenix — no design ADR, no implementation in imp_claude
-- **INTRO-005**: Build Health monitor — needs CI/CD integration (complex)
-- **Task #37**: Ecosystem E(t) as Feedback Loop Edge (Low)
-- **Task #34**: Propagate Insights Back to Ontology (Low)
-
----
-
-## Done: Pre-existing Test Failures (not regressions)
-
-**Status**: Done — 2026-03-07
-**Commit**: pending
-
-55 tests in `test_spec_validation.py` / `test_integration_uat.py` / `test_methodology_bdd.py` referenced `specification/AI_SDLC_ASSET_GRAPH_MODEL.md` (old path — moved to `specification/core/`). Fixed path constants in `imp_claude/tests/conftest.py` and updated requirement counts from 110/79 to 83. Tests passing.
-
----
-
-## Current State (2026-03-07)
+**Current state**:
 
 | Artifact | Status |
 |----------|--------|
-| Spec (Asset Graph Model) | Complete — 4 primitives, 20 spec ADRs (ADR-S-019 Markov/ActiveInference, ADR-S-020 Phase Space/Hamiltonian) |
-| Implementation Requirements | 83 requirements (REQ-EVOL + REQ-EVENT added 2026-03-05) |
-| Feature Vectors | 16 vectors (FP-001 + TOURNAMENT-001 in spec), 83/83 covered |
-| Claude Design (ADRs 008-028) | 21 ADRs; ADR-027 lineage, ADR-028 genesis monitor |
-| Claude Code | Engine CLI + OL taxonomy + instance graph + consciousness loop Stage 2+3 |
-| Tests | 1078 unit passing (0 pre-existing failures); +REQ-CTX-002, +REQ-EVAL-003, +spec fixes |
-| Gemini Design | Complete (ADRs GG-001-008) |
-| Codex Design | Complete (ADR-CG-001) |
-| Genesis Monitor | External project at `ai_sdlc_examples/local_projects/genisis_monitor`; H=T+V added to convergence projection |
+| Spec | Complete — ADR-S-001..022, 4 primitives, Hamiltonian, Tournament, Sensory |
+| Implementation Requirements | 83 REQ keys |
+| Feature Vectors | 16 vectors, 83/83 tagged |
+| Tests | 1078 unit passing |
+| Compliance | 8 open T-COMPLY tasks (see Claude tenant below) |
 
 ---
 
-## Recovery Commands
+## Tenant Task Files
 
-```bash
-cat .ai-workspace/tasks/active/ACTIVE_TASKS.md  # This file
-git log --oneline -5                             # Recent commits
-PYTHONPATH=imp_claude/code python -m pytest imp_claude/tests/ -q \
-  --ignore=imp_claude/tests/e2e --ignore=imp_claude/tests/uat -p no:warnings 2>&1 | tail -5
-```
+| Tenant | Task File | Sprint |
+|--------|-----------|--------|
+| Claude | [.ai-workspace/claude/tasks/active/ACTIVE_TASKS.md](../../claude/tasks/active/ACTIVE_TASKS.md) | Spec Compliance Refactor (T-COMPLY-001..008) |
+| Gemini | (no active sprint) | — |
+| Codex | (no active sprint) | — |
+
+---
+
+## Backlog (cross-tenant)
+
+- **Marketplace Observer** (REQ-LIFE-010 variant): Feature vector for per-tenant implementation of ADR-S-024 consensus decision gate — session-start scan, task-boundary gate, ambiguity routing. Evaluate within MVP context before spawning.
+- **ADR-S-014**: OTLP/Phoenix — no design ADR, no implementation in any tenant
+- **INTRO-005**: Build Health monitor — needs CI/CD integration
+- **ADR cleanup**: Remove historical rationale sections from ADRs that no longer constrain construction — spec drift prevention
+- **INT-TRACE-001**: Code annotation pass — 52/83 spec REQ keys have no Implements: tag
+- **INT-TRACE-002**: Test annotation pass — 1078 tests with no Validates: REQ-* links
+- **INT-TRACE-003**: Orphan fixture key cleanup in command .md files

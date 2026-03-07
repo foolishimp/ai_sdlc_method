@@ -61,7 +61,7 @@ def _parse_one(data: dict) -> Event:
     elif ol_type == "COMPLETE":
         if event_type == "unknown": event_type = "edge_converged"
     elif ol_type == "ABORT":
-        event_type = "transaction_aborted"
+        if event_type == "unknown": event_type = "transaction_aborted"
     elif ol_type == "FAIL":
         if event_type == "unknown": event_type = "command_error"
 

@@ -88,128 +88,125 @@ class IterateCommand:
             print(f"ERROR: Max recursion depth (3) reached for {feature}")
             return False
 
-        # --- Optional OTLP Instrumentation ---
-        tracer = None
-        span = None
-        try:
-            from opentelemetry import trace
-            tracer = trace.get_tracer(__name__)
-            span_context = tracer.start_as_current_span(
-                f"IterateEdge: {edge}",
-                attributes={
-                    "sdlc.feature_id": feature,
-                    "sdlc.edge_id": edge,
-                    "sdlc.lineage_path": f"{feature}:{edge}",
-                    "sdlc.mode": mode,
-                    "sdlc.iteration_depth": depth
-                }
-            )
-            span = span_context.__enter__()
-        except ImportError:
-            pass # OTLP not installed, run normally
+        loader = ConfigLoader(self.workspace_root, design_name=self.design_name)
+        topology = GraphTopology(self.workspace_root)
         
-        try:
-            loader = ConfigLoader(self.workspace_root, design_name=self.design_name)
-            topology = GraphTopology(self.workspace_root)
-            
-            # Resolve Edge Configuration and Checklist
-            transitions = topology.topology.get("transitions", [])
-            edge_config = {}
-            evaluator_types = ["agent", "human"] # Default
-            
-            edge_parts = re.split(r"->|\u2192|\u2194", edge)
-            src_input = edge_parts[0].strip().lower()
-            tgt_input = edge_parts[-1].strip().lower()
-            normalized_edge = f"{src_input}\u2192{tgt_input}"
-            
-            for t in transitions:
-                if (src_input == t.get("source", "").lower() and tgt_input == t.get("target", "").lower()) or \
-                   (edge.lower() in t.get("name", "").lower()):
-                    edge_config = t
-                    evaluator_types = t.get("evaluators", evaluator_types)
-                    break
-            
-            resolved_checklist = loader.resolve_checklist(edge_config)
-            if not resolved_checklist and evaluator_types:
-                # Fallback to default checklist based on topology evaluators
-                resolved_checklist = [{"evaluator": et} for et in evaluator_types]
-            
-            functor_map = {
-                "deterministic": DeterministicFunctor(),
-                "agent": GeminiFunctor(),
-                "human": HumanFunctor()
-            }
-            
-            engine = IterateEngine(functor_map=functor_map, constraints=loader.constraints, project_root=self.workspace_root.parent)
-            
-            # Determine iteration count
-            events = self.store.load_all()
-            iter_count = Projector.get_iteration_count(events, feature, normalized_edge)
-            
-            if iter_count == 0:
-                engine.emit_event("edge_started", feature=feature, edge=normalized_edge, data={"mode": mode_label})
-            
-            asset_path = Path(asset)
-            
-            # Load feature vector for context (Cascading ADRs)
-            fv_path = self.workspace_root / "features" / "active" / f"{feature}.yml"
-            fv_data = {}
-            if fv_path.exists():
-                with open(fv_path, "r") as f:
-                    fv_data = yaml.safe_load(f) or {}
+        # 1. Resolve Normalized Edge and Configuration
+        edge_parts = re.split(r"->|\u2192|\u2194", edge)
+        src_input = edge_parts[0].strip().lower()
+        tgt_input = edge_parts[-1].strip().lower()
+        normalized_edge = f"{src_input}\u2192{tgt_input}"
+        
+        transitions = topology.topology.get("transitions", [])
+        edge_config = {}
+        evaluator_types = ["agent", "human"] # Default
+        
+        for t in transitions:
+            if (src_input == t.get("source", "").lower() and tgt_input == t.get("target", "").lower()) or \
+               (edge.lower() in t.get("name", "").lower()):
+                edge_config = t
+                evaluator_types = t.get("evaluators", evaluator_types)
+                break
+        
+        resolved_checklist = loader.resolve_checklist(edge_config)
+        if not resolved_checklist and evaluator_types:
+            resolved_checklist = [{"evaluator": et} for et in evaluator_types]
+        
+        # 2. Configure Stateless Engine with Dynamic Routing (ADR-GG-002)
+        # Map edges to specialized sub-agents
+        SUB_AGENT_MAPPING = {
+            "code\u2194unit_tests": "test_fixing_agent",
+            "design\u2192code": "source_implementation_agent",
+            "requirements\u2192design": "architect_agent",
+            "feature_decomp\u2192design": "architect_agent"
+        }
+        
+        target_sub_agent = SUB_AGENT_MAPPING.get(normalized_edge, "aisdlc_investigator")
+        print(f"  [ROUTING] Delegating to sub-agent: {target_sub_agent}")
 
-            records = engine.run_edge(
-                edge=normalized_edge,
-                feature_id=feature,
-                asset_path=asset_path,
-                context={
-                    "asset_name": asset,
-                    "edge": normalized_edge,
-                    "iteration_count": iter_count,
-                    "mode": mode,
-                    "feature_id": feature,
-                    "feature_vector": fv_data
-                },
-                mode=mode,
-                checklist=resolved_checklist,
-                max_iterations=1 # Only one iteration per command call
-            )
-            
-            if not records:
-                if span: span.set_attribute("sdlc.status", "error_no_records")
-                return False
-                
-            report = records[0].report
-            if span:
-                span.set_attribute("sdlc.delta", report.delta)
-                span.set_attribute("sdlc.converged", report.converged)
-            
-            # Handle Spawns (Recursion) first - escalation takes precedence over hard failure
-            if report.spawn:
-                if span: span.set_attribute("sdlc.status", "spawned")
-                # Handle recursion if requested
-                self._handle_spawn(report.spawn, feature, normalized_edge, depth, mode)
-                return True # Successfully escalated
+        functor_map = {
+            "deterministic": DeterministicFunctor(),
+            "agent": GeminiFunctor(sub_agent_id=target_sub_agent),
+            "human": HumanFunctor()
+        }
+        
+        engine = IterateEngine(functor_map=functor_map, constraints=loader.constraints, project_root=self.workspace_root.parent)
+        
+        # 3. Determine T (Iteration Count)
+        events = self.store.load_all()
+        iter_count = Projector.get_iteration_count(events, feature, normalized_edge)
+        current_iteration = iter_count + 1
+        
+        if iter_count == 0:
+            engine.emit_event("edge_started", feature=feature, edge=normalized_edge, data={"mode": mode_label})
+        
+        asset_path = Path(asset)
+        
+        # 4. Load context
+        fv_path = self.workspace_root / "features" / "active" / f"{feature}.yml"
+        fv_data = {}
+        if fv_path.exists():
+            with open(fv_path, "r") as f:
+                fv_data = yaml.safe_load(f) or {}
 
-            # Handle Guardrail failures
-            if any(not g.passed for g in report.guardrail_results):
-                if span: span.set_attribute("sdlc.status", "guardrail_failure")
-                for g in report.guardrail_results:
-                    if not g.passed:
-                        print(f"    - {g.name}: {g.message}")
-                return False
+        print(f"  [METABOLISM] Iteration {current_iteration} (Mode: {mode_label})")
 
-            if report.converged:
-                if span: span.set_attribute("sdlc.status", "converged")
-                print(f"Success! {normalized_edge} converged ({mode_label}).")
-                return True
+        # 5. Run Stateless Metabolic Pass
+        # We use engine.iterate_edge as the Unit of Work proxy to the stateless logic
+        record = engine.iterate_edge(
+            edge=normalized_edge,
+            feature_id=feature,
+            asset_path=asset_path,
+            context={
+                "asset_name": asset,
+                "edge": normalized_edge,
+                "iteration_count": iter_count,
+                "mode": mode,
+                "feature_id": feature,
+                "feature_vector": fv_data
+            },
+            iteration=current_iteration,
+            mode=mode,
+            checklist=resolved_checklist
+        )
+        
+        report = record.report
+        
+        # 6. Post-iteration Side-effects (Status Update)
+        status = "converged" if report.converged else "iterating"
+        if report.spawn: status = "blocked"
+        
+        engine.emit_event("iteration_completed", feature=feature, edge=normalized_edge, data={
+            "status": status, 
+            "delta": report.delta, 
+            "iteration": current_iteration
+        })
+        
+        engine.update_feature_vector(feature, normalized_edge, current_iteration, status, report.delta, str(asset_path), mode=mode)
+
+        # 7. Display Results
+        for res in report.functor_results:
+            icon = "\u2705" if res.outcome == Outcome.PASS else "\u274c"
+            print(f"    {icon} {res.name}: {res.reasoning} (Delta: {res.delta})")
             
-            if span: span.set_attribute("sdlc.status", "iterating")
-            return False
-            
-        finally:
-            if span:
-                span_context.__exit__(None, None, None)
+        for g in report.guardrail_results:
+            icon = "\ud83d\udee1\ufe0f" if g.passed else "\u26a0\ufe0f"
+            print(f"    {icon} Guardrail {g.name}: {g.message}")
+
+        # 8. Handle Recursion
+        if report.spawn:
+            self._handle_spawn(report.spawn, feature, normalized_edge, depth, mode)
+            return True
+
+        if report.converged:
+            print(f"\nSuccess! {normalized_edge} converged.")
+            engine.emit_event("edge_converged", feature=feature, edge=normalized_edge, data={})
+            return True
+        
+        # Hamiltonian Insight
+        h_val = current_iteration + report.delta
+        print(f"\nIteration Complete. Delta (V): {report.delta}, Hamiltonian (H): {h_val}")
+        return False
 
     def _run_startup_health_check(self):
         """Gap 3: Validate workspace health before engine execution."""

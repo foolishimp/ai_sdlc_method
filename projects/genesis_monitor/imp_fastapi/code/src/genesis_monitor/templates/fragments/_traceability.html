@@ -9,9 +9,21 @@
 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
     <small><strong>{{ traceability.summary.total_req_keys }}</strong> REQ keys</small>
     <small>|</small>
+    <small><strong>{{ traceability.summary.spec_count }}</strong> in spec</small>
+    <small>|</small>
     <small><span style="color: #2e7d32;">{{ traceability.summary.full_coverage }} full</span></small>
     <small><span style="color: #f57f17;">{{ traceability.summary.total_req_keys - traceability.summary.full_coverage - traceability.summary.no_coverage }} partial</span></small>
     <small><span style="color: #c62828;">{{ traceability.summary.no_coverage }} none</span></small>
+    <small>|</small>
+    <small>{{ traceability.summary.telemetry_count }} telemetry</small>
+    {% if traceability.summary.orphan_count > 0 %}
+    <small>|</small>
+    <small><span style="color: #f57f17;">⚠ {{ traceability.summary.orphan_count }} orphan</span></small>
+    {% endif %}
+    {% if traceability.summary.uncovered_count > 0 %}
+    <small>|</small>
+    <small><span style="color: #c62828;">◌ {{ traceability.summary.uncovered_count }} uncovered</span></small>
+    {% endif %}
     <small>|</small>
     <small>{{ traceability.summary.code_files }} code files, {{ traceability.summary.test_files }} test files scanned</small>
 </div>
@@ -62,19 +74,29 @@
             <tr>
                 <th>REQ Key</th>
                 <th>Feature</th>
+                <th>Spec</th>
                 <th>Code</th>
                 <th>Tests</th>
+                <th>Telemetry</th>
                 <th>Status</th>
             </tr>
         </thead>
         <tbody>
             {% for row in traceability.req_rows %}
-            <tr>
+            <tr {% if row.is_orphan %}style="background: #fff8e1;"
+                {% elif row.is_uncovered %}style="background: #fce4ec;"{% endif %}>
                 <td><code>{{ row.req_key }}</code></td>
                 <td>
                     {% for fid in row.features %}
                     <small><code>{{ fid }}</code></small>
                     {% endfor %}
+                </td>
+                <td>
+                    {% if row.spec_defined %}
+                    <span style="color: #2e7d32;">✓</span>
+                    {% else %}
+                    <span style="color: #c62828;">-</span>
+                    {% endif %}
                 </td>
                 <td>
                     {% if row.has_code %}
@@ -95,10 +117,23 @@
                     {% endif %}
                 </td>
                 <td>
+                    {% if row.has_telemetry %}
+                    <span title="{% for f in row.telemetry_files %}{{ f }}&#10;{% endfor %}">
+                        {{ row.telemetry_files | length }} file{{ 's' if row.telemetry_files | length != 1 }}
+                    </span>
+                    {% else %}
+                    <span style="color: #c62828;">-</span>
+                    {% endif %}
+                </td>
+                <td>
                     {% if row.status == 'full' %}
                     <span class="badge badge-converged">full</span>
                     {% elif row.status == 'partial' %}
                     <span class="badge badge-in-progress">partial</span>
+                    {% elif row.status == 'orphan' %}
+                    <span class="badge badge-in-progress" style="color: #f57f17;">⚠ orphan</span>
+                    {% elif row.status == 'uncovered' %}
+                    <span class="badge badge-not-started" style="color: #c62828;">◌ gap</span>
                     {% else %}
                     <span class="badge badge-not-started">none</span>
                     {% endif %}

@@ -81,19 +81,28 @@ State: {current_state.value}
             if data["status"] == "pending":
                 continue
             content += f"\n### {feat}: {data.get('title', 'Unknown')}\n"
-            content += "| Edge | Status | Iteration | Delta |\n"
-            content += "|------|--------|-----------|-------|\n"
+            content += "| Edge | Status | Iteration (T) | Delta (V) | Hamiltonian (H) | Diagnostic |\n"
+            content += "|------|--------|---------------|-----------|-----------------|------------|\n"
             for edge, state_info in data["trajectory"].items():
-                # state_info might be a string "converged" or a dict from iteration_completed event
                 if isinstance(state_info, dict):
                     status = state_info.get("status", "unknown")
-                    iter_count = state_info.get("iteration", "N/A")
-                    delta = state_info.get("delta", "N/A")
+                    iter_count = state_info.get("iteration", 0)
+                    delta = state_info.get("delta", 0)
+                    
+                    # Compute Hamiltonian
+                    h_val = iter_count + delta
+                    
+                    # Determine Diagnostic Pattern (ADR-S-020)
+                    # For simplicity in this view, we just show the current state
+                    diagnostic = "Healthy"
+                    if status == "blocked": diagnostic = "Blocked"
+                    elif delta > 5: diagnostic = "Dense Surface"
+                    elif delta == 0: diagnostic = "Converged"
+                    
+                    content += f"| {edge} | {status} | {iter_count} | {delta} | {h_val} | {diagnostic} |\n"
                 else:
                     status = state_info
-                    iter_count = "N/A"
-                    delta = "N/A"
-                content += f"| {edge} | {status} | {iter_count} | {delta} |\n"
+                    content += f"| {edge} | {status} | N/A | N/A | N/A | N/A |\n"
 
         content += "\n## Pending Features (from Spec)\n"
         for feat, data in status_data.items():

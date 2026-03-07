@@ -1,7 +1,7 @@
 # Implements: REQ-ITER-001, REQ-ITER-002, REQ-EVENT-001, REQ-EVENT-003
 """
 Pure stateless iteration logic for the Gemini Core.
-Has zero knowledge of orchestration (Prefect, loops, or persistence).
+Has zero knowledge of orchestration, loops, or persistence.
 It reads State and Intent, then performs a single metabolic transformation.
 """
 

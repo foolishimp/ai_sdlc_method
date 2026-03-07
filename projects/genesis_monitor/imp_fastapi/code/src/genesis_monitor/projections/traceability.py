@@ -1,5 +1,5 @@
-# Implements: REQ-F-TRACE-001
-"""Build traceability view cross-referencing features, code, and tests."""
+# Implements: REQ-F-TRACE-001, REQ-F-LINEAGE-001, REQ-F-LINEAGE-003
+"""Build traceability view cross-referencing features, code, tests, and telemetry."""
 
 from __future__ import annotations
 
@@ -17,8 +17,8 @@ def build_traceability_view(
     """Build a traceability cross-reference view.
 
     Returns a dict with:
-      - req_rows: list of dicts per REQ key with code/test coverage
-      - summary: aggregate counts
+      - req_rows: list of dicts per REQ key with code/test/telemetry coverage
+      - summary: aggregate counts including spec, telemetry, orphan, uncovered
       - feature_coverage: per-feature coverage summary
     """
     if not traceability:
@@ -32,12 +32,17 @@ def build_traceability_view(
                 "no_coverage": 0,
                 "code_files": 0,
                 "test_files": 0,
+                "spec_count": 0,
+                "telemetry_count": 0,
+                "orphan_count": 0,
+                "uncovered_count": 0,
             },
             "feature_coverage": [],
         }
 
-    # Collect all REQ keys from features + traceability scan
+    # Collect all REQ keys from features + traceability scan + spec inventory
     all_req_keys: set[str] = set(traceability.all_req_keys)
+    all_req_keys.update(traceability.spec_defined_keys)
     for f in features:
         all_req_keys.update(f.requirements)
 
@@ -51,6 +56,7 @@ def build_traceability_view(
     for req_key in sorted(all_req_keys):
         code_files = traceability.code_coverage.get(req_key, [])
         test_files = traceability.test_coverage.get(req_key, [])
+        telemetry_files = traceability.telemetry_coverage.get(req_key, [])
 
         # Which features reference this REQ key
         owning_features = [
@@ -59,27 +65,45 @@ def build_traceability_view(
 
         has_code = len(code_files) > 0
         has_tests = len(test_files) > 0
+        has_telemetry = len(telemetry_files) > 0
+        spec_defined = req_key in traceability.spec_defined_keys
+        is_orphan = req_key in traceability.orphan_keys
+        is_uncovered = req_key in traceability.uncovered_keys
 
         if has_code:
             with_code += 1
         if has_tests:
             with_tests += 1
+        has_any = has_code or has_tests or has_telemetry
         if has_code and has_tests:
             full_coverage += 1
-        if not has_code and not has_tests:
+        if not has_any:
             no_coverage += 1
 
-        status = "full" if (has_code and has_tests) else (
-            "partial" if (has_code or has_tests) else "none"
-        )
+        # Status reflects all 4 columns  # Implements: REQ-F-LINEAGE-001, REQ-F-LINEAGE-003
+        if is_orphan:
+            status = "orphan"
+        elif is_uncovered:
+            status = "uncovered"
+        elif has_code and has_tests:
+            status = "full"
+        elif has_any:
+            status = "partial"
+        else:
+            status = "none"
 
         req_rows.append({
             "req_key": req_key,
             "code_files": code_files,
             "test_files": test_files,
+            "telemetry_files": telemetry_files,
             "features": owning_features,
             "has_code": has_code,
             "has_tests": has_tests,
+            "has_telemetry": has_telemetry,
+            "spec_defined": spec_defined,
+            "is_orphan": is_orphan,
+            "is_uncovered": is_uncovered,
             "status": status,
         })
 
@@ -116,6 +140,13 @@ def build_traceability_view(
             "no_coverage": no_coverage,
             "code_files": traceability.code_files_scanned,
             "test_files": traceability.test_files_scanned,
+            # new fields  # Implements: REQ-F-LINEAGE-001, REQ-F-LINEAGE-003
+            "spec_count": len(traceability.spec_defined_keys),
+            "telemetry_count": sum(
+                1 for r in all_req_keys if r in traceability.telemetry_coverage
+            ),
+            "orphan_count": len(traceability.orphan_keys),
+            "uncovered_count": len(traceability.uncovered_keys),
         },
         "feature_coverage": feature_coverage,
     }

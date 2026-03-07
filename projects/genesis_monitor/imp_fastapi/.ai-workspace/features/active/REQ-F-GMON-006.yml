@@ -1,0 +1,66 @@
+feature: REQ-F-GMON-006
+title: "STATUS.md Panel — Rendered in Project View with SSE Auto-Refresh"
+intent: INT-GMON-006
+vector_type: feature
+profile: standard
+status: pending
+created: '2026-03-07T19:00:00Z'
+updated: '2026-03-07T19:00:00Z'
+depends_on:
+- REQ-F-GMON-001
+description: >
+  Surface the workspace STATUS.md in the project view. STATUS.md is the most human-readable
+  derived projection of the event stream — currently only accessible by opening the file
+  directly. Render it in the dashboard with Markdown-to-HTML conversion and auto-refresh
+  via the existing SSE infrastructure whenever the file changes on disk (watchdog fires).
+
+requirements:
+- REQ-F-STATUS-001  # Parse and serve STATUS.md content
+- REQ-F-STATUS-002  # Render Markdown to HTML in project view
+- REQ-F-STATUS-003  # SSE auto-refresh on STATUS.md file change
+
+trajectory:
+  requirements:
+    status: pending
+  design:
+    status: pending
+  code:
+    status: pending
+  unit_tests:
+    status: pending
+
+work_breakdown:
+- id: WU-GMON6-001
+  title: "Add status_panel() parser — read STATUS.md, return raw markdown"
+  req:
+  - REQ-F-STATUS-001
+  status: pending
+- id: WU-GMON6-002
+  title: "Add /fragment/status/{project_path} route — render STATUS.md as HTML fragment"
+  req:
+  - REQ-F-STATUS-001
+  - REQ-F-STATUS-002
+  status: pending
+- id: WU-GMON6-003
+  title: "Add _status_panel.html fragment template — Markdown rendered via mistune/markdown"
+  req:
+  - REQ-F-STATUS-002
+  status: pending
+- id: WU-GMON6-004
+  title: "Extend project.html — STATUS panel with hx-trigger=sse:status_changed"
+  req:
+  - REQ-F-STATUS-002
+  - REQ-F-STATUS-003
+  status: pending
+- id: WU-GMON6-005
+  title: "Extend watcher.py — emit status_changed SSE event on STATUS.md modification"
+  req:
+  - REQ-F-STATUS-003
+  status: pending
+- id: WU-GMON6-006
+  title: "Tests — parser, route, SSE trigger on file change"
+  req:
+  - REQ-F-STATUS-001
+  - REQ-F-STATUS-002
+  - REQ-F-STATUS-003
+  status: pending
