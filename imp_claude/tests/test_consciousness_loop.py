@@ -1,5 +1,7 @@
-# Validates: REQ-F-EVOL-001 (Spec Evolution Pipeline), REQ-UX-006 (Human Gate Awareness)
-# Validates: REQ-EVOL-003 (Feature Proposal Queue), REQ-EVOL-005 (Draft Queue Visibility)
+# Validates: REQ-F-EVOL-001
+# Validates: REQ-UX-006
+# Validates: REQ-EVOL-003
+# Validates: REQ-EVOL-005
 """
 Tests for Consciousness Loop Stage 2+3.
 

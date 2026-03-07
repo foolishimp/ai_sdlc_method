@@ -1,4 +1,6 @@
-# Validates: REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ITER-001 (Universal Iteration)
+# Validates: REQ-ROBUST-001
+# Validates: REQ-ROBUST-002
+# Validates: REQ-ITER-001
 """Tests for ADR-024 contracts and fp_functor.
 
 Covers:

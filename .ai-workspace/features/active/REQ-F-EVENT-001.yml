@@ -1,30 +1,47 @@
+created: '2026-03-05T00:00:00Z'
 feature: REQ-F-EVENT-001
-title: Event Stream & Projections
 intent: INT-AISDLC-001
-vector_type: feature
-profile: standard
-status: in_progress
-priority: medium
-created: "2026-03-05T00:00:00Z"
-updated: "2026-03-07T00:00:00Z"
+notes: 'Phase 1 (design→code): ol_event.py extended with full REQ-EVENT-003 taxonomy
+
+  (EvaluatorVoted, ConsensusReached, ContextArrived, TransitionAuthorized,
+
+  TransitionDenied, CompensationTriggered, CompensationCompleted).
+
+  consensus_reached() constructor added. engine.py emits IterationStarted
+
+  at top of iterate_edge() per REQ-EVENT-003. 22 tests in test_event_taxonomy.py.
+
+  Projection contract (REQ-EVENT-002) and saga enforcement (REQ-EVENT-004)
+
+  validated via round-trip tests. ADR-025 records pragmatic exception for
+
+  asset_content: str (no code change needed for v3.x).
+
+  Remaining: REQ-EVENT-002 projection verifier, REQ-EVENT-004 saga gate
+
+  in orchestrator (v3.1 scope).
+
+  '
 parent_id: REQ-F-ENGINE-001
+priority: medium
+profile: standard
+status: converged
+title: Event Stream & Projections
 trajectory:
+  code:
+    converged_at: '2026-03-07T17:30:00Z'
+    delta: 0
+    iteration: 1
+    status: converged
+  design: converged
+  feature_decomposition: converged
   intent: converged
   requirements: converged
-  feature_decomposition: converged
-  design: converged
-  code: in_progress
-  unit_tests: in_progress
   uat_tests: pending
-
-notes: |
-  Phase 1 (design→code): ol_event.py extended with full REQ-EVENT-003 taxonomy
-  (EvaluatorVoted, ConsensusReached, ContextArrived, TransitionAuthorized,
-  TransitionDenied, CompensationTriggered, CompensationCompleted).
-  consensus_reached() constructor added. engine.py emits IterationStarted
-  at top of iterate_edge() per REQ-EVENT-003. 22 tests in test_event_taxonomy.py.
-  Projection contract (REQ-EVENT-002) and saga enforcement (REQ-EVENT-004)
-  validated via round-trip tests. ADR-025 records pragmatic exception for
-  asset_content: str (no code change needed for v3.x).
-  Remaining: REQ-EVENT-002 projection verifier, REQ-EVENT-004 saga gate
-  in orchestrator (v3.1 scope).
+  unit_tests:
+    converged_at: '2026-03-07T17:30:00Z'
+    delta: 0
+    iteration: 1
+    status: converged
+updated: '2026-03-07T17:30:00Z'
+vector_type: feature

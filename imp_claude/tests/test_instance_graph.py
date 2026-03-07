@@ -1,4 +1,6 @@
-# Validates: REQ-UX-003, REQ-ROBUST-008, REQ-EVENT-002 (Projection Contract)
+# Validates: REQ-UX-003
+# Validates: REQ-ROBUST-008
+# Validates: REQ-EVENT-002
 import pytest
 from datetime import datetime
 from genesis.workspace_state import project_instance_graph, InstanceNode, summarise_instance_graph

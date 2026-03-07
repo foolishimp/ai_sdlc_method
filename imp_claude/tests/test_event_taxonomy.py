@@ -1,4 +1,6 @@
-# Validates: REQ-EVENT-003 (Required Event Taxonomy), REQ-EVENT-004 (Saga Invariant)
+# Validates: REQ-EVENT-001
+# Validates: REQ-EVENT-003
+# Validates: REQ-EVENT-004
 """
 Tests for the full OL event taxonomy (REQ-EVENT-003, REQ-EVENT-004).
 
