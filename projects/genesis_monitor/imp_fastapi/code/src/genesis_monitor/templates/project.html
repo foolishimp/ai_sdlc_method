@@ -156,6 +156,14 @@
     <p>{{ project.path }}</p>
 </hgroup>
 
+<div style="margin-bottom: 0.75rem;">
+    <a href="/project/{{ project.project_id }}/timeline{% if design %}?design={{ design }}{% endif %}"
+       style="display: inline-block; padding: 4px 14px; background: var(--pico-primary); color: #fff;
+              border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 500;">
+        Edge Traversal Timeline →
+    </a>
+</div>
+
 {% if available_designs %}
 <nav class="design-tenant-nav" aria-label="Design tenants">
   <a href="/project/{{ project.project_id }}{% if t %}?t={{ t }}{% endif %}"

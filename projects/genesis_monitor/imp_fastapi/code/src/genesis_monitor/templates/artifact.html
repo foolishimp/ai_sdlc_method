@@ -1,0 +1,49 @@
+<!-- Implements: REQ-F-ELIN-004 -->
+{% extends "base.html" %}
+{% block title %}{{ path.split('/')[-1] }} — Artifact{% endblock %}
+
+{% block head_extra %}
+<style>
+pre { background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color);
+      border-radius: 6px; padding: 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.5; }
+.artifact-meta { font-size: 0.82rem; color: var(--pico-muted-color); margin-bottom: 1rem;
+                 display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.md-content h1, .md-content h2, .md-content h3 { margin-top: 1rem; }
+.md-content code { background: var(--pico-card-background-color); padding: 1px 4px; border-radius: 3px; font-size: 0.85em; }
+.md-content pre code { background: transparent; padding: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
+    <ul>
+        <li><a href="/">Projects</a></li>
+        <li><a href="/project/{{ project.project_id }}">{{ project.name }}</a></li>
+        <li><a href="/project/{{ project.project_id }}/timeline">Timeline</a></li>
+        <li>{{ path.split('/')[-1] }}</li>
+    </ul>
+</nav>
+
+<h1 style="font-size: 1.2rem; font-family: monospace; word-break: break-all;">{{ path }}</h1>
+
+<div class="artifact-meta">
+    <span>Project: {{ project.name }}</span>
+    {% if suffix %}<span>Type: {{ suffix }}</span>{% endif %}
+    {% if content_type %}<span>Format: {{ content_type }}</span>{% endif %}
+</div>
+
+{% if error %}
+<div style="background: rgba(244,67,54,0.1); border: 1px solid #f44336; border-radius: 6px; padding: 1rem; color: #f44336;">
+    <strong>Error:</strong> {{ error }}
+</div>
+{% elif content is not none %}
+    {% if content_type == "markdown" %}
+    <div class="md-content card">
+        {# Basic markdown rendering — convert to preformatted for now; a real impl would use markdown-it server-side #}
+        <pre style="white-space: pre-wrap; font-family: inherit; background: transparent; border: none; padding: 0;">{{ content }}</pre>
+    </div>
+    {% else %}
+    <pre><code>{{ content | e }}</code></pre>
+    {% endif %}
+{% endif %}
+{% endblock %}

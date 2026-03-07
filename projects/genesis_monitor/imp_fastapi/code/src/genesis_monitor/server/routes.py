@@ -1,8 +1,7 @@
 # Implements: REQ-F-DASH-001, REQ-F-DASH-002, REQ-F-DASH-003, REQ-F-DASH-004, REQ-F-DASH-005, REQ-F-DASH-006, REQ-F-STREAM-002
 # Implements: REQ-F-VREL-003, REQ-F-CDIM-002, REQ-F-REGIME-002, REQ-F-CONSC-003, REQ-F-PROTO-001
-# Implements: REQ-F-MTEN-001
-# Implements: REQ-F-MTEN-002
-# Implements: REQ-F-MTEN-003
+# Implements: REQ-F-MTEN-001, REQ-F-MTEN-002, REQ-F-MTEN-003
+# Implements: REQ-F-ELIN-001, REQ-F-ELIN-002, REQ-F-ELIN-003, REQ-F-FLIN-001, REQ-F-FLIN-002
 """FastAPI route definitions — page routes, fragment routes, SSE endpoint."""
 
 from __future__ import annotations
@@ -33,6 +32,7 @@ from genesis_monitor.projections.temporal import (
     reconstruct_status,
 )
 from genesis_monitor.projections.traceability import build_traceability_view
+from genesis_monitor.index import EventIndex
 
 if TYPE_CHECKING:
     from genesis_monitor.registry import ProjectRegistry
@@ -323,6 +323,140 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
             feat_path = target_proj.path / "features" / "completed" / f"{feature_id}.yml"
         if not feat_path.exists(): return HTMLResponse("Source not found.", status_code=404)
         return HTMLResponse(f"<div class='raw-data-block'><pre><code>{feat_path.read_text()}</code></pre></div>")
+
+    def _get_index(project, t: str | None, design: str | None) -> EventIndex:
+        """Return the pre-built index, or a time-scoped reconstruction for scrubber use."""
+        if t or design:
+            events, _, _ = _get_historical_state(project, t, design)
+            return EventIndex.build(events)
+        return project.index or EventIndex.build(project.events)
+
+    @router.get("/project/{project_id}/timeline", response_class=HTMLResponse)
+    async def project_timeline(request: Request, project_id: str, t: str = None, design: str = None,
+                               feature: str = None, edge: str = None, status: str = None):
+        project = registry.get_project(project_id)
+        if not project:
+            return HTMLResponse("<h1>Project not found</h1>", status_code=404)
+        idx = _get_index(project, t, design)
+        runs = idx.timeline_fuzzy(feature=feature or None, edge=edge or None, status=status or None)
+        days = idx.days(runs)
+        available_designs = sorted(list(set(e.project for e in project.events if e.project)))
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "timeline.html",
+            {
+                "project": project,
+                "runs": runs,
+                "days": days,
+                "design": design,
+                "t": t,
+                "filter_feature": feature or "",
+                "filter_edge": edge or "",
+                "filter_status": status or "",
+                "available_designs": available_designs,
+                "total_runs": idx.total_runs,
+                "converged_count": idx.converged_count,
+                "failed_count": idx.failed_count,
+                "in_progress_count": idx.in_progress_count,
+            },
+        )
+
+    @router.get("/fragments/project/{project_id}/timeline-runs", response_class=HTMLResponse)
+    async def fragment_timeline_runs(request: Request, project_id: str, t: str = None, design: str = None,
+                                     feature: str = None, edge: str = None, status: str = None):
+        project = registry.get_project(project_id)
+        if not project: return HTMLResponse("")
+        idx = _get_index(project, t, design)
+        runs = idx.timeline_fuzzy(feature=feature or None, edge=edge or None, status=status or None)
+        days = idx.days(runs)
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "fragments/_timeline_runs.html",
+            {"project": project, "days": days, "runs": runs},
+        )
+
+    @router.get("/fragments/project/{project_id}/run-detail/{run_id}", response_class=HTMLResponse)
+    async def fragment_run_detail(request: Request, project_id: str, run_id: str):
+        project = registry.get_project(project_id)
+        if not project: return HTMLResponse("")
+        # O(1) index lookup
+        idx = project.index or EventIndex.build(project.events)
+        run = idx.run_detail(run_id)
+        if not run: return HTMLResponse("<p>Run not found.</p>")
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "fragments/_run_detail.html",
+            {"project": project, "run": run},
+        )
+
+    @router.get("/project/{project_id}/feature/{feature_id}", response_class=HTMLResponse)
+    async def feature_lineage(request: Request, project_id: str, feature_id: str,
+                               t: str = None, design: str = None):
+        project = registry.get_project(project_id)
+        if not project:
+            return HTMLResponse("<h1>Project not found</h1>", status_code=404)
+        _, features, _ = _get_historical_state(project, t, design)
+        idx = _get_index(project, t, design)
+        feature_runs = idx.feature_runs(feature_id)
+        fv = next((f for f in features if f.feature_id == feature_id), None)
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "feature_lineage.html",
+            {
+                "project": project,
+                "feature_id": feature_id,
+                "fv": fv,
+                "feature_runs": feature_runs,
+                "design": design,
+                "t": t,
+            },
+        )
+
+    @router.get("/project/{project_id}/artifact", response_class=HTMLResponse)
+    async def artifact_view(request: Request, project_id: str, path: str = ""):
+        """Render a project artifact (document, code, test file) by relative path."""
+        project = registry.get_project(project_id)
+        if not project:
+            return HTMLResponse("<h1>Project not found</h1>", status_code=404)
+        if not path:
+            return HTMLResponse("<p>No path specified.</p>", status_code=400)
+        import html as _html
+        from pathlib import Path as _Path
+        artifact_path = _Path(path) if _Path(path).is_absolute() else project.path / path
+        if not artifact_path.exists():
+            return request.app.state.templates.TemplateResponse(
+                request,
+                "artifact.html",
+                {"project": project, "path": path, "content": None, "error": "File not found"},
+            )
+        try:
+            raw = artifact_path.read_text(encoding="utf-8", errors="replace")
+        except OSError as e:
+            return request.app.state.templates.TemplateResponse(
+                request,
+                "artifact.html",
+                {"project": project, "path": path, "content": None, "error": str(e)},
+            )
+        suffix = artifact_path.suffix.lower()
+        if suffix == ".md":
+            # Simple markdown → HTML (headings, code blocks, paragraphs)
+            content_type = "markdown"
+        elif suffix in (".py", ".ts", ".js", ".yml", ".yaml", ".json", ".sh", ".toml"):
+            content_type = "code"
+        else:
+            content_type = "text"
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "artifact.html",
+            {
+                "project": project,
+                "path": path,
+                "content": raw,
+                "content_type": content_type,
+                "suffix": suffix,
+                "error": None,
+            },
+        )
 
     @router.get("/events/stream")
     async def sse_stream(request: Request):

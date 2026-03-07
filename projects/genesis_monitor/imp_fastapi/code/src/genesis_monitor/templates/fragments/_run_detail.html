@@ -1,0 +1,90 @@
+<!-- Implements: REQ-F-ELIN-003 -->
+{# Inline expansion for one EdgeRun — iterations + artifacts + evaluator details #}
+<div style="font-size: 0.82rem;">
+    <div style="display: flex; gap: 2rem; margin-bottom: 8px; color: var(--pico-muted-color);">
+        <span>Run: <code style="font-size:0.75rem">{{ run.run_id | truncate(40) }}</code></span>
+        <span>Started: {{ run.started_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+        {% if run.ended_at %}<span>Ended: {{ run.ended_at.strftime('%H:%M:%S') }}</span>{% endif %}
+        {% if run.convergence_type %}<span>Convergence: {{ run.convergence_type }}</span>{% endif %}
+    </div>
+
+    {% if run.iterations %}
+    <table style="width:100%; font-size:0.8rem; margin-bottom:8px;">
+        <thead>
+            <tr style="color:var(--pico-muted-color); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em;">
+                <th style="width:40px; text-align:right;">#</th>
+                <th>Time</th>
+                <th style="text-align:center; width:50px;">Δ</th>
+                <th>Evaluators</th>
+                <th>Status</th>
+                <th>Context</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for it in run.iterations %}
+        <tr>
+            <td style="text-align:right; color:var(--pico-muted-color); font-family:monospace;">{{ it.iteration }}</td>
+            <td style="font-family:monospace; font-size:0.75rem;">{{ it.timestamp.strftime('%H:%M:%S') }}</td>
+            <td style="text-align:center;">
+                {% if it.delta is not none %}
+                    <span style="{% if it.delta == 0 %}color:#4caf50; font-weight:bold{% else %}color:#f44336{% endif %}">
+                        {{ it.delta }}
+                    </span>
+                {% else %}—{% endif %}
+            </td>
+            <td>
+                <span class="eval-pass">✓{{ it.evaluators_passed }}</span>
+                {% if it.evaluators_failed > 0 %}<span class="eval-fail" style="margin-left:4px"> ✗{{ it.evaluators_failed }}</span>{% endif %}
+                {% if it.evaluators_skipped > 0 %}<span class="eval-skip" style="margin-left:4px"> ⊘{{ it.evaluators_skipped }}</span>{% endif %}
+                <span style="color:var(--pico-muted-color); font-size:0.72rem;">/{{ it.evaluators_total }}</span>
+            </td>
+            <td>
+                <span class="badge {% if it.status == 'converged' %}badge-converged{% elif it.status == 'iterating' %}badge-in-progress{% else %}badge-not-started{% endif %}">
+                    {{ it.status }}
+                </span>
+            </td>
+            <td style="font-family:monospace; font-size:0.7rem; color:var(--pico-muted-color);">
+                {% if it.context_hash %}{{ it.context_hash[:16] }}…{% else %}—{% endif %}
+            </td>
+        </tr>
+        {% if it.evaluator_details %}
+        <tr>
+            <td colspan="6" style="padding: 4px 0 8px 24px;">
+                <table style="width:100%; font-size:0.75rem; border-left: 2px solid var(--pico-muted-border-color); padding-left:8px;">
+                    {% for det in it.evaluator_details %}
+                    <tr style="color: {% if det.result == 'fail' %}#f44336{% elif det.result == 'skip' %}#ff9800{% else %}var(--pico-color){% endif %}">
+                        <td style="width:30px; font-family:monospace;">{{ det.check_type or 'F_D' }}</td>
+                        <td>{{ det.check_name }}</td>
+                        <td style="color:var(--pico-muted-color);">{{ det.result }}</td>
+                        {% if det.result in ('fail', 'skip') and det.expected %}
+                        <td style="font-size:0.7rem; color:var(--pico-muted-color);">
+                            expected: {{ det.expected | truncate(60) }}
+                        </td>
+                        {% else %}<td></td>{% endif %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--pico-muted-color); font-size:0.8rem;">No iteration events recorded for this run.</p>
+    {% endif %}
+
+    {% if run.artifacts %}
+    <div style="margin-top:6px;">
+        <span style="font-size:0.75rem; color:var(--pico-muted-color); text-transform:uppercase; letter-spacing:0.06em;">Artifacts</span>
+        <ul class="artifact-list" style="margin-top:4px;">
+        {% for art in run.artifacts | unique %}
+        <li>
+            <a href="/project/{{ project.project_id }}/artifact?path={{ art | urlencode }}"
+               title="{{ art }}">{{ art | truncate(80) }}</a>
+        </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

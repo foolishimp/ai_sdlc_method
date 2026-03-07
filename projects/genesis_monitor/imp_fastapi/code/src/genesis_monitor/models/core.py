@@ -1,5 +1,5 @@
 # Implements: REQ-F-PARSE-001, REQ-F-PARSE-002, REQ-F-PARSE-003, REQ-F-PARSE-004, REQ-F-PARSE-005, REQ-F-PARSE-006
-# Implements: REQ-F-VREL-001, REQ-F-TBOX-001, REQ-F-PROF-001, REQ-F-CDIM-001
+# Implements: REQ-F-VREL-001, REQ-F-TBOX-001, REQ-F-PROF-001, REQ-F-CDIM-001, ADR-004
 """Core data models for Genesis Monitor."""
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from genesis_monitor.index import EventIndex
     from genesis_monitor.models.events import Event
     from genesis_monitor.models.features import (
         ConstraintDimension,
@@ -144,6 +145,7 @@ class Project:
     has_bootloader: bool = False
     last_updated: datetime = field(default_factory=datetime.now)
     traceability: TraceabilityReport | None = None
+    index: EventIndex | None = None  # ADR-004: built at load time, queried per request
 
 
 @dataclass

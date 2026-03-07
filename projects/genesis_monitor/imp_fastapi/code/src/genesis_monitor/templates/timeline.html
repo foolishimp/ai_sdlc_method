@@ -1,0 +1,180 @@
+<!-- Implements: REQ-F-ELIN-002, REQ-F-ELIN-003 -->
+{% extends "base.html" %}
+{% block title %}{{ project.name }} — Edge Traversal Timeline{% endblock %}
+
+{% block head_extra %}
+<style>
+.timeline-nav { display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.timeline-stats { display: flex; gap: 1.5rem; margin-bottom: 1rem; font-size: 0.9rem; }
+.stat { display: flex; flex-direction: column; align-items: center; }
+.stat-value { font-size: 1.8rem; font-weight: bold; line-height: 1; }
+.stat-label { font-size: 0.75rem; color: var(--pico-muted-color); }
+.day-group { margin-bottom: 2rem; }
+.day-header { font-size: 0.8rem; font-weight: bold; color: var(--pico-muted-color); text-transform: uppercase;
+              letter-spacing: 0.08em; padding: 4px 0; border-bottom: 1px solid var(--pico-muted-border-color);
+              margin-bottom: 0.5rem; }
+.run-row { display: grid; grid-template-columns: 90px 180px 1fr 60px 60px 80px 70px;
+           gap: 0.5rem; align-items: center; padding: 6px 8px; border-radius: 4px;
+           cursor: pointer; font-size: 0.85rem; border: 1px solid transparent; margin-bottom: 2px; }
+.run-row:hover { background: var(--pico-card-background-color); border-color: var(--pico-muted-border-color); }
+.run-row.converged { border-left: 3px solid #4caf50; }
+.run-row.failed, .run-row.aborted { border-left: 3px solid #f44336; }
+.run-row.in_progress { border-left: 3px solid #ff9800; }
+.run-time { color: var(--pico-muted-color); font-family: monospace; font-size: 0.78rem; }
+.run-feature { font-family: monospace; font-size: 0.8rem; }
+.run-edge { font-weight: 500; }
+.run-iters { text-align: center; }
+.run-delta { text-align: center; }
+.run-dur { text-align: right; color: var(--pico-muted-color); font-size: 0.78rem; }
+.run-status {}
+.badge-failed { background: rgba(244, 67, 54, 0.15); color: #f44336; }
+.badge-aborted { background: rgba(120, 120, 120, 0.15); color: #888; }
+.delta-zero { color: #4caf50; font-weight: bold; }
+.delta-nonzero { color: #f44336; }
+.run-detail { padding: 12px 8px 8px 12px; background: var(--pico-card-background-color);
+              border-radius: 4px; margin-bottom: 4px; font-size: 0.82rem; }
+.iter-row { display: grid; grid-template-columns: 40px 160px 60px 80px 1fr;
+            gap: 0.5rem; padding: 3px 4px; border-radius: 3px; }
+.iter-row:hover { background: rgba(128,128,128,0.05); }
+.iter-num { color: var(--pico-muted-color); text-align: right; font-family: monospace; }
+.eval-bar { display: flex; gap: 2px; align-items: center; font-size: 0.75rem; }
+.eval-pass { color: #4caf50; }
+.eval-fail { color: #f44336; }
+.eval-skip { color: #ff9800; }
+.artifact-list { margin: 6px 0 0 0; padding: 0; list-style: none; }
+.artifact-list li { font-size: 0.78rem; font-family: monospace; color: var(--pico-muted-color); }
+.artifact-list a { color: var(--pico-primary); text-decoration: none; }
+.artifact-list a:hover { text-decoration: underline; }
+.filter-bar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; font-size: 0.85rem; }
+.filter-bar input, .filter-bar select { font-size: 0.85rem; padding: 4px 8px; height: auto; }
+.col-header { font-size: 0.72rem; color: var(--pico-muted-color); text-transform: uppercase;
+              letter-spacing: 0.06em; margin-bottom: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
+    <ul>
+        <li><a href="/">Projects</a></li>
+        <li><a href="/project/{{ project.project_id }}">{{ project.name }}</a></li>
+        <li>Edge Traversal Timeline</li>
+    </ul>
+</nav>
+
+<h1 style="margin-bottom: 0.5rem;">Edge Traversal Timeline</h1>
+<p style="color: var(--pico-muted-color); margin-bottom: 1.5rem;">
+    Complete history of graph edge traversals — from inception to current state.
+    Each row is one traverse of one edge for one feature. Click to expand iterations.
+</p>
+
+<!-- Summary stats -->
+<div class="timeline-stats">
+    <div class="stat">
+        <span class="stat-value">{{ total_runs }}</span>
+        <span class="stat-label">Total Runs</span>
+    </div>
+    <div class="stat">
+        <span class="stat-value" style="color:#4caf50">{{ converged_count }}</span>
+        <span class="stat-label">Converged</span>
+    </div>
+    <div class="stat">
+        <span class="stat-value" style="color:#ff9800">{{ in_progress_count }}</span>
+        <span class="stat-label">In Progress</span>
+    </div>
+    <div class="stat">
+        <span class="stat-value" style="color:#f44336">{{ failed_count }}</span>
+        <span class="stat-label">Failed/Aborted</span>
+    </div>
+</div>
+
+<!-- Filter bar -->
+<form method="get" class="filter-bar">
+    <label>Feature: <input type="text" name="feature" value="{{ filter_feature }}" placeholder="REQ-F-…" style="width:160px"></label>
+    <label>Edge: <input type="text" name="edge" value="{{ filter_edge }}" placeholder="code↔unit_tests" style="width:180px"></label>
+    <label>Status:
+        <select name="status">
+            <option value="">All</option>
+            <option value="converged" {% if filter_status == "converged" %}selected{% endif %}>Converged</option>
+            <option value="in_progress" {% if filter_status == "in_progress" %}selected{% endif %}>In Progress</option>
+            <option value="failed" {% if filter_status == "failed" %}selected{% endif %}>Failed</option>
+            <option value="aborted" {% if filter_status == "aborted" %}selected{% endif %}>Aborted</option>
+        </select>
+    </label>
+    {% if design %}<input type="hidden" name="design" value="{{ design }}">{% endif %}
+    {% if t %}<input type="hidden" name="t" value="{{ t }}">{% endif %}
+    <button type="submit" style="padding: 4px 12px;">Filter</button>
+    {% if filter_feature or filter_edge or filter_status %}
+    <a href="/project/{{ project.project_id }}/timeline{% if design %}?design={{ design }}{% endif %}" style="font-size:0.8rem;">Clear</a>
+    {% endif %}
+</form>
+
+<!-- Column headers -->
+<div class="run-row col-header" style="cursor:default; border:none;">
+    <span>Time</span>
+    <span>Feature</span>
+    <span>Edge</span>
+    <span style="text-align:center">Iters</span>
+    <span style="text-align:center">Δ</span>
+    <span style="text-align:right">Duration</span>
+    <span>Status</span>
+</div>
+
+<!-- Timeline by day -->
+{% if days %}
+{% for day, day_runs in days %}
+<div class="day-group">
+    <div class="day-header">{{ day }} — {{ day_runs | length }} run{% if day_runs | length != 1 %}s{% endif %}</div>
+    {% for run in day_runs | sort(attribute='started_at') %}
+    {% set run_slug = run.run_id | replace(':', '-') | replace('/', '-') | replace(' ', '-') | truncate(60, true, '') %}
+    <div class="run-row {{ run.status }}"
+         hx-get="/fragments/project/{{ project.project_id }}/run-detail/{{ run.run_id | urlencode }}"
+         hx-target="#detail-{{ loop.index }}-{{ day | replace('-','') }}"
+         hx-swap="innerHTML"
+         hx-trigger="click"
+         onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+        <span class="run-time">{{ run.started_at.strftime('%H:%M:%S') }}</span>
+        <span class="run-feature">
+            {% if run.feature %}
+            <a href="/project/{{ project.project_id }}/feature/{{ run.feature }}"
+               onclick="event.stopPropagation()">{{ run.feature }}</a>
+            {% else %}<span style="color:var(--pico-muted-color)">—</span>{% endif %}
+        </span>
+        <span class="run-edge">{{ run.edge or '—' }}</span>
+        <span class="run-iters">{{ run.iteration_count }}</span>
+        <span class="run-delta">
+            {% if run.final_delta is not none %}
+                <span class="{% if run.final_delta == 0 %}delta-zero{% else %}delta-nonzero{% endif %}">
+                    {{ run.final_delta }}
+                </span>
+            {% else %}—{% endif %}
+        </span>
+        <span class="run-dur">
+            {% if run.duration_seconds is not none %}
+                {% if run.duration_seconds < 60 %}{{ "%.0f"|format(run.duration_seconds) }}s
+                {% elif run.duration_seconds < 3600 %}{{ "%.1f"|format(run.duration_seconds / 60) }}m
+                {% else %}{{ "%.1f"|format(run.duration_seconds / 3600) }}h{% endif %}
+            {% else %}—{% endif %}
+        </span>
+        <span class="run-status">
+            {% if run.status == "converged" %}
+                <span class="badge badge-converged">✓</span>
+            {% elif run.status == "in_progress" %}
+                <span class="badge badge-in-progress">●</span>
+            {% elif run.status == "failed" %}
+                <span class="badge badge-failed">✗</span>
+            {% elif run.status == "aborted" %}
+                <span class="badge badge-aborted">○</span>
+            {% endif %}
+        </span>
+    </div>
+    <div id="detail-{{ loop.index }}-{{ day | replace('-','') }}" class="run-detail" style="display:none">
+        <!-- HTMX loads iteration detail here on expand -->
+        <span style="color:var(--pico-muted-color); font-size:0.8rem;">Loading…</span>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+{% else %}
+<p style="color: var(--pico-muted-color);">No edge runs found{% if filter_feature or filter_edge or filter_status %} matching the current filter{% endif %}.</p>
+{% endif %}
+{% endblock %}

@@ -4,7 +4,7 @@
 import os
 from pathlib import Path
 
-PRUNE_DIRS = {".git", "node_modules", "__pycache__", ".venv", ".tox", ".mypy_cache"}
+PRUNE_DIRS = {".git", "node_modules", "__pycache__", ".venv", ".tox", ".mypy_cache", "runs", "e2e"}
 
 
 def scan_roots(roots: list[Path]) -> list[Path]:

@@ -56,6 +56,11 @@
 
 {% if tree and tree.children %}
 <ul style="padding-left: 0; margin: 0;">
+    {% if tree.is_project and tree.project %}
+    <li style="list-style: none; padding: 2px 0 6px 0;">
+        {{ project_badge(tree.project) }}
+    </li>
+    {% endif %}
     {% for child in tree.children | sort(attribute='name') %}
         {{ render_node(child, 0) }}
     {% endfor %}

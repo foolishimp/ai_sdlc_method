@@ -1046,4 +1046,169 @@ The system MUST propagate the active design filter automatically to all HTMX fra
 | Traceability Projections (TRACE) | 2 | 0 | 2 | 0 |
 | Temporal Navigation (NAV) | 3 | 0 | 2 | 1 |
 | Multi-Design Tenancy (MTEN) | 3 | 0 | 3 | 0 |
-| **Total** | **69** | **13** | **40** | **16** |
+| Edge Lineage Timeline (ELIN) | 5 | 0 | 0 | 5 |
+| Feature Lineage Drill-Down (FLIN) | 4 | 0 | 0 | 4 |
+| **Total** | **78** | **13** | **40** | **25** |
+
+---
+
+## 28. OpenLineage Edge Traversal Timeline (v3.1 — lineage-primary iteration)
+
+**Intent**: The primary view of the monitor is a time-series traversal of the event log as a sequence of **edge runs** — each edge run groups all events for one traversal of one graph edge for one feature. The user navigates time from inception to production, drilling from edge run → iteration → artifact → document/code/test.
+
+OpenLineage provides the backbone: each OL event records `job` (the edge), `run.runId` (the run identity), `inputs`/`outputs` (source and produced assets), and `run.facets` (REQ keys, delta, event type). Together these constitute a complete provenance record.
+
+### REQ-F-ELIN-001: Edge Run Grouping
+
+**Statement**: Parse the event stream and group events into **edge runs** — sequences of events belonging to the same traversal of a specific (feature, edge) pair.
+
+**Acceptance Criteria**:
+1. An edge run is identified by the triple `(feature_id, edge_name, run_id)` where `run_id` comes from `run.runId` for OL events or is synthesised from `(feature, edge, edge_started timestamp)` for flat events.
+2. An edge run is bounded by `edge_started` (open) and `edge_converged` / `command_error` / `transaction_aborted` (close). An unclosed run is `in_progress`.
+3. Each edge run carries: start timestamp, end timestamp (if closed), status (`in_progress` / `converged` / `failed` / `aborted`), iteration count, final delta, list of iteration events, list of evaluator results.
+4. Events that cannot be attributed to a run (no feature, no run_id) are collected into an `unattributed` bin.
+5. Edge runs are sorted by `start_timestamp` ascending (chronological order).
+
+### REQ-F-ELIN-002: Edge Traversal Timeline View
+
+**Statement**: The monitor exposes an **Edge Traversal Timeline** view — a chronological list of all edge runs across all features, ordered by start time.
+
+**Acceptance Criteria**:
+1. Each row displays: start time, feature ID, edge name, iteration count, delta at convergence, status badge, duration.
+2. The timeline is filterable by: feature, edge name, status, time range.
+3. Rows are grouped by date (day boundary) with a collapsible day header.
+4. The view is accessible at `/project/{project_id}/timeline` and linked from the project dashboard nav.
+5. Failed/aborted runs are visually distinguished (red badge) and sort to the top within their day group.
+
+### REQ-F-ELIN-003: Iteration Drill-Down
+
+**Statement**: Clicking an edge run in the timeline expands (inline) to show all iteration events for that run.
+
+**Acceptance Criteria**:
+1. Each iteration row displays: iteration number, timestamp, delta, evaluator pass/fail/skip counts, status.
+2. Each evaluator result is expandable to show: check name, type (F_D/F_P/F_H), result, expected vs observed (from `evaluator_detail` events).
+3. The context hash is shown per iteration (from `iteration_completed.context_hash`).
+4. `evaluator_detail` events for each iteration are linked by iteration number.
+5. HTMX lazy-loads iteration details on expand (no full page reload).
+
+### REQ-F-ELIN-004: Artifact Navigation from Events
+
+**Statement**: From any edge run or iteration, the user can navigate to the produced artifact — the document, code file, or test file that was the output of that edge traversal.
+
+**Acceptance Criteria**:
+1. Artifact links are extracted from OL `outputs[].name` (format: `file://path`) and from `_metadata.original_data.file_path`.
+2. For each artifact link, the UI shows: file path (relative to project root), file type (inferred from extension: `.md`, `.py`, `.ts`, `.yml`, etc.), a link to the raw content view.
+3. The raw content view renders the artifact at `/project/{project_id}/artifact?path={encoded_path}` — reads the file and renders it (markdown → HTML, code → syntax-highlighted).
+4. If the artifact no longer exists on disk (deleted or moved), show a tombstone with the last-known path.
+5. Artifact links are also available from the feature lineage view (REQ-F-FLIN-001).
+
+### REQ-F-ELIN-005: Run Identity Threading via runId
+
+**Statement**: OL `run.runId` and `run.facets.parent` enable causation threading — child events reference their parent run. The timeline uses this to show run hierarchies (e.g., an engine run triggered by an agent run).
+
+**Acceptance Criteria**:
+1. If an edge run's events contain `causation_run_id` or `parent_run_id` references, the run is shown as a child of its parent in the timeline.
+2. Parent → child relationships are rendered as indented sub-rows in the timeline.
+3. Orphaned children (parent not in the event log) are shown at top level with a warning badge.
+
+---
+
+## 29. Feature Lineage Drill-Down (v3.1 — lineage-primary iteration)
+
+**Intent**: For a given REQ key, show the complete provenance path from spec definition through requirements, design, code, and tests — marrying the spec hierarchy with the time-series event record. The feature vector YAML is the index; the event log records when each edge was traversed.
+
+### REQ-F-FLIN-001: Feature Lineage View
+
+**Statement**: The monitor exposes a **Feature Lineage** view for each feature vector — the complete path from spec to production with timestamps and artifact links.
+
+**Acceptance Criteria**:
+1. The view shows a vertical timeline of edges traversed by this feature, ordered by traversal start time.
+2. Each edge row shows: edge name, start time, converged time (or in_progress), iterations, delta at convergence, artifact produced.
+3. The view is accessible at `/project/{project_id}/feature/{feature_id}` and linked from any event that carries the feature's REQ key.
+4. A summary header shows: feature ID, title, vector type (feature/spike/discovery/poc/hotfix), profile, current status, total edges traversed.
+5. Each artifact produced at each edge is linked (see REQ-F-ELIN-004).
+
+### REQ-F-FLIN-002: Spec-to-Artifact Cross-Navigation
+
+**Statement**: From a feature's REQ key, the user can navigate to the spec section that defines it, and from each edge traversal, to the artifact produced at that edge.
+
+**Acceptance Criteria**:
+1. The feature's REQ key is used to locate the defining section in `specification/requirements/REQUIREMENTS.md` (or equivalent). A link to the spec section is shown in the feature header.
+2. Each artifact in the lineage view carries its type: `spec` (intent/requirements), `design` (ADR/design doc), `code` (source module), `test` (unit/UAT test), `config` (YAML/config).
+3. Artifact type is inferred from file path patterns: `specification/` → spec, `design/` or `adrs/` → design, `tests/` or `test_` → test, `src/` or `code/` → code.
+4. The feature lineage view links to the `Implements: REQ-F-*` grep results (traceability view from REQ-F-TRACE-001).
+
+### REQ-F-FLIN-003: Multi-Feature Convergence Map
+
+**Statement**: The monitor exposes a **convergence map** — a matrix of features × edges showing convergence status for all features in one view, linked to individual feature lineage views.
+
+**Acceptance Criteria**:
+1. Rows are features (REQ-F-* IDs), columns are graph edges (intent→req, req→design, etc.).
+2. Each cell shows: status icon (converged/in_progress/pending/failed), iteration count if traversed, and links to the timeline view filtered to that (feature, edge) pair.
+3. The map is accessible at `/project/{project_id}/convergence-map` and linked from the project dashboard.
+4. Features are sorted by: status (failed first, then in_progress, then converged), then by feature ID.
+
+---
+
+## 30. Project as Evolution (v3.1 — lineage-primary shift)
+
+**Intent**: The monitor is not a side-channel observer of a project — it IS the primary way to interact with a project. A project is its specification, its feature vectors, and its time-series evolution from inception. The codebase is one artifact among many; the event log is the authoritative record. Navigation is through evolution, not files.
+
+This shifts the fundamental interaction model:
+- **Before**: open IDE → browse code → understand project
+- **After**: open monitor → browse evolution → understand project
+
+The event log supports replay (reconstruct project state at any past moment), what-if analysis (branch from any past state, explore alternative trajectories), and vector direction exploration (from any state, what are the admissible next moves?).
+
+### REQ-F-EVOL-001: Project State Reconstruction (Replay)
+
+**Statement**: Given any timestamp T, the monitor can reconstruct the complete project state as it existed at T — which features were active, which edges had converged, what the spec said, what the delta was.
+
+**Acceptance Criteria**:
+1. The temporal scrubber (REQ-F-NAV-001) selects a time window; all views reflect the state at the scrubber's upper bound.
+2. "State at T" means: replay all events with `timestamp <= T` and derive the same projections (convergence, feature vectors, edge runs) from that subset.
+3. The reconstructed state shows a "time-travel" indicator with the selected timestamp, distinguishing it from the live view.
+4. Spec documents are shown as they existed at time T where possible (via git history if available, otherwise show current version with a warning).
+5. The replay is read-only — no actions can be taken from a historical state view.
+
+### REQ-F-EVOL-002: Feature Vector Directions
+
+**Statement**: From any active feature vector, the monitor shows the **admissible next transitions** — the edges available from the current position in the graph, given the active profile.
+
+**Acceptance Criteria**:
+1. For each in-progress or pending feature, the monitor shows: current position in the graph (which edge was last traversed), next admissible transitions (from graph_topology.yml), and any blocked transitions (unresolved dependencies).
+2. Admissible transitions are derived from the graph topology loaded at the project's `.ai-workspace/graph/graph_topology.yml`.
+3. Each admissible transition shows: edge name, evaluator count, estimated complexity (from profile), whether it requires human approval (F_H evaluator present).
+4. The current delta (failing required checks) is shown per feature to indicate readiness to advance.
+
+### REQ-F-EVOL-003: What-If Branch Exploration
+
+**Statement**: From any past edge run in the timeline, the user can open a "what-if" view — a hypothetical branch that replays the event stream from that point forward with a modified assumption.
+
+**Acceptance Criteria**:
+1. Any edge run in the timeline has a "branch from here" action.
+2. The what-if view shows: the project state at the branch point, the original trajectory taken, and an empty "alternative trajectory" lane.
+3. The alternative trajectory lane shows what the graph topology says COULD have happened from this state — admissible transitions, unattempted paths, skipped edges.
+4. What-if branches are ephemeral (not persisted) and clearly marked as hypothetical.
+5. This is a read-only exploration tool — it does not modify the event log or any project files.
+
+### REQ-F-EVOL-004: Specification Navigation
+
+**Statement**: The monitor provides a navigable view of the specification hierarchy — from INTENT down through REQUIREMENTS, FEATURE DECOMPOSITION, DESIGN (ADRs), and into CODE and TESTS. Each spec node links to the events that implement it.
+
+**Acceptance Criteria**:
+1. The spec navigator reads: `specification/INTENT.md`, `specification/requirements/REQUIREMENTS.md`, feature vector YAMLs, and design ADRs.
+2. Each REQ key in the spec is linked to: the feature vector that carries it, the code files tagged `Implements: REQ-*`, the test files tagged `Validates: REQ-*`, the edge runs that produced those artifacts.
+3. The spec navigator is a collapsible tree: Intent → Requirements → Features → Design → Code → Tests.
+4. Selecting any node highlights the related events in the timeline view (cross-view highlighting).
+5. The spec navigator shows coverage: which REQ keys have code, tests, telemetry (green), which are partial (amber), which have nothing downstream yet (grey).
+
+### REQ-F-FLIN-004: Projection Selector
+
+**Statement**: All primary views (timeline, feature lineage, convergence map) support a **projection selector** — the user selects which subset of the event stream to view.
+
+**Acceptance Criteria**:
+1. Projection options: `all` (full event log), `by-tenant` (filter by design tenant: imp_claude, imp_gemini, etc.), `by-profile` (filter by active profile: standard, poc, spike), `by-run` (single engine run, selected from a run list).
+2. The selected projection is reflected in the URL as a query parameter (`?tenant=imp_claude&profile=standard`).
+3. All views respect the active projection — event counts, convergence state, and artifact links are scoped to the projection.
+4. The temporal scrubber (existing REQ-F-NAV-001) applies within the selected projection.

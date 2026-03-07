@@ -4,6 +4,7 @@
 import dataclasses
 import json
 import logging
+import re as _re
 from datetime import datetime
 from pathlib import Path
 
@@ -16,7 +17,14 @@ logger = logging.getLogger(__name__)
 
 
 def parse_events(workspace: Path, max_events: int = 100000) -> list[Event]:
-    """Parse the append-only event log with OpenLineage v2 dispatch."""
+    """Parse the append-only event log.
+
+    Handles two formats:
+    - OL-format: has ``eventType`` key (emitted by engine via ol_event.py)
+    - Flat-format: has ``event_type`` key (emitted by methodology commands)
+
+    Both are accepted; flat-format events are parsed via ``_parse_flat()``.
+    """
     events_path = workspace / "events" / "events.jsonl"
     if not events_path.exists():
         return []
@@ -31,8 +39,9 @@ def parse_events(workspace: Path, max_events: int = 100000) -> list[Event]:
             try:
                 data = json.loads(line)
                 if "eventType" in data:
-                    event = _parse_one(data)
-                    events.append(event)
+                    events.append(_parse_one(data))
+                elif "event_type" in data:
+                    events.append(_parse_flat(data))
             except json.JSONDecodeError:
                 continue
     except OSError:
@@ -56,14 +65,19 @@ def _parse_one(data: dict) -> Event:
 
     # Determine methodology event type
     event_type = type_facet.get("type", "unknown")
-    if ol_type == "START":
-        event_type = "edge_started"
-    elif ol_type == "COMPLETE":
-        if event_type == "unknown": event_type = "edge_converged"
-    elif ol_type == "ABORT":
-        if event_type == "unknown": event_type = "transaction_aborted"
-    elif ol_type == "FAIL":
-        if event_type == "unknown": event_type = "command_error"
+    # Normalize CamelCase → snake_case: "IterationCompleted" → "iteration_completed"
+    if event_type and event_type[0].isupper():
+        event_type = _re.sub(r"(?<!^)(?=[A-Z])", "_", event_type).lower()
+    # OL eventType fallback — only fires when sdlc:event_type facet is absent/unknown
+    if event_type == "unknown":
+        if ol_type == "START":
+            event_type = "edge_started"
+        elif ol_type == "COMPLETE":
+            event_type = "edge_converged"
+        elif ol_type == "ABORT":
+            event_type = "transaction_aborted"
+        elif ol_type == "FAIL":
+            event_type = "command_error"
 
     timestamp = _parse_timestamp(data.get("eventTime", ""))
     project = data.get("_metadata", {}).get("project", "")
@@ -106,6 +120,54 @@ def _parse_one(data: dict) -> Event:
     for f in dataclasses.fields(cls):
         if f.name in typed_kwargs: continue
         if f.name in orig: typed_kwargs[f.name] = orig[f.name]
+
+    return cls(**typed_kwargs)
+
+
+def _parse_flat(data: dict) -> Event:
+    """Parse a flat-format event (has ``event_type`` but no ``eventType``).
+
+    Flat events are emitted directly by methodology commands (gen-iterate,
+    gen-gaps, gen-checkpoint, etc.) and use top-level JSON keys rather than
+    OpenLineage facets.
+    """
+    event_type = data.get("event_type", "unknown")
+    timestamp = _parse_timestamp(data.get("timestamp", ""))
+    project = data.get("project", "")
+
+    base_kwargs = {
+        "timestamp": timestamp,
+        "event_type": event_type,
+        "project": project,
+        "data": data,
+    }
+
+    cls = EVENT_TYPE_MAP.get(event_type)
+    if cls is None:
+        return Event(**base_kwargs)
+
+    typed_kwargs = dict(base_kwargs)
+    field_names = {f.name for f in dataclasses.fields(cls)}
+
+    # Map well-known flat fields
+    if "feature" in field_names:
+        typed_kwargs["feature"] = data.get("feature", "")
+    if "edge" in field_names:
+        typed_kwargs["edge"] = data.get("edge", "")
+    if "delta" in field_names:
+        typed_kwargs["delta"] = data.get("delta")
+    if "iteration" in field_names:
+        typed_kwargs["iteration"] = data.get("iteration", 0)
+
+    # Map any remaining typed fields from top-level data dict or nested data sub-dict
+    nested = data.get("data") or {}
+    for f in dataclasses.fields(cls):
+        if f.name in typed_kwargs:
+            continue
+        if f.name in data:
+            typed_kwargs[f.name] = data[f.name]
+        elif f.name in nested:
+            typed_kwargs[f.name] = nested[f.name]
 
     return cls(**typed_kwargs)
 

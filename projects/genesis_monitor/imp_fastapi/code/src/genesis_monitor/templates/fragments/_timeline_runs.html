@@ -1,0 +1,54 @@
+<!-- Implements: REQ-F-ELIN-002, REQ-F-ELIN-003 -->
+{# HTMX fragment — timeline run rows only (no filter bar, no stats).
+   Swapped in by the filter form on the timeline page. #}
+{% if days %}
+{% for day, day_runs in days %}
+<div class="day-group">
+    <div class="day-header">{{ day }} — {{ day_runs | length }} run{% if day_runs | length != 1 %}s{% endif %}</div>
+    {% for run in day_runs | sort(attribute='started_at') %}
+    <div class="run-row {{ run.status }}"
+         hx-get="/fragments/project/{{ project.project_id }}/run-detail/{{ run.run_id | urlencode }}"
+         hx-target="#frag-detail-{{ loop.index }}-{{ day | replace('-','') }}"
+         hx-swap="innerHTML"
+         hx-trigger="click"
+         onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+        <span class="run-time">{{ run.started_at.strftime('%H:%M:%S') }}</span>
+        <span class="run-feature">
+            {% if run.feature %}
+            <a href="/project/{{ project.project_id }}/feature/{{ run.feature }}"
+               onclick="event.stopPropagation()">{{ run.feature }}</a>
+            {% else %}<span style="color:var(--pico-muted-color)">—</span>{% endif %}
+        </span>
+        <span class="run-edge">{{ run.edge or '—' }}</span>
+        <span class="run-iters">{{ run.iteration_count }}</span>
+        <span class="run-delta">
+            {% if run.final_delta is not none %}
+                <span class="{% if run.final_delta == 0 %}delta-zero{% else %}delta-nonzero{% endif %}">
+                    {{ run.final_delta }}
+                </span>
+            {% else %}—{% endif %}
+        </span>
+        <span class="run-dur">
+            {% if run.duration_seconds is not none %}
+                {% if run.duration_seconds < 60 %}{{ "%.0f"|format(run.duration_seconds) }}s
+                {% elif run.duration_seconds < 3600 %}{{ "%.1f"|format(run.duration_seconds / 60) }}m
+                {% else %}{{ "%.1f"|format(run.duration_seconds / 3600) }}h{% endif %}
+            {% else %}—{% endif %}
+        </span>
+        <span class="run-status">
+            {% if run.status == "converged" %}<span class="badge badge-converged">✓</span>
+            {% elif run.status == "in_progress" %}<span class="badge badge-in-progress">●</span>
+            {% elif run.status == "failed" %}<span class="badge badge-failed">✗</span>
+            {% elif run.status == "aborted" %}<span class="badge badge-aborted">○</span>
+            {% endif %}
+        </span>
+    </div>
+    <div id="frag-detail-{{ loop.index }}-{{ day | replace('-','') }}" class="run-detail" style="display:none">
+        <span style="color:var(--pico-muted-color); font-size:0.8rem;">Loading…</span>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+{% else %}
+<p style="color: var(--pico-muted-color);">No edge runs found matching the current filter.</p>
+{% endif %}

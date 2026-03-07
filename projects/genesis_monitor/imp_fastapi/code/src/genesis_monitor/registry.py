@@ -17,6 +17,7 @@ from genesis_monitor.parsers import (
     parse_tasks,
 )
 from genesis_monitor.parsers.traceability import parse_traceability
+from genesis_monitor.index import EventIndex
 
 
 def _slugify(name: str) -> str:
@@ -44,6 +45,7 @@ class ProjectRegistry:
         # STATUS.md heading is often generic ("Project Status").
         name = path.name
 
+        events = parse_events(workspace, max_events=100000)
         project = Project(
             project_id=project_id,
             path=path,
@@ -51,12 +53,13 @@ class ProjectRegistry:
             status=status,
             features=parse_feature_vectors(workspace, project_path=path),
             topology=parse_graph_topology(workspace, project_root=path),
-            events=parse_events(workspace, max_events=100000),
+            events=events,
             tasks=parse_tasks(workspace),
             constraints=parse_constraints(workspace),
             has_bootloader=detect_bootloader(path),
             last_updated=datetime.now(),
             traceability=parse_traceability(path),
+            index=EventIndex.build(events),  # ADR-004: O(n) once at load
         )
 
         with self._lock:
