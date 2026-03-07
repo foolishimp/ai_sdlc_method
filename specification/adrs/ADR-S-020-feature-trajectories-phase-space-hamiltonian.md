@@ -167,7 +167,7 @@ H is the **cost metric** (sunk + remaining); `−dV/dt` is the **convergence sig
 ### Neutral
 
 - The Gantt chart projection (§7.4.2, gen-status --gantt) remains valid — it is a calendar projection of the same trajectory data
-- The instance graph (ADR-022) is a position map (feature at edge); the phase space view adds momentum and cost dimensions but does not replace it
+- The instance graph (ADR-S-021) is a position map (feature at edge); the phase space view adds momentum and cost dimensions but does not replace it
 
 ---
 
@@ -190,5 +190,5 @@ H_total = T + V_current
 - §7.1: The Gradient — single-point delta that H accumulates
 - ADR-S-019: Markov Blankets and Active Inference — free energy connection
 - ADR-S-012: Event Stream as Formal Model Medium — events.jsonl as time axis
-- **ADR-022 (implementation)**: Project Instance Graph — position map (H adds momentum and cost)
+- **ADR-S-021 (implementation)**: Project Instance Graph — position map (H adds momentum and cost)
 - Constraint-Emergence Ontology §VI: Hamiltonian as manifold-level description of constraint propagation

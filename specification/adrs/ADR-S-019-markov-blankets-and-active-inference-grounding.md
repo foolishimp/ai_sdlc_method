@@ -69,7 +69,7 @@ In the methodology:
 - **Feature level**: feature vector trajectory as internal states, the build graph as external
 - **Edge level**: candidate asset as internal state, evaluators as sensory input
 
-This is the basis of the lineage DAG (**ADR-027**, implementation): live lineage connections ARE sensory couplings between Markov blankets at adjacent scales.
+This is the basis of the lineage DAG (**ADR-S-022**, implementation): live lineage connections ARE sensory couplings between Markov blankets at adjacent scales.
 
 **Evolutionary stages** (where the methodology currently sits and where it is going):
 - **Prokaryote** (current): single-cell, working blanket, no bounded nucleus — the project workspace IS the cell.
@@ -99,7 +99,7 @@ Consequence: the workspace must be observable. An unobservable workspace = a Mar
 
 ### 3. Nested Blankets Define the Context Hierarchy
 
-The lineage DAG (**ADR-027**, implementation) is the instantiation of nested Markov blankets in the methodology:
+The lineage DAG (**ADR-S-022**, implementation) is the instantiation of nested Markov blankets in the methodology:
 - Live lineage sources = sensory couplings between blankets at adjacent levels.
 - Static lineage sources = information transferred at blanket formation (cell division / project inception).
 - `load_context_hierarchy()` = the merge operation that collapses the DAG into an effective constraint surface.
@@ -146,7 +146,7 @@ The specification now explicitly cites:
 ### Neutral
 
 - The Markov blanket formalisation does not change any existing implementation — it makes implicit structure explicit
-- ADR-027 (lineage and context inheritance) is reframed as the implementation of nested Markov blankets — its content is unchanged, its motivation is now formally grounded
+- ADR-S-022 (lineage and context inheritance) is reframed as the implementation of nested Markov blankets — its content is unchanged, its motivation is now formally grounded
 
 ---
 
@@ -155,7 +155,7 @@ The specification now explicitly cites:
 - §2.10: Markov Blankets — Four State Classes
 - §3.3: Active Inference — The Deep Grounding of iterate()
 - §4.5: Two Sensory Systems (Interoception and Exteroception) — sensory states in the blanket
-- ADR-027: Project Lineage and Context Inheritance — nested blankets in implementation
+- ADR-S-022: Project Lineage and Context Inheritance — nested blankets in implementation
 - Friston, K. (2010). The free-energy principle.
 - Friston, K. (2013). Life as we know it.
 - Friston, K. et al. (2022). Active inference.
