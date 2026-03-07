@@ -132,6 +132,51 @@ An asset that fails its evaluators is a **candidate**, not a Markov object. It s
 
 The full composite vector carries the complete causal chain (intent, lineage, every decision). The Markov blanket (#8) at each stable asset means practical work is local — you interact through the boundary, not the history. The history is there when you need it (traceability, debugging, evolution).
 
+### 2.10 Markov Blankets: The Formal Boundary of Every Living System
+
+Every self-organising system that persists through time can be characterised by a **Markov blanket** — a statistical boundary that separates the system's internal states from the external environment, with sensory states and active states as the interface (Friston, 2013).
+
+The Markov blanket has four state classes:
+
+| State class | Definition | In this methodology |
+|-------------|-----------|-------------------|
+| **Internal** | The system's own model — hidden from the environment | Spec, design ADRs, feature vectors, events.jsonl |
+| **External** | The world — hidden from the system except through the blanket | Running system, users, ecosystem, upstream organisations |
+| **Sensory** | How external states write to internal states (input interface) | Interoceptive monitors (test health, coverage, staleness), exteroceptive monitors (CVE feeds, dependency updates, runtime telemetry) |
+| **Active** | How internal states write to external states (output interface) | Code commits, deployments, API changes, published releases |
+
+The key property: **internal and external states are conditionally independent given the blanket** (sensory + active). This conditional independence IS the boundary. It is what makes a project a project — not a loose collection of files, but a system with a defined inside and outside.
+
+**The workspace IS the blanket.** `.ai-workspace/` is not a directory — it is the membrane that separates the project's internal model from the external world. The event log (`events.jsonl`) is the internal state record. The monitors are the sensory interface. The CI/CD pipeline is the active interface.
+
+#### Nested Blankets
+
+Markov blankets compose. Every viable system is a nested hierarchy of blankets:
+
+```
+Genesis Methodology          ← outermost blanket (axiom set as boundary)
+    └─ Organisation          ← intermediate blanket (architectural ADRs)
+        └─ Project           ← blanket (spec + workspace + monitors)
+            └─ Feature       ← nested blanket (feature vector + trajectory)
+                └─ Edge      ← innermost blanket (asset + evaluators per iteration)
+```
+
+Each level is conditionally independent of the level above, given its blanket. A project does not need to know how the genesis methodology works internally — only what its sensory interface constrains (the bootloader) and what its active interface delivers (the installer). That IS the blanket.
+
+This nested structure is the formal grounding for project lineage (ADR-027): live lineage is ongoing sensory coupling between blankets; static lineage is internal state transferred at cell division (project inception = mitosis). The lineage DAG is the nested blanket hierarchy made explicit.
+
+#### Cells, Organisms, and the Bacterial Stage
+
+Biologically, a cell IS a Markov blanket. The cell membrane separates internal biochemistry from external environment, with receptor proteins as sensory states and secretory systems as active states. The genome is the internal model. Metabolism is the iteration function minimising free energy (maintaining viable internal state against environmental perturbation).
+
+**We are at the bacterial (prokaryote) stage of this methodology:** single-cell organisms with a working blanket (workspace membrane), heredity (event log as genome), metabolism (the iterate loop), and sensory/active interfaces (monitors and CI/CD). What we do not yet have:
+
+- **Nucleus** (eukaryote): bounded substructure within the cell — the design tenant (ADR-027) is the beginning of this
+- **Multicellular coordination**: multiple projects forming tissue — signalling through live lineage, cell differentiation (platform project, feature project, data project), specialisation
+- **Organs**: clusters of differentiated projects with coordinated function — the tournament pattern (ADR-S-018) is the first primitive multicellular structure
+
+The methodology will evolve through these stages. The formal system (four primitives, one operation) remains invariant across all stages — only the nesting depth and coupling topology change.
+
 ### 2.4 Graph Construction (Abiogenesis)
 
 The graph topology follows the abiogenesis pattern (#39): domain constraints produce practice → practice crystallises into encoded topology → encoded topology directs construction → runtime experience updates the topology. The SDLC graph is one such crystallisation. The project name **Genesis** is shorthand for this pattern — the methodology bootstraps its own structure from practice.
@@ -414,6 +459,38 @@ The iteration function is an instance of **local preorder traversal** (#15):
 - The **move** is the next iteration, reducing the delta
 
 The constructor (#41) is whatever implements `iterate` for a given edge: an LLM agent, a human developer, a compiler, a test runner. The function signature is universal; the implementation is edge-specific.
+
+### 3.3 Active Inference: The Deep Grounding
+
+The `iterate()` function is a discrete-time instance of **active inference** (Friston, 2010). This is not analogy — it is a direct structural correspondence.
+
+In active inference, a system with a Markov blanket (§2.10) minimises **free energy** (a measure of surprise — how much the world deviates from the system's internal model) by:
+1. **Updating its internal model** to better predict sensory inputs (perception)
+2. **Acting on the world** to make sensory inputs conform to the model's predictions (action)
+
+| Active Inference concept | `iterate()` concept |
+|-------------------------|-------------------|
+| Internal state / belief state | Asset (carries intent, lineage, all prior decisions) |
+| Generative model (what the system believes the world should be like) | Context[] — the spec, ADRs, policy, prior state |
+| Prediction error / surprise | delta — evaluator failures counting how far candidate is from target |
+| Precision weighting | F_D > F_P > F_H — deterministic evaluators have highest precision (lowest uncertainty) |
+| Free energy | The total weighted delta across all required evaluators |
+| Free energy minimisation | The convergence loop — acting until delta → 0 |
+| Updated belief state | Asset' — the next iteration candidate |
+| Markov blanket | The workspace boundary — internal (spec, events) / sensory (monitors) / active (CI/CD) |
+
+**Delta IS free energy.** Convergence IS free energy minimisation. The system acts (constructs the next candidate) to reduce prediction error (evaluator failures) until the world (the asset) conforms to the model (the spec).
+
+**The spec IS the prior.** In active inference, a persistent system must have a prior — a preferred internal state it is trying to maintain (homeostasis). The spec is exactly this: the system acts to make the world conform to the spec, as a cell acts to maintain viable internal chemistry. A project without a spec has no prior, no preferred state, no homeostasis — and therefore cannot persist.
+
+**The three evaluator types are precision-weighted prediction error:**
+- **F_D (Deterministic)**: highest precision — binary, no ambiguity. Test passes or fails. These evaluators have zero uncertainty and maximally constrain the posterior.
+- **F_P (Agent/LLM)**: medium precision — bounded ambiguity. The agent's assessment has uncertainty; it can be wrong. These evaluators soft-constrain the posterior.
+- **F_H (Human)**: lowest precision in the formal sense — human judgment is the most uncertain but also the most context-sensitive. These evaluators handle persistent ambiguity that cannot be resolved by measurement or inference alone.
+
+The escalation chain (η: F_D → F_P → F_H, §4.1) is the active inference response to increasing surprise: when deterministic evaluation cannot resolve the delta, the system escalates to higher-precision (but higher-cost) prediction error computation.
+
+**Consequence**: the three evaluator types are not a design choice. They are the exhaustive taxonomy of prediction error computation types for a system with a Markov blanket operating in a world with irreducible uncertainty. There is no fourth type.
 
 ### 3.3 Convergence
 
@@ -743,6 +820,37 @@ The last row is critical: **design-level technology bindings are constraints wit
 Context is largely **shared across the graph**. ADRs, Data Models, Policy — these don't change per edge. They are the standing constraint surface. What changes per edge is which subset is relevant and how the constructor weights them.
 
 Context itself evolves, but on a slower timescale than assets. This is the ontology's scale-dependent time (#23): the constraint surface updates slowly while components iterate rapidly upon it.
+
+### 5.5 Context as Lineage DAG
+
+Context[] is not a flat list of files. It is a **directed acyclic graph of prior context** — a lineage — where each node is a source of constraints inherited by the project.
+
+```
+Genesis Methodology          ← live lineage: axiom set, graph topology, profiles
+    ↓
+Org Architectural ADRs       ← live lineage: technology standards, platform choices
+    ↓
+Corporate Policy             ← live lineage: security, compliance, data governance
+    ↓
+Domain Knowledge             ← static lineage: prior system docs, domain ontology
+    ↓
+Prior State                  ← static lineage: related project specs, prior version
+    ↓
+THIS PROJECT                 ← owned context: spec, design ADRs, project_constraints.yml
+```
+
+**Two lineage types** (ADR-027):
+
+| Type | Definition | At inception | On upstream change |
+|------|-----------|-------------|-------------------|
+| **Live** | Source evolves independently; updates are relevant | Referenced by URI + version pin | `gen-update` fetches, diffs, offers for human review |
+| **Static** | Snapshotted at project inception — content sealed | Copied and content-hash recorded | Immutable; re-snapshot only on explicit request |
+
+The effective Context[] at any iterate() invocation is the lineage DAG **collapsed to a merge sequence**: methodology → org → policy → domain → prior → project. Later overrides earlier; nested objects deep-merged (REQ-CTX-002, `load_context_hierarchy()`).
+
+**The nervous system is inherited through lineage, not configured per-project.** The methodology lineage provides base interoceptive monitors. The org lineage provides platform-specific monitors. The policy lineage provides compliance monitors. A project inherits its observability infrastructure; it only needs to set project-specific thresholds. This is what makes observability constitutive rather than optional (§4.5, §2.10).
+
+**Provenance in every event.** Every `iteration_completed` event carries the `context_hash` from `context_manifest.yml` — the content-addressable fingerprint of the full lineage state at that moment. Any iteration can be reproduced exactly: given the context hash, recover the constraint surface that was active. When lineage changes (a live source updates and is adopted), the context hash changes, and the change is visible in the event log.
 
 ---
 
@@ -1415,6 +1523,16 @@ The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardle
 | Vector spawning (reproduction) | New vectors born from intent events — system creates directed actions from observation | 36, 44 |
 | Vector cancellation (apoptosis) | Requirement removed — dependent vectors pruned | 9 (manifold topology change) |
 | Concurrent vector lifecycles (cell cycle) | Many vectors in different phases simultaneously — gestating, iterating, converged, deployed, observed | 45 (superposition) |
+| Markov blanket (§2.10) | Statistical boundary separating internal from external states — the formal definition of a system boundary (Friston, 2013) | 7 (Markov object), 8 (Markov blanket) |
+| Active inference (§3.3) | Free energy minimisation through perception + action — the deep grounding of iterate() | 49 (teleodynamic), 9 (constraint manifold as generative model) |
+| Free energy / delta | Prediction error — distance between current state and preferred state (spec). Convergence = minimisation | 44 (deviation signal), 9 (gradient) |
+| Nested Markov blankets (§2.10) | Hierarchy of blankets: methodology → org → project → feature → edge. Each level conditionally independent given its blanket | 7 (Markov object composition) |
+| Lineage DAG (§5.5) | DAG of context sources — the nested blanket hierarchy made explicit and provenance-tracked | 39 (abiogenesis), 16 (constraint density) |
+| Live lineage | Ongoing sensory coupling between blankets — upstream policy/ADR changes propagate as sensory signals | 44 (deviation signal), 49 (self-maintaining) |
+| Static lineage | Internal state transferred at cell division (project inception = mitosis) — content-sealed, hash-addressed | 7 (Markov object stability), 39 (encoded structure) |
+| Prokaryote stage | Single-cell methodology: working blanket, heredity (event log), metabolism (iterate), sensory/active interfaces. No nucleus, no multicellular coordination | 49 (teleodynamic — bacterial level) |
+| Eukaryote transition | Bounded substructure (design tenant as nucleus) within the cell — next evolutionary stage | 49 (self-directing) |
+| Multicellular coordination | Multiple projects forming tissue through live lineage signalling — tournament pattern as first primitive | 49 (ecosystem), 36 (distributed intent) |
 
 ### 8.2 The Construction Pattern
 
@@ -1434,14 +1552,19 @@ The methodology is a direct instantiation of concept #38:
 
 1. **Four primitives, one operation.** Graph, Iterate, Evaluators, Spec+Context. `iterate(Asset, Context[], Evaluators) → Event+` is the only operation. Everything else is parameterisation.
 2. **Asset graph.** A directed cyclic graph of typed assets with admissible transitions (zoomable). The SDLC graph is one domain-specific instantiation; the primitives are universal.
-3. **Universal iterate().** One agent, one function, all edges. Behaviour is parameterised by edge config, not hard-coded. Convergence = all evaluators pass.
+3. **Universal iterate().** One agent, one function, all edges. Behaviour is parameterised by edge config, not hard-coded. Convergence = all evaluators pass. Formally: discrete-time active inference — the asset is the belief state, Context[] is the generative model, delta is free energy, convergence is free energy minimisation (§3.3).
 4. **Three processing phases + sensory systems.** Reflex (autonomic event emission, protocol hooks), affect (signal triage, severity, escalation), conscious (human + agent evaluators, spec modification). Interoceptive + exteroceptive monitors (§4.5) run continuously and independently of iterate().
-5. **Event sourcing + observability.** All state changes are immutable events; all observable state (STATUS, feature vectors, tasks) is a derived projection. REQ keys thread from spec through code, tests, telemetry, and back.
+5. **Event sourcing + observability.** All state changes are immutable events; all observable state (STATUS, feature vectors, tasks) is a derived projection. REQ keys thread from spec through code, tests, telemetry, and back. Observability is constitutive — the nervous system is present at project inception, inherited through lineage (§5.5).
 6. **Gradient at every scale.** One computation — `delta(state, constraints) -> work` — from single iteration through edge convergence, feature traversal, production homeostasis, spec review, and constraint surface update. Complexity emerges from the same gradient at progressively larger scales.
-7. **Living system.** When operational, the gradient active at all scales simultaneously produces continuous sensing, concurrent vector lifecycles, CI/CD metabolism, active perception, reflexive self-modification, and selective pruning — an ecology of Markov objects interacting through boundaries.
+7. **Markov blankets at every scale.** Every stable asset is a Markov object (§2.3). Every project is a Markov blanket with internal states (spec, events), sensory states (monitors), and active states (CI/CD). Blankets nest: methodology → org → project → feature → edge iteration (§2.10). The methodology is currently at the prokaryote stage — single-cell organisms with working blankets. Multicellular coordination (multiple projects forming tissue through live lineage signalling) is the next evolutionary stage.
+8. **Context as lineage DAG.** Context[] is not a flat file — it is a directed acyclic graph of prior context sources (live and static) collapsed to a merge sequence at iterate() time. Every project inherits its constraint surface, its nervous system, and its observability infrastructure from its lineage (§5.5, ADR-027).
+9. **Living system.** When operational, the gradient active at all scales simultaneously produces continuous sensing, concurrent vector lifecycles, CI/CD metabolism, active perception, reflexive self-modification, and selective pruning — an ecology of Markov objects interacting through boundaries.
 
 ---
 
 ## References
 
 - **Constraint-Emergence Ontology** — [github.com/foolishimp/constraint_emergence_ontology](https://github.com/foolishimp/constraint_emergence_ontology) — parent theory. Concept numbers (#N) throughout this document refer to the canonical concept index in that repository.
+- **Friston, K. (2010).** The free-energy principle: a unified brain theory? *Nature Reviews Neuroscience*, 11(2), 127–138. — Active inference grounding for iterate() (§3.3).
+- **Friston, K. (2013).** Life as we know it. *Journal of the Royal Society Interface*, 10(86), 20130475. — Markov blankets as the formal boundary of living systems (§2.10).
+- **Friston, K., et al. (2022).** Designing Ecosystems of Intelligence from First Principles. *arXiv:2212.01354*. — Nested Markov blankets, active inference at organisational scale.
