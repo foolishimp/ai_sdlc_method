@@ -1040,6 +1040,56 @@ The basis projection schedule — the Gantt chart — is a **derived projection*
 
 This enables incremental delivery: working software after the first basis projection converges, progressively richer after each subsequent one. The methodology produces not just code but an **observable build plan** — a Gantt that updates as basis projections converge.
 
+### 6.8 The Hamiltonian: Iteration Cost as Phase Space Energy
+
+A feature trajectory through the graph traces a path in **phase space** — the space of (graph position × convergence momentum). The **Hamiltonian** is the total energy of that trajectory at any point in time:
+
+```
+H = T + V
+
+where:
+  T = total iterations completed to date  (kinetic energy — work done)
+  V = current delta (failing evaluators)  (potential energy — work remaining)
+```
+
+This is the **manifold-level description** of constraint propagation cost (parent theory §VI multi-domain table). At the methodology's projection layer, H is fully observable from `events.jsonl`:
+
+```
+For each (feature, edge, iteration_k):
+  T_k = cumulative iterations across all preceding edges + iteration_k
+  V_k = delta at iteration_k (failing check count)
+  H_k = T_k + V_k
+```
+
+**Phase space interpretation:**
+
+| Symbol | Meaning | Observable from events |
+|--------|---------|----------------------|
+| **q** | Edge index in the graph (position) | `edge` field in events |
+| **p** | Convergence rate = −d(delta)/d(iteration) (momentum) | Slope of `delta_curve` |
+| **H(q, p)** | Total cost at position q with momentum p | T + V at any iteration |
+
+**H as a diagnostic:**
+
+| H pattern | Interpretation |
+|-----------|---------------|
+| H decreasing monotonically | Healthy convergence — energy dissipated as work done |
+| H stuck (flat across iterations) | Blocked feature — delta not decreasing despite iterations |
+| H oscillating | Conflicting constraints — evaluators disagree across iterations |
+| H at convergence | V=0, H=T — sunk cost only, no remaining gradient |
+
+**Connection to §7.1 (The Gradient):**
+
+The Hamiltonian integrates the gradient across a trajectory. Where §7.1 defines `delta(state, constraints) → work` at a single scale, H accumulates that work across the full traversal:
+
+```
+H_total = Σ_k delta_k   (discrete sum — T counts iterations, V is the current term)
+```
+
+A high initial H (when T=0) means the constraint surface is **dense** — many failing checks, much potential energy to dissipate. The convergence rate `−dH/dt` is a direct observable of constraint surface density: rapid convergence = sparse constraints, slow convergence = dense or conflicting constraints.
+
+**The Genesis Monitor** visualises features as trajectories in (graph × time) space. Each trajectory has an H value at every (edge, iteration) coordinate — a point map of all in-flight features coloured by their Hamiltonian. High-H features have high remaining cost or have spent many iterations; their trajectory shape reveals where the constraint surface is dense. The genesis monitor projects `events.jsonl` into this phase space representation, making H visible as a real-time cost metric across all in-flight features.
+
 ---
 
 ## 7. The Full Lifecycle

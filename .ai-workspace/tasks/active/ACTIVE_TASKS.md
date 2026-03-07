@@ -224,15 +224,14 @@ ADR-025 written — pragmatic exception for `asset_content: str` vs full event-s
 
 ---
 
-## In Progress: Instance Graph from Events (ADR-022)
+## Done: Instance Graph from Events (ADR-022)
 
-**Priority**: Medium
-**Status**: Partially Complete — 2026-03-07
+**Status**: Done — 2026-03-07
 **Release Target**: 3.1
 
 **Remaining**:
 4. ✓ Add `project_instance_graph(events) → InstanceGraph` — full event replay projection (with tests) — `3c6f9d0`
-5. Add zoom level 1 overlay to `graph.py` — BLOCKED (genesis_monitor not in imp_claude)
+5. ✓ Zoom level 1 overlay — RESOLVED via genesis monitor (ADR-028). Monitor is external; events.jsonl is the integration contract.
 6. ✓ Add topology version check to `on-session-start.sh` — `0b98323`
 
 ---
@@ -312,14 +311,15 @@ REQ-F-TOURNAMENT-001 was in workspace but not in FEATURE_VECTORS.md. Fixed by:
 
 | Artifact | Status |
 |----------|--------|
-| Spec (Asset Graph Model) | Complete — 4 primitives, 18 spec ADRs (ADR-S-018 tournament) |
+| Spec (Asset Graph Model) | Complete — 4 primitives, 20 spec ADRs (ADR-S-019 Markov/ActiveInference, ADR-S-020 Phase Space/Hamiltonian) |
 | Implementation Requirements | 83 requirements (REQ-EVOL + REQ-EVENT added 2026-03-05) |
 | Feature Vectors | 16 vectors (FP-001 + TOURNAMENT-001 in spec), 83/83 covered |
-| Claude Design (ADRs 008-026) | 19 ADRs; ADR-025 done, ADR-026 done |
+| Claude Design (ADRs 008-028) | 21 ADRs; ADR-027 lineage, ADR-028 genesis monitor |
 | Claude Code | Engine CLI + OL taxonomy + instance graph + consciousness loop Stage 2+3 |
 | Tests | 1078 unit passing (0 pre-existing failures); +REQ-CTX-002, +REQ-EVAL-003, +spec fixes |
 | Gemini Design | Complete (ADRs GG-001-008) |
 | Codex Design | Complete (ADR-CG-001) |
+| Genesis Monitor | External project at `ai_sdlc_examples/local_projects/genisis_monitor`; H=T+V added to convergence projection |
 
 ---
 
