@@ -23,7 +23,7 @@ from .config_loader import (
     resolve_checklist,
 )
 from .fd_evaluate import evaluate_checklist, run_check
-from .fd_emit import emit_event, make_event
+from .ol_event import emit_ol_event, make_ol_event, normalize_event
 from .fd_classify import (
     classify_req_tag,
     classify_source_finding,
@@ -71,9 +71,10 @@ __all__ = [
     # Evaluate
     "run_check",
     "evaluate_checklist",
-    # Emit
-    "emit_event",
-    "make_event",
+    # Emit (OL format)
+    "emit_ol_event",
+    "make_ol_event",
+    "normalize_event",
     # Classify
     "classify_req_tag",
     "classify_source_finding",

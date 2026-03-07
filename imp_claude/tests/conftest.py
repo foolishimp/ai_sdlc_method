@@ -270,10 +270,11 @@ def events_path(workspace):
 
 
 def read_events(workspace):
+    from genesis.ol_event import normalize_event
     ep = events_path(workspace)
     if not ep.exists():
         return []
-    return [json.loads(l) for l in ep.read_text().strip().split("\n") if l.strip()]
+    return [normalize_event(json.loads(l)) for l in ep.read_text().strip().split("\n") if l.strip()]
 
 
 @pytest.fixture

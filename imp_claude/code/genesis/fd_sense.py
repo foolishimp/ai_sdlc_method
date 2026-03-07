@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .models import SenseResult
+from .ol_event import normalize_event
 
 _REQ_TAG_PATTERN = re.compile(
     r"(?:Implements|Validates):\s*(REQ-[A-Z]+(?:-[A-Z]+)*-\d+)"
@@ -38,8 +39,9 @@ def sense_event_freshness(
         )
 
     try:
-        event = json.loads(last_line)
-        ts = datetime.fromisoformat(event["timestamp"])
+        event = normalize_event(json.loads(last_line))
+        ts_str = event.get("timestamp") or event.get("eventTime", "")
+        ts = datetime.fromisoformat(ts_str)
         age_minutes = (datetime.now(timezone.utc) - ts).total_seconds() / 60.0
         return SenseResult(
             monitor_name="event_freshness",
@@ -78,7 +80,7 @@ def sense_feature_stall(
             if not line:
                 continue
             try:
-                event = json.loads(line)
+                event = normalize_event(json.loads(line))
                 if (
                     event.get("event_type") == "iteration_completed"
                     and event.get("feature") == feature_id
@@ -208,7 +210,7 @@ def sense_event_log_integrity(events_path: Path) -> SenseResult:
                 continue
             total += 1
             try:
-                event = json.loads(line)
+                event = normalize_event(json.loads(line))
                 missing = required_fields - set(event.keys())
                 if missing:
                     errors.append(f"Line {i}: missing fields {missing}")

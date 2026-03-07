@@ -53,7 +53,7 @@ def tenant_from_path(file_path: str | Path) -> str | None:
 _OL_EVENT_TYPE = {
     # Core iteration lifecycle (REQ-EVENT-003)
     "IterationStarted": "START",
-    "IterationCompleted": "COMPLETE",
+    "IterationCompleted": "OTHER",    # non-terminal — convergence not yet declared
     "IterationFailed": "FAIL",
     "IterationAbandoned": "ABORT",
     # Convergence events (REQ-EVENT-003)
@@ -74,6 +74,15 @@ _OL_EVENT_TYPE = {
     "FeatureDismissed": "OTHER",      # human dismisses proposal → archived
     # Spec evolution (REQ-EVOL-004, ADR-S-010)
     "SpecModified": "COMPLETE",       # specification/ file changed — causal chain recorded
+    # Engine lifecycle events (REQ-EVENT-003)
+    "EdgeStarted": "OTHER",            # edge traversal begins
+    "EdgeConverged": "COMPLETE",       # edge fully converged — terminal
+    "FpFailure": "OTHER",              # F_P actor failed to converge (REQ-ROBUST-007)
+    "EvaluatorDetail": "OTHER",        # per-check evaluator result (REQ-ROBUST-007)
+    "CommandError": "OTHER",           # engine CLI command error (REQ-SUPV-003)
+    # Spawn lifecycle
+    "SpawnCreated": "OTHER",           # child vector created
+    "SpawnFoldedBack": "COMPLETE",     # child results folded back to parent
     # Multi-agent coordination (ADR-013, REQ-COORD-002)
     "EdgeClaimed": "OTHER",           # agent claims a feature+edge — pending serialiser confirmation
     "ClaimRejected": "FAIL",          # serialiser rejects claim (conflict or role violation)
@@ -194,6 +203,52 @@ def emit_ol_event(events_path: Path, event: dict) -> str:
             fcntl.flock(f, fcntl.LOCK_UN)
 
     return event["run"]["runId"]
+
+
+import re as _re
+
+
+def normalize_event(raw: dict) -> dict:
+    """Normalize an OL RunEvent to flat event format, or pass through flat events.
+
+    Flat events have "event_type" at the top level.
+    OL events have "eventType" + "run.facets" structure (ADR-S-011).
+
+    Normalization extracts:
+      - event_type from run.facets["sdlc:event_type"]["type"] → snake_case
+      - timestamp from eventTime
+      - project from job.namespace (strips "aisdlc://")
+      - all payload fields from run.facets["sdlc:payload"]
+
+    This function is the single read-side compatibility layer. Consumers that
+    call load_events() receive flat dicts regardless of which writer produced them.
+    """
+    if "event_type" in raw:
+        return raw  # Already flat format — pass through
+
+    facets = raw.get("run", {}).get("facets", {})
+    event_type_facet = facets.get("sdlc:event_type", {})
+    if not event_type_facet:
+        return raw  # Unknown format — pass through unchanged
+
+    semantic_type = event_type_facet.get("type", "")
+    # CamelCase → snake_case: "IterationCompleted" → "iteration_completed"
+    event_type = _re.sub(r"(?<!^)(?=[A-Z])", "_", semantic_type).lower()
+
+    # Project from job namespace: "aisdlc://my-project" → "my-project"
+    namespace = raw.get("job", {}).get("namespace", "")
+    project = namespace.removeprefix("aisdlc://")
+
+    # Payload fields (skip internal _producer/_schemaURL keys)
+    payload_facet = facets.get("sdlc:payload", {})
+
+    flat: dict = {
+        "event_type": event_type,
+        "timestamp": raw.get("eventTime", ""),
+        "project": project,
+    }
+    flat.update({k: v for k, v in payload_facet.items() if not k.startswith("_")})
+    return flat
 
 
 # ---------------------------------------------------------------------------

@@ -115,7 +115,7 @@ TDD, BDD, ADR, and code tagging configurations for common graph edges.
 
 CI/CD, telemetry, homeostasis, feedback loop, and eco-intent generation.
 
-**Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009, REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012, REQ-INTENT-003
+**Satisfies**: REQ-LIFE-001, REQ-LIFE-002, REQ-LIFE-003, REQ-LIFE-004, REQ-LIFE-005, REQ-LIFE-006, REQ-LIFE-007, REQ-LIFE-008, REQ-LIFE-009, REQ-LIFE-010, REQ-LIFE-011, REQ-LIFE-012, REQ-LIFE-013, REQ-INTENT-003
 
 **Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩ → |uat⟩
 
@@ -480,6 +480,7 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 | REQ-LIFE-010 | REQ-F-LIFE-001 |
 | REQ-LIFE-011 | REQ-F-LIFE-001 |
 | REQ-LIFE-012 | REQ-F-LIFE-001 |
+| REQ-LIFE-013 | REQ-F-LIFE-001 |
 | REQ-SENSE-001 | REQ-F-SENSE-001 |
 | REQ-SENSE-002 | REQ-F-SENSE-001 |
 | REQ-SENSE-003 | REQ-F-SENSE-001 |

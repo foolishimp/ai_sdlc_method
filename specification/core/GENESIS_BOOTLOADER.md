@@ -28,6 +28,8 @@ Constraints restrict which transformations exist, limit composability, induce st
 
 **Generative principle**: As soon as a stable configuration is possible within a constraint structure, it will emerge. Constraints do not merely permit — they generate. The constraint structure fills its own possibility space.
 
+**Naming is a constraint act.** When a high-order concept is identified and anchored — abiogenesis, the gradient, the GCC bootstrap model, the design marketplace — it immediately reduces the decision space below it. Questions that required debate resolve automatically as consequences of the named concept. A rule needs enforcement; an axiom needs only to be understood. Before adding any new rule, ask: is this already a consequence of an existing axiom? If yes, cite the axiom — do not restate it as a rule. Restating axioms as rules is the primary source of spec bloat and internal contradiction.
+
 **The methodology is the constraints themselves.** Commands, configurations, event schemas, and tooling are implementations — emergence within those constraints. Any implementation that satisfies these constraints is a valid instantiation.
 
 ---

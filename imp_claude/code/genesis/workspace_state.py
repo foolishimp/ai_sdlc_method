@@ -25,6 +25,8 @@ from typing import Any, Optional, Union
 
 import yaml
 
+from .ol_event import normalize_event
+
 _REQ_F_PATTERN = re.compile(r"\bREQ-F-[A-Z]+-\d+\b")
 
 
@@ -156,7 +158,12 @@ def classify_tolerance_breach(
 
 
 def load_events(workspace: Path) -> list[dict[str, Any]]:
-    """Parse events.jsonl from a workspace, returning list of event dicts."""
+    """Parse events.jsonl from a workspace, returning list of event dicts.
+
+    Normalizes OL RunEvents to flat format so all consumers see a uniform
+    {event_type, timestamp, project, ...payload} structure regardless of which
+    writer produced them. See ol_event.normalize_event() for the conversion.
+    """
     events_file = _workspace_dir(workspace) / "events" / "events.jsonl"
     if not events_file.exists():
         return []
@@ -167,7 +174,7 @@ def load_events(workspace: Path) -> list[dict[str, Any]]:
         if not line:
             continue
         try:
-            events.append(json.loads(line))
+            events.append(normalize_event(json.loads(line)))
         except json.JSONDecodeError:
             continue
     return events

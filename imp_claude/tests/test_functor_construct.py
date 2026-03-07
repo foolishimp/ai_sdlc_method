@@ -12,6 +12,7 @@ import pytest
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
 from genesis.models import CheckOutcome
+from genesis.ol_event import normalize_event
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -139,8 +140,8 @@ class TestEngineConstructIntegration:
                     construct=True,
                 )
 
-        events = events_path.read_text().strip().split("\n")
-        iter_event = json.loads(events[-2])
+        events = [normalize_event(json.loads(e)) for e in events_path.read_text().strip().split("\n") if e.strip()]
+        iter_event = next(e for e in reversed(events) if e.get("event_type") == "iteration_completed")
         assert "fp_actor" in iter_event
         assert iter_event["fp_actor"]["transport"] == "mcp"
 

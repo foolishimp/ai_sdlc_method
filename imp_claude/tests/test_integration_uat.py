@@ -213,14 +213,16 @@ class TestEventLogIntegrity:
     KNOWN_EVENT_TYPES = {
         # Current schema (v2.8+)
         "intent_raised", "spec_modified", "project_initialized",
-        "iteration_completed", "edge_started", "edge_converged",
+        "iteration_started", "iteration_completed", "iteration_failed",
+        "iteration_abandoned",
+        "edge_started", "edge_converged",
         "spawn_created", "spawn_folded_back", "checkpoint_created",
         "review_completed", "gaps_validated", "release_created",
         "interoceptive_signal", "exteroceptive_signal",
         "affect_triage", "draft_proposal", "observer_signal",
         "artifact_modified", "feature_converged",
         # Engine evaluator events (v3+)
-        "evaluator_detail", "status_generated", "iteration_abandoned",
+        "evaluator_detail", "fp_failure", "status_generated",
         # Legacy event types (pre-v2.8 — still valid in historical log)
         "evaluator_ran", "feature_spawned", "finding_raised",
         "telemetry_signal_emitted",
@@ -290,11 +292,21 @@ class TestEventLogIntegrity:
 
     @pytest.mark.uat
     def test_iteration_completed_events_have_evaluators(self):
-        """iteration_completed events must include evaluator results."""
+        """iteration_completed events (v3+) must include evaluator results.
+
+        Skips legacy events (those with _metadata or functor_results) that
+        predate the evaluators field. Only v3+ events (post-2026-03-06) are checked.
+        """
         for event in self.events:
-            if event["event_type"] == "iteration_completed":
-                assert "evaluators" in event, \
-                    f"iteration_completed missing evaluators: {event.get('feature', '?')}"
+            if event.get("event_type") != "iteration_completed":
+                continue
+            # Skip legacy events: wrapped format or pre-evaluators structure
+            if "_metadata" in event or "functor_results" in event:
+                continue
+            if event.get("timestamp", "") < "2026-03-06":
+                continue
+            assert "evaluators" in event, \
+                f"iteration_completed missing evaluators: {event.get('feature', '?')}"
 
     @pytest.mark.uat
     def test_recent_edge_converged_events_have_iteration_count(self):

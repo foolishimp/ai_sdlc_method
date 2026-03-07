@@ -14,7 +14,12 @@ Covers:
 """
 
 import json
+import sys
+import pathlib
 import pytest
+
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
+from genesis.ol_event import normalize_event
 
 
 # ── Event type registry completeness ─────────────────────────────────
@@ -28,7 +33,7 @@ class TestEventTaxonomyRegistry:
         from genesis.ol_event import _OL_EVENT_TYPE
 
         assert _OL_EVENT_TYPE["IterationStarted"] == "START"
-        assert _OL_EVENT_TYPE["IterationCompleted"] == "COMPLETE"
+        assert _OL_EVENT_TYPE["IterationCompleted"] == "OTHER"   # non-terminal: convergence not yet declared
         assert _OL_EVENT_TYPE["IterationFailed"] == "FAIL"
         assert _OL_EVENT_TYPE["IterationAbandoned"] == "ABORT"
 
@@ -385,11 +390,8 @@ class TestIterationStartedEmission:
             iteration=1,
         )
 
-        events = events_path.read_text().strip().splitlines()
-        started_events = [
-            json.loads(e) for e in events
-            if json.loads(e).get("event_type") == "iteration_started"
-        ]
+        events = [normalize_event(json.loads(e)) for e in events_path.read_text().strip().splitlines()]
+        started_events = [e for e in events if e.get("event_type") == "iteration_started"]
         assert len(started_events) == 1
         ev = started_events[0]
         assert ev["feature"] == "REQ-F-TEST-001"
@@ -424,7 +426,7 @@ class TestIterationStartedEmission:
             iteration=2,
         )
 
-        events = [json.loads(l) for l in events_path.read_text().strip().splitlines()]
+        events = [normalize_event(json.loads(l)) for l in events_path.read_text().strip().splitlines()]
         event_types = [e["event_type"] for e in events]
 
         # iteration_started must precede iteration_completed
@@ -465,7 +467,7 @@ class TestIterationStartedEmission:
                 iteration=i,
             )
 
-        events = [json.loads(l) for l in events_path.read_text().strip().splitlines()]
+        events = [normalize_event(json.loads(l)) for l in events_path.read_text().strip().splitlines()]
         started = [e for e in events if e["event_type"] == "iteration_started"]
         assert len(started) == 3
         assert [e["iteration"] for e in started] == [1, 2, 3]

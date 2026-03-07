@@ -21,6 +21,7 @@ from genesis.models import (
 )
 from genesis.fd_evaluate import evaluate_checklist, run_check
 from genesis.fd_emit import emit_event, make_event
+from genesis.ol_event import emit_ol_event
 from genesis.fd_classify import (
     classify_req_tag,
     classify_signal_source,
@@ -619,7 +620,7 @@ class TestDispatch:
 
     def test_fd_emit_registered(self):
         fn = dispatch(FunctionalUnit.EMIT, Category.F_D)
-        assert fn is emit_event
+        assert fn is emit_ol_event
 
     def test_fp_not_implemented(self):
         with pytest.raises(NotImplementedError):

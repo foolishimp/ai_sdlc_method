@@ -109,18 +109,23 @@ def _emit_command_error(
     workspace: Path, project: str, command: str, category: str, detail: str
 ) -> None:
     """Emit a command_error event for REQ-SUPV-003 failure observability."""
-    from .fd_emit import emit_event, make_event
+    from .ol_event import emit_ol_event, make_ol_event
 
     events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
     try:
-        emit_event(
+        emit_ol_event(
             events_path,
-            make_event(
-                "command_error",
+            make_ol_event(
+                "CommandError",
+                command,
                 project or workspace.name,
-                command=command,
-                error_category=category,
-                error_detail=detail,
+                workspace.name,
+                "genesis-cli",
+                payload={
+                    "command": command,
+                    "error_category": category,
+                    "error_detail": detail,
+                },
             ),
         )
     except Exception:
@@ -133,7 +138,7 @@ def _check_session_gaps(workspace: Path, project: str) -> None:
     Scans the event log for edge_started events with no subsequent completion.
     Emits iteration_abandoned events for each detected gap. Idempotent.
     """
-    from .fd_emit import emit_event, make_event
+    from .ol_event import emit_ol_event, make_ol_event
     from .workspace_state import detect_abandoned_iterations, load_events
 
     events = load_events(workspace)
@@ -145,14 +150,19 @@ def _check_session_gaps(workspace: Path, project: str) -> None:
     events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
     for gap in abandoned:
         try:
-            emit_event(
+            emit_ol_event(
                 events_path,
-                make_event(
-                    "iteration_abandoned",
+                make_ol_event(
+                    "IterationAbandoned",
+                    gap["edge"],
                     project,
-                    feature=gap["feature"],
-                    edge=gap["edge"],
-                    last_event_timestamp=gap["last_event_timestamp"],
+                    gap["feature"],
+                    "genesis-cli",
+                    payload={
+                        "feature": gap["feature"],
+                        "edge": gap["edge"],
+                        "last_event_timestamp": gap["last_event_timestamp"],
+                    },
                 ),
             )
         except Exception:

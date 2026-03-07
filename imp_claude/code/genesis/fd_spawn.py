@@ -15,7 +15,7 @@ from typing import Optional
 
 import yaml
 
-from .fd_emit import emit_event, make_event
+from .ol_event import emit_ol_event, make_ol_event, normalize_event
 from .models import FoldBackResult, SpawnRequest, SpawnResult
 
 
@@ -250,18 +250,23 @@ def emit_spawn_events(
 ) -> None:
     """Emit spawn_created event."""
     events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
-    emit_event(
+    emit_ol_event(
         events_path,
-        make_event(
-            "spawn_created",
+        make_ol_event(
+            "SpawnCreated",
+            f"SPAWN:{spawn_result.child_id}",
             project_name,
-            parent_feature=spawn_request.parent_feature,
-            child_feature=spawn_result.child_id,
-            child_path=spawn_result.child_path,
-            vector_type=spawn_request.vector_type,
-            triggered_at_edge=spawn_request.triggered_at_edge,
-            question=spawn_request.question,
-            profile=spawn_result.profile,
+            spawn_request.parent_feature,
+            "genesis-engine",
+            payload={
+                "parent_feature": spawn_request.parent_feature,
+                "child_feature": spawn_result.child_id,
+                "child_path": spawn_result.child_path,
+                "vector_type": spawn_request.vector_type,
+                "triggered_at_edge": spawn_request.triggered_at_edge,
+                "question": spawn_request.question,
+                "profile": spawn_result.profile,
+            },
         ),
     )
 
@@ -336,15 +341,20 @@ def fold_back_child(
 
     # Emit event
     events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
-    emit_event(
+    emit_ol_event(
         events_path,
-        make_event(
-            "spawn_folded_back",
+        make_ol_event(
+            "SpawnFoldedBack",
+            f"FOLDBACK:{child_id}",
             project_name,
-            parent_feature=parent_id,
-            child_feature=child_id,
-            child_status=child_status,
-            payload_path=str(payload_path),
+            parent_id,
+            "genesis-engine",
+            payload={
+                "parent_feature": parent_id,
+                "child_feature": child_id,
+                "child_status": child_status,
+                "payload_path": str(payload_path),
+            },
         ),
     )
 
@@ -423,7 +433,7 @@ def _parse_duration_hours(duration_str: str) -> float:
 
 
 def load_events(workspace: Path) -> list[dict]:
-    """Load all events from events.jsonl."""
+    """Load all events from events.jsonl, normalized to flat format."""
     events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
     if not events_path.exists():
         return []
@@ -431,7 +441,7 @@ def load_events(workspace: Path) -> list[dict]:
     for line in events_path.read_text().strip().split("\n"):
         if line.strip():
             try:
-                events.append(json.loads(line))
+                events.append(normalize_event(json.loads(line)))
             except json.JSONDecodeError:
                 continue
     return events

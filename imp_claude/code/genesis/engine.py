@@ -24,7 +24,7 @@ from typing import Optional
 
 from .config_loader import load_yaml, resolve_checklist
 from .contracts import Intent
-from .fd_emit import emit_event, make_event
+from .ol_event import emit_ol_event, make_ol_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
 from .fp_functor import FpFunctor
@@ -100,14 +100,15 @@ def iterate_edge(
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
     # Emit IterationStarted — required by REQ-EVENT-003 event taxonomy
-    emit_event(
+    emit_ol_event(
         events_path,
-        make_event(
-            "iteration_started",
+        make_ol_event(
+            "IterationStarted",
+            edge,
             config.project_name,
-            feature=feature_id,
-            edge=edge,
-            iteration=iteration,
+            feature_id,
+            "genesis-engine",
+            payload={"feature": feature_id, "edge": edge, "iteration": iteration},
         ),
     )
 
@@ -123,20 +124,25 @@ def iterate_edge(
         )
         fp_result = FpFunctor().invoke(intent, config.workspace_path)
 
-        # Emit fp_failure event if actor was invoked but did not converge (REQ-ROBUST-007)
+        # Emit FpFailure event if actor was invoked but did not converge (REQ-ROBUST-007)
         if not fp_result.audit.skipped and not fp_result.converged and fp_result.delta > 0:
-            emit_event(
+            emit_ol_event(
                 events_path,
-                make_event(
-                    "fp_failure",
+                make_ol_event(
+                    "FpFailure",
+                    edge,
                     config.project_name,
-                    feature=feature_id,
-                    edge=edge,
-                    iteration=iteration,
-                    transport=fp_result.audit.transport,
-                    cost_usd=fp_result.cost_usd,
-                    duration_ms=fp_result.duration_ms,
-                    phase="construct",
+                    feature_id,
+                    "genesis-engine",
+                    payload={
+                        "feature": feature_id,
+                        "edge": edge,
+                        "iteration": iteration,
+                        "transport": fp_result.audit.transport,
+                        "cost_usd": fp_result.cost_usd,
+                        "duration_ms": fp_result.duration_ms,
+                        "phase": "construct",
+                    },
                 ),
             )
 
@@ -183,21 +189,26 @@ def iterate_edge(
 
         results.append(cr)
 
-        # Emit evaluator_detail event for failing checks (REQ-ROBUST-007)
+        # Emit EvaluatorDetail event for failing checks (REQ-ROBUST-007)
         if cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR):
-            emit_event(
+            emit_ol_event(
                 events_path,
-                make_event(
-                    "evaluator_detail",
+                make_ol_event(
+                    "EvaluatorDetail",
+                    edge,
                     config.project_name,
-                    feature=feature_id,
-                    edge=edge,
-                    iteration=iteration,
-                    check_name=cr.name,
-                    check_type=cr.check_type,
-                    outcome=cr.outcome.value,
-                    required=cr.required,
-                    message=cr.message[:500] if cr.message else "",
+                    feature_id,
+                    "genesis-engine",
+                    payload={
+                        "feature": feature_id,
+                        "edge": edge,
+                        "iteration": iteration,
+                        "check_name": cr.name,
+                        "check_type": cr.check_type,
+                        "outcome": cr.outcome.value,
+                        "required": cr.required,
+                        "message": cr.message[:500] if cr.message else "",
+                    },
                 ),
             )
 
@@ -268,20 +279,28 @@ def iterate_edge(
             "spawns": len(fp_result.spawns),
         }
 
-    emit_event(
+    emit_ol_event(
         events_path,
-        make_event("iteration_completed", config.project_name, **event_data),
+        make_ol_event(
+            "IterationCompleted",
+            edge,
+            config.project_name,
+            feature_id,
+            "genesis-engine",
+            payload=event_data,
+        ),
     )
 
     if converged:
-        emit_event(
+        emit_ol_event(
             events_path,
-            make_event(
-                "edge_converged",
+            make_ol_event(
+                "EdgeConverged",
+                edge,
                 config.project_name,
-                feature=feature_id,
-                edge=edge,
-                iteration=iteration,
+                feature_id,
+                "genesis-engine",
+                payload={"feature": feature_id, "edge": edge, "iteration": iteration},
             ),
         )
 
@@ -315,17 +334,20 @@ def run_edge(
         events_path = (
             config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
         )
-        emit_event(
+        emit_ol_event(
             events_path,
-            make_event(
-                "iteration_completed",
+            make_ol_event(
+                "IterationFailed",
+                edge,
                 config.project_name,
-                feature=feature_id,
-                edge=edge,
-                iteration=0,
-                delta=-1,
-                status="error",
-                error=f"No edge config found for '{edge}'",
+                feature_id,
+                "genesis-engine",
+                payload={
+                    "feature": feature_id,
+                    "edge": edge,
+                    "iteration": 0,
+                    "error": f"No edge config found for '{edge}'",
+                },
             ),
         )
         return []
@@ -335,14 +357,16 @@ def run_edge(
     prior_failures: list[str] = []
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
 
-    # Emit edge_started — recovery scanner depends on this (REQ-ROBUST-008)
-    emit_event(
+    # Emit EdgeStarted — recovery scanner depends on this (REQ-ROBUST-008)
+    emit_ol_event(
         events_path,
-        make_event(
-            "edge_started",
+        make_ol_event(
+            "EdgeStarted",
+            edge,
             config.project_name,
-            feature=feature_id,
-            edge=edge,
+            feature_id,
+            "genesis-engine",
+            payload={"feature": feature_id, "edge": edge},
         ),
     )
 
