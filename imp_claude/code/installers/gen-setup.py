@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+# Implements: REQ-TOOL-011 (Installability), REQ-TOOL-003 (Workflow Commands), REQ-TOOL-007 (Project Scaffolding)
+# Implements: REQ-TOOL-012 (Multi-Tenant Folder Structure), REQ-TOOL-014 (Observability Integration Contract)
+# Implements: REQ-TOOL-001 (Plugin Architecture — installable .claude-plugin bundle, versioned, discoverable)
+# Implements: REQ-TOOL-015 (Workspace Placement at Project Root — AC-2 warning when run inside imp_* tenant)
 """
 AI SDLC Method v2 - Project Setup
 
 Self-contained installer that can be run directly from GitHub.
-
-# Implements: REQ-TOOL-011 (Installability), REQ-TOOL-003 (Workflow Commands), REQ-TOOL-007 (Project Scaffolding)
-# Implements: REQ-TOOL-012 (Multi-Tenant Folder Structure), REQ-TOOL-014 (Observability Integration Contract)
 
 Usage:
     # Install plugin + create v2 workspace (default)

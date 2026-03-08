@@ -2,7 +2,7 @@
 
 Display the current state of all feature vectors and their trajectories through the graph. Enhanced with state detection, "you are here" indicators, project rollup, signals, and workspace health.
 
-<!-- Implements: REQ-TOOL-002, REQ-FEAT-002, REQ-UX-003, REQ-UX-005, REQ-UX-007 (Edge Zoom Management), REQ-EVOL-002 (JOIN spec+workspace), REQ-EVOL-005 (Draft Features Queue) -->
+<!-- Implements: REQ-TOOL-002, REQ-FEAT-002, REQ-UX-003, REQ-UX-005, REQ-UX-006 (Human Gate Awareness — pending escalations count), REQ-UX-007 (Edge Zoom Management), REQ-EVOL-002 (JOIN spec+workspace), REQ-EVOL-005 (Draft Features Queue) -->
 <!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.9.0 §7.5 Event Sourcing, §7.6 Self-Observation, ADR-012 -->
 
 ## Usage

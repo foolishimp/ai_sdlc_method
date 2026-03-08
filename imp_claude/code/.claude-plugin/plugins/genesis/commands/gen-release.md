@@ -3,6 +3,7 @@
 Generate a release manifest with semantic version, changelog, and REQ key coverage.
 
 <!-- Implements: REQ-TOOL-004 (Release Management) -->
+<!-- Implements: REQ-LIFE-013 (Release Readiness Criteria — 4-gate readiness check before version ship) -->
 
 ## Usage
 

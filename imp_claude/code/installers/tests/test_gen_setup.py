@@ -1,8 +1,7 @@
-"""
-Tests for gen-setup.py installer.
-
 # Validates: REQ-TOOL-011 (Installability)
 # Validates: REQ-TOOL-015 (Workspace Placement at Project Root)
+"""
+Tests for gen-setup.py installer.
 """
 
 import json

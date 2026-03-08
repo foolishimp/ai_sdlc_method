@@ -1,4 +1,6 @@
 # Implements: REQ-EVENT-001 (OpenLineage event construction), REQ-EVENT-003 (Required Event Taxonomy), REQ-EVENT-004 (Saga Invariant), REQ-EVOL-003 (feature_proposal event), REQ-EVOL-004 (spec_modified event), REQ-COORD-002 (Multi-Agent Coordination), ADR-S-011, ADR-S-012
+# Implements: REQ-EVENT-002 (Projection Contract — instance_id isolation, deterministic event construction)
+# Implements: REQ-EVENT-005 (Executor Attribution Fields — actor/causation_id on every event; executor/emission optional fields per spec)
 """
 OpenLineage event constructor — builds spec-compliant RunEvents.
 

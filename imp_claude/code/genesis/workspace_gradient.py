@@ -1,4 +1,5 @@
 # Implements: REQ-LIFE-009 (Spec Review as Gradient Check)
+# Implements: REQ-FEAT-003 (Task Planning as Trajectory Optimisation — gradient-driven work ordering)
 """Workspace gradient — delta(workspace_state, spec) → work.
 
 Computes the gradient between what the spec asserts and what the workspace

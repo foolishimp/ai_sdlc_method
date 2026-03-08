@@ -1,4 +1,5 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking)
+# Implements: REQ-EVAL-001 (Three Evaluator Types — F_D, F_P, F_H Category enum)
 """Data models for the F_D functor framework."""
 
 from dataclasses import dataclass, field

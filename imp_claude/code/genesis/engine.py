@@ -1,4 +1,5 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ROBUST-007 (Failure Event Emission)
+# Implements: REQ-ITER-002 (Convergence and Promotion — iterate_edge loop, delta=0 → promotion)
 """Deterministic engine — owns the graph traversal loop.
 
 F_D controls: routing, emission, delta computation, convergence decisions.

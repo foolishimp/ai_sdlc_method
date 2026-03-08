@@ -13,6 +13,7 @@
 #   cat post-commit-spec-watch.sh >> .git/hooks/post-commit
 #
 # Implements: REQ-EVOL-004 (spec_modified event on specification/ changes)
+# Implements: REQ-LIFE-007 (Spec Change Events — emits spec_modified to events.jsonl on commit)
 # Processing regime: REFLEX (§4.3) — fires unconditionally on git commit
 # Reference: ol_event.spec_modified(), ADR-S-010 (Spec Evolution Pipeline)
 # ============================================================================

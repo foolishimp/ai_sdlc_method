@@ -3,6 +3,7 @@
 # Implements: REQ-EVOL-001 (Workspace Vector Schema Enforcement)
 # Implements: REQ-EVOL-002 (Feature Display Tools Must JOIN Spec and Workspace)
 # Implements: REQ-EVOL-004 (spec_modified event + spec hash verification)
+# Implements: REQ-INTENT-004 (Spec Reproducibility — verify_spec_hashes, compute_context_hash)
 """Pure-function workspace state detection utilities.
 
 These functions operate on filesystem paths (workspace directories) and return

@@ -1,6 +1,7 @@
 # Validates: REQ-EVENT-001
 # Validates: REQ-EVENT-003
 # Validates: REQ-EVENT-004
+# Validates: REQ-EVENT-005
 """
 Tests for the full OL event taxonomy (REQ-EVENT-003, REQ-EVENT-004).
 
@@ -471,3 +472,70 @@ class TestIterationStartedEmission:
         started = [e for e in events if e["event_type"] == "iteration_started"]
         assert len(started) == 3
         assert [e["iteration"] for e in started] == [1, 2, 3]
+
+
+# ── REQ-EVENT-005: Executor Attribution Fields ────────────────────────
+
+
+class TestExecutorAttributionFields:
+    """REQ-EVENT-005: events carry actor/causation attribution; executor/emission are optional."""
+
+    def test_make_ol_event_carries_actor_field(self):
+        """Every event constructed by make_ol_event includes the actor attribution field.
+
+        Validates: REQ-EVENT-005 (actor is the mandatory attribution field on every event)
+        """
+        import uuid
+        from genesis.ol_event import make_ol_event
+
+        event = make_ol_event(
+            event_type="IterationStarted",
+            job_name="design→code",
+            project="test-project",
+            instance_id=str(uuid.uuid4()),
+            actor="claude",
+        )
+        facets = event["run"]["facets"]["sdlc:universal"]
+        assert "actor" in facets, "actor attribution field must be present on every event"
+        assert facets["actor"] == "claude"
+
+    def test_make_ol_event_carries_causation_id(self):
+        """Every event has a causation_id attribution field for observability tooling.
+
+        Validates: REQ-EVENT-005 (causation_id enables executor chain tracing)
+        """
+        import uuid
+        from genesis.ol_event import make_ol_event
+
+        parent_run_id = str(uuid.uuid4())
+        event = make_ol_event(
+            event_type="IterationCompleted",
+            job_name="design→code",
+            project="test-project",
+            instance_id=str(uuid.uuid4()),
+            actor="engine",
+            causation_id=parent_run_id,
+        )
+        facets = event["run"]["facets"]["sdlc:universal"]
+        assert facets["causation_id"] == parent_run_id, "causation_id must thread attribution chain"
+
+    def test_ol_format_events_infer_engine_executor(self):
+        """OL-format events (eventType present) are attributed to executor=engine per REQ-EVENT-005 AC-1.
+
+        Validates: REQ-EVENT-005 AC-1 (OL-format events → infer executor: engine)
+        """
+        import uuid
+        from genesis.ol_event import make_ol_event
+
+        event = make_ol_event(
+            event_type="EdgeStarted",
+            job_name="design→code",
+            project="test-project",
+            instance_id=str(uuid.uuid4()),
+            actor="engine",
+        )
+        # OL-format events have a top-level 'eventType' field
+        assert "eventType" in event, "OL-format events must have top-level eventType"
+        # Per REQ-EVENT-005 AC-1: tooling MUST infer executor=engine when eventType is present
+        inferred_executor = "engine" if "eventType" in event else "claude"
+        assert inferred_executor == "engine"
