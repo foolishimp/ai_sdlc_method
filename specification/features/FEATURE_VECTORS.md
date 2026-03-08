@@ -562,7 +562,9 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 | REQ-EVENT-002 | REQ-F-EVENT-001 |
 | REQ-EVENT-003 | REQ-F-EVENT-001 |
 | REQ-EVENT-004 | REQ-F-EVENT-001 |
-| **83/83 requirements covered. No orphans.**
+| REQ-EVENT-005 | REQ-F-EVENT-001 |
+| REQ-TOOL-015 | REQ-F-TOOL-001 |
+| **85/85 requirements covered. No orphans.**
 
 ---
 

@@ -1,0 +1,114 @@
+{% if reviews %}
+<div class="timestamp">Last updated: {{ current_time }}</div>
+
+{% for r in reviews %}
+<div style="border: 1px solid var(--pico-muted-border-color); border-radius: 6px; padding: 12px; margin-bottom: 14px;">
+
+  {# Header row #}
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+    <code style="font-size: 0.85em; color: var(--pico-primary);">{{ r.review_id }}</code>
+
+    {% if r.status == "consensus_reached" %}
+    <span style="background:#1b5e20;color:#a5d6a7;padding:2px 8px;border-radius:3px;font-size:0.78em;white-space:nowrap;">consensus reached</span>
+    {% elif r.status == "consensus_failed" %}
+    <span style="background:#b71c1c;color:#ef9a9a;padding:2px 8px;border-radius:3px;font-size:0.78em;white-space:nowrap;">failed{% if r.failure_reason %}: {{ r.failure_reason }}{% endif %}</span>
+    {% else %}
+    <span style="background:#1a237e;color:#90caf9;padding:2px 8px;border-radius:3px;font-size:0.78em;white-space:nowrap;">open</span>
+    {% endif %}
+
+    <span style="color:var(--pico-muted-color);font-size:0.8em;">{{ r.quorum }} quorum</span>
+    <span style="color:var(--pico-muted-color);font-size:0.8em;">by {{ r.published_by }}</span>
+  </div>
+
+  {# Artifact #}
+  {% if r.artifact %}
+  <div style="font-size:0.82em;color:var(--pico-muted-color);margin-bottom:8px;">
+    artifact: <code>{{ r.artifact }}</code>
+  </div>
+  {% endif %}
+
+  {# Vote tally + quorum progress bar #}
+  <div style="display:flex;gap:16px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+    <div style="display:flex;gap:8px;font-size:0.85em;">
+      <span style="color:#a5d6a7;">✓ {{ r.approve_votes }} approve</span>
+      <span style="color:#ef9a9a;">✗ {{ r.reject_votes }} reject</span>
+      <span style="color:#90caf9;">~ {{ r.abstain_votes }} abstain</span>
+      {% if r.non_response_count > 0 %}
+      <span style="color:var(--pico-muted-color);">· {{ r.non_response_count }} pending</span>
+      {% endif %}
+    </div>
+
+    {# Quorum progress bar #}
+    {% if r.status == "open" %}
+    <div style="flex:1;min-width:120px;max-width:200px;">
+      <div style="height:6px;background:var(--pico-muted-border-color);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:{{ r.quorum_progress_pct }}%;background:{% if r.quorum_progress_pct >= 100 %}#a5d6a7{% else %}#90caf9{% endif %};border-radius:3px;transition:width 0.3s;"></div>
+      </div>
+      <div style="font-size:0.72em;color:var(--pico-muted-color);margin-top:2px;">{{ r.quorum_progress_pct }}% to {{ r.quorum }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# Roster #}
+  {% if r.roster %}
+  <div style="margin-bottom:8px;font-size:0.82em;">
+    <span style="color:var(--pico-muted-color);">roster:</span>
+    {% set voted_ids = r.votes | map(attribute='participant') | list %}
+    {% for p in r.roster %}
+      {% if p in voted_ids %}
+        {% set pv = r.votes | selectattr('participant', 'equalto', p) | first %}
+        {% if pv.verdict == 'approve' %}
+        <span style="background:#1b5e20;color:#a5d6a7;padding:1px 6px;border-radius:3px;margin:1px;font-size:0.85em;">{{ p }} ✓</span>
+        {% elif pv.verdict == 'reject' %}
+        <span style="background:#b71c1c;color:#ef9a9a;padding:1px 6px;border-radius:3px;margin:1px;font-size:0.85em;">{{ p }} ✗</span>
+        {% else %}
+        <span style="background:#37474f;color:#b0bec5;padding:1px 6px;border-radius:3px;margin:1px;font-size:0.85em;">{{ p }} ~</span>
+        {% endif %}
+      {% else %}
+        <span style="background:var(--pico-muted-border-color);color:var(--pico-muted-color);padding:1px 6px;border-radius:3px;margin:1px;font-size:0.85em;">{{ p }} …</span>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# Comment thread — gating comments only, last 5 #}
+  {% set gating_comments = r.comments | selectattr('gating') | list %}
+  {% if gating_comments %}
+  <details style="margin-top:8px;">
+    <summary style="font-size:0.82em;color:var(--pico-muted-color);cursor:pointer;">
+      {{ gating_comments | length }} gating comment{% if gating_comments | length != 1 %}s{% endif %}
+      ({{ r.gating_comments_dispositioned }}/{{ r.gating_comments_total }} dispositioned)
+    </summary>
+    <div style="margin-top:6px;border-left:2px solid var(--pico-muted-border-color);padding-left:10px;">
+      {% for c in gating_comments[-5:] %}
+      <div style="margin-bottom:6px;font-size:0.8em;">
+        <span style="color:var(--pico-primary);font-weight:bold;">{{ c.participant }}</span>
+        <span style="color:var(--pico-muted-color);margin-left:6px;">{{ c.timestamp.strftime('%Y-%m-%d %H:%M') if c.timestamp else '' }}</span>
+        {% if c.disposition %}
+        <span style="background:#4a148c;color:#ce93d8;padding:0 4px;border-radius:2px;font-size:0.85em;margin-left:4px;">{{ c.disposition }}</span>
+        {% else %}
+        <span style="background:#e65100;color:#ffcc80;padding:0 4px;border-radius:2px;font-size:0.85em;margin-left:4px;">undispositioned</span>
+        {% endif %}
+        <div style="color:var(--pico-color);margin-top:2px;">{{ c.content | truncate(200, true, '…') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
+
+</div>
+{% endfor %}
+
+<p style="font-size:0.75em;color:var(--pico-muted-color);margin-top:4px;">
+  {{ reviews | length }} review session{% if reviews | length != 1 %}s{% endif %} &nbsp;|&nbsp;
+  {{ reviews | selectattr('status', 'equalto', 'open') | list | length }} open &nbsp;
+  {{ reviews | selectattr('status', 'equalto', 'consensus_reached') | list | length }} reached &nbsp;
+  {{ reviews | selectattr('status', 'equalto', 'consensus_failed') | list | length }} failed
+</p>
+
+{% else %}
+<p><em>No consensus review sessions found in events.jsonl</em></p>
+<p style="font-size:0.82em;color:var(--pico-muted-color);">
+  Start a review with <code>/gen-consensus-open --artifact &lt;path&gt; --roster agent-a,agent-b,agent-c</code>
+</p>
+{% endif %}

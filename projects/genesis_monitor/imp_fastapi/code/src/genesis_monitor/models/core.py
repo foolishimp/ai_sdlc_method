@@ -17,6 +17,7 @@ if TYPE_CHECKING:
         ProjectionProfile,
         TimeBox,
     )
+    from genesis_monitor.parsers.reviews import ReviewSession
     from genesis_monitor.parsers.traceability import TraceabilityReport
 
 
@@ -163,6 +164,7 @@ class Project:
     traceability: TraceabilityReport | None = None
     index: EventIndex | None = None  # ADR-004: built at load time, queried per request
     adrs: list[AdrEntry] = field(default_factory=list)
+    reviews: list["ReviewSession"] = field(default_factory=list)
 
 
 @dataclass

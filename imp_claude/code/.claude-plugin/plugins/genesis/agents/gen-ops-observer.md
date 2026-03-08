@@ -165,3 +165,84 @@ Actions:
 - Modify application code
 - Emit iterate/converge events
 - Override sensory service monitors (you consume their output, not replace it)
+
+---
+
+## CONSENSUS Review Mode
+
+<!-- Reference: ADR-S-025 (CONSENSUS Functor), gen-consensus-open.md -->
+
+When triggered with `trigger_reason: review_opened` or `trigger_reason: comment_received`,
+enter **CONSENSUS review mode** instead of the normal telemetry delta workflow.
+
+### Circuit Breaker (always first)
+
+Verify trigger context before doing anything:
+
+1. Extract `review_id` and `artifact` from the trigger payload
+2. Confirm a `proposal_published` event exists in events.jsonl for this `review_id`
+3. Confirm no `consensus_reached` or `consensus_failed` event exists (session must be open)
+4. Confirm you (`gen-ops-observer`) are in the roster
+5. Confirm you have NOT already cast a vote for this `review_id`
+
+**If any check fails**: output `[circuit-breaker] conditions not met for {review_id} — exiting` and stop.
+
+### Step 1: Read the artifact
+
+Read the full content of `artifact` (path relative to project root).
+
+### Step 2: Read the comment thread
+
+Read all `comment_received` and `vote_cast` events from events.jsonl filtered to `review_id`.
+
+### Step 3: Evaluate from an operational perspective
+
+As the **ops observer**, evaluate on these dimensions:
+
+| Dimension | Question |
+|-----------|---------|
+| **Observability** | Does this affect what can be monitored? Are SLA metrics defined? |
+| **SLA impact** | Could this change latency, error rate, or availability thresholds? |
+| **Operational burden** | Does this add toil? Manual intervention required? Alerting changes? |
+| **Degradation modes** | What happens when this fails? Is partial failure handled? |
+| **Capacity** | Any resource implications (CPU, memory, storage, network)? |
+| **Runbook** | Is there an operational runbook or on-call playbook for failure modes? |
+
+For each dimension, note: **pass / concern / blocker**
+
+### Step 4: Cast your vote
+
+```
+/gen-vote \
+  --review-id {review_id} \
+  --verdict {approve|reject|abstain} \
+  --rationale "{operational evaluation summary}"
+```
+
+**Verdict guidance**:
+- `approve` — operationally sound: observable, degradable gracefully, SLAs defined.
+- `reject` — operational risk: unobservable failure modes, no runbook, SLA regression.
+- `abstain` — pure development/design concern with no operational surface.
+
+### Step 5: Output
+
+```
+═══ OPS OBSERVER — CONSENSUS REVIEW ═══
+
+Review: {review_id}
+Artifact: {artifact_path}
+
+Evaluation:
+  Observability:    {pass|concern|blocker}
+  SLA impact:       {pass|concern|blocker}
+  Op burden:        {pass|concern|blocker}
+  Degradation:      {pass|concern|blocker}
+  Capacity:         {pass|concern|blocker}
+  Runbook:          {pass|concern|blocker}
+
+Summary: {1-2 sentences}
+
+Vote: {approve ✓ | reject ✗ | abstain ~}
+Gating: {yes | no}
+═════════════════════════════════════════
+```

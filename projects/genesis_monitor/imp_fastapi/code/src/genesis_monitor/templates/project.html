@@ -350,6 +350,17 @@
     </div>
 </div>
 
+<!-- Consensus Reviews -->
+<div class="card">
+    <h3>Consensus Reviews <small style="font-weight: normal; color: var(--pico-muted-color);">ADR-S-025 — multi-stakeholder evaluation</small></h3>
+    <div id="reviews-section"
+         hx-get="/fragments/project/{{ project.project_id }}/reviews"
+         hx-trigger="load, sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+         hx-swap="innerHTML">
+        <p style="color:var(--pico-muted-color);font-size:0.85em;">Loading review sessions…</p>
+    </div>
+</div>
+
 <!-- Consciousness Timeline (full-width, bottom of page) -->
 <div class="card">
     <h3>Consciousness Loop</h3>

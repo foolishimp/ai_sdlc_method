@@ -4,6 +4,7 @@
 # Implements: REQ-F-ELIN-001, REQ-F-ELIN-002, REQ-F-ELIN-003, REQ-F-FLIN-001, REQ-F-FLIN-002
 # Implements: REQ-F-GVIZ-001, REQ-F-GVIZ-002, REQ-F-GVIZ-003, REQ-F-GVIZ-004, REQ-F-GVIZ-005
 # Implements: REQ-F-TSER-001, REQ-F-TSER-002, REQ-F-TSER-003, REQ-F-TSER-004
+# Implements: REQ-F-CONSENSUS-001
 """FastAPI route definitions — page routes, fragment routes, SSE endpoint."""
 
 from __future__ import annotations
@@ -764,6 +765,21 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
             request,
             "fragments/_adrs.html",
             {"adrs": project.adrs, "current_time": datetime.now().strftime("%H:%M:%S")},
+        )
+
+    @router.get("/fragments/project/{project_id}/reviews", response_class=HTMLResponse)
+    async def fragment_reviews(request: Request, project_id: str):
+        """CONSENSUS review sessions — live vote tally, comment thread, quorum progress."""
+        from genesis_monitor.parsers.reviews import parse_reviews
+        project = registry.get_project(project_id)
+        if not project: return HTMLResponse("")
+        # Re-parse live so new votes appear without a full registry reload
+        workspace = project.path / ".ai-workspace"
+        reviews = parse_reviews(workspace)
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "fragments/_reviews.html",
+            {"reviews": reviews, "current_time": datetime.now().strftime("%H:%M:%S")},
         )
 
     @router.get("/fragments/project/{project_id}/feature-trajectory", response_class=HTMLResponse)

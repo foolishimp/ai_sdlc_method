@@ -91,6 +91,14 @@ _OL_EVENT_TYPE = {
     "ClaimExpired": "OTHER",  # stale claim detected (no follow-up within timeout)
     "EdgeReleased": "OTHER",  # agent voluntarily releases a claim
     "ConvergenceEscalated": "OTHER",  # convergence outside agent role authority → human gate
+    # CONSENSUS functor (ADR-S-025, REQ-F-CONSENSUS-001)
+    "ProposalPublished": "START",       # review session opened; roster + quorum config
+    "CommentReceived": "OTHER",         # participant posted a comment
+    "VoteCast": "OTHER",               # participant cast a vote (approve|reject|abstain)
+    "AssetVersionChanged": "OTHER",    # material or non-material change during open review
+    "ConsensusReached": "COMPLETE",    # quorum satisfied; all 5 checks passed
+    "ConsensusFailed": "FAIL",         # typed failure with failure_reason + available_paths
+    "RecoveryPathSelected": "OTHER",   # proposer selected re_open|narrow_scope|abandon
 }
 
 

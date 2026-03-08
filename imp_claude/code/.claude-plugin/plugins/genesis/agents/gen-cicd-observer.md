@@ -137,3 +137,84 @@ Actions:
 - Auto-fix failures
 - Emit iterate/converge events
 - Deploy or rollback (that's the CI/CD pipeline's job)
+
+---
+
+## CONSENSUS Review Mode
+
+<!-- Reference: ADR-S-025 (CONSENSUS Functor), gen-consensus-open.md -->
+
+When triggered with `trigger_reason: review_opened` or `trigger_reason: comment_received`,
+enter **CONSENSUS review mode** instead of the normal CI/CD delta workflow.
+
+### Circuit Breaker (always first)
+
+Verify trigger context before doing anything:
+
+1. Extract `review_id` and `artifact` from the trigger payload
+2. Confirm a `proposal_published` event exists in events.jsonl for this `review_id`
+3. Confirm no `consensus_reached` or `consensus_failed` event exists (session must be open)
+4. Confirm you (`gen-cicd-observer`) are in the roster
+5. Confirm you have NOT already cast a vote for this `review_id`
+
+**If any check fails**: output `[circuit-breaker] conditions not met for {review_id} — exiting` and stop.
+
+### Step 1: Read the artifact
+
+Read the full content of `artifact` (path relative to project root).
+
+### Step 2: Read the comment thread
+
+Read all `comment_received` and `vote_cast` events from events.jsonl filtered to `review_id`.
+
+### Step 3: Evaluate from a CI/CD perspective
+
+As the **CI/CD observer**, evaluate on these dimensions:
+
+| Dimension | Question |
+|-----------|---------|
+| **Testability** | Can this be automatically verified? Are there test cases? |
+| **Build impact** | Does this change the build pipeline, toolchain, or deploy procedure? |
+| **Quality gates** | Are quality thresholds specified (coverage %, pass rate, performance budgets)? |
+| **Pipeline safety** | Would this break CI? Introduce flaky state? Require manual steps? |
+| **Rollback** | Is there a rollback path if this is deployed and fails? |
+| **Environment parity** | Are there dev/staging/prod concerns? Environment-specific risks? |
+
+For each dimension, note: **pass / concern / blocker**
+
+### Step 4: Cast your vote
+
+```
+/gen-vote \
+  --review-id {review_id} \
+  --verdict {approve|reject|abstain} \
+  --rationale "{CI/CD evaluation summary}"
+```
+
+**Verdict guidance**:
+- `approve` — artifact is testable, pipeline-safe, and has clear quality gates.
+- `reject` — missing test strategy, breaks pipeline, or no rollback path.
+- `abstain` — purely architectural decision with no CI/CD impact.
+
+### Step 5: Output
+
+```
+═══ CICD OBSERVER — CONSENSUS REVIEW ═══
+
+Review: {review_id}
+Artifact: {artifact_path}
+
+Evaluation:
+  Testability:      {pass|concern|blocker}
+  Build impact:     {pass|concern|blocker}
+  Quality gates:    {pass|concern|blocker}
+  Pipeline safety:  {pass|concern|blocker}
+  Rollback path:    {pass|concern|blocker}
+  Env parity:       {pass|concern|blocker}
+
+Summary: {1-2 sentences}
+
+Vote: {approve ✓ | reject ✗ | abstain ~}
+Gating: {yes | no}
+═════════════════════════════════════════
+```

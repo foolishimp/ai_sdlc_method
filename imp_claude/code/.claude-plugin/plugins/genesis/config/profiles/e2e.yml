@@ -64,7 +64,9 @@ context:
   optional_elements:
     - adrs
 
-# Encoding: F_P for route/decide (no F_H — autonomous operation)
+# Encoding: F_P for route (no F_H human review gates — autonomous operation)
+# Note: decide remains F_H (category-fixed per bootloader §VI) — but e2e
+# evaluators are configured as agent-only, so F_H gates are not exercised.
 encoding:
   strategy: balanced
   mode: interactive
@@ -76,8 +78,8 @@ encoding:
     route:       F_P              # F_P not F_H — autonomous routing
     propose:     F_P
     sense:       F_D
-    emit:        F_D              # category-fixed
-    decide:      F_P              # F_P not F_H — autonomous decisions
+    emit:        F_D              # category-fixed (always F_D)
+    decide:      F_H              # category-fixed (always F_H per bootloader §VI)
   edge_overrides: {}
 
 # Iteration budget

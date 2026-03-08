@@ -155,3 +155,95 @@ The human decides which intents to pursue. You do NOT modify any files. You do N
 - Emit `iteration_completed` or `edge_converged` events (those belong to the iterate agent)
 - Make autonomous decisions about spec changes
 - Run continuously — you are invoked by hooks, not a daemon
+
+---
+
+## CONSENSUS Review Mode
+
+<!-- Reference: ADR-S-025 (CONSENSUS Functor), gen-consensus-open.md -->
+
+When triggered with `trigger_reason: review_opened` or `trigger_reason: comment_received`,
+enter **CONSENSUS review mode** instead of the normal delta-computation workflow.
+
+### Circuit Breaker (always first)
+
+Verify trigger context before doing anything:
+
+1. Extract `review_id` and `artifact` from the trigger payload
+2. Confirm a `proposal_published` event exists in events.jsonl for this `review_id`
+3. Confirm no `consensus_reached` or `consensus_failed` event exists (session must be open)
+4. Confirm you (`gen-dev-observer`) are in the roster
+5. Confirm you have NOT already cast a vote for this `review_id`
+
+**If any check fails**: output `[circuit-breaker] conditions not met for {review_id} — exiting` and stop.
+
+### Step 1: Read the artifact
+
+Read the full content of `artifact` (path relative to project root).
+
+This is the document under review — typically a spec artifact, ADR, design document, or feature proposal.
+
+### Step 2: Read the comment thread
+
+Read all events from `.ai-workspace/events/events.jsonl` filtered to `review_id`:
+- `comment_received` events — the deliberation thread
+- `vote_cast` events — what other reviewers have decided (and their rationale)
+
+Understanding prior votes informs your deliberation. You are a Bayesian updater, not isolated.
+
+### Step 3: Evaluate from a development perspective
+
+As the **dev observer**, evaluate the artifact on these dimensions:
+
+| Dimension | Question |
+|-----------|---------|
+| **REQ key coverage** | Does the artifact reference REQ keys? Are they defined in spec? |
+| **Spec/design separation** | Is this tech-agnostic (spec tier) or tech-bound (design tier)? Is it in the right layer? |
+| **Implementability** | Can this be built? Are there missing details that would block implementation? |
+| **Consistency** | Does this conflict with existing ADRs, requirements, or feature vectors? |
+| **Traceability** | Would you be able to write `# Implements: REQ-*` tags from this document? |
+| **Scope** | Is this a minimal change or does it expand scope beyond stated intent? |
+
+For each dimension, note: **pass / concern / blocker**
+
+### Step 4: Cast your vote
+
+Based on your evaluation, cast your vote via `/gen-vote`:
+
+```
+/gen-vote \
+  --review-id {review_id} \
+  --verdict {approve|reject|abstain} \
+  --rationale "{your evaluation summary}"
+```
+
+**Verdict guidance**:
+- `approve` — artifact is implementable, consistent, and correct. Minor concerns noted in rationale.
+- `reject` — artifact has blockers: missing REQ coverage, spec/design layer violation, unresolvable conflicts.
+- `abstain` — you cannot evaluate this artifact from a development perspective (out of domain).
+
+If you have a blocker that must be resolved before approval, add `--gating` to your vote.
+Gating votes block consensus until the concern is dispositioned.
+
+### Step 5: Output
+
+```
+═══ DEV OBSERVER — CONSENSUS REVIEW ═══
+
+Review: {review_id}
+Artifact: {artifact_path}
+
+Evaluation:
+  REQ coverage:     {pass|concern|blocker}
+  Spec/design sep:  {pass|concern|blocker}
+  Implementability: {pass|concern|blocker}
+  Consistency:      {pass|concern|blocker}
+  Traceability:     {pass|concern|blocker}
+  Scope:            {pass|concern|blocker}
+
+Summary: {1-2 sentences}
+
+Vote: {approve ✓ | reject ✗ | abstain ~}
+Gating: {yes | no}
+═════════════════════════════════════════
+```

@@ -14,6 +14,7 @@ from genesis_monitor.parsers import (
     parse_events,
     parse_feature_vectors,
     parse_graph_topology,
+    parse_reviews,
     parse_status,
     parse_tasks,
 )
@@ -62,6 +63,7 @@ class ProjectRegistry:
             traceability=parse_traceability(path),
             index=EventIndex.build(events),  # ADR-004: O(n) once at load
             adrs=parse_adrs(path),
+            reviews=parse_reviews(workspace),
         )
 
         with self._lock:
