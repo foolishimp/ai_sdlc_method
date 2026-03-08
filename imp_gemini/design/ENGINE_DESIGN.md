@@ -1,53 +1,44 @@
-# Design: Asset Graph Engine
+# Design: Asset Graph Engine (Unified Intent Vector Model)
 
-**Version**: 1.0.0
-**Date**: 2026-02-26
-**Implements**: REQ-F-ENGINE-001
+**Version**: 1.1.0
+**Date**: 2026-03-08
+**Implements**: REQ-F-ENGINE-001, ADR-S-026
 
----
+--- 
 
 ## Architecture Overview
-The Asset Graph Engine is a state machine that manages the lifecycle of methodology assets. It uses event sourcing to derive current state and enforces admissible transitions through a configurable topology.
-
-```mermaid
-graph TD
-    EventStore[Event Store] --> Projector[State Projector]
-    Projector --> Engine[Iterate Engine]
-    Engine --> Evaluators[Evaluator Registry]
-    Engine --> Context[Context Loader]
-    Engine --> Asset[Asset Filesystem]
-```
+The Asset Graph Engine is a state machine that manages the lifecycle of **Intent Vectors**. It uses event sourcing to derive the current state of the causal DAG and enforces admissible transitions through a **Compositional Topology**.
 
 ## Component Design
 
-### Component: EventStore
-**Implements**: REQ-GRAPH-002
-**Responsibilities**: Append-only log of methodology events. Source of truth for all state transitions.
-**Interfaces**: emit(event), load_all()
-**Dependencies**: Filesystem (events.jsonl)
+### Component: IntentEngine (Refactored)
+**Implements**: REQ-F-ITER-001, ADR-S-026
+**Responsibilities**: Orchestrates the iteration loop for a given `IntentVector`. Loads the bound `composition_expression` and executes its constituent functors.
+**Interfaces**: run(vector, context), evaluate_convergence()
+**Dependencies**: FunctorRegistry, ContextLoader, EventStore
 
-### Component: IterateEngine
-**Implements**: REQ-ITER-001, REQ-ITER-002
-**Responsibilities**: Orchestrates the iteration loop. Executes evaluators against asset candidates.
-**Interfaces**: run(asset, context), evaluate_convergence()
-**Dependencies**: EventStore, ConfigLoader, FunctorRegistry
+### Component: VectorRegistry
+**Implements**: ADR-S-021, ADR-S-026
+**Responsibilities**: Manages the lifecycle and causality of Intent Vectors. Tracks parent-child relationships and resolution levels.
+**Interfaces**: create_vector(source, level, composition), get_causal_ancestry(vector_id)
 
-### Component: GraphTopology
-**Implements**: REQ-GRAPH-001, REQ-GRAPH-002
-**Responsibilities**: Defines asset types and admissible transitions.
-**Interfaces**: is_admissible(source, target), get_markov_criteria(type)
-**Dependencies**: graph_topology.yml
+### Component: CompositionCompiler
+**Implements**: ADR-S-026
+**Responsibilities**: Compiles a composition expression (e.g., `PLAN`, `POC`) into an executable graph fragment. Maps functors to the underlying `EvaluatorFramework`.
+**Interfaces**: compile(expression) 	o graph_fragment
 
-## Data Model
+## Data Model (Unified Intent Vector)
 
 ```mermaid
 classDiagram
-    class Event {
-        +string event_type
-        +datetime timestamp
-        +string feature
-        +string edge
-        +dict data
+    class IntentVector {
+        +string id
+        +string source
+        +string parent_vector_id
+        +string resolution_level
+        +dict composition_expression
+        +string profile
+        +string status
     }
     class EventStore {
         +list events
@@ -59,18 +50,11 @@ classDiagram
 ## Traceability Matrix
 | REQ Key | Component |
 |---------|----------|
-| REQ-GRAPH-001 | GraphTopology |
-| REQ-GRAPH-002 | EventStore, GraphTopology |
-| REQ-GRAPH-003 | IterateEngine |
-| REQ-ITER-001 | IterateEngine |
-| REQ-ITER-002 | IterateEngine |
+| REQ-GRAPH-001 | VectorRegistry |
+| REQ-GRAPH-002 | EventStore, VectorRegistry |
+| REQ-ITER-001 | IntentEngine |
+| ADR-S-026 | IntentEngine, VectorRegistry, CompositionCompiler |
 
 ## ADR Index
-- [ADR-001: Python 3.12 Ecosystem](adrs/ADR-001-python-ecosystem.md)
-- [ADR-002: Local Filesystem Storage](adrs/ADR-002-filesystem-storage.md)
-- [ADR-003: Simple Event Sourcing](adrs/ADR-003-event-sourcing.md)
-
-## Package/Module Structure
-- `gemini_cli.engine`: Core engine and state management
-- `gemini_cli.functors`: Evaluator implementations
-- `gemini_cli.commands`: CLI command bindings
+- [ADR-019: Unified Intent Vector Model](adrs/ADR-019-unified-intent-vector-model.md)
+- [ADR-020: Project Instance Graph (Implementation of ADR-S-021)](adrs/ADR-020-project-instance-graph.md)
