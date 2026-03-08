@@ -1,6 +1,6 @@
 # Genesis Monitor — Requirements Specification
 
-**Version**: 3.2.0
+**Version**: 3.3.0
 **Date**: 2026-03-08
 **Status**: Iterating — iterate(intent→requirements) for INT-GMON-010 (graph trail visualization)
 **Feature**: REQ-F-GMON-001, REQ-F-GMON-002, REQ-F-MTEN-001
@@ -49,6 +49,7 @@ Genesis Monitor is a real-time web dashboard that observes AI SDLC methodology e
 | REQ-F-CTOL-* | INT-GMON-005 (Constraint tolerances) |
 | REQ-F-MTEN-* | INT-GMON-009 (Multi-design tenancy) |
 | REQ-F-GVIZ-* | INT-GMON-010 (Event trail graph visualization) |
+| REQ-F-TSER-* | INT-GMON-011 (Time series lifecycle view) |
 
 ### 1.4 Target Implementation
 
@@ -1302,8 +1303,74 @@ The trail metaphor is deliberate. Like a forest trail worn into the ground by re
 
 ---
 
+## 31b. Time Series Lifecycle View
+
+**New Intent Item**: INT-GMON-011 — Execution lifecycle view: the user understands the temporal sequence of edge traversals, identifies gaps in activity, and finds sequencing/parallelism patterns by reading a scrollable time-axis chart where each EdgeRun is a bar.
+
+The topology trail graph (INT-GMON-010) answers "what paths does the project take through the methodology graph?" The lifecycle view answers "when did things happen, how long did each edge take, and where are the gaps?" Both projections are necessary for full observability — one is structural, the other is temporal.
+
+### REQ-F-TSER-001: Feature Swimlane Time Axis
+
+**Priority**: High
+**Traces To**: INT-GMON-011
+
+**Statement**: EdgeRuns are displayed as horizontal bars on a time axis. Each distinct feature occupies one horizontal swimlane. The X-axis is wall-clock time. Lanes are sorted by each feature's first-activity timestamp (earliest feature at top).
+
+**Acceptance Criteria**:
+1. One swimlane per feature that has at least one EdgeRun in the current view.
+2. The X-axis spans from the earliest `started_at` to the latest `ended_at` (or current time for in-progress runs), with a small padding on each side.
+3. Feature labels appear on the left of each lane, abbreviated (strip `REQ-F-` prefix for readability). Clicking a label filters the table to that feature.
+4. Horizontal lane separators visually divide the swimlanes.
+5. When no runs are present, a "no activity" message is shown.
+
+### REQ-F-TSER-002: EdgeRun Bar Rendering
+
+**Priority**: High
+**Traces To**: INT-GMON-011
+
+**Statement**: Each EdgeRun is rendered as a rectangle whose width is proportional to its real-world duration. The bar visually encodes the feature, edge, status, and effort of the traversal.
+
+**Acceptance Criteria**:
+1. Bar **left edge** is positioned at `started_at`. Bar **right edge** is at `ended_at` (converged/failed/aborted) or current wall-clock time (in-progress).
+2. Bar **colour** matches the feature's colour identity from the trail graph palette — the same feature always gets the same colour across both views.
+3. Bar **opacity**: converged=0.85, in-progress=0.65 (with pulse animation), failed/aborted=0.85 with red/warning stroke border.
+4. **Edge label** is rendered inside the bar if the bar is at least 40 pixels wide; truncated with ellipsis if the text overflows.
+5. **Iteration count badge** appears at the top-right corner of the bar when `iteration_count > 1` and bar width >= 20px, indicating the effort required.
+6. **Tooltip** on hover shows: feature ID, edge name, status, duration (human-readable), iteration count, final delta.
+7. In-progress bars extend to the current time and animate with a subtle pulse to indicate live activity.
+
+### REQ-F-TSER-003: Horizontal Zoom and Pan
+
+**Priority**: High
+**Traces To**: INT-GMON-011
+
+**Statement**: The user can zoom and pan horizontally to examine any time window — from the full project history down to a single hour. Preset buttons provide instant navigation to common windows.
+
+**Acceptance Criteria**:
+1. Mouse scroll / trackpad pinch zooms the time axis. Click-drag pans horizontally. Y-axis (feature labels) does not scroll.
+2. Preset zoom buttons are provided: **Fit** (show all), **1h** (last 1 hour), **1d** (last 24 hours), **1w** (last 7 days). "Last N" centers on the most recent activity.
+3. The time axis label format adapts to zoom level: fine zoom shows `HH:MM:SS`, coarse zoom shows `Mon DD`.
+4. On zoom/pan, bars and axis labels update smoothly (no redraw flicker).
+
+### REQ-F-TSER-004: Gap Visibility
+
+**Priority**: High
+**Traces To**: INT-GMON-011
+
+**Statement**: Empty horizontal space between bars in the same swimlane is a first-class signal — it represents time during which the feature had no active edge traversal. The visualization makes gaps immediately visible without requiring any additional UI.
+
+**Acceptance Criteria**:
+1. No special rendering is required for gaps — the time scale makes them visible as blank space.
+2. The lane background (behind bars) is a consistent neutral colour so gaps are visually distinct from bar-covered time.
+3. A gap within a feature lane (between two bars) indicates time between edge traversals for that feature.
+4. A gap across all feature lanes simultaneously indicates a period of no project activity.
+
+---
+
 ## 32. Requirements Summary
 
 **Total REQ-F-GVIZ keys**: 5 (REQ-F-GVIZ-001 through REQ-F-GVIZ-005)
+**Total REQ-F-TSER keys**: 4 (REQ-F-TSER-001 through REQ-F-TSER-004)
 **All graph visualization requirements**: INT-GMON-010
-**Iteration**: v3.2 — graph-primary navigation
+**All lifecycle time series requirements**: INT-GMON-011
+**Iteration**: v3.3 — dual visualization projections (topology trail + time series lifecycle)

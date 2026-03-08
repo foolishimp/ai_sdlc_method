@@ -41,9 +41,9 @@ class ProjectRegistry:
         workspace = path / ".ai-workspace"
 
         status = parse_status(workspace)
-        # Use directory name as display name — it's always unique and descriptive.
-        # STATUS.md heading is often generic ("Project Status").
-        name = path.name
+        # Prefer the name from STATUS.md heading (project_name field).
+        # Fall back to directory name if STATUS.md is absent or generic.
+        name = (status.project_name if status and status.project_name else None) or path.name
 
         events = parse_events(workspace, max_events=100000)
         project = Project(

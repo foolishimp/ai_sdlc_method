@@ -1,4 +1,6 @@
-<!-- Implements: REQ-F-ELIN-002, REQ-F-ELIN-003, REQ-F-GVIZ-001, REQ-F-GVIZ-002, REQ-F-GVIZ-003, REQ-F-GVIZ-004, REQ-F-GVIZ-005 -->
+<!-- Implements: REQ-F-ELIN-002, REQ-F-ELIN-003 -->
+<!-- Implements: REQ-F-GVIZ-001, REQ-F-GVIZ-002, REQ-F-GVIZ-003, REQ-F-GVIZ-004, REQ-F-GVIZ-005 -->
+<!-- Implements: REQ-F-TSER-001, REQ-F-TSER-002, REQ-F-TSER-003, REQ-F-TSER-004 -->
 {% extends "base.html" %}
 {% block title %}{{ project.name }} — Edge Traversal Timeline{% endblock %}
 
@@ -49,8 +51,21 @@
 .filter-bar input, .filter-bar select { font-size: 0.85rem; padding: 4px 8px; height: auto; }
 .col-header { font-size: 0.72rem; color: var(--pico-muted-color); text-transform: uppercase;
               letter-spacing: 0.06em; margin-bottom: 4px; }
+/* Visualization tab switcher */
+.viz-tabs { display: flex; gap: 0; margin-bottom: 0.75rem; border-bottom: 2px solid var(--pico-muted-border-color); }
+.viz-tab { background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px;
+           padding: 6px 16px; font-size: 0.85rem; cursor: pointer; color: var(--pico-muted-color);
+           border-radius: 4px 4px 0 0; transition: color 0.15s, border-color 0.15s; }
+.viz-tab:hover { color: var(--pico-color); }
+.viz-tab.active { color: var(--pico-primary); border-bottom-color: var(--pico-primary); font-weight: 600; }
+/* Lifecycle controls */
+.lc-controls { display: flex; gap: 4px; padding: 6px 8px; align-items: center; }
+.lc-zoom-btn { background: none; border: 1px solid var(--pico-muted-border-color); border-radius: 3px;
+               padding: 2px 8px; font-size: 0.75rem; cursor: pointer; color: var(--pico-muted-color); }
+.lc-zoom-btn:hover { border-color: var(--pico-primary); color: var(--pico-primary); }
+.lc-label { font-size: 0.72rem; color: var(--pico-muted-color); margin-left: 8px; }
 /* Event Trail Graph — REQ-F-GVIZ-001..005 */
-#trail-graph-container { margin-bottom: 1.5rem; }
+#trail-graph-container { margin-bottom: 0; }
 #trail-graph-wrap { display: flex; gap: 0.75rem; align-items: flex-start; }
 #trail-graph { flex: 1; min-height: 200px; border: 1px solid var(--pico-muted-border-color);
                border-radius: 6px; overflow: hidden; background: var(--pico-card-background-color); }
@@ -107,7 +122,12 @@
     </div>
 </div>
 
-<!-- Event Trail Graph — REQ-F-GVIZ-001..005 -->
+<!-- Visualization projections — REQ-F-GVIZ-001..005, REQ-F-TSER-001..004 -->
+<div class="viz-tabs">
+    <button class="viz-tab active" id="tab-trail" onclick="switchVizTab('trail')">Topology Trail</button>
+    <button class="viz-tab" id="tab-lifecycle" onclick="switchVizTab('lifecycle')">Lifecycle</button>
+</div>
+
 <div id="trail-graph-container">
     <div id="trail-graph-wrap">
         <div id="trail-graph">
@@ -138,7 +158,7 @@
     // Fetch graph data (same filter params as current page)
     fetch("/project/" + PROJECT_ID + "/timeline/graph-data" + window.location.search)
         .then(function (r) { return r.json(); })
-        .then(renderGraph)
+        .then(function (data) { window._graphData = data; renderGraph(data); })
         .catch(function () {
             document.getElementById("trail-graph").innerHTML =
                 '<p style="color:var(--pico-muted-color);padding:1rem;font-size:0.85rem;">Graph data unavailable.</p>';
@@ -415,6 +435,255 @@
     };
 
 }());
+</script>
+
+<!-- Lifecycle time series view — REQ-F-TSER-001..004 -->
+<div id="lifecycle-container" style="display:none; margin-bottom:0.75rem;">
+    <div id="viz-lifecycle" style="border:1px solid var(--pico-muted-border-color); border-radius:6px;
+                                   background:var(--pico-card-background-color); overflow:hidden;">
+        <p style="color:var(--pico-muted-color);padding:1rem;font-size:0.85rem;">Click Lifecycle tab to load.</p>
+    </div>
+</div>
+
+<script>
+// ── Tab switcher ──────────────────────────────────────────────────────────────
+var _lifecycleInit = false;
+function switchVizTab(tab) {
+    document.getElementById('tab-trail').classList.toggle('active', tab === 'trail');
+    document.getElementById('tab-lifecycle').classList.toggle('active', tab === 'lifecycle');
+    document.getElementById('trail-graph-container').style.display = tab === 'trail' ? '' : 'none';
+    document.getElementById('lifecycle-container').style.display = tab === 'lifecycle' ? '' : 'none';
+    if (tab === 'lifecycle' && !_lifecycleInit) {
+        _lifecycleInit = true;
+        if (window._graphData) { initLifecycle(window._graphData); }
+        else {
+            var PROJECT_ID = {{ project.project_id | tojson }};
+            fetch('/project/' + PROJECT_ID + '/timeline/graph-data' + window.location.search)
+                .then(function(r) { return r.json(); })
+                .then(function(d) { window._graphData = d; initLifecycle(d); });
+        }
+    }
+}
+
+// ── Lifecycle visualization — REQ-F-TSER-001..004, ADR-008 ───────────────────
+function initLifecycle(data) {
+    var PALETTE = ["#4e79a7","#f28e2b","#e15759","#76b7b2","#59a14f",
+                   "#edc948","#b07aa1","#ff9da7","#9c755f","#bab0ac"];
+
+    var runs = (data.runs || []).filter(function(r) { return r.started_at && r.feature; });
+    var container = document.getElementById('viz-lifecycle');
+
+    if (!runs.length) {
+        container.innerHTML = '<p style="color:var(--pico-muted-color);padding:1rem;font-size:0.85rem;">No edge runs with time data yet.</p>';
+        return;
+    }
+    container.innerHTML = '';
+
+    // ── Layout constants ──────────────────────────────────────────────────
+    var ML = 140, MR = 24, MT = 8, MB = 28;
+    var LANE_H = 30, BAR_FRAC = 0.65;
+    var W = Math.max(container.clientWidth || 700, 500);
+
+    // ── Feature lanes — sorted by first activity ──────────────────────────
+    var featFirst = {};
+    runs.forEach(function(r) {
+        var t = new Date(r.started_at).getTime();
+        if (featFirst[r.feature] === undefined || t < featFirst[r.feature]) featFirst[r.feature] = t;
+    });
+    var features = Object.keys(featFirst).sort(function(a,b) { return featFirst[a] - featFirst[b]; });
+    var H = MT + features.length * LANE_H + MB;
+    var yByFeat = {};
+    features.forEach(function(f, i) { yByFeat[f] = MT + i * LANE_H; });
+
+    // ── Time domain ───────────────────────────────────────────────────────
+    var now = Date.now();
+    var t0 = d3.min(runs, function(r) { return new Date(r.started_at); });
+    var t1 = d3.max(runs, function(r) { return r.ended_at ? new Date(r.ended_at) : new Date(now); });
+    var tPad = Math.max((t1 - t0) * 0.03, 60000);
+    var xOrig = d3.scaleTime()
+        .domain([new Date(t0.getTime() - tPad), new Date(t1.getTime() + tPad)])
+        .range([ML, W - MR]);
+    var xScale = xOrig.copy();
+
+    // ── SVG ───────────────────────────────────────────────────────────────
+    var svg = d3.select('#viz-lifecycle').append('svg')
+        .attr('width', '100%').attr('height', H)
+        .attr('viewBox', '0 0 ' + W + ' ' + H)
+        .style('display', 'block');
+
+    // Clip path keeps bars inside the chart area
+    svg.append('defs').append('clipPath').attr('id', 'lc-clip')
+        .append('rect').attr('x', ML).attr('y', 0).attr('width', W - ML - MR).attr('height', H);
+
+    // ── Lane backgrounds (for gap visibility — REQ-F-TSER-004) ───────────
+    var laneBg = svg.append('g');
+    features.forEach(function(f, i) {
+        laneBg.append('rect')
+            .attr('x', ML).attr('y', yByFeat[f])
+            .attr('width', W - ML - MR).attr('height', LANE_H)
+            .attr('fill', i % 2 === 0 ? 'rgba(128,128,128,0.04)' : 'none');
+    });
+
+    // ── Feature labels (left, fixed — REQ-F-TSER-001 AC-3) ───────────────
+    features.forEach(function(f) {
+        var y = yByFeat[f] + LANE_H / 2;
+        var label = f.replace('REQ-F-', '');
+        svg.append('text')
+            .attr('x', ML - 6).attr('y', y)
+            .attr('text-anchor', 'end').attr('dominant-baseline', 'middle')
+            .attr('font-size', '9px').attr('font-family', 'monospace')
+            .attr('fill', 'var(--pico-muted-color)').attr('cursor', 'pointer')
+            .text(label)
+            .on('click', function() { window.selectGraphFeature && window.selectGraphFeature(f); });
+    });
+
+    // ── Lane separators ───────────────────────────────────────────────────
+    features.forEach(function(f) {
+        svg.append('line')
+            .attr('x1', ML).attr('x2', W - MR)
+            .attr('y1', yByFeat[f]).attr('y2', yByFeat[f])
+            .attr('stroke', 'var(--pico-muted-border-color)').attr('stroke-opacity', 0.35);
+    });
+
+    // ── Axis group (bottom) ───────────────────────────────────────────────
+    var xAxisG = svg.append('g').attr('transform', 'translate(0,' + (H - MB) + ')');
+
+    // ── Bars group (clipped) ──────────────────────────────────────────────
+    var barsG = svg.append('g').attr('clip-path', 'url(#lc-clip)');
+
+    // ── Draw bars — REQ-F-TSER-002 ────────────────────────────────────────
+    function drawBars(xSc) {
+        barsG.selectAll('.lc-bar').remove();
+
+        runs.forEach(function(run) {
+            var x1 = xSc(new Date(run.started_at));
+            var endT = run.ended_at ? new Date(run.ended_at) : new Date(now);
+            var x2 = xSc(endT);
+            var barW = Math.max(2, x2 - x1);
+            var laneY = yByFeat[run.feature];
+            if (laneY === undefined) return;
+
+            var barH = LANE_H * BAR_FRAC;
+            var barY = laneY + (LANE_H - barH) / 2;
+            var colour = PALETTE[run.colour_index % PALETTE.length];
+            var isFailed = run.status === 'failed' || run.status === 'aborted';
+            var isActive = run.status === 'in_progress';
+
+            var g = barsG.append('g').attr('class', 'lc-bar');
+
+            // Bar — AC-1 (position/width), AC-2 (colour), AC-3 (opacity/stroke)
+            g.append('rect')
+                .attr('x', x1).attr('y', barY)
+                .attr('width', barW).attr('height', barH)
+                .attr('rx', 3)
+                .attr('fill', colour)
+                .attr('fill-opacity', isActive ? 0.6 : 0.85)
+                .attr('stroke', isFailed ? '#f44336' : 'none')
+                .attr('stroke-width', isFailed ? 1.5 : 0)
+                .attr('cursor', 'pointer')
+                .attr('style', isActive ? 'animation:pulse-node 2s ease-in-out infinite' : '');
+
+            // Edge label — AC-4 (if ≥ 40px)
+            if (barW >= 40) {
+                var edgeLabel = (run.edge || '').replace('↔', '⇄').replace('→', '>');
+                g.append('text')
+                    .attr('x', x1 + 4).attr('y', barY + barH / 2)
+                    .attr('dominant-baseline', 'middle')
+                    .attr('font-size', '8px').attr('font-family', 'monospace')
+                    .attr('fill', '#fff').attr('pointer-events', 'none')
+                    .text(edgeLabel)
+                    .each(function() {
+                        var maxChars = Math.floor((barW - 8) / 5);
+                        if (this.textContent.length > maxChars && maxChars > 2) {
+                            this.textContent = this.textContent.substring(0, maxChars - 1) + '…';
+                        }
+                    });
+            }
+
+            // Iteration badge — AC-5 (if iters > 1 and ≥ 20px)
+            if (run.iteration_count > 1 && barW >= 20) {
+                g.append('text')
+                    .attr('x', Math.min(x1 + barW - 3, x2 - 3)).attr('y', barY + 3)
+                    .attr('text-anchor', 'end').attr('dominant-baseline', 'hanging')
+                    .attr('font-size', '7px').attr('fill', '#fff').attr('fill-opacity', 0.8)
+                    .attr('pointer-events', 'none')
+                    .text('×' + run.iteration_count);
+            }
+
+            // Tooltip — AC-6
+            var dur = run.duration_seconds !== null && run.duration_seconds !== undefined
+                ? formatDur(run.duration_seconds) : '—';
+            g.append('title').text(
+                (run.feature || '—') + '\n' + (run.edge || '—') +
+                '\nStatus: ' + run.status +
+                '\nDuration: ' + dur +
+                '\nIterations: ' + run.iteration_count +
+                (run.final_delta !== null ? '\nΔ: ' + run.final_delta : '')
+            );
+
+            g.on('click', function(event) {
+                event.stopPropagation();
+                window.selectGraphFeature && window.selectGraphFeature(run.feature);
+            });
+        });
+    }
+
+    // ── Axis update — REQ-F-TSER-003 AC-3 (format adapts to zoom) ────────
+    function updateAxis(xSc) {
+        var span = xSc.domain()[1] - xSc.domain()[0];
+        var fmt = span < 2 * 3600000 ? d3.timeFormat('%H:%M:%S')
+                : span < 3 * 86400000 ? d3.timeFormat('%b %d %H:%M')
+                : d3.timeFormat('%b %d');
+        xAxisG.call(d3.axisBottom(xSc).ticks(6).tickFormat(fmt));
+        xAxisG.selectAll('text').attr('font-size', '9px').attr('fill', 'var(--pico-muted-color)');
+        xAxisG.select('.domain').attr('stroke', 'var(--pico-muted-border-color)');
+        xAxisG.selectAll('.tick line').attr('stroke', 'var(--pico-muted-border-color)');
+    }
+
+    // Initial render
+    drawBars(xScale);
+    updateAxis(xScale);
+
+    // ── Zoom — REQ-F-TSER-003 ─────────────────────────────────────────────
+    var zoom = d3.zoom()
+        .scaleExtent([0.5, 500])
+        .translateExtent([[ML, 0], [W - MR, H]])
+        .on('zoom', function(event) {
+            xScale = event.transform.rescaleX(xOrig);
+            drawBars(xScale);
+            updateAxis(xScale);
+        });
+    svg.call(zoom);
+
+    // ── Zoom preset buttons — REQ-F-TSER-003 AC-2 ────────────────────────
+    var controls = d3.select('#viz-lifecycle').insert('div', 'svg').attr('class', 'lc-controls');
+    controls.append('span').attr('class', 'lc-label').text('Zoom:');
+
+    function zoomToWindow(ms) {
+        var tLast = t1.getTime();
+        var tFrom = tLast - ms;
+        var fullSpan = xOrig.domain()[1] - xOrig.domain()[0];
+        var newK = (W - ML - MR) / ((ms / fullSpan) * (W - ML - MR));
+        var tx = ML - xOrig(new Date(tFrom)) * newK;
+        svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity.translate(tx, 0).scale(newK));
+    }
+
+    [
+        { label: 'Fit all', fn: function() { svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity); } },
+        { label: '1h',  fn: function() { zoomToWindow(3600 * 1000); } },
+        { label: '1d',  fn: function() { zoomToWindow(86400 * 1000); } },
+        { label: '1w',  fn: function() { zoomToWindow(7 * 86400 * 1000); } },
+    ].forEach(function(btn) {
+        controls.append('button').attr('class', 'lc-zoom-btn').text(btn.label).on('click', btn.fn);
+    });
+}
+
+function formatDur(s) {
+    if (s === null || s === undefined) return '—';
+    if (s < 60) return Math.round(s) + 's';
+    if (s < 3600) return (s / 60).toFixed(1) + 'm';
+    return (s / 3600).toFixed(1) + 'h';
+}
 </script>
 
 <!-- Filter bar -->

@@ -3,6 +3,7 @@
 # Implements: REQ-F-MTEN-001, REQ-F-MTEN-002, REQ-F-MTEN-003
 # Implements: REQ-F-ELIN-001, REQ-F-ELIN-002, REQ-F-ELIN-003, REQ-F-FLIN-001, REQ-F-FLIN-002
 # Implements: REQ-F-GVIZ-001, REQ-F-GVIZ-002, REQ-F-GVIZ-003, REQ-F-GVIZ-004, REQ-F-GVIZ-005
+# Implements: REQ-F-TSER-001, REQ-F-TSER-002, REQ-F-TSER-003, REQ-F-TSER-004
 """FastAPI route definitions — page routes, fragment routes, SSE endpoint."""
 
 from __future__ import annotations
@@ -547,6 +548,8 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
                 "iteration_count": run.iteration_count,
                 "final_delta": run.final_delta,
                 "started_at": run.started_at.isoformat(),
+                "ended_at": run.ended_at.isoformat() if run.ended_at else None,
+                "duration_seconds": run.duration_seconds,
                 "colour_index": colour_idx.get(run.feature or "", 0),
             })
 
