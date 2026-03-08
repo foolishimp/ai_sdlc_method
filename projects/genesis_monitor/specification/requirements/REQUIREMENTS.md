@@ -1367,10 +1367,80 @@ The topology trail graph (INT-GMON-010) answers "what paths does the project tak
 
 ---
 
-## 32. Requirements Summary
+## 32. Executor Attribution and Observability Debt Visibility (v3.4)
+
+The monitor MUST distinguish between edges executed by the deterministic engine and edges whose observability record was filled retroactively (observability debt). This distinction is first-class information — it tells the user whether a convergence was enforced by the formal system or reconstructed after the fact.
+
+### REQ-F-EXEC-001: Executor Field in Event Schema
+
+**Priority**: High
+**Traces To**: INT-GMON-001 / OUT-001, AI_SDLC_ASSET_GRAPH_MODEL.md §7.8
+
+Every methodology event MAY carry an `executor` field and an `emission` field:
+
+```json
+{
+  "executor": "engine | claude | human",
+  "emission": "live | retroactive"
+}
+```
+
+**Acceptance Criteria**:
+- AC-1: Events emitted by the deterministic engine carry `executor: "engine"`, `emission: "live"`
+- AC-2: Events emitted by Claude during a session carry `executor: "claude"`, `emission: "live"`
+- AC-3: Events reconstructed post-facto carry `emission: "retroactive"` regardless of executor
+- AC-4: The monitor infers executor from existing signals when the field is absent:
+  - OL-format events (`eventType` present) → inferred `executor: "engine"`
+  - Flat events with no `executor` field → inferred `executor: "claude"`
+- AC-5: The fields are optional — absence is valid (treated as unknown/inferred)
+
+### REQ-F-EXEC-002: Visual Distinction in Topology Trail
+
+**Priority**: High
+**Traces To**: INT-GMON-010, REQ-F-GVIZ-002
+
+The Topology Trail arc rendering MUST visually distinguish engine-executed edges from retroactive (debt-filled) edges.
+
+**Acceptance Criteria**:
+- AC-1: Engine edges render as **solid arcs** (current default)
+- AC-2: Retroactive/debt edges render as **dotted arcs** with a distinct colour (e.g., amber) to indicate observability debt was paid after the fact
+- AC-3: Claude-live edges render as **dashed arcs** — work was real-time but not engine-enforced
+- AC-4: The legend identifies all three arc styles with their meaning
+- AC-5: Clicking a retroactive arc surfaces the `emission: retroactive` label in the detail panel
+
+### REQ-F-EXEC-003: Executor Badge in Edge Convergence Table
+
+**Priority**: Medium
+**Traces To**: INT-GMON-001, REQ-F-DASH-001
+
+The Edge Convergence table MUST show an executor badge per converged edge.
+
+**Acceptance Criteria**:
+- AC-1: Badge values: `Engine` (green), `Claude` (blue), `Retroactive` (amber), `Unknown` (grey)
+- AC-2: Badge is derived from the majority executor of events on that edge
+- AC-3: If any event on an edge is `emission: retroactive`, the edge badge is `Retroactive` regardless of executor
+- AC-4: Hovering the badge shows the breakdown: N engine events, M claude events, K retroactive
+
+### REQ-F-EXEC-004: Observability Debt Summary
+
+**Priority**: Medium
+**Traces To**: INT-GMON-001, AI_SDLC_ASSET_GRAPH_MODEL.md §7.8.3
+
+The project dashboard MUST surface a summary of outstanding and resolved observability debt.
+
+**Acceptance Criteria**:
+- AC-1: A debt indicator shows: edges with full engine coverage, edges with retroactive coverage, edges with no coverage (dark — no events at all)
+- AC-2: "Dark edges" (converged assets with zero events) are flagged as unresolved observability debt
+- AC-3: The indicator links to a filtered view of the Topology Trail showing only dark/retroactive edges
+
+---
+
+## 33. Requirements Summary
 
 **Total REQ-F-GVIZ keys**: 5 (REQ-F-GVIZ-001 through REQ-F-GVIZ-005)
 **Total REQ-F-TSER keys**: 4 (REQ-F-TSER-001 through REQ-F-TSER-004)
+**Total REQ-F-EXEC keys**: 4 (REQ-F-EXEC-001 through REQ-F-EXEC-004)
 **All graph visualization requirements**: INT-GMON-010
 **All lifecycle time series requirements**: INT-GMON-011
-**Iteration**: v3.3 — dual visualization projections (topology trail + time series lifecycle)
+**All executor attribution requirements**: INT-GMON-001 (observability)
+**Iteration**: v3.4 — executor attribution and observability debt visibility
