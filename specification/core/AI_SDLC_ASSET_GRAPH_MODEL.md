@@ -1568,7 +1568,37 @@ The engine enforces the observable invariant mechanically. The agent path requir
 
 The observable is what makes work real to the system. Dark work — correct artifacts with no event trail — is invisible to everything downstream.
 
-#### 7.8.3 Executor Epoch-Dependence
+#### 7.8.3 Retroactive Observable Population
+
+**The invariant is completeness of the record, not real-time emission.**
+
+Observables may be populated after the work is done. An agent that executes on the agent path — producing correct artifacts without emitting events — can subsequently reconstruct and emit the missing observables. The event stream remains the source of truth; retroactive emission is valid as long as the events are **accurate** (they represent what actually happened) and **complete** (all required observables are present).
+
+This is the gap-fill pattern:
+
+```
+Work done on agent path (no events emitted)
+    ↓
+/gen-gaps detects missing observables
+    ↓
+Claude reconstructs events from artifacts:
+  - intent_raised   (from the observation that triggered the work)
+  - edge_started    (from git history / first artifact commit)
+  - iteration_completed (from the artifacts produced)
+  - edge_converged  (from the final committed state)
+    ↓
+Events appended to events.jsonl with accurate timestamps
+    ↓
+Monitor now shows the full traversal — Topology Trail, Feature Matrix, Edge Convergence
+```
+
+This is equivalent to filing accurate paperwork after the work is done. The paperwork is a formal requirement; its timing is not. Medical records, audit logs, and tax returns all follow this pattern — the record must be complete and accurate; it need not be simultaneous with the activity.
+
+**The constraint on retroactive emission**: events must be reconstructible from the artifacts themselves. If the artifacts exist (spec, ADR, code, tests), the events can be derived from them. If the artifacts do not exist, retroactive events would be fabrication — not permitted. The artifacts are the ground truth; the events are derived from them. This is consistent with the event sourcing model (§7.4): the event stream can be replayed and projections reconstructed from it, so events derived from observable artifacts are as valid as events emitted in real time.
+
+**Practical implication**: the two-path model does not require real-time event discipline on the agent path. It requires that `/gen-gaps` be run periodically and that Claude be directed to fill missing observables. The methodology closes retroactively. The monitor catches up. The homeostatic loop eventually closes — which is the invariant.
+
+#### 7.8.4 Executor Epoch-Dependence
 
 The F_D/F_P/F_H encoding (§2.9) is **not fixed**. It reflects the current capability of the available executors. The formal system defines the categories; which executor reliably fills each category is an empirical question that changes as technology advances.
 
@@ -1598,7 +1628,7 @@ Long term:  F_P approaches F_D reliability across the full evaluator space
 
 **The engine's enduring role** is not enforcement per se — it is **reproducibility and auditability**. A deterministic engine can be re-run on the same inputs and produce the same output. An LLM cannot. For regulated contexts, audit trails, or reproducible builds, F_D (engine) remains the correct encoding regardless of LLM capability. The epoch-dependence applies to the reliability gap, not the reproducibility property.
 
-#### 7.8.4 Self-Observation: What the REQ-TOOL-015 Episode Demonstrates
+#### 7.8.5 Self-Observation: What the REQ-TOOL-015 Episode Demonstrates
 
 This insight was derived from direct observation of the methodology executing on itself (test07, session 7, 2026-03-08). The work that produced REQ-TOOL-015, ADR-031, the installer warning, and the structural tests was executed entirely on the agent path — direct file edits, no engine invocation. The artifacts were structurally correct (spec → ADR → code → test, with proper REQ key lineage). The event trail contained one entry: a `spec_modified` signal from the git post-commit hook.
 
