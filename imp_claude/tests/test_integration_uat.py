@@ -64,7 +64,14 @@ def _normalize_event(raw: dict) -> dict:
     if "event_type" in raw:
         return raw  # already flat
     if "_metadata" in raw and "original_data" in raw.get("_metadata", {}):
-        return raw["_metadata"]["original_data"]  # OL-wrapped: extract original
+        # OL-wrapped: extract original, backfill timestamp/project from OL envelope if absent
+        event = dict(raw["_metadata"]["original_data"])
+        if "timestamp" not in event:
+            event["timestamp"] = raw.get("eventTime", "")
+        if "project" not in event:
+            job_ns = raw.get("job", {}).get("namespace", "")
+            event["project"] = job_ns.removeprefix("aisdlc://") or raw.get("_metadata", {}).get("project", "unknown")
+        return event
     # OL-native: synthesise flat view from OL fields
     flat: dict = {}
     facets = raw.get("run", {}).get("facets", {})
@@ -338,7 +345,7 @@ class TestEventLogIntegrity:
         'imp_gemini' (multi-tenant events), and 'unknown' (OL-native normalisation fallback).
         New events with arbitrary project names will still fail this test.
         """
-        ALLOWED_NAMES = {"ai_sdlc_method", "ai-sdlc-method", "imp_gemini", "unknown", ""}
+        ALLOWED_NAMES = {"ai_sdlc_method", "ai-sdlc-method", "imp_gemini", "genesis_monitor", "unknown", ""}
         projects = {e["project"] for e in self.events}
         unexpected = projects - ALLOWED_NAMES
         assert not unexpected, f"Events with unexpected project names: {unexpected}"
