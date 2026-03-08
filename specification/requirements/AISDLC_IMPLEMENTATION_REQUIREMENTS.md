@@ -1029,6 +1029,26 @@ The installer shall scaffold all files required by the methodology's observabili
 
 ---
 
+### REQ-TOOL-015: Workspace Placement at Project Root
+
+**Priority**: Critical | **Phase**: 1
+
+The installer MUST place `.ai-workspace/` at the **project root** — the directory containing both `specification/` and any `imp_*/` implementation tenants. It MUST NOT place the workspace inside an `imp_*/` subdirectory.
+
+**Rationale**: The workspace is a project-level artefact that spans the specification and all implementation tenants. A workspace scoped to one tenant (e.g., `imp_fastapi/.ai-workspace/`) causes the observability monitor to register that tenant as the project root, making `specification/` and sibling tenants invisible. This was observed in test06 where genesis_monitor monitored its own `imp_fastapi/` directory instead of the project root.
+
+**Acceptance Criteria**:
+- AC-1: The installer creates `.ai-workspace/` in the current working directory (CWD); documentation explicitly states the installer must be run from the project root
+- AC-2: The installer detects when the CWD is inside an `imp_*/` directory and emits a warning: "Warning: running from inside an implementation tenant — workspace will be scoped to this tenant only. Run from the project root to span all tenants."
+- AC-3: A test in the installer test suite verifies that no `imp_*/` sibling directory of any discovered `.ai-workspace/` contains another `.ai-workspace/` (structural self-check)
+- AC-4: The methodology repository itself (`imp_claude/`, `imp_gemini/`, `imp_codex/`) serves as the canonical example — `.ai-workspace/` is at the repo root, not inside any `imp_*/`
+
+**Traces To**: REQ-TOOL-012 (Multi-Tenant Folder Structure) | REQ-TOOL-014 (Observability Integration Contract) | Asset Graph Model §2.7 (Multiple Implementations)
+
+**Validated By**: test06 GAP-045 (genesis_monitor workspace placed at `imp_fastapi/.ai-workspace/` instead of `genesis_monitor/.ai-workspace/` — monitor could not see its own specification)
+
+---
+
 ## 11. User Experience
 
 ### REQ-UX-001: State-Driven Routing

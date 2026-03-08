@@ -903,6 +903,19 @@ def cmd_install(args) -> int:
     target = Path(args.target).resolve()
     project_name = detect_project_name(target)
 
+    # REQ-TOOL-015 AC-2: warn when installing inside an imp_* tenant directory
+    import re as _re
+    if _re.search(r'[/\\]imp_[^/\\]+$', str(target)):
+        print_warn(
+            f"WARNING: target directory '{target.name}' looks like an implementation "
+            f"tenant (imp_*/).\n"
+            f"  The workspace will be scoped to this directory only and will NOT span\n"
+            f"  specification/ or sibling imp_*/ tenants.\n"
+            f"  To monitor the full project, run the installer from the project root\n"
+            f"  (the directory containing specification/ and imp_*/)."
+        )
+        print()
+
     version = get_plugin_version()
     print_banner("Project Setup", version)
 

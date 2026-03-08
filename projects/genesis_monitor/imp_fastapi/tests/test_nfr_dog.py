@@ -2,6 +2,7 @@
 # Validates: REQ-F-DOG-001, REQ-F-DOG-002
 # Validates: REQ-F-GMON-001, REQ-F-GMON-002
 # Validates: REQ-F-FLIN-003, REQ-F-FLIN-004
+# Validates: REQ-TOOL-015
 """Tests for non-functional requirements, dogfood self-monitoring, and monitor
    meta-requirements.
 
@@ -141,6 +142,36 @@ class TestStartupPerformance:
 
 
 # ── REQ-F-DOG-001: Self-Monitoring ────────────────────────────────────────────
+
+
+class TestWorkspacePlacement:
+    """REQ-TOOL-015 AC-3: .ai-workspace must be at the project root, not inside imp_*/."""
+
+    def test_no_workspace_inside_imp_tenant(self):
+        """REQ-TOOL-015: no imp_*/ sibling of _PROJ_ROOT contains .ai-workspace/.
+
+        This test would have immediately caught the genesis_monitor workspace
+        being placed at imp_fastapi/.ai-workspace/ instead of
+        genesis_monitor/.ai-workspace/.
+        """
+        violations = [
+            str(d) for d in _PROJ_ROOT.glob("imp_*/.ai-workspace")
+            if d.is_dir()
+        ]
+        assert violations == [], (
+            ".ai-workspace found inside implementation tenant(s):\n  "
+            + "\n  ".join(violations)
+            + "\nWorkspace MUST be at the project root, not inside imp_*/ tenants."
+            " (REQ-TOOL-015, ADR-031)"
+        )
+
+    def test_workspace_exists_at_project_root(self):
+        """REQ-TOOL-015 AC-1: .ai-workspace is present at the project root."""
+        ws = _PROJ_ROOT / ".ai-workspace"
+        assert ws.is_dir(), (
+            f".ai-workspace not found at project root ({_PROJ_ROOT}). "
+            "Run the installer from the project root, not from inside imp_*/."
+        )
 
 
 class TestSelfMonitoring:

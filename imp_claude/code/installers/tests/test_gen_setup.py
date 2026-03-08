@@ -2,6 +2,7 @@
 Tests for gen-setup.py installer.
 
 # Validates: REQ-TOOL-011 (Installability)
+# Validates: REQ-TOOL-015 (Workspace Placement at Project Root)
 """
 
 import json
@@ -210,6 +211,71 @@ class TestVerify:
             text=True,
         )
         assert result.returncode == 1
+
+
+class TestWorkspacePlacement:
+    """REQ-TOOL-015: workspace must be at project root, not inside imp_* tenant."""
+
+    def test_installer_places_workspace_in_target(self, clean_target):
+        """REQ-TOOL-015 AC-1: .ai-workspace created directly in the target dir."""
+        clean_target.mkdir()
+        result = subprocess.run(
+            [sys.executable, str(INSTALLER), "--target", str(clean_target)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0
+        assert (clean_target / ".ai-workspace").is_dir()
+
+    def test_no_workspace_inside_imp_tenant(self, tmp_path):
+        """REQ-TOOL-015 AC-3: structural check — no imp_*/ dir contains .ai-workspace/.
+
+        This is the test that would have caught genesis_monitor's workspace being
+        placed at imp_fastapi/.ai-workspace/ instead of genesis_monitor/.ai-workspace/.
+        """
+        # Simulate the WRONG layout
+        project_root = tmp_path / "my_project"
+        (project_root / "specification").mkdir(parents=True)
+        (project_root / "imp_fastapi" / ".ai-workspace").mkdir(parents=True)  # wrong
+
+        violations = [
+            str(d) for d in project_root.glob("imp_*/.ai-workspace")
+            if d.is_dir()
+        ]
+        assert violations == [], (
+            ".ai-workspace found inside implementation tenant(s):\n  "
+            + "\n  ".join(violations)
+            + "\nWorkspace MUST be at the project root, not inside imp_*/ tenants."
+            " (REQ-TOOL-015, ADR-031)"
+        )
+
+    def test_correct_layout_passes(self, tmp_path):
+        """REQ-TOOL-015: project-root workspace is the valid layout."""
+        project_root = tmp_path / "my_project"
+        (project_root / "specification").mkdir(parents=True)
+        (project_root / "imp_fastapi").mkdir(parents=True)
+        (project_root / ".ai-workspace").mkdir(parents=True)  # correct
+
+        violations = [
+            str(d) for d in project_root.glob("imp_*/.ai-workspace")
+            if d.is_dir()
+        ]
+        assert violations == []
+
+    def test_installer_warns_when_run_from_imp_tenant(self, tmp_path):
+        """REQ-TOOL-015 AC-2: installer warns when target path contains imp_*."""
+        imp_dir = tmp_path / "imp_fastapi"
+        imp_dir.mkdir()
+        result = subprocess.run(
+            [sys.executable, str(INSTALLER), "--target", str(imp_dir)],
+            capture_output=True, text=True,
+        )
+        # Installer should warn (exit 0 still — not a hard failure)
+        combined = result.stdout + result.stderr
+        assert "WARNING" in combined or "warning" in combined.lower() or \
+               "imp_" in combined, (
+            "Expected a warning when installing into an imp_* directory. "
+            "Installer output:\n" + combined
+        )
 
 
 class TestProjectDetection:
