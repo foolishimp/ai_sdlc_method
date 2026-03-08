@@ -1598,35 +1598,34 @@ This is equivalent to filing accurate paperwork after the work is done. The pape
 
 **Practical implication**: the two-path model does not require real-time event discipline on the agent path. It requires that `/gen-gaps` be run periodically and that Claude be directed to fill missing observables. The methodology closes retroactively. The monitor catches up. The homeostatic loop eventually closes — which is the invariant.
 
-#### 7.8.4 Executor Epoch-Dependence
+#### 7.8.4 F_D Is Not a Temporary Scaffold — It Is the Right Tool for Its Domain
 
-The F_D/F_P/F_H encoding (§2.9) is **not fixed**. It reflects the current capability of the available executors. The formal system defines the categories; which executor reliably fills each category is an empirical question that changes as technology advances.
+F_D is not a constraint imposed by LLM limitations. It is the correct encoding for a specific and permanent class of work: **deterministic computation within a well-defined, bounded ecosystem**.
 
-Today's encoding:
+| F_D property | What it means |
+|-------------|---------------|
+| **Zero ambiguity** | Input fully determines output — no inference, no interpretation |
+| **Predictable** | Same input always produces same result |
+| **Lowest cost** | Executes at a fraction of LLM cost — no token budget, no latency, no API call |
+| **Highest reliability** | No hallucination, no probabilistic variance, no context-window effects |
+| **Pure function** | No side effects beyond the defined output; composable, testable, auditable |
+| **Narrow ecosystem** | Effective within a fixed schema, grammar, or contract — fails gracefully outside it |
+
+**F_D should be preferred over F_P (Claude) whenever the work is deterministic.** Running Claude to validate a JSON schema, count lines of code, or check whether a file exists is wasteful — slower, more expensive, and introduces probabilistic variance where none is needed. The test suite, the linter, the schema validator, the event parser — these are F_D functions. They should run as F_D.
+
+The escalation chain (η: F_D → F_P → F_H) fires when ambiguity exceeds F_D's capacity — not before. F_D handles everything it can handle. F_P handles what F_D cannot. F_H handles what F_P cannot. Each category has a domain; the goal is to route work to the cheapest sufficient executor, not to the most capable one.
+
+**The epoch-dependence is at the F_P/F_H boundary, not the F_D/F_P boundary.** As LLM capability increases:
+
 ```
-F_D → deterministic engine (tests, schema validation, contract checks)
-F_P → LLM/agent (construction, gap analysis, design synthesis)
-F_H → human (approval, domain judgment, persistent ambiguity)
+F_D domain:  stable — deterministic work remains deterministic regardless of model capability
+F_P domain:  expands upward — absorbs work previously requiring F_H judgment
+F_H domain:  contracts upward — human handles only genuinely novel, high-stakes judgment
 ```
 
-As LLM capability increases, the boundary shifts:
+The engine does not become less relevant as models improve. What changes is that F_P (Claude) handles increasingly complex construction and evaluation work that previously required F_H — allowing humans to focus further upstream on intent and novel judgment. F_D's domain — pure functions, deterministic checks, schema validation, test execution — is unaffected by this shift.
 
-```
-Near term:  F_P reliably self-evaluates simple convergence criteria
-            → engine needed for hard gates, not routine evaluation
-
-Medium term: F_P reliably applies evaluator checklists with F_D precision
-            → engine becomes a verifier (confirms what model already assessed)
-            → η: F_D → F_P fires less often (model handles more autonomously)
-
-Long term:  F_P approaches F_D reliability across the full evaluator space
-            → engine collapses to audit layer (spot-checks, not enforcement)
-            → F_H boundary shifts upward (human handles only novel judgment)
-```
-
-**The invariants survive this evolution.** The methodology does not specify *which executor* checks convergence — it specifies *that convergence is checked* and *that the result is observable*. As the model becomes more reliable, it absorbs more of the F_D role. The engine is a scaffold for the current capability epoch, not a permanent architectural requirement.
-
-**The engine's enduring role** is not enforcement per se — it is **reproducibility and auditability**. A deterministic engine can be re-run on the same inputs and produce the same output. An LLM cannot. For regulated contexts, audit trails, or reproducible builds, F_D (engine) remains the correct encoding regardless of LLM capability. The epoch-dependence applies to the reliability gap, not the reproducibility property.
+**The engine's permanent value**: reproducibility, cost efficiency, zero variance, and auditability within its ecosystem. These properties do not erode with LLM capability advances. A system that replaces F_D validators with LLM calls for cost reasons has made a category error — it is paying for probabilistic inference where deterministic computation is available.
 
 #### 7.8.5 Self-Observation: What the REQ-TOOL-015 Episode Demonstrates
 
