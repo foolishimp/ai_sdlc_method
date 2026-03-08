@@ -15,9 +15,29 @@
             <td>
                 <small>
                     {% if e.event_type == "iteration_completed" %}
-                        <strong>{{ e.feature }}:{{ e.edge }}</strong> (iter {{ e.iteration }})
+                        <a href="/project/{{ request.path_params['project_id'] }}/feature/{{ e.feature }}" style="font-weight:600; text-decoration:none;">{{ e.feature }}</a>:{{ e.edge }}
+                        (iter {{ e.iteration }})
+                        {% if e.delta is not none %}— δ{{ e.delta }}{% endif %}
+                    {% elif e.event_type == "edge_started" %}
+                        {{ e.edge }}{% if e.feature %} · {{ e.feature }}{% endif %}
+                    {% elif e.event_type == "edge_converged" %}
+                        {{ e.edge }}{% if e.feature %} · {{ e.feature }}{% endif %}
+                    {% elif e.event_type == "evaluator_detail" %}
+                        {% set d = e.data.get("data", {}) if e.data.get("data") is mapping else {} %}
+                        {{ d.get("check_name", "") }}{% if d.get("result") %} — {{ d.get("result") }}{% endif %}
+                    {% elif e.event_type == "iteration_started" %}
+                        {% set d = e.data.get("data", e.data) if e.data.get("data") is mapping else e.data %}
+                        {{ e.feature or d.get("feature", "") }}{% if e.edge or d.get("edge") %} · {{ e.edge or d.get("edge") }}{% endif %}
+                    {% elif e.event_type == "command_error" %}
+                        ✗ {{ e.data.get("error", e.data.get("data", {}).get("error", "")) | truncate(80) }}
+                    {% elif e.event_type == "checkpoint_created" %}
+                        checkpoint · {{ e.edge }}{% if e.feature %} · {{ e.feature }}{% endif %}
+                    {% elif e.event_type == "health_checked" %}
+                        {{ e.data.get("data", {}).get("passed", "?") }}/{{ e.data.get("data", {}).get("total", "?") }} checks
+                    {% elif e.event_type == "transaction_aborted" %}
+                        ✗ {{ e.feature }}:{{ e.edge }}{% if e.data.get("reason") %} — {{ e.data.get("reason") | truncate(60) }}{% endif %}
                     {% else %}
-                        {{ e.data.get("description", e.data | string | truncate(60)) }}
+                        {{ e.data.get("description", "") or e.event_type }}
                     {% endif %}
                 </small>
             </td>

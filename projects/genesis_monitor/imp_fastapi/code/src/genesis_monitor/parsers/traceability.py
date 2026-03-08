@@ -11,10 +11,10 @@ _IMPLEMENTS_RE = re.compile(r"#\s*Implements:\s*(REQ-[\w-]+(?:\s*,\s*REQ-[\w-]+)
 _VALIDATES_RE = re.compile(r"#\s*Validates:\s*(REQ-[\w-]+(?:\s*,\s*REQ-[\w-]+)*)")
 _REQ_KEY_RE = re.compile(r"REQ-[\w-]+")
 
-# Telemetry pattern: req="REQ-*" or req='REQ-*'  # Implements: REQ-F-LINEAGE-002
+# Telemetry pattern: req="REQ-*" or req='REQ-*'
 _TELEMETRY_RE = re.compile(r"""req=["'](REQ-[\w-]+)["']""")
 
-# Spec heading pattern: ### REQ-F-* or ### REQ-NFR-*  # Implements: REQ-F-LINEAGE-004
+# Spec heading pattern: ### REQ-F-* or ### REQ-NFR-*
 _SPEC_HEADING_RE = re.compile(r"^###\s+(REQ-(?:F|NFR)-[\w-]+)")
 
 # File extensions to scan
@@ -57,17 +57,16 @@ class TraceabilityReport:
     code_files_scanned: int = 0
     test_files_scanned: int = 0
 
-    # --- new fields (REQ-F-LINEAGE-001..004) ---
-    # REQ key → files where req= tag appears (REQ-F-LINEAGE-002)
+    # REQ key → files where req= tag appears
     telemetry_coverage: dict[str, list[str]] = field(default_factory=dict)
 
-    # REQ keys extracted from REQUIREMENTS.md headings (REQ-F-LINEAGE-004)
+    # REQ keys extracted from REQUIREMENTS.md headings
     spec_defined_keys: set[str] = field(default_factory=set)
 
-    # In code|tests|telemetry but absent from spec (REQ-F-LINEAGE-003)
+    # In code|tests|telemetry but absent from spec
     orphan_keys: set[str] = field(default_factory=set)
 
-    # In spec but absent from code AND tests AND telemetry (REQ-F-LINEAGE-003)
+    # In spec but absent from code AND tests AND telemetry
     uncovered_keys: set[str] = field(default_factory=set)
 
     # Count of .py files scanned for telemetry tags
@@ -132,7 +131,6 @@ def spec_inventory(project_root: Path) -> set[str]:
 
     Searches project_root/.ai-workspace/spec/REQUIREMENTS.md first, then
     project_root/specification/REQUIREMENTS.md. Returns empty set if neither found.
-    # Implements: REQ-F-LINEAGE-004
     """
     candidates = [
         project_root / ".ai-workspace" / "spec" / "REQUIREMENTS.md",
@@ -158,7 +156,6 @@ def telemetry_scanner(project_root: Path) -> dict[str, list[str]]:
 
     Returns dict mapping REQ key -> sorted list of unique relative file paths.
     Files with no matching patterns produce no entries.
-    # Implements: REQ-F-LINEAGE-002
     """
     result: dict[str, list[str]] = {}
     for dirpath_str, dirnames, filenames in os.walk(project_root):
@@ -229,14 +226,14 @@ def parse_traceability(project_root: Path) -> TraceabilityReport:
     report.code_files_scanned = code_files
     report.test_files_scanned = test_files
 
-    # Telemetry and spec inventory  # Implements: REQ-F-LINEAGE-002, REQ-F-LINEAGE-004
+    # Telemetry and spec inventory
     report.telemetry_coverage = telemetry_scanner(project_root)
     report.spec_defined_keys = spec_inventory(project_root)
     report.telemetry_files_scanned = len(
         {f for files in report.telemetry_coverage.values() for f in files}
     )
 
-    # Orphan and uncovered key detection  # Implements: REQ-F-LINEAGE-003
+    # Orphan and uncovered key detection
     # Only meaningful when a spec inventory exists (backward compat — LINEAGE-001 AC-5)
     if report.spec_defined_keys:
         downstream = (

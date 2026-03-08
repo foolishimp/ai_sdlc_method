@@ -1,4 +1,4 @@
-# Validates: REQ-F-LINEAGE-001, REQ-F-LINEAGE-002, REQ-F-LINEAGE-003, REQ-F-LINEAGE-004
+# Validates: REQ-F-TRACE-001
 """Tests for traceability parser extensions — 4-column lineage + telemetry scanner."""
 
 from pathlib import Path

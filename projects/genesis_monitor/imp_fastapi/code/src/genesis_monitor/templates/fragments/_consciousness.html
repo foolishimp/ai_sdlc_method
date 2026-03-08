@@ -1,24 +1,76 @@
 {% if consciousness %}
+<div style="font-size:0.8em; color:var(--pico-muted-color); margin-bottom:0.4rem;">
+    {{ consciousness | length }} events · most recent first
+</div>
 <table>
     <thead>
-        <tr><th>Time</th><th>Type</th><th>Details</th></tr>
+        <tr>
+            <th style="width:5.5em">When</th>
+            <th style="width:7em">Type</th>
+            <th>Detail</th>
+        </tr>
     </thead>
     <tbody>
-        {% for c in consciousness %}
+        {% for c in consciousness | reverse %}
         <tr>
-            <td><small>{{ c.timestamp.strftime('%H:%M:%S') }}</small></td>
-            <td><code>{{ c.event_type }}</code></td>
+            <td><small style="white-space:nowrap">{{ c.timestamp.strftime('%m-%d %H:%M') }}</small></td>
             <td>
                 {% if c.event_type == 'intent_raised' %}
-                trigger: {{ c.trigger }}{% if c.signal_source %}, source: {{ c.signal_source }}{% endif %}
+                <span style="color:var(--pico-color-amber-400);font-size:0.85em">⬆ intent</span>
                 {% elif c.event_type == 'spec_modified' %}
-                {{ c.delta | string | truncate(60) }}{% if c.trigger_intent %} ({{ c.trigger_intent }}){% endif %}
-                {% elif c.event_type == 'finding_raised' %}
-                {{ c.finding_type }}: {{ c.description | truncate(60) }}
+                <span style="color:var(--pico-color-blue-400);font-size:0.85em">✎ spec</span>
                 {% elif c.event_type == 'feature_spawned' %}
-                {{ c.parent_vector }} → {{ c.child_vector }}{% if c.reason %} ({{ c.reason }}){% endif %}
+                <span style="color:var(--pico-color-green-400);font-size:0.85em">⊕ spawn</span>
+                {% elif c.event_type == 'finding_raised' %}
+                <span style="color:var(--pico-color-red-400);font-size:0.85em">⚑ finding</span>
+                {% elif c.event_type == 'convergence_escalated' %}
+                <span style="color:var(--pico-color-orange-400);font-size:0.85em">⚠ escalate</span>
+                {% elif c.event_type == 'review_completed' %}
+                <span style="color:var(--pico-color-teal-400);font-size:0.85em">✔ review</span>
+                {% elif c.event_type == 'release_created' %}
+                <span style="color:var(--pico-color-purple-400);font-size:0.85em">📦 release</span>
                 {% else %}
-                {{ c | string | truncate(60) }}
+                <span style="font-size:0.85em">{{ c.event_type }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if c.event_type == 'intent_raised' %}
+                    {% if c.intent_id %}<code style="font-size:0.8em;opacity:0.8">{{ c.intent_id }}</code> {% endif %}
+                    {% if c.get('_count', 1) > 1 %}<span style="background:rgba(255,160,0,0.2);border-radius:10px;padding:1px 6px;font-size:0.75em;margin-right:4px">×{{ c._count }}</span>{% endif %}
+                    {% if c.trigger %}<strong>{{ c.trigger }}</strong>{% endif %}
+                    {% if c.description %} — <span style="color:var(--pico-muted-color)">{{ c.description | truncate(80) }}</span>{% endif %}
+                    {% if c.affected_req_keys %}
+                    <div style="margin-top:0.15em">
+                        {% for k in c.affected_req_keys %}<code style="font-size:0.72em;background:rgba(255,200,0,0.1);padding:1px 4px;border-radius:3px;margin-right:2px">{{ k }}</code>{% endfor %}
+                        {% if c.get('affected_req_keys') | length == 6 %}<span style="opacity:0.5;font-size:0.8em">…</span>{% endif %}
+                    </div>
+                    {% endif %}
+
+                {% elif c.event_type == 'spec_modified' %}
+                    {% if c.get('file_path') %}<code style="font-size:0.75em;opacity:0.7">{{ c.file_path }}</code><br>{% endif %}
+                    {% if c.delta and c.delta != 'None' %}{{ c.delta | truncate(120) }}{% else %}<em style="color:var(--pico-muted-color)">—</em>{% endif %}
+                    {% if c.trigger_intent %} <code style="font-size:0.75em;opacity:0.6">{{ c.trigger_intent | truncate(40) }}</code>{% endif %}
+
+                {% elif c.event_type == 'finding_raised' %}
+                    <strong>{{ c.finding_type }}</strong>: {{ c.description | truncate(100) }}
+
+                {% elif c.event_type == 'feature_spawned' %}
+                    {% if c.parent_vector %}<a href="/project/{{ request.path_params['project_id'] }}/feature/{{ c.parent_vector }}" style="text-decoration:none"><code style="font-size:0.8em">{{ c.parent_vector }}</code></a> → {% endif %}<a href="/project/{{ request.path_params['project_id'] }}/feature/{{ c.child_vector }}" style="text-decoration:none"><code style="font-size:0.85em;font-weight:600">{{ c.child_vector or '?' }}</code></a>
+                    {% if c.title %} <span style="color:var(--pico-muted-color)">{{ c.title | truncate(50) }}</span>{% endif %}
+                    {% if c.reason %}<br><small style="opacity:0.7">{{ c.reason | truncate(70) }}</small>{% endif %}
+
+                {% elif c.event_type == 'convergence_escalated' %}
+                    <strong>{{ c.edge }}</strong>{% if c.reason %} — {{ c.reason | truncate(80) }}{% endif %}{% if c.escalated_to %} <code style="font-size:0.8em">→ {{ c.escalated_to }}</code>{% endif %}
+
+                {% elif c.event_type == 'review_completed' %}
+                    {% if c.outcome == 'approved' %}<span style="color:var(--pico-color-green-500)">✓</span>{% elif c.outcome == 'changes_requested' %}<span style="color:var(--pico-color-amber-500)">↺</span>{% else %}<span style="color:var(--pico-color-red-500)">⊘</span>{% endif %}
+                    <code style="font-size:0.85em">{{ c.feature }}:{{ c.edge }}</code> — {{ c.outcome }}{% if c.reviewer %} <small style="opacity:0.7">({{ c.reviewer }})</small>{% endif %}
+
+                {% elif c.event_type == 'release_created' %}
+                    {% if c.get('version') %}<strong>v{{ c.get('version') }}</strong>{% endif %}{% if c.get('features_included') %} — {{ c.features_included | length }} features{% endif %}
+
+                {% else %}
+                    {{ c.get('description', '') or c.get('reason', '') or '—' }}
                 {% endif %}
             </td>
         </tr>

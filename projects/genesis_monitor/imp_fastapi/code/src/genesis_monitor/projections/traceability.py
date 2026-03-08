@@ -1,4 +1,4 @@
-# Implements: REQ-F-TRACE-001, REQ-F-LINEAGE-001, REQ-F-LINEAGE-003
+# Implements: REQ-F-TRACE-001
 """Build traceability view cross-referencing features, code, tests, and telemetry."""
 
 from __future__ import annotations
@@ -80,7 +80,7 @@ def build_traceability_view(
         if not has_any:
             no_coverage += 1
 
-        # Status reflects all 4 columns  # Implements: REQ-F-LINEAGE-001, REQ-F-LINEAGE-003
+        # Status reflects all 4 columns
         if is_orphan:
             status = "orphan"
         elif is_uncovered:
@@ -140,7 +140,7 @@ def build_traceability_view(
             "no_coverage": no_coverage,
             "code_files": traceability.code_files_scanned,
             "test_files": traceability.test_files_scanned,
-            # new fields  # Implements: REQ-F-LINEAGE-001, REQ-F-LINEAGE-003
+            # new fields
             "spec_count": len(traceability.spec_defined_keys),
             "telemetry_count": sum(
                 1 for r in all_req_keys if r in traceability.telemetry_coverage

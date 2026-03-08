@@ -29,6 +29,7 @@ from genesis_monitor.projections import (
     build_regime_summary,
     build_spawn_tree,
 )
+from genesis_monitor.projections.consciousness import CONSCIOUSNESS_EVENT_TYPES
 from genesis_monitor.projections.feature_module_map import build_feature_module_map
 from genesis_monitor.projections.temporal import (
     get_event_density,
@@ -47,6 +48,15 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
     """Create the FastAPI router with all routes."""
     router = APIRouter()
     _start_time = time.time()
+
+    # Event types that flood the Recent Events feed without adding decision-level signal.
+    # These are high-volume engine reflex events shown elsewhere (convergence table, etc.).
+    _RECENT_EVENTS_NOISE = frozenset({
+        "feature_proposal",     # bulk gap-analysis output — can be hundreds in a row
+        "iteration_started",    # engineering trace — shown in convergence table
+        "evaluator_detail",     # per-check granularity — too fine-grained for feed
+        "health_checked",       # periodic health scan — repetitive
+    })
 
     def _get_historical_state(project, t: str | None, design: str | None = None):
         events = project.events
@@ -84,7 +94,13 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
         if not project:
             return HTMLResponse("<h1>Project not found</h1>", status_code=404)
         events, features, status = _get_historical_state(project, t, design)
-        available_designs = sorted(list(set(e.project for e in project.events if e.project)))
+        # Design tenants are imp_* or specification sub-directories.
+        # Raw project-name strings (genesis-monitor, genisis_monitor, etc.)
+        # are not tenants — they're just inconsistent event authorship labels.
+        available_designs = sorted({
+            e.project for e in project.events
+            if e.project and (e.project.startswith("imp_") or e.project == "specification")
+        })
         design_counts = {d: sum(1 for e in project.events if e.project == d)
                          for d in available_designs}
         graph_mermaid = build_graph_mermaid(project.topology, status)
@@ -115,7 +131,7 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
                 "signals": signals,
                 "events": events,
                 "all_events": events,
-                "recent_events": events[-50:],
+                "recent_events": [e for e in events if e.event_type not in _RECENT_EVENTS_NOISE][-50:],
                 "density": get_event_density(events),
                 "spawn_tree": spawn_tree,
                 "dimensions": dimensions,
@@ -179,10 +195,20 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
         project = registry.get_project(project_id)
         if not project: return HTMLResponse("")
         events, _, _ = _get_historical_state(project, t, design)
+        # Filter noise, then deduplicate consecutive identical events within 60s
+        filtered = [e for e in events if e.event_type not in _RECENT_EVENTS_NOISE]
+        deduped = []
+        for e in filtered:
+            if (deduped
+                    and deduped[-1].event_type == e.event_type
+                    and deduped[-1].event_type in ("intent_raised", "spec_modified", "gaps_validated")
+                    and abs((e.timestamp - deduped[-1].timestamp).total_seconds()) < 60):
+                continue  # collapse consecutive identical high-volume deliberation events
+            deduped.append(e)
         return request.app.state.templates.TemplateResponse(
             request,
             "fragments/_events.html",
-            {"events": events[-50:], "current_time": datetime.now().strftime("%H:%M:%S")},
+            {"events": deduped[-50:], "current_time": datetime.now().strftime("%H:%M:%S")},
         )
 
     @router.get("/fragments/project/{project_id}/telem", response_class=HTMLResponse)
@@ -396,6 +422,7 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
     @router.get("/project/{project_id}/feature/{feature_id}", response_class=HTMLResponse)
     async def feature_lineage(request: Request, project_id: str, feature_id: str,
                                t: str = None, design: str = None):
+        import yaml as _yaml
         project = registry.get_project(project_id)
         if not project:
             return HTMLResponse("<h1>Project not found</h1>", status_code=404)
@@ -403,6 +430,101 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
         idx = _get_index(project, t, design)
         feature_runs = idx.feature_runs(feature_id)
         fv = next((f for f in features if f.feature_id == feature_id), None)
+
+        # Read raw YAML for description, intent, and other text fields the model doesn't carry
+        raw_yaml: dict = {}
+        raw_yaml_text: str = ""
+        raw_yaml_path: str = ""
+        workspace = project.path / ".ai-workspace"
+        for sub in ("active", "completed"):
+            ypath = workspace / "features" / sub / f"{feature_id}.yml"
+            if ypath.exists():
+                try:
+                    raw_yaml_text = ypath.read_text(encoding="utf-8")
+                    raw_yaml = _yaml.safe_load(raw_yaml_text) or {}
+                    raw_yaml_path = str(ypath)
+                except Exception:
+                    pass
+                break
+
+        # Build decision trail: consciousness events relevant to this feature
+        all_events = project.events if not t else [
+            e for e in project.events
+            if e.timestamp <= datetime.fromisoformat(t.replace('Z', '+00:00'))
+        ]
+        spawn_intent = raw_yaml.get("intent") or raw_yaml.get("spawned_by") or (fv.spawned_by if fv else None)
+        feature_trail = []
+        for e in all_events:
+            if e.event_type not in CONSCIOUSNESS_EVENT_TYPES:
+                continue
+            # Include if event directly references this feature
+            if getattr(e, "feature", None) == feature_id:
+                feature_trail.append(e)
+            elif e.event_type == "feature_spawned" and getattr(e, "child_vector", None) == feature_id:
+                feature_trail.append(e)
+            elif e.event_type == "review_completed" and getattr(e, "feature", None) == feature_id:
+                feature_trail.append(e)
+            elif e.event_type == "intent_raised" and spawn_intent:
+                raw = getattr(e, "data", {})
+                iid = raw.get("data", {}).get("intent_id") or raw.get("intent_id") or ""
+                orig = raw.get("_metadata", {}).get("original_data", {}) or {}
+                iid2 = orig.get("data", {}).get("intent_id") or orig.get("intent_id") or ""
+                if iid == spawn_intent or iid2 == spawn_intent:
+                    feature_trail.append(e)
+        trail = build_consciousness_timeline(feature_trail)
+
+        # Parent/child FeatureVector objects for links
+        children = [f for f in features if f.parent_id == feature_id] if fv else []
+        parent_fv = next((f for f in features if f.feature_id == (fv.parent_id if fv else None)), None)
+
+        # Find backing specification and ADR documents for this feature
+        import re as _re
+        req_keys = raw_yaml.get("requirements") or (fv.requirements if fv else [])
+        backing_docs: list[dict] = []
+
+        def _read_doc(path) -> str:
+            try: return path.read_text(encoding="utf-8", errors="replace")
+            except Exception: return ""
+
+        def _extract_req_sections(text: str, keys: list[str]) -> str:
+            """Extract ### REQ-KEY: ... sections from a markdown doc."""
+            chunks = []
+            for key in keys:
+                m = _re.search(
+                    rf"(### {_re.escape(key)}:.*?)(?=\n###|\Z)", text, _re.DOTALL
+                )
+                if m:
+                    chunks.append(m.group(1).strip())
+            return "\n\n---\n\n".join(chunks)
+
+        # 1. Specification requirements doc — extract relevant REQ sections
+        for spec_path in [
+            project.path / "specification" / "requirements" / "REQUIREMENTS.md",
+            project.path / ".ai-workspace" / "spec" / "REQUIREMENTS.md",
+        ]:
+            if spec_path.exists() and req_keys:
+                text = _read_doc(spec_path)
+                section = _extract_req_sections(text, req_keys)
+                if section:
+                    backing_docs.append({
+                        "title": f"Requirements — {spec_path.name}",
+                        "path": str(spec_path.relative_to(project.path)),
+                        "content": section,
+                    })
+                    break
+
+        # 2. ADR documents in any design/ subtree that implement any of the feature's REQ keys
+        for design_root in sorted(project.path.rglob("design")):
+            if not design_root.is_dir(): continue
+            for adr_path in sorted(design_root.rglob("*.md")):
+                adr_text = _read_doc(adr_path)
+                if any(k in adr_text for k in ([feature_id] + req_keys)):
+                    backing_docs.append({
+                        "title": adr_path.stem.replace("-", " ").replace("_", " "),
+                        "path": str(adr_path.relative_to(project.path)),
+                        "content": adr_text,
+                    })
+
         return request.app.state.templates.TemplateResponse(
             request,
             "feature_lineage.html",
@@ -413,6 +535,13 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
                 "feature_runs": feature_runs,
                 "design": design,
                 "t": t,
+                "raw_yaml": raw_yaml,
+                "raw_yaml_text": raw_yaml_text,
+                "raw_yaml_path": raw_yaml_path,
+                "backing_docs": backing_docs,
+                "feature_trail": trail,
+                "children": children,
+                "parent_fv": parent_fv,
             },
         )
 

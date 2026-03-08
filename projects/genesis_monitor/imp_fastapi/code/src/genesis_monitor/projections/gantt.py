@@ -19,6 +19,9 @@ _EDGE_ORDER = [
     "intent→requirements",
     "requirements→feature_decomposition",
     "feature_decomposition→design",
+    "requirements→design",          # simplified topology (no feat_decomp)
+    "design→module_decomposition",
+    "module_decomposition→basis_projections",
     "design→code",
     "code↔unit_tests",
     "unit_tests→uat_tests",
@@ -26,6 +29,38 @@ _EDGE_ORDER = [
     "cicd→telemetry",
     "telemetry→intent",
 ]
+
+# Map plain node names (YAML trajectory keys) → canonical edge names.
+# Feature YAMLs written by methodology tooling index trajectories by the
+# TARGET node of each edge rather than the full edge name.
+_NODE_TO_EDGE: dict[str, str] = {
+    "intent": "intent→requirements",
+    "requirements": "requirements→design",
+    "feature_decomposition": "requirements→feature_decomposition",
+    "design": "design→code",
+    "module_decomposition": "design→module_decomposition",
+    "basis_projections": "module_decomposition→basis_projections",
+    "unit_tests": "code↔unit_tests",
+    "uat_tests": "unit_tests→uat_tests",
+    "cicd": "uat_tests→cicd",
+    "telemetry": "cicd→telemetry",
+    # "code" is ambiguous (target of design→code); omit — covered by design→code
+}
+
+# Node names with no canonical mapping — drop from matrix columns.
+_DROP_NODES: frozenset[str] = frozenset({"code"})
+
+
+def _normalize_traj_key(key: str) -> str | None:
+    """Convert a trajectory key to its canonical edge name.
+
+    Returns None if the key should be dropped (ambiguous node or unknown).
+    """
+    if "→" in key or "↔" in key:
+        return key  # already an edge name — keep as-is
+    if key in _DROP_NODES:
+        return None
+    return _NODE_TO_EDGE.get(key)  # None if completely unknown
 
 
 @dataclass
@@ -71,10 +106,14 @@ def build_feature_matrix(features: list[FeatureVector] | None) -> FeatureMatrix 
     if not features_with_traj:
         return None
 
-    # Collect edges that appear, ordered canonically
+    # Collect edges that appear, ordered canonically.
+    # Normalize node-name keys (from feature YAMLs) to canonical edge names.
     seen_edges: set[str] = set()
     for f in features_with_traj:
-        seen_edges.update(f.trajectory.keys())
+        for key in f.trajectory:
+            canonical = _normalize_traj_key(key)
+            if canonical:
+                seen_edges.add(canonical)
 
     ordered = [e for e in _EDGE_ORDER if e in seen_edges]
     remainder = sorted(seen_edges - set(ordered))
@@ -106,12 +145,25 @@ def build_feature_matrix(features: list[FeatureVector] | None) -> FeatureMatrix 
         if f.feature_id not in seen_ids:
             ordered_features.append((f, 1))
 
+    # Reverse map: canonical edge name → list of original node-name keys
+    # (so we can find trajectory data stored under node names)
+    _edge_to_nodes: dict[str, list[str]] = {}
+    for node, edge in _NODE_TO_EDGE.items():
+        _edge_to_nodes.setdefault(edge, []).append(node)
+
     # Build matrix rows
     rows: list[MatrixRow] = []
     for feat, indent in ordered_features:
         cells: dict[str, MatrixCell] = {}
         for edge in edges:
+            # First try the canonical edge name directly
             traj = feat.trajectory.get(edge)
+            # Fall back to any node-name aliases for this edge
+            if traj is None:
+                for node_key in _edge_to_nodes.get(edge, []):
+                    traj = feat.trajectory.get(node_key)
+                    if traj is not None:
+                        break
             if traj:
                 cells[edge] = MatrixCell(
                     status=traj.status,

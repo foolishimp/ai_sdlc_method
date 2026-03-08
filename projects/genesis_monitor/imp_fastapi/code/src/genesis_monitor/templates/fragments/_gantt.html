@@ -17,8 +17,10 @@
     {% for row in matrix.rows %}
     <tr style="border-top: 1px solid var(--pico-muted-border-color);">
       <td style="padding: 4px 8px; padding-left: {{ 8 + row.indent * 20 }}px; white-space: nowrap;">
+        <a href="/project/{{ request.path_params['project_id'] }}/feature/{{ row.feature_id }}"
+           style="text-decoration:none;">
         <span class="badge badge-{{ 'converged' if row.status == 'converged' else ('in-progress' if row.status == 'in_progress' else 'not-started') }}"
-              style="font-size: 0.75em;">{{ row.feature_id }}</span>
+              style="font-size: 0.75em;">{{ row.feature_id }}</span></a>
         {% if row.title %}
         <span style="color: var(--pico-muted-color); font-size: 0.85em; margin-left: 4px;">
           {{ row.title | truncate(28, true, '…') }}

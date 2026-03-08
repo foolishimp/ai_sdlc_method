@@ -60,41 +60,129 @@
 </div>
 {% endif %}
 
-{% if fv %}
+{% if fv or raw_yaml %}
 <!-- Feature vector summary -->
-<details open style="margin-bottom: 1.5rem;">
-    <summary style="cursor:pointer; font-weight: bold;">Feature Vector</summary>
-    <div style="padding: 8px 0; font-size: 0.85rem;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div>
-                <div><strong>Status:</strong> {{ fv.status }}</div>
-                <div><strong>Profile:</strong> {{ fv.profile or '—' }}</div>
-                <div><strong>Vector type:</strong> {{ fv.vector_type or 'feature' }}</div>
-            </div>
-            <div>
-                <div><strong>Intent:</strong> {{ fv.intent or '—' }}</div>
-                <div><strong>Priority:</strong> {{ fv.priority or '—' }}</div>
-            </div>
-        </div>
-        {% if fv.trajectory %}
-        <div style="margin-top: 8px;">
-            <strong>Trajectory:</strong>
-            <span style="font-family: monospace; font-size: 0.82rem;">
-            {% for edge_key, edge_state in fv.trajectory.items() %}
-                {% if edge_state.status == 'converged' %}
-                    <span style="color: #4caf50;">{{ edge_key }} ✓</span>
-                {% elif edge_state.status == 'iterating' %}
-                    <span style="color: #ff9800;">{{ edge_key }} ●</span>
-                {% else %}
-                    <span style="color: #999;">{{ edge_key }} ○</span>
-                {% endif %}
-                {% if not loop.last %} → {% endif %}
-            {% endfor %}
+<div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.5rem; align-items: start;">
+  <div class="card" style="margin:0;">
+    <h3 style="font-size:1rem; margin-bottom:0.75rem;">Feature Definition</h3>
+
+    <div style="display:flex; gap: 2rem; flex-wrap:wrap; font-size:0.85rem; margin-bottom:0.75rem;">
+        <div><strong>Status:</strong>
+            <span class="badge badge-{{ 'converged' if (fv and fv.status == 'converged') else ('in-progress' if (fv and fv.status == 'in_progress') else 'not-started') }}">
+                {{ (fv and fv.status) or raw_yaml.get('status', '—') }}
             </span>
         </div>
-        {% endif %}
+        <div><strong>Type:</strong> {{ (fv and fv.vector_type) or raw_yaml.get('vector_type', 'feature') }}</div>
+        <div><strong>Profile:</strong> {{ (fv and fv.profile) or raw_yaml.get('profile', '—') }}</div>
+        {% set intent_ref = raw_yaml.get('intent') or raw_yaml.get('spawned_by') %}
+        {% if intent_ref %}<div><strong>Intent:</strong> <code style="font-size:0.8em">{{ intent_ref }}</code></div>{% endif %}
     </div>
-</details>
+
+    {% set desc = raw_yaml.get('description', '') %}
+    {% if desc %}
+    <blockquote style="margin:0 0 0.75rem 0; padding: 0.5rem 0.75rem; border-left: 3px solid var(--pico-primary); font-size:0.85rem; color:var(--pico-muted-color);">
+        {{ desc | trim }}
+    </blockquote>
+    {% endif %}
+
+    {% if fv and fv.trajectory %}
+    <div style="font-size:0.82rem;">
+        <strong>Trajectory:</strong>
+        <span style="font-family: monospace;">
+        {% for edge_key, edge_state in fv.trajectory.items() %}
+            {% if edge_state.status == 'converged' %}
+                <span style="color:#4caf50">{{ edge_key }} ✓</span>
+            {% elif edge_state.status == 'iterating' %}
+                <span style="color:#ff9800">{{ edge_key }} ●</span>
+            {% else %}
+                <span style="color:#999">{{ edge_key }} ○</span>
+            {% endif %}
+            {% if not loop.last %} → {% endif %}
+        {% endfor %}
+        </span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:1rem;">
+    {% if (fv and fv.requirements) or raw_yaml.get('requirements') %}
+    <div class="card" style="margin:0; padding: 0.75rem 1rem;">
+        <h4 style="font-size:0.85rem; margin-bottom:0.5rem;">Requirements</h4>
+        {% for req in (fv.requirements if fv and fv.requirements else raw_yaml.get('requirements', [])) %}
+        <div><code style="font-size:0.78rem">{{ req }}</code></div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if parent_fv or children %}
+    <div class="card" style="margin:0; padding: 0.75rem 1rem;">
+        <h4 style="font-size:0.85rem; margin-bottom:0.5rem;">Relationships</h4>
+        {% if parent_fv %}
+        <div style="font-size:0.82rem; margin-bottom:4px;">
+            Parent: <a href="/project/{{ project.project_id }}/feature/{{ parent_fv.feature_id }}">
+                <code>{{ parent_fv.feature_id }}</code></a>
+            {% if parent_fv.title %} — {{ parent_fv.title }}{% endif %}
+        </div>
+        {% endif %}
+        {% for child in children %}
+        <div style="font-size:0.82rem; padding-left:1rem;">
+            ↳ <a href="/project/{{ project.project_id }}/feature/{{ child.feature_id }}">
+                <code>{{ child.feature_id }}</code></a>
+            {% if child.title %} — {{ child.title }}{% endif %}
+            <span class="badge badge-{{ 'converged' if child.status == 'converged' else 'in-progress' }}" style="font-size:0.7em">{{ child.status }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if feature_trail %}
+<!-- Decision Trail for this feature -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <h3 style="font-size:1rem; margin-bottom:0.75rem;">Decision Trail</h3>
+    <table style="font-size:0.82rem;">
+        <thead>
+            <tr><th style="width:6em">When</th><th style="width:6em">Type</th><th>Detail</th></tr>
+        </thead>
+        <tbody>
+        {% for c in feature_trail | reverse %}
+        <tr>
+            <td><small>{{ c.timestamp.strftime('%m-%d %H:%M') }}</small></td>
+            <td>
+                {% if c.event_type == 'intent_raised' %}<span style="color:var(--pico-color-amber-400)">⬆ intent</span>
+                {% elif c.event_type == 'spec_modified' %}<span style="color:var(--pico-color-blue-400)">✎ spec</span>
+                {% elif c.event_type == 'feature_spawned' %}<span style="color:var(--pico-color-green-400)">⊕ spawn</span>
+                {% elif c.event_type == 'convergence_escalated' %}<span style="color:var(--pico-color-orange-400)">⚠ escalate</span>
+                {% elif c.event_type == 'review_completed' %}<span style="color:var(--pico-color-teal-400)">✔ review</span>
+                {% else %}<span>{{ c.event_type }}</span>{% endif %}
+            </td>
+            <td>
+                {% if c.event_type == 'intent_raised' %}
+                    {% if c.intent_id %}<code style="font-size:0.8em">{{ c.intent_id }}</code> {% endif %}
+                    {% if c.trigger %}<strong>{{ c.trigger }}</strong>{% endif %}
+                    {% if c.description %} — {{ c.description | truncate(100) }}{% endif %}
+                {% elif c.event_type == 'spec_modified' %}
+                    {% if c.get('file_path') %}<code style="font-size:0.75em;opacity:0.7">{{ c.file_path }}</code> {% endif %}
+                    {{ c.delta | truncate(100) if c.delta and c.delta != 'None' else '—' }}
+                {% elif c.event_type == 'feature_spawned' %}
+                    {% if c.parent_vector %}<code>{{ c.parent_vector }}</code> → {% endif %}<strong>{{ c.child_vector }}</strong>
+                    {% if c.reason %} — {{ c.reason | truncate(80) }}{% endif %}
+                {% elif c.event_type == 'convergence_escalated' %}
+                    <strong>{{ c.edge }}</strong>{% if c.reason %} — {{ c.reason | truncate(80) }}{% endif %}
+                {% elif c.event_type == 'review_completed' %}
+                    {% if c.outcome == 'approved' %}✓{% elif c.outcome == 'changes_requested' %}↺{% else %}⊘{% endif %}
+                    {{ c.edge }} — {{ c.outcome }}{% if c.reviewer %} ({{ c.reviewer }}){% endif %}
+                {% else %}
+                    {{ c.get('description', '') or c.get('reason', '') or '—' }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endif %}
 
 <!-- Edge run lineage -->
@@ -187,4 +275,42 @@
     </div>
 </div>
 {% endfor %}
+
+{% if backing_docs %}
+<div style="margin-top: 1.5rem;">
+    <h2 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Backing Documents</h2>
+    {% for doc in backing_docs %}
+    <details style="margin-bottom: 0.75rem;" {% if loop.first %}open{% endif %}>
+        <summary style="cursor:pointer; font-size:0.9rem; user-select:none; display:flex; justify-content:space-between; align-items:center;">
+            <span><strong>{{ doc.title }}</strong></span>
+            <code style="font-size:0.75em; opacity:0.6; font-weight:normal;">{{ doc.path }}</code>
+        </summary>
+        <div style="margin-top: 0.5rem;">
+            <pre style="max-height: 500px; overflow-y: auto; overflow-x: auto;
+                        background: var(--pico-card-background-color);
+                        border: 1px solid var(--pico-muted-border-color); border-radius: 6px;
+                        padding: 1rem; font-size: 0.8rem; line-height: 1.6; margin: 0;
+                        white-space: pre-wrap; word-break: break-word;"><code>{{ doc.content | e }}</code></pre>
+        </div>
+    </details>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if raw_yaml_text %}
+<details style="margin-top: 0.75rem;">
+    <summary style="cursor:pointer; font-size:0.9rem; color:var(--pico-muted-color); user-select:none;">
+        Feature Vector YAML
+        {% if raw_yaml_path %}
+        <code style="font-size:0.78em; margin-left:0.5em; opacity:0.7">{{ raw_yaml_path }}</code>
+        {% endif %}
+    </summary>
+    <div style="margin-top: 0.5rem; position: relative;">
+        <pre style="max-height: 400px; overflow-y: auto; background: var(--pico-card-background-color);
+                    border: 1px solid var(--pico-muted-border-color); border-radius: 6px;
+                    padding: 1rem; font-size: 0.8rem; line-height: 1.5; margin: 0;
+                    white-space: pre; overflow-x: auto;"><code>{{ raw_yaml_text | e }}</code></pre>
+    </div>
+</details>
+{% endif %}
 {% endblock %}

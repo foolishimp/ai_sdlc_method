@@ -67,11 +67,13 @@
 /* Event Trail Graph — REQ-F-GVIZ-001..005 */
 #trail-graph-container { margin-bottom: 0; }
 #trail-graph-wrap { display: flex; gap: 0.75rem; align-items: flex-start; }
-#trail-graph { flex: 1; min-height: 200px; border: 1px solid var(--pico-muted-border-color);
+#trail-graph { flex: 1; min-height: 340px; border: 1px solid var(--pico-muted-border-color);
                border-radius: 6px; overflow: hidden; background: var(--pico-card-background-color); }
-#trail-legend { width: 200px; border: 1px solid var(--pico-muted-border-color); border-radius: 6px;
-                padding: 8px; font-size: 0.75rem; max-height: 240px; overflow-y: auto;
+#trail-legend { width: 180px; border: 1px solid var(--pico-muted-border-color); border-radius: 6px;
+                padding: 8px; font-size: 0.75rem; max-height: 380px; overflow-y: auto;
                 background: var(--pico-card-background-color); flex-shrink: 0; }
+.trail-zoom-controls { display: flex; gap: 4px; padding: 4px 8px; align-items: center;
+                       border-bottom: 1px solid var(--pico-muted-border-color); }
 .legend-item { display: flex; align-items: center; gap: 6px; padding: 3px 0;
                cursor: pointer; border-radius: 3px; }
 .legend-item:hover { background: rgba(128,128,128,0.08); }
@@ -174,9 +176,9 @@
             return;
         }
 
-        const W = Math.max(container.clientWidth || 700, 400);
-        const H = 220;
-        const ML = 24, MR = 24, MT = 50, MB = 36;
+        const W = Math.max(container.getBoundingClientRect().width || window.innerWidth - 360 || 700, 500);
+        const H = 340;
+        const ML = 30, MR = 30, MT = 65, MB = 44;
         const innerW = W - ML - MR;
         const NY = MT + (H - MT - MB) / 2;
 
@@ -190,13 +192,42 @@
             };
         });
 
+        // Zoom controls
+        const ctrlBar = document.createElement("div");
+        ctrlBar.className = "trail-zoom-controls";
+        ctrlBar.innerHTML =
+            '<span style="font-size:0.72rem;color:var(--pico-muted-color);margin-right:4px;">Zoom:</span>' +
+            '<button onclick="window._trailZoomFit&&window._trailZoomFit()" style="font-size:0.72rem;padding:1px 7px;cursor:pointer;border-radius:3px;">Fit</button>' +
+            '<button onclick="window._trailZoomIn&&window._trailZoomIn()" style="font-size:0.72rem;padding:1px 7px;cursor:pointer;border-radius:3px;">+</button>' +
+            '<button onclick="window._trailZoomOut&&window._trailZoomOut()" style="font-size:0.72rem;padding:1px 7px;cursor:pointer;border-radius:3px;">−</button>' +
+            '<button onclick="window._trailZoomReset&&window._trailZoomReset()" style="font-size:0.72rem;padding:1px 7px;cursor:pointer;border-radius:3px;">1:1</button>';
+        container.appendChild(ctrlBar);
+
         // SVG root
         const svg = d3.select("#trail-graph")
             .append("svg")
             .attr("width", "100%")
             .attr("height", H)
             .attr("viewBox", "0 0 " + W + " " + H)
-            .style("display", "block");
+            .style("display", "block")
+            .style("cursor", "grab");
+
+        // Zoom layer — all arcs and nodes live here
+        const zoomG = svg.append("g").attr("class", "zoom-layer");
+
+        // D3 zoom behaviour
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 10])
+            .on("zoom", function (event) { zoomG.attr("transform", event.transform); });
+        svg.call(zoom);
+
+        // Expose zoom helpers globally (one graph per page)
+        window._trailZoomFit = function () {
+            svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+        };
+        window._trailZoomIn  = function () { svg.transition().duration(200).call(zoom.scaleBy, 1.5); };
+        window._trailZoomOut = function () { svg.transition().duration(200).call(zoom.scaleBy, 0.67); };
+        window._trailZoomReset = window._trailZoomFit;
 
         // Background click clears selection
         svg.on("click", function () { selectFilter(null, null); });
@@ -251,7 +282,7 @@
                     dashArray = "3,3";
                 }
 
-                const path = svg.append("path")
+                const path = zoomG.append("path")
                     .attr("class", "arc arc-" + run.status)
                     .attr("d", d)
                     .attr("fill", "none")
@@ -292,7 +323,7 @@
             const pulseStyle = node.in_progress_count > 0
                 ? "animation:pulse-node 1.5s ease-in-out infinite;" : "";
 
-            const ng = svg.append("g")
+            const ng = zoomG.append("g")
                 .attr("transform", "translate(" + pos.x + "," + pos.y + ")")
                 .style("cursor", "pointer")
                 .on("click", function (event) {
@@ -645,19 +676,23 @@ function initLifecycle(data) {
     updateAxis(xScale);
 
     // ── Zoom — REQ-F-TSER-003 ─────────────────────────────────────────────
+    // translateExtent deliberately omitted: let users pan freely in X.
     var zoom = d3.zoom()
         .scaleExtent([0.5, 500])
-        .translateExtent([[ML, 0], [W - MR, H]])
         .on('zoom', function(event) {
             xScale = event.transform.rescaleX(xOrig);
             drawBars(xScale);
             updateAxis(xScale);
         });
-    svg.call(zoom);
+    svg.call(zoom)
+        .style('cursor', 'grab');
+    svg.on('mousedown.cursor', function() { d3.select(this).style('cursor', 'grabbing'); })
+       .on('mouseup.cursor',   function() { d3.select(this).style('cursor', 'grab'); });
 
     // ── Zoom preset buttons — REQ-F-TSER-003 AC-2 ────────────────────────
     var controls = d3.select('#viz-lifecycle').insert('div', 'svg').attr('class', 'lc-controls');
     controls.append('span').attr('class', 'lc-label').text('Zoom:');
+    // nav hint — appended after buttons below
 
     function zoomToWindow(ms) {
         var tLast = t1.getTime();
@@ -676,6 +711,12 @@ function initLifecycle(data) {
     ].forEach(function(btn) {
         controls.append('button').attr('class', 'lc-zoom-btn').text(btn.label).on('click', btn.fn);
     });
+    controls.append('span')
+        .style('margin-left', '12px')
+        .style('font-size', '0.72rem')
+        .style('color', 'var(--pico-muted-color)')
+        .style('font-style', 'italic')
+        .text('scroll to zoom · drag to pan');
 }
 
 function formatDur(s) {

@@ -46,12 +46,16 @@ def parse_feature_vectors(workspace: Path, project_path: Path = None) -> list[Fe
         if workspace_vec:
             fid = workspace_vec.feature_id
             if fid in vectors_dict:
-                # Merge: title and requirements from spec, trajectory and status from workspace
+                # Merge: title from spec as source of truth; everything else from workspace
                 spec_vec = vectors_dict[fid]
                 spec_vec.status = workspace_vec.status
                 spec_vec.trajectory = workspace_vec.trajectory
                 spec_vec.encoding = workspace_vec.encoding
-                # Use titles from spec as source of truth
+                spec_vec.profile = workspace_vec.profile
+                spec_vec.parent_id = workspace_vec.parent_id
+                spec_vec.spawned_by = workspace_vec.spawned_by
+                spec_vec.requirements = workspace_vec.requirements or spec_vec.requirements
+                spec_vec.vector_type = workspace_vec.vector_type or spec_vec.vector_type
             else:
                 vectors_dict[fid] = workspace_vec
 

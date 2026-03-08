@@ -121,6 +121,24 @@ def _parse_one(data: dict) -> Event:
         if f.name in typed_kwargs: continue
         if f.name in orig: typed_kwargs[f.name] = orig[f.name]
 
+    # ── FeatureSpawnedEvent fallbacks ────────────────────────────────────────
+    # Newer OL-wrapped feature_spawned events store the child in orig["feature"]
+    # and the parent in orig["data"]["parent"] rather than parent_vector/child_vector.
+    if event_type == "feature_spawned":
+        nested_data = orig.get("data") or {}
+        if not typed_kwargs.get("child_vector"):
+            typed_kwargs["child_vector"] = (
+                orig.get("feature") or req_facet.get("feature_id") or ""
+            )
+        if not typed_kwargs.get("parent_vector"):
+            typed_kwargs["parent_vector"] = (
+                nested_data.get("parent") or orig.get("parent") or ""
+            )
+        if not typed_kwargs.get("reason"):
+            typed_kwargs["reason"] = (
+                nested_data.get("reason") or orig.get("reason") or ""
+            )
+
     return cls(**typed_kwargs)
 
 

@@ -30,7 +30,10 @@ def parse_status(workspace: Path) -> StatusReport | None:
     else:
         m = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
         if m:
-            report.project_name = m.group(1).strip()
+            raw = m.group(1).strip()
+            # Strip "Project Status — foo" / "Feature Status — foo" headings
+            raw = re.sub(r"^(?:Project|Feature)\s+Status\s*[—–-]+\s*", "", raw)
+            report.project_name = raw
 
     report.phase_summary = _parse_phase_table(text)
     report.telem_signals = _parse_telem_signals(text)

@@ -22,7 +22,17 @@
                 </span>
             </td>
             <td>{{ c.iterations }}</td>
-            {% if has_delta %}<td>{{ c.delta_curve or '—' }}</td>{% endif %}
+            {% if has_delta %}<td>
+                {% if c.delta_curve %}
+                    {% set curve = c.delta_curve %}
+                    {% set last_val = curve[-1] %}
+                    {% if curve | length > 10 %}
+                        <span title="{{ curve | join(', ') }}" style="cursor:help; color: var(--pico-muted-color); font-size:0.75em;">…{{ curve | length - 10 }} </span>
+                    {% endif %}
+                    <code style="font-size:0.8em;">{{ curve[-10:] | join(' ') }}</code>
+                    {% if last_val == 0 %}<span style="color:var(--pico-color-green-500)">✓</span>{% elif last_val and last_val < 0 %}<span style="color:var(--pico-color-amber-500)">↓</span>{% elif last_val %}<span style="color:var(--pico-color-red-500)">✗{{ last_val }}</span>{% endif %}
+                {% else %}—{% endif %}
+            </td>{% endif %}
             <td>{{ c.evaluator_summary }}</td>
             {% if convergence[0].duration %}<td>{{ c.duration or '—' }}</td>{% endif %}
         </tr>
