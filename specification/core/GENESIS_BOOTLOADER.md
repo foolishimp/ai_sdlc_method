@@ -201,6 +201,8 @@ IntentEngine(intent + affect) = observer → evaluator → typed_output
 | **specEventLog** | Bounded ambiguity | Deferred intent — another iteration warranted |
 | **escalate** | Persistent ambiguity | Push to higher level — judgment, spec modification, or spawning required |
 
+> **ADR-S-026 (2026-03-08)**: `specEventLog` and `escalate` outputs that raise new intent now carry a **typed composition expression** — not free text. The gap evaluator emits `{macro, version, bindings}` drawn from the named composition library, with a dispatch table mapping gap_type to named composition. `reflex.log` is unchanged. See [ADR-S-026](../adrs/ADR-S-026-named-compositions-and-intent-vectors.md) §3 for the execution contract (macro registry required before zero-interpretation claim holds).
+
 ### Homeostasis: Intent Is Computed
 
 ```

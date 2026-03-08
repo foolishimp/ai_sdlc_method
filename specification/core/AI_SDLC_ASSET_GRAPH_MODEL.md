@@ -713,6 +713,8 @@ IntentEngine(intent + affect) = observer → evaluator → typed_output
 | **specEventLog** | Deferred/async intent for later processing — the observation requires further work but is bounded | Ambiguity nonzero but bounded — context assembly needed, another iteration warranted | `iteration_completed` (with non-zero delta), `affect_triage` (deferred), `draft_proposal` |
 | **escalate** | Push to higher consciousness level — the observation exceeds this unit's processing capacity | Ambiguity persistent — judgment, spec modification, or spawning required | `intent_raised`, `convergence_escalated`, `spec_modified`, `spawn_created` |
 
+> **ADR-S-026 (2026-03-08)**: When `specEventLog` or `escalate` raise new intent, the payload is now a **typed composition expression** — `{macro, version, bindings}` — not free text. `reflex.log` is unchanged. A dispatch table maps `gap_type → named composition` in the composition library. Execution requires a macro registry, binding validation, and compilation contract (defined per implementation tenant). See [ADR-S-026](../adrs/ADR-S-026-named-compositions-and-intent-vectors.md) §3 for the full contract.
+
 #### 4.6.4 Observer/Evaluator on Every Edge
 
 Every edge has an observer/evaluator pair. At production scale, observers are continuous (sensory systems §4.5). The pattern is fractal — it appears at single-iteration, edge, feature, and product scales.
@@ -789,6 +791,26 @@ Constraint: "P99 latency < 200ms"            → measurable, delta = |observed -
 Constraint: "all tests pass"                 → measurable, delta = failing_count
 Constraint: "design uses protocol X"         → measurable, delta = drift from X's properties
 ```
+
+**Two tolerance shapes exist — both are sensors, but they constrain in opposite directions:**
+
+| Shape | Form | Delta direction | Example |
+|-------|------|-----------------|---------|
+| **Upper bound** | `value < threshold` | Breach when too high | Latency < 200ms, max_iterations = 10, time_box.max_duration = P14D |
+| **Lower bound** | `value > threshold` | Breach when too low or too early | min_duration = P14D (convergence cannot be attempted before this elapsed), coverage > 80% |
+
+**Lower-bound constraints are convergence preconditions** — they are not "do less" signals, they are "not yet" gates. The delta is: `current_time < published_at + min_duration → convergence blocked (not breach, not iterating — waiting)`. This is structurally different from a failing evaluator. The correct signal is: `evaluation_deferred` (eligible to retry after lower bound clears), not `evaluation_failed`.
+
+The distinction matters because `evaluation_failed` drives rework (produce a new candidate), while `evaluation_deferred` drives patience (the same candidate is still valid, the window just isn't open yet). Conflating the two produces wasted iterations.
+
+Multi-stakeholder review (CONSENSUS) is the primary use case for lower-bound constraints: a minimum review duration enforces that participants have had sufficient time to consider the proposal before quorum is calculated, regardless of whether enough votes are already in.
+
+```
+Upper bound:  time_box.max_duration  — convergence forced if exceeded (fold-back)
+Lower bound:  min_duration           — convergence blocked until elapsed (gate)
+```
+
+Both are sensors. Upper bounds detect runaway iteration; lower bounds enforce deliberation time.
 
 **Tolerances are what make the sensory system (§4.5) operational.** Without them, interoceptive and exteroceptive monitors have nothing to measure against. With them, every monitor becomes an IntentEngine invocation:
 

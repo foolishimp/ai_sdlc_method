@@ -451,6 +451,8 @@ IntentEngine(intent + affect) = observer → evaluator → typed_output
 | **specEventLog** | Bounded ambiguity | Deferred intent — another iteration warranted |
 | **escalate** | Persistent ambiguity | Push to higher level — judgment, spec modification, or spawning required |
 
+> **ADR-S-026 (2026-03-08)**: `specEventLog` and `escalate` outputs that raise new intent now carry a **typed composition expression** — `{macro, version, bindings}` — not free text. `reflex.log` is unchanged. A dispatch table maps `gap_type → named composition`. Execution requires a macro registry per implementation tenant. See ADR-S-026 §3.
+
 ### Homeostasis: Intent Is Computed
 
 Intent is not only a human-authored input — it is a **generated output** of any observer detecting a non-zero delta:
