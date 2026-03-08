@@ -1,5 +1,5 @@
 # Implements: REQ-F-PARSE-001, REQ-F-PARSE-002, REQ-F-PARSE-003, REQ-F-PARSE-004, REQ-F-PARSE-005, REQ-F-PARSE-006
-# Implements: REQ-F-VREL-001, REQ-F-TBOX-001, REQ-F-PROF-001, REQ-F-CDIM-001, ADR-004
+# Implements: REQ-F-PARSE-007, REQ-F-VREL-001, REQ-F-TBOX-001, REQ-F-PROF-001, REQ-F-CDIM-001, ADR-004
 """Core data models for Genesis Monitor."""
 
 from __future__ import annotations
@@ -48,6 +48,20 @@ class StatusReport:
 
 
 @dataclass
+class AdrEntry:
+    number: int = 0
+    adr_id: str = ""
+    title: str = ""
+    status: str = "unknown"
+    date: str = ""
+    scope: str = ""
+    summary: str = ""
+    path: str = ""
+    superseded_by: str | None = None
+    badge_style: str = ""
+
+
+@dataclass
 class EdgeTrajectory:
     status: str = "not_started"
     iteration: int = 0
@@ -59,6 +73,8 @@ class EdgeTrajectory:
     # v2.9 Unit of Work
     latest_hash: str | None = None
     archive_path: str | None = None
+    # ADR-S-026 — artifact link for this edge
+    asset: str | None = None
 
 
 @dataclass
@@ -146,6 +162,7 @@ class Project:
     last_updated: datetime = field(default_factory=datetime.now)
     traceability: TraceabilityReport | None = None
     index: EventIndex | None = None  # ADR-004: built at load time, queried per request
+    adrs: list[AdrEntry] = field(default_factory=list)
 
 
 @dataclass

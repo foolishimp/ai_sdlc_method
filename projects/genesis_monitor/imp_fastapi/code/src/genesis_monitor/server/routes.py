@@ -720,6 +720,27 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
         runs = idx.timeline_fuzzy(feature=feature or None, edge=edge or None, status=status or None)
         return JSONResponse(_build_graph_data(project_id, runs))
 
+    @router.get("/fragments/project/{project_id}/adrs", response_class=HTMLResponse)
+    async def fragment_adrs(request: Request, project_id: str):
+        project = registry.get_project(project_id)
+        if not project: return HTMLResponse("")
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "fragments/_adrs.html",
+            {"adrs": project.adrs, "current_time": datetime.now().strftime("%H:%M:%S")},
+        )
+
+    @router.get("/fragments/project/{project_id}/feature-trajectory", response_class=HTMLResponse)
+    async def fragment_feature_trajectory(request: Request, project_id: str, t: str = None, design: str = None):
+        project = registry.get_project(project_id)
+        if not project: return HTMLResponse("")
+        _, features, _ = _get_historical_state(project, t, design)
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "fragments/_feature_trajectory.html",
+            {"features": features, "current_time": datetime.now().strftime("%H:%M:%S")},
+        )
+
     # ── SSE / health ──────────────────────────────────────────────────────────
 
     @router.get("/events/stream")

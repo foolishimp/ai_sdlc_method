@@ -1,0 +1,51 @@
+{% if adrs %}
+<div class="timestamp">Last updated: {{ current_time }}</div>
+<div style="overflow-x: auto;">
+<table style="width: 100%; border-collapse: collapse; font-size: 0.82em;">
+  <thead>
+    <tr>
+      <th style="text-align: left; padding: 4px 8px; white-space: nowrap;">ADR</th>
+      <th style="text-align: left; padding: 4px 8px;">Title</th>
+      <th style="text-align: center; padding: 4px 8px; white-space: nowrap;">Status</th>
+      <th style="text-align: left; padding: 4px 8px; white-space: nowrap;">Date</th>
+      <th style="text-align: left; padding: 4px 8px;">Scope</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for adr in adrs %}
+    <tr style="border-top: 1px solid var(--pico-muted-border-color);">
+      <td style="padding: 4px 8px; white-space: nowrap; font-family: monospace; font-size: 0.9em;">
+        {{ adr.adr_id }}
+      </td>
+      <td style="padding: 4px 8px;">
+        <span title="{{ adr.summary }}">{{ adr.title }}</span>
+        {% if adr.superseded_by %}
+        <br><small style="color: var(--pico-muted-color);">→ {{ adr.superseded_by }}</small>
+        {% endif %}
+      </td>
+      <td style="text-align: center; padding: 4px 8px;">
+        <span class="badge" style="{{ adr.badge_style }}; padding: 2px 8px; border-radius: 3px; font-size: 0.8em; white-space: nowrap;">
+          {{ adr.status }}
+        </span>
+      </td>
+      <td style="padding: 4px 8px; white-space: nowrap; color: var(--pico-muted-color); font-size: 0.9em;">
+        {{ adr.date }}
+      </td>
+      <td style="padding: 4px 8px; color: var(--pico-muted-color); font-size: 0.85em;">
+        {{ adr.scope | truncate(60, true, '…') }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<p style="font-size: 0.75em; color: var(--pico-muted-color); margin-top: 6px;">
+  {{ adrs | length }} ADR{% if adrs | length != 1 %}s{% endif %} &nbsp;|&nbsp;
+  {{ adrs | selectattr('status', 'equalto', 'accepted') | list | length }} accepted &nbsp;
+  {{ adrs | selectattr('status', 'equalto', 'proposed') | list | length }} proposed &nbsp;
+  {{ adrs | selectattr('status', 'equalto', 'superseded') | list | length }} superseded &nbsp;
+  {{ adrs | selectattr('status', 'equalto', 'retired') | list | length }} retired
+</p>
+{% else %}
+<p><em>No ADRs found in specification/adrs/ADR-S-*.md</em></p>
+{% endif %}

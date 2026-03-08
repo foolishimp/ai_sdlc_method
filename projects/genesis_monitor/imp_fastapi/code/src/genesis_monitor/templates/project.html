@@ -328,6 +328,28 @@
     </div>
 </div>
 
+<!-- ADR Register -->
+<div class="card">
+    <h3>ADR Register <small style="font-weight: normal; color: var(--pico-muted-color);">specification/adrs/ADR-S-*</small></h3>
+    <div id="adrs-section"
+         hx-get="/fragments/project/{{ project.project_id }}/adrs"
+         hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+         hx-swap="innerHTML">
+        {% with adrs = project.adrs %}{% include "fragments/_adrs.html" %}{% endwith %}
+    </div>
+</div>
+
+<!-- Feature Trajectory -->
+<div class="card">
+    <h3>Feature Trajectory <small style="font-weight: normal; color: var(--pico-muted-color);">pre-code phases + artifact links</small></h3>
+    <div id="feature-trajectory-section"
+         hx-get="/fragments/project/{{ project.project_id }}/feature-trajectory"
+         hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+         hx-swap="innerHTML">
+        {% with features = features %}{% include "fragments/_feature_trajectory.html" %}{% endwith %}
+    </div>
+</div>
+
 <!-- Consciousness Timeline (full-width, bottom of page) -->
 <div class="card">
     <h3>Consciousness Loop</h3>

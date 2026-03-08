@@ -1,0 +1,90 @@
+{% set edge_order = ['requirements', 'feature_decomposition', 'design_recommendations', 'design', 'code', 'unit_tests', 'uat_tests', 'cicd'] %}
+{% if features %}
+<div class="timestamp">Last updated: {{ current_time }}</div>
+<div style="overflow-x: auto;">
+<table style="width: 100%; border-collapse: collapse; font-size: 0.82em;">
+  <thead>
+    <tr>
+      <th style="text-align: left; padding: 4px 8px; min-width: 160px;">Feature</th>
+      <th style="text-align: left; padding: 4px 8px;">Status</th>
+      {% for edge in edge_order %}
+      <th style="text-align: center; padding: 4px 6px; font-size: 0.78em; white-space: nowrap;"
+          title="{{ edge }}">
+        {{ edge | replace('_', ' ') | truncate(10, true, '…') }}
+      </th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for fv in features | sort(attribute='feature_id') %}
+    <tr style="border-top: 1px solid var(--pico-muted-border-color);">
+      <td style="padding: 4px 8px; white-space: nowrap;">
+        <a href="/project/{{ request.path_params['project_id'] }}/feature/{{ fv.feature_id }}"
+           style="text-decoration: none; font-family: monospace; font-size: 0.9em;">
+          {{ fv.feature_id }}
+        </a>
+        {% if fv.title %}
+        <br><small style="color: var(--pico-muted-color);">{{ fv.title | truncate(32, true, '…') }}</small>
+        {% endif %}
+      </td>
+      <td style="padding: 4px 8px; white-space: nowrap;">
+        {% if fv.status == 'converged' %}
+          <span style="color: #4caf50;">✓ converged</span>
+        {% elif fv.status == 'in_progress' %}
+          <span style="color: #ff9800;">⟳ in progress</span>
+        {% elif fv.status == 'blocked' %}
+          <span style="color: #f44336;">✗ blocked</span>
+        {% else %}
+          <span style="color: var(--pico-muted-color);">· {{ fv.status }}</span>
+        {% endif %}
+      </td>
+      {% for edge in edge_order %}
+        {% set traj = fv.trajectory.get(edge) %}
+        {% if traj %}
+          {% if traj.status == 'converged' %}
+            {% set bg = 'rgba(76, 175, 80, 0.12)' %}
+            {% set symbol = '✓' %}
+            {% set color = '#4caf50' %}
+          {% elif traj.status in ['iterating', 'in_progress'] %}
+            {% set bg = 'rgba(255, 152, 0, 0.12)' %}
+            {% set symbol = '⟳' %}
+            {% set color = '#ff9800' %}
+          {% elif traj.status == 'pending' %}
+            {% set bg = 'transparent' %}
+            {% set symbol = '·' %}
+            {% set color = '#aaa' %}
+          {% else %}
+            {% set bg = 'transparent' %}
+            {% set symbol = traj.status[0] | upper %}
+            {% set color = '#aaa' %}
+          {% endif %}
+          <td style="text-align: center; padding: 4px 6px; background: {{ bg }};">
+            {% if traj.asset %}
+              <a href="#" title="{{ traj.asset }}" style="color: {{ color }}; text-decoration: none;"
+                 onclick="return false;">
+                <span style="font-weight: bold;">{{ symbol }}</span>
+                <sup style="font-size: 0.7em;">↗</sup>
+              </a>
+            {% else %}
+              <span style="color: {{ color }}; font-weight: bold;">{{ symbol }}</span>
+            {% endif %}
+            {% if traj.iteration > 0 %}
+            <sub style="color: var(--pico-muted-color); font-size: 0.75em;">{{ traj.iteration }}</sub>
+            {% endif %}
+          </td>
+        {% else %}
+          <td style="text-align: center; padding: 4px 6px; color: var(--pico-muted-border-color);">—</td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<p style="font-size: 0.75em; color: var(--pico-muted-color); margin-top: 6px;">
+  ✓ converged &nbsp; ⟳ in-progress &nbsp; · pending &nbsp;
+  <sub>n</sub> = iteration count &nbsp;|&nbsp; ↗ = artifact link available
+</p>
+{% else %}
+<p><em>No feature vectors found.</em></p>
+{% endif %}

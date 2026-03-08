@@ -1,5 +1,6 @@
 # Implements: REQ-F-PARSE-001, REQ-F-PARSE-002, REQ-F-PARSE-003, REQ-F-PARSE-004, REQ-F-PARSE-005, REQ-F-PARSE-006
-# Implements: REQ-F-DASH-006
+# Implements: REQ-F-PARSE-007, REQ-F-DASH-006
+from genesis_monitor.parsers.adrs import parse_adrs
 from genesis_monitor.parsers.bootloader import detect_bootloader
 from genesis_monitor.parsers.constraints import parse_constraints
 from genesis_monitor.parsers.events import parse_events
@@ -10,6 +11,7 @@ from genesis_monitor.parsers.topology import parse_graph_topology
 
 __all__ = [
     "detect_bootloader",
+    "parse_adrs",
     "parse_constraints",
     "parse_events",
     "parse_feature_vectors",

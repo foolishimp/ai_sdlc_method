@@ -100,6 +100,8 @@ def _parse_one(path: Path) -> FeatureVector | None:
                     converged_at=_parse_optional_timestamp(edge_data.get("converged_at")),
                     convergence_type=str(edge_data.get("convergence_type", "")),
                     escalations=list(edge_data.get("escalations", [])),
+                    # ADR-S-026 — artifact link
+                    asset=edge_data.get("asset") or edge_data.get("notes"),
                 )
 
     # v2.5: parse time_box

@@ -9,6 +9,7 @@ from pathlib import Path
 from genesis_monitor.models import Project
 from genesis_monitor.parsers import (
     detect_bootloader,
+    parse_adrs,
     parse_constraints,
     parse_events,
     parse_feature_vectors,
@@ -60,6 +61,7 @@ class ProjectRegistry:
             last_updated=datetime.now(),
             traceability=parse_traceability(path),
             index=EventIndex.build(events),  # ADR-004: O(n) once at load
+            adrs=parse_adrs(path),
         )
 
         with self._lock:
