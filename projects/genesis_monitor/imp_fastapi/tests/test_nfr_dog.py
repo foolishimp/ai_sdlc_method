@@ -36,7 +36,7 @@ from genesis_monitor.server.broadcaster import SSEBroadcaster
 # ── Fixtures ───────────────────────────────────────────────────────────────────
 
 _IMP_ROOT = Path(__file__).parent.parent   # imp_fastapi/
-_PROJ_ROOT = _IMP_ROOT.parent.parent       # genesis_monitor/ (project root)
+_PROJ_ROOT = _IMP_ROOT.parent              # genesis_monitor/ (project root)
 _SRC_ROOT = _IMP_ROOT / "code" / "src"
 _TEST_ROOT = _IMP_ROOT / "tests"
 
