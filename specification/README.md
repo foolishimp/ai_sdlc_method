@@ -17,6 +17,7 @@ specification/
 ├── core/                        ← PRIMARY: the formal system (inputs)
 │   ├── AI_SDLC_ASSET_GRAPH_MODEL.md
 │   ├── PROJECTIONS_AND_INVARIANTS.md
+│   ├── HIGHER_ORDER_FUNCTORS.md     ← Level 2+3: named functors and compositions (ADR-S-026)
 │   ├── EXECUTIVE_SUMMARY.md
 │   └── GENESIS_BOOTLOADER.md
 │
@@ -53,6 +54,7 @@ Constraint-Emergence Ontology  (external)
    core/AI_SDLC_ASSET_GRAPH_MODEL.md        The formal system — 4 primitives, 1 operation
         │
         ├──► core/PROJECTIONS_AND_INVARIANTS.md    Graph subsets, profiles, spawn/fold-back
+        ├──► core/HIGHER_ORDER_FUNCTORS.md         Level 2+3: 8 named functors + named compositions (ADR-S-026)
         ├──► core/EXECUTIVE_SUMMARY.md             5-minute digest
         ├──► core/GENESIS_BOOTLOADER.md            LLM operational distillation
         │
@@ -107,6 +109,8 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-010](adrs/ADR-S-010-event-sourced-spec-evolution.md) | Event-Sourced Spec Evolution | `feature_proposal` and `spec_modified` events; promotion path; Draft Features Queue |
 | [ADR-S-011](adrs/ADR-S-011-openlineage-unified-metadata-standard.md) | OpenLineage Unified Metadata | All events follow OL RunEvent schema; custom facets; local-first; causal chaining via ParentRunFacet |
 | [ADR-S-012](adrs/ADR-S-012-event-stream-as-formal-model-medium.md) | Event Stream Medium | All primitives operate on append-only event stream; Asset as projection; Saga invariant |
+| [ADR-S-025](adrs/ADR-S-025-consensus-functor.md) | CONSENSUS Functor | Multi-stakeholder F_H with quorum, participation floor, gating snapshot, typed outcome |
+| [ADR-S-026](adrs/ADR-S-026-named-compositions-and-intent-vectors.md) | Named Compositions + Intent Vectors | Five-level stack; PLAN/POC/SCHEMA_DISCOVERY/DATA_DISCOVERY macros; typed gap.intent output; intent vector tuple; project convergence vocabulary |
 
 
 ---
