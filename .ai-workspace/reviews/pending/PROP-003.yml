@@ -1,0 +1,31 @@
+proposal_id: "PROP-003"
+intent_id: "INT-GAP-010"
+status: draft
+severity: high
+created: "2026-03-09T00:00:09Z"
+source: gap_analysis
+
+title: "Complete OL Event Taxonomy (REQ-EVENT-002/003/004/005)"
+description: |
+  Full observability event taxonomy has code gaps despite ADR-025 roadmap.
+  REQ-EVENT-002 (projection contract — determinism, completeness, isolation)
+  has partial test coverage but missing code enforcement. REQ-EVENT-003
+  (saga compensation events) and REQ-EVENT-004 (causal threading) are
+  partially implemented. REQ-EVENT-005 (schema validation) has no code.
+
+affected_req_keys:
+  - REQ-EVENT-002
+  - REQ-EVENT-003
+  - REQ-EVENT-004
+  - REQ-EVENT-005
+
+suggested_vector:
+  feature: "REQ-F-EVENT-001"
+  title: "OL Event Taxonomy Completion"
+  vector_type: feature
+  profile: standard
+  requirements: [REQ-EVENT-002, REQ-EVENT-003, REQ-EVENT-004, REQ-EVENT-005]
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-003
+  Dismiss: /gen-review-proposal --dismiss PROP-003 --reason "{reason}"

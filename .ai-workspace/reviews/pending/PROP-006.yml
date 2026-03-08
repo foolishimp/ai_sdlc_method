@@ -1,0 +1,28 @@
+proposal_id: "PROP-006"
+intent_id: "INT-GAP-013"
+status: draft
+severity: medium
+created: "2026-03-09T00:00:12Z"
+source: gap_analysis
+
+title: "Implement Telemetry Tagging Across All Implemented REQ Keys"
+description: |
+  Telemetry observability (req= tags in logging/metrics) is missing for 84/85
+  REQ keys in production code. Phase 2 homeostasis requires the sensory system
+  to read req= tagged events from running code. Estimated scope: add req= tags
+  to all engine.py, evaluator execution, and command execution paths. Low
+  effort per-file; high breadth.
+
+affected_req_keys:
+  - all
+
+suggested_vector:
+  feature: "REQ-F-TELEM-001"
+  title: "Telemetry Tagging Phase 1"
+  vector_type: feature
+  profile: hotfix
+  requirements: [all implemented REQ keys]
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-006
+  Dismiss: /gen-review-proposal --dismiss PROP-006 --reason "{reason}"
