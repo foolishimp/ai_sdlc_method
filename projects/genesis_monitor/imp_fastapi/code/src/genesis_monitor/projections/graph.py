@@ -4,6 +4,7 @@
 import re
 
 from genesis_monitor.models import GraphTopology, StatusReport
+from genesis_monitor.models.core import FeatureVector
 
 
 def _sanitize_node_id(name: str) -> str:
@@ -15,8 +16,12 @@ def _extract_target_node(edge_name: str) -> str:
     return _sanitize_node_id(parts[-1].strip())
 
 
-def build_graph_mermaid(topology: GraphTopology | None, status: StatusReport | None) -> str:
-    if not topology or not topology.asset_types: return _default_graph(status)
+def build_graph_mermaid(
+    topology: GraphTopology | None,
+    status: StatusReport | None,
+    features: list[FeatureVector] | None = None,
+) -> str:
+    if not topology or not topology.asset_types: return _default_graph(status, features)
 
     lines = ["graph LR"]
     valid_nodes = set()
@@ -34,7 +39,7 @@ def build_graph_mermaid(topology: GraphTopology | None, status: StatusReport | N
         tgt = _sanitize_node_id(t.target)
         lines.append(f"    {src} --> {tgt}")
 
-    # Apply styles
+    # Apply styles — seed from STATUS.md phase summary
     converged_nodes = set()
     progress_nodes = set()
     tournament_nodes = {"parallel_spawn", "tournament_arbitration", "tournament_merge"}
@@ -44,6 +49,18 @@ def build_graph_mermaid(topology: GraphTopology | None, status: StatusReport | N
             node_name = _extract_target_node(entry.edge)
             if entry.status == "converged": converged_nodes.add(node_name)
             elif entry.status == "in_progress": progress_nodes.add(node_name)
+
+    # Augment from feature vector trajectories (catches pre-code edges like
+    # design_recommendations that STATUS.md may not cover)
+    if features:
+        for fv in features:
+            for edge_key, traj in fv.trajectory.items():
+                node_id = _sanitize_node_id(edge_key)
+                if traj.status == "converged":
+                    converged_nodes.add(node_id)
+                    progress_nodes.discard(node_id)
+                elif traj.status in ("iterating", "in_progress") and node_id not in converged_nodes:
+                    progress_nodes.add(node_id)
 
     converged_nodes &= valid_nodes
     progress_nodes &= valid_nodes
@@ -63,7 +80,7 @@ def build_graph_mermaid(topology: GraphTopology | None, status: StatusReport | N
     return "\n".join(lines)
 
 
-def _default_graph(status: StatusReport | None) -> str:
+def _default_graph(status: StatusReport | None, features: list[FeatureVector] | None = None) -> str:
     nodes = ["intent", "requirements", "design", "code", "unit_tests", "uat_tests"]
     labels = ["Intent", "Requirements", "Design", "Code", "Unit Tests", "UAT Tests"]
     valid_nodes = set(nodes)

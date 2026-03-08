@@ -103,7 +103,7 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
         })
         design_counts = {d: sum(1 for e in project.events if e.project == d)
                          for d in available_designs}
-        graph_mermaid = build_graph_mermaid(project.topology, status)
+        graph_mermaid = build_graph_mermaid(project.topology, status, features)
         convergence = build_convergence_table(status, events)
         matrix = build_feature_matrix(features)
         feature_module_map = build_feature_module_map(features, project.traceability)
@@ -147,8 +147,8 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
     async def fragment_graph(request: Request, project_id: str, t: str = None, design: str = None):
         project = registry.get_project(project_id)
         if not project: return HTMLResponse("")
-        _, _, status = _get_historical_state(project, t, design)
-        mermaid = build_graph_mermaid(project.topology, status)
+        _, features, status = _get_historical_state(project, t, design)
+        mermaid = build_graph_mermaid(project.topology, status, features)
         return request.app.state.templates.TemplateResponse(
             request,
             "fragments/_graph.html",

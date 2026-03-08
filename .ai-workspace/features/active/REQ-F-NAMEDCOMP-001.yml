@@ -33,7 +33,7 @@ trajectory:
     evaluators_total: 6
     delta: 0
 
-  design:
+  design_recommendations:
     status: converged
     iteration: 1
     started_at: "2026-03-08T19:31:00+11:00"
@@ -42,6 +42,9 @@ trajectory:
     evaluators_passed: 6
     evaluators_total: 6
     delta: 0
+
+  design:
+    status: pending
 
   code:
     status: pending
