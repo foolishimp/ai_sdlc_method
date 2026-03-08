@@ -287,7 +287,7 @@ PROJECT_CONSTRAINTS_YML = textwrap.dedent("""\
     project:
       name: "temperature-converter"
       version: "0.1.0"
-      default_profile: standard
+      default_profile: e2e
 
     context_sources: []
 
@@ -374,14 +374,6 @@ PROJECT_CONSTRAINTS_YML = textwrap.dedent("""\
       forbidden:
         - "Global mutable state"
 
-    evaluator_overrides:
-      edges:
-        "intent→requirements":
-          evaluators: [agent]
-        "requirements→design":
-          evaluators: [agent]
-        "design→uat_tests":
-          evaluators: [agent]
 """)
 
 FEATURE_VECTOR_YML = textwrap.dedent("""\
@@ -390,7 +382,7 @@ FEATURE_VECTOR_YML = textwrap.dedent("""\
     title: "Temperature Conversion Functions"
     intent: "INT-001"
     vector_type: feature
-    profile: standard
+    profile: e2e
     status: pending
     convergence_type: ""
     created: "{timestamp}"
@@ -754,63 +746,78 @@ def run_claude_headless(
                 continue
         return latest, count
 
-    with open(stdout_log, "w") as f_out, open(stderr_log, "w") as f_err:
-        # start_new_session=True makes the subprocess a process group leader,
-        # so _kill_process_group can kill it + all children (MCP servers, etc.)
-        proc = subprocess.Popen(
-            cmd, cwd=str(project_dir),
-            stdout=f_out, stderr=f_err,
-            text=True, env=env,
-            start_new_session=True,
-        )
+    def _ts_writer(stream, log_path: pathlib.Path) -> threading.Thread:
+        """Read stream line-by-line, prepend HH:MM:SS timestamp, write to log."""
+        def _run():
+            with open(log_path, "w", buffering=1) as f:
+                for raw in iter(stream.readline, ""):
+                    ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
+                    f.write(f"[{ts}] {raw}")
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+        return t
 
-        def watchdog():
-            nonlocal timed_out, stall_killed
-            last_activity = time.time()
-            last_mtime, last_count = _project_fingerprint(project_dir)
-            last_stderr_size = 0
+    # Use PIPE so we can prepend timestamps before writing to log files.
+    # start_new_session=True makes the subprocess a process group leader,
+    # so _kill_process_group can kill it + all children (MCP servers, etc.)
+    proc = subprocess.Popen(
+        cmd, cwd=str(project_dir),
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, env=env,
+        start_new_session=True,
+    )
+    stdout_thread = _ts_writer(proc.stdout, stdout_log)
+    stderr_thread = _ts_writer(proc.stderr, stderr_log)
 
-            while proc.poll() is None:
-                time.sleep(10)
-                now = time.time()
+    def watchdog():
+        nonlocal timed_out, stall_killed
+        last_activity = time.time()
+        last_mtime, last_count = _project_fingerprint(project_dir)
+        last_stderr_size = 0
 
-                # Check wall timeout
-                if now - start > wall_timeout:
-                    timed_out = True
-                    print(f"E2E: Wall timeout ({wall_timeout:.0f}s) — killing process group",
-                          flush=True)
-                    _kill_process_group(proc)
-                    return
+        while proc.poll() is None:
+            time.sleep(10)
+            now = time.time()
 
-                # Check activity: project files modified, new files, or stderr growth
-                cur_mtime, cur_count = _project_fingerprint(project_dir)
-                try:
-                    cur_stderr = stderr_log.stat().st_size
-                except OSError:
-                    cur_stderr = 0
+            # Check wall timeout
+            if now - start > wall_timeout:
+                timed_out = True
+                print(f"E2E: Wall timeout ({wall_timeout:.0f}s) — killing process group",
+                      flush=True)
+                _kill_process_group(proc)
+                return
 
-                activity = (cur_mtime > last_mtime
-                            or cur_count != last_count
-                            or cur_stderr > last_stderr_size)
-                if activity:
-                    last_mtime = cur_mtime
-                    last_count = cur_count
-                    last_stderr_size = cur_stderr
-                    last_activity = now
-                elif now - last_activity > stall_timeout:
-                    stall_killed = True
-                    timed_out = True
-                    elapsed_so_far = now - start
-                    print(f"E2E: Stall detected — no file activity for {stall_timeout:.0f}s "
-                          f"(elapsed {elapsed_so_far:.0f}s) — killing process group",
-                          flush=True)
-                    _kill_process_group(proc)
-                    return
+            # Check activity: project files modified, new files, or stderr growth
+            cur_mtime, cur_count = _project_fingerprint(project_dir)
+            try:
+                cur_stderr = stderr_log.stat().st_size
+            except OSError:
+                cur_stderr = 0
 
-        watcher = threading.Thread(target=watchdog, daemon=True)
-        watcher.start()
-        proc.wait()
-        watcher.join(timeout=10)
+            activity = (cur_mtime > last_mtime
+                        or cur_count != last_count
+                        or cur_stderr > last_stderr_size)
+            if activity:
+                last_mtime = cur_mtime
+                last_count = cur_count
+                last_stderr_size = cur_stderr
+                last_activity = now
+            elif now - last_activity > stall_timeout:
+                stall_killed = True
+                timed_out = True
+                elapsed_so_far = now - start
+                print(f"E2E: Stall detected — no file activity for {stall_timeout:.0f}s "
+                      f"(elapsed {elapsed_so_far:.0f}s) — killing process group",
+                      flush=True)
+                _kill_process_group(proc)
+                return
+
+    watcher = threading.Thread(target=watchdog, daemon=True)
+    watcher.start()
+    proc.wait()
+    watcher.join(timeout=10)
+    stdout_thread.join(timeout=5)
+    stderr_thread.join(timeout=5)
 
     elapsed = time.time() - start
     result = ClaudeRunResult(
@@ -931,6 +938,8 @@ STANDARD_EDGES = {
     "code↔unit_tests",
 }
 
+UAT_EDGE = "design→uat_tests"
+
 
 @pytest.fixture(scope="session")
 def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
@@ -1006,6 +1015,60 @@ def converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
 
     # Archival deferred to pytest_sessionfinish so the directory name
     # reflects the final test verdict (e2e_ vs e2e_FAILED_).
+    return project_dir
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# UAT FIXTURE — runs AFTER the 4-edge convergence
+# ═══════════════════════════════════════════════════════════════════════
+
+@pytest.fixture(scope="session")
+def converged_with_uat(converged_project: pathlib.Path) -> pathlib.Path:
+    """Run headless Claude on the design→uat_tests edge.
+
+    Session-scoped: depends on converged_project (4-edge standard run already done).
+    Drives one explicit gen-iterate call for the UAT edge.
+
+    Evaluator overrides in project_constraints.yml replace the human evaluators
+    with agent-only for this edge, making it headless-safe.
+    """
+    project_dir = converged_project
+    meta_dir = project_dir / ".e2e-meta"
+    meta_dir.mkdir(exist_ok=True)
+
+    prompt = (
+        '/gen-iterate --edge "design→uat_tests" --feature "REQ-F-CONV-001"'
+    )
+
+    print(f"\n{'='*60}")
+    print(f"E2E UAT: Starting headless Claude for {UAT_EDGE}")
+    print(f"E2E UAT: Project dir: {project_dir}")
+    print(f"E2E UAT: Live output: tail -f {meta_dir}/uat_stdout.log")
+    print(f"{'='*60}\n", flush=True)
+
+    uat_log_dir = meta_dir / "uat"
+    uat_log_dir.mkdir(exist_ok=True)
+
+    result = run_claude_headless(
+        project_dir, prompt, log_dir=uat_log_dir,
+        max_budget_usd=3.00,   # UAT is a single edge — cheaper
+        wall_timeout=900.0,    # 15 min max
+    )
+
+    print(
+        f"\nE2E UAT: Claude finished in {result.elapsed:.0f}s "
+        f"(rc={result.returncode}, timed_out={result.timed_out})",
+        flush=True,
+    )
+
+    if result.timed_out and result.returncode != 0:
+        pytest.fail(
+            f"UAT Claude timed out after {result.elapsed:.0f}s with no output.\n"
+            f"--- stdout ---\n{result.stdout[-1500:]}\n"
+            f"--- stderr ---\n{result.stderr[-500:]}\n"
+            f"Full logs: {uat_log_dir}"
+        )
+
     return project_dir
 
 

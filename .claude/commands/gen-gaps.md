@@ -2,7 +2,7 @@
 
 Run formal traceability validation across 3 layers: REQ tag coverage, test gap analysis, and telemetry gap analysis. Reports gaps with severity and recommended actions.
 
-<!-- Implements: REQ-TOOL-005 (Test Gap Analysis), REQ-TOOL-009 (Feature Views) -->
+<!-- Implements: REQ-TOOL-005 (Test Gap Analysis), REQ-TOOL-009 (Feature Views), REQ-EVOL-003 (feature_proposal Event Type — Stage 6c Affect Triage output) -->
 
 ## Usage
 
@@ -231,6 +231,63 @@ Clustering rules:
 - REQ tag gaps (Layer 1) are **High** priority — code without traceability
 
 Present the generated intents to the human. They decide which to pursue.
+
+**6c. Emit `feature_proposal` events for each intent cluster** (consciousness loop Stage 2 — Affect Triage):
+
+For each `intent_raised` cluster emitted in 6b, immediately emit a companion `feature_proposal` event. This is the Affect Triage output: the system classifies severity, drafts a candidate feature vector, and places it in the review queue.
+
+```json
+{
+  "event_type": "feature_proposal",
+  "timestamp": "{ISO 8601}",
+  "project": "{project name}",
+  "data": {
+    "proposal_id": "PROP-{SEQ}",
+    "intent_id": "INT-{SEQ}",
+    "title": "{short description of the proposed feature}",
+    "description": "{what the feature would implement — 2-3 sentences}",
+    "affected_req_keys": ["REQ-*", "..."],
+    "severity": "high|medium|low",
+    "vector_type": "feature",
+    "suggested_profile": "standard|hotfix|spike",
+    "status": "draft",
+    "source": "gap_analysis",
+    "review_path": ".ai-workspace/reviews/pending/PROP-{SEQ}.yml"
+  }
+}
+```
+
+For each proposal, write a structured YAML file to `.ai-workspace/reviews/pending/PROP-{SEQ}.yml`:
+
+```yaml
+proposal_id: "PROP-{SEQ}"
+intent_id: "INT-{SEQ}"
+status: draft
+severity: high|medium|low
+created: "{ISO 8601}"
+source: gap_analysis
+
+title: "{short description}"
+description: |
+  {what the feature would implement}
+
+affected_req_keys:
+  - REQ-*
+
+suggested_vector:
+  feature: "REQ-F-{DOMAIN}-{NEXT_SEQ}"
+  title: "{title}"
+  vector_type: feature
+  profile: standard|hotfix|spike
+  requirements: [REQ-*, ...]
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-{SEQ}
+  Dismiss: /gen-review-proposal --dismiss PROP-{SEQ} --reason "{reason}"
+```
+
+The review queue is surfaced by `/gen-status` (REQ-UX-006: escalation awareness).
+`/gen-review-proposal` is the Stage 3 human gate that processes this queue.
 
 ## Examples
 

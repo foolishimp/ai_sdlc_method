@@ -1,0 +1,84 @@
+feature: REQ-F-EXEC-001
+title: "Executor Attribution & Observability Debt Visibility"
+profile: standard
+vector_type: feature
+status: in_progress
+
+intent: |
+  Make the genesis_monitor visually communicate WHICH execution path (engine F_D,
+  Claude F_P, or retroactive debt-fill) produced each observed edge convergence.
+  Closes the observability loop for REQ-EVENT-005 (executor attribution fields).
+
+requirements:
+  - REQ-F-EXEC-001
+  - REQ-F-EXEC-002
+  - REQ-F-EXEC-003
+  - REQ-F-EXEC-004
+
+parent_spec: "AISDLC_IMPLEMENTATION_REQUIREMENTS.md REQ-EVENT-005"
+
+trajectory:
+  requirements:
+    status: converged
+    converged_at: "2026-03-08T04:32:49Z"
+    asset: "specification/requirements/REQUIREMENTS.md"
+    notes: "REQ-F-EXEC-001..004 added in §32 v3.4"
+
+  feature_decomposition:
+    status: converged
+    iteration: 1
+    converged_at: "2026-03-08T05:00:00Z"
+    asset: "specification/features/EXEC_FEATURE_DECOMPOSITION.md"
+    evaluators:
+      passed: 6
+      failed: 0
+      skipped: 0
+      total: 7
+      details:
+        - name: all_req_f_keys_assigned
+          type: deterministic
+          result: pass
+          required: true
+        - name: dependency_dag_acyclic
+          type: deterministic
+          result: pass
+          required: true
+        - name: build_order_consistent
+          type: agent
+          result: pass
+          required: true
+        - name: mvp_scope_is_connected
+          type: agent
+          result: pass
+          required: true
+        - name: decomposition_is_tech_agnostic
+          type: agent
+          result: pass
+          required: true
+        - name: document_has_required_sections
+          type: agent
+          result: pass
+          required: true
+        - name: human_approves_feature_plan
+          type: human
+          result: pending
+          required: true
+    delta: 1
+    notes: "Pending human approval of feature plan and deferred scope rationale"
+
+  design_recommendations:
+    status: pending
+
+  design:
+    status: pending
+
+  code:
+    status: pending
+
+  unit_tests:
+    status: pending
+
+encoding:
+  active_units: 3
+  mode: constructive
+  valence: +

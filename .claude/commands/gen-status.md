@@ -2,8 +2,8 @@
 
 Display the current state of all feature vectors and their trajectories through the graph. Enhanced with state detection, "you are here" indicators, project rollup, signals, and workspace health.
 
-<!-- Implements: REQ-TOOL-002, REQ-FEAT-002, REQ-UX-003, REQ-UX-005, REQ-UX-007 (Edge Zoom Management) -->
-<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.8.0 §7.5 Event Sourcing, §7.6 Self-Observation, ADR-012 -->
+<!-- Implements: REQ-TOOL-002, REQ-FEAT-002, REQ-UX-003, REQ-UX-005, REQ-UX-007 (Edge Zoom Management), REQ-EVOL-002 (JOIN spec+workspace), REQ-EVOL-005 (Draft Features Queue) -->
+<!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.9.0 §7.5 Event Sourcing, §7.6 Self-Observation, ADR-012 -->
 
 ## Usage
 
@@ -62,6 +62,7 @@ Project Rollup:
   Edges converged: 12/20 (60%)
   Features:  1 converged, 2 in-progress, 0 blocked, 0 stuck
   Signals:   1 unactioned intent_raised
+  Proposals: 2 draft proposals awaiting review
   Functor:   standard/interactive/medium — 0 overrides, 2 η
 
 Active Features:
@@ -74,6 +75,18 @@ Completed Features:
 
 Signals:
   INT-ECO-003 (unactioned) — "dependency update: requests 2.32.0 available"
+
+Draft Proposals Queue:
+  PROP-001  high    "Add tests for REQ-F-AUTH-002"       2d ago  → /gen-review-proposal --show PROP-001
+  PROP-002  medium  "Telemetry for REQ-F-DB-001"         1d ago  → /gen-review-proposal --show PROP-002
+  Use /gen-review-proposal to review. 2 proposals awaiting human gate.
+
+Feature Scope (spec→workspace JOIN):
+  Spec:     15 features defined
+  Workspace: 3 active, 1 completed  (4 total)
+  ACTIVE:   REQ-F-AUTH-001, REQ-F-DB-001, REQ-F-API-001, REQ-F-SETUP-001
+  PENDING:  11 features in spec not yet started in workspace
+  ORPHAN:   0 workspace features not found in spec
 
 Graph Coverage:
   Requirements:  12/15 (80%)
@@ -106,6 +119,66 @@ Aggregate across all features:
 #### Signals
 
 Read `events.jsonl` for `intent_raised` events that have not been followed by a corresponding `spawn_created` or `spec_modified` event. These are unactioned signals that need human attention.
+
+#### Feature Scope JOIN (REQ-EVOL-002)
+
+Compute the JOIN between the spec definition layer and the workspace trajectory layer:
+
+**Step 1: Collect spec feature IDs**
+
+Read `specification/features/FEATURE_VECTORS.md` and extract all feature IDs:
+```bash
+grep -oE "REQ-F-[A-Z]+-[0-9]+" specification/features/FEATURE_VECTORS.md | sort -u
+```
+
+If the spec file is unreadable, emit a warning: `Feature Scope: spec layer unreadable — JOIN skipped`.
+
+**Step 2: Collect workspace feature IDs**
+
+List all `.yml` files in `.ai-workspace/features/active/` and `.ai-workspace/features/completed/`. Extract the `feature` or `id` field from each file.
+
+**Step 3: Compute JOIN categories**
+
+| Category | Condition | Display |
+|----------|-----------|---------|
+| ACTIVE | In spec AND in workspace (active) | Show in "You Are Here" section |
+| COMPLETED | In spec AND in workspace (completed) | Show in "Completed Features" section |
+| PENDING | In spec AND NOT in workspace | Show in Feature Scope section |
+| ORPHAN | In workspace AND NOT in spec | Flag as workspace health warning |
+
+**Step 4: Display Feature Scope section**
+
+```
+Feature Scope (spec→workspace JOIN):
+  Spec:     {N} features defined
+  Workspace: {active} active, {completed} completed  ({total} total)
+  ACTIVE:   {comma-separated IDs or "all" if >8}
+  PENDING:  {N} features in spec not yet started in workspace
+  ORPHAN:   {N} workspace features not found in spec{warnings}
+```
+
+For PENDING features, list the first 5 IDs. For >5, show "and N more".
+For ORPHAN features, always list them explicitly — they are health warnings.
+If PENDING = 0 and ORPHAN = 0: show `Coverage: 100% spec features active or completed`.
+
+**Step 5: Add ORPHAN warning to health output**
+
+If ORPHAN count > 0, also add a recommendation to the Next Actions section:
+```
+  [WARN] {N} ORPHAN workspace features not in spec: {IDs} — archive or add to spec
+```
+
+#### Draft Proposals Queue (REQ-EVOL-005)
+
+Read `.ai-workspace/reviews/pending/PROP-*.yml` and list all proposals with `status: draft`. Each entry shows:
+- Proposal ID, severity, title, age (days since `created`)
+- Quick action: `/gen-review-proposal --show PROP-NNN`
+
+Compute the queue by: listing all YAML files in the pending directory and loading their `status`, `severity`, `title`, `created` fields.
+
+If no pending proposals: output `Proposals: 0 draft proposals (queue empty)` — this is a positive health signal.
+
+If proposals exist: show the count in Project Rollup and the full table in the Draft Proposals Queue section.
 
 #### "What Start Would Do"
 

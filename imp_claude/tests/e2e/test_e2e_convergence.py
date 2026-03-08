@@ -53,6 +53,10 @@ validate_required_event_types = _v.validate_required_event_types
 validate_timestamps_monotonic = _v.validate_timestamps_monotonic
 validate_trajectory_timestamps = _v.validate_trajectory_timestamps
 validate_requirements_populated = _v.validate_requirements_populated
+validate_uat_edge_converged = _v.validate_uat_edge_converged
+validate_uat_scenarios_generated = _v.validate_uat_scenarios_generated
+validate_uat_req_tags = _v.validate_uat_req_tags
+validate_uat_positive_and_negative_paths = _v.validate_uat_positive_and_negative_paths
 
 FEATURE_ID = "REQ-F-CONV-001"
 REQUIRED_REQS = {"REQ-F-CONV-001", "REQ-F-CONV-002"}
@@ -199,3 +203,40 @@ class TestE2EConvergence:
         """Event log feature references should match actual feature vectors."""
         events = load_events(converged_project)
         validate_event_feature_consistency(events, {FEATURE_ID})
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# UAT EDGE (5 tests) — design→uat_tests produces Gherkin scenarios
+# ═══════════════════════════════════════════════════════════════════════
+
+@pytest.mark.e2e
+@skip_no_claude
+class TestE2EUATEdge:
+    """Validates the design→uat_tests edge: Gherkin BDD scenarios generated."""
+
+    def test_uat_edge_converged(self, converged_with_uat: pathlib.Path):
+        """design→uat_tests must have an edge_converged event."""
+        events = load_events(converged_with_uat)
+        validate_uat_edge_converged(events, FEATURE_ID)
+
+    def test_uat_feature_files_generated(self, converged_with_uat: pathlib.Path):
+        """Claude must produce .feature (Gherkin) files for UAT."""
+        validate_uat_scenarios_generated(converged_with_uat)
+
+    def test_uat_req_tags_present(self, converged_with_uat: pathlib.Path):
+        """UAT feature files must contain Validates: REQ-F-CONV-* tags."""
+        validate_uat_req_tags(converged_with_uat, REQUIRED_REQS)
+
+    def test_uat_positive_and_negative_paths(self, converged_with_uat: pathlib.Path):
+        """UAT scenarios must cover both happy path and error cases."""
+        validate_uat_positive_and_negative_paths(converged_with_uat)
+
+    def test_uat_feature_vector_trajectory(self, converged_with_uat: pathlib.Path):
+        """Feature vector trajectory must show uat_tests as converged."""
+        fv = load_feature_vector(converged_with_uat, FEATURE_ID)
+        trajectory = fv.get("trajectory", {})
+        uat_data = trajectory.get("uat_tests", {})
+        uat_status = uat_data.get("status", "pending") if isinstance(uat_data, dict) else "pending"
+        assert uat_status == "converged", (
+            f"Feature vector uat_tests trajectory status is '{uat_status}', expected 'converged'"
+        )

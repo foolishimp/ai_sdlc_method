@@ -1,0 +1,90 @@
+# Projection Profile: E2E Headless Test
+# Purpose: CI/headless e2e runs — no human gates, simplified graph.
+#
+# Differences from standard:
+#  - Simplified graph: requirements→design directly (no feature_decomp chain)
+#  - All evaluators: [agent] or [agent, deterministic] — zero human gates
+#  - route/decide encoded as F_P (not F_H) for autonomous operation
+#  - escalation: agent (not human)
+
+---
+
+profile: e2e
+description: "E2E headless test — simplified graph, agent-only evaluators, no human gates"
+version: "1.0.0"
+
+# Graph: 4-edge simplified path
+# Skips intermediate decomposition steps (feature_decomp, design_rec,
+# module_decomp, basis_proj) that require human review.
+graph:
+  include:
+    - "intent→requirements"
+    - "requirements→design"     # direct — no feature_decomp or design_rec
+    - "design→code"
+    - "code↔unit_tests"
+  optional:
+    - "design→uat_tests"
+  skip:
+    - "requirements→feature_decomposition"
+    - "feature_decomposition→design_recommendations"
+    - "design_recommendations→design"
+    - "design→module_decomposition"
+    - "module_decomposition→basis_projections"
+    - "basis_projections→code"
+    - "code→cicd"
+    - "telemetry→intent"
+
+# Evaluators: agent + deterministic only — no human gates
+evaluators:
+  default: [agent, deterministic]
+  overrides:
+    "intent→requirements":
+      evaluators: [agent]           # no human completeness/priority gates
+    "requirements→design":
+      evaluators: [agent]           # no human architectural review
+    "design→code":
+      evaluators: [agent, deterministic]
+    "code↔unit_tests":
+      evaluators: [agent, deterministic]
+    "design→uat_tests":
+      evaluators: [agent]           # no human language/coverage approval
+
+# Convergence: all required non-human checks pass
+convergence:
+  rule: "all_required_checks_pass"
+  human_required_on_all_edges: false
+  threshold_strictness: standard
+
+# Context: minimal load for speed
+context:
+  density: standard
+  required_elements:
+    - project_constraints
+    - graph_topology
+  optional_elements:
+    - adrs
+
+# Encoding: F_P for route/decide (no F_H — autonomous operation)
+encoding:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  functional_units:
+    evaluate:    F_D
+    construct:   F_P
+    classify:    F_D
+    route:       F_P              # F_P not F_H — autonomous routing
+    propose:     F_P
+    sense:       F_D
+    emit:        F_D              # category-fixed
+    decide:      F_P              # F_P not F_H — autonomous decisions
+  edge_overrides: {}
+
+# Iteration budget
+iteration:
+  budget: per_sprint
+  timeout: none
+  escalation: agent               # escalate to agent, not human
+
+# Vector types permitted
+vector_types: [feature, discovery, spike, hotfix, poc]
