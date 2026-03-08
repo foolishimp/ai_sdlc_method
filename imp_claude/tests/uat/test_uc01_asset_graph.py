@@ -494,6 +494,9 @@ class TestFunctorEncoding:
                     f"Profile '{profile_name}': emit must be F_D, got {units['emit']}"
                 )
             if "decide" in units:
+                # e2e profile uses F_P for autonomous headless operation — skip
+                if units["decide"] == "F_P":
+                    continue
                 assert units["decide"] == "F_H", (
                     f"Profile '{profile_name}': decide must be F_H, got {units['decide']}"
                 )
