@@ -83,12 +83,16 @@ def validate_evaluator_counts(events: list[dict]) -> None:
 
 def load_feature_vector(project_dir: pathlib.Path, feature_id: str) -> dict[str, Any]:
     import yaml
-    path = project_dir / ".ai-workspace" / "features" / "active" / f"{feature_id}.yml"
-    if not path.exists():
-        path = project_dir / ".ai-workspace" / "features" / "completed" / f"{feature_id}.yml"
-    assert path.exists(), f"Feature vector {feature_id} not found"
-    with open(path) as f:
-        return yaml.safe_load(f)
+    search_paths = [
+        project_dir / ".ai-workspace" / "vectors" / "active" / f"{feature_id}.yml",
+        project_dir / ".ai-workspace" / "vectors" / "completed" / f"{feature_id}.yml",
+        project_dir / ".ai-workspace" / "features" / "active" / f"{feature_id}.yml",
+        project_dir / ".ai-workspace" / "features" / "completed" / f"{feature_id}.yml",
+    ]
+    for path in search_paths:
+        if path.exists():
+            return yaml.safe_load(path.read_text())
+    assert False, f"Feature vector {feature_id} not found in any expected location"
 
 def validate_feature_vector_converged(fv: dict) -> None:
     assert fv.get("status") == "converged"

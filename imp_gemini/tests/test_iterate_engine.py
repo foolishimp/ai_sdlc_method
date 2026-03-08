@@ -16,8 +16,8 @@ def engine(tmp_path):
     (ws / "events").mkdir()
     (ws / "features").mkdir()
     (ws / "features" / "active").mkdir()
-    (ws / "gemini_genesis").mkdir()
-    (ws / "gemini_genesis" / "project_constraints.yml").write_text("project:\n  name: test-project")
+    (ws / "context").mkdir()
+    (ws / "context" / "project_constraints.yml").write_text("project:\n  name: test-project")
     return IterateEngine(project_root=tmp_path)
 
 def test_emit_event(engine):
@@ -47,23 +47,23 @@ def test_emit_event(engine):
         assert facets["sdlc_delta"]["value"] == 3
 
 def test_update_feature_vector(engine):
-    # Act
-    engine.update_feature_vector(
-        feature_id="REQ-F-TEST-001",
+    # Act — method renamed to update_intent_vector in ADR-S-026 refactor
+    engine.update_intent_vector(
+        vector_id="REQ-F-TEST-001",
         edge="design→code",
         iteration=1,
         status="iterating",
         delta=5,
         asset_path="code/test.py"
     )
-    
-    # Assert
-    fv_path = engine.project_root / ".ai-workspace" / "features" / "active" / "REQ-F-TEST-001.yml"
+
+    # Assert — stored in vectors/active/ (unified intent vector model)
+    fv_path = engine.project_root / ".ai-workspace" / "vectors" / "active" / "REQ-F-TEST-001.yml"
     assert fv_path.exists()
-    
+
     with open(fv_path) as f:
         data = yaml.safe_load(f)
-        assert data["feature"] == "REQ-F-TEST-001"
+        assert data["id"] == "REQ-F-TEST-001"
         assert data["trajectory"]["code"]["status"] == "iterating"
         assert data["trajectory"]["code"]["delta"] == 5
         assert data["trajectory"]["code"]["asset"] == "code/test.py"
@@ -71,10 +71,10 @@ def test_update_feature_vector(engine):
 def test_verify_protocol_success(engine):
     # Arrange
     start_time = datetime.now(timezone.utc) - timedelta(seconds=1)
-    
+
     # Act
     engine.emit_event("iteration_completed", "REQ-F-TEST-001", "design→code", {"delta": 0})
-    engine.update_feature_vector("REQ-F-TEST-001", "design→code", 1, "converged", 0)
+    engine.update_intent_vector("REQ-F-TEST-001", "design→code", 1, "converged", 0)
     
     gaps = engine.verify_protocol(start_time)
     

@@ -319,8 +319,8 @@ class TestFeatureVectorTemplate:
 
     @pytest.mark.tdd
     def test_has_core_fields(self, feature_vector_template):
-        """Template must have feature, title, intent, status."""
-        for field in ("feature", "title", "intent", "status"):
+        """Template must have id, vector_type, status (ADR-S-026 unified intent vector)."""
+        for field in ("id", "vector_type", "status"):
             assert field in feature_vector_template, f"template missing '{field}'"
 
     @pytest.mark.tdd
@@ -335,14 +335,15 @@ class TestFeatureVectorTemplate:
 
     @pytest.mark.tdd
     def test_has_time_box(self, feature_vector_template):
-        """Template must have time_box section."""
-        assert "time_box" in feature_vector_template
-        assert "enabled" in feature_vector_template["time_box"]
+        """Template must have time_box in composition_expression.bindings (ADR-S-026)."""
+        assert "composition_expression" in feature_vector_template
+        bindings = feature_vector_template["composition_expression"]["bindings"]
+        assert "time_box" in bindings
 
     @pytest.mark.tdd
     def test_has_parent_children(self, feature_vector_template):
-        """Template must support spawn hierarchy."""
-        assert "parent" in feature_vector_template
+        """Template must support spawn hierarchy via parent_vector_id and children."""
+        assert "parent_vector_id" in feature_vector_template
         assert "children" in feature_vector_template
 
     @pytest.mark.tdd
@@ -350,7 +351,7 @@ class TestFeatureVectorTemplate:
         """Template must have trajectory section with asset states."""
         assert "trajectory" in feature_vector_template
         traj = feature_vector_template["trajectory"]
-        for asset in ("requirements", "design", "code", "unit_tests"):
+        for asset in ("requirements", "design", "code"):
             assert asset in traj, f"trajectory missing '{asset}'"
 
     @pytest.mark.tdd

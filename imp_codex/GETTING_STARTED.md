@@ -23,8 +23,12 @@ This guide gets you productive in the `imp_codex` implementation quickly.
 
 1. `imp_codex/design/CODEX_GENESIS_DESIGN.md`
 2. `imp_codex/design/AISDLC_V2_DESIGN.md`
-3. `imp_codex/code/plugin.json`
-4. `imp_codex/code/README.md`
+3. `imp_codex/design/FUNCTOR_FRAMEWORK_DESIGN.md`
+4. `imp_codex/design/ENGINE_DESIGN_GAP.md`
+5. `imp_codex/design/DESIGN_REQUIREMENTS.md`
+6. `imp_codex/design/FRAMEWORK_COMPARISON_ANALYSIS.md`
+7. `imp_codex/code/plugin.json`
+8. `imp_codex/code/README.md`
 
 ## 4. Run the Codex Test Suite
 

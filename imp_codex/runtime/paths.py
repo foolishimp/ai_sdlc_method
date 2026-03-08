@@ -29,6 +29,43 @@ def _write_yaml(path: Path, data: dict) -> None:
         yaml.safe_dump(data, handle, sort_keys=False)
 
 
+def detect_workspace_scope(project_root: Path) -> dict:
+    """Classify whether the requested workspace root is project- or tenant-scoped."""
+
+    resolved = project_root.resolve()
+    for candidate in (resolved, *resolved.parents):
+        if not candidate.name.startswith("imp_"):
+            continue
+        repo_root = candidate.parent
+        if not repo_root.exists():
+            continue
+        try:
+            has_impl_tenants = any(
+                child.is_dir() and child.name.startswith("imp_")
+                for child in repo_root.iterdir()
+            )
+        except OSError:
+            has_impl_tenants = False
+        if not (repo_root / "specification").exists() and not has_impl_tenants:
+            continue
+        return {
+            "scope": "tenant",
+            "tenant_root": candidate,
+            "recommended_project_root": repo_root,
+            "warning": (
+                "Warning: running from inside an implementation tenant - "
+                "workspace will be scoped to this tenant only. "
+                "Run from the project root to span all tenants."
+            ),
+        }
+    return {
+        "scope": "project",
+        "tenant_root": None,
+        "recommended_project_root": resolved,
+        "warning": None,
+    }
+
+
 @dataclass(frozen=True)
 class RuntimePaths:
     """Computed repository and workspace paths."""
@@ -97,6 +134,10 @@ class RuntimePaths:
     @property
     def evaluator_defaults_path(self) -> Path:
         return self.graph_dir / "evaluator_defaults.yml"
+
+    @property
+    def named_compositions_path(self) -> Path:
+        return self.graph_dir / "named_compositions.yml"
 
     @property
     def edges_dir(self) -> Path:
@@ -171,6 +212,8 @@ def bootstrap_workspace(
         shutil.copy2(CONFIG_ROOT / "graph_topology.yml", paths.graph_topology_path)
     if not paths.evaluator_defaults_path.exists():
         shutil.copy2(CONFIG_ROOT / "evaluator_defaults.yml", paths.evaluator_defaults_path)
+    if not paths.named_compositions_path.exists():
+        shutil.copy2(CONFIG_ROOT / "named_compositions.yml", paths.named_compositions_path)
 
     for edge_config in sorted((CONFIG_ROOT / "edge_params").glob("*.yml")):
         destination = paths.edges_dir / edge_config.name
@@ -201,4 +244,5 @@ __all__ = [
     "PLUGIN_ROOT",
     "RuntimePaths",
     "bootstrap_workspace",
+    "detect_workspace_scope",
 ]

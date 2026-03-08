@@ -31,8 +31,13 @@ def _ensure_spec_compat() -> None:
 
     The repository now stores docs in `specification/{core,features,requirements}`.
     Most imp_codex tests still reference a flat `SPEC_DIR / <doc>.md` path.
+
+    `imp_codex/.spec_compat/` is also a tenant-owned compatibility surface. A
+    small set of tracked override files may intentionally diverge so Codex can
+    pin local interpretations without mutating the shared spec tree.
     """
     SPEC_DIR.mkdir(parents=True, exist_ok=True)
+    pinned_overrides = {"FEATURE_VECTORS.md"}
 
     mapping = {
         SPEC_ROOT / "INTENT.md": SPEC_DIR / "INTENT.md",
@@ -45,6 +50,8 @@ def _ensure_spec_compat() -> None:
     for src, dst in mapping.items():
         if not src.exists():
             raise FileNotFoundError(f"Required spec document missing: {src}")
+        if dst.exists() and dst.name in pinned_overrides:
+            continue
         shutil.copy2(src, dst)
 
 

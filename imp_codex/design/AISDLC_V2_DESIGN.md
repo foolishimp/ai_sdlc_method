@@ -1,7 +1,7 @@
-# AI SDLC — Codex Runtime Implementation Design (v2.1)
+# AI SDLC — Codex Runtime Implementation Design (v2.2)
 
-**Version**: 2.1.0
-**Date**: 2026-03-05
+**Version**: 2.2.0
+**Date**: 2026-03-09
 **Derived From**: [FEATURE_VECTORS.md](../../specification/features/FEATURE_VECTORS.md) (v1.9.0)
 **Model**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)
 **Platform**: Codex (tool-calling coding agent runtime)
@@ -10,9 +10,9 @@
 
 ## Design Intent
 
-This document is the |design⟩ asset for the AI SDLC tooling implementation on Codex. It covers all 15 feature vectors currently defined in FEATURE_VECTORS.md.
+This document is the |design⟩ asset for the AI SDLC tooling implementation on Codex. It covers all 17 feature vectors currently defined in FEATURE_VECTORS.md, including the ADR-scoped `CONSENSUS` and named-composition extensions.
 
-**Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The v2.1 model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
+**Key shift from v1.x**: The v1.x design had 7 stage-specific agents (one per pipeline stage). The current model has **one operation** (`iterate`) parameterised per graph edge. The design must reflect this: a universal engine with edge-specific parameterisation, not stage-specific agents.
 
 **What carries forward from v1.x**:
 - Codex runtime as target platform (ADR-CG-001)
@@ -27,7 +27,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 - Stage-specific skills → evaluator + constructor composition per edge
 - Fixed topology → configurable graph in Context[]
 
-**What v2.1.0 adds** (from spec v2.8.0 and current ADR-S series):
+**What the current design adds** (from spec v2.8.0 and current ADR-S series):
 - Three-layer conceptual model: Engine / Graph Package / Project Binding
 - Constraint dimension taxonomy at the design edge
 - Event sourcing as the formal execution model
@@ -103,7 +103,7 @@ This document is the |design⟩ asset for the AI SDLC tooling implementation on 
 
 ### 1.2 Design Principle: Universal Engine, Parameterised Edges
 
-The v1.x design had separate agents for each stage. The v2.1 design has:
+The v1.x design had separate agents for each stage. The current design has:
 
 - **One iterate() implementation** — a Codex orchestration routine that takes (asset, context, evaluators) and produces the next candidate
 - **Edge parameterisation configs** — YAML files that define: which evaluators, which constructors, what convergence criteria
@@ -126,7 +126,7 @@ Layer 1: ENGINE (universal)   Plugin root:
 
 Layer 2: GRAPH PACKAGE          Plugin config:
   (domain-specific)             config/graph_topology.yml    (asset types + transitions)
-  topology + edge configs       config/edge_params/*.yml     (10 edge parameterisations)
+  topology + edge configs       config/edge_params/*.yml     (14 edge parameterisations)
   constraint dimensions         config/graph_topology.yml    (constraint_dimensions section)
   projection profiles           config/profiles/*.yml        (6 named profiles)
 
@@ -1854,22 +1854,25 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 
 | Feature Vector | Design Section | Status |
 |---------------|---------------|--------|
-| REQ-F-ENGINE-001 | §2.1 Asset Graph Engine | Converged to UAT (28 tests) |
-| REQ-F-EVAL-001 | §2.2 Evaluator Framework | Converged to UAT (16 tests) |
-| REQ-F-CTX-001 | §2.3 Context Management | Converged to UAT (12 tests) |
-| REQ-F-TRACE-001 | §2.4 Feature Vector Traceability | Converged to UAT (18 tests) |
-| REQ-F-EDGE-001 | §2.5 Edge Parameterisations | Converged to UAT (16 tests) |
-| REQ-F-TOOL-001 | §2.6 Developer Tooling | Converged to UAT (24 tests, 1 xfail) |
-| REQ-F-LIFE-001 | §3 Lifecycle Closure, §1.12 Telemetry | Converged to UAT (118 tests) |
-| REQ-F-SENSE-001 | §1.8 Sensory Service | Converged to UAT (39 tests) |
-| REQ-F-UX-001 | §1.9 Two-Command UX Layer | Converged to UAT (63 tests, 2 xfail) |
-| REQ-F-COORD-001 | §1.10 Multi-Agent Coordination | Converged to UAT (40 tests) |
-| REQ-F-SUPV-001 | §1.12 Telemetry Functor, ADR-017 | Converged to UAT (14 tests) |
-| REQ-F-ROBUST-001 | §1.5.1 Runtime Robustness | Design aligned, implementation convergence in progress |
-| REQ-F-EVENT-001 | §1.5 Event Sourcing + ADR-S-011/012/015 mapping | Design aligned, implementation convergence in progress |
-| REQ-F-EVOL-001 | §1.6/§1.7 consciousness loop + protocol enforcement | Design aligned, implementation convergence in progress |
+| REQ-F-ENGINE-001 | §2.1 Asset Graph Engine | Implemented runtime baseline |
+| REQ-F-EVAL-001 | §2.2 Evaluator Framework | Implemented runtime baseline |
+| REQ-F-CTX-001 | §2.3 Context Management | Implemented runtime baseline |
+| REQ-F-TRACE-001 | §2.4 Feature Vector Traceability | Implemented runtime baseline |
+| REQ-F-EDGE-001 | §2.5 Edge Parameterisations | Implemented config surface |
+| REQ-F-TOOL-001 | §2.6 Developer Tooling | Implemented command/runtime surface |
+| REQ-F-LIFE-001 | §3 Lifecycle Closure, §1.12 Telemetry | Implemented baseline, product-scale loops pending |
+| REQ-F-SENSE-001 | §1.8 Sensory Service | Implemented monitor/projection baseline |
+| REQ-F-UX-001 | §1.9 Two-Command UX Layer | Implemented state/routing baseline |
+| REQ-F-COORD-001 | §1.10 Multi-Agent Coordination | Implemented event-sourced coordination baseline |
+| REQ-F-SUPV-001 | §1.12 Telemetry Functor, [FUNCTOR_FRAMEWORK_DESIGN.md](./FUNCTOR_FRAMEWORK_DESIGN.md) | Implemented baseline, formal extension pending |
+| REQ-F-ROBUST-001 | §1.5.1 Runtime Robustness, [ENGINE_DESIGN_GAP.md](./ENGINE_DESIGN_GAP.md) | Partial; invocation hardening remains open |
+| REQ-F-EVENT-001 | §1.5 Event Sourcing + ADR-S-011/012/015 mapping | Implemented OpenLineage-normalized event baseline |
+| REQ-F-EVOL-001 | §1.6/§1.7 consciousness loop + protocol enforcement | Partial; full spec evolution workflow pending |
+| REQ-F-FP-001 | [DESIGN_REQUIREMENTS.md](./DESIGN_REQUIREMENTS.md), [FUNCTOR_FRAMEWORK_DESIGN.md](./FUNCTOR_FRAMEWORK_DESIGN.md) | Planned; runtime still lacks true construct+batches path |
+| REQ-F-CONSENSUS-001 | [DESIGN_REQUIREMENTS.md](./DESIGN_REQUIREMENTS.md), [ENGINE_DESIGN_GAP.md](./ENGINE_DESIGN_GAP.md) | Design-tier only; no executable package yet |
+| REQ-F-NAMEDCOMP-001 | [DESIGN_REQUIREMENTS.md](./DESIGN_REQUIREMENTS.md), [ENGINE_DESIGN_GAP.md](./ENGINE_DESIGN_GAP.md) | Partial; named composition registry + typed `intent_raised` payloads implemented, execution layer still pending |
 
-**Design coverage target updated to 15/15 feature vectors. Current executable baseline is the `imp_codex` test suite plus documented xfail exceptions.**
+**Design coverage target updated to 17/17 feature vectors. Current executable baseline is the `imp_codex` runtime plus the tenant test suite; `REQ-F-NAMEDCOMP-001` now has a baseline executable slice, while `CONSENSUS` and deeper phase-2 functors remain open.**
 
 ---
 
@@ -1878,7 +1881,7 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 Per FEATURE_VECTORS.md task graph, updated to reflect telemetry-as-constitutive:
 
 ```
-Phase 1a: ✓ COMPLETE — graph engine, configs, edge params, commands, UAT tests (735 passing)
+Phase 1a: ✓ COMPLETE — graph engine, configs, edge params, commands, tenant test harness
 Phase 1b: Wire telemetry — connect existing monitors, hooks, observer agents (§1.12)
 Phase 1c: Executable iterate() — runtime engine from iterate agent spec
 Phase 1d: Executable commands — 13 commands as executable agents, not markdown specs
@@ -1895,7 +1898,10 @@ Phase 2:  Product telemetry edges — CI/CD, running system, production homeosta
 
 - [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) — Canonical methodology (v2.8.0)
 - [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../../specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) — 83 implementation requirements (v3.13.0)
-- [FEATURE_VECTORS.md](../../specification/features/FEATURE_VECTORS.md) — Feature vector decomposition (v1.9.0, 14 vectors)
+- [FEATURE_VECTORS.md](../../specification/features/FEATURE_VECTORS.md) — Feature vector decomposition (v1.9.0, 17 vectors)
+- [DESIGN_REQUIREMENTS.md](./DESIGN_REQUIREMENTS.md) — Codex-specific design-tier requirements
+- [ENGINE_DESIGN_GAP.md](./ENGINE_DESIGN_GAP.md) — Current executable/runtime gap analysis
+- [FUNCTOR_FRAMEWORK_DESIGN.md](./FUNCTOR_FRAMEWORK_DESIGN.md) — Codex functor/runtime mapping
 - [ADR-S-011](../../specification/adrs/ADR-S-011-openlineage-unified-metadata-standard.md) — Unified OpenLineage metadata standard
 - [ADR-S-012](../../specification/adrs/ADR-S-012-event-stream-as-formal-model-medium.md) — Event stream as formal model
 - [ADR-S-015](../../specification/adrs/ADR-S-015-unit-of-work-transaction-model.md) — Unit-of-work transaction model

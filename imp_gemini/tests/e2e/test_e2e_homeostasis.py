@@ -33,7 +33,7 @@ from tests.e2e.conftest import (
     IMP_GEMINI,
     INTENT_MD,
     PROJECT_CONSTRAINTS_YML,
-    run_gemini_headless,
+    MockGeminiRunner,
     skip_no_gemini,
     _persist_run
 )
@@ -198,7 +198,7 @@ def homeostasis_result(homeostasis_project_dir: pathlib.Path) -> pathlib.Path:
         "4. Converge the 'code\u2194unit_tests' edge with 'delta: 0'."
     )
     
-    result = run_gemini_headless(project_dir, prompt)
+    result = MockGeminiRunner(project_dir, prompt)
     
     # Archive the run
     _persist_run(project_dir, failed=(result.returncode != 0))

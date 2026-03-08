@@ -247,10 +247,10 @@ class TestSpawnFoldBack:
 
     @pytest.mark.bdd
     def test_feature_template_supports_parent_child(self):
-        """Feature vector template must have parent and children fields."""
+        """Feature vector template must support spawn hierarchy (ADR-S-026 unified model)."""
         template = load_yaml(CONFIG_DIR / "feature_vector_template.yml")
-        assert "parent" in template
-        assert "feature" in template["parent"]
+        # ADR-S-026: parent is encoded as parent_vector_id (string ref), children as list
+        assert "parent_vector_id" in template
         assert "children" in template
 
     @pytest.mark.bdd

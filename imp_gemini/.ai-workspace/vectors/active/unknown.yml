@@ -1,0 +1,18 @@
+id: unknown
+source: gap
+parent_vector_id: ''
+resolution_level: unknown
+vector_type: feature
+profile: standard
+status: iterating
+composition_expression: {}
+trajectory:
+  code:
+    status: iterating
+    delta: -1
+    iteration: 10
+    updated_at: '2026-03-08T16:13:05.524177+00:00'
+    mode: auto
+    engine_run_id: null
+    asset: /private/var/folders/rz/r6wxvr0n15d906k2s0jw8j2h0000gn/T/pytest-of-jim/pytest-81/test_iterate_engine_aborts_on_0/asset.txt
+updated_at: '2026-03-08T16:13:05.524170+00:00'

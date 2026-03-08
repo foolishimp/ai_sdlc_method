@@ -168,7 +168,7 @@ Continuous interoceptive and exteroceptive monitoring with affect triage pipelin
 
 Plugin architecture, workspace, commands, release, test gap analysis, hooks, scaffolding, snapshots.
 
-**Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-TOOL-011, REQ-TOOL-012, REQ-TOOL-013, REQ-TOOL-014
+**Satisfies**: REQ-TOOL-001, REQ-TOOL-002, REQ-TOOL-003, REQ-TOOL-004, REQ-TOOL-005, REQ-TOOL-006, REQ-TOOL-007, REQ-TOOL-008, REQ-TOOL-009, REQ-TOOL-010, REQ-TOOL-011, REQ-TOOL-012, REQ-TOOL-013, REQ-TOOL-014, REQ-TOOL-015
 
 **Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
@@ -310,7 +310,7 @@ The event-sourced pipeline for proposing, reviewing, and promoting new features 
 
 The formal event stream contract — append-only durability, projection semantics, required taxonomy, and saga compensation.
 
-**Satisfies**: REQ-EVENT-001, REQ-EVENT-002, REQ-EVENT-003, REQ-EVENT-004
+**Satisfies**: REQ-EVENT-001, REQ-EVENT-002, REQ-EVENT-003, REQ-EVENT-004, REQ-EVENT-005
 
 **Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 

@@ -273,3 +273,33 @@ evaluator_overrides: {}
   #         command: "grep -rn 'print(' src/ && exit 1 || exit 0"
   #         pass_criterion: "exit code 0"
   #         required: true
+
+# ═══════════════════════════════════════════════════════════════════════
+# AGENT INVOCATION CONTRACT
+# ═══════════════════════════════════════════════════════════════════════
+# Controls how runtime agent checks obtain their judgments.
+#
+# heuristic:
+#   use built-in local heuristics inside imp_codex/runtime/evaluators.py
+#
+# file:
+#   load external evaluation records from a machine-readable file.
+#   This is the current executable F_P handoff point between an
+#   interactive Codex session and the replayable runtime.
+
+agent_invocation:
+  mode: heuristic              # heuristic | file
+  fallback: heuristic          # heuristic | fail
+  file: ".ai-workspace/codex/context/agent_evaluations.json"
+  # File schema:
+  # {
+  #   "evaluations": [
+  #     {
+  #       "feature": "REQ-F-AUTH-001",
+  #       "edge": "design→code",
+  #       "name": "code_matches_design",
+  #       "result": "pass",
+  #       "message": "Reviewed in Codex session"
+  #     }
+  #   ]
+  # }

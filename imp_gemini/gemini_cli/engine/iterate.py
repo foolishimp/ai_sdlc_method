@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional, Protocol
 import shutil
 from datetime import datetime, timezone
 
-from .models import IterationRecord, IterationReport, FunctorResult, Outcome, ConstructResult
+from .models import IterationRecord, IterationReport, FunctorResult, Outcome, ConstructResult, IntentVector, WorkOrder, PlanResult
 from .state import EventStore
 
 from .stateless import run_iteration
@@ -60,6 +60,7 @@ class IterateEngine:
             self.project_root / "specification",
             self.project_root / ".ai-workspace" / "events",
             self.project_root / ".ai-workspace" / "features",
+            self.project_root / ".ai-workspace" / "vectors",
         ]
         for d in sentinel_dirs:
             if not d.exists(): continue
@@ -161,12 +162,29 @@ class IterateEngine:
         # Archive for audit
         self._archive_iteration(feature_id, edge, iteration, failed=not report.converged)
         
-        return IterationRecord(
+        # Extract PlanResult if PLAN was executed
+        plan_res = None
+        for res in report.functor_results:
+            if res.metadata and "plan" in res.metadata:
+                plan_data = res.metadata["plan"]
+                plan_res = PlanResult(
+                    units=plan_data.get("units", []),
+                    dep_dag=plan_data.get("dep_dag", {}),
+                    build_order=plan_data.get("build_order", []),
+                    ranked_units=plan_data.get("ranked_units", []),
+                    deferred_units=plan_data.get("deferred_units", []),
+                    reasoning=plan_data.get("reasoning", "")
+                )
+                break
+                
+        record = IterationRecord(
             edge=edge, 
             iteration=iteration, 
             report=report, 
-            construct_result=report.construct_result
+            construct_result=report.construct_result,
+            plan_result=plan_res
         )
+        return record
 
     def run(self, asset_path: Path, context: Dict[str, Any] = None, feature_id: str = "unknown", feature_type: str = "feature", mode: str = "auto", construct: bool = False, config: Any = None) -> IterationRecord:
         """Legacy full graph traversal loop."""
@@ -178,20 +196,50 @@ class IterateEngine:
         project_name = self.constraints.get("project_id") or self.constraints.get("name") or self.constraints.get("project", {}).get("name", "imp_gemini")
         return self.store.emit(event_type=event_type, project=project_name, feature=feature, edge=edge, delta=data.get("delta"), data=data)
 
-    def update_feature_vector(self, feature_id: str, edge: str, iteration: int, status: str, delta: int, asset_path: str = None, mode: str = None, run_id: str = None):
+    def update_intent_vector(self, vector_id: str, edge: str, iteration: int, status: str, delta: int, asset_path: str = None, mode: str = None, run_id: str = None, plan_result: PlanResult = None):
         import yaml
         import re
-        fv_path = self.workspace_root / "features" / "active" / f"{feature_id}.yml"
-        if fv_path.exists():
-            data = yaml.safe_load(fv_path.read_text())
+        iv_path = self.workspace_root / "vectors" / "active" / f"{vector_id}.yml"
+        if iv_path.exists():
+            data = yaml.safe_load(iv_path.read_text())
         else:
-            data = {"feature": feature_id, "status": "in_progress", "trajectory": {}}
+            data = {
+                "id": vector_id, 
+                "source": "gap", 
+                "parent_vector_id": "", 
+                "resolution_level": "unknown",
+                "vector_type": "feature",
+                "profile": "standard",
+                "status": "iterating", 
+                "composition_expression": {},
+                "trajectory": {}
+            }
+            
+        data["status"] = status
+        data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
         parts = re.split(r"->|\u2192|\u2194", edge)
         traj_key = parts[-1].strip()
-        data.setdefault("trajectory", {})[traj_key] = {"status": status, "delta": delta, "iteration": iteration, "updated_at": datetime.now(timezone.utc).isoformat(), "mode": mode, "engine_run_id": run_id}
+        data.setdefault("trajectory", {})[traj_key] = {
+            "status": status, 
+            "delta": delta, 
+            "iteration": iteration, 
+            "updated_at": datetime.now(timezone.utc).isoformat(), 
+            "mode": mode, 
+            "engine_run_id": run_id
+        }
         if asset_path: data["trajectory"][traj_key]["asset"] = asset_path
-        fv_path.parent.mkdir(parents=True, exist_ok=True)
-        fv_path.write_text(yaml.dump(data))
+        
+        if plan_result:
+            # Save work order details in trajectory
+            data["trajectory"][traj_key]["work_order"] = {
+                "units_count": len(plan_result.units),
+                "deferred_count": len(plan_result.deferred_units),
+                "build_order": plan_result.build_order
+            }
+            
+        iv_path.parent.mkdir(parents=True, exist_ok=True)
+        iv_path.write_text(yaml.dump(data, sort_keys=False))
 
     def validate_invariants(self, events: List[Dict]) -> List[str]:
         violations = []
@@ -224,7 +272,7 @@ class IterateEngine:
                 self.emit_event("compensation_triggered", feature=feature_id, edge=edge, data={"reason": "recursion_spawned"})
             
             self.emit_event("iteration_completed", feature=feature_id, edge=edge, data={"status": status, "delta": record.report.delta, "iteration": iter_num})
-            self.update_feature_vector(feature_id, edge, iter_num, status, record.report.delta, str(asset_path), mode=mode)
+            self.update_intent_vector(feature_id, edge, iter_num, status, record.report.delta, str(asset_path), mode=mode, plan_result=record.plan_result)
 
             if record.report.converged or record.report.spawn: break
             if time.time() - start_time > wall_timeout: break

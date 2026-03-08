@@ -43,6 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     iterate_parser.add_argument("--profile")
     iterate_parser.add_argument("--delta", type=int)
     iterate_parser.add_argument("--converged", action="store_true")
+    iterate_parser.add_argument("--artifact-path", action="append", default=[])
     iterate_parser.add_argument("--run-agent", action="store_true")
     iterate_parser.add_argument("--run-deterministic", action="store_true")
 
@@ -117,6 +118,7 @@ def main(argv: list[str] | None = None) -> int:
             profile=args.profile,
             delta=args.delta,
             converged=args.converged,
+            artifact_paths=args.artifact_path,
             run_agent=args.run_agent,
             run_deterministic=args.run_deterministic,
         )

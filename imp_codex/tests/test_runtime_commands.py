@@ -25,6 +25,7 @@ from imp_codex.runtime import (
     gen_trace,
 )
 from imp_codex.runtime.events import load_events
+from imp_codex.runtime.paths import detect_workspace_scope
 
 
 def _write_intent(project_root: Path) -> None:
@@ -39,6 +40,23 @@ def _write_simple_constraints(paths: RuntimePaths) -> None:
         constraints["tools"][tool_name]["command"] = "python"
         constraints["tools"][tool_name]["args"] = "-c \"print('ok')\""
     paths.project_constraints_path.write_text(yaml.safe_dump(constraints, sort_keys=False))
+
+
+def _write_agent_invocation(
+    paths: RuntimePaths,
+    *,
+    mode="heuristic",
+    fallback="heuristic",
+    file_path=".ai-workspace/codex/context/agent_evaluations.json",
+) -> dict:
+    constraints = yaml.safe_load(paths.project_constraints_path.read_text())
+    constraints["agent_invocation"] = {
+        "mode": mode,
+        "fallback": fallback,
+        "file": file_path,
+    }
+    paths.project_constraints_path.write_text(yaml.safe_dump(constraints, sort_keys=False))
+    return constraints
 
 
 def _write_feature(paths: RuntimePaths, feature_id: str, *, dependencies=None, profile="minimal") -> None:
@@ -140,6 +158,7 @@ def test_gen_init_scaffolds_workspace_and_emits_project_initialized(tmp_path):
 
     assert Path(result["workspace_root"]).exists()
     assert paths.evaluator_defaults_path.exists()
+    assert paths.named_compositions_path.exists()
     assert paths.context_manifest_path.exists()
     assert paths.intents_dir.exists()
     assert paths.snapshots_dir.exists()
@@ -154,6 +173,36 @@ def test_gen_init_scaffolds_workspace_and_emits_project_initialized(tmp_path):
     semantic_types_again = [event.semantic_type for event in load_events(paths.events_file)]
     assert semantic_types_again.count("ProjectInitialized") == 1
     assert result_again["init_run_id"] == result["init_run_id"]
+    assert result["workspace_scope"] == "project"
+    assert result["warnings"] == []
+    assert result["recommended_project_root"] == str(project_root.resolve())
+
+
+def test_detect_workspace_scope_warns_for_tenant_root(tmp_path):
+    project_root = tmp_path / "repo"
+    (project_root / "specification").mkdir(parents=True)
+    tenant_root = project_root / "imp_fastapi"
+    tenant_root.mkdir()
+
+    scope = detect_workspace_scope(tenant_root)
+
+    assert scope["scope"] == "tenant"
+    assert scope["tenant_root"] == tenant_root.resolve()
+    assert scope["recommended_project_root"] == project_root.resolve()
+    assert "implementation tenant" in scope["warning"]
+
+
+def test_gen_init_warns_when_scoped_to_tenant_root(tmp_path):
+    project_root = tmp_path / "repo"
+    (project_root / "specification").mkdir(parents=True)
+    tenant_root = project_root / "imp_fastapi"
+
+    result = gen_init(tenant_root, project_name="tenant-demo")
+
+    assert result["workspace_scope"] == "tenant"
+    assert result["recommended_project_root"] == str(project_root.resolve())
+    assert any("implementation tenant" in warning for warning in result["warnings"])
+    assert Path(result["workspace_root"]) == tenant_root.resolve() / ".ai-workspace"
 
 
 def test_gen_iterate_creates_feature_projection_and_status(tmp_path):
@@ -184,6 +233,43 @@ def test_gen_iterate_creates_feature_projection_and_status(tmp_path):
 
     events = load_events(Path(result["events_file"]))
     assert [event.semantic_type for event in events] == ["IterationStarted", "IterationCompleted"]
+
+
+def test_gen_iterate_records_candidate_artifact_refs(tmp_path):
+    project_root = tmp_path / "demo"
+    _write_intent(project_root)
+    src_dir = project_root / "src"
+    src_dir.mkdir(parents=True, exist_ok=True)
+    candidate = src_dir / "auth.py"
+    candidate.write_text("# Implements: REQ-F-AUTH-001\n")
+
+    result = gen_iterate(
+        project_root,
+        feature="REQ-F-AUTH-001",
+        edge="design→code",
+        profile="minimal",
+        artifact_paths=["src/auth.py"],
+        delta=0,
+        converged=True,
+    )
+
+    assert result["artifact_refs"] == [
+        {
+            "path": "src/auth.py",
+            "sha256": result["artifact_refs"][0]["sha256"],
+            "bytes": candidate.stat().st_size,
+        }
+    ]
+    assert result["artifact_refs"][0]["sha256"].startswith("sha256:")
+
+    feature_doc = yaml.safe_load(Path(result["feature_path"]).read_text())
+    assert feature_doc["trajectory"]["code"]["artifact_refs"] == result["artifact_refs"]
+
+    completed_event = next(
+        event for event in load_events(Path(result["events_file"]))
+        if event.semantic_type == "IterationCompleted"
+    )
+    assert completed_event.raw["run"]["facets"]["sdlc:payload"]["candidate_artifacts"] == result["artifact_refs"]
 
 
 def test_gen_start_routes_next_edge_from_profile(tmp_path):
@@ -273,6 +359,12 @@ def test_gen_iterate_emits_intent_when_delta_is_stuck(tmp_path):
     events = load_events(RuntimePaths(project_root).events_file)
     semantic_types = [event.semantic_type for event in events]
     assert semantic_types.count("IntentRaised") == 1
+    intent_event = next(event for event in events if event.semantic_type == "IntentRaised")
+    payload = intent_event.raw["run"]["facets"]["sdlc:payload"]
+    assert payload["composition_name"] == "STUCK_REWORK"
+    assert payload["composition_expression"] == "ITERATE(intent→requirements) -> REVIEW(REQ-F-STUCK-001)"
+    assert payload["intent_vector"]["resolution_level"] == "feature"
+    assert payload["intent_vector"]["profile"] == "minimal"
 
     start = gen_start(project_root)
     assert start["state"] == "STUCK"
@@ -451,6 +543,14 @@ def test_gen_gaps_reports_clusters_and_emits_intents(tmp_path):
     semantic_types = [event.semantic_type for event in load_events(RuntimePaths(project_root).events_file)]
     assert "GapsValidated" in semantic_types
     assert semantic_types.count("IntentRaised") >= 2
+    gap_intents = [
+        event.raw["run"]["facets"]["sdlc:payload"]
+        for event in load_events(RuntimePaths(project_root).events_file)
+        if event.semantic_type == "IntentRaised"
+    ]
+    assert all(payload["composition_name"] == "TRACE_GAP_CLOSURE" for payload in gap_intents)
+    assert all(payload["intent_vector"]["resolution_level"] == "feature_set" for payload in gap_intents)
+    assert all(payload["intent_vector"]["profile"] == "minimal" for payload in gap_intents)
 
 
 def test_gen_release_writes_manifest_and_emits_release_event(tmp_path):
@@ -539,3 +639,79 @@ def test_gen_iterate_can_run_agent_checks_from_edge_config(tmp_path):
     assert result["evaluator_summary"]["failed"] == 0
     assert result["evaluator_summary"]["passed"] >= 3
     assert all(item["name"] != "stub_execution" for item in result["evaluator_summary"]["details"])
+
+
+def test_gen_iterate_can_run_agent_checks_from_file_contract(tmp_path):
+    project_root = tmp_path / "demo"
+    _write_intent(project_root)
+    _write_traceability_assets(project_root)
+    paths = bootstrap_workspace(project_root, project_name="demo")
+    _write_agent_invocation(paths, mode="file", fallback="fail")
+
+    invocation_file = paths.codex_context_dir / "agent_evaluations.json"
+    invocation_file.write_text(
+        json.dumps(
+            {
+                "evaluations": [
+                    {
+                        "feature": "REQ-F-AUTH-001",
+                        "edge": "design→code",
+                        "name": "code_matches_design",
+                        "result": "pass",
+                        "message": "External Codex review approved implementation structure",
+                    },
+                    {
+                        "feature": "REQ-F-AUTH-001",
+                        "edge": "design→code",
+                        "name": "req_tags_present",
+                        "result": "pass",
+                        "message": "REQ tags verified externally",
+                    },
+                    {
+                        "feature": "REQ-F-AUTH-001",
+                        "edge": "design→code",
+                        "name": "follows_coding_standards",
+                        "result": "pass",
+                        "message": "Coding standards validated externally",
+                    },
+                ]
+            }
+        )
+    )
+
+    result = gen_iterate(
+        project_root,
+        feature="REQ-F-AUTH-001",
+        edge="design→code",
+        profile="minimal",
+        run_agent=True,
+    )
+
+    agent_details = [item for item in result["evaluator_summary"]["details"] if item["type"] == "agent"]
+    assert result["status"] == "converged"
+    assert result["evaluator_summary"]["failed"] == 0
+    assert len(agent_details) == 3
+    assert all(item["provider"] == "file" for item in agent_details)
+    assert all(item["invocation_mode"] == "file" for item in agent_details)
+
+
+def test_gen_iterate_file_contract_can_fail_closed_when_records_missing(tmp_path):
+    project_root = tmp_path / "demo"
+    _write_intent(project_root)
+    _write_traceability_assets(project_root)
+    paths = bootstrap_workspace(project_root, project_name="demo")
+    _write_agent_invocation(paths, mode="file", fallback="fail")
+
+    result = gen_iterate(
+        project_root,
+        feature="REQ-F-AUTH-001",
+        edge="design→code",
+        profile="minimal",
+        run_agent=True,
+    )
+
+    agent_details = [item for item in result["evaluator_summary"]["details"] if item["type"] == "agent"]
+    assert result["converged"] is False
+    assert result["evaluator_summary"]["failed"] >= 3
+    assert any(item["provider"] == "file_missing" for item in agent_details)
+    assert any("agent invocation file not found" in item["message"] for item in agent_details)

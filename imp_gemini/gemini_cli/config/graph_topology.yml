@@ -117,6 +117,7 @@ transitions:
     evaluators: ["agent", "human"]
     edge_type: standard
     constructor: agent
+    edge_config: "edge_params/intent_requirements.yml"
 
   - source: requirements
     target: design
@@ -124,6 +125,7 @@ transitions:
     evaluators: ["agent", "human"]
     edge_type: standard
     constructor: agent
+    edge_config: "edge_params/requirements_design.yml"
 
   - source: design
     target: code
@@ -131,6 +133,7 @@ transitions:
     evaluators: ["agent"]
     edge_type: standard
     constructor: agent
+    edge_config: "edge_params/design_code.yml"
 
   - source: requirements
     target: feature_decomposition
@@ -201,6 +204,7 @@ transitions:
     evaluators: ["deterministic", "agent"]
     edge_type: co_evolution
     constructor: agent
+    edge_config: "edge_params/tdd.yml"
 
   - source: design
     target: test_cases
@@ -208,6 +212,7 @@ transitions:
     evaluators: ["agent"]
     edge_type: standard
     constructor: agent
+    edge_config: "edge_params/design_tests.yml"
 
   - source: module_decomposition
     target: uat_tests
@@ -215,6 +220,7 @@ transitions:
     evaluators: ["agent", "human"]
     edge_type: standard
     constructor: agent
+    edge_config: "edge_params/bdd.yml"
 
   - source: code
     target: cicd
@@ -243,6 +249,7 @@ transitions:
     evaluators: ["agent", "human"]
     edge_type: co_evolution
     constructor: agent
+    edge_config: "edge_params/feedback_loop.yml"
 
 graph_properties:
   directed: true

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 from typing import Iterable
 
 from .events import append_run_event, load_events, utc_now
 from .evaluators import run_agent_checks, run_deterministic_checks
-from .paths import RuntimePaths, bootstrap_workspace
+from .intents import resolve_named_intent_payload
+from .paths import RuntimePaths, bootstrap_workspace, detect_workspace_scope
 from .projections import (
     blocked_feature_details,
     compute_context_hash,
@@ -159,6 +161,32 @@ def _configured_mandatory_dimensions(paths: RuntimePaths) -> int:
     return configured
 
 
+def _artifact_refs(project_root: Path, artifact_paths: Iterable[str] | None) -> list[dict]:
+    project_root = project_root.resolve()
+    refs: list[dict] = []
+    for raw_path in artifact_paths or []:
+        candidate = Path(raw_path)
+        if not candidate.is_absolute():
+            candidate = (project_root / candidate).resolve()
+        else:
+            candidate = candidate.resolve()
+        if not candidate.exists() or not candidate.is_file():
+            raise FileNotFoundError(f"Candidate artifact not found: {raw_path}")
+        digest = hashlib.sha256(candidate.read_bytes()).hexdigest()
+        try:
+            display_path = str(candidate.relative_to(project_root))
+        except ValueError:
+            display_path = str(candidate)
+        refs.append(
+            {
+                "path": display_path,
+                "sha256": f"sha256:{digest}",
+                "bytes": candidate.stat().st_size,
+            }
+        )
+    return refs
+
+
 def _latest_iteration_event(paths: RuntimePaths, feature: str, edge: str | None = None):
     events = load_events(paths.events_file)
     candidates = [
@@ -218,6 +246,7 @@ def gen_init(
 ) -> dict:
     """Explicitly scaffold the Codex workspace and emit project_initialized."""
 
+    scope_info = detect_workspace_scope(project_root)
     paths = bootstrap_workspace(project_root, project_name=project_name, default_profile=default_profile)
     project = _project_name(paths, fallback=project_name)
 
@@ -264,12 +293,18 @@ def gen_init(
                 "constraint_dimensions_configured": _configured_mandatory_dimensions(paths),
                 "asset_types": len(graph_doc.get("asset_types", {})),
                 "transitions": len(graph_doc.get("transitions", [])),
+                "workspace_scope": scope_info["scope"],
+                "workspace_scope_warning": bool(scope_info["warning"]),
             },
         )
         projections = write_projections(paths)
 
+    warnings = [scope_info["warning"]] if scope_info["warning"] else []
     return {
         "workspace_root": str(paths.workspace_root),
+        "workspace_scope": scope_info["scope"],
+        "warnings": warnings,
+        "recommended_project_root": str(scope_info["recommended_project_root"]),
         "project_constraints": str(paths.project_constraints_path),
         "context_manifest": str(paths.context_manifest_path),
         "intent_path": str(paths.intent_path),
@@ -331,6 +366,7 @@ def gen_iterate(
     delta: int | None = None,
     converged: bool | None = None,
     evaluators: Iterable[dict] | None = None,
+    artifact_paths: Iterable[str] | None = None,
     run_agent: bool = False,
     run_deterministic: bool = False,
     actor: str = "codex-runtime",
@@ -387,6 +423,7 @@ def gen_iterate(
     evaluator_summary = _summarize_evaluators(evaluator_details, delta=delta, converged=converged)
     timestamp = utc_now()
     context_hash = compute_context_hash(paths, profile_name, feature_doc)
+    artifact_refs = _artifact_refs(paths.project_root, artifact_paths)
     project = _project_name(paths, fallback=project_name)
 
     started = append_run_event(
@@ -401,6 +438,7 @@ def gen_iterate(
             "edge": edge,
             "iteration": iteration,
             "input_hash": context_hash,
+            "candidate_artifacts": artifact_refs,
         },
         event_time=timestamp,
     )
@@ -423,6 +461,7 @@ def gen_iterate(
             "context_hash": context_hash,
             "vector_type": feature_doc.get("vector_type", "feature"),
             "evaluators": evaluator_summary,
+            "candidate_artifacts": artifact_refs,
         },
         causation_id=started["run"]["runId"],
         correlation_id=started["run"]["runId"],
@@ -439,6 +478,7 @@ def gen_iterate(
         timestamp=timestamp,
         profile_name=profile_name,
         delta=delta,
+        artifact_refs=artifact_refs,
     )
 
     graph_doc = load_graph(paths)
@@ -478,6 +518,13 @@ def gen_iterate(
     stuck = detect_stuck_features(load_events(paths.events_file))
     intent_event = None
     if not converged and (feature, edge) in stuck:
+        intent_payload = resolve_named_intent_payload(
+            paths,
+            signal_source="test_failure",
+            feature=feature,
+            edge=edge,
+            affected_req_keys=[feature],
+        )
         intent_event = append_run_event(
             paths.events_file,
             project_name=project,
@@ -493,6 +540,7 @@ def gen_iterate(
                 "delta": delta,
                 "trigger": f"{edge} delta={delta} unchanged for 3 iterations",
                 "severity": "medium",
+                **intent_payload,
             },
             causation_id=completed["run"]["runId"],
             correlation_id=started["run"]["runId"],
@@ -519,6 +567,7 @@ def gen_iterate(
         "active_tasks_file": str(paths.active_tasks_file),
         "feature_index_file": str(paths.feature_index_path),
         "evaluator_summary": evaluator_summary,
+        "artifact_refs": artifact_refs,
     }
 
 
@@ -907,6 +956,13 @@ def gen_gaps(
         for cluster_key, reqs in sorted(report["gap_clusters"].items()):
             kind, _domain = cluster_key.split(":", 1)
             severity = "high" if kind == "gap" else "medium"
+            intent_payload = resolve_named_intent_payload(
+                paths,
+                signal_source="gap",
+                feature=reqs[0],
+                edge="gap_analysis",
+                affected_req_keys=reqs,
+            )
             intent = append_run_event(
                 paths.events_file,
                 project_name=project,
@@ -924,6 +980,7 @@ def gen_gaps(
                     "prior_intents": [],
                     "edge_context": "gap_analysis",
                     "severity": severity,
+                    **intent_payload,
                 },
                 causation_id=gaps_event["run"]["runId"],
                 correlation_id=gaps_event["run"]["runId"],

@@ -1,60 +1,35 @@
-# Design: Asset Graph Engine (Unified Intent Vector Model)
+# Design: Asset Graph Engine (Unified & Consolidated)
 
-**Version**: 1.1.0
-**Date**: 2026-03-08
-**Implements**: REQ-F-ENGINE-001, ADR-S-026
+**Version**: 1.2.0
+**Date**: 2026-03-09
+**Implements**: REQ-F-ENGINE-001, ADR-S-026, ADR-S-027
 
 --- 
 
 ## Architecture Overview
-The Asset Graph Engine is a state machine that manages the lifecycle of **Intent Vectors**. It uses event sourcing to derive the current state of the causal DAG and enforces admissible transitions through a **Compositional Topology**.
+The Asset Graph Engine is a state machine that manages the lifecycle of **Intent Vectors**. Following **ADR-S-027**, it strictly enforces an event-first source of truth for the `.ai-workspace/` domain and uses a **Composition Compiler** to bridge methodology abstraction levels.
 
-## Component Design
+## Level Separation (ADR-S-026/027)
 
-### Component: IntentEngine (Refactored)
-**Implements**: REQ-F-ITER-001, ADR-S-026
-**Responsibilities**: Orchestrates the iteration loop for a given `IntentVector`. Loads the bound `composition_expression` and executes its constituent functors.
-**Interfaces**: run(vector, context), evaluate_convergence()
-**Dependencies**: FunctorRegistry, ContextLoader, EventStore
-
-### Component: VectorRegistry
-**Implements**: ADR-S-021, ADR-S-026
-**Responsibilities**: Manages the lifecycle and causality of Intent Vectors. Tracks parent-child relationships and resolution levels.
-**Interfaces**: create_vector(source, level, composition), get_causal_ancestry(vector_id)
+| Level | Construct | Description |
+|-------|-----------|-------------|
+| Level 3 | Named Composition | Authoring language (`PLAN`, `POC`, `BUILD`) |
+| Level 4 | Compiled Intent | Dispatchable unit with bound parameters |
+| Level 5 | Execution Topology | The specific graph nodes and edges to be traversed |
 
 ### Component: CompositionCompiler
-**Implements**: ADR-S-026
-**Responsibilities**: Compiles a composition expression (e.g., `PLAN`, `POC`) into an executable graph fragment. Maps functors to the underlying `EvaluatorFramework`.
-**Interfaces**: compile(expression) 	o graph_fragment
+**Implements**: ADR-S-027 Invariant 6
+**Responsibilities**: Compiles Level 3 compositions into Level 5 topologies. Implementation avoids direct execution of Level 3 constructs.
+**Compilation Map**:
+- `PLAN` 	o `intent 	o requirements` (with specialized PLAN sub-ops)
+- `POC` 	o `requirements 	o design 	o code 	o unit_tests` (fast-path)
+- `BUILD` 	o `design 	o code \leftrightarrow unit_tests` (standard co-evolution)
 
-## Data Model (Unified Intent Vector)
-
-```mermaid
-classDiagram
-    class IntentVector {
-        +string id
-        +string source
-        +string parent_vector_id
-        +string resolution_level
-        +dict composition_expression
-        +string profile
-        +string status
-    }
-    class EventStore {
-        +list events
-        +emit(event)
-        +load_all()
-    }
-```
+## State Reconstruction Invariants
+1. **Event-First**: All state in `.ai-workspace/` (trajectories, status, vector registry) is projected from the `events.jsonl` ledger. 
+2. **File Authority**: Spec files in `specification/` are the definitive truth for requirements and high-level design. Hash mismatches trigger integrity gaps.
 
 ## Traceability Matrix
 | REQ Key | Component |
 |---------|----------|
-| REQ-GRAPH-001 | VectorRegistry |
-| REQ-GRAPH-002 | EventStore, VectorRegistry |
-| REQ-ITER-001 | IntentEngine |
-| ADR-S-026 | IntentEngine, VectorRegistry, CompositionCompiler |
-
-## ADR Index
-- [ADR-019: Unified Intent Vector Model](adrs/ADR-019-unified-intent-vector-model.md)
-- [ADR-020: Project Instance Graph (Implementation of ADR-S-021)](adrs/ADR-020-project-instance-graph.md)
+| ADR-S-027 | TriageEngine (branching), Projector (event-first), CompositionCompiler |

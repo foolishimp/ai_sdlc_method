@@ -208,59 +208,42 @@ class Projector:
 
     @staticmethod
     def get_feature_status(events: List[Dict], project_root: Path = None) -> Dict[str, Dict]:
+        """Reconstructs feature status from the event ledger (ADR-S-027)."""
         status = {}
-        
+        # 1. Load authoritative keys from specification if available
         if project_root:
             spec_features_path = project_root / "specification" / "features" / "FEATURE_VECTORS.md"
             if spec_features_path.exists():
+                import re
                 content = spec_features_path.read_text()
                 feat_matches = re.finditer(r"### (REQ-F-[A-Z0-9-]+): (.*)", content)
                 for m in feat_matches:
                     fid, title = m.group(1), m.group(2)
                     status[fid] = {"title": title, "status": "pending", "trajectory": {}, "source": "spec"}
 
+        # 2. Project event ledger over status (Events are authoritative for workspace/code)
         for ev in events:
             facets = ev.get("run", {}).get("facets", {})
             req_facet = facets.get("sdlc_req_keys", {})
             type_facet = facets.get("sdlc_event_type", {})
-            
-            feat = req_facet.get("feature_id")
-            edge_name = req_facet.get("edge")
-            ol_type = ev.get("eventType")
-            
-            e_type = None
-            if ol_type == "START": e_type = "edge_started"
-            elif ol_type == "COMPLETE": e_type = "edge_converged"
-            elif ol_type == "OTHER": e_type = type_facet.get("type")
+            e_type = type_facet.get("type") or ev.get("event_type")
+            feat = req_facet.get("feature_id") or ev.get("feature")
+            edge_name = req_facet.get("edge") or ev.get("edge")
 
             if not feat: continue
-            if feat not in status: 
-                status[feat] = {"status": "pending", "trajectory": {}, "source": "workspace"}
-            
+            if feat not in status: status[feat] = {"status": "pending", "trajectory": {}, "source": "workspace"}
             if edge_name:
-                edge_name = edge_name.replace("->", "\u2192").replace("\u2194", "\u2192")
+                edge_name = edge_name.replace("->", "→").replace("↔", "→")
             
-            if e_type == "edge_started" and edge_name: 
-                status[feat]["trajectory"][edge_name] = {
-                    "status": "iterating",
-                    "iteration": Projector.get_iteration_count(events, feat, edge_name)
-                }
+            if e_type == "edge_started":
+                status[feat]["trajectory"][edge_name] = {"status": "iterating", "iteration": Projector.get_iteration_count(events, feat, edge_name)}
                 status[feat]["status"] = "in_progress"
-            elif e_type == "edge_converged" and edge_name: 
-                status[feat]["trajectory"][edge_name] = {
-                    "status": "converged",
-                    "iteration": Projector.get_iteration_count(events, feat, edge_name),
-                    "delta": 0
-                }
-            elif e_type == "iteration_completed" and edge_name:
+            elif e_type == "edge_converged":
+                status[feat]["trajectory"][edge_name] = {"status": "converged", "iteration": Projector.get_iteration_count(events, feat, edge_name), "delta": 0}
+            elif e_type == "iteration_completed":
                 data = ev.get("data") or ev.get("_metadata", {}).get("original_data", {})
-                status[feat]["trajectory"][edge_name] = {
-                    "status": "iterating",
-                    "delta": data.get("delta"),
-                    "iteration": Projector.get_iteration_count(events, feat, edge_name)
-                }
+                status[feat]["trajectory"][edge_name] = {"status": "iterating", "delta": data.get("delta"), "iteration": Projector.get_iteration_count(events, feat, edge_name)}
 
-        
         for feat_id, data in status.items():
             if data["trajectory"]:
                 all_conv = all(

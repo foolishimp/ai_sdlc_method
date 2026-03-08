@@ -10,4 +10,4 @@ Generates a release manifest summarizing the converged feature vectors (REQ keys
 ## Effects
 - Collects all REQ keys from converged feature vectors.
 - Generates a `release_manifest.json` in `.ai-workspace/snapshots/`.
-- Emits a `release_manifest_generated` event.
+- Emits an event with `event_type: release_created` to `.ai-workspace/events/events.jsonl`.

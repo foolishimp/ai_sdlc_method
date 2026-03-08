@@ -44,6 +44,45 @@ class ConstructResult:
     evaluations: List[FunctorResult] = field(default_factory=list)
 
 @dataclass
+class PlanResult:
+    """Result of a PLAN functor invocation."""
+    units: List[Dict[str, Any]] = field(default_factory=list)
+    dep_dag: Dict[str, List[str]] = field(default_factory=dict)
+    build_order: List[str] = field(default_factory=list)
+    ranked_units: List[str] = field(default_factory=list)
+    deferred_units: List[Dict[str, Any]] = field(default_factory=list)
+    reasoning: str = ""
+
+@dataclass
+class WorkOrder:
+    """A stable asset produced by the PLAN functor."""
+    id: str
+    source_asset_id: str
+    units: List[Dict[str, Any]]
+    dep_dag: Dict[str, List[str]]
+    build_order: List[str]
+    ranked_units: List[str]
+    deferred_units: List[Dict[str, Any]]
+    status: str = "pending" # pending, approved, dismissed
+    created_at: datetime = field(default_factory=lambda: datetime.now())
+
+@dataclass
+class IntentVector:
+    """Unified Intent Vector (ADR-S-026)."""
+    id: str
+    source: str # abiogenesis | gap | parent_vector
+    parent_vector_id: Optional[str]
+    resolution_level: str # intent | requirements | design | code | deployment | telemetry
+    composition_expression: Dict[str, Any] # macro and parameter bindings
+    profile: str # full | standard | poc | spike | hotfix | minimal
+    vector_type: str # feature | discovery | spike | poc | hotfix
+    status: str # pending | iterating | converged | blocked | time_box_expired
+    created_at: datetime = field(default_factory=lambda: datetime.now())
+    updated_at: datetime = field(default_factory=lambda: datetime.now())
+    trajectory: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    children: List[str] = field(default_factory=list)
+
+@dataclass
 class IterationRecord:
     """Record of one iteration — what happened, what was decided."""
     edge: str
@@ -51,6 +90,7 @@ class IterationRecord:
     report: 'IterationReport'
     event_emitted: bool = True
     construct_result: Optional[ConstructResult] = None
+    plan_result: Optional[PlanResult] = None
 
     @property
     def converged(self) -> bool:
@@ -91,6 +131,7 @@ class IterationReport:
     timestamp: datetime = field(default_factory=lambda: datetime.now())
     spawn: Optional[SpawnRequest] = None
     construct_result: Optional[ConstructResult] = None
+    plan_result: Optional[PlanResult] = None
 
 @dataclass
 class FeatureTrajectory:

@@ -1,0 +1,37 @@
+version: "1.0.0"
+default_intent_status: proposed
+
+compositions:
+  STUCK_REWORK:
+    description: "Recover a stalled edge with another bounded iterate pass and explicit review."
+    expression: "ITERATE({edge}) -> REVIEW({feature})"
+    default_profile: minimal
+    resolution_level: feature
+    vector_type: feature
+    triggers:
+      signal_sources:
+        - test_failure
+        - runtime_feedback
+
+  TRACE_GAP_CLOSURE:
+    description: "Close missing trace, test, or telemetry coverage for uncovered REQ keys."
+    expression: "TRACE_GAP({req_count}) -> PLAN(traceability_closure)"
+    default_profile: minimal
+    resolution_level: feature_set
+    vector_type: feature
+    triggers:
+      signal_sources:
+        - gap
+      edges:
+        - gap_analysis
+
+  PROCESS_REPAIR:
+    description: "Escalate methodology process debt into a bounded repair plan."
+    expression: "PLAN(process_repair) -> ITERATE({edge})"
+    default_profile: standard
+    resolution_level: workflow
+    vector_type: discovery
+    triggers:
+      signal_sources:
+        - process_gap
+        - TELEM

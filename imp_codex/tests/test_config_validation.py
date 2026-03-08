@@ -929,6 +929,27 @@ class TestContextSources:
         assert "scope:" in raw
         assert "description:" in raw
 
+
+class TestAgentInvocationContract:
+    """Agent invocation config must be defined in the project constraints template."""
+
+    @pytest.mark.tdd
+    def test_template_has_agent_invocation_field(self, project_constraints_template):
+        assert "agent_invocation" in project_constraints_template
+
+    @pytest.mark.tdd
+    def test_agent_invocation_defaults_to_heuristic(self, project_constraints_template):
+        invocation = project_constraints_template["agent_invocation"]
+        assert invocation["mode"] == "heuristic"
+        assert invocation["fallback"] == "heuristic"
+
+    @pytest.mark.tdd
+    def test_agent_invocation_file_schema_documented(self):
+        with open(CONFIG_DIR / "project_constraints_template.yml") as f:
+            raw = f.read()
+        assert '"evaluations": [' in raw
+        assert '"result": "pass"' in raw
+
     @pytest.mark.tdd
     def test_valid_scopes_documented(self):
         """Template comments must mention adrs, data_models, templates, policy, standards."""
@@ -943,6 +964,29 @@ class TestContextSources:
         with open(COMMANDS_DIR / "gen-init.md") as f:
             content = f.read()
         assert "Resolve Context Sources" in content
+
+
+class TestNamedCompositionRegistry:
+    """Named composition registry must exist for typed intent outputs."""
+
+    @pytest.mark.tdd
+    def test_registry_exists(self):
+        assert (CONFIG_DIR / "named_compositions.yml").exists()
+
+    @pytest.mark.tdd
+    def test_registry_has_required_compositions(self):
+        registry = load_yaml(CONFIG_DIR / "named_compositions.yml")
+        compositions = registry.get("compositions", {})
+        for name in ("STUCK_REWORK", "TRACE_GAP_CLOSURE", "PROCESS_REPAIR"):
+            assert name in compositions, f"missing named composition: {name}"
+
+    @pytest.mark.tdd
+    def test_compositions_define_expression_and_trigger(self):
+        registry = load_yaml(CONFIG_DIR / "named_compositions.yml")
+        for name, composition in registry.get("compositions", {}).items():
+            assert composition.get("expression"), f"{name} missing expression"
+            triggers = composition.get("triggers", {})
+            assert triggers.get("signal_sources"), f"{name} missing trigger signal_sources"
 
 
 # ═══════════════════════════════════════════════════════════════════════

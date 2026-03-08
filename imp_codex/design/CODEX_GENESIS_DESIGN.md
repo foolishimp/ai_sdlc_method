@@ -1,7 +1,7 @@
-# AI SDLC - Codex Genesis Implementation Design (v1.2)
+# AI SDLC - Codex Genesis Binding Crosswalk (v1.3)
 
-**Version**: 1.2.0  
-**Date**: 2026-03-05  
+**Version**: 1.3.0  
+**Date**: 2026-03-09  
 **Derived From**: [AI_SDLC_ASSET_GRAPH_MODEL.md](../../specification/core/AI_SDLC_ASSET_GRAPH_MODEL.md) (v2.8.0)  
 **Reference Implementation**: [AISDLC_V2_DESIGN.md](../../imp_claude/design/AISDLC_V2_DESIGN.md)  
 **Platform**: Codex (tool-calling coding agent runtime)
@@ -10,13 +10,13 @@
 
 ## Design Intent
 
-This document defines the |design> asset for a Codex-specific Genesis binding. It is a sibling implementation to Claude and Gemini bindings, with explicit feature alignment to Claude as the reference baseline.
+This document is the Codex-specific binding crosswalk for Genesis. It is a sibling implementation to Claude and Gemini bindings, but it is not the full runtime design document; its job is to translate the reference surface into Codex-native execution terms and record where Codex intentionally diverges.
 
 Primary objective: preserve methodology semantics and feature coverage while mapping execution to Codex-native primitives (tool calls, shell orchestration, patch application, explicit human review turns).
 
 Core objectives:
 
-1. **Reference parity**: Maintain feature-level compatibility with the current spec baseline (15 feature vectors).
+1. **Reference parity**: Maintain feature-level compatibility with the current spec baseline (17 feature vectors).
 2. **Native binding**: Map iterate/evaluator/context/tooling to Codex primitives without changing the Asset Graph model.
 3. **Spec-first control**: Keep disambiguation at intent/spec/design layers; use code/runtime observability as secondary unblock and validation controls.
 
@@ -215,10 +215,13 @@ This section is the explicit parity contract.
 | REQ-F-SUPV-001 | Claude §1.9, §2.6 | Codex §2.6, §4.3 | Aligned |
 | REQ-F-COORD-001 | Claude §1.10 | Codex §4.4 + ADR-013 | Aligned |
 | REQ-F-ROBUST-001 | Claude §1.5.1 + ADR-021/024 direction | Codex §4.1 + ADR-CG-009 | Aligned (in progress) |
+| REQ-F-FP-001 | Claude `DESIGN_REQUIREMENTS.md`, `FUNCTOR_FRAMEWORK_DESIGN.md` | Codex `DESIGN_REQUIREMENTS.md`, `FUNCTOR_FRAMEWORK_DESIGN.md` | Aligned at design tier |
 | REQ-F-EVENT-001 | Claude ADR-S-011/012/015 alignment | Codex event stream + ADR-CG-004 | Aligned (in progress) |
 | REQ-F-EVOL-001 | Claude consciousness/spec-evolution loop | Codex §4 + observer pipeline | Aligned (in progress) |
+| REQ-F-CONSENSUS-001 | Claude ADR-S-025 design follow-on | Codex `DESIGN_REQUIREMENTS.md`, `ENGINE_DESIGN_GAP.md` | Aligned at design tier |
+| REQ-F-NAMEDCOMP-001 | Claude ADR-S-026 design follow-on | Codex `DESIGN_REQUIREMENTS.md`, `ENGINE_DESIGN_GAP.md` | Aligned at design tier |
 
-**15/15 feature vectors targeted for alignment with current specification.**
+**17/17 feature vectors targeted for alignment with current specification.**
 
 ---
 

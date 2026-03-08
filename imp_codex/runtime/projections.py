@@ -155,6 +155,7 @@ def update_feature_for_iteration(
     timestamp: str,
     profile_name: str,
     delta: int,
+    artifact_refs: list[dict] | None = None,
 ) -> dict:
     feature_doc = dict(feature_doc)
     feature_doc["updated"] = timestamp
@@ -176,6 +177,8 @@ def update_feature_for_iteration(
         trajectory["context_hash"] = context_hash
         trajectory["evaluator_results"] = evaluators
         trajectory["delta"] = delta
+        if artifact_refs:
+            trajectory["artifact_refs"] = artifact_refs
         feature_doc["trajectory"][asset] = trajectory
     return feature_doc
 
