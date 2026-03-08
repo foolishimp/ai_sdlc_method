@@ -1530,6 +1530,91 @@ Protocol enforcement hooks are an instance of **evaluator-as-prompter** (#35) ap
 
 The hooks are an engine-level primitive (§2.8, Layer 1) — they apply regardless of which graph package or project binding is in use.
 
+### 7.8 The Two-Path Execution Model and Executor Epoch-Dependence
+
+The methodology has two interoperable execution paths. They share the same graph, the same event schema, and the same invariants. The path is a variable; the observable is not.
+
+#### 7.8.1 Two Paths, One Graph
+
+| Path | Executor | Strength | Current Limitation |
+|------|----------|----------|--------------------|
+| **Engine** | Deterministic runtime | Enforces convergence and event emission as hard gates; reproducible; auditable | Cannot generate or construct — evaluates only; escalates to F_P/F_H for construction |
+| **Agent (Claude/LLM)** | Probabilistic reasoner | Constructs, generates, disambiguates; full-spectrum F_P and F_H capability | Does not enforce event emission by default; observability is opt-in unless hooks are active |
+
+Both operate on the same graph topology, consume the same context, and must emit events to the same event stream. The engine makes this mandatory; the agent requires process discipline or hook enforcement (§7.7) to achieve the same.
+
+**Interoperability** is by design, not accident:
+
+```
+Engine ──escalate──► Claude      (η: F_D → F_P when tests insufficient)
+Claude ──invoke──►   Engine      (trigger deterministic validation after construction)
+Either ──emit──►     events.jsonl (shared substrate — path-independent)
+```
+
+A single feature vector can be executed partially by the engine (deterministic evaluation gates) and partially by the agent (construction, gap analysis, design synthesis). The natural transformation chain (§2.9) — η: F_D → F_P → F_H → F_D — describes the handoff protocol between paths.
+
+#### 7.8.2 The Observable Invariant
+
+**Observables are invariants, not metadata.** This is the distinction that the two-path model clarifies.
+
+An edge traversal that produces no event did not happen in the methodology's terms — regardless of how correct the artifact is. The event is not a log entry; it is the observation that closes the homeostatic loop (§7.1). Without it:
+
+- The monitor cannot display the traversal
+- The sensory system has no signal to classify
+- The affect system has no observation to triage
+- No `spec_modified`, `intent_raised`, or `edge_converged` event means no feedback into the next iteration
+
+The engine enforces the observable invariant mechanically. The agent path requires it to be held as a discipline — which is why hook enforcement (§7.7) exists and why §7.7.5 defines the observability floor (file-level `artifact_modified` events as the minimum).
+
+The observable is what makes work real to the system. Dark work — correct artifacts with no event trail — is invisible to everything downstream.
+
+#### 7.8.3 Executor Epoch-Dependence
+
+The F_D/F_P/F_H encoding (§2.9) is **not fixed**. It reflects the current capability of the available executors. The formal system defines the categories; which executor reliably fills each category is an empirical question that changes as technology advances.
+
+Today's encoding:
+```
+F_D → deterministic engine (tests, schema validation, contract checks)
+F_P → LLM/agent (construction, gap analysis, design synthesis)
+F_H → human (approval, domain judgment, persistent ambiguity)
+```
+
+As LLM capability increases, the boundary shifts:
+
+```
+Near term:  F_P reliably self-evaluates simple convergence criteria
+            → engine needed for hard gates, not routine evaluation
+
+Medium term: F_P reliably applies evaluator checklists with F_D precision
+            → engine becomes a verifier (confirms what model already assessed)
+            → η: F_D → F_P fires less often (model handles more autonomously)
+
+Long term:  F_P approaches F_D reliability across the full evaluator space
+            → engine collapses to audit layer (spot-checks, not enforcement)
+            → F_H boundary shifts upward (human handles only novel judgment)
+```
+
+**The invariants survive this evolution.** The methodology does not specify *which executor* checks convergence — it specifies *that convergence is checked* and *that the result is observable*. As the model becomes more reliable, it absorbs more of the F_D role. The engine is a scaffold for the current capability epoch, not a permanent architectural requirement.
+
+**The engine's enduring role** is not enforcement per se — it is **reproducibility and auditability**. A deterministic engine can be re-run on the same inputs and produce the same output. An LLM cannot. For regulated contexts, audit trails, or reproducible builds, F_D (engine) remains the correct encoding regardless of LLM capability. The epoch-dependence applies to the reliability gap, not the reproducibility property.
+
+#### 7.8.4 Self-Observation: What the REQ-TOOL-015 Episode Demonstrates
+
+This insight was derived from direct observation of the methodology executing on itself (test07, session 7, 2026-03-08). The work that produced REQ-TOOL-015, ADR-031, the installer warning, and the structural tests was executed entirely on the agent path — direct file edits, no engine invocation. The artifacts were structurally correct (spec → ADR → code → test, with proper REQ key lineage). The event trail contained one entry: a `spec_modified` signal from the git post-commit hook.
+
+The monitor showed nothing. The Topology Trail had no arcs. The Feature Matrix had no row for REQ-TOOL-015.
+
+This is the observable invariant gap in action: correct work, dark execution. The agent produced the right structure by pattern-matching the methodology's conventions — but without running the engine, without invoking `/gen-iterate`, and without the hook system enforcing event emission, the homeostatic loop did not close.
+
+The lesson is not that the agent should not be used for this work. The lesson is:
+
+1. **The observable is an invariant** — it must be emitted regardless of which path executes the work
+2. **The agent path requires explicit event emission** — either via hook enforcement or as a conscious act by the agent
+3. **The epoch shifts the encoding, not the invariant** — as Claude becomes more capable, it can reliably evaluate convergence, but it must still emit the observation
+4. **The engine is currently the only path that makes observable emission mandatory** — this is its primary value in the current epoch, separate from its evaluation capability
+
+The methodology observed this gap in itself and corrected it — closing the loop at the meta-level. That is exactly the self-modifying behaviour described in §7.5.
+
 ---
 
 ## 8. Ontology Traceability
