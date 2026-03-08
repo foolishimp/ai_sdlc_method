@@ -477,54 +477,6 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
         children = [f for f in features if f.parent_id == feature_id] if fv else []
         parent_fv = next((f for f in features if f.feature_id == (fv.parent_id if fv else None)), None)
 
-        # Find backing specification and ADR documents for this feature
-        import re as _re
-        req_keys = raw_yaml.get("requirements") or (fv.requirements if fv else [])
-        backing_docs: list[dict] = []
-
-        def _read_doc(path) -> str:
-            try: return path.read_text(encoding="utf-8", errors="replace")
-            except Exception: return ""
-
-        def _extract_req_sections(text: str, keys: list[str]) -> str:
-            """Extract ### REQ-KEY: ... sections from a markdown doc."""
-            chunks = []
-            for key in keys:
-                m = _re.search(
-                    rf"(### {_re.escape(key)}:.*?)(?=\n###|\Z)", text, _re.DOTALL
-                )
-                if m:
-                    chunks.append(m.group(1).strip())
-            return "\n\n---\n\n".join(chunks)
-
-        # 1. Specification requirements doc — extract relevant REQ sections
-        for spec_path in [
-            project.path / "specification" / "requirements" / "REQUIREMENTS.md",
-            project.path / ".ai-workspace" / "spec" / "REQUIREMENTS.md",
-        ]:
-            if spec_path.exists() and req_keys:
-                text = _read_doc(spec_path)
-                section = _extract_req_sections(text, req_keys)
-                if section:
-                    backing_docs.append({
-                        "title": f"Requirements — {spec_path.name}",
-                        "path": str(spec_path.relative_to(project.path)),
-                        "content": section,
-                    })
-                    break
-
-        # 2. ADR documents in any design/ subtree that implement any of the feature's REQ keys
-        for design_root in sorted(project.path.rglob("design")):
-            if not design_root.is_dir(): continue
-            for adr_path in sorted(design_root.rglob("*.md")):
-                adr_text = _read_doc(adr_path)
-                if any(k in adr_text for k in ([feature_id] + req_keys)):
-                    backing_docs.append({
-                        "title": adr_path.stem.replace("-", " ").replace("_", " "),
-                        "path": str(adr_path.relative_to(project.path)),
-                        "content": adr_text,
-                    })
-
         return request.app.state.templates.TemplateResponse(
             request,
             "feature_lineage.html",
@@ -538,11 +490,95 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
                 "raw_yaml": raw_yaml,
                 "raw_yaml_text": raw_yaml_text,
                 "raw_yaml_path": raw_yaml_path,
-                "backing_docs": backing_docs,
                 "feature_trail": trail,
                 "children": children,
                 "parent_fv": parent_fv,
             },
+        )
+
+    @router.get("/fragments/project/{project_id}/feature/{feature_id}/backing-docs", response_class=HTMLResponse)
+    async def fragment_backing_docs(request: Request, project_id: str, feature_id: str):
+        """Lazy-load backing documents — expensive rglob deferred until user expands section."""
+        import re as _re
+        import yaml as _yaml
+        project = registry.get_project(project_id)
+        if not project:
+            return HTMLResponse("")
+
+        # Load req_keys from workspace YAML
+        workspace = project.path / ".ai-workspace"
+        raw_yaml: dict = {}
+        for sub in ("active", "completed"):
+            ypath = workspace / "features" / sub / f"{feature_id}.yml"
+            if ypath.exists():
+                try:
+                    raw_yaml = _yaml.safe_load(ypath.read_text(encoding="utf-8")) or {}
+                except Exception:
+                    pass
+                break
+
+        fv = next((f for f in project.features if f.feature_id == feature_id), None)
+        req_keys = raw_yaml.get("requirements") or (fv.requirements if fv else [])
+        search_terms = [feature_id] + req_keys
+
+        def _read_doc(path) -> str:
+            try:
+                return path.read_text(encoding="utf-8", errors="replace")
+            except Exception:
+                return ""
+
+        def _extract_req_sections(text: str, keys: list[str]) -> str:
+            chunks = []
+            for key in keys:
+                m = _re.search(rf"(### {_re.escape(key)}:.*?)(?=\n###|\Z)", text, _re.DOTALL)
+                if m:
+                    chunks.append(m.group(1).strip())
+            return "\n\n---\n\n".join(chunks)
+
+        backing_docs: list[dict] = []
+
+        # 1. Spec requirements — extract only matching REQ sections (not the whole file)
+        for spec_path in [
+            project.path / "specification" / "requirements" / "REQUIREMENTS.md",
+            project.path / ".ai-workspace" / "spec" / "REQUIREMENTS.md",
+        ]:
+            if spec_path.exists() and req_keys:
+                text = _read_doc(spec_path)
+                section = _extract_req_sections(text, req_keys)
+                if section:
+                    backing_docs.append({
+                        "title": f"Requirements — {spec_path.name}",
+                        "path": str(spec_path.relative_to(project.path)),
+                        "content": section[:8000],
+                    })
+                    break
+
+        # 2. Design ADRs — search only known design directories, cap at 8 docs
+        design_dirs = [
+            d for d in sorted(project.path.glob("*/design"))
+            if d.is_dir()
+        ] + [
+            d for d in sorted(project.path.glob("*/*/design"))
+            if d.is_dir()
+        ]
+        for design_root in design_dirs:
+            for adr_path in sorted(design_root.rglob("*.md")):
+                if len(backing_docs) >= 9:
+                    break
+                adr_text = _read_doc(adr_path)
+                if any(k in adr_text for k in search_terms):
+                    backing_docs.append({
+                        "title": adr_path.stem.replace("-", " ").replace("_", " "),
+                        "path": str(adr_path.relative_to(project.path)),
+                        "content": adr_text[:8000],
+                    })
+            if len(backing_docs) >= 9:
+                break
+
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "fragments/_backing_docs.html",
+            {"backing_docs": backing_docs, "project": project},
         )
 
     @router.get("/project/{project_id}/artifact", response_class=HTMLResponse)
