@@ -31,9 +31,14 @@ trajectory:
     delta: 0
 
   design:
-    status: iterating
+    status: converged
     iteration: 1
     started_at: "2026-03-08T18:01:00Z"
+    converged_at: "2026-03-08T18:15:00Z"
+    asset: "specification/features/CONSENSUS_DESIGN_RECOMMENDATIONS.md"
+    evaluators_passed: 6
+    evaluators_total: 6
+    delta: 0
 
   code:
     status: pending

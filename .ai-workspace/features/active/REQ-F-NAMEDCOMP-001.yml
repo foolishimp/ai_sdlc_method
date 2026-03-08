@@ -1,0 +1,76 @@
+feature: REQ-F-NAMEDCOMP-001
+title: "Named Composition Library and Intent Vector Envelope"
+intent: "INT-NAMEDCOMP-001"
+vector_type: feature
+profile: standard
+status: in_progress
+
+description: |
+  Implement the five-level compositional stack and intent vector envelope
+  specified in ADR-S-026. Covers: named composition registry (PLAN, POC,
+  SCHEMA_DISCOVERY, DATA_DISCOVERY), typed gap.intent output (composition
+  expressions replacing free text), intent vector schema extension (extended
+  tuple with source_kind, trigger_event, target_asset_type, produced_asset_ref,
+  disposition), project convergence vocabulary (quiescent/converged/bounded),
+  and the shared PLAN edge parameter template.
+
+source_asset: "specification/adrs/ADR-S-026-named-compositions-and-intent-vectors.md"
+
+trajectory:
+  requirements:
+    status: converged
+    asset: "specification/adrs/ADR-S-026-named-compositions-and-intent-vectors.md"
+    converged_at: "2026-03-08T19:00:00+11:00"
+    notes: "ADR-S-026 ratified — serves as requirements for implementation"
+
+  feature_decomposition:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-08T19:05:00+11:00"
+    converged_at: "2026-03-08T19:30:00+11:00"
+    asset: "specification/features/NAMEDCOMP_FEATURE_DECOMPOSITION.md"
+    evaluators_passed: 6
+    evaluators_total: 6
+    delta: 0
+
+  design:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-08T19:31:00+11:00"
+    converged_at: "2026-03-08T20:00:00+11:00"
+    asset: "specification/features/NAMEDCOMP_DESIGN_RECOMMENDATIONS.md"
+    evaluators_passed: 6
+    evaluators_total: 6
+    delta: 0
+
+  code:
+    status: pending
+
+  unit_tests:
+    status: pending
+
+  uat_tests:
+    status: pending
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  active_units:
+    evaluate: F_D
+    construct: F_P
+    classify: F_D
+    route: F_H
+    propose: F_P
+    sense: F_D
+    emit: F_D
+    decide: F_H
+
+constraints:
+  spec_boundary: cross_cutting  # affects spec layer (feature vector schema) and implementation layer
+  cross_tenant: true            # registry schema and intent vector tuple must be valid for all tenants
+  depends_on:
+    - REQ-F-ENGINE-001          # named compositions compile to graph topology
+    - REQ-F-TOOL-001            # gen-init, gen-spawn, gen-status, gen-gaps commands
+    - REQ-F-TRACE-001           # feature vector traceability (intent vector extends feature vector)
+    - REQ-F-SENSE-001           # gap.intent typed output requires affect_triage and sensory monitors

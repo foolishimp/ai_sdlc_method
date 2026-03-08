@@ -328,6 +328,58 @@ The formal event stream contract — append-only durability, projection semantic
 
 ---
 
+### REQ-F-CONSENSUS-001: CONSENSUS Functor Implementation
+
+Multi-stakeholder F_H evaluator with roster, quorum rule, participation floor, and typed convergence outcomes. Implements ADR-S-025.
+
+**Satisfies**: ADR-S-025 (CONSENSUS functor — multi-party F_H with quorum semantics)
+
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- Review publication schema with asset_version, config invariant (`review_closes_at >= published_at + min_duration`), roster
+- Comment collection with gating snapshot (frozen at `review_closes_at`)
+- Vote schema: approve | reject | abstain | non_response (silence ≠ abstain)
+- Quorum gate: five deterministic checks (min_duration_elapsed, window_closed, participation_floor_met, quorum_reached, gating_comments_dispositioned)
+- Typed outcomes: `consensus_reached` | `consensus_failed` (with failure_reason)
+- Three recovery paths: re_open | narrow_scope | abandon
+- Seven OL event types emitted across all phases
+
+**Phase**: 2 (after EVAL + TOOL foundation)
+
+**Dependencies**: REQ-F-ENGINE-001.|code⟩ (CONSENSUS invokes iterate()), REQ-F-EVAL-001.|code⟩ (F_H evaluator interface), REQ-F-TOOL-001.|code⟩ (gen-iterate, gen-status, gen-review commands)
+
+**Feature decomposition**: [CONSENSUS_FEATURE_DECOMPOSITION.md](CONSENSUS_FEATURE_DECOMPOSITION.md) — 9 sub-features (8 MVP + CONS-004 deferred)
+
+**Design recommendations**: [CONSENSUS_DESIGN_RECOMMENDATIONS.md](CONSENSUS_DESIGN_RECOMMENDATIONS.md) — 6 design phases
+
+---
+
+### REQ-F-NAMEDCOMP-001: Named Composition Library and Intent Vector Envelope
+
+The five-level compositional stack and intent vector envelope specified in ADR-S-026. Covers: named composition registry, typed gap.intent output, intent vector schema extension, project convergence vocabulary, and PLAN edge parameter template.
+
+**Satisfies**: ADR-S-026 (Named Compositions and Intent Vectors — five-level stack, PLAN/POC/SCHEMA_DISCOVERY/DATA_DISCOVERY, typed gap.intent, intent vector tuple, project convergence vocabulary)
+
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- `config/named_compositions.yml` — library registry with 4 macros (PLAN, POC, SCHEMA_DISCOVERY, DATA_DISCOVERY) + gap_type dispatch table
+- `config/feature_vector_template.yml` extended — source_kind, trigger_event, target_asset_type, produced_asset_ref, disposition fields
+- `intent_raised` events carry `composition` field: `{macro, version, bindings}` (not free text)
+- gen-status: three-state project convergence — ITERATING | QUIESCENT | CONVERGED | BOUNDED
+- `config/named_compositions/plan.yml` — shared PLAN edge parameter template behind feature_decomp and design_rec edges
+- ~95 new tests across registry, schema, event typing, convergence states, template validation
+- NC-006 (composition governance) explicitly deferred — depends on REQ-F-CONSENSUS-001.|code⟩
+
+**Phase**: 2 (after ENGINE, EVAL, TOOL, TRACE — schema touches all of these)
+
+**Dependencies**: REQ-F-ENGINE-001.|code⟩, REQ-F-EVAL-001.|code⟩, REQ-F-TOOL-001.|code⟩, REQ-F-TRACE-001.|code⟩, REQ-F-SENSE-001.|code⟩ (for typed observer output); NC-006 also depends on REQ-F-CONSENSUS-001.|code⟩
+
+**Feature decomposition**: [NAMEDCOMP_FEATURE_DECOMPOSITION.md](NAMEDCOMP_FEATURE_DECOMPOSITION.md) — 6 sub-features (5 MVP + NC-006 deferred)
+
+**Design recommendations**: [NAMEDCOMP_DESIGN_RECOMMENDATIONS.md](NAMEDCOMP_DESIGN_RECOMMENDATIONS.md) — 6 design phases
+
 ---
 
 ## Dependency Graph
@@ -362,6 +414,14 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
     └──→ REQ-F-EVENT-001 (Event Stream & Projections) ←── ENGINE + ROBUST (failure taxonomy)
               │
               └──→ REQ-F-EVOL-001 (Spec Evolution Pipeline) ←── also depends on LIFE-001, TOOL-001
+
+REQ-F-EVAL-001 + REQ-F-TOOL-001 + REQ-F-ENGINE-001
+    └──→ REQ-F-CONSENSUS-001 (CONSENSUS Functor) ←── Phase 2: multi-stakeholder F_H
+
+REQ-F-ENGINE-001 + REQ-F-EVAL-001 + REQ-F-TOOL-001 + REQ-F-TRACE-001 + REQ-F-SENSE-001
+    └──→ REQ-F-NAMEDCOMP-001 (Named Compositions + Intent Vectors) ←── Phase 2: Level 3 macro layer
+              │
+              (NC-006 also depends on REQ-F-CONSENSUS-001.|code⟩ — deferred)
 ```
 
 **Parallel work** (zero inner product — independent once ENGINE.|design⟩ converges):
@@ -377,6 +437,10 @@ REQ-F-ENGINE-001 (Asset Graph Engine)
 - ENGINE.|code⟩ < ROBUST.|code⟩ (robustness wraps iterate() invocation path)
 - ENGINE.|code⟩ + ROBUST.|code⟩ < EVENT.|code⟩ (event stream needs engine + failure taxonomy)
 - LIFE.|code⟩ + EVENT.|code⟩ + TOOL.|code⟩ < EVOL.|code⟩ (spec evolution needs homeostasis + event stream + gen-status/gen-review commands)
+- EVAL.|code⟩ + TOOL.|code⟩ + ENGINE.|code⟩ < CONSENSUS.|code⟩ (CONSENSUS functor wraps F_H evaluator + iterate() + gen-review)
+- ENGINE.|code⟩ + EVAL.|code⟩ + TOOL.|code⟩ + TRACE.|code⟩ < NAMEDCOMP.|code⟩ (named compositions touch schema, events, commands, and engine)
+- SENSE.|code⟩ < NAMEDCOMP.|code⟩ (typed observer intent_raised requires affect_triage and gap_type resolution)
+- CONSENSUS.|code⟩ < NAMEDCOMP-NC006.|code⟩ (composition governance gate requires CONSENSUS functor)
 
 ---
 
