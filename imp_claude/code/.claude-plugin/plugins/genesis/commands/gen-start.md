@@ -5,6 +5,42 @@ State-machine controller that detects project state and delegates to the appropr
 <!-- Implements: REQ-UX-001, REQ-UX-002, REQ-UX-004, REQ-UX-005, REQ-TOOL-003 (Workflow Commands), REQ-INTENT-001 (Intent Capture — Step 3), REQ-INTENT-002 (Intent as Spec — Step 3) -->
 <!-- Reference: AI_SDLC_ASSET_GRAPH_MODEL.md v2.9.0 §7.5 Event Sourcing, ADR-012 -->
 
+## Progressive Disclosure (First-Run Path)
+
+<!-- Implements: REQ-UX-002 (Progressive Disclosure — show minimal options first; reveal depth on demand) -->
+
+**When to activate this path**: First-run is detected when EITHER:
+- `.ai-workspace/` does not exist (no workspace), OR
+- `.ai-workspace/events/events.jsonl` is absent or empty (zero events recorded)
+
+On first-run, **do not present the full state-machine routing** (Steps 0–10 below). Instead, show only 3 choices:
+
+```
+Welcome to Genesis! What would you like to do?
+
+  1. Start a new project     — initialise workspace, capture intent, create first feature
+  2. Continue existing work  — resume from a previous session (workspace found elsewhere)
+  3. Quick spike             — explore an idea without committing to a full feature vector
+
+Enter 1, 2, or 3 (or press Enter for option 1):
+```
+
+**Option 1 — New project**: Proceed directly to Step 1 (Progressive Init) below. Do NOT show profile options, graph topology, or context hierarchy. These are deferred until after the first iteration completes (see Step 2: Deferred Constraint Prompting).
+
+**Option 2 — Continue existing**: Ask for the workspace path and load it. Then proceed with the standard state-detection algorithm (Step 0) as normal. This path reveals full complexity because the user has prior experience.
+
+**Option 3 — Quick spike**: Proceed to Step 4 (Feature Creation) with `--profile spike --type spike`. Skip intent authoring — ask only "In one sentence, what are you investigating?" Write response to `specification/INTENT.md` and create a spike vector immediately.
+
+**After first iteration completes**, the progressive disclosure path ends. Subsequent `/gen-start` invocations use the full state-detection algorithm (Step 0). Advanced options — graph topology override, profile selection, context hierarchy, functor encoding — are available via flags but never shown unprompted on first-run.
+
+**What is deferred** (not shown until explicitly requested):
+- Graph topology options (`--edge`, graph_topology.yml)
+- Profile selection (`--profile full|standard|poc|spike|hotfix|minimal`)
+- Context hierarchy and constraint dimensions
+- Functor encoding configuration
+- Zoom management (`/gen-zoom`)
+- Observer dispatch configuration
+
 ## Usage
 
 ```

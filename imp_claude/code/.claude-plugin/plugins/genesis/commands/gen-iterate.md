@@ -4,10 +4,83 @@ Run one iteration of `iterate(Asset, Context[], Evaluators)` on a specific graph
 
 <!-- Implements: REQ-ITER-001, REQ-ITER-002 -->
 
+<!-- Implements: REQ-UX-004 (Automatic Feature and Edge Selection) -->
+
+## Auto-selection from Context
+
+When `/gen-iterate` is invoked **without** `--edge` or `--feature` arguments, the command automatically detects the current feature and the appropriate next edge from the workspace state. This eliminates the need to remember or type feature IDs and edge names during active iteration.
+
+### Auto-selection Algorithm
+
+**Step A — Discover active features**:
+
+1. Read all YAML files in `.ai-workspace/features/active/*.yml`
+2. Filter to features with status `iterating` or `pending` (not `converged`, `blocked`, or `archived`)
+3. If no active features found, delegate to `/gen-start` to create or resume a feature
+
+**Step B — Rank by recency** (when multiple active features exist):
+
+Rank active features by the timestamp of their most recent event in `events.jsonl`:
+
+```
+for each active_feature:
+    last_event_ts = max(event.timestamp for event in events.jsonl where event.feature == active_feature.id)
+rank = sorted by last_event_ts descending (most recently touched first)
+```
+
+Apply secondary sort by priority field (`critical > high > medium > low`) as tiebreaker.
+
+Display selection reasoning:
+
+```
+Auto-selected feature: REQ-F-AUTH-001 "User authentication"
+  Reason: most recently active (last event: 2026-03-09T14:23:11Z)
+  Alternatives: REQ-F-DB-001 (2026-03-08), REQ-F-API-001 (2026-03-07)
+```
+
+**Step C — Determine next edge** for the selected feature:
+
+1. Read the feature vector's `trajectory` section — which edges have `status: converged`
+2. Load the active profile's graph configuration (`graph.skip` and `graph.edges`)
+3. Walk the `transitions` in `graph_topology.yml` in topological order
+4. Skip edges where `trajectory[edge].status == "converged"`
+5. Skip edges in the profile's `graph.skip` list
+6. Return the **first non-converged, non-skipped** edge
+
+```
+Auto-selected edge: code↔unit_tests
+  Skipped (converged): intent→requirements, requirements→design
+  Skipped (profile):   (none — standard profile includes all edges)
+  Iteration: 4 (from trajectory)
+```
+
+**Step D — Fallback to prompting** (ambiguous context):
+
+Fall back to prompting the user if:
+- No active features found (workspace is new or all converged)
+- Multiple features tied in recency with no priority difference
+- The feature vector's trajectory is absent or malformed
+- The next edge cannot be determined from the topology
+
+Fallback prompt (minimal — do not show all options at once):
+
+```
+No active feature auto-detected. Choose:
+  1. Resume most recent feature: REQ-F-AUTH-001
+  2. Start a different feature (enter REQ-F-* ID)
+  3. Create a new feature (/gen-spawn)
+```
+
+### Pre-population Behaviour
+
+When both feature and edge are auto-selected, pre-populate the command arguments silently and proceed directly to Step 0 (Select Execution Mode) without additional prompting. Display only the auto-selection summary box above, then the iteration report.
+
+If the user provides `--feature` but not `--edge` (or vice versa), auto-select only the missing argument using the same algorithm.
+
 ## Usage
 
 ```
-/gen-iterate --edge "{source}→{target}" --feature "REQ-F-{DOMAIN}-{SEQ}" [--mode {interactive|engine|auto}] [--profile {name}]
+/gen-iterate [--edge "{source}→{target}"] [--feature "REQ-F-{DOMAIN}-{SEQ}"] [--mode {interactive|engine|auto}] [--profile {name}]
 ```
 
 | Option | Description |
