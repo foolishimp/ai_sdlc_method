@@ -1596,7 +1596,7 @@ This is equivalent to filing accurate paperwork after the work is done. The pape
 
 **The constraint on retroactive emission**: events must be reconstructible from the artifacts themselves. If the artifacts exist (spec, ADR, code, tests), the events can be derived from them. If the artifacts do not exist, retroactive events would be fabrication — not permitted. The artifacts are the ground truth; the events are derived from them. This is consistent with the event sourcing model (§7.4): the event stream can be replayed and projections reconstructed from it, so events derived from observable artifacts are as valid as events emitted in real time.
 
-**Practical implication**: the two-path model does not require real-time event discipline on the agent path. It requires that `/gen-gaps` be run periodically and that Claude be directed to fill missing observables. The methodology closes retroactively. The monitor catches up. The homeostatic loop eventually closes — which is the invariant.
+**Observability debt**: work done on the agent path without event emission accumulates *observability debt* — correct artifacts exist but the homeostatic loop cannot see them. Like technical debt, observability debt is not fatal but must be paid down. The gap-fill pattern above is the payment mechanism. `/gen-gaps` run periodically surfaces the debt; Claude directed to reconstruct missing events pays it. The methodology closes retroactively. The monitor catches up. The homeostatic loop eventually closes — which is the invariant.
 
 #### 7.8.4 F_D Is Not a Temporary Scaffold — It Is the Right Tool for Its Domain
 
