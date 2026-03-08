@@ -1585,6 +1585,40 @@ Implementations SHALL emit the required event types with mandatory fields as def
 
 ---
 
+### REQ-EVENT-005: Executor Attribution Fields
+
+**Priority**: High | **Phase**: 1
+
+Every methodology event MAY carry two optional attribution fields that identify **who executed the work** and **when the observation was recorded relative to the work**. These fields are not required for event validity but are required for observability tooling to distinguish engine-enforced edges from agent-executed or retroactively recorded ones.
+
+```json
+{
+  "executor": "engine | claude | human",
+  "emission":  "live | retroactive"
+}
+```
+
+| Field | Values | Meaning |
+|-------|--------|---------|
+| `executor` | `engine` | Emitted by the deterministic engine (F_D path) |
+| | `claude` | Emitted by Claude/LLM agent (F_P path) |
+| | `human` | Emitted directly by a human operator |
+| `emission` | `live` | Emitted during the actual work |
+| | `retroactive` | Emitted after the fact to resolve observability debt |
+
+**Acceptance Criteria**:
+- AC-1: Events without these fields are valid; tooling MUST infer: OL-format events (`eventType` present) → `executor: engine`; flat events with no field → `executor: claude`
+- AC-2: Any event with `emission: retroactive` signals that the work was done on the agent path and the observation was filled post-facto (observability debt paid)
+- AC-3: An edge where all events carry `emission: retroactive` is classified as **observability debt** — the convergence was real but the record was reconstructed
+- AC-4: An edge with no events at all (work done but nothing recorded) is classified as **dark** — unresolved observability debt
+- AC-5: Implementations that emit retroactive events MUST derive event content from existing artifacts (git history, files, commits) — not invent plausible-looking events. Retroactive ≠ fabricated.
+
+**Rationale**: As the methodology is executed on both the engine path (F_D, live, enforced) and the agent path (F_P, flexible, requires discipline), observers — monitors, dashboards, auditors — need to know which mode produced each edge traversal. This is first-class information, not metadata. See Asset Graph Model §7.8.
+
+**Traces To**: Asset Graph Model §7.8 (Two-Path Execution Model) | REQ-EVENT-001 (Append-Only Stream) | AI_SDLC_ASSET_GRAPH_MODEL.md §7.8.3 (Observability Debt)
+
+---
+
 ### REQ-EVENT-004: Saga Invariant (Compensation)
 
 **Priority**: High | **Phase**: 2
