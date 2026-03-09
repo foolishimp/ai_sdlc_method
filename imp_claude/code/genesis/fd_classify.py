@@ -1,4 +1,5 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-COORD-002 (Feature Assignment via Events)
+# Implements: REQ-EDGE-004 (Code Tagging), REQ-LIFE-006 (Signal Source Classification)
 """F_D classify — deterministic classification of REQ tags, source findings, signals."""
 
 import re

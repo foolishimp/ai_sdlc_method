@@ -1,4 +1,5 @@
 #!/bin/bash
+# Implements: REQ-LIFE-008 (Protocol Enforcement Hooks), REQ-TOOL-006 (Methodology Hooks)
 # ============================================================================
 # on-iterate-start.sh — UserPromptSubmit hook for /gen-iterate
 #

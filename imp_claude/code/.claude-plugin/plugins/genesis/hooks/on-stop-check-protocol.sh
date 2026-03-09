@@ -1,4 +1,5 @@
 #!/bin/bash
+# Implements: REQ-LIFE-008 (Protocol Enforcement Hooks), REQ-TOOL-006 (Methodology Hooks)
 # ============================================================================
 # on-stop-check-protocol.sh — Stop hook for iterate protocol enforcement
 #

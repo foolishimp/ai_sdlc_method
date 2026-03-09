@@ -4,6 +4,12 @@
 # Implements: REQ-EVOL-002 (Feature Display Tools Must JOIN Spec and Workspace)
 # Implements: REQ-EVOL-004 (spec_modified event + spec hash verification)
 # Implements: REQ-INTENT-004 (Spec Reproducibility — verify_spec_hashes, compute_context_hash)
+# Implements: REQ-LIFE-003 (Feedback Loop Closure), REQ-LIFE-005 (Intent Events as First-Class Objects)
+# Implements: REQ-LIFE-007 (Spec Change Events), REQ-LIFE-013 (Release Readiness Criteria)
+# Implements: REQ-EVOL-005 (Draft Features Queue in Observability)
+# Implements: REQ-TOOL-002 (Developer Workspace), REQ-TOOL-004 (Release Management)
+# Implements: REQ-UX-002 (Progressive Disclosure), REQ-UX-004 (Automatic Feature and Edge Selection)
+# Implements: REQ-UX-006 (Human Gate Awareness)
 """Pure-function workspace state detection utilities.
 
 These functions operate on filesystem paths (workspace directories) and return

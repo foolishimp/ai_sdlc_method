@@ -1,4 +1,8 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-CTX-001 (Context as Constraint Surface), REQ-CTX-002 (Context Hierarchy)
+# Implements: REQ-GRAPH-001 (Asset Type Registry), REQ-GRAPH-002 (Admissible Transitions), REQ-GRAPH-003 (Asset as Markov Object)
+# Implements: REQ-EDGE-001 (TDD at Code↔Tests Edges), REQ-EDGE-002 (BDD at Design→Test Edges), REQ-EDGE-003 (ADRs at Requirements→Design Edge)
+# Implements: REQ-TOOL-008 (Context Snapshot), REQ-TOOL-013 (Output Directory Binding)
+# Implements: REQ-UX-007 (Edge Zoom Management)
 """YAML loading, $variable resolution, and context hierarchy composition for edge configs and project constraints."""
 
 import pathlib

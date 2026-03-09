@@ -1,4 +1,5 @@
 # Implements: REQ-TOOL-009 (Feature Views)
+# Implements: REQ-FEAT-001 (Feature Vector Trajectories), REQ-TOOL-005 (Test Gap Analysis)
 """Feature view — cross-artifact REQ key tracer.
 
 Generates per-feature status reports by scanning project artifacts for

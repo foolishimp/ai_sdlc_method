@@ -1,4 +1,9 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-SENSE-001 (Interoceptive Monitors)
+# Implements: REQ-SENSE-002 (Exteroceptive Monitoring), REQ-SENSE-003 (Affect Triage Pipeline)
+# Implements: REQ-SENSE-004 (Sensory System Configuration), REQ-SENSE-005 (Review Boundary)
+# Implements: REQ-SENSE-006 (Artifact Write Observation)
+# Implements: REQ-INTENT-003 (Eco-Intent Generation), REQ-LIFE-010 (Development Observer Agent)
+# Implements: REQ-LIFE-011 (CI/CD Observer Agent), REQ-LIFE-012 (Ops Observer Agent)
 """F_D sense — deterministic sensing: file scanning, staleness, integrity checks."""
 
 import json

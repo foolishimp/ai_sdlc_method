@@ -1,4 +1,5 @@
 # Implements: REQ-COORD-004 (Markov-Aligned Parallelism)
+# Implements: REQ-COORD-001 (Agent Identity), REQ-COORD-003 (Work Isolation)
 """Feature parallelism — inner product computation for safe multi-agent routing.
 
 The inner product of two feature vectors is the count of shared modules they
