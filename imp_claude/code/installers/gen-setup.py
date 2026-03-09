@@ -69,6 +69,8 @@ COMMANDS = [
     "gen-checkpoint", "gen-escalate", "gen-gaps", "gen-init",
     "gen-iterate", "gen-release", "gen-review", "gen-spawn",
     "gen-spec-review", "gen-start", "gen-status", "gen-trace", "gen-zoom",
+    "gen-comment", "gen-consensus-open", "gen-consensus-recover",
+    "gen-dispose", "gen-review-proposal", "gen-vote",
 ]
 
 ENGINE_FILES = [
@@ -89,7 +91,7 @@ POST_COMMIT_HOOK_SCRIPT = "post-commit-spec-watch.sh"
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
-VERSION = "2.9.0"
+VERSION = "2.10.0"
 
 
 # =============================================================================
