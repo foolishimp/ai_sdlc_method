@@ -16,8 +16,8 @@ Dogfooding is not a test — it is the build process.
 | **v0.1** | Dogfooding enabled | Interactive agent path works; can iterate on own codebase using the methodology | ✅ **RELEASED** |
 | **v0.2** | Engine-core correctness (Claude tenant) | T-001 + T-005 + T-007 + T-008: OL events, runId threading, F_P fold-back contract — deterministic evaluation path correct. Human gate (REQ-EVAL-003) and full MVP assurance deferred to v1.0. | ✅ **RELEASED** |
 | **v0.3** | Observability verified | genesis_monitor correctly parses and displays a v0.2 methodology run end-to-end | ✅ **RELEASED** (2026-03-09) |
-| **v0.4** | Ecosystem verified | Methodology applied to an external project; converges and all tests pass | ❌ open |
-| **v1.0** | Assurance | v0.3 + v0.4 both green — product-level confidence, not just unit test confidence | ❌ open |
+| **v0.4** | Ecosystem verified | Methodology applied to an external project; converges and all tests pass | ✅ **RELEASED** (2026-03-09) |
+| **v1.0** | Assurance | v0.3 + v0.4 both green — product-level confidence, not just unit test confidence | ✅ **RELEASED** (2026-03-09) |
 
 ### Current state
 
@@ -27,7 +27,7 @@ Dogfooding is not a test — it is the build process.
 | Implementation Requirements | 83 REQ keys |
 | Feature Vectors | 15 vectors, 83/83 tagged |
 | Tests | 1567 imp_claude + 574 genesis_monitor = 2141 unit passing; 19 e2e monitor + 27 convergence + 5 UAT = 51 e2e |
-| Active release | v0.3 — next target v0.4 (external project dogfood) |
+| Active release | v1.0 — all gates cleared (v0.3 + v0.4 green). Next: v1.1 sprint (T-COMPLY-002, T-COMPLY-006) |
 
 ### Post-1.0 (v1.1 sprint)
 T-002 (context hierarchy), T-003 (instance graph), T-004 (FPC anchoring), T-006 (H-metric)
