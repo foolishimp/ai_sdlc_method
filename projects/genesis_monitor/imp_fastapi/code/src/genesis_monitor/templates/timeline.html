@@ -309,9 +309,11 @@
                     const exec = run.executor || "unknown";
                     if (exec === "claude") {
                         dashArray = "8,4";
+                        animStyle = "animation:dash-flow 1.4s linear infinite;";
                     } else if (exec === "retroactive") {
                         dashArray = "2,4";
                         strokeOverride = "#e65100";
+                        animStyle = "animation:dash-flow 2.2s linear infinite reverse;";
                     }
                     // engine / unknown → dashArray stays "none" (solid)
                 }
@@ -385,10 +387,10 @@
                     .text(node.total_runs);
             }
 
-            // Label above or below based on position
+            // Label below node — arcs bow upward so below is arc-free
             ng.append("text")
                 .attr("text-anchor", "middle")
-                .attr("dy", -(r + 8))
+                .attr("dy", r + 14)
                 .attr("font-size", "9px")
                 .attr("font-family", "monospace")
                 .attr("fill", "var(--pico-muted-color)")

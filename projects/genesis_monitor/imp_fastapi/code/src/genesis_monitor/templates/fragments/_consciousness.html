@@ -67,7 +67,7 @@
                     <code style="font-size:0.85em">{{ c.feature }}:{{ c.edge }}</code> — {{ c.outcome }}{% if c.reviewer %} <small style="opacity:0.7">({{ c.reviewer }})</small>{% endif %}
 
                 {% elif c.event_type == 'release_created' %}
-                    {% if c.get('version') %}<strong>v{{ c.get('version') }}</strong>{% endif %}{% if c.get('features_included') %} — {{ c.features_included | length }} features{% endif %}
+                    {% if c.get('version') %}<strong>v{{ c.get('version') }}</strong>{% endif %}{% if c.get('features_included') %} — {{ c.features_included if c.features_included is number else c.features_included | length }} features{% endif %}
 
                 {% else %}
                     {{ c.get('description', '') or c.get('reason', '') or '—' }}
