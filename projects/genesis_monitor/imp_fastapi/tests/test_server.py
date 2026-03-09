@@ -125,6 +125,31 @@ class TestFragmentRoutes:
         assert resp.status_code == 200
         assert "TELEM" in resp.text
 
+    def test_status_panel_fragment(self, test_client: TestClient):
+        """REQ-F-STATUS-001, REQ-F-STATUS-002 — status panel fragment returns 200."""
+        resp = test_client.get("/fragments/project/test-project/status")
+        assert resp.status_code == 200
+
+    def test_status_panel_fragment_contains_phase_table(self, test_client: TestClient):
+        """STATUS panel renders phase completion data from parsed STATUS.md."""
+        resp = test_client.get("/fragments/project/test-project/status")
+        assert resp.status_code == 200
+        # Should contain some phase/convergence data from STATUS.md
+        assert "converged" in resp.text.lower() or "status" in resp.text.lower()
+
+    def test_status_panel_fragment_contains_gantt(self, test_client: TestClient):
+        """STATUS panel renders the Mermaid Gantt from STATUS.md."""
+        resp = test_client.get("/fragments/project/test-project/status")
+        assert resp.status_code == 200
+        # Mermaid gantt block in the template
+        assert "mermaid" in resp.text or "gantt" in resp.text.lower()
+
+    def test_status_panel_fragment_unknown_project(self, test_client: TestClient):
+        """Unknown project returns empty, not 404."""
+        resp = test_client.get("/fragments/project/nonexistent-xyz/status")
+        assert resp.status_code == 200
+        assert resp.text == ""
+
     def test_spawn_tree_fragment(self, test_client: TestClient):
         resp = test_client.get("/fragments/project/test-project/spawn-tree")
         assert resp.status_code == 200

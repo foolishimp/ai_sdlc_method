@@ -1,0 +1,58 @@
+{% if status_report %}
+<div class="timestamp" id="status-ts">Last updated: {{ current_time }}</div>
+
+{% if status_report.gantt_mermaid %}
+<h4 style="margin: 0 0 6px 0; font-size: 0.9em;">Feature Build Schedule</h4>
+<div style="overflow-x: auto; margin-bottom: 1rem;">
+<pre class="mermaid">
+gantt
+{{ status_report.gantt_mermaid | safe }}
+</pre>
+</div>
+{% endif %}
+
+{% if status_report.phase_summary %}
+<h4 style="margin: 0 0 6px 0; font-size: 0.9em;">Phase Completion</h4>
+<div style="overflow-x: auto; margin-bottom: 1rem;">
+<table style="width: 100%; border-collapse: collapse; font-size: 0.82em;">
+  <thead>
+    <tr>
+      <th style="text-align: left; padding: 4px 8px;">Phase / Edge</th>
+      <th style="text-align: center; padding: 4px 8px;">Status</th>
+      <th style="text-align: center; padding: 4px 8px;">Iterations</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in status_report.phase_summary %}
+    <tr style="border-top: 1px solid var(--pico-muted-border-color);">
+      <td style="padding: 4px 8px; font-family: monospace; font-size: 0.85em;">{{ entry.edge }}</td>
+      <td style="text-align: center; padding: 4px 8px;">
+        {% if entry.status == 'converged' %}
+          <span style="color: var(--pico-color-green-500, #22c55e);">✓ converged</span>
+        {% elif entry.status == 'in_progress' %}
+          <span style="color: var(--pico-color-amber-500, #f59e0b);">● iterating</span>
+        {% else %}
+          <span style="color: var(--pico-muted-color);">○ pending</span>
+        {% endif %}
+      </td>
+      <td style="text-align: center; padding: 4px 8px;">{{ entry.iterations or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+{% if status_report.metrics %}
+<h4 style="margin: 0 0 6px 0; font-size: 0.9em;">Metrics</h4>
+<dl style="margin: 0 0 1rem 0; font-size: 0.85em;">
+  {% for k, v in status_report.metrics.items() %}
+  <dt style="font-weight: 600; display: inline;">{{ k }}:</dt>
+  <dd style="display: inline; margin-left: 4px; margin-right: 16px;">{{ v }}</dd>
+  {% endfor %}
+</dl>
+{% endif %}
+
+{% else %}
+<p style="color: var(--pico-muted-color); font-size: 0.85em;"><em>STATUS.md not found or empty.</em></p>
+{% endif %}

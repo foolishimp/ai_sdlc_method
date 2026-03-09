@@ -224,6 +224,19 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
             {"signals": signals, "current_time": datetime.now().strftime("%H:%M:%S")},
         )
 
+    # Implements: REQ-F-STATUS-001, REQ-F-STATUS-002 (GMON-006)
+    @router.get("/fragments/project/{project_id}/status", response_class=HTMLResponse)
+    async def fragment_status_panel(request: Request, project_id: str, t: str = None, design: str = None):
+        """Render STATUS.md parsed fields as an HTML fragment (Gantt, phase table, metrics)."""
+        project = registry.get_project(project_id)
+        if not project: return HTMLResponse("")
+        _, _, status_report = _get_historical_state(project, t, design)
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "fragments/_status_panel.html",
+            {"status_report": status_report, "current_time": datetime.now().strftime("%H:%M:%S")},
+        )
+
     @router.get("/fragments/tree", response_class=HTMLResponse)
     async def fragment_tree(request: Request):
         projects = registry.list_projects()

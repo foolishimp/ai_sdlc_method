@@ -243,6 +243,17 @@
         </div>
     </div>
 
+    <!-- STATUS.md Panel (REQ-F-GMON-006) -->
+    <div class="card">
+        <h3>Project Status <small style="font-weight: normal; color: var(--pico-muted-color);">.ai-workspace/STATUS.md</small></h3>
+        <div id="status-panel-section"
+             hx-get="/fragments/project/{{ project.project_id }}/status"
+             hx-trigger="sse:project_updated[detail.project_id=='{{ project.project_id }}']"
+             hx-swap="innerHTML">
+            {% with status_report = project.status %}{% include "fragments/_status_panel.html" %}{% endwith %}
+        </div>
+    </div>
+
     <!-- Recent Events -->
     <div class="card">
         <h3>Recent Events</h3>
