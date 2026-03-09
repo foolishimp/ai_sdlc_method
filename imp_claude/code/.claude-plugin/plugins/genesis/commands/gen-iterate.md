@@ -155,6 +155,8 @@ Steps:
    ```
    The actor receives the prompt, does the work (reads files, writes code, runs tests), and writes a fold-back result to `result_path`.
 
+9b. **Mark manifest `status` as `"dispatched"`** immediately after invoking the actor (before reading the result). Update the manifest JSON in-place: `manifest["status"] = "dispatched"`. This prevents double-dispatch if the session is interrupted and resumed — on resume, gen-iterate scans for `status: "pending"` only. A manifest with `status: "dispatched"` is skipped during re-scan.
+
 10. The actor's fold-back result must be JSON at `result_path`:
     ```json
     {

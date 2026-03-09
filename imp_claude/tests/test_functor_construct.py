@@ -676,3 +676,16 @@ class TestGenIterateFoldBackSpec:
             "gen-iterate.md must reference cost_usd from the fold-back result "
             "for budget tracking — deduct from remaining budget_usd"
         )
+
+    def test_spec_marks_manifest_dispatched_after_actor_invoke(self, gen_iterate_spec):
+        """gen-iterate must mark the manifest status='dispatched' after invoking actor.
+
+        T-COMPLY-008 item 3: prevents double-dispatch on session resume.
+        On resume, gen-iterate scans for status='pending' only — a dispatched
+        manifest is skipped. Without this, an interrupted session could dispatch
+        the same actor twice.
+        """
+        assert "dispatched" in gen_iterate_spec, (
+            "gen-iterate.md must describe marking the manifest status as 'dispatched' "
+            "immediately after invoking the actor — prevents double-dispatch on resume"
+        )

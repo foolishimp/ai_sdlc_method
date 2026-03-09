@@ -1,6 +1,6 @@
 # Active Tasks — imp_claude (Claude Code tenant)
 
-*Updated: 2026-03-07*
+*Updated: 2026-03-09*
 *Overriding goal: [.ai-workspace/tasks/active/ACTIVE_TASKS.md](../../../tasks/active/ACTIVE_TASKS.md)*
 
 ---
@@ -17,14 +17,14 @@
 T-COMPLY-001 (event contract)   ✅ DONE — OL emit path, RunState contract
 T-COMPLY-005 (transactions)     ✅ DONE — runId threading, input_hash, causation chain
 T-COMPLY-007 (stub removal)     ✅ DONE — fold-back contract, FpActorResultMissing
-T-COMPLY-008 (actor dispatch)   ← LLM-layer task: gen-iterate reads manifests, dispatches actor
+T-COMPLY-008 (actor dispatch)   ✅ DONE — gen-iterate.md: manifest scan + MCP dispatch + status tracking, 10 spec tests
 ```
 
 ### 1.1 Tasks (post-1.0)
 
 ```
 T-COMPLY-002 (context)          ←── 6-level hierarchy (REQ-CTX-002 spec updated 2026-03-07; implement in config_loader.py)
-T-COMPLY-003 (instance graph)   ←── profile-coverage derivation (subtle bug, low user visibility)
+T-COMPLY-003 (instance graph)   ✅ DONE — profile-coverage derivation + spawn_created child node, 5 tests (2026-03-09)
 T-COMPLY-004 (FPC audit)        ←── design-tier tag audit only (no shared spec changes)
 T-COMPLY-006 (H-metric)         ←── observability display feature
 ```
