@@ -490,6 +490,28 @@ def run_edge(
             record.evaluation.spawn_requested = spawn_result.child_id
             break  # Parent is now blocked — stop iterating
 
+    # Emit IterationAbandoned if max iterations reached without convergence or spawn
+    if records and not records[-1].evaluation.converged and not records[-1].evaluation.spawn_requested:
+        emit_ol_event(
+            events_path,
+            make_ol_event(
+                "IterationAbandoned",
+                edge,
+                config.project_name,
+                feature_id,
+                "genesis-engine",
+                causation_id=edge_run_id,
+                correlation_id=edge_run_id,
+                payload={
+                    "feature": feature_id,
+                    "edge": edge,
+                    "iterations_attempted": len(records),
+                    "max_iterations": config.max_iterations_per_edge,
+                    "final_delta": records[-1].evaluation.delta,
+                },
+            ),
+        )
+
     return records
 
 

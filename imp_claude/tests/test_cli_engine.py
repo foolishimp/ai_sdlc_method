@@ -342,6 +342,36 @@ class TestRunEdge:
         assert len(records) == 2
         assert records[-1].evaluation.converged is False
 
+    def test_run_edge_emits_iteration_abandoned(self, tmp_path):
+        """IterationAbandoned OL event must be emitted when max iterations reached without convergence."""
+        workspace = scaffold_broken_project(tmp_path)
+
+        edge_dir = workspace / "edge_params"
+        edge_dir.mkdir()
+        (edge_dir / "tdd.yml").write_text(yaml.dump(_minimal_edge_config()))
+
+        config = _make_config(workspace, red_constraints(), max_iterations=2, deterministic_only=True)
+        config.edge_params_dir = edge_dir
+
+        profile = load_yaml(PROFILES_DIR / "standard.yml")
+
+        run_edge(
+            edge="code↔unit_tests",
+            config=config,
+            feature_id="REQ-F-CALC-001",
+            profile=profile,
+            asset_content="def add(a, b): return a - b",
+        )
+
+        # OL events normalise CamelCase → snake_case: IterationAbandoned → iteration_abandoned
+        events = read_events(workspace)
+        abandoned = [e for e in events if e.get("event_type") == "iteration_abandoned"]
+        assert abandoned, "No iteration_abandoned event emitted after max_iterations exhausted"
+        assert abandoned[0].get("feature") == "REQ-F-CALC-001"
+        payload = abandoned[0].get("payload", abandoned[0])
+        assert payload.get("iterations_attempted") == 2
+        assert payload.get("max_iterations") == 2
+
     def test_run_edge_output_schema(self, tmp_path):
         """Records have expected fields."""
         workspace = scaffold_green_project(tmp_path)
