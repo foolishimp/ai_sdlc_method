@@ -160,5 +160,5 @@ the same result.
   --review-id REVIEW-ADR-S-027-1 \
   --comment-ts 2026-03-09T15:45:00Z \
   --disposition scope_change \
-  --rationale "Audit trail for veto decisions belongs in REQ-AUDIT-003, not in this ADR."
+  --rationale "Audit trail for veto decisions is out of scope for this ADR — will be tracked in a separate audit requirements doc."
 ```

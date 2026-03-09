@@ -353,6 +353,20 @@ Multi-stakeholder F_H evaluator with roster, quorum rule, participation floor, a
 
 **Design recommendations**: [CONSENSUS_DESIGN_RECOMMENDATIONS.md](CONSENSUS_DESIGN_RECOMMENDATIONS.md) — 6 design phases
 
+**Basis projections** (buildable units, each tracked as a feature vector):
+
+| ID | Title | Module |
+|----|-------|--------|
+| REQ-F-CONS-001 | Session Publication — consensus_requested event schema | gen-consensus-open.md |
+| REQ-F-CONS-002 | Comment Collection and Gating — comment_received + gating set partition | gen-comment.md |
+| REQ-F-CONS-003 | Comment Disposition — resolved\|rejected\|acknowledged\|scope_change lifecycle | gen-dispose.md |
+| REQ-F-CONS-004 | Tally Display — /gen-consensus-status read-only projection *(deferred)* | — |
+| REQ-F-CONS-005 | Observer Relay — circuit-breaker + vote_cast per agent type | gen-{dev,cicd,ops}-observer.md |
+| REQ-F-CONS-006 | Quorum Gate — five deterministic checks, consensus_engine.py | consensus_engine.py |
+| REQ-F-CONS-007 | Convergence Outcomes — consensus_reached + consensus_failed typed events | gen-quorum-observer.md |
+| REQ-F-CONS-008 | Recovery Paths — re_open\|narrow_scope\|abandon + recovery_path_selected | gen-consensus-recover.md |
+| REQ-F-CONS-009 | Event Emission — full OL event taxonomy, append-only, required fields | cross-cutting |
+
 ---
 
 ### REQ-F-NAMEDCOMP-001: Named Composition Library and Intent Vector Envelope

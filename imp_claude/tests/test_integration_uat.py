@@ -382,11 +382,28 @@ class TestFeatureVectorConsistency:
 
     @pytest.mark.uat
     def test_no_orphan_active_vectors(self):
-        """Every active vector must correspond to a feature in FEATURE_VECTORS.md."""
-        spec_features = set(re.findall(r'### (REQ-F-[A-Z]+-\d+):', self.spec_fv))
+        """Every active vector must be mentioned in FEATURE_VECTORS.md.
+
+        Child vectors (with a parent field) are valid if their ID appears anywhere in
+        the spec (e.g., in basis projection tables under their parent feature).
+        Top-level vectors must appear as ### REQ-F-xxx: section headings.
+        """
+        top_level_features = set(re.findall(r'### (REQ-F-[A-Z]+-\d+):', self.spec_fv))
+        # All REQ-F-* IDs mentioned anywhere in spec (includes table entries for child vectors)
+        all_mentioned = set(re.findall(r'(REQ-F-[A-Z]+-\d+)', self.spec_fv))
         active_features = set(self.vectors.keys())
-        orphans = active_features - spec_features
-        assert not orphans, f"Active vectors not in spec: {sorted(orphans)}"
+
+        for fid in active_features:
+            vec = self.vectors[fid]
+            has_parent = bool(vec.get("parent"))
+            if has_parent:
+                # Child vectors: must appear somewhere in spec (table or otherwise)
+                assert fid in all_mentioned, \
+                    f"Child vector {fid} (parent={vec['parent']}) not mentioned in FEATURE_VECTORS.md"
+            else:
+                # Top-level vectors: must be a ### heading
+                assert fid in top_level_features, \
+                    f"Top-level vector {fid} missing ### heading in FEATURE_VECTORS.md"
 
     @pytest.mark.uat
     def test_all_vectors_have_required_fields(self):
@@ -634,9 +651,9 @@ class TestMethodologySelfConsistency:
 
     @pytest.mark.uat
     def test_eleven_active_feature_vectors(self):
-        """There must be exactly 17 active feature vectors."""
+        """There must be exactly 25 active feature vectors (17 core + 8 CONS basis projections)."""
         vectors = list(FEATURES_DIR.glob("*.yml"))
-        assert len(vectors) == 17, f"Expected 17 active vectors, got {len(vectors)}"
+        assert len(vectors) == 25, f"Expected 25 active vectors, got {len(vectors)}"
 
     @pytest.mark.uat
     def test_all_features_converged(self):
