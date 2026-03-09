@@ -28,6 +28,30 @@ consensus_defaults:
   participation_floor: 0.75
   veto_rule: gating_comment   # any reviewer with a gating comment blocks until resolved
 
+convergence:
+  type: consensus_gate
+  gate: consensus_quorum_reached
+  notes: "Composition is converged when CONSENSUS gate passes (consensus_reached event emitted by REQ-F-CONSENSUS-001 engine)"
+
+# checklist is the canonical form used by the iterate engine.
+checklist:
+  - name: composition_schema_valid
+    type: deterministic
+    criterion: "Proposed composition has required fields: name, version, scope, governance, body, output_type"
+    required: true
+  - name: library_promotion_justified
+    type: agent
+    criterion: "Composition is used in ≥2 projects OR addresses a gap pattern present across multiple domains"
+    required: true
+  - name: no_shadowing_conflicts
+    type: deterministic
+    criterion: "Proposed {name, version} does not conflict with existing library composition"
+    required: true
+  - name: consensus_quorum_reached
+    type: human
+    criterion: "CONSENSUS gate passes with quorum: majority vote, no unresolved gating comments"
+    required: true
+
 convergence_criteria:
   - name: composition_schema_valid
     type: deterministic

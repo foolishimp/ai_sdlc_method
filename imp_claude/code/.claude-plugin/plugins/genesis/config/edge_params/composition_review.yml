@@ -18,6 +18,35 @@ description: |
   A human reviewer evaluates the proposed composition and approves or rejects it.
   On approval, the composition file is written to .ai-workspace/named_compositions/.
 
+convergence:
+  type: human_gate
+  gate: human_approves_composition
+  notes: "Composition is converged when REVIEW gate passes (human_approval check passes)"
+
+# checklist is the canonical form used by the iterate engine; convergence_criteria is the
+# human-readable documentation alias. They are kept in sync.
+checklist:
+  - name: composition_schema_valid
+    type: deterministic
+    criterion: "Proposed composition has required fields: name, version, scope, governance, body, output_type"
+    required: true
+  - name: name_version_unique
+    type: deterministic
+    criterion: "No existing composition with the same {name, version} in library or project-local registry"
+    required: true
+  - name: body_functor_sequence_valid
+    type: deterministic
+    criterion: "Each body step has 'functor' and 'args' keys; functor names are non-empty strings"
+    required: true
+  - name: composition_coherence
+    type: agent
+    criterion: "Composition body implements its stated purpose; parameters are sufficient for the body steps"
+    required: true
+  - name: human_approves_composition
+    type: human
+    criterion: "Human reviews and approves the proposed project-local composition"
+    required: true
+
 convergence_criteria:
   - name: composition_schema_valid
     type: deterministic

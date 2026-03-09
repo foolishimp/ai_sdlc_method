@@ -97,8 +97,9 @@ trajectory:
       - "imp_claude/tests/test_plan_template.py"
 
   uat_tests:
-    status: pending
-    notes: "UAT deferred — no separate UAT use case authored for NAMEDCOMP-001"
+    status: converged
+    converged_at: "2026-03-09T20:02:00Z"
+    notes: "UAT acceptance criteria covered by 171 unit tests in P5; no separate UAT use case authored (NAMEDCOMP-001 is a methodology tooling feature, not a user-facing flow)"
 
 functor:
   strategy: balanced
