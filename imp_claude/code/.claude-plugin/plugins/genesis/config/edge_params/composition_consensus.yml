@@ -38,6 +38,7 @@ checklist:
   - name: composition_schema_valid
     type: deterministic
     criterion: "Proposed composition has required fields: name, version, scope, governance, body, output_type"
+    source: "named_compositions schema validation"
     required: true
   - name: library_promotion_justified
     type: agent
@@ -46,6 +47,7 @@ checklist:
   - name: no_shadowing_conflicts
     type: deterministic
     criterion: "Proposed {name, version} does not conflict with existing library composition"
+    source: "config/named_compositions.yml registry"
     required: true
   - name: consensus_quorum_reached
     type: human

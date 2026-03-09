@@ -29,14 +29,17 @@ checklist:
   - name: composition_schema_valid
     type: deterministic
     criterion: "Proposed composition has required fields: name, version, scope, governance, body, output_type"
+    source: "named_compositions schema validation"
     required: true
   - name: name_version_unique
     type: deterministic
     criterion: "No existing composition with the same {name, version} in library or project-local registry"
+    source: "config/named_compositions.yml registry and .ai-workspace/named_compositions/"
     required: true
   - name: body_functor_sequence_valid
     type: deterministic
     criterion: "Each body step has 'functor' and 'args' keys; functor names are non-empty strings"
+    source: "named_compositions body schema validation"
     required: true
   - name: composition_coherence
     type: agent
