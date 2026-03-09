@@ -12,6 +12,11 @@ test = [
     "pytest>=8.0",
     "pytest-bdd>=7.0",
 ]
+slow = [
+    "nbformat>=5.0",
+    "nbconvert>=7.0",
+    "ipykernel>=6.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["imp_claude/tests"]
