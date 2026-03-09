@@ -1,6 +1,6 @@
 # Active Tasks — ai_sdlc_method
 
-*Updated: 2026-03-08*
+*Updated: 2026-03-09*
 
 ---
 
@@ -15,7 +15,7 @@ Dogfooding is not a test — it is the build process.
 |---------|------|-----------|--------|
 | **v0.1** | Dogfooding enabled | Interactive agent path works; can iterate on own codebase using the methodology | ✅ **RELEASED** |
 | **v0.2** | Engine-core correctness (Claude tenant) | T-001 + T-005 + T-007 + T-008: OL events, runId threading, F_P fold-back contract — deterministic evaluation path correct. Human gate (REQ-EVAL-003) and full MVP assurance deferred to v1.0. | ✅ **RELEASED** |
-| **v0.3** | Observability verified | genesis_monitor correctly parses and displays a v0.2 methodology run end-to-end | ❌ open |
+| **v0.3** | Observability verified | genesis_monitor correctly parses and displays a v0.2 methodology run end-to-end | ✅ **RELEASED** (2026-03-09) |
 | **v0.4** | Ecosystem verified | Methodology applied to an external project; converges and all tests pass | ❌ open |
 | **v1.0** | Assurance | v0.3 + v0.4 both green — product-level confidence, not just unit test confidence | ❌ open |
 
@@ -23,11 +23,11 @@ Dogfooding is not a test — it is the build process.
 
 | Artifact | Status |
 |----------|--------|
-| Spec | Complete — ADR-S-001..024 |
+| Spec | Complete — ADR-S-001..026 |
 | Implementation Requirements | 83 REQ keys |
-| Feature Vectors | 15 vectors, 83/83 tagged (REQ-F-TOURNAMENT-001 retired 2026-03-07) |
-| Tests | 1093 unit passing (16 new: runId threading, FpActorResultMissing, manifest) |
-| Active release | v0.2 — next target v0.3 (genesis_monitor observability) |
+| Feature Vectors | 15 vectors, 83/83 tagged |
+| Tests | 1567 imp_claude + 574 genesis_monitor = 2141 unit passing; 19 e2e monitor + 27 convergence + 5 UAT = 51 e2e |
+| Active release | v0.3 — next target v0.4 (external project dogfood) |
 
 ### Post-1.0 (v1.1 sprint)
 T-002 (context hierarchy), T-003 (instance graph), T-004 (FPC anchoring), T-006 (H-metric)
