@@ -1,0 +1,131 @@
+version: "2.10.0"
+date: "2026-03-09"
+context_hash: "sha256:2d03396639676a2a7ac8f9c1cbd808fa787b0d64"
+
+summary: |
+  Asset Graph Model formalisation — 339 commits since v2.9.0. Major
+  additions: Genesis Bootloader, OpenLineage event stream, OL-format
+  engine events, F_P actor dispatch + fold-back protocol, CONSENSUS
+  functor (ADR-S-025), Named Compositions (ADR-S-026), genesis_monitor
+  full observability stack, multi-tenant design parity (Gemini/Codex/
+  Bedrock), executor attribution (observability debt), Spec Evolution
+  Pipeline, 6-level context hierarchy. Test suite: 1,967 passing,
+  0 failures.
+
+changes:
+  spec_adrs:
+    - "ADR-S-006: Feature Decomposition as explicit graph node"
+    - "ADR-S-009/010: Spec evolution pipeline + REQ-EVOL-001..005"
+    - "ADR-S-011: OpenLineage unified event schema"
+    - "ADR-S-012: Event stream as formal model medium"
+    - "ADR-S-013: Completeness visibility + feature origin invariant"
+    - "ADR-S-015/016/017: Transaction model, invocation contract, variable grain"
+    - "ADR-S-018: Tournament pattern (v2.9 topology)"
+    - "ADR-S-019/020/028: Markov blankets, active inference, Hamiltonian H=T+V"
+    - "ADR-S-021/022: Dual-mode traverse, instance graph"
+    - "ADR-S-023/024: MCP transport, recursive actor model"
+    - "ADR-S-025: CONSENSUS multi-stakeholder evaluator functor"
+    - "ADR-S-026: Named Compositions + intent vector envelope"
+    - "ADR-S-027: Delegated authority + dot-notation amendment scheme"
+    - "ADR-S-029/030/031: Immutable lineage, graph_fragment, accountability boundaries"
+
+  spec_model:
+    - "Genesis Bootloader — minimal LLM constraint context (v2.9.0)"
+    - "§7.8 Two-Path Execution Model + Executor Epoch-Dependence"
+    - "§7.8.3 Observability debt + retroactive observable population"
+    - "PROJECTIONS_AND_INVARIANTS v1.2.0 — Decomposition Invariant + Zoom-as-Context"
+    - "REQ-EVENT-005: executor attribution fields"
+    - "design_recommendations node added to standard graph topology"
+
+  imp_claude_engine:
+    - "Engine migrated to OL event format (T-001) — all events OpenLineage-compatible"
+    - "runId causation threading through full edge traversal chain (T-005)"
+    - "FpActorResultMissing — observable failure, not silent skip (T-007)"
+    - "Fold-back protocol — intent manifest for actor handshake (T-008)"
+    - "F_P actor dispatch loop wired in engine mode"
+    - "proc.run_bounded() — total-function subprocess primitive"
+    - "Functor execution model config — mode/valence + edge annotations (ADR-017)"
+    - "Instance graph projection + topology version check (ADR-022)"
+    - "6-level context hierarchy — methodology/org/policy/domain/prior/project (T-COMPLY-002)"
+    - "Hamiltonian H=T+V phase space cost metric (T-COMPLY-006)"
+
+  imp_claude_features:
+    - "REQ-COORD-002: inbox staging serialiser (ADR-013)"
+    - "REQ-COORD-004: Markov-aligned parallelism — inner product routing"
+    - "REQ-COORD-005: role authority — convergence_escalated gate"
+    - "REQ-CTX-002: context hierarchy — deep_merge + load_context_hierarchy"
+    - "REQ-EVAL-003: human accountability — gate events + audit trail"
+    - "REQ-EVENT-003: full OL event taxonomy"
+    - "REQ-EVOL-001..005: Spec Evolution Pipeline (schema, JOIN, proposals, hook, draft queue)"
+    - "REQ-LIFE-009..012: workspace gradient, observer dispatch, UX features"
+    - "REQ-SENSE-004/006: status freshness + spec/code drift monitors"
+    - "REQ-TOOL-009: cross-artifact REQ key tracer"
+    - "REQ-TOOL-010: spec/design boundary — technology leakage detection"
+    - "REQ-TOOL-011: installability — installer, MVP scenarios"
+    - "REQ-TOOL-015: workspace placement at project root"
+    - "REQ-UX-002/004/007: edge zoom, constraint prompting, zoom management"
+    - "Consciousness Loop Stage 2+3: affect triage + human gate"
+
+  imp_claude_consensus:
+    - "REQ-F-CONS-001..009: CONSENSUS functor — all projections converged"
+    - "consensus_engine.py + relay circuit-breaker + quorum observer"
+    - "Comment collection, disposition, recover commands"
+    - "Versioning semantics + supervisory-saga kernel"
+
+  imp_claude_namedcomp:
+    - "REQ-F-NAMEDCOMP-001: named composition library + intent vector envelope"
+    - "Four named compositions: PLAN, POC, SCHEMA_DISCOVERY, DATA_DISCOVERY"
+
+  genesis_monitor:
+    - "projects/ directory — downstream projects built using Genesis"
+    - "genesis_monitor: FastAPI + HTMX + D3.js observability stack"
+    - "Event Trail Graph (D3.js v7, REQ-F-GVIZ-001) — convergence arcs + interaction"
+    - "Lifecycle time series view (REQ-F-TSER-001..004)"
+    - "ADR register + feature trajectory panels (REQ-F-PARSE-007)"
+    - "CQRS workspace hierarchy — nested discovery + cross-workspace rollup (GMON-005)"
+    - "STATUS.md panel with SSE refresh (REQ-F-GMON-006)"
+    - "Multi-design tenant switching (REQ-F-MTEN-001)"
+    - "Lineage traceability scanner (REQ-F-GMON-004)"
+    - "Executor attribution — arc styling + convergence badge (REQ-F-EXEC-001)"
+    - "deploy.sh — 7-step idempotent full-stack installer"
+    - "19 Playwright semantic e2e tests"
+
+  multi_tenant:
+    - "imp_gemini: design parity ADR-018..021, stateless iterate, Cloud Event Reactor"
+    - "imp_gemini: G-COMPLY sprint — engine iterate, sensory loop, checkpoint, transaction tests"
+    - "imp_gemini: homeostasis e2e test — forced-failure → correction loop"
+    - "imp_codex: command-skill engine model + behaviors module"
+    - "imp_bedrock: code, config, and tests (736 passing)"
+    - "ADR-S-026 unified intent vector alignment — 340+800 tests green across tenants"
+
+  testing:
+    - "E2E BDD framework — scenarios/, e2e_latest symlink, BDD UAT scenarios"
+    - "e2e profile (agent-only evaluators, no human gates for headless runs)"
+    - "e2e run archive — forensic analysis + e2e_latest pointer"
+    - "TestArchivedConvergence — 10 tests against last successful archived run"
+    - "TestE2EHomeostasis — within-edge correction loop validation"
+    - "TestE2EUATEdge — 5 UAT edge convergence tests"
+    - "59 e2e tests (27 convergence + 5 UAT + 16 monitor + 11 BDD)"
+
+coverage:
+  spec_req_keys: 86
+  code_tagged: 86
+  test_tagged: 86
+  coverage_pct: 100
+  features_converged: 25
+  features_total: 25
+  tests_passing: 1967
+  tests_xfail: 3
+  tests_failing: 0
+
+known_gaps:
+  - "REQ-F-CONSENSUS-001: CONSENSUS functor code complete; human_approves_architecture F_H gate pending"
+  - "Telemetry layer (code→cicd edge): req= logging tags not yet added (advisory until CI/CD edge)"
+  - "E2E: 59 tests require live Claude subprocess — pass when spawning is available"
+  - "MVP milestone: F_P actor dispatch (MCP round-trip) not yet e2e validated"
+  - "REQ-F-GMON-002/003: genesis_monitor models+parsers + projections+dashboard not started"
+  - "REQ-F-GMON-005/006: CQRS hierarchy and STATUS panel pending (genesis_monitor)"
+
+next_milestone:
+  version: "3.0.0-beta.1"
+  gate: "MVP complete — F_P actor dispatch e2e validated, all e2e tests pass without subprocess errors"
