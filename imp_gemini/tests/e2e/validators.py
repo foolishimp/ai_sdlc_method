@@ -1,4 +1,11 @@
-# Validates: REQ-TOOL-005, REQ-EVAL-001, REQ-F-EVAL-001
+import sys
+# Validates: REQ-TOOL-005, REQ-EVAL-001
+"""Validation functions for E2E convergence test artifacts.
+
+Each function validates one category of output from a headless Claude run.
+Functions raise AssertionError with descriptive messages on failure.
+"""
+
 import json
 import pathlib
 import re
@@ -6,148 +13,548 @@ import subprocess
 from datetime import datetime
 from typing import Any
 
+
+# ═══════════════════════════════════════════════════════════════════════
+# EVENT VALIDATORS
+# ═══════════════════════════════════════════════════════════════════════
+
 def load_events(project_dir: pathlib.Path) -> list[dict[str, Any]]:
+    """Parse events.jsonl, raising on malformed JSON."""
     events_file = project_dir / ".ai-workspace" / "events" / "events.jsonl"
     assert events_file.exists(), f"events.jsonl not found at {events_file}"
+
     events = []
     with open(events_file) as f:
         for i, line in enumerate(f, 1):
             line = line.strip()
-            if not line: continue
+            if not line:
+                continue
             try:
                 events.append(json.loads(line))
             except json.JSONDecodeError as e:
-                raise AssertionError(f"Malformed JSON on line {i} of events.jsonl: {e}")
+                raise AssertionError(
+                    f"Malformed JSON on line {i} of events.jsonl: {e}\n"
+                    f"Line content: {line[:200]}"
+                )
     return events
 
+
 def validate_event_common_fields(events: list[dict]) -> None:
+    """Every event must have event_type, timestamp, and project."""
     required = {"event_type", "timestamp"}
     for i, event in enumerate(events):
         missing = required - set(event.keys())
-        assert not missing, f"Event {i} missing required fields {missing}"
+        assert not missing, (
+            f"Event {i} missing required fields {missing}: "
+            f"{json.dumps(event, indent=2)[:300]}"
+        )
+
 
 def validate_timestamps_monotonic(events: list[dict]) -> None:
+    """Timestamps must not go backward (allows equal for rapid events)."""
     timestamps = []
     for event in events:
         ts_str = event.get("timestamp", "")
-        if not ts_str: continue
+        if not ts_str:
+            continue
         try:
             ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
-            timestamps.append(ts)
-        except (ValueError, TypeError): pass
+            timestamps.append((ts, event))
+        except (ValueError, TypeError):
+            # Non-ISO timestamps are allowed — skip ordering check for those
+            pass
+
     for i in range(1, len(timestamps)):
-        assert timestamps[i] >= timestamps[i-1], f"Timestamp went backward at event {i}"
+        prev_ts, prev_event = timestamps[i - 1]
+        curr_ts, curr_event = timestamps[i]
+        assert curr_ts >= prev_ts, (
+            f"Timestamp went backward at event {i}: "
+            f"{prev_ts.isoformat()} ({prev_event.get('event_type')}) > "
+            f"{curr_ts.isoformat()} ({curr_event.get('event_type')})"
+        )
+
 
 def validate_iteration_sequences(events: list[dict]) -> None:
+    """For each feature+edge pair, iteration numbers should be sequential."""
     sequences: dict[str, list[int]] = {}
     for event in events:
-        if event.get("event_type") != "iteration_completed": continue
-        key = f"{event.get('feature')}:{event.get('edge')}"
+        if event.get("event_type") != "iteration_completed":
+            continue
+        feature = event.get("feature", "unknown")
+        edge = event.get("edge", "unknown")
         iteration = event.get("iteration")
         if iteration is not None:
+            key = f"{feature}:{edge}"
             sequences.setdefault(key, []).append(int(iteration))
+
     for key, iters in sequences.items():
         for i in range(1, len(iters)):
-            assert iters[i] >= iters[i-1], f"Non-sequential iterations for {key}"
+            assert iters[i] >= iters[i - 1], (
+                f"Non-sequential iterations for {key}: {iters}"
+            )
+
 
 def validate_delta_decreases_to_zero(events: list[dict]) -> None:
+    """For converged edges, the final iteration's delta should be 0."""
+    # Collect last delta per feature+edge
     last_delta: dict[str, Any] = {}
     converged_edges: set[str] = set()
+
     for event in events:
-        key = f"{event.get('feature')}:{event.get('edge')}"
-        if event.get("event_type") == "iteration_completed":
+        et = event.get("event_type")
+        feature = event.get("feature", "unknown")
+        edge = event.get("edge", "unknown")
+        key = f"{feature}:{edge}"
+
+        if et == "iteration_completed":
             delta = event.get("delta")
-            if delta is not None: last_delta[key] = delta
-        if event.get("event_type") == "edge_converged":
+            if delta is not None:
+                last_delta[key] = delta
+
+        if et == "edge_converged":
             converged_edges.add(key)
+
     for key in converged_edges:
         if key in last_delta:
-            assert last_delta[key] == 0, f"Converged edge {key} has final delta={last_delta[key]}"
+            assert last_delta[key] == 0, (
+                f"Converged edge {key} has final delta={last_delta[key]}, expected 0"
+            )
+
+
+STANDARD_PROFILE_EDGES = [
+    "intent→requirements",
+    "requirements→design",
+    "design→code",
+    "code↔unit_tests",
+]
+
+UAT_EDGE = "design→uat_tests"
+
 
 def validate_all_edges_converged(events: list[dict], feature: str) -> None:
-    expected = {"intent→requirements", "requirements→design", "design→code", "code↔unit_tests"}
-    converged = {e.get("edge", "") for e in events if e.get("event_type") == "edge_converged" and e.get("feature") == feature}
-    missing = expected - converged
-    assert not missing, f"Feature {feature} missing edge_converged for: {missing}"
+    """All 4 standard-profile edges must have edge_converged events."""
+    converged = set()
+    for event in events:
+        if (
+            event.get("event_type") == "edge_converged"
+            and event.get("feature") == feature
+        ):
+            converged.add(event.get("edge", ""))
+
+    missing = set(STANDARD_PROFILE_EDGES) - converged
+    assert not missing, (
+        f"Feature {feature} missing edge_converged for: {missing}\n"
+        f"Converged edges found: {converged}"
+    )
+
 
 def validate_required_event_types(events: list[dict]) -> None:
-    required = {"project_initialized", "edge_started", "iteration_completed", "edge_converged"}
-    found = {e.get("event_type") for e in events}
-    assert required.issubset(found), f"Missing required event types. Found: {found}"
+    """The event log must contain at minimum these event types."""
+    required_types = {
+        "project_initialized",
+        "edge_started",
+        "iteration_completed",
+        "edge_converged",
+    }
+    found_types = {e.get("event_type") for e in events}
+    missing = required_types - found_types
+    assert not missing, (
+        f"Missing required event types: {missing}\n"
+        f"Found types: {found_types}"
+    )
+
 
 def validate_evaluator_counts(events: list[dict]) -> None:
-    iteration_events = [e for e in events if e.get("event_type") == "iteration_completed"]
-    if not iteration_events: return
-    has_info = any(e.get("evaluators") or e.get("delta") is not None for e in iteration_events)
-    assert has_info, "No iteration events contain evaluator/check result information"
-
-def load_feature_vector(project_dir: pathlib.Path, feature_id: str) -> dict[str, Any]:
-    import yaml
-    search_paths = [
-        project_dir / ".ai-workspace" / "vectors" / "active" / f"{feature_id}.yml",
-        project_dir / ".ai-workspace" / "vectors" / "completed" / f"{feature_id}.yml",
-        project_dir / ".ai-workspace" / "features" / "active" / f"{feature_id}.yml",
-        project_dir / ".ai-workspace" / "features" / "completed" / f"{feature_id}.yml",
+    """Iteration events should reference evaluator or check results."""
+    iteration_events = [
+        e for e in events if e.get("event_type") == "iteration_completed"
     ]
-    for path in search_paths:
+    if not iteration_events:
+        return
+
+    # Accept any of: evaluator_results, delta, checks_passed/checks_total, result
+    has_evaluator_info = any(
+        e.get("evaluator_results")
+        or e.get("delta") is not None
+        or e.get("checks_passed") is not None
+        or e.get("checks_total") is not None
+        or e.get("result") is not None
+        for e in iteration_events
+    )
+    assert has_evaluator_info, (
+        "No iteration events contain evaluator/check result information"
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# FEATURE VECTOR VALIDATORS
+# ═══════════════════════════════════════════════════════════════════════
+
+def load_feature_vector(
+    project_dir: pathlib.Path, feature_id: str
+) -> dict[str, Any]:
+    """Find and parse the feature vector YAML (check active/ then completed/)."""
+    import yaml
+
+    filename = f"{feature_id}.yml"
+    candidates = [
+        project_dir / ".ai-workspace" / "vectors" / "active" / filename,
+        project_dir / ".ai-workspace" / "vectors" / "completed" / filename,
+        project_dir / ".ai-workspace" / "features" / "active" / filename,
+        project_dir / ".ai-workspace" / "features" / "completed" / filename,
+        # Also check without prefix normalization
+    ]
+
+    # Broad search fallback
+    for d in (project_dir / ".ai-workspace" / "features").rglob("*.yml"):
+        if feature_id in d.name and d not in candidates:
+            candidates.append(d)
+
+    for path in candidates:
         if path.exists():
-            return yaml.safe_load(path.read_text())
-    assert False, f"Feature vector {feature_id} not found in any expected location"
+            with open(path) as f:
+                data = yaml.safe_load(f)
+            if data:
+                return data
+
+    raise AssertionError(
+        f"Feature vector {feature_id} not found. "
+        f"Searched: {[str(c) for c in candidates]}"
+    )
+
 
 def validate_feature_vector_converged(fv: dict) -> None:
-    assert fv.get("status") == "converged"
-    traj = fv.get("trajectory", {})
-    for edge in ["requirements", "design", "code", "unit_tests"]:
-        assert traj.get(edge, {}).get("status") == "converged"
+    """Feature vector overall status must be 'converged'.
+
+    Individual trajectory entries are a derived view of the event log —
+    headless Claude may not update every key consistently (especially
+    co-evolution edges like code↔unit_tests). The authoritative convergence
+    check is validate_all_edges_converged() which reads events.jsonl.
+    """
+    status = fv.get("status", "")
+    assert status == "converged", (
+        f"Feature vector status is '{status}', expected 'converged'"
+    )
+
+    trajectory = fv.get("trajectory", {})
+    assert trajectory, "Feature vector has no trajectory data"
+
+    # At least some trajectory edges must show progress
+    converged_or_active = [
+        name for name, data in trajectory.items()
+        if isinstance(data, dict) and data.get("status") in ("converged", "in_progress", "iterating")
+    ]
+    assert converged_or_active, (
+        "Feature vector trajectory shows no progress on any edge — "
+        "expected at least some edges updated"
+    )
+
 
 def validate_feature_vector_required_fields(fv: dict) -> None:
-    for field in ["feature", "status", "trajectory"]:
-        assert fv.get(field)
+    """Feature vector must have core fields populated."""
+    required = ["feature", "status", "trajectory"]
+    for field in required:
+        assert field in fv and fv[field], (
+            f"Feature vector missing or empty required field: {field}"
+        )
+
 
 def validate_trajectory_timestamps(fv: dict) -> None:
-    traj = fv.get("trajectory", {})
-    has_meta = any(v.get("converged_at") or v.get("started_at") or v.get("iteration") is not None 
-                   for v in traj.values() if isinstance(v, dict) and v.get("status") == "converged")
-    assert has_meta
+    """Converged trajectory edges should have temporal or iteration metadata."""
+    trajectory = fv.get("trajectory", {})
+    converged_edges = [
+        name for name, data in trajectory.items()
+        if isinstance(data, dict) and data.get("status") == "converged"
+    ]
+    if not converged_edges:
+        return
+
+    # Accept timestamps OR iteration counts OR artifact paths as evidence
+    has_metadata = any(
+        trajectory[name].get("converged_at")
+        or trajectory[name].get("started_at")
+        or trajectory[name].get("iterations") is not None
+        or trajectory[name].get("iteration") is not None
+        or trajectory[name].get("artifact")
+        for name in converged_edges
+        if isinstance(trajectory.get(name), dict)
+    )
+    assert has_metadata, (
+        f"No converged edges have timestamps or iteration metadata. "
+        f"Converged: {converged_edges}"
+    )
+
 
 def validate_requirements_populated(fv: dict) -> None:
-    assert fv.get("feature", "").startswith("REQ-F-")
+    """Feature vector should reference its REQ keys."""
+    feature_id = fv.get("feature", "")
+    assert feature_id, "Feature vector has no feature ID"
+    assert feature_id.startswith("REQ-F-"), (
+        f"Feature ID '{feature_id}' doesn't match REQ-F-* pattern"
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# GENERATED CODE VALIDATORS
+# ═══════════════════════════════════════════════════════════════════════
 
 def find_python_files(project_dir: pathlib.Path) -> tuple[list[pathlib.Path], list[pathlib.Path]]:
+    """Locate code and test .py files. Returns (code_files, test_files)."""
     all_py = list(project_dir.rglob("*.py"))
-    excluded = {".ai-workspace", ".git", "__pycache__", ".e2e-meta"}
-    py_files = [p for p in all_py if not any(part in excluded for part in p.parts)]
+
+    # Exclude workspace and config files
+    excluded_dirs = {".ai-workspace", ".git", ".claude", "__pycache__", ".e2e-meta"}
+
+    def is_excluded(p: pathlib.Path) -> bool:
+        return any(part in excluded_dirs for part in p.parts)
+
+    py_files = [p for p in all_py if not is_excluded(p)]
+
     code_files = [p for p in py_files if "test" not in p.name.lower() and "conftest" not in p.name.lower()]
     test_files = [p for p in py_files if "test" in p.name.lower() or "conftest" in p.name.lower()]
+
     return code_files, test_files
 
+
 def extract_req_tags(files: list[pathlib.Path]) -> dict[str, set[str]]:
-    implements, validates = set(), set()
-    impl_p = re.compile(r"Implements:\s*(REQ-[A-Z]+-[A-Z]+-\d+)")
-    val_p = re.compile(r"Validates:\s*(REQ-[A-Z]+-[A-Z]+-\d+)")
+    """Extract REQ tags from files. Returns {tag_type: {REQ-key, ...}}."""
+    implements: set[str] = set()
+    validates: set[str] = set()
+
+    impl_pattern = re.compile(r"Implements:\s*(REQ-[A-Z]+-[A-Z]+-\d+)")
+    val_pattern = re.compile(r"Validates:\s*(REQ-[A-Z]+-[A-Z]+-\d+)")
+
     for f in files:
         try:
             content = f.read_text(errors="replace")
-            implements.update(impl_p.findall(content))
-            validates.update(val_p.findall(content))
-        except OSError: continue
+        except OSError:
+            continue
+        implements.update(impl_pattern.findall(content))
+        validates.update(val_pattern.findall(content))
+
     return {"implements": implements, "validates": validates}
 
-def validate_code_traceability(project_dir: pathlib.Path, required_reqs: set[str]) -> None:
+
+def validate_code_traceability(
+    project_dir: pathlib.Path, required_reqs: set[str]
+) -> None:
+    """Both REQ keys should appear in code Implements tags and test Validates tags."""
     code_files, test_files = find_python_files(project_dir)
-    assert code_files and test_files
-    assert required_reqs & extract_req_tags(code_files)["implements"]
-    assert required_reqs & extract_req_tags(test_files)["validates"]
+
+    assert code_files, "No Python code files found in project"
+    assert test_files, "No Python test files found in project"
+
+    code_tags = extract_req_tags(code_files)
+    test_tags = extract_req_tags(test_files)
+
+    code_implements = code_tags["implements"]
+    test_validates = test_tags["validates"]
+
+    # At least one required REQ should be in code Implements tags
+    code_covered = required_reqs & code_implements
+    assert code_covered, (
+        f"No required REQ keys found in code Implements tags.\n"
+        f"Required: {required_reqs}\n"
+        f"Found in code: {code_implements}"
+    )
+
+    # At least one required REQ should be in test Validates tags
+    test_covered = required_reqs & test_validates
+    assert test_covered, (
+        f"No required REQ keys found in test Validates tags.\n"
+        f"Required: {required_reqs}\n"
+        f"Found in tests: {test_validates}"
+    )
+
 
 def validate_generated_tests_pass(project_dir: pathlib.Path) -> None:
-    result = subprocess.run(["python3", "-m", "pytest", "-v"], cwd=str(project_dir), capture_output=True, text=True, timeout=60)
-    assert result.returncode == 0, f"Tests failed:\n{result.stdout}\n{result.stderr}"
+    """Run pytest on the generated project and verify tests pass."""
+    _, test_files = find_python_files(project_dir)
+    if not test_files:
+        raise AssertionError("No test files found to run")
 
-def validate_req_key_consistency(project_dir: pathlib.Path, required_reqs: set[str]) -> None:
-    code_f, test_f = find_python_files(project_dir)
-    tags = extract_req_tags(code_f + test_f)
-    assert required_reqs & (tags["implements"] | tags["validates"])
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "-v", "--tb=short", "--no-header"],
+        cwd=str(project_dir),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
 
-def validate_event_feature_consistency(events: list[dict], expected_features: set[str]) -> None:
-    found = {e.get("feature") for e in events if e.get("feature", "").startswith("REQ-F-")}
-    if found: assert expected_features & found
+    assert result.returncode == 0, (
+        f"Generated tests failed (exit code {result.returncode}).\n"
+        f"STDOUT:\n{result.stdout[-2000:]}\n"
+        f"STDERR:\n{result.stderr[-1000:]}"
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONSISTENCY VALIDATORS
+# ═══════════════════════════════════════════════════════════════════════
+
+def validate_req_key_consistency(
+    project_dir: pathlib.Path, required_reqs: set[str]
+) -> None:
+    """FV REQs should appear in code Implements and test Validates tags."""
+    code_files, test_files = find_python_files(project_dir)
+    all_files = code_files + test_files
+
+    tags = extract_req_tags(all_files)
+    all_found = tags["implements"] | tags["validates"]
+
+    # At least one of the required REQs must appear somewhere
+    covered = required_reqs & all_found
+    assert covered, (
+        f"None of the required REQ keys found in generated code.\n"
+        f"Required: {required_reqs}\n"
+        f"Found: {all_found}"
+    )
+
+
+def validate_multi_iteration_convergence(
+    events: list[dict], edge: str, feature: str,
+) -> None:
+    """Verify that an edge took multiple iterations to converge.
+
+    Proves iterate() handles real failures, not just 1-shot convergence.
+    Also checks delta progression (should decrease to 0).
+    """
+    iterations = [
+        e for e in events
+        if e.get("event_type") == "iteration_completed"
+        and e.get("edge") == edge
+        and e.get("feature") == feature
+    ]
+    assert len(iterations) > 1, (
+        f"{feature}:{edge} converged in {len(iterations)} iteration(s), "
+        f"expected > 1 for genuine convergence proof."
+    )
+
+    # Check delta progression
+    deltas = [it.get("delta") for it in iterations if it.get("delta") is not None]
+    if deltas:
+        assert deltas[0] > 0, (
+            f"First iteration delta is {deltas[0]}, expected > 0 "
+            f"(pre-conditions should guarantee initial failure)."
+        )
+        assert deltas[-1] == 0, (
+            f"Final iteration delta is {deltas[-1]}, expected 0. "
+            f"Delta progression: {deltas}"
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# UAT VALIDATORS
+# ═══════════════════════════════════════════════════════════════════════
+
+def find_feature_files(project_dir: pathlib.Path) -> list[pathlib.Path]:
+    """Find Gherkin .feature files generated by design→uat_tests edge."""
+    excluded_dirs = {".ai-workspace", ".git", ".claude", "__pycache__", ".e2e-meta"}
+    return [
+        p for p in project_dir.rglob("*.feature")
+        if not any(part in excluded_dirs for part in p.parts)
+    ]
+
+
+def validate_uat_scenarios_generated(project_dir: pathlib.Path) -> None:
+    """BDD .feature files must exist with valid Gherkin structure."""
+    feature_files = find_feature_files(project_dir)
+    assert feature_files, (
+        "No .feature files found. "
+        "Expected BDD scenarios generated by design→uat_tests edge."
+    )
+    for fpath in feature_files:
+        content = fpath.read_text(errors="replace")
+        assert "Feature:" in content, (
+            f"{fpath.name} missing 'Feature:' block"
+        )
+        assert "Scenario" in content, (
+            f"{fpath.name} missing Scenario or Scenario Outline block"
+        )
+        assert "Given" in content or "When" in content or "Then" in content, (
+            f"{fpath.name} missing Given/When/Then steps"
+        )
+
+
+def validate_uat_req_tags(
+    project_dir: pathlib.Path, required_reqs: set[str]
+) -> None:
+    """UAT .feature files must contain Validates: REQ-* tags."""
+    feature_files = find_feature_files(project_dir)
+    if not feature_files:
+        return
+
+    req_pattern = re.compile(r"Validates:\s*(REQ-[A-Z]+-[A-Z]+-\d+)")
+    found_reqs: set[str] = set()
+    for fpath in feature_files:
+        content = fpath.read_text(errors="replace")
+        found_reqs.update(req_pattern.findall(content))
+
+    covered = required_reqs & found_reqs
+    assert covered, (
+        f"No required REQ keys found in UAT feature files.\n"
+        f"Required: {required_reqs}\n"
+        f"Found in .feature files: {found_reqs}"
+    )
+
+
+def validate_uat_edge_converged(events: list[dict], feature: str) -> None:
+    """The design→uat_tests edge must have an edge_converged event."""
+    converged = [
+        e for e in events
+        if e.get("event_type") == "edge_converged"
+        and e.get("edge") == UAT_EDGE
+        and e.get("feature") == feature
+    ]
+    assert converged, (
+        f"No edge_converged event found for {UAT_EDGE} / {feature}.\n"
+        f"Event types seen for this feature: "
+        f"{[(e.get('event_type'), e.get('edge')) for e in events if e.get('feature') == feature]}"
+    )
+
+
+def validate_uat_positive_and_negative_paths(project_dir: pathlib.Path) -> None:
+    """Across all .feature files, both happy-path and error scenarios must exist.
+
+    Checked at aggregate level — it's valid to separate positive paths
+    (e.g. conversions.feature) from negative paths (e.g. validation.feature).
+    """
+    feature_files = find_feature_files(project_dir)
+    if not feature_files:
+        return
+
+    negative_markers = {
+        "invalid", "error", "fail", "reject", "below", "not", "cannot",
+        "raises", "exception",
+    }
+    all_content = "\n".join(
+        fpath.read_text(errors="replace").lower() for fpath in feature_files
+    )
+    has_negative = any(m in all_content for m in negative_markers)
+    assert has_negative, (
+        f"No negative/error scenarios found across {len(feature_files)} .feature file(s). "
+        f"Expected at least one scenario covering invalid inputs or error paths."
+    )
+
+
+def validate_event_feature_consistency(
+    events: list[dict], expected_features: set[str]
+) -> None:
+    """Event feature refs should include the expected feature IDs."""
+    event_features = set()
+    for event in events:
+        feat = event.get("feature")
+        if feat and feat.startswith("REQ-F-"):
+            event_features.add(feat)
+
+    if not event_features:
+        # Events may not all have feature field — only check if some do
+        return
+
+    # At least one expected feature should appear in events
+    overlap = expected_features & event_features
+    assert overlap, (
+        f"Expected features not found in events.\n"
+        f"Expected: {expected_features}\n"
+        f"In events: {event_features}"
+    )

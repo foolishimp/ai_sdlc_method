@@ -1,7 +1,7 @@
 # BDD Spec — Convergence Lifecycle
 
 **Scenario**: `convergence_lifecycle`
-**Executable test**: `imp_gemini/tests/e2e/test_e2e_convergence.py`
+**Executable test**: `imp_claude/tests/e2e/test_e2e_convergence.py`
 **Derived from**: `specification/verification/UAT_TEST_CASES.md`
 **Satisfies**: UC-01, UC-04, UC-05, UC-08
 **Validates**: REQ-GRAPH-001–003, REQ-ITER-001–003, REQ-EVAL-001–002, REQ-FEAT-001, REQ-EDGE-001, REQ-EDGE-004, REQ-TOOL-005
@@ -11,7 +11,7 @@
 ## Scenario Overview
 
 A greenfield Python library project runs through the **standard profile** (4 edges) via
-headless Gemini (`gemini start --auto`). All evaluators converge. Generated artifacts
+headless Claude (`/gen-start --auto`). All evaluators converge. Generated artifacts
 (events, feature vectors, code, tests) are validated against the methodology contract.
 
 This is the **happy-path** convergence scenario — no deliberate failures, no human gates.
@@ -33,7 +33,7 @@ temperature-converter/
       graph_topology.yml
       evaluator_defaults.yml
       edges/                     # edge params for all 10 transitions
-    gemini_genesis/context/
+    claude/context/
       project_constraints.yml    # standard profile, pytest, ruff, mypy
     features/
       active/
@@ -46,6 +46,7 @@ temperature-converter/
     tasks/active/
       ACTIVE_TASKS.md
     agents/                      # gen-iterate.md, gen-dev-observer.md, etc.
+  .claude/commands/              # all /gen-* command files
 ```
 
 Scaffolded by `e2e_project_dir` session fixture in `conftest.py`.
@@ -61,8 +62,8 @@ Given a scaffolded temperature-converter project
   With 1 active feature vector: REQ-F-CONV-001 (status: pending)
   With standard profile: 4 edges (intent→requirements, requirements→design, design→code, code↔unit_tests)
 
-When I run headless Gemini:
-  gemini start --auto --feature "REQ-F-CONV-001"
+When I run headless Claude:
+  /gen-start --auto --feature "REQ-F-CONV-001"
   With budget cap: $5.00 USD
   With wall timeout: 30 minutes
 
@@ -190,18 +191,40 @@ And event log feature references match actual feature vector files
 
 ## Run Archive
 
-Each test run is archived to `imp_gemini/tests/e2e/runs/` as:
+Each test run is archived to `imp_claude/tests/e2e/runs/` as:
 
 ```
 runs/
-  <version>_<YYYYMMDDTHHMMSS>_<seq>/   # timestamped run
+  e2e_<version>_<YYYYMMDDTHHMMSS>_<seq>/   # timestamped run
     .ai-workspace/                           # full project state
     src/                                     # generated code
     tests/                                   # generated tests
     .e2e-meta/
       run_manifest.json                      # {version, timestamp, failed}
       test_results.json                      # {total, passed, failed, tests[]}
-      stdout.log                             # Gemini stdout
-      stderr.log                             # Gemini stderr
+      stdout.log                             # Claude stdout
+      stderr.log                             # Claude stderr
       meta.json                              # {returncode, elapsed, timed_out}
+  e2e_latest -> e2e_<version>_..._<latest>  # symlink → most recent run
+```
+
+The `e2e_latest` symlink is updated by `_persist_run()` after each run.
+
+---
+
+## Failure Modes
+
+| Failure | Observable signal |
+|---------|------------------|
+| Claude budget exhausted | `meta.json: timed_out=true`, partial events.jsonl |
+| Claude wall timeout | `meta.json: timed_out=true`, partial convergence |
+| Missing Implements tag | `test_code_implements_tags` fails, file list in message |
+| Tests don't pass | `test_generated_tests_pass` shows pytest output |
+| No edge_converged events | `test_events_all_edges_converged` lists missing edges |
+| Feature vector not converged | `test_feature_vector_converged` shows actual status |
+
+To diagnose: open `runs/e2e_latest/` in genesis_monitor:
+```bash
+python -m genesis_monitor --watch-dir imp_claude/tests/e2e/runs/
+# Open http://localhost:8000
 ```

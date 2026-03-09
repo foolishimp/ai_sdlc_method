@@ -1,7 +1,7 @@
 # BDD Spec — Homeostatic Loop Closure
 
 **Scenario**: `homeostasis`
-**Executable test**: `imp_gemini/tests/e2e/test_e2e_homeostasis.py`
+**Executable test**: `imp_claude/tests/e2e/test_e2e_homeostasis.py`
 **Derived from**: `specification/verification/UAT_TEST_CASES.md`
 **Satisfies**: UC-01 (UC-01-12, UC-01-14), UC-02, UC-07 (UC-07-03)
 **Validates**: REQ-SUPV-003, REQ-EVAL-001, REQ-EVAL-002, REQ-ITER-001, REQ-ITER-002
@@ -11,14 +11,14 @@
 ## Scenario Overview
 
 A project is seeded with **deliberately wrong code** at the `code↔unit_tests` edge
-(wrong mathematical formulas). Headless Gemini must detect the failure, record it as
+(wrong mathematical formulas). Headless Claude must detect the failure, record it as
 events, produce corrective iterations, and eventually achieve delta=0.
 
 This proves the methodology's core claim: **failures are detected, recorded, and drive
 correction** — not just claimed by the agent.
 
 The scenario starts from the `code↔unit_tests` edge only (earlier edges pre-converged)
-to save ~10 minutes of Gemini time.
+to save ~10 minutes of Claude time.
 
 ---
 
@@ -36,7 +36,7 @@ homeostasis-project/
     test_temperature_converter.py  # correct tests (will FAIL against wrong code)
   .ai-workspace/
     graph/                       # standard graph topology
-    gemini_genesis/context/
+    claude/context/
       project_constraints.yml
     features/
       active/
@@ -64,8 +64,8 @@ Given a project with deliberately wrong temperature conversion formulas
   Test suite has correct expected values (will fail against wrong code)
   Feature vector shows code↔unit_tests edge as in_progress (iteration 0)
 
-When I run headless Gemini:
-  gemini start --feature "REQ-F-FAIL-001"
+When I run headless Claude:
+  /gen-start --feature "REQ-F-FAIL-001"
   With budget cap: $10.00 USD
   With wall timeout: 45 minutes
 
@@ -126,7 +126,7 @@ Then each failing check is recorded with:
   - result: "fail"
   - structured context (actual value, threshold, files affected, etc.)
 And the event log provides enough information to reproduce and diagnose
-  the failure without re-running Gemini
+  the failure without re-running Claude
 ```
 
 `Executable`: `TestE2EHomeostasis.test_evaluator_failure_details_recorded`,
@@ -181,4 +181,19 @@ And tests have "# Validates: REQ-" tags
 ## Run Archive
 
 Same archive structure as `convergence_lifecycle`. Each homeostasis run is archived
-to `runs/` with a timestamped directory and `.e2e-meta/` metadata.
+to `runs/` with `e2e_` prefix and `e2e_latest` symlink updated.
+
+---
+
+## Failure Modes
+
+| Failure | Observable signal |
+|---------|------------------|
+| Claude never triggers delta > 0 | `test_first_iteration_has_failures` fails — seeded code was fixed pre-run |
+| delta increases between iterations | `test_delta_never_increases` — convergence diverging |
+| No edge_converged after many iterations | `test_edge_converged_emitted` — agent looping without convergence |
+| evaluator_details missing on failures | `test_evaluator_failure_details_recorded` — REQ-SUPV-003 violation |
+| Corrected code still fails pytest | `test_corrected_tests_pass` — correction incomplete |
+
+To diagnose: inspect `runs/e2e_latest/.ai-workspace/events/events.jsonl`
+and observe the delta trajectory across iteration events.

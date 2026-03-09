@@ -16,8 +16,8 @@ def test_workspace(tmp_path):
     ws = tmp_path / ".ai-workspace"
     ws.mkdir()
     (ws / "events").mkdir()
-    (ws / "features").mkdir()
-    (ws / "features" / "active").mkdir()
+    (ws / "vectors").mkdir()
+    (ws / "vectors" / "active").mkdir()
     
     # Mock constraints
     genesis = ws / "gemini_genesis"

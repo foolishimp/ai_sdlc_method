@@ -1,7 +1,7 @@
 # Validates: REQ-TOOL-005, REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003, REQ-F-EVAL-001
 import pathlib
 import pytest
-from imp_gemini.tests.e2e.validators import (
+from .validators import (
     extract_req_tags,
     find_python_files,
     load_events,

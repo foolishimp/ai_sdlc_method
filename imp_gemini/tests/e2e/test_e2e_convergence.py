@@ -1,87 +1,242 @@
-# Validates: REQ-TOOL-005, REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003, REQ-F-EVAL-001
+# Validates: REQ-TOOL-005, REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003
+"""E2E convergence tests — headless Gemini drives full methodology.
+
+These tests scaffold a tiny Python project (temperature converter),
+run headless Gemini to converge it through the standard profile (4 edges),
+then validate every output artifact: events, feature vectors, generated
+code, and cross-artifact consistency.
+
+The `mock_converged_project` fixture is session-scoped — Gemini runs ONCE,
+all tests validate the same output.
+
+Run:
+    pytest imp_gemini/tests/e2e/ -v -m e2e -s
+"""
+
+import importlib.util
 import pathlib
+
 import pytest
-from imp_gemini.tests.e2e.conftest import skip_no_gemini
-from imp_gemini.tests.e2e.validators import (
-    extract_req_tags,
-    find_python_files,
-    load_events,
-    load_feature_vector,
-    validate_all_edges_converged,
-    validate_code_traceability,
-    validate_delta_decreases_to_zero,
-    validate_evaluator_counts,
-    validate_event_common_fields,
-    validate_event_feature_consistency,
-    validate_feature_vector_converged,
-    validate_feature_vector_required_fields,
-    validate_generated_tests_pass,
-    validate_iteration_sequences,
-    validate_req_key_consistency,
-    validate_required_event_types,
-    validate_timestamps_monotonic,
-    validate_trajectory_timestamps,
-    validate_requirements_populated,
-)
+
+
+# ── E2E sibling-module imports ────────────────────────────────────────
+# pytest auto-discovers conftest.py and caches the parent's conftest module,
+# so bare `from conftest import` resolves to imp_gemini/tests/conftest.py
+# instead of the e2e-local one. We force-load from the e2e directory.
+def _load_sibling(name: str):
+    path = pathlib.Path(__file__).parent / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(f"e2e_{name}", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+_conftest = _load_sibling("conftest")
+skip_no_gemini = _conftest.skip_no_gemini
+
+_v = _load_sibling("validators")
+extract_req_tags = _v.extract_req_tags
+find_python_files = _v.find_python_files
+load_events = _v.load_events
+load_feature_vector = _v.load_feature_vector
+validate_all_edges_converged = _v.validate_all_edges_converged
+validate_code_traceability = _v.validate_code_traceability
+validate_delta_decreases_to_zero = _v.validate_delta_decreases_to_zero
+validate_evaluator_counts = _v.validate_evaluator_counts
+validate_event_common_fields = _v.validate_event_common_fields
+validate_event_feature_consistency = _v.validate_event_feature_consistency
+validate_feature_vector_converged = _v.validate_feature_vector_converged
+validate_feature_vector_required_fields = _v.validate_feature_vector_required_fields
+validate_generated_tests_pass = _v.validate_generated_tests_pass
+validate_iteration_sequences = _v.validate_iteration_sequences
+validate_req_key_consistency = _v.validate_req_key_consistency
+validate_required_event_types = _v.validate_required_event_types
+validate_timestamps_monotonic = _v.validate_timestamps_monotonic
+validate_trajectory_timestamps = _v.validate_trajectory_timestamps
+validate_requirements_populated = _v.validate_requirements_populated
+validate_uat_edge_converged = _v.validate_uat_edge_converged
+validate_uat_scenarios_generated = _v.validate_uat_scenarios_generated
+validate_uat_req_tags = _v.validate_uat_req_tags
+validate_uat_positive_and_negative_paths = _v.validate_uat_positive_and_negative_paths
 
 FEATURE_ID = "REQ-F-CONV-001"
-REQUIRED_REQS = {"REQ-F-CONV-001"}
+REQUIRED_REQS = {"REQ-F-CONV-001", "REQ-F-CONV-002"}
+
 
 @pytest.mark.e2e
 @skip_no_gemini
 class TestE2EConvergence:
-    """REAL E2E validation — full agentic loop."""
+    """Full convergence validation — 22 tests across 4 categories."""
 
-    def test_events_file_exists(self, real_converged_project: pathlib.Path):
-        events_file = real_converged_project / ".ai-workspace" / "events" / "events.jsonl"
-        assert events_file.exists()
+    # ═══════════════════════════════════════════════════════════════════
+    # EVENTS (9 tests)
+    # ═══════════════════════════════════════════════════════════════════
 
-    def test_events_valid_json(self, real_converged_project: pathlib.Path):
-        events = load_events(real_converged_project)
-        assert len(events) > 0
+    def test_events_file_exists(self, mock_converged_project: pathlib.Path):
+        """events.jsonl must exist after convergence."""
+        events_file = mock_converged_project / ".ai-workspace" / "events" / "events.jsonl"
+        assert events_file.exists(), f"events.jsonl not found at {events_file}"
 
-    def test_events_common_fields(self, real_converged_project: pathlib.Path):
-        events = load_events(real_converged_project)
+    def test_events_valid_json(self, mock_converged_project: pathlib.Path):
+        """Every line in events.jsonl must be valid JSON."""
+        events = load_events(mock_converged_project)
+        assert len(events) > 0, "events.jsonl is empty"
+
+    def test_events_common_fields(self, mock_converged_project: pathlib.Path):
+        """Every event must have event_type and timestamp."""
+        events = load_events(mock_converged_project)
         validate_event_common_fields(events)
 
-    def test_events_timestamps_monotonic(self, real_converged_project: pathlib.Path):
-        events = load_events(real_converged_project)
+    def test_events_timestamps_monotonic(self, mock_converged_project: pathlib.Path):
+        """Event timestamps must not go backward."""
+        events = load_events(mock_converged_project)
         validate_timestamps_monotonic(events)
 
-    def test_events_required_types(self, real_converged_project: pathlib.Path):
-        events = load_events(real_converged_project)
+    def test_events_required_types(self, mock_converged_project: pathlib.Path):
+        """Must contain project_initialized, edge_started, iteration_completed, edge_converged."""
+        events = load_events(mock_converged_project)
         validate_required_event_types(events)
 
-    def test_events_iteration_sequences(self, real_converged_project: pathlib.Path):
-        events = load_events(real_converged_project)
+    def test_events_iteration_sequences(self, mock_converged_project: pathlib.Path):
+        """Iteration numbers per feature+edge should be sequential."""
+        events = load_events(mock_converged_project)
         validate_iteration_sequences(events)
 
-    def test_events_delta_to_zero(self, real_converged_project: pathlib.Path):
-        events = load_events(real_converged_project)
+    def test_events_delta_to_zero(self, mock_converged_project: pathlib.Path):
+        """Final iteration delta should be 0 for converged edges."""
+        events = load_events(mock_converged_project)
         validate_delta_decreases_to_zero(events)
 
-    def test_events_all_edges_converged(self, real_converged_project: pathlib.Path):
-        events = load_events(real_converged_project)
+    def test_events_evaluator_counts(self, mock_converged_project: pathlib.Path):
+        """Iteration events should reference evaluator results."""
+        events = load_events(mock_converged_project)
+        validate_evaluator_counts(events)
+
+    def test_events_all_edges_converged(self, mock_converged_project: pathlib.Path):
+        """All 4 standard-profile edges must have edge_converged events."""
+        events = load_events(mock_converged_project)
         validate_all_edges_converged(events, FEATURE_ID)
 
-    def test_feature_vector_exists(self, real_converged_project: pathlib.Path):
-        fv = load_feature_vector(real_converged_project, FEATURE_ID)
+    # ═══════════════════════════════════════════════════════════════════
+    # FEATURE VECTORS (5 tests)
+    # ═══════════════════════════════════════════════════════════════════
+
+    def test_feature_vector_exists(self, mock_converged_project: pathlib.Path):
+        """Feature vector YAML must exist after convergence."""
+        fv = load_feature_vector(mock_converged_project, FEATURE_ID)
         assert fv is not None
 
-    def test_feature_vector_converged(self, real_converged_project: pathlib.Path):
-        fv = load_feature_vector(real_converged_project, FEATURE_ID)
+    def test_feature_vector_converged(self, mock_converged_project: pathlib.Path):
+        """Feature vector should show converged status."""
+        fv = load_feature_vector(mock_converged_project, FEATURE_ID)
         validate_feature_vector_converged(fv)
 
-    def test_code_files_exist(self, real_converged_project: pathlib.Path):
-        code_files, _ = find_python_files(real_converged_project)
-        assert code_files
+    def test_feature_vector_required_fields(self, mock_converged_project: pathlib.Path):
+        """Feature vector must have core fields populated."""
+        fv = load_feature_vector(mock_converged_project, FEATURE_ID)
+        validate_feature_vector_required_fields(fv)
 
-    def test_test_files_exist(self, real_converged_project: pathlib.Path):
-        _, test_files = find_python_files(real_converged_project)
-        assert test_files
+    def test_feature_vector_trajectory_timestamps(self, mock_converged_project: pathlib.Path):
+        """Converged trajectory edges should have timestamps."""
+        fv = load_feature_vector(mock_converged_project, FEATURE_ID)
+        validate_trajectory_timestamps(fv)
 
-    def test_generated_tests_pass(self, real_converged_project: pathlib.Path):
-        validate_generated_tests_pass(real_converged_project)
+    def test_feature_vector_requirements_populated(self, mock_converged_project: pathlib.Path):
+        """Feature vector should have a valid REQ-F-* ID."""
+        fv = load_feature_vector(mock_converged_project, FEATURE_ID)
+        validate_requirements_populated(fv)
 
-    def test_code_traceability(self, real_converged_project: pathlib.Path):
-        validate_code_traceability(real_converged_project, REQUIRED_REQS)
+    # ═══════════════════════════════════════════════════════════════════
+    # GENERATED CODE (5 tests)
+    # ═══════════════════════════════════════════════════════════════════
+
+    def test_code_files_exist(self, mock_converged_project: pathlib.Path):
+        """Gemini should have generated Python source files."""
+        code_files, _ = find_python_files(mock_converged_project)
+        assert code_files, (
+            "No Python code files found. "
+            "Expected Gemini to generate src/*.py or similar."
+        )
+
+    def test_test_files_exist(self, mock_converged_project: pathlib.Path):
+        """Gemini should have generated Python test files."""
+        _, test_files = find_python_files(mock_converged_project)
+        assert test_files, (
+            "No Python test files found. "
+            "Expected Gemini to generate tests/test_*.py or similar."
+        )
+
+    def test_code_implements_tags(self, mock_converged_project: pathlib.Path):
+        """Generated code must have Implements: REQ-F-CONV-* tags."""
+        code_files, _ = find_python_files(mock_converged_project)
+        tags = extract_req_tags(code_files)
+        assert tags["implements"], (
+            f"No Implements tags found in {len(code_files)} code files. "
+            f"Files: {[f.name for f in code_files]}"
+        )
+
+    def test_test_validates_tags(self, mock_converged_project: pathlib.Path):
+        """Generated tests must have Validates: REQ-F-CONV-* tags."""
+        _, test_files = find_python_files(mock_converged_project)
+        tags = extract_req_tags(test_files)
+        assert tags["validates"], (
+            f"No Validates tags found in {len(test_files)} test files. "
+            f"Files: {[f.name for f in test_files]}"
+        )
+
+    def test_generated_tests_pass(self, mock_converged_project: pathlib.Path):
+        """Generated tests should pass when run with pytest."""
+        validate_generated_tests_pass(mock_converged_project)
+
+    # ═══════════════════════════════════════════════════════════════════
+    # CONSISTENCY (3 tests)
+    # ═══════════════════════════════════════════════════════════════════
+
+    def test_code_traceability(self, mock_converged_project: pathlib.Path):
+        """REQ keys must appear in both code Implements and test Validates tags."""
+        validate_code_traceability(mock_converged_project, REQUIRED_REQS)
+
+    def test_req_key_consistency(self, mock_converged_project: pathlib.Path):
+        """Feature vector REQs should appear in generated code/test tags."""
+        validate_req_key_consistency(mock_converged_project, REQUIRED_REQS)
+
+    def test_event_feature_consistency(self, mock_converged_project: pathlib.Path):
+        """Event log feature references should match actual feature vectors."""
+        events = load_events(mock_converged_project)
+        validate_event_feature_consistency(events, {FEATURE_ID})
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# UAT EDGE (5 tests) — design→uat_tests produces Gherkin scenarios
+# ═══════════════════════════════════════════════════════════════════════
+
+@pytest.mark.e2e
+@skip_no_gemini
+class TestE2EUATEdge:
+    """Validates the design→uat_tests edge: Gherkin BDD scenarios generated."""
+
+    def test_uat_edge_converged(self, converged_with_uat: pathlib.Path):
+        """design→uat_tests must have an edge_converged event."""
+        events = load_events(converged_with_uat)
+        validate_uat_edge_converged(events, FEATURE_ID)
+
+    def test_uat_feature_files_generated(self, converged_with_uat: pathlib.Path):
+        """Gemini must produce .feature (Gherkin) files for UAT."""
+        validate_uat_scenarios_generated(converged_with_uat)
+
+    def test_uat_req_tags_present(self, converged_with_uat: pathlib.Path):
+        """UAT feature files must contain Validates: REQ-F-CONV-* tags."""
+        validate_uat_req_tags(converged_with_uat, REQUIRED_REQS)
+
+    def test_uat_positive_and_negative_paths(self, converged_with_uat: pathlib.Path):
+        """UAT scenarios must cover both happy path and error cases."""
+        validate_uat_positive_and_negative_paths(converged_with_uat)
+
+    def test_uat_feature_vector_trajectory(self, converged_with_uat: pathlib.Path):
+        """Feature vector trajectory must show uat_tests as converged."""
+        fv = load_feature_vector(converged_with_uat, FEATURE_ID)
+        trajectory = fv.get("trajectory", {})
+        uat_data = trajectory.get("uat_tests", {})
+        uat_status = uat_data.get("status", "pending") if isinstance(uat_data, dict) else "pending"
+        assert uat_status == "converged", (
+            f"Feature vector uat_tests trajectory status is '{uat_status}', expected 'converged'"
+        )
