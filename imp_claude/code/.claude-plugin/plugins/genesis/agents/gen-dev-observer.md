@@ -66,7 +66,12 @@ For each non-zero delta, classify by signal source:
 
 ### Step 5: Generate Draft Intents
 
-For each significant delta (severity >= medium), generate a draft `intent_raised` event:
+For each significant delta (severity >= medium), generate a draft `intent_raised` event.
+
+**Composition resolution (ADR-S-026 §3)**: Before emitting, classify the gap_type and resolve
+the named composition:
+- Resolve `gap_type` against `config/named_compositions.yml` gap_type_dispatch table
+- Set `composition` field: resolved `{macro, version, bindings}` or null with `composition_resolution: no_dispatch_entry`
 
 ```json
 {
@@ -78,6 +83,14 @@ For each significant delta (severity >= medium), generate a draft `intent_raised
     "trigger": "dev_observer detected delta: {description}",
     "delta": "{what spec says vs what workspace has}",
     "signal_source": "{gap|discovery|ecosystem|optimisation|user|TELEM}",
+    "gap_type": "{missing_schema|missing_requirements|missing_design|unknown_risk|unknown_domain|spec_drift|missing_consensus}",
+    "composition": {
+      "macro": "{PLAN|POC|SCHEMA_DISCOVERY|DATA_DISCOVERY}",
+      "version": "v1",
+      "bindings": {}
+    },
+    "composition_resolution": "{resolved|unresolvable|no_dispatch_entry}",
+    "composition_rationale": "{human-readable: what the composition will do}",
     "vector_type": "{feature|discovery|spike|poc|hotfix}",
     "affected_req_keys": ["REQ-*"],
     "prior_intents": [],

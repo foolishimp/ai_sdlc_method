@@ -65,14 +65,22 @@ trajectory:
       - REQ-F-CONS-009  # Event Emission
 
   code:
-    status: pending
-    notes: "Decomposed into feature vector projections REQ-F-CONS-001..009"
+    status: converged
+    converged_at: "2026-03-09T17:30:00Z"
+    asset: "imp_claude/code/genesis/consensus_engine.py"
+    notes: "Converged via projections REQ-F-CONS-001..009 — all 8 code edges converged"
 
   unit_tests:
-    status: pending
+    status: converged
+    converged_at: "2026-03-09T17:30:00Z"
+    asset: "imp_claude/tests/test_uc_consensus_001.py"
+    notes: "47 tests passing — all CONS projections covered"
 
   uat_tests:
-    status: pending
+    status: converged
+    converged_at: "2026-03-09T17:30:00Z"
+    asset: "imp_claude/tests/test_uc_consensus_001.py"
+    notes: "UAT-UC-CONSENSUS-001..002 covered by TestUCConsensus001HappyPath/002Rejection"
 
 functor:
   strategy: balanced

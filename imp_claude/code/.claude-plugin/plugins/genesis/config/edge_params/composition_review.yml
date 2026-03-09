@@ -1,0 +1,63 @@
+# Edge Params: Intent → Composition Review
+# Implements: REQ-F-NAMEDCOMP-001 (NC-006 — Composition Governance Scaffold)
+# Reference: ADR-S-026 §5, specification/features/NAMEDCOMP_DESIGN_RECOMMENDATIONS.md §Phase 6
+#
+# This edge governs project-local composition additions via the REVIEW functor.
+# A single human approves the composition before it is added to the project-local library.
+# On approval: composition is written to .ai-workspace/named_compositions/ and
+# a named_compositions_loaded event is emitted with scope=project-local.
+
+---
+
+edge: "intent → named_composition"
+governance_mode: review
+functor: REVIEW
+
+description: |
+  Project-local named composition approval via REVIEW gate.
+  A human reviewer evaluates the proposed composition and approves or rejects it.
+  On approval, the composition file is written to .ai-workspace/named_compositions/.
+
+convergence_criteria:
+  - name: composition_schema_valid
+    type: deterministic
+    criterion: "Proposed composition has required fields: name, version, scope, governance, body, output_type"
+    required: true
+
+  - name: name_version_unique
+    type: deterministic
+    criterion: "No existing composition with the same {name, version} in library or project-local registry"
+    required: true
+
+  - name: body_functor_sequence_valid
+    type: deterministic
+    criterion: "Each body step has 'functor' and 'args' keys; functor names are non-empty strings"
+    required: true
+
+  - name: composition_coherence
+    type: agent
+    criterion: "Composition body implements its stated purpose; parameters are sufficient for the body steps"
+    required: true
+
+  - name: human_approves_composition
+    type: human
+    criterion: |
+      Human reviews proposed composition: does it serve a genuine reuse need?
+      Is the scope appropriate (project-local, not requiring library consensus)?
+      Are there security or governance concerns?
+    required: true
+
+convergence_output:
+  on_converge: |
+    Write composition to .ai-workspace/named_compositions/{name}_{version}.yml.
+    Set produced_asset_ref to the file path.
+    Emit named_compositions_loaded event with scope=project-local.
+  on_reject: |
+    Record rejection rationale in disposition_rationale.
+    Set disposition=blocked_accepted (known-rejected composition).
+
+internal_events:
+  - composition_review_started
+  - composition_reviewed
+  - composition_approved
+  - composition_rejected

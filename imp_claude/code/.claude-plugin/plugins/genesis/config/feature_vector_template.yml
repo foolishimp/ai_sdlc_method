@@ -20,6 +20,25 @@ created: "{timestamp}"
 updated: "{timestamp}"
 
 # ═══════════════════════════════════════════════════════════════════════
+# INTENT VECTOR ENVELOPE (ADR-S-026 §4.2–4.5)
+# ═══════════════════════════════════════════════════════════════════════
+# Source provenance, target asset type, and terminal tracking.
+# All fields are optional with safe defaults — pre-ADR-S-026 vectors parse
+# correctly. Defaults applied by config_loader.load_feature_vector().
+
+# Source provenance (ADR-S-026 §4.2)
+source_kind: parent_spawn             # abiogenesis | parent_spawn | gap_observation
+trigger_event: null                   # event reference or null; always null if abiogenesis
+
+# What this vector is trying to produce (ADR-S-026 §4.4)
+target_asset_type: null               # AssetType string; populated by gen-spawn or gen-init
+
+# Terminal tracking (ADR-S-026 §4.5)
+produced_asset_ref: null              # path | artifact_id; null while iterating; set on convergence
+disposition: null                     # null (active) | converged | blocked_accepted | blocked_deferred | abandoned
+disposition_rationale: null           # required when disposition is non-null and non-converged
+
+# ═══════════════════════════════════════════════════════════════════════
 # FUNCTOR ENCODING (§2.9)
 # ═══════════════════════════════════════════════════════════════════════
 # Tracks functor identity, per-unit encoding, and escalation history.

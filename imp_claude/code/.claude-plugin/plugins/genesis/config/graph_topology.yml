@@ -227,6 +227,26 @@ asset_types:
       - merge_provenance_recorded
       - output_hash_generated
 
+  # ─── Named Composition Governance (NC-006, ADR-S-026 §5) ──────────────────
+  named_composition:
+    description: "A named reusable composition that has been reviewed or consensus-approved for use"
+    schema:
+      name: string               # composition name (e.g. PLAN, POC)
+      version: string            # semantic version (e.g. v1)
+      scope: enum[library, project-local]
+      governance: enum[consensus, review]
+      body: list                 # functor sequence
+      output_type: string
+      governance_record:
+        review_id: string        # review_id from REVIEW or CONSENSUS gate
+        approved_at: string
+        approvers: list
+    markov_criteria:
+      - has_name
+      - has_version
+      - has_governance_record
+      - governance_gate_passed   # REVIEW or CONSENSUS event in events.jsonl
+
 # ═══════════════════════════════════════════
 # Constraint Dimensions (Spec §2.6.1)
 # ═══════════════════════════════════════════
@@ -472,6 +492,31 @@ transitions:
     evaluators: [agent, human]
     constructor: agent
     edge_config: "edge_params/feedback_loop.yml"
+
+  # ─── Named Composition Governance edges (NC-006, ADR-S-026 §5) ────────────
+  # These edges govern the promotion of compositions: project-local → library.
+  # composition_review uses the REVIEW functor (single human gate).
+  # composition_consensus uses the CONSENSUS functor (REQ-F-CONSENSUS-001 engine).
+
+  - name: "Intent → Composition Review"
+    source: intent
+    target: named_composition
+    edge_type: governance
+    evaluators: [human]
+    constructor: agent
+    edge_config: "edge_params/composition_review.yml"
+    profiles_active: [full, standard]
+    notes: "Project-local composition addition requiring REVIEW gate (single human approval)"
+
+  - name: "Intent → Composition Consensus"
+    source: intent
+    target: named_composition
+    edge_type: governance
+    evaluators: [human, agent]
+    constructor: agent
+    edge_config: "edge_params/composition_consensus.yml"
+    profiles_active: [full]
+    notes: "Library-level composition promotion requiring CONSENSUS gate (multi-party quorum)"
 
   - name: "Basis Projections → Parallel Spawn"
     source: basis_projections

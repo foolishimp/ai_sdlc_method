@@ -1,0 +1,178 @@
+# Named Composition Library
+# Implements: REQ-F-NAMEDCOMP-001 (Named Composition Library and Intent Vector Envelope)
+# Reference: ADR-S-026 (Named Compositions and Intent Vectors)
+# Reference: specification/features/NAMEDCOMP_DESIGN_RECOMMENDATIONS.md
+#
+# Level 3 macro library — reusable named compositions for common gap patterns.
+# Project-local overrides: .ai-workspace/named_compositions/ (shadows library by {name, version})
+
+---
+
+version: "1.0"
+scope: library  # library | project-local
+
+compositions:
+  - name: PLAN
+    version: v1
+    scope: library
+    governance: consensus  # consensus | review
+    description: "Work-program planning for planning-heavy asset transitions"
+    parameters:
+      - name: source_asset
+        type: AssetType
+        required: true
+      - name: unit_type
+        type: string
+        required: true
+        description: "decomposition unit — capability | feature | module | risk_area"
+      - name: criteria
+        type: "string | string[]"
+        required: true
+        description: "evaluation criteria — user_value | mvp_value | arch_stability | risk_reduction_value"
+    output_type: work_order
+    body:
+      - functor: BROADCAST
+        args: {source: source_asset, decompose_fn: unit_type}
+      - functor: iterate
+        args: {target: each_unit, evaluators: criteria}
+      - functor: FOLD
+        args: {items: units, merge_fn: dep_dag_builder}
+    internal_events:
+      - plan_decomposed
+      - plan_evaluated
+      - plan_ordered
+      - plan_ranked
+
+  - name: POC
+    version: v1
+    scope: library
+    governance: review
+    description: "Proof-of-concept: risk-bounded exploration converging on learning not delivery"
+    parameters:
+      - name: intent
+        type: AssetType
+        required: true
+      - name: risk_areas
+        type: "string[]"
+        required: true
+      - name: time_box
+        type: duration
+        required: false
+        default: "2h"
+    output_type: poc_report
+    body:
+      - functor: PLAN
+        args: {source: intent, unit_type: risk_area, criteria: risk_reduction_value}
+      - functor: BUILD
+        args: {primary: spike_code, secondary: spike_tests}
+      - functor: DISCOVERY
+        args: {input: findings, convergence: question_answered, time_box: time_box}
+    output_schema:
+      fields: [question, findings, risk_disposition]
+      risk_disposition_values: [resolved, remains, new_risk_identified]
+
+  - name: SCHEMA_DISCOVERY
+    version: v1
+    scope: library
+    governance: review
+    description: "Infer a schema document from a raw dataset via stratified sampling"
+    parameters:
+      - name: dataset
+        type: "path | uri"
+        required: true
+      - name: notebook_env
+        type: "uri"
+        required: true
+        description: "execution environment for exploratory iteration"
+      - name: evaluation_criteria
+        type: "string[]"
+        required: false
+        default: [completeness, fitness_for_use]
+    output_type: schema_document
+    body:
+      - functor: BROADCAST
+        args: {source: dataset, sample_fn: stratified_sample}
+      - functor: iterate
+        args: {target: each_sample, evaluators: [structure_detect, type_infer, null_rate, cardinality]}
+      - functor: FOLD
+        args: {items: sample_schemas, merge_fn: schema_unifier}
+      - functor: REVIEW
+        args: {input: unified_schema, evaluator: F_H, criteria: evaluation_criteria}
+
+  - name: DATA_DISCOVERY
+    version: v1
+    scope: library
+    governance: consensus
+    description: "Map an unknown data domain across multiple sources"
+    parameters:
+      - name: data_sources
+        type: "path[] | uri[]"
+        required: true
+      - name: question
+        type: string
+        required: true
+      - name: time_box
+        type: duration
+        required: false
+        default: "4h"
+    output_type: data_landscape
+    body:
+      - functor: BROADCAST
+        args: {source: data_sources, explore_fn: data_source}
+      - functor: SCHEMA_DISCOVERY
+        args: {dataset: each_source}
+      - functor: FOLD
+        args: {items: source_schemas, merge_fn: relationship_mapper}
+      - functor: DISCOVERY
+        args: {input: relationship_map, convergence: question_answered}
+    output_schema:
+      fields: [sources, schemas, relationships, gaps, open_questions]
+
+# ═══════════════════════════════════════════════════════════════════════
+# GAP TYPE DISPATCH TABLE (ADR-S-026 §3 — typed composition expressions)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Maps gap_type values (from intent_raised events) to named compositions.
+# When an observer raises intent_raised with a known gap_type, the dispatch
+# table provides the composition expression: {macro, version, bindings}.
+#
+# If gap_type has no entry: composition=null, composition_resolution=no_dispatch_entry.
+# This is observable but not blocking.
+
+gap_type_dispatch:
+  missing_schema:
+    macro: SCHEMA_DISCOVERY
+    version: v1
+    default_bindings: {}
+
+  missing_requirements:
+    macro: PLAN
+    version: v1
+    default_bindings: {unit_type: capability, criteria: user_value}
+
+  missing_design:
+    macro: PLAN
+    version: v1
+    default_bindings: {unit_type: feature, criteria: mvp_value}
+
+  unknown_risk:
+    macro: POC
+    version: v1
+    default_bindings: {}
+
+  unknown_domain:
+    macro: DATA_DISCOVERY
+    version: v1
+    default_bindings: {}
+
+  spec_drift:
+    macro: EVOLVE
+    version: v1
+    default_bindings: {}
+    note: "EVOLVE composition pending NC-006 governance scaffold"
+
+  missing_consensus:
+    macro: CONSENSUS
+    version: v1
+    default_bindings: {}
+    note: "CONSENSUS composition references REQ-F-CONSENSUS-001 engine"

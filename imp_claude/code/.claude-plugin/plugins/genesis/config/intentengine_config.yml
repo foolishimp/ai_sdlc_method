@@ -379,3 +379,48 @@ affect_schema:
     minimal:
       urgency: normal
       valence: medium
+
+# ═══════════════════════════════════════════════════════════════════════
+# GAP TYPE DISPATCH (ADR-S-026 §3 — typed composition expressions)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# When the IntentEngine produces an `escalate` output with a classified
+# gap_type, this section instructs how to resolve it to a named composition.
+# The composition expression {macro, version, bindings} is embedded in the
+# intent_raised event (ADR-S-026 §4 — typed gap.intent output).
+#
+# Composition resolution is a two-step lookup:
+#   1. gap_type_dispatch[gap_type] → {macro, version, default_bindings}
+#   2. Caller bindings merge over default_bindings (caller wins on conflict)
+#
+# If gap_type is not in the table: composition=null, composition_resolution=no_dispatch_entry.
+# This is observable (composition_resolution_failed event) but not blocking.
+
+gap_type_dispatch:
+  source: config/named_compositions.yml  # authoritative macro definitions
+  fallback: null_with_warning             # emit null composition + warning event on miss
+  resolution_event: composition_resolved  # optional observability event on successful resolution
+
+  # intent_raised event schema extension (ADR-S-026 §4)
+  event_schema_extension:
+    gap_type:
+      type: string
+      description: "Classification of the gap — maps to dispatch table entry"
+      required: false  # backward compatible — events without gap_type are valid
+    composition:
+      type: object_or_null
+      description: "Resolved named composition expression {macro, version, bindings}"
+      required: false
+      schema:
+        macro: string
+        version: string
+        bindings: object
+    composition_resolution:
+      type: enum
+      values: [resolved, unresolvable, no_dispatch_entry]
+      required: false
+      description: "Present when gap_type is present; absent otherwise"
+    composition_rationale:
+      type: string
+      description: "Human-readable description of what the composition will do"
+      required: false

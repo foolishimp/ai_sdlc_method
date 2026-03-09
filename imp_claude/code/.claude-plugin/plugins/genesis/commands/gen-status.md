@@ -115,6 +115,69 @@ Aggregate across all features:
 - Total edges converged / total edges required
 - Feature count by status: converged, in-progress, blocked, stuck
 - Unactioned signal count (intent_raised events not yet acted upon)
+- Project convergence state (see Project Convergence State section below)
+
+#### Project Convergence State (NC-004 — ADR-S-026 §4.5)
+
+Compute the project-level convergence state from all active and completed feature vectors.
+This state is derived — never stored. Read feature vectors from `.ai-workspace/features/active/`
+and `.ai-workspace/features/completed/`.
+
+**Three-state algorithm**:
+
+```
+read all feature vectors from .ai-workspace/features/active/ and completed/
+
+iterating_count   = count(v for v in vectors if v.status == "iterating" or v.status == "in_progress")
+required_vectors  = [v for v in vectors if v.disposition not in ("blocked_deferred", "abandoned")]
+converged_count   = count(v for v in required_vectors if v.status == "converged")
+blocked_no_disp   = count(v for v in vectors if v.status == "blocked" and v.disposition is null)
+
+if iterating_count > 0:
+    project_state = ITERATING       # at least one vector actively iterating
+elif converged_count == len(required_vectors):
+    project_state = CONVERGED       # all required vectors have converged
+elif blocked_no_disp > 0:
+    project_state = QUIESCENT       # nothing iterating; blocked vectors lack disposition
+else:
+    project_state = BOUNDED         # quiescent + all blocked explicitly dispositioned
+```
+
+**State semantics**:
+
+| State | Meaning | What to do |
+|-------|---------|-----------|
+| `ITERATING` | Active work in progress | Continue iterating |
+| `QUIESCENT` | Work stalled; blocked vectors need disposition | Disposition blocked vectors or escalate |
+| `CONVERGED` | All required vectors converged; system complete | Run /gen-gaps; prepare release |
+| `BOUNDED` | No active work; all blockers acknowledged | Explicit human decision to resume or release |
+
+**STATUS.md project state section** (write to STATUS.md under the Phase Completion Summary):
+
+```markdown
+## Project State
+
+**State**: {ITERATING | QUIESCENT | CONVERGED | BOUNDED}
+
+| State | Count |
+|-------|-------|
+| Iterating  | {n} vectors |
+| Converged  | {n}/{total_required} required vectors |
+| Blocked (with disposition) | {n} vectors |
+| Blocked (no disposition) | {n} vectors ← needs explicit disposition for BOUNDED |
+```
+
+**Health checks** (added to `--health` output):
+1. `project_state_consistency` — FAIL if any vector claims `status: converged` with `produced_asset_ref: null`
+   - Message: "Convergence claimed without produced asset reference — traceability chain broken"
+2. `blocked_disposition_completeness` — WARN if any vector has `status: blocked` with `disposition: null`
+   when project claims BOUNDED state
+   - Message: "{N} blocked vectors have null disposition — project cannot claim BOUNDED"
+
+**Project Rollup line** (add after feature counts):
+```
+  State:     {ITERATING|QUIESCENT|CONVERGED|BOUNDED} ({n} iterating, {n}/{total} converged)
+```
 
 #### Signals
 

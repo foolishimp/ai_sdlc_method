@@ -61,15 +61,18 @@ test_auth_login FAILED → tests/test_auth.py → Validates: REQ-F-AUTH-001
 
 ### Step 4: Generate Draft Intents
 
-For each non-zero delta, generate a draft intent:
+For each non-zero delta, generate a draft intent with composition resolution (ADR-S-026 §3):
+- Classify the `gap_type` from the delta type table
+- Resolve `gap_type` against `config/named_compositions.yml` gap_type_dispatch table
+- Set `composition` field in the intent_raised event (null if no dispatch entry)
 
-| Delta type | Signal source | Severity | Vector type |
-|-----------|--------------|----------|-------------|
-| Test failures | `test_failure` | high | feature (fix) |
-| Coverage drop > 5% | `process_gap` | medium | feature (add tests) |
-| Flaky tests > 3 | `process_gap` | medium | discovery (investigate) |
-| Deploy failure | `runtime_feedback` | critical | hotfix |
-| Rollback triggered | `runtime_feedback` | critical | hotfix |
+| Delta type | Signal source | gap_type | Severity | Vector type |
+|-----------|--------------|----------|----------|-------------|
+| Test failures | `test_failure` | *(none — test_failure not in dispatch)* | high | feature (fix) |
+| Coverage drop > 5% | `process_gap` | `missing_requirements` | medium | feature (add tests) |
+| Flaky tests > 3 | `process_gap` | `unknown_risk` | medium | discovery (investigate) |
+| Deploy failure | `runtime_feedback` | *(none — escalate directly)* | critical | hotfix |
+| Rollback triggered | `runtime_feedback` | *(none — escalate directly)* | critical | hotfix |
 
 ### Step 5: Emit Observer Signal
 

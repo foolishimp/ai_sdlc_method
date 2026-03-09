@@ -1,0 +1,73 @@
+# PLAN Edge Parameter Template
+# Implements: REQ-F-NAMEDCOMP-001 (NC-005 — PLAN edge parameter template)
+# Reference: ADR-S-026 §4.3, specification/features/NAMEDCOMP_DESIGN_RECOMMENDATIONS.md §Phase 2B
+#
+# Shared template for planning-heavy asset transitions.
+# Edge params extend this via: extends: named_compositions/plan.yml
+# Do NOT reference this file directly in graph_topology.yml.
+
+---
+
+_template: true
+_name: PLAN
+_version: v1
+
+description: "Reusable template for planning-heavy asset transitions (decompose → evaluate → order → rank)"
+
+convergence_criteria:
+  - check: work_order_produced
+    type: deterministic
+    description: "Output asset is a work_order with populated units, dep_dag, and build_order"
+    required: true
+
+  - check: units_evaluated
+    type: deterministic
+    description: "Each unit has at least one evaluation result"
+    required: true
+
+  - check: dep_dag_acyclic
+    type: deterministic
+    description: "Dependency DAG contains no cycles"
+    required: true
+
+  - check: ranked_units_present
+    type: deterministic
+    description: "ranked_units list is non-empty and ordered"
+    required: true
+
+  - check: deferred_units_documented
+    type: deterministic
+    description: "Any deferred_units have explicit rationale"
+    required: true
+
+  - check: work_order_coherence
+    type: agent
+    description: "Units are coherent with source asset intent; no scope creep; no missing coverage"
+    required: true
+
+  - check: human_approval
+    type: human
+    description: "Human reviews and approves the work order before CONSTRUCT phase begins"
+    required: true
+
+internal_events:
+  - event: plan_decomposed
+    when: "after BROADCAST — units list produced"
+    payload: {unit_count: int, source_asset_hash: string}
+
+  - event: plan_evaluated
+    when: "after iterate — each unit has evaluation results"
+    payload: {units_evaluated: int, units_deferred: int}
+
+  - event: plan_ordered
+    when: "after dep_dag construction — build order established"
+    payload: {dep_dag_edges: int, critical_path_length: int}
+
+  - event: plan_ranked
+    when: "after ranking — work_order finalized"
+    payload: {ranked_count: int, deferred_count: int}
+
+output_type: work_order
+output_schema:
+  required_fields: [units, dep_dag, build_order, ranked_units]
+  optional_fields: [deferred_units, deferred_rationale]

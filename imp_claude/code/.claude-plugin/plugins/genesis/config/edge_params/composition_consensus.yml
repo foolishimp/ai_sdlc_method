@@ -1,0 +1,68 @@
+# Edge Params: Intent → Composition Consensus
+# Implements: REQ-F-NAMEDCOMP-001 (NC-006 — Composition Governance Scaffold)
+# Reference: ADR-S-026 §5, ADR-S-025 (CONSENSUS functor), imp_claude/design/CONSENSUS_DESIGN.md
+#
+# This edge governs library-level composition promotions via the CONSENSUS functor.
+# A multi-party quorum (roster defined in composition proposal) must approve before
+# the composition is promoted from .ai-workspace/named_compositions/ to
+# config/named_compositions.yml (library).
+#
+# On consensus_reached: promotion event emitted; caller responsible for
+# merging the composition into config/named_compositions.yml via spec_modified event.
+
+---
+
+edge: "intent → named_composition"
+governance_mode: consensus
+functor: CONSENSUS
+
+description: |
+  Library-level named composition promotion via CONSENSUS gate (REQ-F-CONSENSUS-001 engine).
+  A multi-party quorum reviews the proposed composition and votes to promote it
+  from project-local to the shared library.
+
+# Roster is defined in the composition proposal (source asset).
+# Default roster: all three observer agents (dev, cicd, ops) + human.
+consensus_defaults:
+  quorum_rule: majority
+  participation_floor: 0.75
+  veto_rule: gating_comment   # any reviewer with a gating comment blocks until resolved
+
+convergence_criteria:
+  - name: composition_schema_valid
+    type: deterministic
+    criterion: "Proposed composition has required fields: name, version, scope, governance, body, output_type"
+    required: true
+
+  - name: library_promotion_justified
+    type: agent
+    criterion: |
+      Composition is used in ≥2 projects OR addresses a gap pattern present across multiple domains.
+      Project-local scope is insufficient for the breadth of use.
+    required: true
+
+  - name: no_shadowing_conflicts
+    type: deterministic
+    criterion: "Proposed {name, version} does not conflict with existing library composition"
+    required: true
+
+  - name: consensus_quorum_reached
+    type: human
+    criterion: "CONSENSUS gate passes with quorum: majority vote, no unresolved gating comments"
+    required: true
+
+convergence_output:
+  on_consensus_reached: |
+    Emit composition_promoted event.
+    On spec_modified: merge composition into config/named_compositions.yml.
+    Set produced_asset_ref to the library file path.
+  on_consensus_failed: |
+    Record rejection rationale from consensus_failed event.
+    Set disposition=blocked_accepted.
+
+internal_events:
+  - composition_consensus_started
+  - composition_proposal_circulated
+  - consensus_reached          # from CONSENSUS engine
+  - consensus_failed           # from CONSENSUS engine
+  - composition_promoted       # on consensus_reached

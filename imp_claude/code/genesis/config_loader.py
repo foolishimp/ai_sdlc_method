@@ -3,11 +3,12 @@
 # Implements: REQ-EDGE-001 (TDD at Code↔Tests Edges), REQ-EDGE-002 (BDD at Design→Test Edges), REQ-EDGE-003 (ADRs at Requirements→Design Edge)
 # Implements: REQ-TOOL-008 (Context Snapshot), REQ-TOOL-013 (Output Directory Binding)
 # Implements: REQ-UX-007 (Edge Zoom Management)
+# Implements: REQ-F-NAMEDCOMP-001 (Named Composition Library — load_named_compositions, resolve_composition, validate_feature_vector)
 """YAML loading, $variable resolution, and context hierarchy composition for edge configs and project constraints."""
 
 import pathlib
 import re
-from typing import Optional
+from typing import Optional, Any
 
 import yaml
 
@@ -177,3 +178,230 @@ def resolve_checklist(edge_config: dict, constraints: dict) -> list[ResolvedChec
         )
 
     return results
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# NAMED COMPOSITION LIBRARY — REQ-F-NAMEDCOMP-001
+# ═══════════════════════════════════════════════════════════════════════
+# Implements ADR-S-026: typed composition expressions in intent_raised events.
+
+# Sentinel for a gap_type with no dispatch entry
+_NO_DISPATCH_ENTRY = "no_dispatch_entry"
+
+# Default intent vector envelope fields (ADR-S-026 §4.2–4.5)
+_INTENT_VECTOR_DEFAULTS: dict[str, Any] = {
+    "source_kind": "parent_spawn",
+    "trigger_event": None,
+    "target_asset_type": None,
+    "produced_asset_ref": None,
+    "disposition": None,
+    "disposition_rationale": None,
+}
+
+
+def load_named_compositions(
+    plugin_root: pathlib.Path,
+    workspace_root: Optional[pathlib.Path] = None,
+) -> dict:
+    """Load the named composition library, merging library and project-local entries.
+
+    Library file: ``{plugin_root}/config/named_compositions.yml``
+    Project-local directory: ``{workspace_root}/.ai-workspace/named_compositions/``
+
+    Project-local entries shadow library entries by ``{name, version}`` key.
+    Returns the merged registry dict with ``compositions`` list and ``gap_type_dispatch`` map.
+
+    Emits: named_compositions_loaded (caller's responsibility — this is a pure loader).
+    """
+    library_path = plugin_root / "config" / "named_compositions.yml"
+    library: dict = {}
+    if library_path.exists():
+        library = load_yaml(library_path)
+
+    # Start with library compositions indexed by (name, version)
+    comp_index: dict[tuple[str, str], dict] = {}
+    for comp in library.get("compositions", []):
+        key = (comp.get("name", ""), comp.get("version", "v1"))
+        comp_index[key] = comp
+
+    local_count = 0
+    # Merge project-local overrides
+    if workspace_root is not None:
+        local_dir = workspace_root / ".ai-workspace" / "named_compositions"
+        if local_dir.is_dir():
+            for local_file in sorted(local_dir.glob("*.yml")):
+                local_data = load_yaml(local_file)
+                for comp in local_data.get("compositions", local_data.get("entries", [])):
+                    key = (comp.get("name", ""), comp.get("version", "v1"))
+                    comp_index[key] = comp  # shadow library entry
+                    local_count += 1
+
+    merged_compositions = list(comp_index.values())
+
+    # Merge gap_type_dispatch: project-local entries shadow library entries by gap_type key
+    merged_dispatch: dict[str, dict] = dict(library.get("gap_type_dispatch", {}))
+    if workspace_root is not None:
+        local_dispatch_file = workspace_root / ".ai-workspace" / "named_compositions" / "gap_type_dispatch.yml"
+        if local_dispatch_file.exists():
+            local_dispatch = load_yaml(local_dispatch_file)
+            merged_dispatch.update(local_dispatch.get("gap_type_dispatch", {}))
+
+    return {
+        "version": library.get("version", "1.0"),
+        "scope": library.get("scope", "library"),
+        "compositions": merged_compositions,
+        "gap_type_dispatch": merged_dispatch,
+        "_library_count": len(list(library.get("compositions", []))),
+        "_project_local_count": local_count,
+    }
+
+
+def resolve_composition(
+    gap_type: str,
+    registry: dict,
+    extra_bindings: Optional[dict] = None,
+) -> tuple[Optional[dict], str]:
+    """Resolve a gap_type to a named composition expression.
+
+    Uses the ``gap_type_dispatch`` table from the registry.
+    Caller bindings (``extra_bindings``) merge over dispatch default_bindings.
+
+    Returns:
+        (composition_dict, resolution_status) where resolution_status is one of:
+        - "resolved" — dispatch entry found, composition expression returned
+        - "unresolvable" — entry found but macro not in compositions list
+        - "no_dispatch_entry" — gap_type not in dispatch table
+    """
+    dispatch = registry.get("gap_type_dispatch", {})
+    if gap_type not in dispatch:
+        return None, _NO_DISPATCH_ENTRY
+
+    entry = dispatch[gap_type]
+    macro_name = entry.get("macro", "")
+    version = entry.get("version", "v1")
+
+    # Check macro exists in compositions list
+    compositions = registry.get("compositions", [])
+    comp = next(
+        (c for c in compositions if c.get("name") == macro_name and c.get("version") == version),
+        None,
+    )
+    if comp is None:
+        # Entry in dispatch table but macro not defined (e.g. EVOLVE, CONSENSUS placeholders)
+        bindings = dict(entry.get("default_bindings", {}))
+        if extra_bindings:
+            bindings.update(extra_bindings)
+        return {
+            "macro": macro_name,
+            "version": version,
+            "bindings": bindings,
+        }, "unresolvable"
+
+    # Build composition expression
+    bindings = dict(entry.get("default_bindings", {}))
+    if extra_bindings:
+        bindings.update(extra_bindings)
+
+    return {
+        "macro": macro_name,
+        "version": version,
+        "bindings": bindings,
+    }, "resolved"
+
+
+def validate_feature_vector(vector: dict) -> tuple[dict, list[str]]:
+    """Apply intent vector envelope defaults and validate convergence consistency.
+
+    Mutates a copy of ``vector`` to add missing optional fields (ADR-S-026 §4.2–4.5).
+    Returns ``(validated_vector, list_of_warnings)``.
+
+    Warnings (non-blocking):
+    - Convergence claimed without produced_asset_ref (traceability chain broken)
+    - Non-null disposition without disposition_rationale
+    - source_kind not in allowed values
+    """
+    result = dict(vector)
+    warnings: list[str] = []
+
+    # Apply defaults for missing intent vector envelope fields
+    for field, default in _INTENT_VECTOR_DEFAULTS.items():
+        if field not in result:
+            result[field] = default
+
+    # Validate convergence consistency
+    status = result.get("status", "")
+    produced = result.get("produced_asset_ref")
+    if status == "converged" and produced is None:
+        feature_id = result.get("feature", "unknown")
+        warnings.append(
+            f"{feature_id}: status=converged but produced_asset_ref is null — traceability chain broken"
+        )
+
+    # Validate disposition consistency
+    disposition = result.get("disposition")
+    rationale = result.get("disposition_rationale")
+    if disposition is not None and disposition not in ("converged", None) and not rationale:
+        feature_id = result.get("feature", "unknown")
+        warnings.append(
+            f"{feature_id}: disposition={disposition!r} requires disposition_rationale"
+        )
+
+    # Validate source_kind values
+    allowed_source_kinds = {"abiogenesis", "parent_spawn", "gap_observation"}
+    source_kind = result.get("source_kind", "parent_spawn")
+    if source_kind not in allowed_source_kinds:
+        feature_id = result.get("feature", "unknown")
+        warnings.append(
+            f"{feature_id}: source_kind={source_kind!r} not in {sorted(allowed_source_kinds)}"
+        )
+
+    return result, warnings
+
+
+def compute_project_convergence_state(vectors: list[dict]) -> dict:
+    """Compute the project convergence state from a list of feature vectors.
+
+    Implements NC-004 three-state algorithm (ADR-S-026 §4.5, gen-status §Project Convergence State).
+
+    Returns a dict with:
+    - ``state``: "ITERATING" | "QUIESCENT" | "CONVERGED" | "BOUNDED"
+    - ``iterating_count``: int
+    - ``required_vectors``: list of vectors not dispositioned as blocked_deferred or abandoned
+    - ``converged_count``: int (within required_vectors)
+    - ``blocked_no_disposition``: int
+    - ``blocked_with_disposition``: int
+    """
+    active_statuses = {"iterating", "in_progress"}
+    excluded_dispositions = {"blocked_deferred", "abandoned"}
+
+    iterating_count = sum(1 for v in vectors if v.get("status") in active_statuses)
+    required_vectors = [v for v in vectors if v.get("disposition") not in excluded_dispositions]
+    converged_count = sum(1 for v in required_vectors if v.get("status") == "converged")
+    blocked_no_disp = sum(
+        1 for v in vectors
+        if v.get("status") == "blocked" and v.get("disposition") is None
+    )
+    blocked_with_disp = sum(
+        1 for v in vectors
+        if v.get("status") == "blocked" and v.get("disposition") is not None
+    )
+
+    if iterating_count > 0:
+        state = "ITERATING"
+    elif converged_count == len(required_vectors):
+        state = "CONVERGED"
+    elif blocked_no_disp > 0:
+        state = "QUIESCENT"
+    else:
+        state = "BOUNDED"
+
+    return {
+        "state": state,
+        "iterating_count": iterating_count,
+        "required_vectors": required_vectors,
+        "converged_count": converged_count,
+        "blocked_no_disposition": blocked_no_disp,
+        "blocked_with_disposition": blocked_with_disp,
+        "total_vectors": len(vectors),
+        "total_required": len(required_vectors),
+    }

@@ -62,6 +62,7 @@ imp_{impl}/                                 # Implementation (per-platform)
 ├── profiles/               # Projection profiles (full, standard, poc, spike, hotfix, minimal)
 ├── events/                 # Append-only event log (source of truth)
 ├── intents/                # Captured intents
+├── named_compositions/     # Project-local named composition library (shadows library by {name, version})
 ├── tasks/
 │   ├── active/             # Current work items (derived view)
 │   └── finished/           # Completed task docs
@@ -204,7 +205,66 @@ No tasks yet. Start by capturing your intent.
 None yet.
 ```
 
-### Step 9: Create Intent Placeholder
+### Step 9: Create Named Compositions Directory and README (NC-006)
+
+Create `.ai-workspace/named_compositions/` directory.
+
+Write `.ai-workspace/named_compositions/README.md`:
+
+```markdown
+# Project-Local Named Compositions
+
+This directory contains project-local named compositions that shadow the library entries
+in `config/named_compositions.yml` by `{name, version}`.
+
+## Shadow Rule
+
+When the system loads compositions (`load_named_compositions()`), library entries are
+loaded first. Project-local entries with the same `{name, version}` key override them.
+Shadowing is logged as an `intent_raised` event with `gap_type: local_composition_shadow`
+to make overrides auditable.
+
+## Adding a Composition
+
+To add a project-local composition:
+
+1. Create a YAML file in this directory (e.g., `my_composition_v1.yml`)
+2. Use the schema from `config/named_compositions.yml` as a guide
+3. Run `/gen-iterate --edge "intent → named_composition"` to put the composition
+   through the REVIEW gate (single human approval)
+4. On approval, the composition becomes active immediately for this project
+
+## Promoting to Library
+
+To promote a composition to the shared library (accessible across all projects):
+
+1. Run `/gen-iterate --edge "intent → named_composition" --profile full`
+2. This invokes the CONSENSUS functor (REQ-F-CONSENSUS-001) — a multi-party quorum votes
+3. On `consensus_reached`, the composition is merged into `config/named_compositions.yml`
+   via a `spec_modified` event
+
+## File Format
+
+```yaml
+# my_composition_v1.yml
+compositions:
+  - name: MY_COMPOSITION
+    version: v1
+    scope: project-local
+    governance: review  # review | consensus
+    description: "What this composition does"
+    parameters:
+      - name: param1
+        type: string
+        required: true
+    output_type: result_type
+    body:
+      - functor: SOME_FUNCTOR
+        args: {key: value}
+```
+```
+
+### Step 10: Create Intent Placeholder
 
 #### `specification/INTENT.md`
 ```markdown
