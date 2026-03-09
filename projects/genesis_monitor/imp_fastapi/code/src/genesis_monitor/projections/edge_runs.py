@@ -1,4 +1,4 @@
-# Implements: REQ-F-ELIN-001, REQ-F-ELIN-002, REQ-F-ELIN-005
+# Implements: REQ-F-ELIN-001, REQ-F-ELIN-002, REQ-F-ELIN-005, REQ-F-EXEC-001
 """Group event stream into EdgeRun objects — one per (feature, edge) traversal.
 
 An EdgeRun is a bounded sequence of events sharing a common (feature, edge) traversal:
@@ -46,6 +46,9 @@ class EdgeRun:
     artifacts: list[str] = field(default_factory=list)  # output file paths from OL outputs[]
     evaluator_details: list[dict] = field(default_factory=list)  # raw evaluator_detail events
     raw_events: list[Event] = field(default_factory=list)
+    # ADR-009: executor attribution for this run's convergence
+    executor: str = ""   # "engine" | "claude" | "retroactive" | "unknown"
+    emission: str = ""   # "live" | "retroactive"
 
     @property
     def duration_seconds(self) -> float | None:
@@ -156,6 +159,16 @@ def build_edge_runs(events: list[Event]) -> list[EdgeRun]:
         run.status = status
         run.convergence_type = conv_type
         run.artifacts.extend(_extract_artifacts(ev))
+        # ADR-009: derive executor/emission from closing event, then fallback to raw_events
+        if ev.executor:
+            run.executor = ev.executor
+            run.emission = ev.emission
+        else:
+            for past in reversed(run.raw_events):
+                if past.executor:
+                    run.executor = past.executor
+                    run.emission = past.emission
+                    break
         open_runs[key].pop()
         if not open_runs[key]:
             del open_runs[key]

@@ -109,6 +109,41 @@
 - Interaction: arc/node click → filter bar + row de-emphasis (no page reload)
 **Feature status**: **CONVERGED** (all 4 edges: requirements, design, code, unit_tests)
 
+## Active (v3.6 — Executor Attribution)
+
+| # | Title | Status | Feature Vector | Priority |
+|---|-------|--------|----------------|----------|
+| 34 | REQ-F-EXEC-001: design_recommendations CONVERGED | completed | REQ-F-EXEC-001 | high |
+| 35 | REQ-F-EXEC-001: design (ADR-009) CONVERGED | completed | REQ-F-EXEC-001 | high |
+| 36 | REQ-F-EXEC-001: code CONVERGED | completed | REQ-F-EXEC-001 | high |
+| 37 | REQ-F-EXEC-001: unit_tests CONVERGED | completed | REQ-F-EXEC-001 | high |
+
+### REQ-F-EXEC-001: All Edges CONVERGED
+**Date**: 2026-03-09T19:15:00Z
+**Iterations**: 1 per edge (delta=0 first pass)
+**Evaluators**: 19 new tests pass (593/593 total)
+**Assets**:
+- `specification/design/EXEC_DESIGN_RECOMMENDATIONS.md` — 4 design ADRs
+- `imp_fastapi/design/adrs/ADR-009-executor-attribution.md` — implementation ADR
+- `models/events.py` — `Event.executor` + `Event.emission` fields
+- `parsers/events.py` — `_infer_executor()` — OL-format→engine, flat→claude, explicit wins
+- `projections/edge_runs.py` — `EdgeRun.executor/emission` + `_close_run()` fallback walk
+- `models/core.py` — `EdgeConvergence.executor` field
+- `projections/convergence.py` — capture executor from edge_converged event
+- `server/routes.py` — `arc_style` field in run dicts for D3
+- `templates/base.html` — CSS badge + arc classes (ADR-009)
+- `templates/fragments/_convergence.html` — Executor badge column
+- `templates/timeline.html` — executor-based dashArray + arc class + legend
+- `tests/test_executor_attribution.py` — 19 tests (4 classes)
+**Key decisions (ADR-009)**:
+- `executor`/`emission` on `Event` base class (not subtypes) — all projections access uniformly
+- Inference: `eventType` present → engine; `event_type` only → claude; explicit wins
+- Arc: CSS `stroke-dasharray` via class — solid/dashed/dotted-amber; no JS library changes
+- Badge: 4 CSS classes matching arc visual language (engine=green, claude=blue, retro=amber, unknown=grey)
+**Feature status**: **CONVERGED** (all 5 edges)
+
+---
+
 ## Dependency Graph
 
 ```

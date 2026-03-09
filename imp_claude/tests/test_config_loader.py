@@ -12,13 +12,19 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "code"))
 
 from genesis.config_loader import (
+    SIX_LEVEL_HIERARCHY,
+    build_six_level_paths,
     deep_merge,
+    generate_context_manifest,
     load_context_hierarchy,
+    load_context_sources,
+    load_six_level_context,
     load_yaml,
     merge_contexts,
     resolve_checklist,
     resolve_variable,
     resolve_variables,
+    write_context_manifest,
 )
 from genesis.models import ResolvedCheck
 
@@ -463,3 +469,255 @@ class TestRealConfigResolution:
                 and check.source != "traceability"
             ):
                 assert check.command, f"{check.name} is deterministic but has no command"
+
+
+# ── SIX_LEVEL_HIERARCHY constant ──────────────────────────────────────────
+
+
+class TestSixLevelHierarchyConstant:
+    """T-COMPLY-002: ADR-S-022 §2 — canonical 6-level sequence."""
+
+    def test_has_six_levels(self):
+        assert len(SIX_LEVEL_HIERARCHY) == 6
+
+    def test_level_order(self):
+        assert SIX_LEVEL_HIERARCHY == (
+            "methodology", "org", "policy", "domain", "prior", "project"
+        )
+
+    def test_methodology_is_first(self):
+        assert SIX_LEVEL_HIERARCHY[0] == "methodology"
+
+    def test_project_is_last(self):
+        assert SIX_LEVEL_HIERARCHY[-1] == "project"
+
+
+# ── build_six_level_paths ────────────────────────────────────────────────
+
+
+class TestBuildSixLevelPaths:
+    """T-COMPLY-002: path list builder for workspace context directories."""
+
+    def test_returns_seven_paths_by_default(self, tmp_path):
+        """6 scope dirs + 1 project_constraints.yml = 7 paths."""
+        paths = build_six_level_paths(tmp_path)
+        assert len(paths) == 7
+
+    def test_returns_six_paths_without_constraints(self, tmp_path):
+        paths = build_six_level_paths(tmp_path, include_project_constraints=False)
+        assert len(paths) == 6
+
+    def test_path_order_matches_hierarchy(self, tmp_path):
+        paths = build_six_level_paths(tmp_path, include_project_constraints=False)
+        for i, level in enumerate(SIX_LEVEL_HIERARCHY):
+            assert level in str(paths[i]), f"Level {level!r} not in path[{i}]: {paths[i]}"
+
+    def test_methodology_is_first(self, tmp_path):
+        paths = build_six_level_paths(tmp_path, include_project_constraints=False)
+        assert "methodology" in str(paths[0])
+
+    def test_project_is_last_scope(self, tmp_path):
+        paths = build_six_level_paths(tmp_path, include_project_constraints=False)
+        assert "project" in str(paths[-1])
+
+    def test_project_constraints_appended_last(self, tmp_path):
+        paths = build_six_level_paths(tmp_path)
+        assert "project_constraints.yml" in str(paths[-1])
+
+    def test_custom_filename(self, tmp_path):
+        paths = build_six_level_paths(tmp_path, filename="override.yml", include_project_constraints=False)
+        assert all("override.yml" in str(p) for p in paths)
+
+    def test_paths_inside_workspace_context(self, tmp_path):
+        paths = build_six_level_paths(tmp_path, include_project_constraints=False)
+        for p in paths:
+            assert str(p).startswith(str(tmp_path))
+            assert ".ai-workspace/context" in str(p)
+
+
+# ── load_six_level_context ────────────────────────────────────────────────
+
+
+class TestLoadSixLevelContext:
+    """T-COMPLY-002: 6-level context loads + merges correctly."""
+
+    def _write_level(self, base: pathlib.Path, level: str, data: dict) -> None:
+        scope_dir = base / ".ai-workspace" / "context" / level
+        scope_dir.mkdir(parents=True, exist_ok=True)
+        (scope_dir / "context.yml").write_text(__import__("yaml").dump(data))
+
+    def test_returns_empty_dict_when_no_files_exist(self, tmp_path):
+        result = load_six_level_context(tmp_path)
+        assert result == {}
+
+    def test_methodology_is_lowest_priority(self, tmp_path):
+        self._write_level(tmp_path, "methodology", {"threshold": 0.50})
+        self._write_level(tmp_path, "project", {"threshold": 0.95})
+        result = load_six_level_context(tmp_path)
+        assert result["threshold"] == 0.95
+
+    def test_project_overrides_all_earlier_levels(self, tmp_path):
+        for level in ("methodology", "org", "policy", "domain", "prior"):
+            self._write_level(tmp_path, level, {"owner": level})
+        self._write_level(tmp_path, "project", {"owner": "project"})
+        result = load_six_level_context(tmp_path)
+        assert result["owner"] == "project"
+
+    def test_deep_merge_across_six_levels(self, tmp_path):
+        self._write_level(tmp_path, "methodology", {"tools": {"runner": {"command": "pytest"}}})
+        self._write_level(tmp_path, "org", {"tools": {"linter": {"command": "ruff"}}})
+        self._write_level(tmp_path, "project", {"tools": {"runner": {"args": "-v"}}})
+        result = load_six_level_context(tmp_path)
+        assert result["tools"]["runner"]["command"] == "pytest"   # from methodology
+        assert result["tools"]["runner"]["args"] == "-v"          # from project
+        assert result["tools"]["linter"]["command"] == "ruff"     # from org
+
+    def test_missing_levels_silently_skipped(self, tmp_path):
+        # Only write methodology and project
+        self._write_level(tmp_path, "methodology", {"base": True})
+        self._write_level(tmp_path, "project", {"local": True})
+        result = load_six_level_context(tmp_path)
+        assert result["base"] is True
+        assert result["local"] is True
+
+    def test_prior_level_overrides_domain(self, tmp_path):
+        self._write_level(tmp_path, "domain", {"db_version": "pg14"})
+        self._write_level(tmp_path, "prior", {"db_version": "pg15"})
+        result = load_six_level_context(tmp_path)
+        assert result["db_version"] == "pg15"
+
+    def test_project_constraints_yml_overrides_project_scope(self, tmp_path):
+        """Legacy project_constraints.yml is the final override layer."""
+        self._write_level(tmp_path, "project", {"coverage": 0.80})
+        constraints_path = tmp_path / ".ai-workspace" / "context" / "project_constraints.yml"
+        constraints_path.write_text(__import__("yaml").dump({"coverage": 0.95}))
+        result = load_six_level_context(tmp_path)
+        assert result["coverage"] == 0.95
+
+    def test_old_four_level_comment_replaced(self):
+        """T-COMPLY-002: verify the old 4-level hierarchy comment is gone from config_loader."""
+        import pathlib
+        src = pathlib.Path(__file__).parent.parent / "code" / "genesis" / "config_loader.py"
+        text = src.read_text()
+        assert "global → organisation → team → project" not in text, (
+            "Old 4-level hierarchy comment must be replaced with 6-level (ADR-S-022)"
+        )
+
+
+# ── generate_context_manifest ─────────────────────────────────────────────
+
+
+class TestGenerateContextManifest:
+    """T-COMPLY-002: SHA-256 manifest for static lineage reproducibility."""
+
+    def _write_file(self, path: pathlib.Path, content: str) -> pathlib.Path:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+        return path
+
+    def test_present_files_have_sha256(self, tmp_path):
+        f = self._write_file(tmp_path / "a.yml", "key: value\n")
+        manifest = generate_context_manifest([f])
+        assert str(f) in manifest["files"]
+        assert manifest["files"][str(f)] is not None
+        assert len(manifest["files"][str(f)]) == 64  # hex sha256
+
+    def test_missing_files_have_null_hash(self, tmp_path):
+        missing = tmp_path / "nonexistent.yml"
+        manifest = generate_context_manifest([missing])
+        assert manifest["files"][str(missing)] is None
+
+    def test_aggregate_hash_is_deterministic(self, tmp_path):
+        f = self._write_file(tmp_path / "ctx.yml", "x: 1\n")
+        m1 = generate_context_manifest([f])
+        m2 = generate_context_manifest([f])
+        assert m1["aggregate_hash"] == m2["aggregate_hash"]
+
+    def test_aggregate_hash_changes_on_content_change(self, tmp_path):
+        f = tmp_path / "ctx.yml"
+        f.write_text("x: 1\n")
+        m1 = generate_context_manifest([f])
+        f.write_text("x: 2\n")
+        m2 = generate_context_manifest([f])
+        assert m1["aggregate_hash"] != m2["aggregate_hash"]
+
+    def test_aggregate_hash_prefixed_sha256(self, tmp_path):
+        f = self._write_file(tmp_path / "ctx.yml", "y: 42\n")
+        manifest = generate_context_manifest([f])
+        assert manifest["aggregate_hash"].startswith("sha256:")
+
+    def test_file_count_includes_missing(self, tmp_path):
+        present = self._write_file(tmp_path / "a.yml", "a: 1\n")
+        missing = tmp_path / "b.yml"
+        manifest = generate_context_manifest([present, missing])
+        assert manifest["file_count"] == 2
+
+    def test_present_count_excludes_missing(self, tmp_path):
+        present = self._write_file(tmp_path / "a.yml", "a: 1\n")
+        missing = tmp_path / "b.yml"
+        manifest = generate_context_manifest([present, missing])
+        assert manifest["present_count"] == 1
+
+    def test_empty_list_produces_zero_counts(self):
+        manifest = generate_context_manifest([])
+        assert manifest["file_count"] == 0
+        assert manifest["present_count"] == 0
+        assert "sha256:" in manifest["aggregate_hash"]
+
+
+# ── write_context_manifest ────────────────────────────────────────────────
+
+
+class TestWriteContextManifest:
+
+    def test_writes_yaml_file(self, tmp_path):
+        manifest = {"files": {}, "aggregate_hash": "sha256:abc", "file_count": 0, "present_count": 0}
+        out = tmp_path / "context_manifest.yml"
+        write_context_manifest(manifest, out)
+        assert out.exists()
+
+    def test_creates_parent_dirs(self, tmp_path):
+        manifest = {"files": {}, "aggregate_hash": "sha256:abc", "file_count": 0, "present_count": 0}
+        out = tmp_path / "deep" / "nested" / "context_manifest.yml"
+        write_context_manifest(manifest, out)
+        assert out.exists()
+
+    def test_written_content_is_readable_yaml(self, tmp_path):
+        import yaml as _yaml
+        manifest = {"aggregate_hash": "sha256:xyz", "file_count": 1, "present_count": 1, "files": {"f.yml": "abc"}}
+        out = tmp_path / "manifest.yml"
+        write_context_manifest(manifest, out)
+        loaded = _yaml.safe_load(out.read_text())
+        assert loaded["aggregate_hash"] == "sha256:xyz"
+        assert loaded["file_count"] == 1
+
+
+# ── load_context_sources ──────────────────────────────────────────────────
+
+
+class TestLoadContextSources:
+
+    def test_returns_empty_list_when_no_context_sources(self, tmp_path):
+        vector = {"feature": "REQ-F-001"}
+        assert load_context_sources(vector, tmp_path) == []
+
+    def test_resolves_relative_paths(self, tmp_path):
+        vector = {"context_sources": ["context/domain/context.yml"]}
+        paths = load_context_sources(vector, tmp_path)
+        assert len(paths) == 1
+        assert paths[0] == tmp_path / "context/domain/context.yml"
+
+    def test_multiple_sources(self, tmp_path):
+        vector = {"context_sources": ["a.yml", "b/c.yml"]}
+        paths = load_context_sources(vector, tmp_path)
+        assert len(paths) == 2
+
+    def test_non_string_entries_skipped(self, tmp_path):
+        vector = {"context_sources": ["valid.yml", 42, None]}
+        paths = load_context_sources(vector, tmp_path)
+        assert len(paths) == 1
+
+    def test_returned_paths_are_absolute(self, tmp_path):
+        vector = {"context_sources": ["ctx/domain.yml"]}
+        paths = load_context_sources(vector, tmp_path)
+        assert paths[0].is_absolute()

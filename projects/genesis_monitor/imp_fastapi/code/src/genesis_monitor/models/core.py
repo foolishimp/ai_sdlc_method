@@ -146,6 +146,8 @@ class EdgeConvergence:
     convergence_type: str = ""
     delta_curve: list[int] = field(default_factory=list)
     hamiltonian: int = 0  # H = T + V (iterations + last_delta) — iteration cost
+    # ADR-009: executor attribution
+    executor: str = ""   # "engine" | "claude" | "retroactive" | "unknown"
 
 
 @dataclass

@@ -23,9 +23,9 @@ T-COMPLY-008 (actor dispatch)   ✅ DONE — gen-iterate.md: manifest scan + MCP
 ### 1.1 Tasks (post-1.0)
 
 ```
-T-COMPLY-002 (context)          ←── 6-level hierarchy (REQ-CTX-002 spec updated 2026-03-07; implement in config_loader.py)
+T-COMPLY-002 (context)          ✅ DONE — 6-level hierarchy (methodology→org→policy→domain→prior→project), SIX_LEVEL_HIERARCHY constant, build_six_level_paths(), load_six_level_context(), generate_context_manifest(), write_context_manifest(), load_context_sources(), installer lineage dirs, 36 new tests (2026-03-09)
 T-COMPLY-003 (instance graph)   ✅ DONE — profile-coverage derivation + spawn_created child node, 5 tests (2026-03-09)
-T-COMPLY-004 (FPC audit)        ←── design-tier tag audit only (no shared spec changes)
+T-COMPLY-004 (FPC audit)        ✅ DONE — ADR-019/023/024 design-tier header added, REQ keys verified, REQ-F-ROBUST-001 status confirmed converged (2026-03-09)
 T-COMPLY-006 (H-metric)         ✅ DONE — compute_hamiltonian() + InstanceNode.hamiltonian + gen-status H column (2026-03-09)
 ```
 

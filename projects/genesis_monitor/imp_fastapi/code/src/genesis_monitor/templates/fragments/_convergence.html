@@ -9,6 +9,7 @@
             <th>Iterations</th>
             {% if has_delta %}<th>Delta <span class="help-hover" data-tooltip="Sum of failing checks across evaluators (0 = converged)">?</span></th>{% endif %}
             <th>Features</th>
+            <th>Executor <span class="help-hover" data-tooltip="Which execution path produced convergence: engine (F_D), claude (F_P), retroactive (debt filled), unknown">?</span></th>
             {% if convergence[0].duration %}<th>Duration</th>{% endif %}
         </tr>
     </thead>
@@ -34,6 +35,10 @@
                 {% else %}—{% endif %}
             </td>{% endif %}
             <td>{{ c.evaluator_summary }}</td>
+            <td>
+                {% set exec_val = c.executor if c.executor else 'unknown' %}
+                <span class="badge badge-executor-{{ exec_val }}">{{ exec_val }}</span>
+            </td>
             {% if convergence[0].duration %}<td>{{ c.duration or '—' }}</td>{% endif %}
         </tr>
         {% endfor %}

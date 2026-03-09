@@ -1,6 +1,7 @@
 # Implements: REQ-F-EVSCHEMA-001, REQ-F-SENSE-001, REQ-F-SENSE-002, REQ-F-SENSE-003
 # Implements: REQ-F-MAGT-001, REQ-F-MAGT-002, REQ-F-MAGT-003
 # Implements: REQ-F-ETIM-001, REQ-F-FUNC-001, REQ-F-IENG-001
+# Implements: REQ-F-EXEC-001
 """Typed event hierarchy for v2.5/v2.8 event sourcing."""
 
 from dataclasses import dataclass, field
@@ -15,6 +16,10 @@ class Event:
     event_type: str = ""
     project: str = ""
     data: dict = field(default_factory=dict)
+    # ADR-009: executor attribution — "engine" | "claude" | "retroactive" | "unknown"
+    executor: str = ""
+    # ADR-009: emission mode — "live" | "retroactive"
+    emission: str = ""
 
 
 @dataclass

@@ -1,4 +1,5 @@
 # Implements: REQ-ROBUST-001 (Actor Isolation), REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ITER-001 (Universal Iteration)
+# Design ADRs: ADR-019 (F_D-only evaluation path — skipped=True is valid mode, not degraded), ADR-023 (no subprocess / no claude -p), ADR-024 (recursive actor model — fold-back file is the transport contract)
 """ADR-024 F_P functor — invoke actor via MCP with constrained Intent.
 
 MCP unavailable → return StepResult(skipped=True). F_D-only mode, not an error.

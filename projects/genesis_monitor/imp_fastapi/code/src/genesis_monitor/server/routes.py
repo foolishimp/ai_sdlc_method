@@ -744,10 +744,18 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
             if new_sev > cur_sev:
                 feature_status[run.feature] = run.status if run.status != "aborted" else "failed"
 
+        # ADR-009: executor → arc CSS class mapping
+        _executor_arc_style = {
+            "engine": "arc-engine",
+            "claude": "arc-claude",
+            "retroactive": "arc-retroactive",
+        }
+
         # Build run objects for D3
         run_dicts = []
         for run in runs:
             src, tgt = _parse_edge_nodes(run.edge or "")
+            arc_style = _executor_arc_style.get(run.executor or "", "arc-engine")
             run_dicts.append({
                 "run_id": run.run_id,
                 "feature": run.feature or "",
@@ -761,6 +769,9 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
                 "ended_at": run.ended_at.isoformat() if run.ended_at else None,
                 "duration_seconds": run.duration_seconds,
                 "colour_index": colour_idx.get(run.feature or "", 0),
+                "executor": run.executor or "unknown",
+                "emission": run.emission or "live",
+                "arc_style": arc_style,
             })
 
         # Feature summary sorted: in_progress first, failed, converged, then by ID

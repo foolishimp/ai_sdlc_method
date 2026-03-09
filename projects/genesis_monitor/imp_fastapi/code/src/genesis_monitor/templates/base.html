@@ -31,6 +31,15 @@
         .badge-converged { background: rgba(76, 175, 80, 0.15); color: #4caf50; }
         .badge-in-progress { background: rgba(255, 152, 0, 0.15); color: #ff9800; }
         .badge-not-started { background: rgba(153, 153, 153, 0.15); color: #999; }
+        /* ADR-009: executor attribution badges */
+        .badge-executor-engine { background: rgba(76, 175, 80, 0.15); color: #388e3c; }
+        .badge-executor-claude { background: rgba(33, 150, 243, 0.15); color: #1565c0; }
+        .badge-executor-retroactive { background: rgba(255, 160, 0, 0.15); color: #e65100; }
+        .badge-executor-unknown { background: rgba(153, 153, 153, 0.15); color: #757575; }
+        /* ADR-009: D3 arc styles (applied as CSS classes on SVG path elements) */
+        .arc-engine { stroke-dasharray: none; }
+        .arc-claude { stroke-dasharray: 8 4; }
+        .arc-retroactive { stroke-dasharray: 2 4; stroke: #e65100 !important; }
 
         /* v2.9 Formal Transactions */
         .human-tag { color: #2196f3; background: rgba(33, 150, 243, 0.1); padding: 2px 4px; border-radius: 3px; }

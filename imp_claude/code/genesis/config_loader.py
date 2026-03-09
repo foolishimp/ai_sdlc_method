@@ -29,10 +29,12 @@ def load_yaml(path: pathlib.Path) -> dict:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# CONTEXT HIERARCHY — REQ-CTX-002
+# CONTEXT HIERARCHY — REQ-CTX-002 (ADR-S-022)
 # ═══════════════════════════════════════════════════════════════════════
-# Levels: global → organisation → team → project
+# 6-level lineage DAG (lowest → highest priority):
+#   methodology → org → policy → domain → prior → project
 # Later contexts override earlier; objects are deep-merged, scalars replaced.
+# See ADR-S-022 §2 for canonical sequence definition.
 
 
 def deep_merge(base: dict, override: dict) -> dict:
@@ -71,8 +73,11 @@ def load_context_hierarchy(
     Files are merged left-to-right (first file = lowest priority, last = highest).
     Missing files are silently skipped unless ``stop_on_missing=True``.
 
+    The canonical 6-level order is: methodology → org → policy → domain → prior → project
+    Use :func:`build_six_level_paths` to build the path list for a workspace.
+
     Args:
-        context_files: Ordered list of paths: [global, org, team, project, ...]
+        context_files: Ordered list of paths (lowest → highest priority)
         stop_on_missing: If True, raise FileNotFoundError for missing files.
 
     Returns:
@@ -86,6 +91,168 @@ def load_context_hierarchy(
             continue
         contexts.append(load_yaml(path))
     return merge_contexts(*contexts)
+
+
+# Canonical 6-level hierarchy names (ADR-S-022 §2)
+SIX_LEVEL_HIERARCHY: tuple[str, ...] = (
+    "methodology",
+    "org",
+    "policy",
+    "domain",
+    "prior",
+    "project",
+)
+
+
+def build_six_level_paths(
+    workspace_root: pathlib.Path,
+    *,
+    context_dir: str = ".ai-workspace/context",
+    filename: str = "context.yml",
+    include_project_constraints: bool = True,
+) -> list[pathlib.Path]:
+    """Build the canonical 6-level path list for a workspace.
+
+    Returns paths in merge order (methodology=lowest, project=highest):
+        {workspace_root}/{context_dir}/{level}/{filename}
+
+    If ``include_project_constraints=True`` (default), the legacy
+    ``project_constraints.yml`` is appended as a final override — this
+    ensures backwards compatibility with existing workspaces.
+
+    Args:
+        workspace_root: Project root directory.
+        context_dir: Relative path to the context directory (default: ``.ai-workspace/context``).
+        filename: Context file name within each scope directory (default: ``context.yml``).
+        include_project_constraints: Whether to append ``project_constraints.yml`` as top-level override.
+
+    Returns:
+        Ordered list of paths — methodology first, project last.
+    """
+    base = workspace_root / context_dir
+    paths = [base / level / filename for level in SIX_LEVEL_HIERARCHY]
+    if include_project_constraints:
+        paths.append(base / "project_constraints.yml")
+    return paths
+
+
+def load_six_level_context(
+    workspace_root: pathlib.Path,
+    *,
+    context_dir: str = ".ai-workspace/context",
+    filename: str = "context.yml",
+    include_project_constraints: bool = True,
+    stop_on_missing: bool = False,
+) -> dict:
+    """Load and merge the 6-level context hierarchy for a workspace.
+
+    Convenience wrapper around :func:`build_six_level_paths` +
+    :func:`load_context_hierarchy`.  All 6 scope directories are probed;
+    missing files are silently skipped (override ``stop_on_missing`` to change).
+
+    Returns:
+        Deep-merged context dict (methodology=lowest priority, project=highest).
+    """
+    paths = build_six_level_paths(
+        workspace_root,
+        context_dir=context_dir,
+        filename=filename,
+        include_project_constraints=include_project_constraints,
+    )
+    return load_context_hierarchy(paths, stop_on_missing=stop_on_missing)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTEXT MANIFEST — ADR-S-022 §2 (Reproducibility / Static Lineage)
+# ═══════════════════════════════════════════════════════════════════════
+
+import hashlib
+
+
+def _sha256_file(path: pathlib.Path) -> str:
+    """Return the hex SHA-256 digest of a file's contents."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def generate_context_manifest(
+    context_files: list[pathlib.Path],
+) -> dict[str, Any]:
+    """Generate a context manifest for reproducibility (ADR-S-022 §2).
+
+    Scans the provided paths, hashes each existing file, then computes an
+    aggregate hash over the sorted ``{path: sha256}`` mapping.
+
+    Args:
+        context_files: The context paths that were (or should be) loaded.
+            Missing files are recorded as ``null`` hash.
+
+    Returns:
+        Dict with keys:
+        - ``files``: ``{relative_or_absolute_str: sha256_hex | null}``
+        - ``aggregate_hash``: sha256 of sorted ``path:hash`` pairs (present files only)
+        - ``file_count``: total paths in the manifest
+        - ``present_count``: number of files actually found
+    """
+    file_entries: dict[str, Optional[str]] = {}
+    for path in sorted(context_files, key=str):
+        if path.exists():
+            file_entries[str(path)] = _sha256_file(path)
+        else:
+            file_entries[str(path)] = None
+
+    # Aggregate hash: sha256 of all present entries joined as "path:hash\n"
+    present_pairs = sorted(
+        f"{p}:{h}" for p, h in file_entries.items() if h is not None
+    )
+    agg = hashlib.sha256("\n".join(present_pairs).encode()).hexdigest()
+
+    return {
+        "files": file_entries,
+        "aggregate_hash": f"sha256:{agg}",
+        "file_count": len(file_entries),
+        "present_count": sum(1 for h in file_entries.values() if h is not None),
+    }
+
+
+def write_context_manifest(
+    manifest: dict[str, Any],
+    output_path: pathlib.Path,
+) -> None:
+    """Write a context manifest dict to a YAML file.
+
+    Creates parent directories if they do not exist.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
+        yaml.dump(manifest, f, default_flow_style=False, sort_keys=True)
+
+
+def load_context_sources(
+    feature_vector: dict[str, Any],
+    workspace_root: pathlib.Path,
+) -> list[pathlib.Path]:
+    """Resolve additional context paths declared in a feature vector's ``context_sources`` field.
+
+    The ``context_sources`` field is a list of relative paths (relative to
+    ``workspace_root``) or scope references like ``"context/domain/context.yml"``.
+    Unresolvable entries are silently skipped.
+
+    Returns:
+        List of resolved absolute paths (existing or not — caller decides how to handle missing).
+    """
+    sources = feature_vector.get("context_sources", [])
+    if not sources:
+        return []
+    resolved = []
+    for src in sources:
+        if isinstance(src, str):
+            p = workspace_root / src
+            resolved.append(p)
+    return resolved
 
 
 def resolve_variable(ref: str, constraints: dict) -> Optional[str]:

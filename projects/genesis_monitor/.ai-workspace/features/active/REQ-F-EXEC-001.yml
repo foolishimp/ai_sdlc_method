@@ -2,7 +2,7 @@ feature: REQ-F-EXEC-001
 title: "Executor Attribution & Observability Debt Visibility"
 profile: standard
 vector_type: feature
-status: in_progress
+status: converged
 
 intent: |
   Make the genesis_monitor visually communicate WHICH execution path (engine F_D,
@@ -67,16 +67,75 @@ trajectory:
     notes: "Pending human approval of feature plan and deferred scope rationale"
 
   design_recommendations:
-    status: pending
+    status: converged
+    iteration: 1
+    converged_at: "2026-03-09T18:10:00Z"
+    asset: "specification/design/EXEC_DESIGN_RECOMMENDATIONS.md"
+    evaluators:
+      passed: 8
+      failed: 0
+      skipped: 0
+      total: 8
+      details:
+        - name: all_adrs_have_rationale
+          type: agent
+          result: pass
+          required: true
+        - name: technology_bindings_explicit
+          type: agent
+          result: pass
+          required: true
+        - name: inference_rules_deterministic
+          type: agent
+          result: pass
+          required: true
+        - name: build_order_respects_dag
+          type: deterministic
+          result: pass
+          required: true
+        - name: no_new_external_dependencies
+          type: agent
+          result: pass
+          required: true
+        - name: css_only_arc_styling
+          type: agent
+          result: pass
+          required: true
+        - name: badge_visual_language_consistent
+          type: agent
+          result: pass
+          required: true
+        - name: source_findings_documented
+          type: agent
+          result: pass
+          required: true
+    delta: 0
 
   design:
-    status: pending
+    status: converged
+    iteration: 1
+    converged_at: "2026-03-09T18:20:00Z"
+    asset: "imp_fastapi/design/adrs/ADR-009-executor-attribution.md"
+    delta: 0
 
   code:
-    status: pending
+    status: converged
+    iteration: 1
+    converged_at: "2026-03-09T19:00:00Z"
+    asset: "imp_fastapi/code/src/genesis_monitor/"
+    delta: 0
+    notes: "EXEC-001: Event.executor/emission + inference; EXEC-002: arc_style in graph data + D3 styling + legend; EXEC-003: EdgeConvergence.executor + convergence table badge"
 
   unit_tests:
-    status: pending
+    status: converged
+    iteration: 1
+    converged_at: "2026-03-09T19:15:00Z"
+    asset: "imp_fastapi/tests/test_executor_attribution.py"
+    evaluators:
+      passed: 19
+      failed: 0
+      total: 19
+    delta: 0
 
 encoding:
   active_units: 3

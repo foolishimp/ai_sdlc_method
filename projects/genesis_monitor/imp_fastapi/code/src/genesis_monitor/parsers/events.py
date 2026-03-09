@@ -1,4 +1,4 @@
-# Implements: REQ-F-PARSE-004, REQ-F-EVSCHEMA-001, REQ-F-IENG-001
+# Implements: REQ-F-PARSE-004, REQ-F-EVSCHEMA-001, REQ-F-IENG-001, REQ-F-EXEC-001
 """Parse .ai-workspace/events/events.jsonl into typed Event models using OpenLineage v2 schema."""
 
 import dataclasses
@@ -139,7 +139,9 @@ def _parse_one(data: dict) -> Event:
                 nested_data.get("reason") or orig.get("reason") or ""
             )
 
-    return cls(**typed_kwargs)
+    ev = cls(**typed_kwargs)
+    _infer_executor(ev, data, is_ol=True)
+    return ev
 
 
 def _parse_flat(data: dict) -> Event:
@@ -187,7 +189,22 @@ def _parse_flat(data: dict) -> Event:
         elif f.name in nested:
             typed_kwargs[f.name] = nested[f.name]
 
-    return cls(**typed_kwargs)
+    ev = cls(**typed_kwargs)
+    _infer_executor(ev, data, is_ol=False)
+    return ev
+
+
+def _infer_executor(ev: "Event", raw: dict, *, is_ol: bool) -> None:
+    """ADR-009: Set executor and emission on the event via inference rules.
+
+    Explicit fields in raw data always win. Inference fires only when fields are absent.
+    """
+    # Explicit values take precedence
+    explicit_executor = raw.get("executor", "") or raw.get("data", {}).get("executor", "") if isinstance(raw.get("data"), dict) else raw.get("executor", "")
+    explicit_emission = raw.get("emission", "") or raw.get("data", {}).get("emission", "") if isinstance(raw.get("data"), dict) else raw.get("emission", "")
+
+    ev.executor = explicit_executor if explicit_executor else ("engine" if is_ol else "claude")
+    ev.emission = explicit_emission if explicit_emission else "live"
 
 
 def _parse_timestamp(ts: str) -> datetime:

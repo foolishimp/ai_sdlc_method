@@ -453,6 +453,8 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
     ws = target / ".ai-workspace"
 
     # Directory structure
+    # Context lineage directories (ADR-S-022 §2): methodology → org → policy → domain → prior → project
+    _lineage_levels = ("methodology", "org", "policy", "domain", "prior", "project")
     dirs = [
         ws / "events",
         ws / "features" / "active",
@@ -462,6 +464,8 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
         ws / "tasks" / "active",
         ws / "tasks" / "finished",
         ws / "agents",
+        # 6-level lineage context scopes
+        *[ws / "context" / level for level in _lineage_levels],
     ]
 
     for d in dirs:
@@ -521,6 +525,7 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
                     "method_version": VERSION,
                     "installer": "gen-setup.py",
                     "workspace_structure": "v2",
+                    "lineage_levels": list(_lineage_levels),  # ADR-S-022 §2 provenance
                 },
             }
             with open(events_file, "a") as f:

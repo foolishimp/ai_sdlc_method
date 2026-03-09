@@ -142,6 +142,27 @@
     </div>
 </div>
 
+<!-- ADR-009: Executor attribution arc legend -->
+<div style="margin-top:0.5rem;padding:0.5rem 0.75rem;border:1px solid var(--pico-muted-border-color);border-radius:6px;display:inline-flex;gap:1.25rem;align-items:center;font-size:0.75rem;">
+    <span style="color:var(--pico-muted-color);font-weight:bold;">Arc style:</span>
+    <span style="display:inline-flex;align-items:center;gap:5px;">
+        <svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="#4caf50" stroke-width="2"/></svg>
+        engine (F_D)
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:5px;">
+        <svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="#1565c0" stroke-width="2" stroke-dasharray="8 4"/></svg>
+        claude (F_P)
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:5px;">
+        <svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="#e65100" stroke-width="2" stroke-dasharray="2 4"/></svg>
+        retroactive
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:5px;">
+        <svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="#999" stroke-width="2"/></svg>
+        unknown
+    </span>
+</div>
+
 <script>
 (function () {
     "use strict";
@@ -273,20 +294,34 @@
                 const opacity = (tMax === tMin) ? 0.75
                     : 0.3 + 0.7 * ((t - tMin) / (tMax - tMin));
 
+                // ADR-009: executor attribution styling
+                // Status-based overrides take precedence for in_progress/failed arcs
                 let dashArray = "none";
                 let animStyle = "";
+                let strokeOverride = null;
                 if (run.status === "in_progress") {
                     dashArray = "8,4";
                     animStyle = "animation:dash-flow 0.8s linear infinite;";
                 } else if (run.status === "failed" || run.status === "aborted") {
                     dashArray = "3,3";
+                } else if (run.status === "converged") {
+                    // Executor-based styling for converged arcs
+                    const exec = run.executor || "unknown";
+                    if (exec === "claude") {
+                        dashArray = "8,4";
+                    } else if (exec === "retroactive") {
+                        dashArray = "2,4";
+                        strokeOverride = "#e65100";
+                    }
+                    // engine / unknown → dashArray stays "none" (solid)
                 }
 
+                const arcClass = "arc arc-" + run.status + (run.arc_style ? " " + run.arc_style : "");
                 const path = zoomG.append("path")
-                    .attr("class", "arc arc-" + run.status)
+                    .attr("class", arcClass)
                     .attr("d", d)
                     .attr("fill", "none")
-                    .attr("stroke", colour)
+                    .attr("stroke", strokeOverride || colour)
                     .attr("stroke-width", weight)
                     .attr("stroke-opacity", opacity)
                     .attr("stroke-dasharray", dashArray)
@@ -298,7 +333,8 @@
                     (run.feature || "—") + "\n" + (run.edge || "—") +
                     "\nIterations: " + run.iteration_count +
                     "  Δ: " + (run.final_delta !== null ? run.final_delta : "—") +
-                    "  " + run.status
+                    "  " + run.status +
+                    "\nExecutor: " + (run.executor || "unknown")
                 );
 
                 path.on("click", function (event) {

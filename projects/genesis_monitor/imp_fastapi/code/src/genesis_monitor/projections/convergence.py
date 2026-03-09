@@ -1,4 +1,4 @@
-# Implements: REQ-F-DASH-003
+# Implements: REQ-F-DASH-003, REQ-F-EXEC-001, REQ-F-EXEC-003
 """Build convergence table from events (edge_started, iteration_completed, edge_converged)."""
 
 from __future__ import annotations
@@ -27,6 +27,7 @@ def build_convergence_table_from_events(events: list[Event]) -> list[EdgeConverg
         "features": set(),
         "convergence_type": "",
         "delta_curve": [],
+        "executor": "",
     })
 
     for e in events:
@@ -65,6 +66,9 @@ def build_convergence_table_from_events(events: list[Event]) -> list[EdgeConverg
                 state["convergence_type"] = conv_type
             if feature:
                 state["features"].add(feature)
+            # ADR-009: capture executor attribution from the converging event
+            if e.executor:
+                state["executor"] = e.executor
 
     # Build rows sorted by first appearance order
     rows: list[EdgeConvergence] = []
@@ -97,6 +101,7 @@ def build_convergence_table_from_events(events: list[Event]) -> list[EdgeConverg
             convergence_type=state["convergence_type"],
             delta_curve=state["delta_curve"],
             hamiltonian=hamiltonian,
+            executor=state["executor"],
         ))
 
     return rows
