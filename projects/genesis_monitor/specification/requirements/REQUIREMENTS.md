@@ -1,8 +1,8 @@
 # Genesis Monitor — Requirements Specification
 
-**Version**: 3.3.0
-**Date**: 2026-03-08
-**Status**: Iterating — iterate(intent→requirements) for INT-GMON-010 (graph trail visualization)
+**Version**: 3.5.0
+**Date**: 2026-03-10
+**Status**: Converged — v3.5 spec backfill (§34–38: CQRS, STATUS, NAV-005/006, ADR parser, CONSENSUS)
 **Feature**: REQ-F-GMON-001, REQ-F-GMON-002, REQ-F-MTEN-001
 **Source Asset**: docs/specification/INTENT.md v3.0.0 (5 intent items, 32 outcomes)
 **Methodology**: AI SDLC Asset Graph Model v2.8
@@ -37,6 +37,11 @@ Genesis Monitor is a real-time web dashboard that observes AI SDLC methodology e
 | REQ-F-CONSC-* | INT-GMON-004 (Consciousness loop) |
 | REQ-F-CDIM-* | INT-GMON-004 (Constraint dimensions) |
 | REQ-F-PROF-* | INT-GMON-004 (Projection profiles) |
+| REQ-F-CQRS-* | INT-GMON-006 (CQRS workspace hierarchy — §34) |
+| REQ-F-STATUS-* | INT-GMON-006 (STATUS.md panel — §35) |
+| REQ-F-NAV-005/006 | INT-GMON-001/009 (Navigation extensions — §36) |
+| REQ-F-PARSE-007 | INT-GMON-006 (ADR parser — §37) |
+| REQ-F-CONSENSUS-* | INT-GMON-006 (CONSENSUS reviews panel — §38) |
 | REQ-F-VREL-* | INT-GMON-004 (Vector relationships) |
 | REQ-F-TBOX-* | INT-GMON-004 (Time-boxing) |
 | REQ-F-EVSCHEMA-* | INT-GMON-004 (Structured events) |
@@ -1435,12 +1440,174 @@ The project dashboard MUST surface a summary of outstanding and resolved observa
 
 ---
 
+## 34. CQRS Workspace Hierarchy (v3.3 — GMON-005)
+
+The monitor MUST discover and display hierarchical relationships between workspaces (parent/child nesting) to support cross-workspace rollup and drill-down navigation.
+
+### REQ-F-CQRS-001: Workspace Hierarchy Detection
+
+**Priority**: High
+**Traces To**: INT-GMON-006 (one-stop observability)
+
+The scanner MUST detect parent/child relationships between discovered project paths by checking filesystem nesting — a workspace whose root path is nested under another workspace's root path is a direct child if no intermediate workspace root exists between them.
+
+**Acceptance Criteria**:
+- AC-1: `build_workspace_hierarchy(roots: list[Path]) → dict[Path, list[Path]]` function implemented
+- AC-2: A path nested directly under another is registered as a child (grandchildren not included in direct children)
+- AC-3: Sibling paths with no nesting share no parent/child relationship
+- AC-4: A workspace with no children maps to an empty list
+
+### REQ-F-CQRS-002: Workspace Hierarchy Registry Linking
+
+**Priority**: High
+**Traces To**: INT-GMON-006
+
+The registry MUST link parent and child workspace entries after scanning, enabling navigation in both directions (parent knows its children; child knows its parent).
+
+**Acceptance Criteria**:
+- AC-1: `link_workspace_hierarchy(hierarchy, registry)` populates `project.child_workspace_ids` for every parent
+- AC-2: `project.parent_workspace_id` is set on every child entry
+- AC-3: The root registry entry (no parent) has `parent_workspace_id = None`
+
+### REQ-F-CQRS-003: Child Workspace Summary Model
+
+**Priority**: Medium
+**Traces To**: INT-GMON-006
+
+A `ChildWorkspaceSummary` data model MUST capture the key display fields for each child workspace in a rollup panel.
+
+**Acceptance Criteria**:
+- AC-1: Model fields: `project_id`, `name`, `path`, `converged_count`, `event_count`, `last_event_at`
+- AC-2: `converged_count` computed from child's feature vectors at point of rendering
+- AC-3: Model is serialisable to the fragment template without additional queries
+
+### REQ-F-CQRS-004: Workspace Hierarchy Fragment Route
+
+**Priority**: High
+**Traces To**: INT-GMON-006
+
+The server MUST expose a fragment route that renders the child workspace listing as an HTMX-loadable HTML panel within the parent project view.
+
+**Acceptance Criteria**:
+- AC-1: `GET /fragments/project/{project_id}/workspace-hierarchy` returns 200 for a known project
+- AC-2: Response lists all direct child workspaces with name, path, converged count, and a link to the child project page
+- AC-3: If the project has no children, an empty panel is returned (not an error)
+- AC-4: Panel is embedded in the project detail page via HTMX `hx-get`
+
+---
+
+## 35. STATUS.md Panel (v3.3 — GMON-006)
+
+The monitor MUST render the project's `STATUS.md` file as a live panel within the project view, supporting Gantt chart display and phase completion tables with SSE auto-refresh.
+
+### REQ-F-STATUS-001: STATUS.md Fragment Route
+
+**Priority**: High
+**Traces To**: INT-GMON-006 (one-stop observability)
+
+The server MUST expose a fragment route that parses and renders `STATUS.md` as an HTML panel.
+
+**Acceptance Criteria**:
+- AC-1: `GET /fragments/project/{project_id}/status` returns 200 for a known project
+- AC-2: Response includes content parsed from `.ai-workspace/STATUS.md`
+- AC-3: Returns 200 with empty body if `STATUS.md` does not exist (graceful absence)
+- AC-4: Route accepts `?t=` and `?design=` parameters consistent with other fragment routes
+
+### REQ-F-STATUS-002: STATUS.md Rendered Content
+
+**Priority**: High
+**Traces To**: INT-GMON-006
+
+The STATUS panel MUST render the Mermaid Gantt chart and phase completion table extracted from `STATUS.md`.
+
+**Acceptance Criteria**:
+- AC-1: Mermaid fenced code block from STATUS.md is included in the response for client-side rendering
+- AC-2: Phase completion table (converged / in-progress / pending / blocked counts by phase) is shown
+- AC-3: Panel auto-refreshes via SSE trigger (`hx-trigger="sse:project_update"`)
+- AC-4: Content degrades gracefully if STATUS.md lacks the expected sections
+
+---
+
+## 36. Navigation Extensions (v3.0/v3.3)
+
+Extensions to the base navigation UI beyond the temporal scrubber (REQ-F-NAV-001/003/007).
+
+### REQ-F-NAV-005: Global Project Selector
+
+**Priority**: High
+**Traces To**: INT-GMON-001 (multi-project navigation)
+
+The base layout MUST provide a persistent project selector dropdown in the navigation bar that allows switching between all discovered projects without returning to the home page.
+
+**Acceptance Criteria**:
+- AC-1: Project selector rendered in `base.html` navigation for every page
+- AC-2: Selecting a project navigates to `/project/{project_id}`
+- AC-3: The current project is highlighted as the active selection
+- AC-4: Selector is populated from the registry at page render time (no client-side fetch required)
+
+### REQ-F-NAV-006: Design Tenant Selector in Navigation
+
+**Priority**: Medium
+**Traces To**: INT-GMON-009 (multi-tenant filter, extends REQ-F-MTEN-001)
+
+The base layout MUST provide a design tenant selector in the navigation bar that propagates the `?design=` filter across all fragment loads via HTMX config.
+
+**Acceptance Criteria**:
+- AC-1: Design tenant selector rendered in `base.html` for project detail pages
+- AC-2: Selecting a tenant sets `?design=` on all subsequent HTMX fragment requests via `htmx:configRequest`
+- AC-3: Selector shows all known tenants derived from the event log `.project` field values
+- AC-4: "All tenants" option clears the `?design=` filter (merged view)
+
+---
+
+## 37. ADR Parser (v3.3)
+
+### REQ-F-PARSE-007: Specification ADR Parser
+
+**Priority**: Medium
+**Traces To**: INT-GMON-006 (one-stop observability — ADR register panel)
+
+The system MUST parse Architecture Decision Records (ADRs) from `specification/adrs/ADR-S-*.md` files and expose them as structured data for display in the project ADR register panel.
+
+**Acceptance Criteria**:
+- AC-1: `parse_adrs(project_root) → list[AdrEntry]` function implemented
+- AC-2: `AdrEntry` fields: `id` (e.g., "ADR-S-001"), `title`, `status`, `date`, `path`
+- AC-3: Status values parsed from frontmatter or first-level heading: `accepted`, `proposed`, `draft`, `deprecated`, `superseded`, `retired`
+- AC-4: ADRs sorted by ID ascending
+- AC-5: Malformed or unreadable ADR files are skipped with a warning log (no exception raised)
+
+---
+
+## 38. Consensus Reviews Panel (v3.3)
+
+### REQ-F-CONSENSUS-001: CONSENSUS Session Parsing and Display
+
+**Priority**: Medium
+**Traces To**: INT-GMON-006 (one-stop observability)
+
+The system MUST parse CONSENSUS review sessions from the event log and render them as a panel in the project view showing session state, participants, votes, and gating comments.
+
+**Acceptance Criteria**:
+- AC-1: `parse_reviews(events) → list[ReviewSession]` implemented; session state derived from events filtered by `event.review_id`
+- AC-2: `ReviewSession` captures: `review_id`, `status` (open/closed/failed), `participants`, `votes`, `comments`, `gating_comments`
+- AC-3: A gating comment blocks consensus until explicitly dispositioned — `ReviewComment.gating=True` and `ReviewComment.disposition=None` marks the session as blocked
+- AC-4: Panel renders at `/fragments/project/{project_id}/consensus` as an HTMX fragment
+- AC-5: Sessions with no events produce an empty panel (not an error)
+- AC-6: No session files required — the event log is the sole source of truth (ADR-S-025 observer binding)
+
+---
+
 ## 33. Requirements Summary
 
 **Total REQ-F-GVIZ keys**: 5 (REQ-F-GVIZ-001 through REQ-F-GVIZ-005)
 **Total REQ-F-TSER keys**: 4 (REQ-F-TSER-001 through REQ-F-TSER-004)
 **Total REQ-F-EXEC keys**: 4 (REQ-F-EXEC-001 through REQ-F-EXEC-004)
+**Total REQ-F-CQRS keys**: 4 (REQ-F-CQRS-001 through REQ-F-CQRS-004) — §34
+**Total REQ-F-STATUS keys**: 2 (REQ-F-STATUS-001 through REQ-F-STATUS-002) — §35
+**Total REQ-F-NAV-005/006 keys**: 2 — §36
+**Total REQ-F-PARSE-007 keys**: 1 — §37
+**Total REQ-F-CONSENSUS keys**: 1 (REQ-F-CONSENSUS-001) — §38
 **All graph visualization requirements**: INT-GMON-010
 **All lifecycle time series requirements**: INT-GMON-011
 **All executor attribution requirements**: INT-GMON-001 (observability)
-**Iteration**: v3.4 — executor attribution and observability debt visibility
+**Iteration**: v3.5 — spec backfill for GMON-005/006, NAV, ADR parser, CONSENSUS panel

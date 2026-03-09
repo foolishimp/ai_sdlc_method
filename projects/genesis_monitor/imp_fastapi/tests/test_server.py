@@ -1,7 +1,7 @@
 # Validates: REQ-F-DASH-001, REQ-F-DASH-002, REQ-F-STREAM-001, REQ-F-STREAM-002, REQ-NFR-001, REQ-NFR-002
-# Validates: REQ-F-MTEN-001
-# Validates: REQ-F-MTEN-002
-# Validates: REQ-F-MTEN-003
+# Validates: REQ-F-MTEN-001, REQ-F-MTEN-002, REQ-F-MTEN-003
+# Validates: REQ-F-STATUS-001, REQ-F-STATUS-002
+# Validates: REQ-F-NAV-005, REQ-F-NAV-006
 """UAT / integration tests for the FastAPI server.
 
 Tests the full request/response cycle including:

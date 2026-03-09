@@ -1,4 +1,5 @@
 # Validates: REQ-F-DASH-001, REQ-F-DASH-002, REQ-NFR-001
+# Validates: REQ-F-PARSE-007, REQ-F-CONSENSUS-001
 """
 Playwright screenshot tests for Genesis Monitor UI.
 

@@ -1,10 +1,14 @@
 # Active Tasks — ai_sdlc_method
 
-*Updated: 2026-03-09*
+*Updated: 2026-03-10*
 
 ---
 
-## Overriding Goal: Shippable 1.0 via GCC Bootstrap Model
+## Overriding Goal: Shippable 3.0-beta via GCC Bootstrap Model
+
+Genesis is the GCC of AI-augmented software. The installer IS CI/CD (deploys Genesis
+to any project). events.jsonl + genesis_monitor IS production telemetry (Genesis
+observes itself). CONSENSUS exercises the full evaluator triad (F_D + F_P + F_H).
 
 Each internal release uses the methodology on itself to build the next version.
 Dogfooding is not a test — it is the build process.
@@ -14,10 +18,25 @@ Dogfooding is not a test — it is the build process.
 | Version | Gate | Done when | Status |
 |---------|------|-----------|--------|
 | **v0.1** | Dogfooding enabled | Interactive agent path works; can iterate on own codebase using the methodology | ✅ **RELEASED** |
-| **v0.2** | Engine-core correctness (Claude tenant) | T-001 + T-005 + T-007 + T-008: OL events, runId threading, F_P fold-back contract — deterministic evaluation path correct. Human gate (REQ-EVAL-003) and full MVP assurance deferred to v1.0. | ✅ **RELEASED** |
+| **v0.2** | Engine-core correctness (Claude tenant) | T-001 + T-005 + T-007 + T-008: OL events, runId threading, F_P fold-back contract | ✅ **RELEASED** |
 | **v0.3** | Observability verified | genesis_monitor correctly parses and displays a v0.2 methodology run end-to-end | ✅ **RELEASED** (2026-03-09) |
 | **v0.4** | Ecosystem verified | Methodology applied to an external project; converges and all tests pass | ✅ **RELEASED** (2026-03-09) |
-| **v1.0** | Assurance | v0.3 + v0.4 both green — product-level confidence, not just unit test confidence | ✅ **RELEASED** (2026-03-09) |
+| **v1.0** | Assurance | v0.3 + v0.4 both green — product-level confidence | ✅ **RELEASED** (2026-03-09) |
+| **v2.10.0** | Asset Graph Model formalisation | 339 commits: Bootloader, OL events, CONSENSUS, genesis_monitor, multi-tenant parity, executor attribution, 1967 tests | ✅ **RELEASED** (2026-03-10) |
+| **v3.0.0-beta.1** | MVP complete | F_P actor dispatch (MCP round-trip) e2e validated — engine can autonomously construct, not just evaluate | 🔴 **IN PROGRESS** |
+
+### MVP Feature Set (v3.0.0-beta.1 gate)
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Spec + Graph topology | ADR-S-001..031, 86 REQ keys, 10-node graph | ✅ done |
+| Installer (= CI/CD) | gen-setup.py deploys Genesis to any project | ✅ done |
+| Commands (interactive) | 13 /gen-* commands, interactive F_P path | ✅ done |
+| Engine — F_D path | Deterministic evaluation, OL events, runId causation | ✅ done |
+| Genesis Monitor (= telemetry) | Full observability stack, executor attribution | ✅ done |
+| CONSENSUS (F_H gate) | Full evaluator triad — design APPROVED 2026-03-10 | ✅ done |
+| **Engine — F_P path** | **Actor dispatch via MCP round-trip, fold-back** | 🔴 **THE GAP** |
+| E2E validated | All e2e tests pass (downstream of F_P) | 🔴 blocked on F_P |
 
 ### Current state
 
