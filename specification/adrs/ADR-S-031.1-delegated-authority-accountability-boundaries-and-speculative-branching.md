@@ -5,6 +5,7 @@
 **Scope**: Specification-level — extends ADR-S-031 (Supervisor Pattern, Event Sourcing, and Choreographed Saga)
 **Extends**: ADR-S-031
 **Cross-references**: ADR-S-015 §Decision table, ADR-S-030.1 (immutable lineage)
+**Revised**: 2026-03-09 — four findings from Codex review addressed (accountability boundary predicate, Decision 2 completeness, Decision 7 over-specification, CONSENSUS/compensation miscategorisation)
 
 ---
 
@@ -15,7 +16,7 @@ The vocabulary inherited from mutable workflow systems conflates three distinct 
 | Situation | What actually happens | What people say |
 |-----------|----------------------|-----------------|
 | Agent crashes mid-iteration | Return to the last committed state; no history is erased | "rollback" |
-| CONSENSUS saga fails (quorum not reached) | Forward recovery via `consensus_failed` + compensation path | "rollback" |
+| CONSENSUS saga fails (quorum not reached) | Terminal failure resolution with typed recovery paths | "rollback" |
 | Feature vector abandoned mid-trajectory | Head moves to prior anchor; abandoned branch retained in lineage | "rollback" |
 
 These are not the same operation. They have different recovery models, different observability requirements, and different implications for what the accountability record looks like afterward.
@@ -59,11 +60,23 @@ F_H retains accountability throughout. Delegated authority does not transfer acc
 
 ### `accountability boundary`
 
-The most recent event in the log that represents a state the human principal has positively ratified — explicitly or by non-objection — and which the system may safely return to as its operative ground truth.
+The most recent event in the log that represents a state the human principal has positively ratified — explicitly or by non-objection — within the current causal scope, and which has not been causally superseded.
 
-**Machine-checkable definition**: The most recent event of type `COMPLETE` (ADR-S-015) or `edge_converged` for the current feature+edge that either (a) the human principal explicitly approved via a corresponding `vote_cast` or `consensus_reached` event, or (b) was emitted without a subsequent `intent_raised` or `consensus_requested` contest from the same principal within the session.
+**Machine-checkable definition**: The most recent event of one of the following types, scoped to the current causation/correlation chain (same `run_id`, `review_id`, or feature+edge session key):
 
-Implementations find the accountability boundary by reading `events.jsonl` in reverse from the current event and returning the first event matching this definition. The boundary is always machine-checkable from the event log alone.
+- `COMPLETE` (ADR-S-015) — committed edge traversal
+- `edge_converged` — stable asset produced
+- `consensus_reached` — governance saga ratified (valid boundary at review edges)
+
+Such an event constitutes the accountability boundary unless it has been **causally superseded** by a later event that explicitly contests, reopens, or replaces it within the same causal scope. Causal supersession requires one of:
+
+- An `intent_raised` event that references this specific event as contested (via `prior_event_ref` or equivalent causation field)
+- A `consensus_requested` event that explicitly reopens a prior ratified state (e.g., `prior_review_id` field)
+- A child-authoritative branch selection that designates a different branch as the new active head
+
+A later `intent_raised` for unrelated new work in the same session does **not** supersede a prior accountability boundary. The predicate is causal, not temporal. New work coexisting with a ratified state does not retroactively un-ratify it.
+
+Implementations find the accountability boundary by reading `events.jsonl` filtered to the current causal scope, walking in reverse, and returning the first event matching the above types that has not been causally superseded.
 
 ### `irreversibility boundary`
 
@@ -95,7 +108,9 @@ Forward recovery after an external or otherwise irreversible commitment has been
 
 Compensation is not undoing. The payment was sent; compensation is recording that the payment was sent, describing the partial state, and prescribing what forward moves restore the system to a consistent state (refund request, ledger correction, notification). Compensation always moves forward — it never pretends a committed external effect did not happen.
 
-Compare to re-anchoring (below): re-anchoring is possible before an irreversibility boundary; compensation is required after.
+Compensation applies only after an irreversibility boundary has been crossed. Before that boundary, recovery is re-anchoring (Decision 5), not compensation. A saga that fails before any external commitment does not require compensation — it requires re-anchoring or typed terminal failure resolution.
+
+Compare: re-anchoring is possible before an irreversibility boundary; compensation is required only after.
 
 ---
 
@@ -109,16 +124,17 @@ Implementations must not treat mandate acceptance as accountability transfer.
 
 ### Decision 2 — Relays continue until a declared boundary condition
 
-Autonomous relays operate within delegated authority until they encounter a declared boundary condition. A declared boundary condition is one of:
+Autonomous relays operate within delegated authority until they encounter a declared boundary condition. The complete set of boundary condition classes is:
 
-1. An irreversibility boundary (as defined above — external commit)
-2. A non-compensable external action that requires explicit F_H approval (policy-sensitive boundary)
-3. A `project_constraints.yml` constraint explicitly flagging a class of actions as requiring live approval
-4. A feature vector configuration naming specific event patterns as boundary triggers
+1. **Terminal completion** — the mandate is fulfilled; the relay has reached its declared done-done state. Terminal completion is itself a boundary condition; the relay stops because the work is finished, not because it hit a constraint.
+2. **Irreversibility boundary** — an external commit is about to occur (as defined above). The relay must check whether it holds standing policy authority before proceeding.
+3. **Policy-sensitive boundary declared in Context[]** — a class of actions flagged in the standing context as requiring live F_H approval. Context[] is the authoritative source; see Decision 7.
+4. **Graph/edge/composition-declared live-approval boundary** — some approval gates are intrinsic to the workflow shape: an edge or dispatched composition declares that a specific step requires live F_H approval regardless of context policy. These boundaries are declared in the graph topology or composition spec, not in project policy.
+5. **Implementation-local event trigger** — a tenant-specific event pattern that the relay's configuration registers as a pause/escalation trigger.
 
-Implementations must provide at least one of these mechanisms. Relays that proceed indefinitely without any boundary condition violate this decision.
+Implementations must ensure every relay has at least one applicable boundary condition from this set. A relay that proceeds indefinitely without encountering any of these conditions violates this decision.
 
-**Example**: A payment relay operating under delegated authority continues autonomously through validation, routing selection, and fee calculation. The declared boundary condition is the external payment API call. Before that call, the relay has delegated authority. At that call, it must check: does F_H's standing delegated policy authority (Decision 7) cover this payment class and amount? If yes: proceed and record. If no: pause and emit `intent_raised` requesting live approval.
+**Example**: A payment relay operating under delegated authority continues autonomously through validation, routing selection, and fee calculation (no boundary conditions triggered). The irreversibility boundary condition fires at the external payment API call. The relay checks Context[] for standing policy authority covering this payment class and amount. If found: proceeds and records the policy reference. If not: pauses and emits `intent_raised` requesting live approval.
 
 ### Decision 3 — Speculative branching is allowed before an irreversibility boundary
 
@@ -134,7 +150,7 @@ Implementations must not delete events from abandoned branches. The system chang
 
 ### Decision 5 — Recovery before irreversible commitment is re-anchoring, not history rewrite
 
-When a relay or saga fails before an irreversibility boundary has been crossed, recovery is **re-anchoring to the last accountability boundary**. The relay returns to the most recent `COMPLETE` or `edge_converged` event that constitutes the accountability boundary (as defined above), treats it as the operative ground state, and may proceed from there.
+When a relay or saga fails before an irreversibility boundary has been crossed, recovery is **re-anchoring to the last accountability boundary**. The relay returns to the most recent event constituting the accountability boundary (as defined above), treats it as the operative ground state, and may proceed from there.
 
 Re-anchoring is not history rewrite. The failed attempt remains in the event log. The system's active head moves back to the accountability boundary; the failed branch becomes an abandoned branch (retained, non-authoritative).
 
@@ -148,12 +164,15 @@ The term "rollback" must not be used for this operation. Use **compensate** or *
 
 ### Decision 7 — Non-compensable or policy-sensitive external boundaries require F_H approval or standing delegated policy authority
 
-Actions that cross a non-compensable boundary (where the external effect cannot be compensated after the fact) or a policy-sensitive boundary (where the action class requires explicit principal approval per policy) require one of:
+Actions that cross a non-compensable boundary or a policy-sensitive boundary require one of:
 
 1. **Live F_H approval**: `intent_raised` event emitted, relay pauses, F_H issues `vote_cast` or equivalent approval event, relay resumes.
-2. **Standing delegated policy authority**: F_H has pre-approved this class of action for this relay. Standing policy authority is declared in `project_constraints.yml` as a named policy block specifying: action class, scope conditions (amount range, environment, actor ID), and expiry. A relay that finds its pending action within a valid standing policy block may proceed without live approval — but must record the policy reference in the event it emits.
+2. **Standing delegated policy authority**: F_H has pre-approved this class of action. Standing policy authority must satisfy three invariants:
+   - It lives in Context[] — the relay's standing context at the time of execution, not a side channel
+   - It is auditable — the policy source and version are identifiable from Context[]
+   - The emitted event references the specific policy basis used, so the authorization is traceable in the event log
 
-The mechanism for standing delegated policy authority is `project_constraints.yml` per this decision. Implementations that require a different mechanism (signed event, external policy service) must document the departure in a tenant-level ADR and preserve the same accountability contract: the policy reference must be auditable in the event log.
+Tenant implementations bind this to a concrete mechanism: `project_constraints.yml` policy block, a signed policy event, an external policy service, or other. That binding is a tenant-level decision documented in the implementation's own ADRs. The spec invariants above (in Context[], auditable, referenced in emitted event) apply to all bindings.
 
 ---
 
@@ -164,10 +183,13 @@ Across all Genesis implementations, the following replacements apply at saga sco
 | Situation | Prohibited term | Correct term |
 |-----------|----------------|-------------|
 | Agent crashes mid-iteration; returning to last committed state | "rollback" | **re-anchor** to the last accountability boundary |
-| CONSENSUS saga fails; quorum not reached | "rollback" | **compensation** via `consensus_failed` + recovery path |
+| CONSENSUS saga fails; quorum not reached | "rollback" | **terminal failure resolution** — typed outcome, recovery paths available |
+| External commitment made; subsequent steps fail | "rollback" | **compensation** — forward recovery after irreversibility boundary |
 | Feature vector abandoned mid-trajectory | "rollback" | **branch abandonment** — lineage retained, head moves |
 
 "Rollback" remains acceptable vocabulary within ADR-S-015's edge-local transaction scope (`FAIL` / `ABORT` events at a single `iterate()` invocation). That is the intended scope of the term. At saga scope — multi-step, multi-relay workflows — the terms above apply.
+
+**Note on CONSENSUS**: `consensus_failed` is a typed terminal failure resolution event, not a compensation event. It occurs before any irreversibility boundary in the normal governance saga. The recovery paths available after `consensus_failed` (re_open, narrow_scope, abandon — per ADR-S-025) are forward moves in a governance saga, not compensation for an external commit. Compensation applies only where an irreversibility boundary has been crossed. See ADR-S-025 for the full CONSENSUS recovery model.
 
 ---
 
@@ -181,7 +203,7 @@ ADR-S-015 §Decision table currently reads:
 
 That row remains correct for edge-local scope. The following note is added after the decision table:
 
-> At saga scope, the term "rollback" is not used. Recovery before an irreversibility boundary is **re-anchoring** to the last accountability boundary. Recovery after an external commitment is **compensation**. Abandoned speculative branches are retained in immutable lineage — the event log is never rewritten. See ADR-S-031.1.
+> At saga scope, the term "rollback" is not used. Recovery before an irreversibility boundary is **re-anchoring** to the last accountability boundary. Recovery after an external commitment is **compensation**. Saga terminal failures (such as `consensus_failed`) are typed terminal failure resolutions, not rollbacks. Abandoned speculative branches are retained in immutable lineage — the event log is never rewritten. See ADR-S-031.1.
 
 ---
 
@@ -203,13 +225,13 @@ The motivating example walked through using the new vocabulary.
 - Relay selects Provider B — branch decision, two speculative branches existed, one is now abandoned (retained in log, non-authoritative)
 - Relay calculates final fee — internal computation
 
-At this point: everything is re-anchorable. If the relay crashes, recovery re-anchors to the last `COMPLETE` event for this edge. No compensation needed.
+At this point: everything is re-anchorable. If the relay crashes, recovery re-anchors to the last `COMPLETE` event for this edge within this causal scope. No compensation needed.
 
 **At payment dispatch (irreversibility boundary)**:
-- Relay checks standing delegated policy authority in `project_constraints.yml`: `payment_class: standard, max_amount: 10000` — within scope
+- Relay checks Context[] for standing delegated policy authority: payment class `standard`, amount within pre-approved scope, policy reference recorded
 - Relay calls external payment API — this crosses the irreversibility boundary
 - External system confirms: `payment_id: PAY-20260309-001`
-- Relay emits `COMPLETE` event with `payment_id` in facet data
+- Relay emits `COMPLETE` event with `payment_id` and policy reference in facet data
 
 **After payment confirmation (compensation territory)**:
 - Relay attempts ledger update — internal
@@ -229,5 +251,5 @@ The three phases use three distinct vocabulary sets. No "rollback" appears at an
 | ADR-S-031 | Parent — this ADR extends the supervisory vocabulary defined there |
 | ADR-S-015 | Cross-reference — adds note after §Decision table; does not modify the table |
 | ADR-S-030.1 | Consistent — "abandoned branch" aligns with immutable lineage; no conflict |
-| ADR-S-025 (CONSENSUS Functor) | CONSENSUS saga recovery (`consensus_failed` + paths) is compensation, not rollback — this ADR normalises that vocabulary |
+| ADR-S-025 (CONSENSUS Functor) | `consensus_failed` is typed terminal failure resolution, not compensation — CONSENSUS sagas typically complete before any irreversibility boundary |
 | ADR-S-012 (Event Stream as Formal Model) | Immutability of the event log is a prerequisite for re-anchoring and branch abandonment semantics |
