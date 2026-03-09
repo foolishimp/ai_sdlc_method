@@ -149,6 +149,17 @@ class EdgeConvergence:
 
 
 @dataclass
+class ChildWorkspaceSummary:
+    """Summary of a child workspace for display in the parent project view (GMON-005)."""
+    project_id: str = ""
+    name: str = ""
+    path: Path = field(default_factory=Path)
+    event_count: int = 0
+    feature_count: int = 0
+    converged_count: int = 0
+
+
+@dataclass
 class Project:
     project_id: str = ""
     path: Path = field(default_factory=Path)
@@ -165,6 +176,9 @@ class Project:
     index: EventIndex | None = None  # ADR-004: built at load time, queried per request
     adrs: list[AdrEntry] = field(default_factory=list)
     reviews: list["ReviewSession"] = field(default_factory=list)
+    # CQRS workspace hierarchy (GMON-005)
+    parent_workspace_id: str | None = None
+    child_workspace_ids: list[str] = field(default_factory=list)
 
 
 @dataclass

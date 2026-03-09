@@ -4,7 +4,7 @@
 # Implements: REQ-F-ELIN-001, REQ-F-ELIN-002, REQ-F-ELIN-003, REQ-F-FLIN-001, REQ-F-FLIN-002
 # Implements: REQ-F-GVIZ-001, REQ-F-GVIZ-002, REQ-F-GVIZ-003, REQ-F-GVIZ-004, REQ-F-GVIZ-005
 # Implements: REQ-F-TSER-001, REQ-F-TSER-002, REQ-F-TSER-003, REQ-F-TSER-004
-# Implements: REQ-F-CONSENSUS-001
+# Implements: REQ-F-CONSENSUS-001, REQ-F-CQRS-004
 """FastAPI route definitions — page routes, fragment routes, SSE endpoint."""
 
 from __future__ import annotations
@@ -39,6 +39,7 @@ from genesis_monitor.projections.temporal import (
 )
 from genesis_monitor.projections.traceability import build_traceability_view
 from genesis_monitor.index import EventIndex
+from genesis_monitor.models import ChildWorkspaceSummary
 
 if TYPE_CHECKING:
     from genesis_monitor.registry import ProjectRegistry
@@ -235,6 +236,36 @@ def create_router(registry: ProjectRegistry, broadcaster: SSEBroadcaster) -> API
             request,
             "fragments/_status_panel.html",
             {"status_report": status_report, "current_time": datetime.now().strftime("%H:%M:%S")},
+        )
+
+    # Implements: REQ-F-CQRS-004 (GMON-005)
+    @router.get("/fragments/project/{project_id}/workspace-hierarchy", response_class=HTMLResponse)
+    async def fragment_workspace_hierarchy(request: Request, project_id: str):
+        """Render child workspace listing with event counts and links (GMON-005)."""
+        project = registry.get_project(project_id)
+        if not project:
+            return HTMLResponse("")
+        children: list[ChildWorkspaceSummary] = []
+        for child_id in project.child_workspace_ids:
+            child = registry.get_project(child_id)
+            if not child:
+                continue
+            converged_count = sum(
+                1 for f in child.features
+                if getattr(f, "status", "") == "converged"
+            )
+            children.append(ChildWorkspaceSummary(
+                project_id=child.project_id,
+                name=child.name,
+                path=child.path,
+                event_count=len(child.events),
+                feature_count=len(child.features),
+                converged_count=converged_count,
+            ))
+        return request.app.state.templates.TemplateResponse(
+            request,
+            "fragments/_workspace_hierarchy.html",
+            {"children": children, "parent_id": project.parent_workspace_id},
         )
 
     @router.get("/fragments/tree", response_class=HTMLResponse)

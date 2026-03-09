@@ -3,6 +3,7 @@
 from genesis_monitor.models.core import (
     AppConfig,
     AssetType,
+    ChildWorkspaceSummary,
     EdgeConvergence,
     EdgeTrajectory,
     FeatureVector,
@@ -52,6 +53,7 @@ __all__ = [
     # core
     "AppConfig",
     "AssetType",
+    "ChildWorkspaceSummary",
     "EdgeConvergence",
     "EdgeTrajectory",
     "FeatureVector",

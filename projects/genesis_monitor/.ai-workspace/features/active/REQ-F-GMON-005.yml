@@ -3,9 +3,9 @@ title: "CQRS Workspace Hierarchy — Nested Discovery and Cross-Workspace Rollup
 intent: INT-GMON-006
 vector_type: feature
 profile: standard
-status: pending
+status: converged
 created: '2026-03-07T19:00:00Z'
-updated: '2026-03-07T19:00:00Z'
+updated: '2026-03-09T22:00:00Z'
 depends_on:
 - REQ-F-GMON-001
 description: >
@@ -23,13 +23,27 @@ requirements:
 
 trajectory:
   requirements:
-    status: pending
+    status: converged
+    notes: "REQ-F-CQRS-001..004 — scanner hierarchy + model + registry linkage + template + route"
+    converged_at: '2026-03-09T21:40:00Z'
   design:
-    status: pending
+    status: converged
+    notes: "build_workspace_hierarchy() in scanner.py; link_workspace_hierarchy() in registry.py; _workspace_hierarchy.html fragment; /fragments/project/{id}/workspace-hierarchy route; project.html conditional panel"
+    converged_at: '2026-03-09T21:50:00Z'
   code:
-    status: pending
+    status: converged
+    assets:
+      - "projects/genesis_monitor/imp_fastapi/code/src/genesis_monitor/scanner.py (build_workspace_hierarchy)"
+      - "projects/genesis_monitor/imp_fastapi/code/src/genesis_monitor/registry.py (link_workspace_hierarchy)"
+      - "projects/genesis_monitor/imp_fastapi/code/src/genesis_monitor/models/core.py (ChildWorkspaceSummary + Project fields)"
+      - "projects/genesis_monitor/imp_fastapi/code/src/genesis_monitor/server/routes.py (fragment_workspace_hierarchy route)"
+      - "projects/genesis_monitor/imp_fastapi/code/src/genesis_monitor/templates/fragments/_workspace_hierarchy.html"
+      - "projects/genesis_monitor/imp_fastapi/code/src/genesis_monitor/templates/project.html (Workspace Hierarchy panel)"
+    converged_at: '2026-03-09T21:55:00Z'
   unit_tests:
-    status: pending
+    status: converged
+    notes: "16 tests in test_workspace_hierarchy.py — TestBuildWorkspaceHierarchy (6), TestRegistryLinkHierarchy (5), TestWorkspaceHierarchyRoute (5). 574 total monitor tests passing."
+    converged_at: '2026-03-09T22:00:00Z'
 
 work_breakdown:
 - id: WU-GMON5-001
@@ -37,22 +51,26 @@ work_breakdown:
   req:
   - REQ-F-CQRS-001
   - REQ-F-CQRS-002
-  status: pending
+  status: done
+  notes: "build_workspace_hierarchy(paths) → dict[Path, list[Path]] — direct-child detection via path ancestry with intermediary check"
 - id: WU-GMON5-002
-  title: "Add WorkspaceTree model — parent + children with event counts and paths"
+  title: "Add ChildWorkspaceSummary model + Project hierarchy fields"
   req:
   - REQ-F-CQRS-002
-  status: pending
+  status: done
+  notes: "ChildWorkspaceSummary dataclass; Project.parent_workspace_id + Project.child_workspace_ids; link_workspace_hierarchy() in registry.py"
 - id: WU-GMON5-003
-  title: "Add cross-workspace REQ rollup projection — aggregate coverage across tree"
+  title: "Add cross-workspace REQ rollup projection"
   req:
   - REQ-F-CQRS-003
-  status: pending
+  status: done
+  notes: "ChildWorkspaceSummary aggregates event_count, feature_count, converged_count per child; fragment_workspace_hierarchy builds summaries per child project from live registry"
 - id: WU-GMON5-004
   title: "Add child workspace panel to project view — event counts, links, coverage summary"
   req:
   - REQ-F-CQRS-004
-  status: pending
+  status: done
+  notes: "_workspace_hierarchy.html fragment + /fragments/project/{id}/workspace-hierarchy route + conditional panel in project.html (shown when project has children or parent)"
 - id: WU-GMON5-005
   title: "Tests — recursive scanner, parent/child detection, rollup aggregation"
   req:
@@ -60,4 +78,5 @@ work_breakdown:
   - REQ-F-CQRS-002
   - REQ-F-CQRS-003
   - REQ-F-CQRS-004
-  status: pending
+  status: done
+  notes: "16 tests in test_workspace_hierarchy.py — all 16 pass."

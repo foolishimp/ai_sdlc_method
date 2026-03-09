@@ -1,0 +1,43 @@
+{# Implements: REQ-F-CQRS-004 — child workspace listing panel #}
+{% if children %}
+<table>
+  <thead>
+    <tr>
+      <th>Workspace</th>
+      <th style="text-align:right;">Events</th>
+      <th style="text-align:right;">Features</th>
+      <th style="text-align:right;">Converged</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for child in children %}
+    <tr>
+      <td>
+        <a href="/project/{{ child.project_id }}">{{ child.name }}</a>
+        <small style="color:var(--pico-muted-color); font-size:0.8em; display:block;">{{ child.path }}</small>
+      </td>
+      <td style="text-align:right;">{{ child.event_count }}</td>
+      <td style="text-align:right;">{{ child.feature_count }}</td>
+      <td style="text-align:right;">
+        {% if child.feature_count > 0 %}
+          {{ child.converged_count }}/{{ child.feature_count }}
+        {% else %}
+          —
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if parent_id %}
+<p style="font-size:0.85em; color:var(--pico-muted-color); margin-top:0.5rem;">
+  Parent workspace: <a href="/project/{{ parent_id }}">{{ parent_id }}</a>
+</p>
+{% endif %}
+{% elif parent_id %}
+<p style="color:var(--pico-muted-color); font-size:0.9em;">
+  No child workspaces. Parent: <a href="/project/{{ parent_id }}">{{ parent_id }}</a>
+</p>
+{% else %}
+<p style="color:var(--pico-muted-color); font-size:0.9em;">No nested workspaces discovered.</p>
+{% endif %}

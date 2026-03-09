@@ -1,4 +1,4 @@
-# Implements: REQ-F-DISC-002
+# Implements: REQ-F-DISC-002, REQ-F-CQRS-002
 """In-memory project registry — thread-safe store of discovered projects."""
 
 import re
@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from genesis_monitor.models import Project
+from genesis_monitor.scanner import build_workspace_hierarchy
 from genesis_monitor.parsers import (
     detect_bootloader,
     parse_adrs,
@@ -107,3 +108,41 @@ class ProjectRegistry:
                 except ValueError:
                     continue
         return None
+
+    def link_workspace_hierarchy(self) -> None:
+        """Set parent_workspace_id and child_workspace_ids on all projects (GMON-005).
+
+        A workspace B is a direct child of A if B.path is nested under A.path
+        with no other registered project in between.  Calls build_workspace_hierarchy()
+        from scanner.py and writes the relationships back into the in-memory projects.
+        """
+        with self._lock:
+            projects = list(self._projects.values())
+
+        if not projects:
+            return
+
+        paths = [p.path for p in projects]
+        hierarchy = build_workspace_hierarchy(paths)  # parent_path → [child_path, ...]
+
+        # Build a reverse lookup: path → project_id
+        path_to_id: dict[Path, str] = {p.path.resolve(): p.project_id for p in projects}
+
+        for project in projects:
+            resolved = project.path.resolve()
+            child_paths = hierarchy.get(resolved, [])
+            child_ids = [path_to_id[cp] for cp in child_paths if cp in path_to_id]
+
+            # Find the parent (a project whose children include this one)
+            parent_id: str | None = None
+            for candidate in projects:
+                cres = candidate.path.resolve()
+                if resolved in [cp for cp in hierarchy.get(cres, [])]:
+                    parent_id = candidate.project_id
+                    break
+
+            with self._lock:
+                pid = project.project_id
+                if pid in self._projects:
+                    self._projects[pid].child_workspace_ids = sorted(child_ids)
+                    self._projects[pid].parent_workspace_id = parent_id

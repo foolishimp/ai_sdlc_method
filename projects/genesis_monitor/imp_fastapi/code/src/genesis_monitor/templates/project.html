@@ -382,4 +382,17 @@
         {% include "fragments/_consciousness.html" %}
     </div>
 </div>
+
+<!-- Workspace Hierarchy (GMON-005 — CQRS nested workspaces) -->
+{% if project.child_workspace_ids or project.parent_workspace_id %}
+<div class="card">
+    <h3>Workspace Hierarchy <small style="font-weight: normal; color: var(--pico-muted-color);">nested .ai-workspace/ discovery</small></h3>
+    <div id="workspace-hierarchy-section"
+         hx-get="/fragments/project/{{ project.project_id }}/workspace-hierarchy"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <p style="color:var(--pico-muted-color);font-size:0.85em;">Loading workspace hierarchy…</p>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
