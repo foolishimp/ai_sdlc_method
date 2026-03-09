@@ -114,6 +114,63 @@ checklist:
     source: traceability
     required: true
 
+  # ─── Architectural invariants (ADR-S-031 §Orchestrator Smell) ────────
+
+  - name: "thin_emitter_pattern"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Commands that open sagas (gen-consensus-open and equivalents) must be thin emitters:
+      - Emit one opening event, then stop
+      - No agent invocation inside the command implementation
+      - No inline quorum/convergence check
+      - No loop monitoring for downstream events
+      If a command does any of these, it is an orchestrator — flag as BLOCKER.
+    source: default
+    required: false
+    applies_to: "saga-opening commands"
+
+  - name: "circuit_breaker_before_act"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Relay agents (observer relays, vote relays) must implement a circuit-breaker
+      before any action:
+      1. Confirm the triggering event exists for the session ID
+      2. Confirm the session is open (no terminal event)
+      3. Confirm self is in the session roster
+      Only then proceed to evaluate and emit. Missing any check is a BLOCKER.
+    source: default
+    required: false
+    applies_to: "relay agents"
+
+  - name: "quorum_check_separation"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Quorum evaluation (calling consensus_engine.evaluate_quorum or equivalent)
+      must appear only in the dedicated quorum observer — not in:
+      - Saga-opening commands (gen-consensus-open)
+      - Vote relay commands (gen-vote)
+      - Any F_H relay
+      If quorum logic appears outside the quorum observer, flag as BLOCKER.
+    source: default
+    required: false
+    applies_to: "consensus implementation"
+
+  - name: "canonical_event_names"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      All emitted events use canonical names per ADR-S-025 §Event Taxonomy:
+      - consensus_requested (not proposal_published)
+      - asset_version_published (not asset_version_changed)
+      - vote_cast, comment_received, consensus_reached, consensus_failed, recovery_path_selected unchanged
+      Flag use of deprecated names as BLOCKER.
+    source: default
+    required: false
+    applies_to: "consensus implementation"
+
 convergence:
   rule: "all_required_checks_pass"
 

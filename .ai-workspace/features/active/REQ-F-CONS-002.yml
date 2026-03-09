@@ -26,10 +26,34 @@ trajectory:
     notes: "Design converged at parent feature level — iteration 3 adds versioning semantics"
 
   code:
-    status: pending
+    status: in_progress
 
   unit_tests:
     status: pending
+
+evaluator_contracts:
+  module: "imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-comment.md"
+  note: "gen-comment command to be created — REQ-F-CONS-002 implementation"
+  contracts:
+    - id: "CONS-002-C1"
+      condition: "comment submitted with timestamp <= review_closes_at"
+      emits: "comment_received with gating: true"
+
+    - id: "CONS-002-C2"
+      condition: "comment submitted with timestamp > review_closes_at"
+      emits: "comment_received with gating: false"
+
+    - id: "CONS-002-C3"
+      condition: "comment_received event"
+      schema: "event_type, review_id, timestamp, project, actor, data.{participant, content, gating, disposition: null}"
+
+    - id: "CONS-002-C4"
+      condition: "comment submitted to closed session (consensus_reached or consensus_failed)"
+      result: "comment accepted as late context — gating: false regardless of timestamp"
+
+    - id: "CONS-002-C5"
+      condition: "session open"
+      result: "gating status is immutable once set — re-reading the event log always yields same gating value for a given comment"
 
 functor:
   strategy: balanced

@@ -26,10 +26,54 @@ trajectory:
     notes: "Design converged at parent feature level — iteration 3 adds versioning semantics"
 
   code:
-    status: pending
+    status: in_progress
 
   unit_tests:
     status: pending
+
+evaluator_contracts:
+  modules:
+    - "imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-vote.md"
+    - "imp_claude/code/.claude-plugin/plugins/genesis/agents/gen-dev-observer.md"
+    - "imp_claude/code/.claude-plugin/plugins/genesis/agents/gen-cicd-observer.md"
+    - "imp_claude/code/.claude-plugin/plugins/genesis/agents/gen-ops-observer.md"
+  contracts:
+    - id: "CONS-005-C1"
+      component: "gen-vote (F_H relay)"
+      condition: "valid review_id (open session), participant in roster, valid verdict"
+      emits: "vote_cast with schema: event_type, review_id, timestamp, project, actor, data.{participant, asset_version, verdict, rationale}"
+      does_not_run: "quorum check"
+      does_not_emit: "consensus_reached or consensus_failed"
+
+    - id: "CONS-005-C2"
+      component: "gen-vote"
+      condition: "participant has already voted (revision)"
+      result: "vote accepted — new vote_cast emitted, prior vote superseded by most-recent-per-relay semantics"
+
+    - id: "CONS-005-C3"
+      component: "gen-vote"
+      condition: "session closed (consensus_reached or consensus_failed exists)"
+      result: "exits with error — no vote_cast emitted"
+
+    - id: "CONS-005-C4"
+      component: "observer relay (circuit-breaker)"
+      condition: "no consensus_requested event for review_id"
+      result: "circuit-breaker exits — no vote_cast emitted"
+
+    - id: "CONS-005-C5"
+      component: "observer relay (circuit-breaker)"
+      condition: "consensus_reached or consensus_failed exists for review_id"
+      result: "circuit-breaker exits — no vote_cast emitted"
+
+    - id: "CONS-005-C6"
+      component: "observer relay (circuit-breaker)"
+      condition: "relay id not in roster of consensus_requested event"
+      result: "circuit-breaker exits — no vote_cast emitted"
+
+    - id: "CONS-005-C7"
+      component: "observer relay"
+      condition: "all circuit-breaker checks pass"
+      result: "relay evaluates artifact from its domain perspective, emits vote_cast"
 
 functor:
   strategy: balanced

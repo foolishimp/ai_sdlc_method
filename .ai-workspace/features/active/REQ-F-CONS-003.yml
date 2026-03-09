@@ -26,10 +26,35 @@ trajectory:
     notes: "Design converged at parent feature level — iteration 3 adds versioning semantics"
 
   code:
-    status: pending
+    status: in_progress
 
   unit_tests:
     status: pending
+
+evaluator_contracts:
+  module: "imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-dispose.md"
+  note: "gen-dispose command to be created — REQ-F-CONS-003 implementation"
+  contracts:
+    - id: "CONS-003-C1"
+      condition: "disposition set on gating comment"
+      valid_values: "[resolved, rejected, acknowledged, scope_change]"
+      requires: "non-empty rationale string"
+
+    - id: "CONS-003-C2"
+      condition: "disposition = scope_change"
+      emits: "spec_modified event in addition to comment disposition update"
+
+    - id: "CONS-003-C3"
+      condition: "gating comment with disposition: null"
+      result: "gating_comments_dispositioned check returns false — blocks convergence"
+
+    - id: "CONS-003-C4"
+      condition: "all gating comments have non-null disposition"
+      result: "gating_comments_dispositioned check returns true"
+
+    - id: "CONS-003-C5"
+      condition: "late comment (gating: false)"
+      result: "disposition has no effect on convergence gate — late comments are context only"
 
 functor:
   strategy: balanced

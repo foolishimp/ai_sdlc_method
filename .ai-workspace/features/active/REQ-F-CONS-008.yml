@@ -26,10 +26,37 @@ trajectory:
     notes: "Design converged at parent feature level — iteration 3 adds versioning semantics"
 
   code:
-    status: pending
+    status: in_progress
 
   unit_tests:
     status: pending
+
+evaluator_contracts:
+  module: "imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-consensus-recover.md"
+  note: "gen-consensus-recover command to be created — REQ-F-CONS-008 implementation"
+  contracts:
+    - id: "CONS-008-C1"
+      condition: "proposer selects re_open after consensus_failed"
+      emits: "recovery_path_selected with path=re_open and new review window parameters"
+      result: "new consensus_requested emitted with same artifact, updated review_closes_at"
+
+    - id: "CONS-008-C2"
+      condition: "proposer selects narrow_scope"
+      emits: "recovery_path_selected with path=narrow_scope"
+      result: "fold-back to intent edge — contested portions removed from artifact, new review cycle with reduced scope"
+
+    - id: "CONS-008-C3"
+      condition: "proposer selects abandon"
+      emits: "recovery_path_selected with path=abandon"
+      result: "feature closed with convergence_type: consensus_failed — no new review opened"
+
+    - id: "CONS-008-C4"
+      condition: "recovery_path_selected invoked on open session (no consensus_failed)"
+      result: "exits with error — recovery paths only valid after consensus_failed"
+
+    - id: "CONS-008-C5"
+      condition: "N re_open cycles without new artifact version or roster change"
+      result: "homeostasis monitor detects stuck-delta pattern — intent_raised with signal_source: stuck emitted"
 
 functor:
   strategy: balanced

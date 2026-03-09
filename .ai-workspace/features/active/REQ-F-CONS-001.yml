@@ -26,10 +26,36 @@ trajectory:
     notes: "Design converged at parent feature level — iteration 3 adds versioning semantics"
 
   code:
-    status: pending
+    status: in_progress
 
   unit_tests:
     status: pending
+
+evaluator_contracts:
+  module: "imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-consensus-open.md"
+  contracts:
+    - id: "CONS-001-C1"
+      condition: "artifact exists, roster non-empty, timing valid"
+      emits: "consensus_requested with schema: event_type, review_id, timestamp, project, actor, data.{artifact, asset_version, roster, quorum, min_participation_ratio, published_at, review_closes_at, min_duration_seconds}"
+      does_not_emit: "any other event"
+      does_not_invoke: "any agent"
+      does_not_run: "quorum check"
+
+    - id: "CONS-001-C2"
+      condition: "review_closes_at < published_at + min_duration_seconds"
+      result: "exits with configuration_invalid error — no event emitted"
+
+    - id: "CONS-001-C3"
+      condition: "artifact path does not exist"
+      result: "exits with error — no event emitted"
+
+    - id: "CONS-001-C4"
+      condition: "roster is empty"
+      result: "exits with error — no event emitted"
+
+    - id: "CONS-001-C5"
+      condition: "roster entries provided"
+      result: "each entry classified as {id, type: agent} for known agent IDs, {id, type: human} for human:<name> or unknown IDs"
 
 functor:
   strategy: balanced
