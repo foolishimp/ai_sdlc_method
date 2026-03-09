@@ -41,7 +41,10 @@ trajectory:
     delta: 0
 
   design:
-    status: pending
+    status: iterating
+    iteration: 1
+    started_at: "2026-03-09T00:00:00Z"
+    asset: "imp_claude/design/CONSENSUS_DESIGN.md"
 
   code:
     status: pending

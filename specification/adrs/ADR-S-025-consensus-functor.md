@@ -276,16 +276,16 @@ The recovery path is not selected automatically. It is an F_H decision by the pr
 
 ## Event Taxonomy
 
-New event types added to the OL taxonomy:
+New event types added to the OL taxonomy (canonical names — see §CONSENSUS as Reference Implementation for normalization note):
 
 ```
-proposal_published        — CONSENSUS opens; includes asset_id, asset_version, roster, quorum config
-comment_received          — per gating comment submitted (gating: true|false flag)
-vote_cast                 — per vote received; includes asset_version voted on
-asset_version_changed     — material or non-material asset change during open review; includes materiality classification
+consensus_requested       — CONSENSUS opens; includes artifact, roster, quorum config, review window
+comment_received          — per comment submitted during review; gating: true|false flag derived from timestamp
+vote_cast                 — per vote received; includes asset_version voted on, participant, verdict, rationale
+asset_version_published   — material or non-material artifact change during open review; includes materiality classification
 consensus_reached         — quorum satisfied, participation floor met, all gating comments dispositioned
-consensus_failed          — typed failure with failure_reason and available_paths
-recovery_path_selected    — proposer selects re_open | narrow_scope | abandon
+consensus_failed          — typed terminal failure with failure_reason and available_paths
+recovery_path_selected    — proposer selects re_open | narrow_scope | abandon after consensus_failed
 ```
 
 ---
@@ -303,6 +303,48 @@ recovery_path_selected    — proposer selects re_open | narrow_scope | abandon
 **RATIFY relationship**: `RATIFY = CONSENSUS + Promote(stability)`. CONSENSUS is the evaluation; RATIFY is CONSENSUS composed with a stability state change. They are separable.
 
 **HIGHER_ORDER_FUNCTORS.md**: CONSENSUS is defined at §4.4 of the functor library. This ADR is the normative reference for its full operational semantics.
+
+---
+
+## CONSENSUS as Reference Implementation of the Supervisory Saga
+
+The reusable backbone of the system is the **supervisory saga** defined in ADR-S-031 — not CONSENSUS specifically. CONSENSUS is the richest governance-specialized instance of that pattern, and therefore the best place to implement the supervisory saga kernel exhaustively.
+
+The kernel that CONSENSUS exercises:
+
+| Component | CONSENSUS instantiation |
+|-----------|------------------------|
+| Replay-derived state | `project_review_state()` — full session rehydrated from events |
+| Local invariants instead of orchestration | Circuit-breaker per relay; quorum observer subscribes independently |
+| Versioned artifacts | `asset_version_published` with materiality classification |
+| Gating / disposition lifecycle | `comment_received {gating: true}` must be dispositioned before convergence |
+| Relay circuit-breakers | Each relay checks: session open? in roster? not yet voted? |
+| Compensating outcomes | `consensus_failed {failure_reason, available_paths}` — forward recovery |
+| Closeout from deterministic projection | `evaluate_quorum()` — pure F_D, no I/O |
+
+Other processes in the system — CI/CD gates, continuous homeostasis, gap analysis loops — are **sibling supervisory sagas**, not literal CONSENSUS instances. They share the same kernel (replay-derived state, local invariants, compensating events, deterministic closeout) but with different parameters, event schemas, and convergence semantics. The "single-relay degenerate case" intuition is useful for understanding; it is not a normative identity between CONSENSUS and iterate().
+
+**Terminal resolution liveness invariant**: the CONSENSUS saga reaches a terminal outcome — either `consensus_reached` or `consensus_failed` — not necessarily `consensus_reached`. The liveness argument holds under three preconditions:
+
+1. **Responsive relays**: participants react to `consensus_requested` within the review window (or the participation floor rejects non-response)
+2. **Proposer progression**: the proposer either dispositions gating comments or selects a recovery path after `consensus_failed` — they do not re-open indefinitely without a new basis
+3. **No unbounded oscillation**: reopen cycles must incorporate a change (new artifact version, resolved comment, changed roster) — reopening without any change is a stuck-delta pattern detectable by homeostasis monitors
+
+Under these preconditions, each cycle either: (a) reaches `consensus_reached` if quorum is satisfied, or (b) reaches `consensus_failed` if the window closes without quorum, or (c) advances state (new artifact version, disposed comment) reducing the gap. The saga terminates in finite cycles.
+
+**Event name normalization**: event names used in implementations must align with this ADR's canonical names. The CONSENSUS saga uses:
+
+| Canonical event name | Replaces / normalises |
+|---------------------|----------------------|
+| `consensus_requested` | `proposal_published` (deprecated name — do not introduce in new code) |
+| `asset_version_published` | `asset_version_changed` (deprecated name) |
+| `vote_cast` | unchanged |
+| `comment_received` | unchanged |
+| `consensus_reached` | unchanged |
+| `consensus_failed` | unchanged |
+| `recovery_path_selected` | unchanged |
+
+Implementations that currently use `proposal_published` or `asset_version_changed` should migrate to the canonical names. Until migration is complete, projection code must handle both names.
 
 ---
 

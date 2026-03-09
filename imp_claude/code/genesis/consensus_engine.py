@@ -5,7 +5,19 @@
 CONSENSUS engine — pure quorum logic for multi-stakeholder evaluation.
 
 Implements ADR-S-025 §Phase 4 (Quorum Evaluation) — five deterministic checks,
-all F_D. No I/O. Takes a review state dict, returns a QuorumResult.
+all F_D. No I/O. Takes projected review state, returns a QuorumResult.
+
+Versioning semantics (CONSENSUS_DESIGN.md §Versioning Semantics):
+- Gating comments: version-agnostic, accumulate across all asset versions.
+- Votes: most-recent-per-relay. Prior votes are superseded by later ones.
+- Material asset change (asset_version_published + materiality=material):
+  resets all votes cast before the change timestamp. Comments unaffected.
+
+Liveness guarantee (ADR-S-025 §CONSENSUS as Universal Coordination Primitive):
+- The saga reaches a TERMINAL outcome (consensus_reached | consensus_failed),
+  not necessarily consensus_reached.
+- Under: responsive relays, proposer dispositions gating comments or selects
+  a recovery path, and reopen cycles do not recur without new basis.
 
 Review state is derived from events.jsonl filtered by review_id:
     session_state(review_id) = [e for e in events if e.get("review_id") == review_id]
@@ -261,6 +273,19 @@ def evaluate_quorum(
 
 # ── Event projection helpers ───────────────────────────────────────────────────
 
+def _effective_votes(all_votes: list[Vote]) -> list[Vote]:
+    """
+    Apply most-recent-per-relay deduplication (CONSENSUS_DESIGN.md §Versioning Semantics).
+
+    A participant may revise their vote as the artifact evolves. Only the most
+    recent vote per participant counts toward quorum. Prior votes are superseded.
+    """
+    by_participant: dict[str, Vote] = {}
+    for v in sorted(all_votes, key=lambda v: v.timestamp):
+        by_participant[v.participant] = v
+    return list(by_participant.values())
+
+
 def project_review_state(
     events: list[dict],
     review_id: str,
@@ -272,27 +297,45 @@ def project_review_state(
     This is the rehydration contract (ADR-S-025 observer binding):
         session_state(review_id) = events where event.review_id == review_id
 
+    Versioning semantics (CONSENSUS_DESIGN.md §Versioning Semantics):
+    - Gating comments: version-agnostic, accumulate across all versions.
+      A comment raised against any version must be dispositioned.
+    - Votes: most-recent-per-relay. A participant may revise their vote;
+      only the latest counts toward quorum.
+    - Material reset: an `asset_version_published` event with
+      `materiality: material` resets all prior votes. Comments are unaffected.
+
     Args:
-        events:          All events from events.jsonl (already parsed)
-        review_id:       The review session key
+        events:           All events from events.jsonl (already parsed)
+        review_id:        The review session key
         review_closes_at: Determines gating status of each comment
 
     Returns:
-        (votes, comments) — inputs to evaluate_quorum()
+        (votes, comments) — inputs to evaluate_quorum(), votes already deduplicated
     """
     scoped = [e for e in events if e.get("review_id") == review_id]
 
-    votes: list[Vote] = []
+    raw_votes: list[Vote] = []
     comments: list[Comment] = []
+    # Track the last material-change timestamp. Votes before this timestamp
+    # are treated as if they were never cast (reset per ADR-S-025 §Asset versioning).
+    last_material_reset: Optional[datetime] = None
 
     for e in scoped:
         etype = e.get("event_type", "")
         data = e.get("data", e)  # flat or nested
+        ts = _parse_ts(e.get("timestamp", ""))
 
-        if etype == "vote_cast":
-            ts = _parse_ts(e.get("timestamp", ""))
+        if etype == "asset_version_published":
+            if ts and data.get("materiality") == "material":
+                # Material change — all votes cast before this point are superseded.
+                # Update the reset watermark; we'll filter raw_votes below.
+                if last_material_reset is None or ts > last_material_reset:
+                    last_material_reset = ts
+
+        elif etype == "vote_cast":
             if ts:
-                votes.append(Vote(
+                raw_votes.append(Vote(
                     participant=data.get("participant", ""),
                     verdict=Verdict(data.get("verdict", "abstain")),
                     asset_version=data.get("asset_version", ""),
@@ -302,8 +345,8 @@ def project_review_state(
                 ))
 
         elif etype == "comment_received":
-            ts = _parse_ts(e.get("timestamp", ""))
             if ts:
+                # Gating comments are version-agnostic — accumulate across all versions.
                 gating = ts <= review_closes_at
                 comments.append(Comment(
                     participant=data.get("participant", ""),
@@ -312,6 +355,13 @@ def project_review_state(
                     gating=gating,
                     disposition=data.get("disposition"),
                 ))
+
+    # Apply material reset watermark: discard votes before the last material change.
+    if last_material_reset is not None:
+        raw_votes = [v for v in raw_votes if v.timestamp >= last_material_reset]
+
+    # Apply most-recent-per-relay deduplication.
+    votes = _effective_votes(raw_votes)
 
     return votes, comments
 
