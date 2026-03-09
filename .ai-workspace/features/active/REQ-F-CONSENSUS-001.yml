@@ -41,13 +41,32 @@ trajectory:
     delta: 0
 
   design:
-    status: iterating
-    iteration: 1
+    status: converged
+    iteration: 3
     started_at: "2026-03-09T00:00:00Z"
+    converged_at: "2026-03-09T12:00:00Z"
     asset: "imp_claude/design/CONSENSUS_DESIGN.md"
+    evaluators_passed: 13
+    evaluators_total: 14
+    delta: 1
+    notes: |
+      Iteration 3 — versioning semantics (most-recent-per-relay votes, version-agnostic
+      gating comments, asset_version_published). ADR-S-031 written. ADR-S-025 updated
+      with supervisory saga kernel framing and terminal-resolution liveness invariant.
+      Pending: human_approves_architecture (F_H gate).
+    projections:
+      - REQ-F-CONS-001  # Review Publication
+      - REQ-F-CONS-002  # Comment Collection and Gating
+      - REQ-F-CONS-003  # Comment Disposition
+      - REQ-F-CONS-005  # Voting
+      - REQ-F-CONS-006  # Quorum Gate
+      - REQ-F-CONS-007  # Convergence Outcomes
+      - REQ-F-CONS-008  # Recovery Paths
+      - REQ-F-CONS-009  # Event Emission
 
   code:
     status: pending
+    notes: "Decomposed into feature vector projections REQ-F-CONS-001..009"
 
   unit_tests:
     status: pending

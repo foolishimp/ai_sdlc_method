@@ -1,0 +1,46 @@
+feature: REQ-F-CONS-001
+title: "Review Publication — consensus_requested event + gen-consensus-open thin emitter"
+parent: REQ-F-CONSENSUS-001
+vector_type: feature
+profile: standard
+status: in_progress
+
+description: |
+  Feature vector projection of REQ-F-CONSENSUS-001.
+  See CONSENSUS_FEATURE_DECOMPOSITION.md §Feature REQ-F-CONS-001 for acceptance criteria.
+
+source_asset: "specification/features/CONSENSUS_FEATURE_DECOMPOSITION.md"
+
+trajectory:
+  requirements:
+    status: converged
+    asset: "specification/adrs/ADR-S-025-consensus-functor.md"
+    converged_at: "2026-03-08T17:45:00Z"
+    notes: "Inherited from REQ-F-CONSENSUS-001 — ADR-S-025 ratified"
+
+  design:
+    status: converged
+    iteration: 3
+    converged_at: "2026-03-09T12:00:00Z"
+    asset: "imp_claude/design/CONSENSUS_DESIGN.md"
+    notes: "Design converged at parent feature level — iteration 3 adds versioning semantics"
+
+  code:
+    status: pending
+
+  unit_tests:
+    status: pending
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  active_units:
+    evaluate: F_D
+    construct: F_P
+    classify: F_D
+    route: F_H
+    propose: F_P
+    sense: F_D
+    emit: F_D
+    decide: F_H

@@ -18,7 +18,7 @@
 - A proposer can open a CONSENSUS review window for a versioned asset
 - The publication schema is validated at open time: roster non-empty, quorum config present, `review_closes_at >= published_at + min_duration` (config invariant)
 - Each publication records `asset_version` — the specific version of the asset under review
-- A `proposal_published` event is emitted with the full publication record
+- A `consensus_requested` event is emitted with the full publication record
 
 **Dependencies**: None — foundational
 
@@ -68,7 +68,7 @@
 - Changes are classified as material or non-material (F_H decision by proposer)
 - Non-material changes: existing votes remain valid
 - Material changes: all prior votes are invalidated; the review resets at the new version
-- An `asset_version_changed` event is emitted with the materiality classification
+- An `asset_version_published` event is emitted with the materiality classification
 
 **Dependencies**: REQ-F-CONS-001, REQ-F-CONS-002
 
@@ -156,10 +156,10 @@
 
 **What converges**:
 - All 7 CONSENSUS event types are emitted correctly to the OL event log:
-  - `proposal_published` — Phase 1 open
+  - `consensus_requested` — Phase 1 open (canonical name; replaces deprecated `proposal_published`)
   - `comment_received` — per comment (gating flag)
   - `vote_cast` — per vote (with asset_version)
-  - `asset_version_changed` — on any asset change during review (with materiality)
+  - `asset_version_published` — on any asset change during review (with materiality; replaces deprecated `asset_version_changed`)
   - `consensus_reached` — full payload
   - `consensus_failed` — typed with failure_reason
   - `recovery_path_selected` — with path and rationale
@@ -280,10 +280,10 @@ All features except REQ-F-CONS-004 (Asset Versioning During Review).
 | ADR-S-025 §Recovery — narrow_scope | REQ-F-CONS-008 |
 | ADR-S-025 §Recovery — abandon | REQ-F-CONS-008 |
 | ADR-S-025 §Recovery — stuck re-open detection | REQ-F-CONS-008 |
-| ADR-S-025 §Events — proposal_published | REQ-F-CONS-009 |
+| ADR-S-025 §Events — consensus_requested | REQ-F-CONS-009 |
 | ADR-S-025 §Events — comment_received | REQ-F-CONS-009 |
 | ADR-S-025 §Events — vote_cast | REQ-F-CONS-009 |
-| ADR-S-025 §Events — asset_version_changed | REQ-F-CONS-009 |
+| ADR-S-025 §Events — asset_version_published | REQ-F-CONS-009 |
 | ADR-S-025 §Events — consensus_reached | REQ-F-CONS-009 |
 | ADR-S-025 §Events — consensus_failed | REQ-F-CONS-009 |
 | ADR-S-025 §Events — recovery_path_selected | REQ-F-CONS-009 |
