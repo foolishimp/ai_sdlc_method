@@ -129,6 +129,80 @@ classification_rules:
     default_severity: warning
     escalation: threshold
 
+  # ─── Gap-type signals (ADR-S-026 intent_raised with typed composition) ──
+  # gap_type field on intent_raised events routes to named compositions.
+  # These rules fire when the observer raises an intent with a known gap_type.
+
+  - name: gap_missing_requirements
+    pattern:
+      event_type: intent_raised
+      gap_type: missing_requirements
+    classification: gap
+    default_severity: warning
+    escalation: threshold
+    composition_macro: PLAN
+    composition_version: v1
+
+  - name: gap_missing_design
+    pattern:
+      event_type: intent_raised
+      gap_type: missing_design
+    classification: gap
+    default_severity: warning
+    escalation: threshold
+    composition_macro: PLAN
+    composition_version: v1
+
+  - name: gap_missing_schema
+    pattern:
+      event_type: intent_raised
+      gap_type: missing_schema
+    classification: gap
+    default_severity: info
+    escalation: threshold
+    composition_macro: SCHEMA_DISCOVERY
+    composition_version: v1
+
+  - name: gap_unknown_risk
+    pattern:
+      event_type: intent_raised
+      gap_type: unknown_risk
+    classification: gap
+    default_severity: warning
+    escalation: threshold
+    composition_macro: POC
+    composition_version: v1
+
+  - name: gap_unknown_domain
+    pattern:
+      event_type: intent_raised
+      gap_type: unknown_domain
+    classification: gap
+    default_severity: info
+    escalation: threshold
+    composition_macro: DATA_DISCOVERY
+    composition_version: v1
+
+  - name: gap_spec_drift
+    pattern:
+      event_type: intent_raised
+      gap_type: spec_drift
+    classification: drift
+    default_severity: warning
+    escalation: threshold
+    composition_macro: EVOLVE
+    composition_version: v1
+
+  - name: gap_missing_consensus
+    pattern:
+      event_type: intent_raised
+      gap_type: missing_consensus
+    classification: gap
+    default_severity: critical
+    escalation: always
+    composition_macro: CONSENSUS
+    composition_version: v1
+
   # ─── Fallback: unmatched → agent classification ──────────────────
   - name: agent_fallback
     pattern:
@@ -273,10 +347,13 @@ event_schema:
     timestamp: ISO-8601
     signal_id: "ref to interoceptive_signal or exteroceptive_signal"
     source_monitor: "monitor_id that generated the signal"
-    classification: "vulnerability | degradation | staleness | drift | ecosystem_change | contract_break | runtime_deviation | integrity | meta_failure"
+    classification: "vulnerability | degradation | staleness | drift | ecosystem_change | contract_break | runtime_deviation | integrity | meta_failure | gap"
     severity: "info | warning | critical"
     escalation_decision: "escalate | defer | log_only | dismissed"
     recommended_action: "human-readable recommendation"
     affected_req_keys: "list of REQ-* keys if traceable"
     profile_threshold: "the active threshold that caused escalation"
     classified_by: "rule | agent"
+    gap_type: "optional — gap classification from intent_raised (ADR-S-026): missing_requirements | missing_design | missing_schema | unknown_risk | unknown_domain | spec_drift | missing_consensus"
+    composition: "optional — resolved named composition expression {macro, version, bindings} from gap_type_dispatch; null if no_dispatch_entry"
+    composition_resolution: "optional — resolved | unresolvable | no_dispatch_entry"
