@@ -1,4 +1,4 @@
-# Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-002, REQ-ROBUST-003, REQ-ROBUST-008
+# Implements: REQ-UX-001, REQ-UX-005, REQ-SUPV-001, REQ-SUPV-002, REQ-ROBUST-003, REQ-ROBUST-008
 # Implements: REQ-FEAT-002 (Feature Dependencies), REQ-UX-003 (Project-Wide Observability)
 # Implements: REQ-EVOL-001 (Workspace Vector Schema Enforcement)
 # Implements: REQ-EVOL-002 (Feature Display Tools Must JOIN Spec and Workspace)
@@ -1141,6 +1141,11 @@ class InstanceNode:
     The node is computed by replaying events — it is a derived projection,
     never stored directly. ADR-022: topology is the type system; instances
     are the runtime state derived from the event log.
+
+    Hamiltonian fields (ADR-S-020):
+      T = total iterations accumulated across all edges so far
+      V = current delta (failing evaluators — potential energy)
+      H = T + V (total traversal cost = sunk + remaining)
     """
 
     feature_id: str  # REQ-F-*
@@ -1150,6 +1155,14 @@ class InstanceNode:
     delta: int  # last known delta (-1 = unknown)
     parent_id: Optional[str]  # parent feature for zoom level 2+
     converged_edges: list[str] = field(default_factory=list)
+    # Hamiltonian H = T + V (ADR-S-020)
+    hamiltonian_T: int = 0   # cumulative iteration count (kinetic — work done)
+    hamiltonian_V: int = 0   # current delta >= 0 (potential — work remaining)
+
+    @property
+    def hamiltonian(self) -> int:
+        """H = T + V — total traversal cost at this point in phase space."""
+        return self.hamiltonian_T + self.hamiltonian_V
 
 
 @dataclass
@@ -1253,8 +1266,11 @@ def project_instance_graph(
             if raw_delta is not None:
                 try:
                     node.delta = int(raw_delta)
+                    node.hamiltonian_V = max(0, node.delta)
                 except (TypeError, ValueError):
                     pass
+            # T increments by 1 for each iteration_completed event (ADR-S-020)
+            node.hamiltonian_T += 1
             if edge:
                 node.current_edge = edge
             node.status = "in_progress"
@@ -1263,6 +1279,8 @@ def project_instance_graph(
             if edge and edge not in node.converged_edges:
                 node.converged_edges.append(edge)
             node.current_edge = edge
+            # V = 0 when edge converges (all evaluators pass)
+            node.hamiltonian_V = 0
             # Derive terminal status from profile coverage (T-COMPLY-003 bug fix)
             if active_profile_edges and set(active_profile_edges) <= set(node.converged_edges):
                 node.status = "converged"
@@ -1288,6 +1306,54 @@ def project_instance_graph(
         as_of=as_of,
         topology_version=topology_version,
     )
+
+
+def compute_hamiltonian(
+    events: list[dict[str, Any]],
+    feature: str,
+    edge: str | None = None,
+) -> tuple[int, int, int]:
+    """Compute the Hamiltonian (H = T + V) for a feature, optionally filtered to one edge.
+
+    ADR-S-020: T = cumulative iterations across all edges up to the current point;
+    V = last known delta (potential energy — work remaining). H = T + V.
+
+    Args:
+        events: full event stream (from events.jsonl)
+        feature: REQ-F-* feature ID to compute for
+        edge: if given, compute T and V for this specific edge only
+
+    Returns:
+        (T, V, H) tuple — all non-negative integers.
+        T: cumulative iteration count for this feature (or edge if specified)
+        V: last delta value (0 if the edge has converged, -1 → treated as 0)
+        H: T + V
+    """
+    T = 0
+    V = 0
+    for ev in events:
+        et = ev.get("event_type", "")
+        ev_feature = ev.get("feature", "")
+        ev_edge = ev.get("edge", "")
+
+        if ev_feature != feature:
+            continue
+        if edge and ev_edge and ev_edge != edge:
+            continue
+
+        if et == "iteration_completed":
+            T += 1
+            raw = ev.get("delta")
+            if raw is not None:
+                try:
+                    V = max(0, int(raw))
+                except (TypeError, ValueError):
+                    pass
+        elif et == "edge_converged":
+            if not edge or ev_edge == edge:
+                V = 0
+
+    return T, V, T + V
 
 
 def summarise_instance_graph(graph: InstanceGraph) -> dict[str, Any]:

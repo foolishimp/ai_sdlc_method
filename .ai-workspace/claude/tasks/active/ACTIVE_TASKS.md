@@ -26,7 +26,7 @@ T-COMPLY-008 (actor dispatch)   ✅ DONE — gen-iterate.md: manifest scan + MCP
 T-COMPLY-002 (context)          ←── 6-level hierarchy (REQ-CTX-002 spec updated 2026-03-07; implement in config_loader.py)
 T-COMPLY-003 (instance graph)   ✅ DONE — profile-coverage derivation + spawn_created child node, 5 tests (2026-03-09)
 T-COMPLY-004 (FPC audit)        ←── design-tier tag audit only (no shared spec changes)
-T-COMPLY-006 (H-metric)         ←── observability display feature
+T-COMPLY-006 (H-metric)         ✅ DONE — compute_hamiltonian() + InstanceNode.hamiltonian + gen-status H column (2026-03-09)
 ```
 
 ---

@@ -2,9 +2,13 @@
 # Validates: REQ-ROBUST-008
 # Validates: REQ-EVENT-002
 # Validates: REQ-LIFE-001
+# Validates: REQ-SUPV-001
 import pytest
 from datetime import datetime
-from genesis.workspace_state import project_instance_graph, InstanceNode, summarise_instance_graph
+from genesis.workspace_state import (
+    project_instance_graph, InstanceNode, summarise_instance_graph,
+    compute_hamiltonian,
+)
 
 def test_project_instance_graph_empty():
     graph = project_instance_graph([], topology_version="2.9.0")
@@ -212,3 +216,87 @@ def test_projection_summary_counts_match_nodes() -> None:
     summary = summarise_instance_graph(graph)
     by_status_total = sum(summary["by_status"].values())
     assert by_status_total == summary["total_nodes"]
+
+
+# ── T-COMPLY-006: Hamiltonian (ADR-S-020) ────────────────────────────────────
+
+
+_HAMILTONIAN_EVENTS = [
+    {"event_type": "feature_spawned", "feature": "REQ-F-H", "timestamp": "2026-03-01T10:00:00Z"},
+    {"event_type": "edge_started", "feature": "REQ-F-H", "edge": "design→code", "timestamp": "2026-03-01T10:01:00Z"},
+    {"event_type": "iteration_completed", "feature": "REQ-F-H", "edge": "design→code", "delta": 3, "timestamp": "2026-03-01T10:02:00Z"},
+    {"event_type": "iteration_completed", "feature": "REQ-F-H", "edge": "design→code", "delta": 2, "timestamp": "2026-03-01T10:03:00Z"},
+    {"event_type": "iteration_completed", "feature": "REQ-F-H", "edge": "design→code", "delta": 0, "timestamp": "2026-03-01T10:04:00Z"},
+    {"event_type": "edge_converged", "feature": "REQ-F-H", "edge": "design→code", "timestamp": "2026-03-01T10:05:00Z"},
+]
+
+
+def test_hamiltonian_T_accumulates_per_iteration() -> None:
+    """T must increment by 1 for each iteration_completed event (ADR-S-020)."""
+    graph = project_instance_graph(list(_HAMILTONIAN_EVENTS))
+    node = next(n for n in graph.nodes if n.feature_id == "REQ-F-H")
+    assert node.hamiltonian_T == 3, f"Expected T=3 after 3 iterations, got {node.hamiltonian_T}"
+
+
+def test_hamiltonian_V_zero_after_convergence() -> None:
+    """V must be 0 after edge_converged (all evaluators passed, delta=0)."""
+    graph = project_instance_graph(list(_HAMILTONIAN_EVENTS))
+    node = next(n for n in graph.nodes if n.feature_id == "REQ-F-H")
+    assert node.hamiltonian_V == 0, f"Expected V=0 after convergence, got {node.hamiltonian_V}"
+
+
+def test_hamiltonian_H_equals_T_plus_V() -> None:
+    """H must equal T + V at all times (ADR-S-020 invariant)."""
+    graph = project_instance_graph(list(_HAMILTONIAN_EVENTS))
+    node = next(n for n in graph.nodes if n.feature_id == "REQ-F-H")
+    assert node.hamiltonian == node.hamiltonian_T + node.hamiltonian_V
+
+
+def test_hamiltonian_V_tracks_delta() -> None:
+    """V must equal the last delta before convergence."""
+    # Mid-run events only (no convergence yet)
+    events = _HAMILTONIAN_EVENTS[:4]  # includes 2 iteration_completed, last delta=2
+    graph = project_instance_graph(list(events))
+    node = next(n for n in graph.nodes if n.feature_id == "REQ-F-H")
+    assert node.hamiltonian_V == 2, f"Expected V=2 (last delta), got {node.hamiltonian_V}"
+    assert node.hamiltonian_T == 2, f"Expected T=2 (2 iterations), got {node.hamiltonian_T}"
+    assert node.hamiltonian == 4, f"Expected H=4, got {node.hamiltonian}"
+
+
+def test_compute_hamiltonian_full_feature() -> None:
+    """compute_hamiltonian with no edge filter covers all iterations."""
+    T, V, H = compute_hamiltonian(_HAMILTONIAN_EVENTS, "REQ-F-H")
+    assert T == 3
+    assert V == 0  # converged
+    assert H == 3
+
+
+def test_compute_hamiltonian_single_edge() -> None:
+    """compute_hamiltonian with edge filter returns only that edge's T."""
+    T, V, H = compute_hamiltonian(_HAMILTONIAN_EVENTS, "REQ-F-H", edge="design→code")
+    assert T == 3
+    assert V == 0
+    assert H == 3
+
+
+def test_compute_hamiltonian_stalled_feature() -> None:
+    """Stalled feature (T grows, V constant) → dH/dt = 1 (ADR-S-020 diagnostic)."""
+    stalled_events = [
+        {"event_type": "feature_spawned", "feature": "REQ-F-STALL", "timestamp": "2026-03-01T10:00:00Z"},
+        {"event_type": "edge_started", "feature": "REQ-F-STALL", "edge": "code↔unit_tests", "timestamp": "2026-03-01T10:01:00Z"},
+        {"event_type": "iteration_completed", "feature": "REQ-F-STALL", "edge": "code↔unit_tests", "delta": 2, "timestamp": "2026-03-01T10:02:00Z"},
+        {"event_type": "iteration_completed", "feature": "REQ-F-STALL", "edge": "code↔unit_tests", "delta": 2, "timestamp": "2026-03-01T10:03:00Z"},
+        {"event_type": "iteration_completed", "feature": "REQ-F-STALL", "edge": "code↔unit_tests", "delta": 2, "timestamp": "2026-03-01T10:04:00Z"},
+    ]
+    T, V, H = compute_hamiltonian(stalled_events, "REQ-F-STALL")
+    assert T == 3   # 3 iterations
+    assert V == 2   # delta stuck at 2 (stalled)
+    assert H == 5   # H grows → dH/dt > 0 → high-friction (ADR-S-020 diagnostic)
+
+
+def test_compute_hamiltonian_unknown_feature_returns_zero() -> None:
+    """Unknown feature returns (0, 0, 0) — not an error."""
+    T, V, H = compute_hamiltonian(_HAMILTONIAN_EVENTS, "REQ-F-UNKNOWN")
+    assert T == 0
+    assert V == 0
+    assert H == 0

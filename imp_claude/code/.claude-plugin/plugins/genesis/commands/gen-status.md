@@ -66,9 +66,11 @@ Project Rollup:
   Functor:   standard/interactive/medium — 0 overrides, 2 η
 
 Active Features:
-  REQ-F-AUTH-001  "User authentication"      design→code (iter 3)
-  REQ-F-DB-001    "Database schema"           code↔tests (converged)
-  REQ-F-API-001   "REST API endpoints"        requirements (iter 1)
+  feature          title                      edge            iter  δ   H
+  ───────────────  ─────────────────────────  ──────────────  ────  ──  ──
+  REQ-F-AUTH-001  "User authentication"      design→code     3     2   5
+  REQ-F-DB-001    "Database schema"           code↔tests      4     0   4
+  REQ-F-API-001   "REST API endpoints"        requirements    1     5   6
 
 Completed Features:
   REQ-F-SETUP-001 "Project scaffolding"       all edges converged
@@ -178,6 +180,30 @@ else:
 ```
   State:     {ITERATING|QUIESCENT|CONVERGED|BOUNDED} ({n} iterating, {n}/{total} converged)
 ```
+
+#### Active Features Table — Hamiltonian Columns (ADR-S-020, T-COMPLY-006)
+
+The Active Features table includes three derived columns from the event log:
+
+| Column | Symbol | Source | Meaning |
+|--------|--------|--------|---------|
+| `iter` | — | count of `iteration_completed` for this feature | Total iterations spent across all edges (T in phase space) |
+| `δ` | V | `delta` field in last `iteration_completed` | Current failing evaluator count (potential energy — work remaining) |
+| `H` | H = T + V | computed | Hamiltonian = total traversal cost (sunk + remaining) |
+
+H diagnostics (ADR-S-020 §2):
+- H decreasing → healthy convergence
+- dH/dt = 0 (H flat, V > 0) → unit-efficient convergence
+- dH/dt > 0 → high-friction or stalled (V unchanged while T grows)
+
+Compute H for each feature from `events.jsonl`:
+```python
+T = count(iteration_completed events for this feature)
+V = last delta value from iteration_completed (0 if edge_converged follows)
+H = T + V
+```
+
+Call `compute_hamiltonian(events, feature_id)` from `genesis.workspace_state` for this derivation.
 
 #### Signals
 
