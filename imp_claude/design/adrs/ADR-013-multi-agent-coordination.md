@@ -10,7 +10,7 @@
 
 ## Context
 
-As the AI SDLC transitions from a single-agent "pilot" to a multi-agent "fleet," we must ensure that concurrent agents do not corrupt project state or perform redundant work. Traditionally, this is solved via filesystem locks (mutexes) or distributed lock managers.
+As the AI SDLC transitions from a single-agent "pilot" to a multi-agent "fleet," we must ensure that concurrent agents do not corruyespt project state or perform redundant work. Traditionally, this is solved via filesystem locks (mutexes) or distributed lock managers.
 
 However, Project Genesis is built on **Event Sourcing** and **Spec Reproducibility**. Introducing stateful locks would compromise the ability to replay the project from its logs and would introduce platform-specific dependencies.
 
