@@ -353,8 +353,23 @@ def project_review_state(
                     timestamp=ts,
                     content=data.get("content", ""),
                     gating=gating,
+                    # Initial disposition may be inline (legacy) or updated via
+                    # comment_dispositioned events (gen-dispose pattern).
                     disposition=data.get("disposition"),
                 ))
+
+        elif etype == "comment_dispositioned":
+            # gen-dispose emits a separate event to set disposition immutably.
+            # Find the matching comment by timestamp and update its disposition.
+            comment_ts_str = data.get("comment_timestamp", "")
+            disposition_value = data.get("disposition")
+            if comment_ts_str and disposition_value:
+                for c in comments:
+                    if c.timestamp.isoformat() == comment_ts_str or (
+                        ts is not None and c.timestamp == _parse_ts(comment_ts_str)
+                    ):
+                        c.disposition = disposition_value
+                        break
 
     # Apply material reset watermark: discard votes before the last material change.
     if last_material_reset is not None:

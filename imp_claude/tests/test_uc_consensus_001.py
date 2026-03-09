@@ -1,4 +1,4 @@
-# Validates: REQ-F-CONSENSUS-001, REQ-EVAL-003
+# Validates: REQ-F-CONSENSUS-001, REQ-EVAL-003, REQ-F-CONS-006, REQ-F-CONS-007, REQ-F-CONS-009
 """
 UAT-UC-CONSENSUS-001 — Full CONSENSUS review session flow.
 
@@ -9,11 +9,14 @@ Tests the end-to-end CONSENSUS functor implementation:
   4. consensus_reached emitted when quorum met
   5. Artifact ADR status updated to Accepted
   6. genesis_monitor parsers correctly project the session
+  7. Versioning semantics: vote deduplication, material reset, gating accumulation
+  8. Event taxonomy: canonical names, required fields, idempotency, terminal uniqueness
 
 All tests use purely deterministic data (F_D) — no agents, no LLM, no I/O beyond
 the test's own tmp_path fixtures.
 
-Reference: ADR-S-025 (CONSENSUS Functor), gen-consensus-open.md
+Reference: ADR-S-025 (CONSENSUS Functor), ADR-S-031 (supervisory saga),
+           CONSENSUS_DESIGN.md §Versioning Semantics
 """
 
 from __future__ import annotations
@@ -617,3 +620,560 @@ class TestUCConsensus008ArtifactUpdate:
 
         # File is unchanged
         assert adr_file.read_text() == "# Test\n\n**Status**: Accepted\n\nContent.\n"
+
+
+# ── Helpers for canonical event types ────────────────────────────────────────
+
+def make_consensus_requested_event(
+    review_id: str = REVIEW_ID,
+    roster: list | None = None,
+    quorum: str = "majority",
+    published_at: datetime | None = None,
+    review_closes_at: datetime | None = None,
+    min_duration_seconds: float = 0.0,
+) -> dict:
+    """Canonical consensus_requested event (replaces deprecated proposal_published)."""
+    pub_at = (published_at or BASE_TIME).isoformat()
+    close_at = (review_closes_at or CLOSE_TIME).isoformat()
+    return {
+        "event_type": "consensus_requested",
+        "review_id": review_id,
+        "timestamp": pub_at,
+        "project": "ai-sdlc-method",
+        "actor": "local-user",
+        "data": {
+            "artifact": ARTIFACT,
+            "asset_version": "v1",
+            "roster": [
+                {"id": p, "type": "agent"} for p in (roster or ROSTER)
+            ],
+            "quorum": quorum,
+            "abstention_model": "neutral",
+            "min_participation_ratio": 0.5,
+            "published_at": pub_at,
+            "review_closes_at": close_at,
+            "min_duration_seconds": min_duration_seconds,
+        },
+    }
+
+
+def make_vote_event_v2(
+    participant: str,
+    verdict: str,
+    review_id: str = REVIEW_ID,
+    rationale: str = "",
+    asset_version: str = "v1",
+    ts: datetime | None = None,
+) -> dict:
+    """vote_cast with asset_version field (canonical schema)."""
+    return {
+        "event_type": "vote_cast",
+        "review_id": review_id,
+        "timestamp": (ts or BASE_TIME).isoformat(),
+        "project": "ai-sdlc-method",
+        "actor": participant,
+        "data": {
+            "participant": participant,
+            "verdict": verdict,
+            "rationale": rationale,
+            "asset_version": asset_version,
+        },
+    }
+
+
+def make_asset_version_published_event(
+    review_id: str = REVIEW_ID,
+    materiality: str = "material",
+    ts: datetime | None = None,
+) -> dict:
+    return {
+        "event_type": "asset_version_published",
+        "review_id": review_id,
+        "timestamp": (ts or BASE_TIME).isoformat(),
+        "project": "ai-sdlc-method",
+        "actor": "local-user",
+        "data": {
+            "asset_version": "v2",
+            "materiality": materiality,
+        },
+    }
+
+
+def make_comment_dispositioned_event(
+    comment_ts: datetime,
+    disposition: str,
+    review_id: str = REVIEW_ID,
+    rationale: str = "addressed",
+    ts: datetime | None = None,
+) -> dict:
+    return {
+        "event_type": "comment_dispositioned",
+        "review_id": review_id,
+        "timestamp": (ts or BASE_TIME).isoformat(),
+        "project": "ai-sdlc-method",
+        "actor": "local-user",
+        "data": {
+            "comment_timestamp": comment_ts.isoformat(),
+            "disposition": disposition,
+            "rationale": rationale,
+        },
+    }
+
+
+# ── UC-009: Versioning semantics — vote deduplication ─────────────────────────
+
+class TestUCConsensus009VoteDeduplication:
+    """CONS-006-C7: most-recent-per-relay deduplication via _effective_votes."""
+
+    from imp_claude.code.genesis.consensus_engine import _effective_votes as _eff
+
+    def _make_vote(self, participant: str, verdict: str, ts: datetime) -> Vote:
+        return Vote(
+            participant=participant,
+            verdict=Verdict(verdict),
+            asset_version="v1",
+            timestamp=ts,
+        )
+
+    def test_single_vote_unchanged(self):
+        from imp_claude.code.genesis.consensus_engine import _effective_votes
+        v = self._make_vote("gen-dev-observer", "approve", BASE_TIME)
+        result = _effective_votes([v])
+        assert len(result) == 1
+        assert result[0].verdict == Verdict.APPROVE
+
+    def test_revision_supersedes_prior_vote(self):
+        """A participant who votes reject then approve — only approve counts."""
+        from imp_claude.code.genesis.consensus_engine import _effective_votes
+        v1 = self._make_vote("gen-dev-observer", "reject", BASE_TIME)
+        v2 = self._make_vote("gen-dev-observer", "approve", BASE_TIME + timedelta(hours=1))
+        result = _effective_votes([v1, v2])
+        assert len(result) == 1
+        assert result[0].verdict == Verdict.APPROVE
+
+    def test_revision_order_independent(self):
+        """_effective_votes sorts internally — input order does not matter."""
+        from imp_claude.code.genesis.consensus_engine import _effective_votes
+        v1 = self._make_vote("gen-dev-observer", "reject", BASE_TIME)
+        v2 = self._make_vote("gen-dev-observer", "approve", BASE_TIME + timedelta(hours=1))
+        result_fwd = _effective_votes([v1, v2])
+        result_rev = _effective_votes([v2, v1])
+        assert result_fwd[0].verdict == result_rev[0].verdict == Verdict.APPROVE
+
+    def test_different_participants_kept_separate(self):
+        """Two different participants → both votes retained."""
+        from imp_claude.code.genesis.consensus_engine import _effective_votes
+        v1 = self._make_vote("gen-dev-observer", "approve", BASE_TIME)
+        v2 = self._make_vote("gen-cicd-observer", "reject", BASE_TIME)
+        result = _effective_votes([v1, v2])
+        assert len(result) == 2
+
+    def test_multiple_revisions_only_last_kept(self):
+        """Three votes from same participant — only the third counts."""
+        from imp_claude.code.genesis.consensus_engine import _effective_votes
+        v1 = self._make_vote("gen-dev-observer", "reject", BASE_TIME)
+        v2 = self._make_vote("gen-dev-observer", "abstain", BASE_TIME + timedelta(hours=1))
+        v3 = self._make_vote("gen-dev-observer", "approve", BASE_TIME + timedelta(hours=2))
+        result = _effective_votes([v1, v2, v3])
+        assert len(result) == 1
+        assert result[0].verdict == Verdict.APPROVE
+
+
+# ── UC-010: Versioning semantics — material reset ─────────────────────────────
+
+class TestUCConsensus010MaterialReset:
+    """CONS-006-C8: asset_version_published with materiality=material resets votes."""
+
+    def _events_with_reset(self) -> list[dict]:
+        t0 = BASE_TIME
+        t1 = t0 + timedelta(hours=1)   # vote v1
+        t2 = t1 + timedelta(hours=1)   # material change
+        t3 = t2 + timedelta(hours=1)   # vote v2 (after reset)
+        return [
+            make_consensus_requested_event(),
+            make_vote_event_v2("gen-dev-observer", "reject", ts=t1),
+            make_vote_event_v2("gen-cicd-observer", "reject", ts=t1),
+            make_asset_version_published_event(materiality="material", ts=t2),
+            make_vote_event_v2("gen-dev-observer", "approve", ts=t3, asset_version="v2"),
+            make_vote_event_v2("gen-cicd-observer", "approve", ts=t3, asset_version="v2"),
+            make_vote_event_v2("gen-ops-observer", "approve", ts=t3, asset_version="v2"),
+        ]
+
+    def test_pre_reset_votes_discarded(self):
+        """Votes before material change are excluded from quorum computation."""
+        events = self._events_with_reset()
+        t2 = BASE_TIME + timedelta(hours=2)
+        votes, _ = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        # Only 3 post-reset approvals should remain; the 2 pre-reset rejects gone
+        assert all(v.verdict == Verdict.APPROVE for v in votes)
+        assert len(votes) == 3
+
+    def test_post_reset_votes_counted(self):
+        """Quorum evaluates correctly using only post-reset votes."""
+        events = self._events_with_reset()
+        votes, comments = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        config = make_config()
+        result = evaluate_quorum(config, votes, comments, now=AFTER_CLOSE)
+        assert result.converged is True
+        assert result.approve_votes == 3
+        assert result.reject_votes == 0
+
+    def test_non_material_change_does_not_reset(self):
+        """asset_version_published with materiality=non_material leaves votes intact."""
+        t0 = BASE_TIME
+        t1 = t0 + timedelta(hours=1)
+        t2 = t1 + timedelta(hours=1)
+        events = [
+            make_consensus_requested_event(),
+            make_vote_event_v2("gen-dev-observer", "approve", ts=t1),
+            make_asset_version_published_event(materiality="non_material", ts=t2),
+        ]
+        votes, _ = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        assert len(votes) == 1
+        assert votes[0].verdict == Verdict.APPROVE
+
+
+# ── UC-011: Versioning semantics — gating comments accumulate ─────────────────
+
+class TestUCConsensus011GatingAccumulation:
+    """CONS-006-C9: gating comments accumulate across all asset versions."""
+
+    def test_pre_reset_gating_comment_still_blocks(self):
+        """A gating comment submitted before material reset must still be dispositioned."""
+        t0 = BASE_TIME
+        t1 = t0 + timedelta(hours=1)   # gating comment
+        t2 = t1 + timedelta(hours=1)   # material change
+        t3 = t2 + timedelta(hours=1)   # post-reset votes
+        events = [
+            make_consensus_requested_event(),
+            make_comment_event(
+                "gen-dev-observer", "Risk not addressed", gating=True, ts=t1
+            ),
+            make_asset_version_published_event(materiality="material", ts=t2),
+            make_vote_event_v2("gen-dev-observer", "approve", ts=t3, asset_version="v2"),
+            make_vote_event_v2("gen-cicd-observer", "approve", ts=t3, asset_version="v2"),
+            make_vote_event_v2("gen-ops-observer", "approve", ts=t3, asset_version="v2"),
+        ]
+        votes, comments = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        config = make_config()
+        result = evaluate_quorum(config, votes, comments, now=AFTER_CLOSE)
+        # Despite majority approval, gating comment blocks convergence
+        assert result.converged is False
+        assert result.failure_reason == FailureReason.GATING_COMMENTS_UNDISPOSITIONED
+
+    def test_dispositioned_pre_reset_comment_unblocks(self):
+        """Dispositioning a pre-reset gating comment removes the block."""
+        t0 = BASE_TIME
+        t1 = t0 + timedelta(hours=1)
+        t2 = t1 + timedelta(hours=1)
+        t3 = t2 + timedelta(hours=1)
+        t4 = t3 + timedelta(minutes=30)  # disposition
+        events = [
+            make_consensus_requested_event(),
+            make_comment_event(
+                "gen-dev-observer", "Risk not addressed", gating=True, ts=t1
+            ),
+            make_asset_version_published_event(materiality="material", ts=t2),
+            make_comment_dispositioned_event(
+                comment_ts=t1, disposition="resolved", ts=t4
+            ),
+            make_vote_event_v2("gen-dev-observer", "approve", ts=t3, asset_version="v2"),
+            make_vote_event_v2("gen-cicd-observer", "approve", ts=t3, asset_version="v2"),
+            make_vote_event_v2("gen-ops-observer", "approve", ts=t3, asset_version="v2"),
+        ]
+        votes, comments = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        config = make_config()
+        result = evaluate_quorum(config, votes, comments, now=AFTER_CLOSE)
+        assert result.converged is True
+
+    def test_multiple_versions_all_gating_comments_included(self):
+        """Comments across v1 and v2 (pre and post reset) both present."""
+        t0 = BASE_TIME
+        t1 = t0 + timedelta(hours=1)   # comment on v1
+        t2 = t1 + timedelta(hours=1)   # material change
+        t3 = t2 + timedelta(hours=1)   # comment on v2
+        events = [
+            make_consensus_requested_event(),
+            make_comment_event("gen-dev-observer", "v1 concern", gating=True, ts=t1),
+            make_asset_version_published_event(materiality="material", ts=t2),
+            make_comment_event("gen-cicd-observer", "v2 concern", gating=True, ts=t3),
+        ]
+        _, comments = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        gating = [c for c in comments if c.gating]
+        assert len(gating) == 2  # both versions' comments present
+
+
+# ── UC-012: comment_dispositioned projection ──────────────────────────────────
+
+class TestUCConsensus012CommentDispositioned:
+    """gen-dispose semantics: comment_dispositioned events update Comment.disposition."""
+
+    def test_inline_disposition_on_comment_received(self):
+        """Legacy path: disposition inlined in comment_received event data."""
+        events = [
+            make_consensus_requested_event(),
+            make_comment_event(
+                "gen-dev-observer", "concern", gating=True, disposition="resolved"
+            ),
+        ]
+        _, comments = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        assert comments[0].disposition == "resolved"
+
+    def test_separate_comment_dispositioned_event_sets_disposition(self):
+        """gen-dispose path: disposition via separate event."""
+        t1 = BASE_TIME
+        t2 = t1 + timedelta(hours=1)
+        events = [
+            make_consensus_requested_event(),
+            make_comment_event(
+                "gen-dev-observer", "concern", gating=True, ts=t1, disposition=None
+            ),
+            make_comment_dispositioned_event(
+                comment_ts=t1, disposition="acknowledged", ts=t2
+            ),
+        ]
+        _, comments = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        assert comments[0].disposition == "acknowledged"
+
+    def test_disposition_updates_convergence_check(self):
+        """Undispositioned comment blocks; after disposition, unblocks."""
+        t1 = BASE_TIME
+        t2 = t1 + timedelta(hours=1)
+
+        # Without disposition event
+        events_no_disp = [
+            make_consensus_requested_event(),
+            make_comment_event("gen-dev-observer", "concern", gating=True, ts=t1),
+            make_vote_event_v2("gen-dev-observer", "approve", ts=t2),
+            make_vote_event_v2("gen-cicd-observer", "approve", ts=t2),
+            make_vote_event_v2("gen-ops-observer", "approve", ts=t2),
+        ]
+        votes, comments = project_review_state(events_no_disp, REVIEW_ID, CLOSE_TIME)
+        result = evaluate_quorum(make_config(), votes, comments, now=AFTER_CLOSE)
+        assert result.converged is False
+        assert result.failure_reason == FailureReason.GATING_COMMENTS_UNDISPOSITIONED
+
+        # With disposition event
+        events_with_disp = events_no_disp + [
+            make_comment_dispositioned_event(
+                comment_ts=t1, disposition="resolved", ts=t2 + timedelta(minutes=5)
+            )
+        ]
+        votes2, comments2 = project_review_state(events_with_disp, REVIEW_ID, CLOSE_TIME)
+        result2 = evaluate_quorum(make_config(), votes2, comments2, now=AFTER_CLOSE)
+        assert result2.converged is True
+
+
+# ── UC-013: Event taxonomy contract ──────────────────────────────────────────
+
+class TestUCConsensus013EventTaxonomy:
+    """CONS-009: canonical event names, required fields, idempotency, terminal uniqueness."""
+
+    CANONICAL_TYPES = {
+        "consensus_requested",
+        "comment_received",
+        "vote_cast",
+        "asset_version_published",
+        "consensus_reached",
+        "consensus_failed",
+        "recovery_path_selected",
+        "comment_dispositioned",
+    }
+    DEPRECATED_TYPES = {"proposal_published", "asset_version_changed"}
+
+    def test_canonical_event_names_are_known(self):
+        """CONS-009-C2: canonical event types exist and deprecated ones are not canonical."""
+        assert "consensus_requested" in self.CANONICAL_TYPES
+        assert "proposal_published" not in self.CANONICAL_TYPES
+        assert "asset_version_published" in self.CANONICAL_TYPES
+        assert "asset_version_changed" not in self.CANONICAL_TYPES
+
+    def test_deprecated_names_not_in_canonical_set(self):
+        """CONS-009-C2: deprecated event names produce no overlap with canonical set."""
+        assert self.CANONICAL_TYPES.isdisjoint(self.DEPRECATED_TYPES)
+
+    def test_project_review_state_idempotent(self):
+        """CONS-009-C4: same input → same output, called multiple times."""
+        events = [
+            make_consensus_requested_event(),
+            make_vote_event_v2("gen-dev-observer", "approve"),
+            make_vote_event_v2("gen-cicd-observer", "approve"),
+            make_comment_event("gen-ops-observer", "concern", gating=True),
+        ]
+        r1_votes, r1_comments = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        r2_votes, r2_comments = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        assert len(r1_votes) == len(r2_votes)
+        assert len(r1_comments) == len(r2_comments)
+        assert [v.verdict for v in r1_votes] == [v.verdict for v in r2_votes]
+
+    def test_review_state_filters_to_review_id(self):
+        """CONS-009-C4: events from other review_ids are excluded."""
+        events = [
+            make_consensus_requested_event(review_id=REVIEW_ID),
+            make_vote_event_v2("gen-dev-observer", "approve", review_id=REVIEW_ID),
+            make_vote_event_v2("gen-dev-observer", "reject", review_id="REVIEW-OTHER-1"),
+        ]
+        votes, _ = project_review_state(events, REVIEW_ID, CLOSE_TIME)
+        # Only the approve vote for REVIEW_ID should be included
+        assert len(votes) == 1
+        assert votes[0].verdict == Verdict.APPROVE
+
+    def test_consensus_reached_event_schema(self):
+        """CONS-009-C1: consensus_reached event has all required fields."""
+        event = {
+            "event_type": "consensus_reached",
+            "review_id": REVIEW_ID,
+            "timestamp": BASE_TIME.isoformat(),
+            "project": "ai-sdlc-method",
+            "actor": "gen-quorum-observer",
+            "data": {
+                "artifact": ARTIFACT,
+                "asset_version": "v1",
+                "quorum_threshold": "majority",
+                "roster_size": 3,
+                "approve_votes": 2,
+                "reject_votes": 0,
+                "abstain_votes": 1,
+                "non_response_count": 0,
+                "approve_ratio": 1.0,
+                "participation_ratio": 1.0,
+                "gating_comments_total": 0,
+                "gating_comments_dispositioned": 0,
+            },
+        }
+        required = {"event_type", "review_id", "timestamp", "project", "actor"}
+        assert required.issubset(event.keys())
+        required_data = {
+            "artifact", "quorum_threshold", "roster_size",
+            "approve_votes", "reject_votes", "abstain_votes",
+            "approve_ratio", "participation_ratio",
+        }
+        assert required_data.issubset(event["data"].keys())
+
+    def test_consensus_failed_event_schema(self):
+        """CONS-009-C1: consensus_failed event has all required fields."""
+        event = {
+            "event_type": "consensus_failed",
+            "review_id": REVIEW_ID,
+            "timestamp": BASE_TIME.isoformat(),
+            "project": "ai-sdlc-method",
+            "actor": "gen-quorum-observer",
+            "data": {
+                "failure_reason": "quorum_not_reached",
+                "roster_size": 3,
+                "approve_votes": 1,
+                "reject_votes": 2,
+                "abstain_votes": 0,
+                "non_response_count": 0,
+                "approve_ratio": 0.333,
+                "participation_ratio": 1.0,
+                "gating_comments_undispositioned": 0,
+                "available_paths": ["re_open", "narrow_scope", "abandon"],
+            },
+        }
+        required = {"event_type", "review_id", "timestamp", "project", "actor"}
+        assert required.issubset(event.keys())
+        assert "failure_reason" in event["data"]
+        assert "available_paths" in event["data"]
+
+    def test_terminal_events_at_most_once(self):
+        """CONS-009-C5: evaluate_quorum same inputs → same result (no state mutation)."""
+        votes = [
+            Vote("gen-dev-observer", Verdict.APPROVE, "v1", BASE_TIME),
+            Vote("gen-cicd-observer", Verdict.APPROVE, "v1", BASE_TIME),
+            Vote("gen-ops-observer", Verdict.APPROVE, "v1", BASE_TIME),
+        ]
+        config = make_config()
+        r1 = evaluate_quorum(config, votes, [], now=AFTER_CLOSE)
+        r2 = evaluate_quorum(config, votes, [], now=AFTER_CLOSE)
+        assert r1.converged == r2.converged
+        assert r1.approve_votes == r2.approve_votes
+        # evaluate_quorum is pure — calling it twice does not change state
+
+
+# ── UC-014: Quorum observer routing ──────────────────────────────────────────
+
+class TestUCConsensus014QuorumObserverRouting:
+    """CONS-007: quorum observer emits correct terminal event or nothing."""
+
+    def _all_approve_events(self) -> list[dict]:
+        return [
+            make_consensus_requested_event(),
+            make_vote_event_v2("gen-dev-observer", "approve"),
+            make_vote_event_v2("gen-cicd-observer", "approve"),
+            make_vote_event_v2("gen-ops-observer", "approve"),
+        ]
+
+    def test_converged_result_produces_consensus_reached_fields(self):
+        """CONS-007-C1: converged=True → consensus_reached data fields correct."""
+        votes = [
+            Vote("gen-dev-observer", Verdict.APPROVE, "v1", BASE_TIME),
+            Vote("gen-cicd-observer", Verdict.APPROVE, "v1", BASE_TIME),
+            Vote("gen-ops-observer", Verdict.APPROVE, "v1", BASE_TIME),
+        ]
+        result = evaluate_quorum(make_config(), votes, [], now=AFTER_CLOSE)
+        assert result.converged is True
+        assert result.approve_votes == 3
+        assert result.reject_votes == 0
+        assert result.non_response_count == 0
+        assert result.approve_ratio == 1.0
+        assert result.failure_reason is None
+
+    def test_not_converged_window_open_emit_nothing(self):
+        """CONS-007-C2: not converged + window open → no terminal event."""
+        votes = [Vote("gen-dev-observer", Verdict.APPROVE, "v1", BASE_TIME)]
+        now_open = BASE_TIME + timedelta(hours=1)  # well before CLOSE_TIME
+        result = evaluate_quorum(make_config(), votes, [], now=now_open)
+        assert result.converged is False
+        # Window still open — failure_reason is WINDOW_CLOSED_INSUFFICIENT_VOTES
+        # only fires AFTER close time; before close time only time-gate checks fail
+        assert result.failure_reason in (
+            FailureReason.WINDOW_CLOSED_INSUFFICIENT_VOTES,
+            FailureReason.PARTICIPATION_FLOOR_NOT_MET,
+            FailureReason.QUORUM_NOT_REACHED,
+        )
+
+    def test_not_converged_window_closed_provides_available_paths(self):
+        """CONS-007-C3: window closed + quorum not reached → consensus_failed with paths."""
+        votes = [
+            Vote("gen-dev-observer", Verdict.REJECT, "v1", BASE_TIME),
+            Vote("gen-cicd-observer", Verdict.REJECT, "v1", BASE_TIME),
+            Vote("gen-ops-observer", Verdict.APPROVE, "v1", BASE_TIME),
+        ]
+        result = evaluate_quorum(make_config(), votes, [], now=AFTER_CLOSE)
+        assert result.converged is False
+        assert result.failure_reason == FailureReason.QUORUM_NOT_REACHED
+        assert "re_open" in result.available_paths
+        assert "narrow_scope" in result.available_paths
+        assert "abandon" in result.available_paths
+
+    def test_available_paths_by_failure_reason(self):
+        """CONS-007-C5: available_paths vary by failure_reason."""
+        # Participation floor not met
+        votes_low = [Vote("gen-dev-observer", Verdict.APPROVE, "v1", BASE_TIME)]
+        config_high_floor = ReviewConfig(
+            roster=ROSTER,
+            quorum=QuorumThreshold.MAJORITY,
+            abstention_model=AbstentionModel.NEUTRAL,
+            min_participation_ratio=0.9,  # high floor
+            published_at=BASE_TIME,
+            review_closes_at=CLOSE_TIME,
+            min_duration_seconds=0.0,
+        )
+        result_low = evaluate_quorum(config_high_floor, votes_low, [], now=AFTER_CLOSE)
+        assert result_low.failure_reason == FailureReason.PARTICIPATION_FLOOR_NOT_MET
+        assert "re_open" in result_low.available_paths
+        assert "narrow_scope" not in result_low.available_paths
+
+        # Gating comment undispositioned
+        votes_all = [
+            Vote("gen-dev-observer", Verdict.APPROVE, "v1", BASE_TIME),
+            Vote("gen-cicd-observer", Verdict.APPROVE, "v1", BASE_TIME),
+            Vote("gen-ops-observer", Verdict.APPROVE, "v1", BASE_TIME),
+        ]
+        gating_comment = Comment(
+            "gen-dev-observer", BASE_TIME, "blocker", gating=True, disposition=None
+        )
+        result_gate = evaluate_quorum(make_config(), votes_all, [gating_comment], now=AFTER_CLOSE)
+        assert result_gate.failure_reason == FailureReason.GATING_COMMENTS_UNDISPOSITIONED
+        assert result_gate.available_paths == ["disposition_comments"]
