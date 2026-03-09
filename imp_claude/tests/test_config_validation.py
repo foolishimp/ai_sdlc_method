@@ -640,9 +640,9 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_2_9(self, plugin_json):
-        """plugin.json version must be 2.9.0."""
-        assert plugin_json["version"] == "2.9.0"
+    def test_plugin_version_is_2_10(self, plugin_json):
+        """plugin.json version must be 2.10.0."""
+        assert plugin_json["version"] == "2.10.0"
 
     @pytest.mark.tdd
     def test_graph_topology_version_is_2_9(self, graph_topology):
@@ -961,9 +961,9 @@ class TestStartCommand:
         assert "./commands/gen-start.md" in plugin_json["commands"]
 
     @pytest.mark.tdd
-    def test_plugin_has_13_commands(self, plugin_json):
-        """plugin.json must have 13 commands."""
-        assert len(plugin_json["commands"]) == 13
+    def test_plugin_has_19_commands(self, plugin_json):
+        """plugin.json must have 19 commands."""
+        assert len(plugin_json["commands"]) == 19
 
     @pytest.mark.tdd
     def test_default_profile_in_template(self, project_constraints_template):
