@@ -1172,15 +1172,18 @@ class InstanceGraph:
 def project_instance_graph(
     events: list[dict[str, Any]],
     topology_version: str = "unknown",
+    active_profile_edges: list[str] | None = None,
 ) -> InstanceGraph:
     """Replay events to derive the current instance graph (ADR-022, Step 4).
 
     Mutation sequence:
       feature_spawned / project_initialized  → node added
+      spawn_created                          → child node added immediately (T-COMPLY-003)
       edge_started                           → node.current_edge = edge, status = in_progress
       iteration_completed                    → node.delta = delta
       edge_converged                         → node.converged_edges.add(edge)
-      feature_converged / ALL_CONVERGED      → node.status = archived
+                                               if converged_edges ⊇ active_profile_edges → converged
+      feature_converged                      → (ignored — terminal status derived from coverage)
 
     Returns an InstanceGraph positioned at the watermark of the last event.
     """
@@ -1203,6 +1206,24 @@ def project_instance_graph(
         if et in ("project_initialized",) and not feature:
             # project-level event — no node to create
             continue
+
+        # spawn_created: immediately add child node (T-COMPLY-003 bug fix)
+        if et == "spawn_created":
+            data = ev.get("data", ev)
+            child_id = data.get("child_feature") or data.get("child_id")
+            parent_id = data.get("parent_feature") or feature
+            if child_id and child_id not in nodes:
+                nodes[child_id] = InstanceNode(
+                    feature_id=child_id,
+                    zoom_level=2,
+                    current_edge="",
+                    status="pending",
+                    delta=-1,
+                    parent_id=parent_id,
+                )
+            # Also ensure the parent node exists if feature is set
+            if not feature:
+                continue
 
         if not feature:
             continue
@@ -1242,10 +1263,17 @@ def project_instance_graph(
             if edge and edge not in node.converged_edges:
                 node.converged_edges.append(edge)
             node.current_edge = edge
-            node.status = "in_progress"
+            # Derive terminal status from profile coverage (T-COMPLY-003 bug fix)
+            if active_profile_edges and set(active_profile_edges) <= set(node.converged_edges):
+                node.status = "converged"
+            else:
+                node.status = "in_progress"
 
-        elif et in ("feature_converged",):
-            node.status = "archived"
+        elif et == "feature_converged":
+            # Deprecated: terminal status is now derived from profile coverage.
+            # Accept old events gracefully — only archive if no profile to compare against.
+            if not active_profile_edges:
+                node.status = "archived"
 
     # Infer converged status from trajectory files when events are sparse
     # (handles workspace_state where feature.status = "converged" in yml)

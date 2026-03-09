@@ -1,6 +1,7 @@
 # Validates: REQ-UX-003
 # Validates: REQ-ROBUST-008
 # Validates: REQ-EVENT-002
+# Validates: REQ-LIFE-001
 import pytest
 from datetime import datetime
 from genesis.workspace_state import project_instance_graph, InstanceNode, summarise_instance_graph
@@ -33,7 +34,8 @@ def test_project_instance_graph_edge_started_and_converged():
     assert node.delta == 2
     assert "design→code" in node.converged_edges
 
-def test_project_instance_graph_feature_converged():
+def test_project_instance_graph_feature_converged_legacy():
+    """feature_converged without profile → archived (backward compat for old event streams)."""
     events = [
         {"event_type": "feature_spawned", "feature": "REQ-F-1", "timestamp": "2026-03-01T12:00:00Z"},
         {"event_type": "feature_converged", "feature": "REQ-F-1", "timestamp": "2026-03-01T12:06:00Z"},
@@ -41,6 +43,68 @@ def test_project_instance_graph_feature_converged():
     graph = project_instance_graph(events)
     node = graph.nodes[0]
     assert node.status == "archived"
+
+
+def test_profile_coverage_derivation():
+    """T-COMPLY-003: status derived from converged_edges ⊇ active_profile_edges."""
+    events = [
+        {"event_type": "feature_spawned", "feature": "REQ-F-1", "timestamp": "2026-03-01T12:00:00Z"},
+        {"event_type": "edge_converged", "feature": "REQ-F-1", "edge": "design→code", "timestamp": "2026-03-01T12:05:00Z"},
+        {"event_type": "edge_converged", "feature": "REQ-F-1", "edge": "code↔unit_tests", "timestamp": "2026-03-01T12:06:00Z"},
+    ]
+    profile_edges = ["design→code", "code↔unit_tests"]
+    graph = project_instance_graph(events, active_profile_edges=profile_edges)
+    node = graph.nodes[0]
+    assert node.status == "converged"
+    assert "design→code" in node.converged_edges
+    assert "code↔unit_tests" in node.converged_edges
+
+
+def test_partial_coverage_not_converged():
+    """T-COMPLY-003: coverage check requires ALL profile edges — partial is still in_progress."""
+    events = [
+        {"event_type": "feature_spawned", "feature": "REQ-F-1", "timestamp": "2026-03-01T12:00:00Z"},
+        {"event_type": "edge_converged", "feature": "REQ-F-1", "edge": "design→code", "timestamp": "2026-03-01T12:05:00Z"},
+    ]
+    profile_edges = ["design→code", "code↔unit_tests"]
+    graph = project_instance_graph(events, active_profile_edges=profile_edges)
+    node = graph.nodes[0]
+    assert node.status == "in_progress"
+
+
+def test_spawn_created_immediately_adds_child():
+    """T-COMPLY-003: spawn_created must add child node before any child edge events."""
+    events = [
+        {"event_type": "feature_spawned", "feature": "REQ-F-PARENT", "timestamp": "2026-03-01T12:00:00Z"},
+        {
+            "event_type": "spawn_created",
+            "feature": "REQ-F-PARENT",
+            "data": {"child_feature": "REQ-F-CHILD", "parent_feature": "REQ-F-PARENT"},
+            "timestamp": "2026-03-01T12:01:00Z",
+        },
+    ]
+    graph = project_instance_graph(events)
+    ids = [n.feature_id for n in graph.nodes]
+    assert "REQ-F-CHILD" in ids, "Child node must be visible immediately after spawn_created"
+
+    child = next(n for n in graph.nodes if n.feature_id == "REQ-F-CHILD")
+    assert child.parent_id == "REQ-F-PARENT"
+    assert child.status == "pending"
+    assert child.zoom_level == 2
+
+
+def test_spawn_created_child_visible_before_edge_event():
+    """T-COMPLY-003: child node exists even with no subsequent edge events for the child."""
+    events = [
+        {
+            "event_type": "spawn_created",
+            "feature": "REQ-F-PARENT",
+            "data": {"child_feature": "REQ-F-CHILD"},
+            "timestamp": "2026-03-01T12:01:00Z",
+        },
+    ]
+    graph = project_instance_graph(events)
+    assert any(n.feature_id == "REQ-F-CHILD" for n in graph.nodes)
 
 def test_project_instance_graph_openlineage_event():
     events = [
