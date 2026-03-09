@@ -360,7 +360,7 @@ Multi-stakeholder F_H evaluator with roster, quorum rule, participation floor, a
 | REQ-F-CONS-001 | Session Publication — consensus_requested event schema | gen-consensus-open.md |
 | REQ-F-CONS-002 | Comment Collection and Gating — comment_received + gating set partition | gen-comment.md |
 | REQ-F-CONS-003 | Comment Disposition — resolved\|rejected\|acknowledged\|scope_change lifecycle | gen-dispose.md |
-| REQ-F-CONS-004 | Tally Display — /gen-consensus-status read-only projection *(deferred)* | — |
+| CONS-004 *(deferred)* | Tally Display — /gen-consensus-status read-only projection | — |
 | REQ-F-CONS-005 | Observer Relay — circuit-breaker + vote_cast per agent type | gen-{dev,cicd,ops}-observer.md |
 | REQ-F-CONS-006 | Quorum Gate — five deterministic checks, consensus_engine.py | consensus_engine.py |
 | REQ-F-CONS-007 | Convergence Outcomes — consensus_reached + consensus_failed typed events | gen-quorum-observer.md |
