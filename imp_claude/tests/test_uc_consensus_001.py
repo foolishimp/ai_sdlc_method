@@ -1,4 +1,8 @@
-# Validates: REQ-F-CONSENSUS-001, REQ-EVAL-003, REQ-F-CONS-006, REQ-F-CONS-007, REQ-F-CONS-009
+# Validates: REQ-F-CONSENSUS-001, REQ-EVAL-003
+# Validates: REQ-F-CONS-001 (Review Publication), REQ-F-CONS-002 (Comment Collection and Gating)
+# Validates: REQ-F-CONS-003 (Comment Disposition), REQ-F-CONS-005 (Voting)
+# Validates: REQ-F-CONS-006 (Quorum Gate), REQ-F-CONS-007 (Convergence Outcomes)
+# Validates: REQ-F-CONS-008 (Recovery Paths), REQ-F-CONS-009 (Event Emission)
 """
 UAT-UC-CONSENSUS-001 — Full CONSENSUS review session flow.
 
