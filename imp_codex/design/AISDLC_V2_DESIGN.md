@@ -906,7 +906,7 @@ A project may have one design with multiple agents, or multiple designs each wit
 
 Three observer agents close the right side of the abiogenesis loop: `act → emit event → observe → judge → feed back`. Each observer is a markdown agent spec — the same delivery mechanism as the iterate agent (§2.3). No new infrastructure. Claude reads the agent spec and executes it, just as it reads `gen-iterate.md` today.
 
-Each observer is a **Markov object**: it reads its inputs (event log, build artifacts, telemetry), emits events, and has no shared mutable state. The event log IS the mailbox (actor model). Observers run in parallel — zero inner product between them because they read different signal sources and write non-conflicting event types.
+Each observer is a **Markov object**: it reads its inputs (event log, build artifacts, telemetry), emits events, and has no shared mutable state. The event log is the observer's subscription surface and accountability record. Observers run in parallel — zero inner product between them because they read different signal sources and write non-conflicting event types.
 
 #### 1.11.1 Observer Architecture
 
@@ -1797,7 +1797,7 @@ Three observer agents close the abiogenesis loop. Each is a markdown agent spec 
 - **CI/CD observer** (REQ-LIFE-011) — `delta(build_state, quality_spec) → intents`. Triggered after CI/CD pipeline completion. Maps build failures back to REQ keys.
 - **Ops observer** (REQ-LIFE-012) — `delta(running_system, spec) → intents`. Triggered on schedule/alert. Consumes sensory signals and production telemetry.
 
-See §1.11 for detailed design and ADR-014 for the architectural decision. All observers are Markov objects (actor model — event log is the mailbox).
+See §1.11 for detailed design and ADR-014 for the architectural decision. All observers are stateless Markov objects over the shared event log.
 
 ---
 
@@ -1869,10 +1869,10 @@ See §1.11 for detailed design and ADR-014 for the architectural decision. All o
 | REQ-F-EVENT-001 | §1.5 Event Sourcing + ADR-S-011/012/015 mapping | Implemented OpenLineage-normalized event baseline |
 | REQ-F-EVOL-001 | §1.6/§1.7 consciousness loop + protocol enforcement | Partial; full spec evolution workflow pending |
 | REQ-F-FP-001 | [DESIGN_REQUIREMENTS.md](./DESIGN_REQUIREMENTS.md), [FUNCTOR_FRAMEWORK_DESIGN.md](./FUNCTOR_FRAMEWORK_DESIGN.md) | Planned; runtime still lacks true construct+batches path |
-| REQ-F-CONSENSUS-001 | [DESIGN_REQUIREMENTS.md](./DESIGN_REQUIREMENTS.md), [ENGINE_DESIGN_GAP.md](./ENGINE_DESIGN_GAP.md) | Design-tier only; no executable package yet |
+| REQ-F-CONSENSUS-001 | [DESIGN_REQUIREMENTS.md](./DESIGN_REQUIREMENTS.md), [ENGINE_DESIGN_GAP.md](./ENGINE_DESIGN_GAP.md), [CONSENSUS_OBSERVER_DESIGN.md](./CONSENSUS_OBSERVER_DESIGN.md) | Tenant design package defined; no executable package yet |
 | REQ-F-NAMEDCOMP-001 | [DESIGN_REQUIREMENTS.md](./DESIGN_REQUIREMENTS.md), [ENGINE_DESIGN_GAP.md](./ENGINE_DESIGN_GAP.md) | Partial; named composition registry + typed `intent_raised` payloads implemented, execution layer still pending |
 
-**Design coverage target updated to 17/17 feature vectors. Current executable baseline is the `imp_codex` runtime plus the tenant test suite; `REQ-F-NAMEDCOMP-001` now has a baseline executable slice, while `CONSENSUS` and deeper phase-2 functors remain open.**
+**Design coverage target updated to 17/17 feature vectors. Current executable baseline is the `imp_codex` runtime plus the tenant test suite; `REQ-F-NAMEDCOMP-001` now has a baseline executable slice, and `REQ-F-CONSENSUS-001` now has a tenant design package, while both executable packages remain open.**
 
 ---
 
@@ -1890,7 +1890,7 @@ Phase 2:  Product telemetry edges — CI/CD, running system, production homeosta
 
 **Key paradigm shift**: Telemetry is not Phase 2. Phase 1b wires Genesis's own self-monitoring using building blocks already built in Phase 1a. Phase 2 is when *products built by Genesis* traverse production telemetry edges — which is a different instantiation of the same functor.
 
-**Next deliverable**: Wire the dev-observer hook after `edge_converged` events. Zero new code — just a hook entry that closes the abiogenesis loop.
+**Next deliverable**: implement the `CONSENSUS` review-cycle projection package defined in [CONSENSUS_OBSERVER_DESIGN.md](./CONSENSUS_OBSERVER_DESIGN.md), then wire observer triggers on top of that deterministic replay surface.
 
 ---
 

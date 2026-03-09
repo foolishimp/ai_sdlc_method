@@ -518,8 +518,9 @@ def get_unactioned_escalations(
 ) -> list[dict[str, Any]]:
     """Find escalation/intent_raised events that have no corresponding action.
 
-    An escalation is 'actioned' if a spawn_created, review_completed, or
-    spec_modified event references the same intent_id or feature.
+    An escalation is 'actioned' if a feature_proposal, spawn_created,
+    review_completed, spec_modified, or composition_dispatched event
+    references the same intent_id or feature.
     """
     escalations = [
         ev for ev in events
@@ -527,7 +528,7 @@ def get_unactioned_escalations(
     ]
     actioned_intents: set[str] = set()
     for ev in events:
-        if ev.get("event_type") in ("spawn_created", "review_completed", "spec_modified"):
+        if ev.get("event_type") in ("feature_proposal", "spawn_created", "review_completed", "spec_modified", "composition_dispatched"):
             iid = ev.get("intent_id", "") or ev.get("data", {}).get("intent_id", "")
             if iid:
                 actioned_intents.add(iid)

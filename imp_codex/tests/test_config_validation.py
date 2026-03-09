@@ -310,7 +310,18 @@ class TestFeatureVectorTemplate:
     @pytest.mark.tdd
     def test_has_core_fields(self, feature_vector_template):
         """Template must have feature, title, intent, status."""
-        for field in ("feature", "title", "intent", "status"):
+        for field in (
+            "feature",
+            "title",
+            "intent",
+            "source_kind",
+            "trigger_event",
+            "target_asset_type",
+            "composition_expression",
+            "status",
+            "produced_asset_ref",
+            "disposition",
+        ):
             assert field in feature_vector_template, f"template missing '{field}'"
 
     @pytest.mark.tdd
@@ -728,7 +739,8 @@ class TestFeedbackLoopConfig:
             if isinstance(f, dict):
                 field_names.update(f.keys())
         required = {"timestamp", "project", "intent_id", "trigger", "delta",
-                    "signal_source", "vector_type", "affected_req_keys",
+                    "requires_spec_change", "signal_source", "vector_type",
+                    "composition_name", "composition_expression", "affected_req_keys",
                     "prior_intents", "edge_context", "severity"}
         missing = required - field_names
         assert not missing, f"intent_raised schema missing fields: {missing}"

@@ -290,17 +290,25 @@ def req_domain(req_key: str) -> str:
     return parts[2] if len(parts) >= 4 else "MISC"
 
 
+def _matches_feature_scope(req_key: str, feature: str | None) -> bool:
+    if feature is None:
+        return True
+    return req_key == feature or req_key.startswith(feature.replace("REQ-F-", "REQ-")) or feature in req_key
+
+
 def build_gap_report(paths: RuntimePaths, *, feature: str | None = None) -> dict:
     """Build a three-layer gap report from spec and repo contents."""
 
     inventory = sorted(collect_req_inventory(paths.project_root))
     tags = scan_req_tags(paths.project_root)
     if feature:
-        inventory = [req for req in inventory if req.startswith(feature.replace("REQ-F-", "REQ-")) or feature in req]
+        inventory = [req for req in inventory if _matches_feature_scope(req, feature)]
 
     code_keys = set(tags["code_tags"])
     test_keys = set(tags["test_tags"])
     telemetry_keys = set(tags["telemetry_tags"])
+    referenced_keys = sorted(req for req in (code_keys | test_keys | telemetry_keys) if _matches_feature_scope(req, feature))
+    inventory_set = set(inventory)
 
     full_coverage = []
     partial_coverage = []
@@ -328,6 +336,10 @@ def build_gap_report(paths: RuntimePaths, *, feature: str | None = None) -> dict
         gap_clusters[("gap", req_domain(req))].append(req)
     for req in telemetry_gaps:
         gap_clusters[("telemetry", req_domain(req))].append(req)
+    spec_drift_refs = sorted(req for req in referenced_keys if req not in inventory_set)
+    spec_change_clusters: dict[tuple[str, str], list[str]] = defaultdict(list)
+    for req in spec_drift_refs:
+        spec_change_clusters[("spec_drift", req_domain(req))].append(req)
 
     context_hash = compute_context_hash(
         paths,
@@ -341,6 +353,7 @@ def build_gap_report(paths: RuntimePaths, *, feature: str | None = None) -> dict
         "no_coverage": sorted(no_coverage),
         "test_gaps": sorted(test_gaps),
         "telemetry_gaps": sorted(telemetry_gaps),
+        "spec_drift_refs": spec_drift_refs,
         "layer_results": {
             "layer_1": "fail" if tags["untagged_code"] or tags["untagged_tests"] else "pass",
             "layer_2": "fail" if test_gaps else "pass",
@@ -350,6 +363,10 @@ def build_gap_report(paths: RuntimePaths, *, feature: str | None = None) -> dict
         "gap_clusters": {
             f"{kind}:{domain}": sorted(reqs)
             for (kind, domain), reqs in sorted(gap_clusters.items())
+        },
+        "spec_change_clusters": {
+            f"{kind}:{domain}": sorted(reqs)
+            for (kind, domain), reqs in sorted(spec_change_clusters.items())
         },
         "context_hash": context_hash,
         "feature_status": {
@@ -384,7 +401,11 @@ def build_release_manifest(paths: RuntimePaths, version: str, gap_report: dict) 
             "tests": f"{len(gap_report['tag_scan']['test_tags'])}/{total} ({int((len(gap_report['tag_scan']['test_tags']) / total) * 100) if total else 0}%)",
             "uat": "0/0 (0%)",
         },
-        "known_gaps": gap_report.get("no_coverage", []) + gap_report.get("telemetry_gaps", []),
+        "known_gaps": (
+            gap_report.get("no_coverage", [])
+            + gap_report.get("telemetry_gaps", [])
+            + gap_report.get("spec_drift_refs", [])
+        ),
     }
 
 

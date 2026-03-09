@@ -11,11 +11,13 @@
 
 The methodology requires one universal `iterate()` operation whose behaviour is defined by edge parameterisation, not by stage-specific agents. In Codex runtime, execution happens through tool calls (`exec_command`, `apply_patch`, `multi_tool_use.parallel`) rather than provider-native slash-command runtime semantics.
 
-We need a Codex-native orchestration pattern that preserves graph semantics and evaluator composition from the shared specification.
+We need a Codex-native execution pattern that preserves graph semantics and evaluator composition from the shared specification.
+
+Title note: "orchestrator" is retained for historical continuity. Per ADR-S-031, this routine is not a cross-component orchestrator. It is a bounded local relay that sequences tool calls inside one saga step.
 
 ## Decision
 
-Use a **single orchestrator routine** (`gen-iterate`) that:
+Use a **single bounded iterate routine** (`gen-iterate`) that:
 
 1. Loads edge config from `.ai-workspace/graph/edges/{edge_config}`.
 2. Resolves context from tenant-first paths (`.ai-workspace/codex/context/` then `.ai-workspace/context/`).
@@ -29,7 +31,9 @@ No edge-specific codepaths are allowed outside configuration and checklist compo
 
 - Preserves the Markov-style transition model and avoids stage hardcoding.
 - Keeps behavioural parity with `imp_claude` while using Codex-native execution primitives.
-- Makes new edges configurable (YAML changes) rather than procedural (orchestrator code changes).
+- Makes new edges configurable (YAML changes) rather than procedural (runtime code changes).
+
+This ADR governs local sequencing inside one iterate relay. It does not justify imperative coordination between observers, relays, and human responders across the wider saga.
 
 ## Consequences
 

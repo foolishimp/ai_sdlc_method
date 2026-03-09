@@ -51,7 +51,7 @@ for signal in signals_with_escalation_decision("escalate"):
 
 #### 1c: Unactioned Intents
 
-Read `intent_raised` events that have no subsequent `spawn_created` or `spec_modified` referencing them:
+Read `intent_raised` events that have no subsequent `feature_proposal`, `composition_dispatched`, `spawn_created`, or `spec_modified` referencing them:
 
 ```python
 for intent in intent_raised_events:

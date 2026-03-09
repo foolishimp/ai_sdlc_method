@@ -12,7 +12,7 @@
 
 This document is the Codex-specific binding crosswalk for Genesis. It is a sibling implementation to Claude and Gemini bindings, but it is not the full runtime design document; its job is to translate the reference surface into Codex-native execution terms and record where Codex intentionally diverges.
 
-Primary objective: preserve methodology semantics and feature coverage while mapping execution to Codex-native primitives (tool calls, shell orchestration, patch application, explicit human review turns).
+Primary objective: preserve methodology semantics and feature coverage while mapping execution to Codex-native primitives (tool calls, bounded local sequencing, patch application, explicit human review turns).
 
 Core objectives:
 
@@ -39,8 +39,8 @@ Document governance:
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      ORCHESTRATION LAYER                           │
-│   Codex orchestration prompt + state machine routing               │
+│                  SUPERVISORY ROUTING LAYER                         │
+│   Codex routing prompt + state-driven relay selection              │
 │   (init / start / iterate / review / status / restore / trace)     │
 └──────────────────────────┬──────────────────────────────────────────┘
                            │
@@ -84,14 +84,14 @@ Document governance:
 
 | Concept | Claude Reference | Codex Genesis |
 | :--- | :--- | :--- |
-| Iterate engine | `gen-iterate.md` universal agent | Universal orchestration routine that reads edge configs and drives tool calls |
+| Iterate engine | `gen-iterate.md` universal agent | Universal iterate relay that reads edge configs and drives tool calls |
 | Commands | `/gen-*` slash commands | `/gen-*` workflows invoked from Codex sessions (natural language routed to command specs) |
 | Context | `.ai-workspace/context/*` | Same file-based context model; Codex reads workspace directly |
 | Deterministic evaluators | Tests/linters/hooks from commands | Same evaluators via shell tools and scripts |
 | Human review | `/gen-review` command | Explicit review turn before promote/converge on human-required edges |
 | Event log | `.ai-workspace/events/events.jsonl` | Same append-only contract, shared across implementations |
 
-### 1.3 Universal Iterate Orchestration (Codex)
+### 1.3 Universal Iterate Relay (Codex)
 
 Codex Genesis keeps the methodology invariant: **one iterate operation, parameterized per edge**.
 
@@ -111,6 +111,23 @@ Iterate flow:
    - process gaps and signal classification.
 6. Promote asset or iterate again until convergence policy is satisfied.
 
+### 1.4 Self-Host Bootstrap Posture
+
+Codex self-hosting uses a released-runner model:
+
+- `genesis.codex` commands + shared skill behaviors + runtime helpers at `1.0.x` form the active supervisory runner,
+- `genesis-codex@1.1-dev` is the mutable development target under supervision,
+- promotion occurs only when the target is released and installed/pinned as the next runner.
+
+This avoids in-place self-modification of the active supervising runtime and preserves clean accountability boundaries between:
+
+- runner behavior,
+- target behavior,
+- and release promotion.
+
+See [SELF_HOST_BOOTSTRAP_DESIGN.md](./SELF_HOST_BOOTSTRAP_DESIGN.md) for the full tenant design.
+See [COMMAND_SKILL_ENGINE_MODEL.md](./COMMAND_SKILL_ENGINE_MODEL.md) for the Codex-native interpretation of the engine as a logical contract rather than a mandatory standalone service.
+
 ---
 
 ## 2. Component Design
@@ -126,7 +143,7 @@ Codex Genesis uses the same topology and edge parameterization files as Claude t
 - `.ai-workspace/graph/edges/*.yml`
 - `.ai-workspace/profiles/*.yml`
 
-No edge semantics are hard-coded into the orchestrator.
+No edge semantics are hard-coded into the iterate relay.
 
 ### 2.2 Evaluator Framework (REQ-F-EVAL-001)
 

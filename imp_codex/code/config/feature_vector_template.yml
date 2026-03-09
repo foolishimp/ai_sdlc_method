@@ -12,10 +12,19 @@
 feature: "REQ-F-{DOMAIN}-{SEQ}"
 title: "{feature title}"
 intent: "INT-{SEQ}"
+source_kind: abiogenesis              # abiogenesis | gap_observation | parent_spawn
+trigger_event: null                  # event ID or null when bootstrapped directly
+target_asset_type: ""                # requirements | design | code | telemetry | ...
+composition_expression:
+  macro: ""
+  version: ""
+  bindings: {}
 vector_type: feature                  # feature | discovery | spike | poc | hotfix
 profile: standard                    # projection profile: full | standard | poc | spike | hotfix | minimal
 status: pending                       # pending | in_progress | converged | blocked | time_box_expired
 convergence_type: ""                  # standard | question_answered | time_box_expired
+produced_asset_ref: null             # final asset path/identifier once converged
+disposition: null                    # converged | blocked_accepted | blocked_deferred | abandoned | null
 created: "{timestamp}"
 updated: "{timestamp}"
 

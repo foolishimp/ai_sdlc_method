@@ -65,6 +65,13 @@ def resolve_named_intent_payload(
     if selected is None:
         resolution_level = "feature_set" if len(req_keys) > 1 else "feature"
         expression = "PLAN({signal_source})"
+        composition = {
+            "macro": "PLAN",
+            "version": "v1",
+            "bindings": {
+                "signal_source": signal_source,
+            },
+        }
         return {
             "composition_name": None,
             "composition_expression": _render_expression(
@@ -73,6 +80,7 @@ def resolve_named_intent_payload(
                     "signal_source": signal_source,
                 },
             ),
+            "composition": composition,
             "intent_vector": {
                 "source": signal_source,
                 "parent": {"feature": feature, "edge": edge},
@@ -91,9 +99,15 @@ def resolve_named_intent_payload(
         "signal_source": signal_source,
     }
     expression = _render_expression(str(selected.get("expression", selected_name)), render_context)
+    composition = {
+        "macro": selected_name,
+        "version": selected.get("version", "v1"),
+        "bindings": render_context,
+    }
     return {
         "composition_name": selected_name,
         "composition_expression": expression,
+        "composition": composition,
         "intent_vector": {
             "source": signal_source,
             "parent": {"feature": feature, "edge": edge},

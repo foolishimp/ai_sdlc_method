@@ -105,7 +105,7 @@ Aggregate across all features:
 
 #### Signals
 
-Read `events.jsonl` for `intent_raised` events that have not been followed by a corresponding `spawn_created` or `spec_modified` event. These are unactioned signals that need human attention.
+Read `events.jsonl` for `intent_raised` events that have not been followed by a corresponding `feature_proposal`, `composition_dispatched`, `spawn_created`, or `spec_modified` event. These are unactioned signals that need human attention.
 
 #### "What Start Would Do"
 

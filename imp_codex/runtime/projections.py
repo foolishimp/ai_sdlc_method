@@ -120,6 +120,12 @@ def default_feature_document(
     template["intent"] = template.get("intent", "").replace("{timestamp}", now)
     template["profile"] = profile_name
     template["status"] = "pending"
+    template["source_kind"] = template.get("source_kind") or "abiogenesis"
+    template["trigger_event"] = template.get("trigger_event")
+    template["target_asset_type"] = template.get("target_asset_type", "")
+    template.setdefault("composition_expression", {"macro": "", "version": "", "bindings": {}})
+    template["produced_asset_ref"] = template.get("produced_asset_ref")
+    template["disposition"] = template.get("disposition")
     template["created"] = now
     template["updated"] = now
     return template
@@ -161,6 +167,7 @@ def update_feature_for_iteration(
     feature_doc["updated"] = timestamp
     feature_doc["profile"] = profile_name
     feature_doc["status"] = "in_progress"
+    feature_doc["target_asset_type"] = edge_assets(edge)[-1]
     feature_doc.setdefault("trajectory", {})
     for asset in edge_assets(edge):
         trajectory = dict(feature_doc["trajectory"].get(asset, {}))
@@ -180,6 +187,8 @@ def update_feature_for_iteration(
         if artifact_refs:
             trajectory["artifact_refs"] = artifact_refs
         feature_doc["trajectory"][asset] = trajectory
+    if status == "converged" and artifact_refs:
+        feature_doc["produced_asset_ref"] = artifact_refs[0]["path"]
     return feature_doc
 
 
@@ -416,17 +425,34 @@ def get_unactioned_signals(paths: RuntimePaths) -> list[NormalizedEvent]:
     """Return intent-like signals that have not been acted upon yet."""
 
     events = load_events(paths.events_file)
-    actioned_features = {
-        event.feature
-        for event in events
-        if event.semantic_type in {"SpawnCreated", "ReviewCompleted", "SpecModified"}
-    }
-    return [
-        event
-        for event in events
-        if event.semantic_type in {"IntentRaised", "intent_raised"}
-        and event.feature not in actioned_features
-    ]
+    actioned_features = set()
+    actioned_intents = set()
+    for event in events:
+        if event.semantic_type not in {
+            "SpawnCreated",
+            "ReviewCompleted",
+            "SpecModified",
+            "CompositionDispatched",
+            "FeatureProposal",
+        }:
+            continue
+        if event.feature:
+            actioned_features.add(event.feature)
+        intent_id = event.raw.get("run", {}).get("facets", {}).get("sdlc:payload", {}).get("intent_id")
+        if intent_id:
+            actioned_intents.add(intent_id)
+
+    unactioned = []
+    for event in events:
+        if event.semantic_type not in {"IntentRaised", "intent_raised"}:
+            continue
+        intent_id = event.raw.get("run", {}).get("facets", {}).get("sdlc:payload", {}).get("intent_id")
+        if intent_id and intent_id in actioned_intents:
+            continue
+        if not intent_id and event.feature in actioned_features:
+            continue
+        unactioned.append(event)
+    return unactioned
 
 
 @dataclass(frozen=True)

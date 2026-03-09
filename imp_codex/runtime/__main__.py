@@ -12,8 +12,10 @@ from .commands import (
     gen_fold_back,
     gen_gaps,
     gen_iterate,
+    gen_propose,
     gen_release,
     gen_review,
+    gen_spec_modify,
     gen_spawn,
     gen_start,
     gen_status,
@@ -81,6 +83,28 @@ def main(argv: list[str] | None = None) -> int:
     gaps_parser.add_argument("--feature")
     gaps_parser.add_argument("--no-intents", action="store_true")
     gaps_parser.add_argument("--actor", default="codex-runtime")
+
+    propose_parser = subparsers.add_parser("propose")
+    propose_parser.add_argument("--project-root", default=".")
+    propose_parser.add_argument("--title", required=True)
+    propose_parser.add_argument("--trigger", required=True)
+    propose_parser.add_argument("--signal-source", required=True)
+    propose_parser.add_argument("--affected-req-key", action="append", dest="affected_req_keys", required=True, default=[])
+    propose_parser.add_argument("--feature")
+    propose_parser.add_argument("--edge", default="spec_change")
+    propose_parser.add_argument("--vector-type", default="feature")
+    propose_parser.add_argument("--prior-intent", action="append", dest="prior_intents", default=[])
+    propose_parser.add_argument("--spec-path", action="append", dest="spec_paths", default=[])
+    propose_parser.add_argument("--actor", default="codex-runtime")
+
+    spec_modify_parser = subparsers.add_parser("spec-modify")
+    spec_modify_parser.add_argument("--project-root", default=".")
+    spec_modify_parser.add_argument("--intent-id", required=True)
+    spec_modify_parser.add_argument("--what-changed", action="append", required=True, default=[])
+    spec_modify_parser.add_argument("--affected-req-key", action="append", dest="affected_req_keys", default=[])
+    spec_modify_parser.add_argument("--spec-path", action="append", dest="spec_paths", default=[])
+    spec_modify_parser.add_argument("--spawned-vector", action="append", dest="spawned_vectors", default=[])
+    spec_modify_parser.add_argument("--actor", default="human")
 
     release_parser = subparsers.add_parser("release")
     release_parser.add_argument("--project-root", default=".")
@@ -154,6 +178,30 @@ def main(argv: list[str] | None = None) -> int:
             project_root,
             feature=args.feature,
             emit_intents=not args.no_intents,
+            actor=args.actor,
+        )
+    elif args.command == "propose":
+        result = gen_propose(
+            project_root,
+            title=args.title,
+            trigger=args.trigger,
+            signal_source=args.signal_source,
+            affected_req_keys=args.affected_req_keys,
+            feature=args.feature,
+            edge=args.edge,
+            vector_type=args.vector_type,
+            prior_intents=args.prior_intents,
+            spec_paths=args.spec_paths,
+            actor=args.actor,
+        )
+    elif args.command == "spec-modify":
+        result = gen_spec_modify(
+            project_root,
+            intent_id=args.intent_id,
+            what_changed=args.what_changed,
+            affected_req_keys=args.affected_req_keys,
+            spec_paths=args.spec_paths,
+            spawned_vectors=args.spawned_vectors,
             actor=args.actor,
         )
     elif args.command == "release":

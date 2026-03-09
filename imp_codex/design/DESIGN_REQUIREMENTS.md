@@ -96,6 +96,53 @@ The Codex runtime shall treat `.ai-workspace/` as a project-level artifact roote
 
 ---
 
+### REQ-F-CDX-006: CONSENSUS Review-Cycle Projection
+
+**Spec parent**: REQ-F-CONSENSUS-001, ADR-S-025
+
+The Codex tenant shall implement CONSENSUS review state as a replay-derived projection keyed by `review_id` and `cycle_id`, rather than by a separate mutable review-state artifact.
+
+**Acceptance**:
+- A `consensus_requested` event opens a cycle with explicit `review_id` and `cycle_id`.
+- Material review reset creates a new `cycle_id`; prior-cycle votes no longer count.
+- Quorum, participation, gating comments, and terminal outcome can be reconstructed from events alone.
+
+**Traces To**: `design/CONSENSUS_OBSERVER_DESIGN.md`, `design/adrs/ADR-CG-010-consensus-observer-review-cycle-projection.md`
+
+---
+
+### REQ-F-CDX-007: Released-Runner Self-Host Bootstrap
+
+**Spec parent**: REQ-TOOL-004, REQ-ITER-001, REQ-SUPV-002
+
+The Codex tenant shall support self-hosting through a released-runner bootstrap model, where a released Genesis Codex runtime supervises the workspace of the next in-development Genesis Codex version.
+
+**Acceptance**:
+- The active supervisory runner is a released or pinned Codex Genesis artifact, not the mutable development head it is supervising.
+- The development target owns its own `.ai-workspace/`, event log, feature vectors, and release history.
+- Promotion from development target to active runner occurs only through a released version boundary.
+- The CLI, engine, and provider bridge responsibilities are documented separately enough that self-host supervision does not depend on in-place self-modification of the active engine.
+
+**Traces To**: `design/SELF_HOST_BOOTSTRAP_DESIGN.md`, `design/CODEX_GENESIS_DESIGN.md`
+
+---
+
+### REQ-F-CDX-008: Logical Engine Contract Over Commands, Skill Behaviors, and Runtime Helpers
+
+**Spec parent**: REQ-ITER-001, REQ-TOOL-001, REQ-SUPV-002
+
+The Codex tenant shall treat the engine as a logical contract realized jointly by commands, reusable skill behaviors, runtime helpers, and the Codex session, rather than requiring a separate standalone engine service.
+
+**Acceptance**:
+- Command routing, reusable construct/evaluate/review behaviors, and runtime replay/projection authority are documented as distinct responsibilities.
+- Durable state authority remains with event/projection helpers even when construction happens in-session.
+- The tenant design does not require a standalone daemon or subprocess transport in order to claim it has an engine.
+- Self-host bootstrap may use a released command/skill/runtime bundle as the runner boundary.
+
+**Traces To**: `design/COMMAND_SKILL_ENGINE_MODEL.md`, `design/FRAMEWORK_COMPARISON_ANALYSIS.md`, `design/FUNCTOR_FRAMEWORK_DESIGN.md`
+
+---
+
 ## 2. Non-Functional Requirements
 
 ### REQ-NFR-CDX-001: Deterministic Command Output Shape
@@ -130,6 +177,21 @@ The Codex runtime shall emit canonical RunEvents and normalize legacy rows into 
 
 ---
 
+### REQ-DATA-CDX-002: Consensus Review Event Vocabulary
+
+**Spec parent**: REQ-F-CONSENSUS-001, ADR-S-025
+
+The Codex tenant shall bind CONSENSUS review semantics to an explicit event vocabulary that is sufficient to reconstruct each review cycle deterministically.
+
+**Acceptance**:
+- The tenant event model defines `consensus_requested`, `comment_received`, `comment_dispositioned`, `vote_cast`, `review_reopened`, `consensus_reached`, and `consensus_failed`.
+- Every event includes `review_id`; cycle-scoped events include `cycle_id`.
+- Vote and disposition payloads carry enough asset-version context to enforce replay-safe reset behavior.
+
+**Traces To**: `design/CONSENSUS_OBSERVER_DESIGN.md`, `design/adrs/ADR-CG-010-consensus-observer-review-cycle-projection.md`
+
+---
+
 ## 4. Business Rules
 
 ### REQ-BR-CDX-001: Iteration Event Ordering
@@ -147,6 +209,22 @@ The Codex runtime shall preserve a simple causal ordering for iteration runs.
 
 ---
 
+### REQ-BR-CDX-002: Consensus Observer Idempotency and Stale-Trigger Safety
+
+**Spec parent**: REQ-F-CONSENSUS-001, REQ-SUPV-002
+
+The Codex consensus observer/relay package shall be stateless and replay-safe. Trigger context is advisory only until current review state is rehydrated from the event log.
+
+**Acceptance**:
+- Observer triggers include `observer_id`, `trigger_reason`, `review_id`, `cycle_id`, `artifact`, and `source_run_id`.
+- A stale or malformed trigger causes a no-op exit rather than review mutation.
+- Reviewer loops do not emit terminal consensus outcomes directly; only the instigator loop may emit `consensus_reached` or `consensus_failed`.
+- Review progression is driven by replay-derived local invariants over review-cycle events, not by imperative cross-component sequencing.
+
+**Traces To**: `design/CONSENSUS_OBSERVER_DESIGN.md`, `design/adrs/ADR-CG-010-consensus-observer-review-cycle-projection.md`
+
+---
+
 ## 5. Coverage Note for /gen-gaps
 
 This file exists so Codex-specific runtime and design work can carry first-class design-tier traceability without forcing Codex transport details into the shared spec. If future Codex code or tests use design-tier requirement tags, this document is the anchor.
@@ -155,4 +233,7 @@ This file exists so Codex-specific runtime and design work can carry first-class
 
 ## Change Log
 
+- `1.3.0` (2026-03-09): Added logical engine contract requirement over commands, reusable skill behaviors, and runtime helpers.
+- `1.2.0` (2026-03-09): Added released-runner self-host bootstrap requirement for Codex.
+- `1.1.0` (2026-03-09): Added Codex design-tier requirements for review-cycle projection, consensus event vocabulary, and stale-trigger safety.
 - `1.0.0` (2026-03-09): Initial Codex design-tier requirement set covering runtime command parity, event-first projection writes, explicit human review, tenant-pinned compat docs, workspace rooting, canonical JSON outputs, normalized event data, and iteration ordering.

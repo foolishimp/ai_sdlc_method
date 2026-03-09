@@ -266,9 +266,11 @@ agent_guidance: |
   3. Quantify the delta (what was expected vs what was observed)
   4. Trace back to affected REQ keys
   5. Draft a new intent (INT-*) using the appropriate intent_template
-  6. Emit an `intent_raised` event to events.jsonl (see Event Schema below)
-  7. Present to human — they decide whether to create a new feature vector
-  8. Report checklist: "N of M required checks pass"
+  6. Classify `requires_spec_change: true|false`
+  7. Emit an `intent_raised` event to events.jsonl (see Event Schema below)
+  8. If `requires_spec_change: false`, dispatch the named composition directly
+  9. If `requires_spec_change: true`, present to human for spec evolution
+  10. Report checklist: "N of M required checks pass"
 
   Signal source priority for intent generation:
   - runtime_feedback, test_failure: ALWAYS generate intent
@@ -293,10 +295,13 @@ intent_raised_schema:
     - timestamp: "ISO 8601"
     - project: "project name"
     - intent_id: "INT-{SEQ}"
+    - requires_spec_change: "true | false"
     - trigger: "which signal(s) caused this intent"
     - delta: "spec vs observation deviation"
     - signal_source: "gap | test_failure | refactoring | source_finding | process_gap | runtime_feedback | ecosystem | user | TELEM"
     - vector_type: "discovery | PoC | feature | hotfix | spike"
+    - composition_name: "named composition selected from registry"
+    - composition_expression: "resolved composition expression"
     - affected_req_keys: "[REQ-* list]"
     - prior_intents: "[INT-* chain that led here — closes reflexive loop]"
     - edge_context: "which edge was being traversed when signal fired"

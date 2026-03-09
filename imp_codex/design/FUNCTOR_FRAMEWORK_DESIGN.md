@@ -3,7 +3,7 @@
 **Version**: 1.0.0
 **Date**: 2026-03-09
 **Implements**: REQ-GRAPH-001, REQ-ITER-001, REQ-EVAL-002, REQ-F-EVENT-001
-**Package**: `imp_codex/runtime/`
+**Package**: `imp_codex/runtime/` + command/agent prompt surface
 
 ---
 
@@ -54,7 +54,7 @@ Two invariants remain intact:
 | `runtime/traceability.py` | REQ scanning, manifest, gaps, trace, release reports |
 | `runtime/__main__.py` | JSON CLI entry point |
 
-This is the actual Codex functor surface. The markdown agent specs under `imp_codex/code/agents/` remain the prompt-layer contract, but the runtime is now the replayable engine contract.
+This is the actual Codex functor surface. The markdown agent specs under `imp_codex/code/agents/` remain the prompt-layer contract, and the runtime remains the replayable deterministic substrate. The full engine is the logical composition of command surface, reusable skill behaviors, runtime helpers, and the Codex session.
 
 ---
 
@@ -100,7 +100,7 @@ The Codex tenant has two different F_P behaviors today:
 2. **Runtime heuristic F_P** in `run_agent_checks()`:
    local heuristics infer pass/fail against some agent-style criteria.
 
-What is missing is a unified probabilistic contract that the runtime can invoke and record as a bounded unit of work.
+What is missing is a unified probabilistic contract that commands and reusable skill behaviors can invoke and the runtime can record as a bounded unit of work.
 
 Current bridge state:
 - the Codex session can construct candidate artifacts,
@@ -166,7 +166,8 @@ Weakness:
 ### Strategy C: Hybrid Codex Runtime [PLANNED]
 
 Target split:
-- session constructs candidate artifacts,
+- commands trigger reusable skill behaviors,
+- session constructs candidate artifacts through those behaviors,
 - runtime validates and records them,
 - human or consensus review closes the loop,
 - typed intents and named compositions extend the same contract.
@@ -204,7 +205,7 @@ This is important because the Codex runtime design is now executable enough that
 ## 11. What Is Not Implemented Yet
 
 - true runtime construct path,
-- real F_P actor contract,
+- real F_P relay contract,
 - `CONSENSUS` functor,
 - named composition execution beyond intent routing,
 - stronger structural enforcement around REQ-TOOL-015 beyond the current warning path.
@@ -221,7 +222,7 @@ Do not rewrite the runtime around a Claude-shaped subprocess model.
 
 Instead:
 1. keep replay, events, and projections in `imp_codex/runtime/`,
-2. formalize the session-to-runtime construct handoff,
+2. formalize the command/skill/session-to-runtime construct handoff,
 3. add real F_P invocation semantics,
 4. build `CONSENSUS` and fuller named-composition execution on top of that hybrid.
 

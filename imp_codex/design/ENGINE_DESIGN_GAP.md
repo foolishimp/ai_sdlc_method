@@ -54,9 +54,9 @@ Without a construct contract, REQ-F-FP-001 remains design-tier only. The runtime
 
 ---
 
-### Gap 2: Agent Evaluation Is Heuristic, Not a True Codex Actor Contract
+### Gap 2: Agent Evaluation Is Heuristic, Not a True Codex F_P Relay Contract
 
-`run_agent_checks()` performs useful file- and traceability-based heuristics, but it is not equivalent to a true probabilistic constructor/evaluator actor.
+`run_agent_checks()` performs useful file- and traceability-based heuristics, but it is not equivalent to a true probabilistic constructor/evaluator relay.
 
 **What exists**:
 - heuristic checks over requirements, design text, code/test tags, and constraint dimensions,
@@ -82,15 +82,19 @@ The accepted spec and recent ADRs now include:
 - ordinary human review (`gen_review`),
 - named composition registry in `graph/named_compositions.yml`,
 - typed `intent_vector` payloads on stuck-iteration and gap-driven `intent_raised` events,
-- profile and graph configuration infrastructure.
+- profile and graph configuration infrastructure,
+- tenant design package for the `CONSENSUS` observer in `design/CONSENSUS_OBSERVER_DESIGN.md` and `design/adrs/ADR-CG-010-consensus-observer-review-cycle-projection.md`.
 
 **What is needed**:
+- executable review publication, comment, disposition, vote, and replay commands,
+- pure projection functions for review-cycle state and deterministic quorum math,
 - explicit `CONSENSUS` review publication, roster, quorum, and failure semantics,
+- invariant-driven review choreography rather than a monolithic consensus orchestrator,
 - broader named composition execution beyond intent routing,
 - richer lineage, parentage, and bounded project-state semantics around composition-carrying intents.
 
 **Why it matters**:
-Codex now has an executable foothold for named compositions, but not the higher-order execution layer or the `CONSENSUS` package that the newer ADRs imply.
+Codex now has a concrete local design target for `CONSENSUS`, but not the executable package yet. The next slice is no longer "invent the design"; it is "implement the replay/projection surface the design already names."
 
 ---
 
@@ -113,12 +117,64 @@ This is the design-level difference between "the code can do the right thing if 
 
 ---
 
+### Gap 5: No Formal Released-Runner Self-Host Contract
+
+The Codex tenant now has enough runtime surface to dogfood itself, but it still lacked an explicit rule for how the active runner and the development target should relate.
+
+**What exists**:
+- a working runtime,
+- release manifest generation,
+- project-scoped workspaces,
+- stable event and projection contracts.
+
+**What was missing**:
+- a documented split between released runner and mutable dev target,
+- a formal statement that self-hosting should use a released runner to supervise the next dev version,
+- an explicit CLI / engine / provider bridge boundary for that bootstrap.
+
+**Why it matters**:
+Without this, dogfooding easily collapses into in-place self-modification, which blurs accountability boundaries and makes runner bugs, target bugs, and migration bugs hard to distinguish.
+
+**Current design response**:
+- `design/SELF_HOST_BOOTSTRAP_DESIGN.md` now defines the released-runner bootstrap model as the Codex tenant's canonical self-host pattern.
+
+---
+
+### Gap 6: No Explicit Reusable Skill-Behavior Layer
+
+The Codex tenant has command specs, agent specs, and runtime helpers, but it still lacked an explicit statement of the reusable behavior layer between raw command triggers and one-off session reasoning.
+
+**What exists**:
+- command surface,
+- prompt-layer agents,
+- runtime helpers,
+- strong interactive Codex tool access.
+
+**What was missing**:
+- a Codex-native model for "skills" that does not regress to v1 stage personas,
+- a statement that the engine is a logical contract spanning commands, reusable behaviors, runtime helpers, and the session,
+- a cleaner explanation of how self-hosting works without a mandatory separate service.
+
+**Why it matters**:
+Without this, design language keeps oscillating between:
+- "the runtime is the engine"
+- and "the session is the methodology"
+
+Neither is precise enough by itself.
+
+**Current design response**:
+- `design/COMMAND_SKILL_ENGINE_MODEL.md` now defines the missing layer and reprices the engine as a logical contract rather than a mandatory process shape.
+
+---
+
 ## Implementation Order
 
 1. Define a construct contract for `gen_iterate()` that records candidate artifact paths and hashes.
 2. Replace or augment heuristic agent checks with a real Codex F_P invocation boundary.
 3. Tighten workspace-root enforcement from warning to structural self-check coverage.
-4. Implement phase-2 extensions in order: `CONSENSUS` first, then deepen named composition execution beyond typed intent routing.
+4. Keep the released-runner self-host split explicit as command / skill / runtime / provider contracts harden.
+5. Turn the reusable skill-behavior layer from design-only into explicit executable conventions.
+6. Implement phase-2 extensions in order: `CONSENSUS` projection package first, then deepen named composition execution beyond typed intent routing.
 
 ---
 
