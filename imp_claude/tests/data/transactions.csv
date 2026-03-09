@@ -1,0 +1,21 @@
+transaction_id,amount,currency,status,user_id,created_at,notes,is_flagged
+TXN-001,150.00,USD,completed,usr_001,2026-01-15 10:30:00,,false
+TXN-002,89.99,EUR,pending,usr_002,2026-01-15 11:00:00,Rush order,false
+TXN-003,2499.50,GBP,completed,usr_003,2026-01-15 11:15:00,,false
+TXN-004,12.00,USD,failed,usr_001,2026-01-15 11:30:00,Card declined,true
+TXN-005,345.75,EUR,completed,usr_004,2026-01-15 12:00:00,,false
+TXN-006,78.00,USD,pending,usr_005,2026-01-15 12:15:00,,false
+TXN-007,999.00,GBP,completed,usr_006,2026-01-15 12:30:00,High value,true
+TXN-008,22.50,USD,failed,usr_002,2026-01-15 12:45:00,,false
+TXN-009,1200.00,EUR,completed,usr_007,2026-01-15 13:00:00,,false
+TXN-010,55.00,USD,pending,usr_003,2026-01-15 13:15:00,Awaiting approval,false
+TXN-011,750.25,GBP,completed,usr_008,2026-01-15 13:30:00,,false
+TXN-012,18.99,USD,completed,usr_001,2026-01-15 13:45:00,,false
+TXN-013,3200.00,EUR,completed,usr_009,2026-01-15 14:00:00,Large order,true
+TXN-014,99.00,USD,failed,usr_010,2026-01-15 14:15:00,,false
+TXN-015,425.00,GBP,pending,usr_004,2026-01-15 14:30:00,,false
+TXN-016,60.00,USD,completed,usr_005,2026-01-15 14:45:00,,false
+TXN-017,175.50,EUR,completed,usr_011,2026-01-15 15:00:00,,false
+TXN-018,890.00,USD,completed,usr_006,2026-01-15 15:15:00,VIP customer,true
+TXN-019,33.00,GBP,failed,usr_012,2026-01-15 15:30:00,,false
+TXN-020,500.00,EUR,completed,usr_007,2026-01-15 15:45:00,,false

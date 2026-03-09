@@ -24,6 +24,7 @@ markers = [
     "e2e: E2E convergence tests — headless Claude drives full methodology (slow, requires Claude CLI)",
     "e2e_monitor: Monitor UI tests — Playwright validates genesis-monitor displays e2e run outputs",
     "mcp: Live actor tests — requires active Claude Code session (CLAUDE_CODE_SSE_PORT set)",
+    "slow: Slow tests — require nbconvert/jupyter execution (schema_discovery)",
 ]
 # ── Two-lane certification (ADR-019 Gap 6 / codex review 2026-03-09) ─────────
 # Lane 1 — deterministic/core (no Claude CLI):

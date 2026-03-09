@@ -1,0 +1,143 @@
+---
+# Feature Vector: REQ-F-SCHEMA-DISC-001
+# Implements: REQ-F-SCHEMA-DISC-001 (SCHEMA_DISCOVERY Execution — Notebook-Driven)
+# Reference: ADR-S-026 §6.2, named_compositions.yml, HIGHER_ORDER_FUNCTORS.md §6.2
+
+feature: "REQ-F-SCHEMA-DISC-001"
+title: "SCHEMA_DISCOVERY Execution — Notebook-Driven Data Schema Inference"
+intent: "INT-NAMEDCOMP-002"
+vector_type: feature
+profile: standard
+status: in_progress
+convergence_type: ""
+created: "2026-03-10T20:00:00Z"
+updated: "2026-03-10T20:00:00Z"
+
+# ── Intent Vector Envelope ────────────────────────────────────────────────────
+source_kind: abiogenesis
+trigger_event: null
+target_asset_type: schema_discovery_engine
+produced_asset_ref: null
+disposition: null
+disposition_rationale: null
+
+# ── Functor Encoding ──────────────────────────────────────────────────────────
+functor:
+  encoding_source: profile
+  mode: interactive
+  valence: medium
+  overrides: {}
+
+# ── Time Box ──────────────────────────────────────────────────────────────────
+time_box:
+  enabled: false
+
+# ── Parent / Child ────────────────────────────────────────────────────────────
+parent:
+  feature: "REQ-F-NAMEDCOMP-001"
+  edge: "code"
+  reason: >
+    NAMEDCOMP-001 defined the named composition registry and dispatch table.
+    SCHEMA-DISC-001 implements the execution layer for the SCHEMA_DISCOVERY macro —
+    the first macro to be fully executable, not just specified.
+
+children: []
+
+# ── Trajectory ────────────────────────────────────────────────────────────────
+trajectory:
+  requirements:
+    status: converged
+    converged_at: "2026-03-10T20:00:00Z"
+    asset: "specification/adrs/ADR-S-026-named-compositions-and-intent-vectors.md"
+    notes: >
+      SCHEMA_DISCOVERY named composition fully specified in ADR-S-026 §6.2
+      and named_compositions.yml.  Dispatch table routes missing_schema →
+      SCHEMA_DISCOVERY.  Parameters: dataset, notebook_env, evaluation_criteria.
+
+  design:
+    status: converged
+    converged_at: "2026-03-10T20:00:00Z"
+    asset: "imp_claude/code/.claude-plugin/plugins/genesis/config/edge_params/schema_discovery.yml"
+    notes: >
+      schema_discovery.yml edge config defines evaluators (schema_document_present,
+      all_fields_typed, notebook_lineage_present, human_approves_schema),
+      convergence rules, guidance, and fold-back spec.
+
+  code:
+    status: converged
+    converged_at: "2026-03-10T20:00:00Z"
+    asset: "imp_claude/code/genesis/schema_discovery.py"
+    notes: >
+      schema_discovery.py implements the full BROADCAST ∘ iterate ∘ FOLD pipeline:
+      generate_exploration_notebook(), execute_notebook(), extract_schema_from_notebook(),
+      write_schema_to_design_context(), run_schema_discovery().
+      Demo dataset: imp_claude/tests/data/transactions.csv
+
+  unit_tests:
+    status: in_progress
+    asset: "imp_claude/tests/test_schema_discovery.py"
+    notes: >
+      6 test classes: TestGenerateExplorationNotebook (8 fast tests),
+      TestExecuteNotebook (3 slow), TestExtractSchema (13 slow),
+      TestRunSchemaDiscovery (6 slow), TestWriteSchemaToDesignContext (7 slow),
+      TestDynamicIntentVector (4 tests: 3 fast + 1 slow end-to-end).
+      Slow tests marked @pytest.mark.slow — require nbconvert.
+
+  uat_tests:
+    status: pending
+
+# ── Dependencies ──────────────────────────────────────────────────────────────
+dependencies:
+  - feature: "REQ-F-NAMEDCOMP-001"
+    asset: code
+    status: resolved
+
+# ── Constraints (Feature-Specific) ────────────────────────────────────────────
+constraints:
+
+  acceptance_criteria:
+
+    - id: "AC-SCHEMA-001"
+      description: "Given a CSV dataset, run_schema_discovery() produces a SchemaDocument with all column types inferred"
+      evaluator: deterministic
+      check: "test_converges_on_csv passes"
+      req: "REQ-F-SCHEMA-DISC-001"
+      required: true
+
+    - id: "AC-SCHEMA-002"
+      description: "SchemaDocument carries notebook_path as lineage artifact"
+      evaluator: deterministic
+      check: "test_notebook_path_preserved passes"
+      req: "REQ-F-SCHEMA-DISC-001"
+      required: true
+
+    - id: "AC-SCHEMA-003"
+      description: "write_schema_to_design_context() writes schema.json that resolves missing_schema gap"
+      evaluator: deterministic
+      check: "test_schema_json_created passes and schema_document_present evaluator would pass"
+      req: "REQ-F-SCHEMA-DISC-001"
+      required: true
+
+    - id: "AC-SCHEMA-004"
+      description: "Low-cardinality string columns flagged as enum candidates in open_questions"
+      evaluator: deterministic
+      check: "test_currency_low_cardinality_flagged and test_low_cardinality_string_enum_candidate pass"
+      req: "REQ-F-SCHEMA-DISC-001"
+      required: true
+
+    - id: "AC-SCHEMA-005"
+      description: "gap_type_dispatch.missing_schema → SCHEMA_DISCOVERY in named_compositions.yml"
+      evaluator: deterministic
+      check: "test_gap_type_dispatch_routes_missing_schema_to_schema_discovery passes"
+      req: "REQ-F-NAMEDCOMP-001"
+      required: true
+
+    - id: "AC-SCHEMA-006"
+      description: "Full dynamic intent vector round-trip: gap → dispatch → notebook → fold-back"
+      evaluator: deterministic
+      check: "test_end_to_end_gap_to_fold_back passes"
+      req: "REQ-F-SCHEMA-DISC-001"
+      required: true
+
+  threshold_overrides: {}
+  additional_checks: []
