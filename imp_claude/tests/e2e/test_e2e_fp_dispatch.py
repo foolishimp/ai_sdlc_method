@@ -398,6 +398,7 @@ class TestPhaseAHandoff:
 # ═══════════════════════════════════════════════════════════════════════
 
 @pytest.mark.e2e
+@pytest.mark.mcp
 @skip_no_mcp
 class TestFpActorDispatch:
     """Validates the full F_P dispatch round-trip: manifest → actor → fold-back → convergence.

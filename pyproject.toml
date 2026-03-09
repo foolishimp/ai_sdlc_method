@@ -23,7 +23,18 @@ markers = [
     "uat: UAT integration tests — end-to-end methodology validation",
     "e2e: E2E convergence tests — headless Claude drives full methodology (slow, requires Claude CLI)",
     "e2e_monitor: Monitor UI tests — Playwright validates genesis-monitor displays e2e run outputs",
+    "mcp: Live actor tests — requires active Claude Code session (CLAUDE_CODE_SSE_PORT set)",
 ]
+# ── Two-lane certification (ADR-019 Gap 6 / codex review 2026-03-09) ─────────
+# Lane 1 — deterministic/core (no Claude CLI):
+#   pytest imp_claude/tests/ -m "not e2e and not mcp" -q
+#   Expected: all tdd + bdd + uat tests pass; zero Claude dependencies
+#
+# Lane 2 — live actor/e2e (requires Claude CLI + active session):
+#   pytest imp_claude/tests/e2e/ -m "e2e or mcp" -q
+#   Expected: archived-convergence + fp-dispatch tests pass
+#   TestFpActorDispatch (@pytest.mark.mcp) requires CLAUDE_CODE_SSE_PORT
+# ─────────────────────────────────────────────────────────────────────────────
 
 [tool.coverage.run]
 omit = [
