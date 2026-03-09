@@ -578,3 +578,101 @@ class TestCLIConstruct:
             "--asset", "test.py",
         ])
         assert args.construct is True
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# T-COMPLY-008: gen-iterate.md fold-back protocol spec validation
+# Validates that the LLM-layer spec describes the ADR-023/024 fold-back contract.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+import pathlib as _pathlib
+
+_COMMANDS_DIR = _pathlib.Path(__file__).parent.parent / "code/.claude-plugin/plugins/genesis/commands"
+
+
+class TestGenIterateFoldBackSpec:
+    """T-COMPLY-008: gen-iterate.md must describe the fold-back dispatch protocol."""
+
+    @pytest.fixture
+    def gen_iterate_spec(self):
+        path = _COMMANDS_DIR / "gen-iterate.md"
+        assert path.exists(), f"gen-iterate.md not found at {path}"
+        return path.read_text()
+
+    def test_spec_describes_fp_actor_result_missing_signal(self, gen_iterate_spec):
+        """gen-iterate must recognise FpActorResultMissing as the dispatch signal."""
+        assert "FpActorResultMissing" in gen_iterate_spec, (
+            "gen-iterate.md must reference FpActorResultMissing — "
+            "the engine's observable signal that an actor dispatch is required"
+        )
+
+    def test_spec_describes_manifest_scanning(self, gen_iterate_spec):
+        """gen-iterate must describe scanning for pending fp_intent_*.json manifests."""
+        assert "fp_intent_" in gen_iterate_spec, (
+            "gen-iterate.md must describe reading fp_intent_{run_id}.json from "
+            ".ai-workspace/agents/ — the fold-back manifest written by the engine"
+        )
+        assert "pending" in gen_iterate_spec, (
+            "gen-iterate.md must describe checking for status='pending' manifests"
+        )
+
+    def test_spec_describes_mcp_tool_invocation(self, gen_iterate_spec):
+        """gen-iterate must name the MCP tool used for actor dispatch."""
+        assert "mcp__claude-code-runner__claude_code" in gen_iterate_spec, (
+            "gen-iterate.md must reference mcp__claude-code-runner__claude_code "
+            "as the MCP tool used to dispatch the actor"
+        )
+
+    def test_spec_describes_fold_back_result_format(self, gen_iterate_spec):
+        """gen-iterate must specify the actor result format written to result_path."""
+        assert "fp_result_" in gen_iterate_spec, (
+            "gen-iterate.md must reference fp_result_{run_id}.json — "
+            "the fold-back result file written by the actor"
+        )
+        assert "result_path" in gen_iterate_spec, (
+            "gen-iterate.md must reference result_path from the manifest — "
+            "where the actor writes its fold-back result"
+        )
+
+    def test_spec_describes_converged_delta_in_result(self, gen_iterate_spec):
+        """gen-iterate must specify that the actor result includes converged + delta."""
+        assert '"converged"' in gen_iterate_spec, (
+            "gen-iterate.md must show the actor result schema including 'converged'"
+        )
+        assert '"delta"' in gen_iterate_spec, (
+            "gen-iterate.md must show the actor result schema including 'delta'"
+        )
+
+    def test_spec_describes_re_run_phase_a_after_actor(self, gen_iterate_spec):
+        """gen-iterate must describe re-running Phase A after actor writes fold-back."""
+        assert "re-run Phase A" in gen_iterate_spec or "re-run the engine" in gen_iterate_spec or \
+               "re-run phase a" in gen_iterate_spec.lower(), (
+            "gen-iterate.md must describe re-running Phase A (engine) after "
+            "the actor writes its fold-back result"
+        )
+
+    def test_spec_explains_no_subprocess_rationale(self, gen_iterate_spec):
+        """gen-iterate must explain ADR-023: no subprocess, no claude -p."""
+        assert "no subprocess" in gen_iterate_spec.lower() or \
+               "no `claude -p`" in gen_iterate_spec or \
+               "ADR-023" in gen_iterate_spec, (
+            "gen-iterate.md must explain the ADR-023 constraint: "
+            "no subprocess, no claude -p — MCP is the only invocation path"
+        )
+
+    def test_fold_back_protocol_shows_engine_llm_actor_chain(self, gen_iterate_spec):
+        """gen-iterate must show the three-party contract: ENGINE→LLM→ACTOR."""
+        assert "ENGINE" in gen_iterate_spec, (
+            "gen-iterate.md must show the ENGINE role in the fold-back contract"
+        )
+        assert "ACTOR" in gen_iterate_spec, (
+            "gen-iterate.md must show the ACTOR role in the fold-back contract"
+        )
+
+    def test_spec_budget_tracking_describes_cost_usd_deduction(self, gen_iterate_spec):
+        """gen-iterate must describe deducting cost_usd from actor result."""
+        assert "cost_usd" in gen_iterate_spec, (
+            "gen-iterate.md must reference cost_usd from the fold-back result "
+            "for budget tracking — deduct from remaining budget_usd"
+        )

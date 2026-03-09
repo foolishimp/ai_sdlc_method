@@ -117,54 +117,74 @@ Determine the execution mode from `--mode` (default: `interactive`):
 4. If `converged: true` → format as **Iteration Report** (Step 5), update feature vector, proceed to Step 4
 5. If `spawn_requested` → present spawn to user as in Step 6
 
-**Phase B: F_P actor dispatch (runs when F_D delta > 0 and edge supports construction)**
+**Phase B: F_P actor dispatch via fold-back protocol (ADR-023, ADR-024)**
 
 Construction edges: `code↔unit_tests`, `design→test_cases`, `design→uat_tests`, `intent→requirements`, `requirements→design`
 
-If the edge is a construction edge AND delta > 0 AND remaining budget > 0:
+Phase B fires when the engine raises `FpActorResultMissing` — the engine has written an intent manifest but no fold-back result exists yet. gen-iterate (the LLM layer) owns the MCP dispatch.
 
-6. Build the actor mandate — a structured prompt containing:
+**Fold-back contract**:
+```
+ENGINE  → writes  .ai-workspace/agents/fp_intent_{run_id}.json   (status: "pending")
+ENGINE  → raises  FpActorResultMissing (observable signal, not a silent skip)
+LLM     → reads   manifest, invokes actor via MCP tool call
+ACTOR   → writes  .ai-workspace/agents/fp_result_{run_id}.json
+ENGINE  → reads   fold-back result on next Phase A invocation
+```
+
+Steps:
+
+6. Detect `FpActorResultMissing` in the Phase A output (field `"fp_actor_missing": true` in JSON, or exception text containing "Intent written to:").
+
+7. Scan `.ai-workspace/agents/` for `fp_intent_{run_id}.json` files with `"status": "pending"`. There will typically be exactly one per edge run.
+
+8. Read the manifest. The manifest contains:
+   - `run_id` — unique run identifier
+   - `edge`, `feature`, `grain` — routing context
+   - `budget_usd` — remaining budget for this actor call
+   - `failures` — list of F_D failing check names from Phase A
+   - `constraints` — resolved project constraints
+   - `prompt` — the fully-built actor mandate (use this directly)
+   - `result_path` — where actor must write its fold-back result
+
+9. Invoke the actor via `mcp__claude-code-runner__claude_code`:
    ```
-   # Actor Mandate
-   Edge: {edge}
-   Feature: {feature}
-   Asset: {asset_path}
-   Budget: ${budget_usd}
-
-   ## F_D Failures (must be resolved)
-   {list of failing checks from Phase A, with check name, expected, observed}
-
-   ## Your Task
-   You are a recursive construction actor. Your job is to modify {asset_path} (and
-   any related files) so that all F_D checks pass. You have full tool access — read
-   files, write code, run tests, verify output. Work iteratively until the failures
-   are resolved. Do NOT emit a result — modify the files directly. When done, output
-   only: DONE: {summary of changes made}
+   tool: mcp__claude-code-runner__claude_code
+   prompt: {manifest["prompt"]}
+   max_budget_usd: {manifest["budget_usd"]}
    ```
+   The actor receives the prompt, does the work (reads files, writes code, runs tests), and writes a fold-back result to `result_path`.
 
-7. Invoke the MCP `claude_code` tool with the actor mandate:
-   - Use `mcp__claude-code-runner__claude_code` or equivalent MCP tool
-   - Set `max_budget_usd` to the remaining iteration budget (default: $2.00 per actor call)
-   - The actor has full tool access and will modify files directly in the workspace
+10. The actor's fold-back result must be JSON at `result_path`:
+    ```json
+    {
+      "converged": true|false,
+      "delta": 0,
+      "artifacts": [{"path": "...", "content_hash": "sha256:..."}],
+      "spawns": [],
+      "cost_usd": 0.85
+    }
+    ```
 
-8. After actor completes, re-run Phase A (F_D evaluation) on the now-modified asset:
-   ```bash
-   PYTHONPATH={plugin_root}/code python -m genesis evaluate \
-     --edge "{edge}" \
-     --feature "{feature}" \
-     --asset "{asset_path}" \
-     --deterministic-only \
-     --fd-timeout 120 \
-     --iteration {n+1}
-   ```
+11. After the actor completes, re-run Phase A (the engine reads the fold-back result automatically):
+    ```bash
+    PYTHONPATH={plugin_root}/code python -m genesis evaluate \
+      --edge "{edge}" \
+      --feature "{feature}" \
+      --asset "{asset_path}" \
+      --deterministic-only \
+      --fd-timeout 120 \
+      --iteration {n+1}
+    ```
 
-9. If converged → proceed to Step 4 (convergence handling)
-10. If not converged and budget remains → repeat Phase B (up to 3 actor calls per edge)
-11. If budget exhausted or 3 actor calls completed without convergence → report stuck delta, emit `intent_raised`
+12. If `FpActorResultMissing` again (actor did not write result): report stuck, emit `intent_raised`, stop.
+13. If converged → proceed to Step 4 (convergence handling).
+14. If not converged and budget remains → repeat Phase B (up to 3 actor calls per edge).
+15. If budget exhausted or 3 actor calls completed without convergence → report stuck delta, emit `intent_raised`.
 
-**Budget tracking**: deduct actor cost from `budget_usd` after each call. Stop dispatching actors when `remaining_budget < $0.50` (reserve for final F_D evaluation).
+**Budget tracking**: deduct `cost_usd` from `fp_result` from the remaining `budget_usd`. Stop dispatching when `remaining_budget < $0.50` (reserve for final F_D evaluation).
 
-**Why this architecture**: The engine (Python) cannot call MCP tools — MCP tools are the LLM layer's capability. gen-iterate IS the LLM layer, so it owns the F_P dispatch loop. The engine stays pure F_D. The actor modifies files directly (full tool access); the engine then re-evaluates the modified files. No fold-back file coordination needed in synchronous mode.
+**Why this architecture**: The engine (Python) cannot call MCP tools — MCP is the LLM layer's capability (ADR-023: no subprocess, no `claude -p`, ever). The engine writes the manifest and raises `FpActorResultMissing` as the observable handoff signal. gen-iterate reads the manifest, dispatches the actor via MCP, and re-invokes the engine. The engine reads fold-back on the next pass. This makes the F_P intent durable — if the session is interrupted, the manifest persists and the LLM layer can discover and dispatch it on resume.
 
 **`auto` mode** — route by edge type:
 - Edge is `code↔unit_tests`, `design→test_cases`, or `design→uat_tests` → use `engine` mode
