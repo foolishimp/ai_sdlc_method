@@ -1,6 +1,6 @@
 # Genesis User Guide
 
-**Version**: 2.8.0 | **Platform**: Claude Code | **Date**: 2026-02-25
+**Version**: 2.10.0 | **Platform**: Claude Code | **Date**: 2026-03-10
 
 A practitioner guide for building software with the Genesis Asset Graph Model methodology.
 

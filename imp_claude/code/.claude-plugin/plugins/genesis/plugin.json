@@ -1,7 +1,7 @@
 {
   "name": "genesis",
-  "version": "2.9.0",
-  "description": "AI SDLC Asset Graph Model v2.8 — universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, methodology self-observation, three processing phases (reflex/affect/conscious), sensory systems, IntentEngine. 4 agents, 13 commands, configurable YAML topology.",
+  "version": "2.10.0",
+  "description": "AI SDLC Asset Graph Model v2.9 — universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, methodology self-observation, three processing phases (reflex/affect/conscious), sensory systems, IntentEngine, CONSENSUS functor (F_D+F_P+F_H evaluator triad), multi-tenant design marketplace. 4 agents, 19 commands, configurable YAML topology.",
   "author": {
     "name": "foolishimp"
   },
@@ -34,7 +34,13 @@
     "./commands/gen-zoom.md",
     "./commands/gen-trace.md",
     "./commands/gen-gaps.md",
-    "./commands/gen-release.md"
+    "./commands/gen-release.md",
+    "./commands/gen-comment.md",
+    "./commands/gen-consensus-open.md",
+    "./commands/gen-consensus-recover.md",
+    "./commands/gen-dispose.md",
+    "./commands/gen-review-proposal.md",
+    "./commands/gen-vote.md"
   ],
   "agents": [
     "./agents/gen-iterate.md",
