@@ -1,10 +1,12 @@
 # /gen-vote — Cast a Vote in a CONSENSUS Review Session
 
-<!-- Implements: REQ-F-CONSENSUS-001, REQ-EVAL-003 -->
-<!-- Reference: ADR-S-025 (CONSENSUS Functor) §Phase 3 (Deliberation) -->
+<!-- Implements: REQ-F-CONS-005, REQ-F-CONSENSUS-001, REQ-EVAL-003 -->
+<!-- Reference: ADR-S-025 §Phase 3 (Voting), ADR-S-031 (F_H relay) -->
+<!-- Design: imp_claude/design/CONSENSUS_DESIGN.md §Component 5 -->
 
 Cast a vote (`approve`, `reject`, or `abstain`) in an open CONSENSUS review session.
-Emits a `vote_cast` event and runs the quorum check to detect if consensus is reached.
+Emits a `vote_cast` event and reports the current tally. Quorum evaluation is the
+quorum observer's responsibility — this command does not run the quorum check.
 
 ## Usage
 
@@ -26,9 +28,9 @@ Emits a `vote_cast` event and runs the quorum check to detect if consensus is re
 
 1. Confirm `--review-id` is provided
 2. Confirm `--verdict` is one of `approve`, `reject`, `abstain`
-3. Read `.ai-workspace/events/events.jsonl` — verify a `proposal_published` event exists for this `review_id`
+3. Read `.ai-workspace/events/events.jsonl` — verify a `consensus_requested` event exists for this `review_id`
 4. Verify no prior `consensus_reached` or `consensus_failed` event exists for this `review_id` (session must be open)
-5. Check if this participant has already voted for this `review_id` — if so, warn and exit (duplicate votes are rejected)
+5. Note: duplicate votes are now allowed (most-recent-per-relay semantics). A participant may revise their vote as the artifact evolves. The prior vote is superseded — do NOT reject revisions.
 
 ### Step 2: Identify participant
 
@@ -37,8 +39,8 @@ Determine the participant ID:
 - Otherwise, use the current agent role name (e.g. `gen-dev-observer`, `gen-cicd-observer`, `gen-ops-observer`)
 - For human votes: use `local-user`
 
-Verify the participant is in the roster from the `proposal_published` event.
-If not in roster, emit a warning: `{participant} is not in the review roster — vote recorded but may not count toward quorum`
+Verify the participant is in the roster from the `consensus_requested` event.
+If not in roster, emit a warning: `{participant} is not in the review roster — vote recorded but will not count toward quorum`
 
 ### Step 3: Emit `vote_cast` event
 
@@ -53,10 +55,9 @@ Append to `.ai-workspace/events/events.jsonl`:
   "actor": "{participant_id}",
   "data": {
     "participant": "{participant_id}",
+    "asset_version": "{asset_version from consensus_requested event, default v1}",
     "verdict": "{approve|reject|abstain}",
-    "rationale": "{rationale text or empty string}",
-    "gating": false,
-    "content": "{rationale text or empty string}"
+    "rationale": "{rationale text or empty string}"
   }
 }
 ```
@@ -79,36 +80,33 @@ If `--gating` is set, also emit a `comment_received` event with `gating: true` s
 }
 ```
 
-### Step 4: Run quorum check
+### Step 4: Read and report current tally
 
-Run the inline quorum check (same as gen-consensus-open Step 5):
+Read the event log to produce a current tally for display. This is a read-only projection —
+no quorum check is run. The quorum observer's responsibility is to detect convergence.
 
 ```bash
 python -c "
-from imp_claude.code.genesis.consensus_engine import evaluate_quorum, project_review_state, ReviewConfig, QuorumThreshold, AbstentionModel
-from datetime import datetime, timezone
+from imp_claude.code.genesis.consensus_engine import project_review_state, _parse_ts
 import json, pathlib
 
+review_id = '{review_id}'
 events = [json.loads(l) for l in pathlib.Path('.ai-workspace/events/events.jsonl').read_text().splitlines() if l.strip()]
-pub_ev = next((e for e in events if e.get('event_type') in ('proposal_published', 'ProposalPublished') and e.get('review_id') == '{review_id}'), None)
-if not pub_ev:
+req_ev = next((e for e in events if e.get('event_type') == 'consensus_requested' and e.get('review_id') == review_id), None)
+if not req_ev:
     print('no_session')
     exit()
-data = pub_ev.get('data', {})
+data = req_ev.get('data', req_ev)
 roster = data.get('roster', [])
-close_time = datetime.fromisoformat(data.get('review_closes_at', '').replace('Z', '+00:00'))
-config = ReviewConfig(
-    roster=roster,
-    quorum=QuorumThreshold[data.get('quorum', 'majority').upper()],
-    abstention_model=AbstentionModel.NEUTRAL,
-    min_participation_ratio=float(data.get('min_participation_ratio', 0.5)),
-    published_at=datetime.fromisoformat(data.get('published_at', pub_ev.get('timestamp', '')).replace('Z', '+00:00')),
-    review_closes_at=close_time,
-    min_duration_seconds=0,
-)
-votes, comments = project_review_state(events, '{review_id}', close_time)
-result = evaluate_quorum(config, votes, comments, now=datetime.now(timezone.utc))
-print('converged:', result.converged, 'approve:', result.approve_votes, 'reject:', result.reject_votes, 'abstain:', result.abstain_votes)
+roster_ids = [r['id'] if isinstance(r, dict) else r for r in roster]
+close_time = _parse_ts(data.get('review_closes_at', ''))
+votes, comments = project_review_state(events, review_id, close_time)
+approves = sum(1 for v in votes if v.verdict.value == 'approve')
+rejects = sum(1 for v in votes if v.verdict.value == 'reject')
+abstains = sum(1 for v in votes if v.verdict.value == 'abstain')
+voted_ids = {v.participant for v in votes}
+pending = [r for r in roster_ids if r not in voted_ids]
+print(f'approve={approves} reject={rejects} abstain={abstains} pending={len(pending)}')
 "
 ```
 
@@ -119,16 +117,19 @@ Vote cast: {review_id}
   Participant: {participant_id}
   Verdict:     {approve ✓ | reject ✗ | abstain ~}
   Rationale:   {rationale or "(none)"}
+  Version:     {asset_version}
 
-Current tally:
+Current tally ({responded}/{roster_size} responded):
   ✓ approve:  {n}
   ✗ reject:   {n}
   ~ abstain:  {n}
-  · pending:  {n}
+  · pending:  {pending_count} — {pending_ids}
 
-{If converged}: ✓ Quorum reached — consensus_reached
-{If not yet}:  ~ Awaiting {pending} more vote(s)
+Quorum evaluation is handled by the quorum observer.
 ```
+
+**Important**: this command does not emit `consensus_reached` or `consensus_failed`.
+Those are emitted by the quorum observer when it reacts to the `vote_cast` event.
 
 ## Examples
 

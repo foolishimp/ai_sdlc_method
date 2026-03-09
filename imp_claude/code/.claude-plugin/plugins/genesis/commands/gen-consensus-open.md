@@ -1,180 +1,146 @@
 # /gen-consensus-open — Open a CONSENSUS Review Session
 
-<!-- Implements: REQ-F-CONSENSUS-001, REQ-EVAL-003 -->
-<!-- Reference: ADR-S-025 (CONSENSUS Functor), ADR-S-025 §Phase 1 (Publication) -->
+<!-- Implements: REQ-F-CONS-001, REQ-F-CONSENSUS-001, REQ-EVAL-003 -->
+<!-- Reference: ADR-S-025 §Phase 1 (Publication), ADR-S-031 (Observer/Relay/Saga) -->
+<!-- Design: imp_claude/design/CONSENSUS_DESIGN.md §Component 1 -->
 
-Open a multi-stakeholder evaluation session on a spec artifact. Emits
-`proposal_published`, invokes each roster agent with explicit trigger context,
-then monitors for votes until quorum is reached or the window closes.
+Open a multi-stakeholder evaluation session on an artifact. This is a **thin emitter** —
+it emits `consensus_requested` to the event log and stops. Observer relays react
+independently. No orchestration happens here.
 
 ## Usage
 
 ```
-/gen-consensus-open --artifact <path> --roster <agents> [--quorum majority|supermajority|unanimity] [--min-duration <ISO duration>]
+/gen-consensus-open --artifact <path> --roster <agents> [--quorum majority|supermajority|unanimity] [--min-duration <seconds>] [--review-closes-in <seconds>] [--review-id <id>]
 ```
 
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--artifact` | required | Path to the artifact under review (relative to project root) |
-| `--roster` | required | Comma-separated agent IDs (e.g. `gen-dev-observer,gen-cicd-observer,gen-ops-observer`) |
-| `--quorum` | `majority` | Quorum threshold |
-| `--min-duration` | `PT0S` (immediate) | ISO 8601 minimum deliberation window (e.g. `PT1H`, `P1D`) |
-| `--review-id` | auto-generated | Override the review session ID |
+| `--roster` | required | Comma-separated participant IDs (agents or `human:<id>`) |
+| `--quorum` | `majority` | Quorum threshold: `majority`, `supermajority`, or `unanimity` |
+| `--min-duration` | `0` | Minimum deliberation window in seconds (lower-bound constraint) |
+| `--review-closes-in` | `86400` | Seconds until review window closes (default: 24h) |
+| `--review-id` | auto | Override the review session ID |
 
 ## Instructions
 
 ### Step 1: Validate inputs
 
-1. Confirm `--artifact` file exists at the given path
-2. Parse `--roster` into a list of agent IDs
-3. Generate `review_id` if not provided: `REVIEW-{artifact-slug}-{seq}` where seq is count of existing review sessions + 1
-4. Set `review_closes_at` = now + 24h (default window; override with `--min-duration`)
-5. Set `published_at` = now
+1. Confirm `--artifact` file exists at the given path — exit with error if missing
+2. Parse `--roster` into a list of participant entries:
+   - Known agent IDs (`gen-dev-observer`, `gen-cicd-observer`, `gen-ops-observer`) → `{id, type: agent}`
+   - `human:<name>` prefix → `{id: <name>, type: human}`
+   - Any other value → `{id: value, type: human}` with a warning
+3. Validate each entry has non-empty `id` — reject empty roster entries
+4. Confirm roster is non-empty — exit if empty
 
-### Step 2: Read the artifact
+### Step 2: Generate session identifiers
 
-Read the full contents of `--artifact`. This is the document agents will evaluate.
+1. Generate `review_id` if not provided:
+   - Derive slug from artifact path: last path component without extension, lowercase, hyphens
+   - Count existing `consensus_requested` events in `.ai-workspace/events/events.jsonl` to ensure uniqueness: `REVIEW-{slug}-{n+1}`
+2. Set `published_at` = now (ISO 8601 UTC)
+3. Set `review_closes_at` = now + `--review-closes-in` seconds
+4. Validate: `review_closes_at >= published_at + min_duration_seconds`
+   - If violated: exit with `configuration_invalid — review_closes_at must be >= published_at + min_duration`
 
-### Step 3: Emit `proposal_published` event
+### Step 3: Emit `consensus_requested`
 
-Append to `.ai-workspace/events/events.jsonl`:
+Append one line to `.ai-workspace/events/events.jsonl`:
 
 ```json
 {
-  "event_type": "proposal_published",
+  "event_type": "consensus_requested",
   "review_id": "{review_id}",
-  "timestamp": "{ISO 8601}",
+  "timestamp": "{published_at}",
   "project": "{project_name}",
   "actor": "local-user",
   "data": {
     "artifact": "{artifact_path}",
     "asset_version": "v1",
-    "published_by": "local-user",
-    "roster": ["{agent_id}", "..."],
-    "quorum": "{quorum_threshold}",
+    "roster": [
+      {"id": "{participant_id}", "type": "agent|human"}
+    ],
+    "quorum": "majority|supermajority|unanimity",
+    "abstention_model": "neutral",
     "min_participation_ratio": 0.5,
     "published_at": "{ISO 8601}",
-    "review_closes_at": "{ISO 8601}"
+    "review_closes_at": "{ISO 8601}",
+    "min_duration_seconds": 0
   }
 }
 ```
 
-### Step 4: Invoke each roster agent
+**Stop here.** Do not invoke agents. Do not call relay agents. Do not run a quorum check.
+Do not monitor for votes. This command's job is complete after the event is written.
 
-For each agent in the roster, invoke it with explicit trigger context.
+The saga self-choreographs:
+- Observer relays subscribed to `consensus_requested` will react, check the circuit-breaker,
+  evaluate the artifact, and emit `vote_cast`
+- The quorum observer subscribed to `vote_cast` will evaluate quorum and emit the terminal event
 
-**Trigger payload** (passed as JSON to each agent invocation):
-
-```json
-{
-  "trigger_reason": "review_opened",
-  "review_id": "{review_id}",
-  "artifact": "{artifact_path}",
-  "artifact_content": "{full artifact text}",
-  "roster": ["{agent_id}", "..."],
-  "quorum": "{quorum_threshold}",
-  "review_closes_at": "{ISO 8601}",
-  "instruction": "You are a reviewer in a CONSENSUS session. Read the artifact and the existing comment thread (events.jsonl filtered by review_id), then cast your vote using /gen-vote or emit a vote_cast event directly. Your first act must be to verify your trigger context. If review_id is missing or does not match an open review, do nothing and exit."
-}
-```
-
-Invoke agents sequentially (not parallel) so each agent sees the previous agent's vote in the event log before forming its own opinion. This produces richer deliberation.
-
-### Step 5: Run quorum check after each agent
-
-After each agent responds, run the quorum check:
-
-```bash
-python -c "
-from imp_claude.code.genesis.consensus_engine import evaluate_quorum, project_review_state, ReviewConfig, QuorumThreshold, AbstentionModel
-from datetime import datetime, timezone
-import json, pathlib
-
-events = [json.loads(l) for l in pathlib.Path('.ai-workspace/events/events.jsonl').read_text().splitlines() if l.strip()]
-close_time = datetime.fromisoformat('{review_closes_at}'.replace('Z', '+00:00'))
-config = ReviewConfig(
-    roster={roster_list},
-    quorum=QuorumThreshold.{quorum_upper},
-    abstention_model=AbstentionModel.NEUTRAL,
-    min_participation_ratio=0.5,
-    published_at=datetime.fromisoformat('{published_at}'.replace('Z', '+00:00')),
-    review_closes_at=close_time,
-    min_duration_seconds=0,
-)
-votes, comments = project_review_state(events, '{review_id}', close_time)
-result = evaluate_quorum(config, votes, comments, now=datetime.now(timezone.utc))
-print('converged:', result.converged, 'approve:', result.approve_votes, 'reject:', result.reject_votes, 'abstain:', result.abstain_votes)
-"
-```
-
-### Step 6: Terminal outcomes
-
-**If `result.converged == True`**:
-
-1. Emit `consensus_reached` event:
-```json
-{
-  "event_type": "consensus_reached",
-  "review_id": "{review_id}",
-  "timestamp": "{ISO 8601}",
-  "project": "{project_name}",
-  "data": {
-    "artifact": "{artifact_path}",
-    "asset_version": "v1",
-    "quorum_threshold": "{quorum}",
-    "roster_size": 0,
-    "approve_votes": 0,
-    "reject_votes": 0,
-    "abstain_votes": 0,
-    "approve_ratio": 0.0,
-    "participation_ratio": 0.0,
-    "gating_comments_dispositioned": 0
-  }
-}
-```
-
-2. Update the artifact's ADR status to `Accepted` if the artifact is an ADR markdown file (change `**Status**: Proposed` → `**Status**: Accepted`)
-
-3. Report: `✓ consensus_reached on {review_id} — {approve}/{total} approve ({ratio}%)`
-
-**If `result.converged == False` after all agents have voted**:
-
-1. Emit `consensus_failed` event with `failure_reason` and `available_paths`
-2. Report: `✗ consensus_failed — {failure_reason}. Available: {available_paths}`
-3. Do NOT automatically re-open. Recovery path selection is an F_H decision.
-
-### Step 7: Display summary
+### Step 4: Report
 
 ```
-CONSENSUS Review: {review_id}
-==============================
-Artifact:  {artifact_path}
-Roster:    {agent_ids}
-Quorum:    {quorum_threshold}
+Review {review_id} opened
+  Artifact:       {artifact_path}
+  Version:        v1
+  Roster ({n}):  {participant_ids joined by ", "}
+  Quorum:         {quorum_threshold}
+  Window closes:  {review_closes_at} ({hours}h from now)
+  Min duration:   {min_duration_seconds}s
 
-Votes:
-  ✓ approve:  {n}
-  ✗ reject:   {n}
-  ~ abstain:  {n}
-  · pending:  {n}
+Relays will react when triggered. To check current tally:
+  /gen-consensus-status --review-id {review_id}
 
-Approve ratio: {ratio}%
-Result: {consensus_reached | consensus_failed: {reason}}
+To cast a vote (human participants):
+  /gen-vote --review-id {review_id} --verdict approve|reject|abstain
+
+To trigger agent relays manually (if not running as hooks):
+  Invoke gen-dev-observer, gen-cicd-observer, gen-ops-observer with:
+    trigger_event: consensus_requested
+    review_id: {review_id}
 ```
+
+---
+
+## Design rationale (ADR-S-031 §Orchestrator Smell)
+
+The original implementation of this command orchestrated sequential agent invocation and
+ran the quorum check inline — an orchestrator pattern. Both were missing invariants:
+
+| Old orchestrated step | Invariant that replaces it |
+|----------------------|---------------------------|
+| Invoke agents in sequence | Circuit-breaker per relay: relay checks it is in roster and has not yet voted |
+| Run quorum check after each vote | Quorum observer subscribes to `vote_cast` and fires automatically |
+
+Once those invariants are expressed locally (in relays and quorum observer), this command
+has nothing left to do except emit the opening event.
+
+---
 
 ## Examples
 
 ```bash
-# Review ADR-S-027 (veto semantics) with 3 agents, majority quorum
+# Open ADR review with three agent relays, majority quorum
 /gen-consensus-open \
-  --artifact specification/adrs/ADR-S-027-spec-consolidation-authority-boundaries.md \
+  --artifact specification/adrs/ADR-S-027-veto-semantics.md \
   --roster gen-dev-observer,gen-cicd-observer,gen-ops-observer \
   --quorum majority
 
-# Review a feature proposal requiring supermajority
+# Open a proposal review with a human participant and minimum deliberation window
 /gen-consensus-open \
   --artifact .ai-workspace/reviews/pending/PROP-001.yml \
-  --roster gen-dev-observer,gen-cicd-observer \
+  --roster gen-dev-observer,human:alice \
   --quorum supermajority \
-  --min-duration PT4H
+  --min-duration 3600 \
+  --review-closes-in 172800
+
+# Short-window review for CI gate
+/gen-consensus-open \
+  --artifact imp_claude/design/CONSENSUS_DESIGN.md \
+  --roster gen-dev-observer,gen-cicd-observer,gen-ops-observer \
+  --quorum majority \
+  --review-closes-in 300
 ```

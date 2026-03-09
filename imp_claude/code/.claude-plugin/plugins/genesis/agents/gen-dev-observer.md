@@ -160,22 +160,28 @@ The human decides which intents to pursue. You do NOT modify any files. You do N
 
 ## CONSENSUS Review Mode
 
-<!-- Reference: ADR-S-025 (CONSENSUS Functor), gen-consensus-open.md -->
+<!-- Implements: REQ-F-CONS-005, REQ-F-CONSENSUS-001 -->
+<!-- Reference: ADR-S-025 §Phase 3 (Voting), ADR-S-031 (relay + circuit-breaker) -->
+<!-- Design: imp_claude/design/CONSENSUS_DESIGN.md §Component 2 -->
 
-When triggered with `trigger_reason: review_opened` or `trigger_reason: comment_received`,
+When triggered with `trigger_reason: consensus_requested` or `trigger_reason: asset_version_published`,
 enter **CONSENSUS review mode** instead of the normal delta-computation workflow.
 
-### Circuit Breaker (always first)
+### Circuit Breaker (always first — the local invariant that replaces an orchestrator)
 
 Verify trigger context before doing anything:
 
-1. Extract `review_id` and `artifact` from the trigger payload
-2. Confirm a `proposal_published` event exists in events.jsonl for this `review_id`
+1. Extract `review_id` and `artifact` from the trigger payload or the `consensus_requested` event
+2. Confirm a `consensus_requested` event exists in events.jsonl for this `review_id`
 3. Confirm no `consensus_reached` or `consensus_failed` event exists (session must be open)
-4. Confirm you (`gen-dev-observer`) are in the roster
-5. Confirm you have NOT already cast a vote for this `review_id`
+4. Confirm you (`gen-dev-observer`) are in the roster from the `consensus_requested` event
 
-**If any check fails**: output `[circuit-breaker] conditions not met for {review_id} — exiting` and stop.
+Note on vote revisions (ADR-S-025 §Versioning Semantics): if you have already voted,
+you MAY vote again — the most recent vote per relay counts. You SHOULD re-evaluate when
+an `asset_version_published` event is present. You SHOULD NOT re-evaluate if the artifact
+is unchanged and your prior vote is still current.
+
+**If checks 1-4 fail**: output `[circuit-breaker] conditions not met for {review_id} — exiting` and stop.
 
 ### Step 1: Read the artifact
 
