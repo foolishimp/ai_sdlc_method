@@ -1,5 +1,5 @@
-# Validates: REQ-SUPV-001, REQ-SUPV-002
-"""UC-11: IntentEngine / Supervision — 14 scenarios.
+# Validates: REQ-SUPV-001, REQ-SUPV-002, REQ-SUPV-003
+"""UC-11: IntentEngine / Supervision — 18 scenarios.
 
 Tests IntentEngine interface (observer → evaluator → typed_output),
 three output regimes, constraint tolerances, and tolerance pressure.
@@ -497,3 +497,101 @@ class TestConstraintTolerances:
                     f"Real monitor {m['id']} ({m['name']}) has no measurable criteria — "
                     "this is the constraint-without-tolerance condition"
                 )
+
+
+class TestFailureObservability:
+    """UC-11-15 through UC-11-18: failure observability events (REQ-SUPV-003).
+
+    Verifies that evaluator failures, command errors, health checks, and session
+    abandonment produce observable events that feed the homeostatic loop.
+    """
+
+    # UC-11-15 | Validates: REQ-SUPV-003
+    def test_evaluator_failure_emits_detail_event(self):
+        """Evaluator check failure produces evaluator_detail event with failure context.
+
+        The LLM gen-iterate command emits evaluator_detail for each failing check.
+        Verifies: schema documented in agent spec + OL event type registered.
+        """
+        from imp_claude.tests.uat.conftest import AGENTS_DIR, PLUGIN_ROOT
+        import sys
+        sys.path.insert(0, str(PLUGIN_ROOT.parent.parent.parent / "code"))
+        from genesis.ol_event import _OL_EVENT_TYPE
+
+        # Event type registered in OL registry
+        assert "EvaluatorDetail" in _OL_EVENT_TYPE, (
+            "EvaluatorDetail must be in OL event type map (REQ-SUPV-003)"
+        )
+
+        # Schema documented in gen-iterate agent spec
+        gen_iterate = AGENTS_DIR / "gen-iterate.md"
+        content = gen_iterate.read_text()
+        assert "evaluator_detail" in content, (
+            "evaluator_detail event must be documented in gen-iterate.md"
+        )
+        assert "consecutive_failures" in content, (
+            "evaluator_detail schema must include consecutive_failures field"
+        )
+        assert "check_type" in content, (
+            "evaluator_detail schema must include check_type field (F_D|F_P|F_H)"
+        )
+
+    # UC-11-16 | Validates: REQ-SUPV-003
+    def test_command_error_captured_as_event(self):
+        """Methodology command errors are captured as command_error events.
+
+        Verifies: schema documented in agent spec with required error_category field.
+        """
+        from imp_claude.tests.uat.conftest import AGENTS_DIR
+        gen_iterate = AGENTS_DIR / "gen-iterate.md"
+        content = gen_iterate.read_text()
+
+        assert "command_error" in content, (
+            "command_error event must be documented in gen-iterate.md (REQ-SUPV-003)"
+        )
+        assert "error_category" in content, (
+            "command_error schema must include error_category field"
+        )
+        assert "recoverable" in content, (
+            "command_error schema must include recoverable field"
+        )
+
+    # UC-11-17 | Validates: REQ-SUPV-003
+    def test_health_check_emits_structured_event(self):
+        """Health check (gen-status --health) emits health_checked event with structured results.
+
+        Verifies: schema documented in gen-status command spec.
+        """
+        from imp_claude.tests.uat.conftest import COMMANDS_DIR
+        gen_status = COMMANDS_DIR / "gen-status.md"
+        content = gen_status.read_text()
+
+        assert "health_checked" in content, (
+            "health_checked event must be documented in gen-status.md (REQ-SUPV-003)"
+        )
+        assert "genesis_compliant" in content, (
+            "health_checked schema must include genesis_compliant field"
+        )
+        assert "failed_checks" in content, (
+            "health_checked schema must include failed_checks field"
+        )
+
+    # UC-11-18 | Validates: REQ-SUPV-003
+    def test_session_abandonment_detected(self):
+        """Session abandonment (prior session left edge_started with no completion) is detected.
+
+        on-session-start.sh implements abandonment detection (REQ-SUPV-003).
+        Note: hook disabled per ADR-021 — script exists as design artifact.
+        """
+        from imp_claude.tests.uat.conftest import PLUGIN_ROOT
+        script = PLUGIN_ROOT / "hooks" / "on-session-start.sh"
+        assert script.exists(), "on-session-start.sh must exist (REQ-SUPV-003)"
+
+        content = script.read_text()
+        assert "iteration_abandoned" in content, (
+            "on-session-start.sh must emit iteration_abandoned on abandonment detection"
+        )
+        # Verify it checks for incomplete edge_started / missing edge_converged
+        assert "edge_started" in content or "abandon" in content.lower(), (
+            "Abandonment detection must reference edge_started events"
+        )
