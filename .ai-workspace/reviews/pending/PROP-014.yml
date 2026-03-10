@@ -1,0 +1,27 @@
+proposal_id: PROP-014
+intent_id: INT-019
+status: draft
+severity: medium
+created: '2026-03-10T18:54:17Z'
+source: gap_analysis
+layer: L1
+title: Evolution/sensory pipeline annotations — REQ-EVOL-003, REQ-SENSE-005
+description: 'REQ-EVOL-003 (feature_proposal event from Affect Triage) and REQ-SENSE-005
+  (sensory triage classification) are untagged. The gen-gaps command emits feature_proposal
+  events — it should carry an Implements: tag. affect_triage.yml carries REQ-SENSE-005.'
+affected_req_keys: &id001
+- REQ-EVOL-003
+- REQ-SENSE-005
+suggested_vector:
+  feature: REQ-F-TRACE-005
+  title: Evolution/sensory annotation pass
+  vector_type: feature
+  profile: hotfix
+  requirements: *id001
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-014
+
+  Dismiss: /gen-review-proposal --dismiss PROP-014 --reason "<reason>"
+
+
+  Notes: Add # Implements: REQ-EVOL-003 to gen-gaps.md (feature_proposal emission
+  step). Add Implements: REQ-SENSE-005 to affect_triage.yml header comment.'

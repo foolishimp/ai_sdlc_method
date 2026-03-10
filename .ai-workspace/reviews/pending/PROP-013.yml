@@ -1,0 +1,30 @@
+proposal_id: PROP-013
+intent_id: INT-018
+status: draft
+severity: high
+created: '2026-03-10T18:54:17Z'
+source: gap_analysis
+layer: L1
+title: Graph/Context/Supervision/UX annotation pass — REQ-GRAPH-003, REQ-CTX-002,
+  REQ-SUPV-003, REQ-UX-003
+description: 'Four cross-cutting REQ keys are unimplemented or untagged: REQ-GRAPH-003
+  (graph zoom), REQ-CTX-002 (context hierarchy), REQ-SUPV-003 (evaluator detail events),
+  REQ-UX-003 (progressive disclosure). Tag pass or stub implementations needed.'
+affected_req_keys: &id001
+- REQ-GRAPH-003
+- REQ-CTX-002
+- REQ-SUPV-003
+- REQ-UX-003
+suggested_vector:
+  feature: REQ-F-TRACE-004
+  title: Cross-cutting REQ annotation pass
+  vector_type: feature
+  profile: hotfix
+  requirements: *id001
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-013
+
+  Dismiss: /gen-review-proposal --dismiss PROP-013 --reason "<reason>"
+
+
+  Notes: REQ-SUPV-003: tag engine.py evaluator_detail emission. REQ-CTX-002: tag config_loader.py
+  (six-level context). REQ-UX-003: tag gen-start.md. REQ-GRAPH-003: tag gen-zoom.md.'

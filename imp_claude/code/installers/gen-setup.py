@@ -44,6 +44,7 @@ import sys
 import json
 import argparse
 import shutil
+import subprocess
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -94,7 +95,7 @@ POST_COMMIT_HOOK_SCRIPT = "post-commit-spec-watch.sh"
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
-VERSION = "2.11.0"
+VERSION = "3.0.0-beta.1"
 
 
 # =============================================================================
@@ -240,23 +241,44 @@ def print_warn(msg: str):
     print(f"  [WARN] {msg}")
 
 
+def get_github_token() -> str:
+    """Get GitHub token via gh CLI (works for private repos with credentials)."""
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "token"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    return ""
+
+
+def fetch_url(url: str, timeout: int = 10) -> str:
+    """Fetch URL with optional GitHub token auth for private repo support."""
+    token = get_github_token()
+    req = urllib.request.Request(url)
+    if token and "raw.githubusercontent.com" in url:
+        req.add_header("Authorization", f"token {token}")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8")
+
+
 def get_plugin_version() -> str:
     """Fetch the latest plugin version from GitHub."""
     try:
-        with urllib.request.urlopen(PLUGIN_JSON_URL, timeout=5) as response:
-            data = json.loads(response.read().decode("utf-8"))
-            return data.get("version", "unknown")
-    except (urllib.error.URLError, json.JSONDecodeError, KeyError):
+        data = json.loads(fetch_url(PLUGIN_JSON_URL, timeout=5))
+        return data.get("version", "unknown")
+    except Exception:
         return VERSION
 
 
 def fetch_graph_topology() -> str:
     """Fetch graph_topology.yml from GitHub. Falls back to local plugin if available."""
-    # Try GitHub first
     try:
-        with urllib.request.urlopen(GRAPH_TOPOLOGY_URL, timeout=10) as response:
-            return response.read().decode("utf-8")
-    except (urllib.error.URLError, OSError):
+        return fetch_url(GRAPH_TOPOLOGY_URL, timeout=10)
+    except Exception:
         pass
 
     # Fallback: local plugin path (works for local development)
@@ -269,15 +291,13 @@ def fetch_graph_topology() -> str:
 
 def fetch_bootloader() -> str:
     """Fetch GENESIS_BOOTLOADER.md from GitHub. Falls back to local spec if available."""
-    # Try GitHub first
     try:
-        with urllib.request.urlopen(BOOTLOADER_URL, timeout=10) as response:
-            return response.read().decode("utf-8")
-    except (urllib.error.URLError, OSError):
+        return fetch_url(BOOTLOADER_URL, timeout=10)
+    except Exception:
         pass
 
     # Fallback: local path (works for development in the ai_sdlc_method repo)
-    local_path = Path(__file__).resolve().parent.parent.parent.parent / "specification" / "GENESIS_BOOTLOADER.md"
+    local_path = Path(__file__).resolve().parent.parent.parent.parent / "specification" / "core" / "GENESIS_BOOTLOADER.md"
     if local_path.exists():
         return local_path.read_text()
 
@@ -555,8 +575,7 @@ def setup_commands(target: Path, dry_run: bool) -> bool:
     for cmd in COMMANDS:
         url = f"{COMMANDS_URL_BASE}/{cmd}.md"
         try:
-            with urllib.request.urlopen(url, timeout=10) as r:
-                content = r.read().decode("utf-8")
+            content = fetch_url(url, timeout=10)
             dest = commands_dir / f"{cmd}.md"
             dest.unlink(missing_ok=True)
             dest.write_text(content)
@@ -598,8 +617,7 @@ def setup_engine(target: Path, dry_run: bool) -> bool:
     for filename in ENGINE_FILES + ENGINE_SCRIPTS:
         url = f"{ENGINE_URL_BASE}/{filename}"
         try:
-            with urllib.request.urlopen(url, timeout=10) as r:
-                content = r.read().decode("utf-8")
+            content = fetch_url(url, timeout=10)
             dest = engine_dir / filename
             dest.unlink(missing_ok=True)
             dest.write_text(content)

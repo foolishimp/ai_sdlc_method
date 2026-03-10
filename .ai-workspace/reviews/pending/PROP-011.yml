@@ -1,0 +1,28 @@
+proposal_id: PROP-011
+intent_id: INT-016
+status: draft
+severity: high
+created: '2026-03-10T18:54:17Z'
+source: gap_analysis
+layer: L1
+title: Lifecycle management annotations — REQ-LIFE-002, REQ-LIFE-004, REQ-LIFE-006
+description: Three lifecycle REQ keys (feature state transitions, convergence lifecycle,
+  homeostatic bridge) are untagged. These belong in dispatch_loop.py, dispatch_monitor.py,
+  and the engine lifecycle modules.
+affected_req_keys: &id001
+- REQ-LIFE-002
+- REQ-LIFE-004
+- REQ-LIFE-006
+suggested_vector:
+  feature: REQ-F-TRACE-003
+  title: Lifecycle REQ annotation pass
+  vector_type: feature
+  profile: hotfix
+  requirements: *id001
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-011
+
+  Dismiss: /gen-review-proposal --dismiss PROP-011 --reason "<reason>"
+
+
+  Notes: Tag dispatch_monitor.py with REQ-LIFE-006 (homeostatic bridge). Tag dispatch_loop.py
+  with REQ-LIFE-002/004.'

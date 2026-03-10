@@ -232,6 +232,26 @@ When `--auto` is provided, loop:
 
 ```
 while state == IN_PROGRESS:
+
+    # ── dispatch_monitor pass (inline homeostatic loop) ────────────────
+    # Before every feature/edge selection, scan events.jsonl for unhandled
+    # intent_raised events. Any intent with no matching edge_started is
+    # dispatched via IntentObserver → EDGE_RUNNER before manual work resumes.
+    # This is the dispatch_monitor: a scan on every auto-loop iteration.
+    unhandled = get_pending_dispatches(workspace_root)
+    if unhandled:
+        print(f"dispatch_monitor: {len(unhandled)} unhandled intent(s) — dispatching")
+        for target in unhandled:
+            run_edge(target)                    # EDGE_RUNNER: F_D → F_P → F_H
+            if target.requires_fh:
+                # F_H gate: emit intent_raised{signal_source=human_gate_required}
+                # Pause auto-mode — human must resolve before loop continues
+                print(f"F_H gate reached for {target.feature_id}:{target.edge}")
+                print("dispatch_monitor: pausing auto-mode — human gate pending")
+                break
+        re-detect state
+        continue
+
     feature = select_feature()
     edge = determine_edge(feature)
 
@@ -259,6 +279,34 @@ while state == IN_PROGRESS:
     delegate to /gen-iterate --edge "{edge}" --feature "{feature}"
     re-detect state
 ```
+
+**dispatch_monitor contract** (for Step 9 implementors):
+
+```python
+# Inline dispatch_monitor — the homeostatic heartbeat inside --auto
+from genesis.intent_observer import get_pending_dispatches
+from genesis.edge_runner import run_edge
+
+workspace_root = Path(".ai-workspace")
+pending = get_pending_dispatches(workspace_root)
+for target in pending:
+    result = run_edge(target, workspace_root, events_path)
+    if result.status == "fh_required":
+        # F_H gate fires — pause, surface to human
+        break
+```
+
+**F_H gate as intent_raised** (ADR-S-032 §Graduated Autonomy):
+When EDGE_RUNNER reaches an F_H gate, it emits `intent_raised` with
+`signal_source: human_gate_required` and `affected_features: [feature_id]`.
+Auto-mode pauses. The human resolves (approve/reject via `/gen-review` or
+`/gen-consensus-open`). On next `/gen-start --auto`, the dispatch_monitor
+detects the resolved state and continues traversal from the next edge.
+
+This mechanism makes F_H gates from CONSENSUS documents autonomous triggers:
+a CONSENSUS that reaches quorum emits an event → dispatch_monitor sees it →
+routes next edge automatically. F_H is still human-controlled; the routing
+after F_H resolution is automatic.
 
 ### Step 10: Recovery and Self-Healing (REQ-UX-005)
 

@@ -1,0 +1,28 @@
+proposal_id: PROP-009
+intent_id: INT-014
+status: draft
+severity: high
+created: '2026-03-10T18:54:17Z'
+source: gap_analysis
+layer: L1
+title: Event sourcing traceability — REQ-EVENT-003, REQ-EVENT-004
+description: 'Two event-sourcing REQ keys (REQ-EVENT-003: event schema validation,
+  REQ-EVENT-004: event replay/projection) have no Implements: tag in any code file.
+  The engine''s event emission modules need REQ key annotations to close the traceability
+  gap.'
+affected_req_keys: &id001
+- REQ-EVENT-003
+- REQ-EVENT-004
+suggested_vector:
+  feature: REQ-F-TRACE-001
+  title: Event sourcing REQ annotation pass
+  vector_type: feature
+  profile: hotfix
+  requirements: *id001
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-009
+
+  Dismiss: /gen-review-proposal --dismiss PROP-009 --reason "<reason>"
+
+
+  Notes: Add # Implements: REQ-EVENT-003 and REQ-EVENT-004 to engine event emission
+  modules (engine.py, dispatch_loop.py, or ol_emitter.py).'

@@ -1,0 +1,31 @@
+proposal_id: PROP-012
+intent_id: INT-017
+status: draft
+severity: high
+created: '2026-03-10T18:54:17Z'
+source: gap_analysis
+layer: L1+L2
+title: Analysis tools traceability + tests — REQ-TOOL-003, REQ-TOOL-014, REQ-TOOL-015,
+  REQ-TOOL-016
+description: 'Four tool REQ keys lack Implements: tags. REQ-TOOL-015 and REQ-TOOL-016
+  also have no Validates: test coverage. REQ-TOOL-016 (gap analysis + postmortem renderer)
+  is the active REQ-F-ANAL-001 feature pending code implementation.'
+affected_req_keys: &id001
+- REQ-TOOL-003
+- REQ-TOOL-014
+- REQ-TOOL-015
+- REQ-TOOL-016
+suggested_vector:
+  feature: REQ-F-ANAL-001
+  title: Gap analysis and postmortem renderers
+  vector_type: feature
+  profile: standard
+  requirements: *id001
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-012
+
+  Dismiss: /gen-review-proposal --dismiss PROP-012 --reason "<reason>"
+
+
+  Notes: REQ-F-ANAL-001 is already in active features (pending). Approve to continue
+  iterating code↔tests edge. Also add Implements: REQ-TOOL-003/014 tags to config_loader.py
+  / workspace_state.py.'

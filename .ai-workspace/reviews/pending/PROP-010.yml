@@ -1,0 +1,28 @@
+proposal_id: PROP-010
+intent_id: INT-015
+status: draft
+severity: high
+created: '2026-03-10T18:54:17Z'
+source: gap_analysis
+layer: L1
+title: Robustness/resilience annotations — REQ-ROBUST-003, REQ-ROBUST-007, REQ-ROBUST-008
+description: 'Three robustness REQ keys have no Implements: tag. REQ-ROBUST-007 (critical)
+  covers error-boundary recovery, REQ-ROBUST-003 and REQ-ROBUST-008 cover retry/circuit-breaker
+  patterns. These must be tagged in the engine or dispatch layer.'
+affected_req_keys: &id001
+- REQ-ROBUST-003
+- REQ-ROBUST-007
+- REQ-ROBUST-008
+suggested_vector:
+  feature: REQ-F-TRACE-002
+  title: Robustness REQ annotation pass
+  vector_type: feature
+  profile: hotfix
+  requirements: *id001
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-010
+
+  Dismiss: /gen-review-proposal --dismiss PROP-010 --reason "<reason>"
+
+
+  Notes: Locate error handling, retry, and circuit-breaker patterns in dispatch_loop.py,
+  engine.py. Add # Implements: tags.'

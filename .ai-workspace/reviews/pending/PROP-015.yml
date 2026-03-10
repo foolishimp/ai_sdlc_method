@@ -1,0 +1,26 @@
+proposal_id: PROP-015
+intent_id: INT-020
+status: draft
+severity: medium
+created: '2026-03-10T18:54:17Z'
+source: gap_analysis
+layer: L3
+title: Telemetry req= annotation pass — REQ-F-TELEM-001 (102 gaps)
+description: 102 code locations implementing REQ keys have no req= tag in logging
+  or metrics. The entire engine is running without observability hooks. Without req=
+  tags, production delta cannot feed back to the build graph (homeostatic loop closure).
+affected_req_keys: &id001
+- REQ-F-TELEM-001
+suggested_vector:
+  feature: REQ-F-TELEM-001
+  title: Engine telemetry req= annotation pass
+  vector_type: feature
+  profile: standard
+  requirements: *id001
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-015
+
+  Dismiss: /gen-review-proposal --dismiss PROP-015 --reason "<reason>"
+
+
+  Notes: Add req=''REQ-*'' to logger.info/warning calls in engine.py, dispatch_loop.py,
+  dispatch_monitor.py, fp_functor.py. Start with the 5 most-called paths.'

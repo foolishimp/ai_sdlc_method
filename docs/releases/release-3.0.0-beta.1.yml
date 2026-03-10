@@ -1,0 +1,62 @@
+version: "3.0.0-beta.1"
+date: "2026-03-11"
+codename: "Full Homeostatic Loop"
+
+milestone: |
+  v3.0 closes the homeostatic loop: the system can now autonomously drive itself
+  from event detection through dispatch through CONSENSUS resolution and back.
+  delta(state, constraints) → work is now self-sustaining at the build level.
+
+features_included:
+  REQ-F-DISPATCH-001:
+    title: IntentObserver + EDGE_RUNNER — Autonomous Dispatch Loop
+    status: converged
+  REQ-F-SENSE-001:
+    title: Sensory pipeline + dispatch_monitor
+    status: converged
+    notes: dispatch_monitor.py — mtime watcher, FH_RESOLUTION_EVENTS, check_and_dispatch, run_monitor
+  REQ-F-INTENT-001:
+    title: Intent composition layer
+    status: converged
+    notes: workspace_gradient.py, fd_sense.py, workspace_state.py
+  REQ-F-FP-001:
+    title: F_P MCP round-trip — real claude -p actor
+    status: converged
+    notes: Phase A→manifest→actor→Phase B e2e proven (7/7 tests, 41s)
+  REQ-F-CONSENSUS-001:
+    title: CONSENSUS functor + multi-stakeholder F_H
+    status: converged
+  REQ-F-SCHEMA-DISC-001:
+    title: SCHEMA_DISCOVERY execution engine
+    status: converged
+    notes: code+unit_tests converged; uat_tests deferred to v3.1
+
+gen_start_auto:
+  description: |
+    /gen-start --auto now includes an inline dispatch_monitor pass before every
+    feature/edge selection. Unhandled intents are dispatched via IntentObserver →
+    EDGE_RUNNER before manual work resumes. CONSENSUS quorum → consensus_reached
+    event → dispatch_monitor detects it → next edge traversed automatically.
+  F_H_gates: |
+    F_H gates are no longer dead ends. When EDGE_RUNNER reaches an F_H gate it
+    emits intent_raised with signal_source=human_gate_required. Human resolves
+    via /gen-review or /gen-consensus-open. Next /gen-start --auto auto-continues.
+
+installer:
+  version: "3.0.0-beta.1"
+  private_repo_support: |
+    Installer now uses gh auth token for authenticated GitHub raw content fetches.
+    Private repo deployments work without --local-source workarounds.
+
+coverage:
+  features_converged: 28
+  features_pending: 3
+  features_in_progress: 1
+  test_count_lane1: 1923
+  test_count_lane2: 34
+
+known_gaps:
+  - REQ-F-ANAL-001: gap analysis + postmortem renderer — not yet built
+  - REQ-F-TELEM-001: req= telemetry tags — engine unobserved (102 gaps)
+  - REQ-F-EVOL-NFR-002: evolution NFR — pending
+  - 17 REQ keys missing Implements: annotations (PROP-009..013)
