@@ -1,0 +1,39 @@
+affected_req_keys:
+- REQ-INTENT-002
+- REQ-INTENT-003
+- REQ-INTENT-004
+approved_at: '2026-03-10T00:12:40.632210+00:00'
+created: '2026-03-09T00:00:07Z'
+description: 'Intent composition layer missing. REQ-INTENT-002 (compose intents from
+
+  observations), REQ-INTENT-003 (intent deduplication), REQ-INTENT-004
+
+  (intent prioritisation) all have design artifacts (ADR-011, bootloader §VIII)
+
+  but no code. Blocks Phase 2 consciousness loop — the system cannot autonomously
+
+  generate and compose intent without this.
+
+  '
+disposition: created
+feature_id: REQ-F-INTENT-001
+intent_id: INT-GAP-008
+proposal_id: PROP-001
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-001
+
+  Dismiss: /gen-review-proposal --dismiss PROP-001 --reason "{reason}"
+
+  '
+severity: high
+source: gap_analysis
+status: approved
+suggested_vector:
+  feature: REQ-F-INTENT-001
+  profile: standard
+  requirements:
+  - REQ-INTENT-002
+  - REQ-INTENT-003
+  - REQ-INTENT-004
+  title: Intent Composition Layer
+  vector_type: feature
+title: Implement Intent Composition (REQ-INTENT-002/003/004)

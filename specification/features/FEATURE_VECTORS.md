@@ -582,6 +582,40 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 
 ---
 
+### REQ-F-INTENT-001: Intent Composition Layer
+- **Intent**: INT-GAP-008
+- **Requirements**: REQ-INTENT-002, REQ-INTENT-003, REQ-INTENT-004
+- **Status**: pending
+- **Source**: PROP-001 (approved 2026-03-10)
+
+Intent composition — compose intents from observations, deduplicate, and prioritise. Enables Phase 2 consciousness loop autonomy.
+
+### REQ-F-TELEM-001: Telemetry Tagging Phase 1
+- **Intent**: INT-GAP-013
+- **Requirements**: all implemented REQ keys
+- **Status**: pending
+- **Source**: PROP-006 (approved 2026-03-10)
+
+Add `req=` tags to logging/metrics across engine.py, evaluator execution, and command execution paths. Required for Phase 2 homeostasis sensory reading.
+
+### REQ-F-TOOL-015: Tag installer tests with Validates: REQ-TOOL-015
+- **Intent**: INT-007
+- **Requirements**: REQ-TOOL-015
+- **Status**: pending
+- **Source**: PROP-007 (approved 2026-03-10)
+
+Add `# Validates: REQ-TOOL-015` annotation to test_install_e2e.py. 1-line fix.
+
+### REQ-F-EVOL-NFR-002: Resolve orphan REQ-EVOL-NFR-002
+- **Intent**: INT-008
+- **Requirements**: REQ-EVOL-NFR-002
+- **Status**: pending
+- **Source**: PROP-008 (approved 2026-03-10)
+
+Resolve orphan tag in workspace_gradient.py and workspace_state.py — either define in spec or correct to closest valid key.
+
+---
+
 ## Summary
 
 | Feature Vector | Impl Reqs | Phase | Dependencies |
@@ -601,6 +635,10 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 | REQ-F-EVENT-001 | 4 | 1b+2 | ENGINE, ROBUST |
 | REQ-F-EVOL-001 | 5 | 1+2 | LIFE, EVENT, TOOL |
 | REQ-F-FP-001 | 4 | 2 | ENGINE, EVAL |
-| **Total** | **83** | | |
+| REQ-F-INTENT-001 | 3 | 2 | ENGINE, LIFE |
+| REQ-F-TELEM-001 | ~85 | 3 | ALL |
+| REQ-F-TOOL-015 | 1 | 1c | TOOL |
+| REQ-F-EVOL-NFR-002 | 1 | 1b | EVOL |
+| **Total** | **87+** | | |
 
-15 feature vectors. 83 implementation requirements. Full coverage. Critical path: ENGINE design.
+19 feature vectors. Full coverage. Critical path: ENGINE design.

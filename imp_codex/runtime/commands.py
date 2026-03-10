@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 import hashlib
 from pathlib import Path
 import re
@@ -11,6 +12,21 @@ from .behaviors import (
     apply_review_behavior,
     resolve_candidate_artifact_behavior,
     resolve_iteration_evaluation_behavior,
+)
+from .consensus import (
+    VALID_DISPOSITIONS,
+    VALID_QUORUMS,
+    VALID_RECOVERY_PATHS,
+    VALID_VERDICTS,
+    current_cycle,
+    format_timestamp,
+    next_comment_id,
+    next_cycle_id,
+    next_review_id,
+    parse_timestamp,
+    payload_for,
+    quorum_state,
+    review_events,
 )
 from .events import append_run_event, load_events, utc_now
 from .intents import resolve_named_intent_payload
@@ -83,6 +99,43 @@ def _project_name(paths: RuntimePaths, fallback: str | None = None) -> str:
 
 def _write_status(paths: RuntimePaths) -> str:
     return write_projections(paths)["status_markdown"]
+
+
+def _resolve_consensus_roster(roster: Iterable[str] | str) -> list[dict]:
+    """Normalize a roster input into ``[{id, type}, ...]`` entries."""
+
+    entries: list[str]
+    if isinstance(roster, str):
+        entries = [part.strip() for part in roster.split(",")]
+    else:
+        entries = [str(part).strip() for part in roster]
+    normalized: list[dict] = []
+    for entry in entries:
+        if not entry:
+            continue
+        if entry.startswith("human:"):
+            participant_id = entry.split(":", 1)[1].strip()
+            participant_type = "human"
+        elif entry.startswith("agent:"):
+            participant_id = entry.split(":", 1)[1].strip()
+            participant_type = "agent"
+        else:
+            participant_id = entry
+            participant_type = "agent" if entry.startswith("gen-") else "human"
+        if not participant_id:
+            continue
+        normalized.append({"id": participant_id, "type": participant_type})
+    if not normalized:
+        raise ValueError("roster must not be empty")
+    return normalized
+
+
+def _consensus_cycle_or_raise(paths: RuntimePaths, review_id: str) -> tuple[list, dict]:
+    events = load_events(paths.events_file)
+    cycle = current_cycle(events, review_id)
+    if cycle is None:
+        raise FileNotFoundError(f"Review not found: {review_id}")
+    return events, cycle
 
 
 def _context_manifest_template() -> dict:
@@ -1309,6 +1362,502 @@ def gen_gaps(
     }
 
 
+def gen_consensus_open(
+    project_root: Path,
+    *,
+    artifact: str,
+    roster: Iterable[str] | str,
+    quorum: str = "majority",
+    review_id: str | None = None,
+    asset_version: str = "v1",
+    min_duration_seconds: int = 0,
+    review_closes_in: int = 86400,
+    abstention_model: str = "neutral",
+    min_participation_ratio: float = 0.5,
+    actor: str = "local-user",
+    event_time: str | None = None,
+) -> dict:
+    """Open a new CONSENSUS review cycle."""
+
+    paths = bootstrap_workspace(project_root)
+    artifact_path = paths.project_root / artifact
+    if not artifact_path.exists() or not artifact_path.is_file():
+        raise FileNotFoundError(f"Artifact not found: {artifact}")
+    if quorum not in VALID_QUORUMS:
+        raise ValueError(f"Unsupported quorum threshold: {quorum}")
+    if abstention_model not in {"neutral", "counts_against"}:
+        raise ValueError(f"Unsupported abstention model: {abstention_model}")
+    if not 0 < min_participation_ratio <= 1:
+        raise ValueError("min_participation_ratio must be in (0, 1]")
+    if min_duration_seconds < 0 or review_closes_in < 0:
+        raise ValueError("review windows must be non-negative")
+
+    events = load_events(paths.events_file)
+    participant_roster = _resolve_consensus_roster(roster)
+    review_id = review_id or next_review_id(events, artifact)
+    if review_events(events, review_id):
+        raise ValueError(f"Review already exists: {review_id}")
+
+    published_at = parse_timestamp(event_time or utc_now())
+    review_closes_at = published_at + timedelta(seconds=review_closes_in)
+    min_close_at = published_at + timedelta(seconds=min_duration_seconds)
+    if review_closes_at < min_close_at:
+        raise ValueError("review_closes_at must be >= published_at + min_duration_seconds")
+
+    cycle_id = next_cycle_id(events, review_id)
+    payload = {
+        "review_id": review_id,
+        "cycle_id": cycle_id,
+        "asset_id": artifact_path.stem,
+        "asset_version": asset_version,
+        "artifact": artifact,
+        "requested_by": actor,
+        "published_at": format_timestamp(published_at),
+        "review_closes_at": format_timestamp(review_closes_at),
+        "min_duration_seconds": int(min_duration_seconds),
+        "participants": participant_roster,
+        "quorum": quorum,
+        "quorum_threshold": quorum,
+        "abstention_model": abstention_model,
+        "min_participation_ratio": float(min_participation_ratio),
+    }
+    event = append_run_event(
+        paths.events_file,
+        project_name=_project_name(paths),
+        semantic_type="consensus_requested",
+        actor=actor,
+        feature=artifact_path.stem,
+        edge="consensus",
+        payload=payload,
+        event_time=payload["published_at"],
+    )
+    status_markdown = _write_status(paths)
+    state = quorum_state(load_events(paths.events_file), review_id, cycle_id, now=payload["published_at"])
+    return {
+        "review_id": review_id,
+        "cycle_id": cycle_id,
+        "artifact": artifact,
+        "participants": participant_roster,
+        "quorum_threshold": quorum,
+        "published_at": payload["published_at"],
+        "review_closes_at": payload["review_closes_at"],
+        "consensus_requested_run_id": event["run"]["runId"],
+        "state": state,
+        "status_markdown": status_markdown,
+    }
+
+
+def gen_comment(
+    project_root: Path,
+    *,
+    review_id: str,
+    content: str,
+    participant: str = "local-user",
+    actor: str = "local-user",
+    event_time: str | None = None,
+) -> dict:
+    """Record one review comment for the current consensus cycle."""
+
+    if not content.strip():
+        raise ValueError("content must not be empty")
+
+    paths = bootstrap_workspace(project_root)
+    events, cycle = _consensus_cycle_or_raise(paths, review_id)
+    comment_time = parse_timestamp(event_time or utc_now())
+    gating = cycle["terminal_event"] is None and comment_time <= parse_timestamp(cycle["review_closes_at"])
+    comment_id = next_comment_id(events, review_id, cycle["cycle_id"])
+
+    event = append_run_event(
+        paths.events_file,
+        project_name=_project_name(paths),
+        semantic_type="comment_received",
+        actor=actor,
+        feature=cycle["asset_id"],
+        edge="consensus",
+        payload={
+            "review_id": review_id,
+            "cycle_id": cycle["cycle_id"],
+            "comment_id": comment_id,
+            "participant": participant,
+            "asset_version": cycle["asset_version"],
+            "content": content,
+            "gating": gating,
+        },
+        event_time=format_timestamp(comment_time),
+    )
+    status_markdown = _write_status(paths)
+    state = quorum_state(load_events(paths.events_file), review_id, cycle["cycle_id"], now=event["eventTime"])
+    return {
+        "review_id": review_id,
+        "cycle_id": cycle["cycle_id"],
+        "comment_id": comment_id,
+        "gating": gating,
+        "comment_run_id": event["run"]["runId"],
+        "state": state,
+        "status_markdown": status_markdown,
+    }
+
+
+def gen_dispose(
+    project_root: Path,
+    *,
+    review_id: str,
+    comment_id: str,
+    disposition: str,
+    rationale: str,
+    actor: str = "local-user",
+    event_time: str | None = None,
+) -> dict:
+    """Disposition one gating comment in the active consensus cycle."""
+
+    if disposition not in VALID_DISPOSITIONS:
+        raise ValueError(f"Unsupported disposition: {disposition}")
+    if not rationale.strip():
+        raise ValueError("rationale must not be empty")
+
+    paths = bootstrap_workspace(project_root)
+    events, cycle = _consensus_cycle_or_raise(paths, review_id)
+    if cycle["terminal_event"] is not None:
+        raise ValueError(f"Review cycle is already terminal: {review_id} {cycle['cycle_id']}")
+
+    target_comment = None
+    for event in review_events(events, review_id, cycle_id=cycle["cycle_id"]):
+        if event.semantic_type != "CommentReceived":
+            continue
+        payload = payload_for(event)
+        if payload.get("comment_id") == comment_id:
+            target_comment = payload
+            break
+    if target_comment is None:
+        raise FileNotFoundError(f"Comment not found: {comment_id}")
+    if not target_comment.get("gating"):
+        raise ValueError(f"Comment is not gating: {comment_id}")
+    for event in review_events(events, review_id, cycle_id=cycle["cycle_id"]):
+        if event.semantic_type != "CommentDispositioned":
+            continue
+        if payload_for(event).get("comment_id") == comment_id:
+            raise ValueError(f"Comment already dispositioned: {comment_id}")
+
+    disposition_time = format_timestamp(parse_timestamp(event_time or utc_now()))
+    event = append_run_event(
+        paths.events_file,
+        project_name=_project_name(paths),
+        semantic_type="comment_dispositioned",
+        actor=actor,
+        feature=cycle["asset_id"],
+        edge="consensus",
+        payload={
+            "review_id": review_id,
+            "cycle_id": cycle["cycle_id"],
+            "comment_id": comment_id,
+            "original_participant": target_comment.get("participant", ""),
+            "disposition": disposition,
+            "rationale": rationale,
+            "material_change": disposition == "scope_change",
+        },
+        event_time=disposition_time,
+    )
+    spec_event = None
+    if disposition == "scope_change":
+        spec_event = append_run_event(
+            paths.events_file,
+            project_name=_project_name(paths),
+            semantic_type="spec_modified",
+            actor=actor,
+            feature=cycle["asset_id"],
+            edge="consensus",
+            payload={
+                "review_id": review_id,
+                "cycle_id": cycle["cycle_id"],
+                "trigger": "comment_dispositioned scope_change",
+                "comment_id": comment_id,
+                "rationale": rationale,
+            },
+            causation_id=event["run"]["runId"],
+            correlation_id=event["run"]["runId"],
+            parent_run_id=event["run"]["runId"],
+            event_time=disposition_time,
+        )
+    status_markdown = _write_status(paths)
+    state = quorum_state(load_events(paths.events_file), review_id, cycle["cycle_id"], now=disposition_time)
+    return {
+        "review_id": review_id,
+        "cycle_id": cycle["cycle_id"],
+        "comment_id": comment_id,
+        "disposition": disposition,
+        "comment_dispositioned_run_id": event["run"]["runId"],
+        "spec_modified_run_id": spec_event["run"]["runId"] if spec_event else None,
+        "state": state,
+        "status_markdown": status_markdown,
+    }
+
+
+def gen_vote(
+    project_root: Path,
+    *,
+    review_id: str,
+    verdict: str,
+    participant: str = "local-user",
+    rationale: str = "",
+    conditions: Iterable[str] | None = None,
+    actor: str = "local-user",
+    event_time: str | None = None,
+    gating: bool = False,
+) -> dict:
+    """Cast a vote in the active consensus cycle."""
+
+    if verdict not in VALID_VERDICTS:
+        raise ValueError(f"Unsupported verdict: {verdict}")
+
+    paths = bootstrap_workspace(project_root)
+    events, cycle = _consensus_cycle_or_raise(paths, review_id)
+    if cycle["terminal_event"] is not None:
+        raise ValueError(f"Review cycle is already terminal: {review_id} {cycle['cycle_id']}")
+
+    vote_time = parse_timestamp(event_time or utc_now())
+    if vote_time > parse_timestamp(cycle["review_closes_at"]):
+        raise ValueError("Review window is closed; reopen the cycle before casting a vote")
+    roster_ids = {participant_entry["id"] for participant_entry in cycle["participants"]}
+    in_roster = participant in roster_ids
+    conditions_list = list(conditions or [])
+
+    vote_event = append_run_event(
+        paths.events_file,
+        project_name=_project_name(paths),
+        semantic_type="vote_cast",
+        actor=actor,
+        feature=cycle["asset_id"],
+        edge="consensus",
+        payload={
+            "review_id": review_id,
+            "cycle_id": cycle["cycle_id"],
+            "participant": participant,
+            "asset_version": cycle["asset_version"],
+            "verdict": verdict,
+            "rationale": rationale,
+            "conditions": conditions_list,
+            "counts_toward_quorum": in_roster,
+        },
+        event_time=format_timestamp(vote_time),
+    )
+    comment_event = None
+    if gating and rationale.strip():
+        comment_id = next_comment_id(load_events(paths.events_file), review_id, cycle["cycle_id"])
+        comment_event = append_run_event(
+            paths.events_file,
+            project_name=_project_name(paths),
+            semantic_type="comment_received",
+            actor=actor,
+            feature=cycle["asset_id"],
+            edge="consensus",
+            payload={
+                "review_id": review_id,
+                "cycle_id": cycle["cycle_id"],
+                "comment_id": comment_id,
+                "participant": participant,
+                "asset_version": cycle["asset_version"],
+                "content": rationale,
+                "gating": True,
+            },
+            causation_id=vote_event["run"]["runId"],
+            correlation_id=vote_event["run"]["runId"],
+            parent_run_id=vote_event["run"]["runId"],
+            event_time=format_timestamp(vote_time),
+        )
+    status_markdown = _write_status(paths)
+    state = quorum_state(load_events(paths.events_file), review_id, cycle["cycle_id"], now=vote_event["eventTime"])
+    return {
+        "review_id": review_id,
+        "cycle_id": cycle["cycle_id"],
+        "participant": participant,
+        "verdict": verdict,
+        "counts_toward_quorum": in_roster,
+        "vote_run_id": vote_event["run"]["runId"],
+        "comment_run_id": comment_event["run"]["runId"] if comment_event else None,
+        "state": state,
+        "status_markdown": status_markdown,
+    }
+
+
+def gen_consensus_status(
+    project_root: Path,
+    *,
+    review_id: str,
+    cycle_id: str | None = None,
+    now: str | None = None,
+) -> dict:
+    """Project current consensus review state without mutating it."""
+
+    paths = bootstrap_workspace(project_root)
+    state = quorum_state(load_events(paths.events_file), review_id, cycle_id, now=now)
+    return state
+
+
+def gen_consensus_close(
+    project_root: Path,
+    *,
+    review_id: str,
+    cycle_id: str | None = None,
+    actor: str = "consensus-closeout",
+    event_time: str | None = None,
+) -> dict:
+    """Emit the terminal consensus outcome for a review if projection is terminal."""
+
+    paths = bootstrap_workspace(project_root)
+    close_time = event_time or utc_now()
+    state = quorum_state(load_events(paths.events_file), review_id, cycle_id, now=close_time)
+    if state["terminal_run_id"] is not None:
+        return {
+            "review_id": review_id,
+            "cycle_id": state["cycle_id"],
+            "outcome": state["outcome"],
+            "emitted": False,
+            "terminal_run_id": state["terminal_run_id"],
+            "state": state,
+        }
+    if state["outcome"] == "deferred":
+        return {
+            "review_id": review_id,
+            "cycle_id": state["cycle_id"],
+            "outcome": "deferred",
+            "emitted": False,
+            "terminal_run_id": None,
+            "state": state,
+        }
+
+    semantic_type = "consensus_reached" if state["outcome"] == "passed" else "consensus_failed"
+    payload = {
+        "review_id": state["review_id"],
+        "cycle_id": state["cycle_id"],
+        "asset_id": state["asset_id"],
+        "asset_version": state["asset_version"],
+        "approve_votes": state["approve_votes"],
+        "reject_votes": state["reject_votes"],
+        "abstain_votes": state["abstain_votes"],
+        "non_response_count": state["non_response_count"],
+        "approve_ratio": state["approve_ratio"],
+        "participation_ratio": state["participation_ratio"],
+        "available_paths": state["available_paths"],
+    }
+    if semantic_type == "consensus_reached":
+        payload["gating_comments_total"] = state["gating_comments_total"]
+        payload["gating_comments_dispositioned"] = state["gating_comments_dispositioned"]
+    else:
+        payload["failure_reason"] = state["failure_reason"]
+        payload["gating_comments_undispositioned"] = len(state["gating_comments_remaining"])
+
+    event = append_run_event(
+        paths.events_file,
+        project_name=_project_name(paths),
+        semantic_type=semantic_type,
+        actor=actor,
+        feature=state["asset_id"],
+        edge="consensus",
+        payload=payload,
+        event_time=close_time,
+    )
+    status_markdown = _write_status(paths)
+    state = quorum_state(load_events(paths.events_file), review_id, state["cycle_id"], now=close_time)
+    return {
+        "review_id": review_id,
+        "cycle_id": state["cycle_id"],
+        "outcome": state["outcome"],
+        "emitted": True,
+        "terminal_run_id": event["run"]["runId"],
+        "state": state,
+        "status_markdown": status_markdown,
+    }
+
+
+def gen_consensus_recover(
+    project_root: Path,
+    *,
+    review_id: str,
+    path: str,
+    rationale: str = "",
+    review_closes_in: int = 86400,
+    actor: str = "local-user",
+    event_time: str | None = None,
+) -> dict:
+    """Select and execute one recovery path for a failed consensus cycle."""
+
+    if path not in VALID_RECOVERY_PATHS:
+        raise ValueError(f"Unsupported recovery path: {path}")
+
+    paths = bootstrap_workspace(project_root)
+    recovery_time = event_time or utc_now()
+    state = quorum_state(load_events(paths.events_file), review_id, now=recovery_time)
+    if state["terminal_run_id"] is None or state["outcome"] != "failed":
+        raise ValueError(f"Review is not in a recoverable failed state: {review_id}")
+    if path not in state["available_paths"]:
+        raise ValueError(f"Recovery path {path} is not available for {state['failure_reason']}")
+    for event in review_events(load_events(paths.events_file), review_id, cycle_id=state["cycle_id"]):
+        if event.semantic_type == "RecoveryPathSelected":
+            raise ValueError(f"Recovery path already selected for {review_id} {state['cycle_id']}")
+
+    selection_event = append_run_event(
+        paths.events_file,
+        project_name=_project_name(paths),
+        semantic_type="recovery_path_selected",
+        actor=actor,
+        feature=state["asset_id"],
+        edge="consensus",
+        payload={
+            "review_id": review_id,
+            "cycle_id": state["cycle_id"],
+            "asset_id": state["asset_id"],
+            "path": path,
+            "rationale": rationale,
+        },
+        event_time=recovery_time,
+    )
+
+    reopened = None
+    if path == "re_open":
+        events = load_events(paths.events_file)
+        next_cycle = next_cycle_id(events, review_id)
+        cycle = current_cycle(events, review_id)
+        reopened = append_run_event(
+            paths.events_file,
+            project_name=_project_name(paths),
+            semantic_type="review_reopened",
+            actor=actor,
+            feature=state["asset_id"],
+            edge="consensus",
+            payload={
+                "review_id": review_id,
+                "prior_cycle_id": state["cycle_id"],
+                "cycle_id": next_cycle,
+                "reason": rationale or path,
+                "asset_id": state["asset_id"],
+                "asset_version": state["asset_version"],
+                "artifact": cycle["artifact"] if cycle else "",
+                "reopened_by": actor,
+                "published_at": recovery_time,
+                "review_closes_at": format_timestamp(parse_timestamp(recovery_time) + timedelta(seconds=review_closes_in)),
+                "min_duration_seconds": cycle["min_duration_seconds"] if cycle else 0,
+                "participants": cycle["participants"] if cycle else [],
+                "quorum": cycle["quorum_threshold"] if cycle else "majority",
+                "quorum_threshold": cycle["quorum_threshold"] if cycle else "majority",
+                "abstention_model": cycle["abstention_model"] if cycle else "neutral",
+                "min_participation_ratio": cycle["min_participation_ratio"] if cycle else 0.5,
+            },
+            causation_id=selection_event["run"]["runId"],
+            correlation_id=selection_event["run"]["runId"],
+            parent_run_id=selection_event["run"]["runId"],
+            event_time=recovery_time,
+        )
+    status_markdown = _write_status(paths)
+    return {
+        "review_id": review_id,
+        "path": path,
+        "recovery_path_selected_run_id": selection_event["run"]["runId"],
+        "review_reopened_run_id": reopened["run"]["runId"] if reopened else None,
+        "state": quorum_state(load_events(paths.events_file), review_id, now=recovery_time),
+        "status_markdown": status_markdown,
+    }
+
+
 def gen_release(
     project_root: Path,
     *,
@@ -1358,6 +1907,12 @@ def gen_release(
 
 __all__ = [
     "gen_checkpoint",
+    "gen_comment",
+    "gen_consensus_close",
+    "gen_consensus_open",
+    "gen_consensus_recover",
+    "gen_consensus_status",
+    "gen_dispose",
     "gen_init",
     "gen_fold_back",
     "gen_gaps",
@@ -1370,4 +1925,5 @@ __all__ = [
     "gen_status",
     "gen_spawn",
     "gen_trace",
+    "gen_vote",
 ]

@@ -36,14 +36,14 @@ from __future__ import annotations
 import json
 import subprocess
 import tempfile
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Optional
 
 
 # ── Types ─────────────────────────────────────────────────────────────────────
+
 
 class FieldType(str, Enum):
     INTEGER = "integer"
@@ -63,48 +63,55 @@ class DiscoveryStatus(str, Enum):
 
 # ── Data Classes ───────────────────────────────────────────────────────────────
 
+
 @dataclass
 class FieldSchema:
     """Single column's inferred schema — output of the iterate step per field."""
+
     name: str
     inferred_type: FieldType
-    nullable: bool               # True if any nulls observed in sample
-    null_rate: float             # 0.0–1.0 fraction of nulls in sample
-    cardinality: Optional[int]   # None = high-cardinality (> HIGH_CARDINALITY_THRESHOLD)
-    sample_values: list[str]     # up to 3 representative non-null values as strings
-    open_questions: list[str]    # field-level flags for the F_H reviewer
+    nullable: bool  # True if any nulls observed in sample
+    null_rate: float  # 0.0–1.0 fraction of nulls in sample
+    cardinality: Optional[int]  # None = high-cardinality (> HIGH_CARDINALITY_THRESHOLD)
+    sample_values: list[str]  # up to 3 representative non-null values as strings
+    open_questions: list[str]  # field-level flags for the F_H reviewer
 
 
 @dataclass
 class SchemaDocument:
     """Output of SCHEMA_DISCOVERY — the fold-back payload for parent feature design."""
-    dataset: str                 # original dataset filename
+
+    dataset: str  # original dataset filename
     row_count_sampled: int
     row_count_total: Optional[int]
     fields: list[FieldSchema]
-    open_questions: list[str]    # dataset-level flags
-    notebook_path: Optional[str] # lineage artifact — path to executed .ipynb
-    generated_at: str            # ISO timestamp
+    open_questions: list[str]  # dataset-level flags
+    notebook_path: Optional[str]  # lineage artifact — path to executed .ipynb
+    generated_at: str  # ISO timestamp
 
 
 @dataclass
 class DiscoveryConfig:
     """Input configuration for SCHEMA_DISCOVERY — the bindings from the composition."""
+
     dataset_path: Path
     sample_size: int = 1000
-    stratify_by: Optional[str] = None   # column name for stratified sampling; None = random
-    notebook_env: str = "local"          # "local" or a URI (future: remote kernels)
-    output_dir: Optional[Path] = None   # where to write notebook; None = tempdir
+    stratify_by: Optional[str] = (
+        None  # column name for stratified sampling; None = random
+    )
+    notebook_env: str = "local"  # "local" or a URI (future: remote kernels)
+    output_dir: Optional[Path] = None  # where to write notebook; None = tempdir
     timeout_seconds: int = 120
 
 
 @dataclass
 class DiscoveryResult:
     """Full output of run_schema_discovery() — ready for F_H REVIEW."""
+
     config: DiscoveryConfig
     status: DiscoveryStatus
     schema: Optional[SchemaDocument]
-    notebook_path: Optional[Path]   # None only if generation itself failed
+    notebook_path: Optional[Path]  # None only if generation itself failed
     error: Optional[str] = None
 
     @property
@@ -116,12 +123,15 @@ class DiscoveryResult:
 
 HIGH_CARDINALITY_THRESHOLD = 50  # unique values above this → cardinality=None (ID-like)
 NULL_RATE_WARNING_THRESHOLD = 0.5
-LOW_CARDINALITY_ENUM_THRESHOLD = 10  # string with ≤ this many unique values → enum candidate
+LOW_CARDINALITY_ENUM_THRESHOLD = (
+    10  # string with ≤ this many unique values → enum candidate
+)
 _SCHEMA_BEGIN = "SCHEMA_DOCUMENT_JSON_BEGIN"
 _SCHEMA_END = "SCHEMA_DOCUMENT_JSON_END"
 
 
 # ── Step 1: BROADCAST — generate exploration notebook ─────────────────────────
+
 
 def generate_exploration_notebook(config: DiscoveryConfig, output_path: Path) -> Path:
     """Generate a Jupyter notebook that profiles config.dataset_path.
@@ -157,7 +167,6 @@ def generate_exploration_notebook(config: DiscoveryConfig, output_path: Path) ->
             "**Do not edit cells 1–5 manually** — they are the machine-readable contract "
             "between this notebook and the schema_discovery engine."
         ),
-
         # ── Cell 1: Load ───────────────────────────────────────────────────────
         new_code_cell(f"""\
 # Cell 1: Load dataset  (BROADCAST source)
@@ -171,7 +180,6 @@ row_count_total = len(df)
 print(f"Loaded {{row_count_total}} rows × {{len(df.columns)}} columns")
 print(f"Columns: {{list(df.columns)}}")
 """),
-
         # ── Cell 2: Sample ─────────────────────────────────────────────────────
         new_code_cell(f"""\
 # Cell 2: Stratified sample  (BROADCAST — stratified_sample)
@@ -191,7 +199,6 @@ else:
 
 print(f"Sample: {{len(sample)}} rows (stratify_by={{_strat_col!r}})")
 """),
-
         # ── Cell 3: Profile columns ────────────────────────────────────────────
         new_code_cell(f"""\
 # Cell 3: Per-column profiling  (iterate — structure_detect, type_infer, null_rate, cardinality)
@@ -253,7 +260,6 @@ for _col in sample.columns:
 
 print(f"Profiled {{len(field_schemas)}} columns")
 """),
-
         # ── Cell 4: FOLD ───────────────────────────────────────────────────────
         new_code_cell("""\
 # Cell 4: FOLD — merge sample schemas into unified schema_document
@@ -274,7 +280,6 @@ _schema_doc = {
 }
 print(f"Unified: {len(field_schemas)} fields, {len(_dataset_qs)} dataset-level questions")
 """),
-
         # ── Cell 5: Output schema (machine-readable marker) ────────────────────
         new_code_cell(f"""\
 # Cell 5: Output schema as JSON  (DO NOT MODIFY — parsed by schema_discovery engine)
@@ -291,6 +296,7 @@ print("{_SCHEMA_END}")
 
 # ── Step 2: Execute notebook ───────────────────────────────────────────────────
 
+
 def execute_notebook(notebook_path: Path, timeout: int = 120) -> Path:
     """Execute the exploration notebook in-place via jupyter nbconvert.
 
@@ -301,11 +307,14 @@ def execute_notebook(notebook_path: Path, timeout: int = 120) -> Path:
     executed_path = notebook_path.with_stem(notebook_path.stem + "_executed")
     result = subprocess.run(
         [
-            "jupyter", "nbconvert",
-            "--to", "notebook",
+            "jupyter",
+            "nbconvert",
+            "--to",
+            "notebook",
             "--execute",
             f"--ExecutePreprocessor.timeout={timeout}",
-            "--output", str(executed_path),
+            "--output",
+            str(executed_path),
             str(notebook_path),
         ],
         capture_output=True,
@@ -321,7 +330,10 @@ def execute_notebook(notebook_path: Path, timeout: int = 120) -> Path:
 
 # ── Step 3: FOLD — extract SchemaDocument from executed notebook ───────────────
 
-def extract_schema_from_notebook(executed_path: Path, dataset_name: str) -> SchemaDocument:
+
+def extract_schema_from_notebook(
+    executed_path: Path, dataset_name: str
+) -> SchemaDocument:
     """Parse the executed notebook's cell outputs to produce a SchemaDocument.
 
     Locates the SCHEMA_DOCUMENT_JSON_BEGIN … SCHEMA_DOCUMENT_JSON_END block
@@ -377,7 +389,10 @@ def extract_schema_from_notebook(executed_path: Path, dataset_name: str) -> Sche
 
 # ── Fold-back ─────────────────────────────────────────────────────────────────
 
-def write_schema_to_design_context(schema: SchemaDocument, design_context_dir: Path) -> Path:
+
+def write_schema_to_design_context(
+    schema: SchemaDocument, design_context_dir: Path
+) -> Path:
     """Fold-back: write the approved SchemaDocument to the parent feature's design context.
 
     Creates (or overwrites) schema.json in design_context_dir.  The parent
@@ -414,6 +429,7 @@ def write_schema_to_design_context(schema: SchemaDocument, design_context_dir: P
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────
+
 
 def run_schema_discovery(config: DiscoveryConfig) -> DiscoveryResult:
     """Execute the full SCHEMA_DISCOVERY macro for a dataset.

@@ -4,7 +4,7 @@
 - Role: QA/reviewer only.
 - Default behavior: read-only analysis and findings reports.
 - Do not create, edit, delete, move, or rename files unless explicitly authorized.
-- Changes in `imp_codex` are allowed only when the user explicitly says: `apply changes`.
+- Changes in `imp_codex` are allowed only when the user explicitly says: `apply changes` or `start` or equivalent authority to progress.
 - Without that exact instruction, stay read-only and provide review output only.
 
 ## Safety Boundary

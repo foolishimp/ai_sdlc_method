@@ -51,6 +51,33 @@ Dogfooding is not a test — it is the build process.
 ### Post-1.0 (v1.1 sprint) — ALL COMPLETE (2026-03-09)
 T-002 ✅ (context hierarchy — 6-level, manifests, installer), T-003 ✅ (instance graph), T-004 ✅ (FPC audit), T-006 ✅ (H-metric)
 
+### REQ-F-TOOL-015: code↔unit_tests CONVERGED
+**Date**: 2026-03-10
+**Iterations**: 1
+**Fix**: Added `# Validates: REQ-TOOL-015` to `imp_claude/tests/uat/test_install_e2e.py:1`
+**Effect**: L2 test gap (REQ-TOOL-015) from gen-gaps now closed
+
+---
+
+### REQ-F-INTENT-001: requirements CONVERGED + design CONVERGED
+**Date**: 2026-03-10
+**Requirements**: REQ-INTENT-002/003/004 — all defined in spec with ACs ✓
+**Design**: Covered by ADR-010 (INTENT-004 spec hash), ADR-011 (consciousness loop), ADR-014 (INTENT-002 binding), ADR-015 (INTENT-003 ecosystem sensing) — no new ADR needed
+**Next edge**: code↔unit_tests
+**What code needs**: `# Implements: REQ-INTENT-002/003/004` tags in relevant modules + `context_hash` actual SHA-256 computation in `config_loader.py`
+
+---
+
+### REQ-F-SCHEMA-DISC-001: code↔unit_tests CONVERGED
+**Date**: 2026-03-10
+**Iterations**: 2
+**Evaluators**: 14/14 required checks passed (1 skipped: type_check — no mypy configured)
+**Asset**: imp_claude/tests/test_schema_discovery.py (42 tests, 93% coverage)
+**Fixes**: removed unused imports in schema_discovery.py + test file; ruff format applied
+**Next edge**: uat_tests (pending — profile: standard; human gate required for UAT)
+
+---
+
 ### REQ-F-EVOL-001: design→uat_tests CONVERGED
 **Date**: 2026-03-08T09:00:00Z
 **Iterations**: 1
@@ -73,6 +100,63 @@ T-002 ✅ (context hierarchy — 6-level, manifests, installer), T-003 ✅ (inst
 | Claude | [.ai-workspace/claude/tasks/active/ACTIVE_TASKS.md](../../claude/tasks/active/ACTIVE_TASKS.md) | Spec Compliance Refactor (T-COMPLY-001..008) |
 | Gemini | (no active sprint) | — |
 | Codex | (no active sprint) | — |
+
+---
+
+## New: REQ-F-INTENT-001 — Intent Composition Layer
+
+**Status**: Pending
+**Source**: PROP-001 (approved 2026-03-10)
+**Priority**: high
+
+Intent composition layer: REQ-INTENT-002 (compose intents from observations),
+REQ-INTENT-003 (deduplication), REQ-INTENT-004 (prioritisation). Blocks Phase 2
+consciousness loop — system cannot autonomously generate/compose intent without this.
+
+**Requirements**: REQ-INTENT-002, REQ-INTENT-003, REQ-INTENT-004
+**Start with**: `/gen-iterate --edge "requirements→design" --feature "REQ-F-INTENT-001"`
+
+---
+
+## New: REQ-F-TELEM-001 — Telemetry Tagging Phase 1
+
+**Status**: Pending
+**Source**: PROP-006 (approved 2026-03-10)
+**Priority**: medium
+
+Add `req=` telemetry tags to logging/metrics across engine.py, evaluator execution,
+and command execution paths. ~85 REQ keys to tag. Required for Phase 2 homeostasis.
+
+**Requirements**: all implemented REQ keys
+**Start with**: `/gen-iterate --edge "code↔unit_tests" --feature "REQ-F-TELEM-001"`
+
+---
+
+## New: REQ-F-TOOL-015 — Tag installer tests with Validates: REQ-TOOL-015
+
+**Status**: Pending
+**Source**: PROP-007 (approved 2026-03-10)
+**Priority**: medium
+
+1-line fix: add `# Validates: REQ-TOOL-015` to test_install_e2e.py.
+REQ-TOOL-015 "Workspace Placement at Project Root" has code but no test tag.
+
+**Requirements**: REQ-TOOL-015
+**Start with**: edit `imp_claude/tests/uat/test_install_e2e.py` directly
+
+---
+
+## New: REQ-F-EVOL-NFR-002 — Resolve orphan REQ-EVOL-NFR-002 tag
+
+**Status**: Pending
+**Source**: PROP-008 (approved 2026-03-10)
+**Priority**: low
+
+REQ-EVOL-NFR-002 in workspace_gradient.py and workspace_state.py not in spec.
+Either define it in AISDLC_IMPLEMENTATION_REQUIREMENTS.md or correct tag to REQ-EVOL-005.
+
+**Requirements**: REQ-EVOL-NFR-002
+**Start with**: `/gen-iterate --edge "code↔unit_tests" --feature "REQ-F-EVOL-NFR-002"`
 
 ---
 

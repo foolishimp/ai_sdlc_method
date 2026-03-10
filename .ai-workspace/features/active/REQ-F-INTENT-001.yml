@@ -1,0 +1,50 @@
+created: '2026-03-10T00:00:00Z'
+description: 'Intent composition layer. REQ-INTENT-002 (compose intents from observations),
+
+  REQ-INTENT-003 (intent deduplication), REQ-INTENT-004 (intent prioritisation)
+
+  all have design artifacts (ADR-011, bootloader §VIII) but no production code.
+
+  Blocks Phase 2 consciousness loop — the system cannot autonomously generate
+
+  and compose intent without this.
+
+  '
+feature: REQ-F-INTENT-001
+intent: INT-GAP-008
+priority: high
+profile: standard
+proposal_id: PROP-001
+requirements:
+- REQ-INTENT-002
+- REQ-INTENT-003
+- REQ-INTENT-004
+source: feature_proposal
+status: in_progress
+title: Intent Composition Layer
+trajectory:
+  code:
+    status: pending
+  design:
+    asset: imp_claude/design/adrs/ADR-010-spec-reproducibility.md
+    converged_at: '2026-03-10T00:55:06.227059+00:00'
+    evaluator_results:
+      human_approves_architecture: pass
+      req_intent_002_designed: pass
+      req_intent_003_designed: pass
+      req_intent_004_designed: pass
+    iteration: 1
+    notes: Covered by ADR-010 (INTENT-004), ADR-011 (consciousness loop), ADR-014
+      (INTENT-002 IntentEngine binding), ADR-015 (INTENT-003 ecosystem sensing). No
+      new ADR needed.
+    status: converged
+  requirements:
+    asset: specification/requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md
+    converged_at: '2026-03-10T00:55:06.227059+00:00'
+    iteration: 1
+    notes: REQ-INTENT-002/003/004 fully defined with acceptance criteria
+    status: converged
+  unit_tests:
+    status: pending
+updated: '2026-03-10T00:55:06.227059+00:00'
+vector_type: feature

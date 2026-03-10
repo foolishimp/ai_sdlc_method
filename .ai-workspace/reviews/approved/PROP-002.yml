@@ -1,0 +1,47 @@
+affected_req_keys:
+- REQ-LIFE-002
+- REQ-LIFE-004
+- REQ-LIFE-005
+- REQ-LIFE-006
+- REQ-LIFE-007
+- REQ-LIFE-008
+- REQ-LIFE-013
+approved_at: '2026-03-10T00:12:40.632210+00:00'
+created: '2026-03-09T00:00:08Z'
+description: 'Lifecycle management has 7 unimplemented REQ keys. Fold-back protocol
+
+  (REQ-LIFE-002) is partially scaffolded but not complete. Signal typing
+
+  (REQ-LIFE-005/006) is specified in ADR-026 but has no code. Promotion
+
+  gates (REQ-LIFE-004), lineage tracking (REQ-LIFE-007/008), and workspace
+
+  cleanup (REQ-LIFE-013) are all missing. Blocks Phase 2 workspace lifecycle.
+
+  '
+disposition: exists_converged
+feature_id: REQ-F-LIFE-001
+intent_id: INT-GAP-009
+proposal_id: PROP-002
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-002
+
+  Dismiss: /gen-review-proposal --dismiss PROP-002 --reason "{reason}"
+
+  '
+severity: high
+source: gap_analysis
+status: approved
+suggested_vector:
+  feature: REQ-F-LIFE-001
+  profile: standard
+  requirements:
+  - REQ-LIFE-002
+  - REQ-LIFE-004
+  - REQ-LIFE-005
+  - REQ-LIFE-006
+  - REQ-LIFE-007
+  - REQ-LIFE-008
+  - REQ-LIFE-013
+  title: Lifecycle Fold-Back and Signal Typing
+  vector_type: feature
+title: Implement Lifecycle Fold-Back and Signal Typing (REQ-LIFE-002/004-008/013)

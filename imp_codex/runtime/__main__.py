@@ -7,6 +7,12 @@ import json
 from pathlib import Path
 
 from .commands import (
+    gen_comment,
+    gen_consensus_close,
+    gen_consensus_open,
+    gen_consensus_recover,
+    gen_consensus_status,
+    gen_dispose,
     gen_checkpoint,
     gen_init,
     gen_fold_back,
@@ -20,6 +26,7 @@ from .commands import (
     gen_start,
     gen_status,
     gen_trace,
+    gen_vote,
 )
 
 
@@ -122,6 +129,63 @@ def main(argv: list[str] | None = None) -> int:
     checkpoint_parser.add_argument("--message", default="")
     checkpoint_parser.add_argument("--actor", default="codex-runtime")
 
+    consensus_open_parser = subparsers.add_parser("consensus-open")
+    consensus_open_parser.add_argument("--project-root", default=".")
+    consensus_open_parser.add_argument("--artifact", required=True)
+    consensus_open_parser.add_argument("--roster", required=True)
+    consensus_open_parser.add_argument("--quorum", default="majority")
+    consensus_open_parser.add_argument("--review-id")
+    consensus_open_parser.add_argument("--asset-version", default="v1")
+    consensus_open_parser.add_argument("--min-duration-seconds", type=int, default=0)
+    consensus_open_parser.add_argument("--review-closes-in", type=int, default=86400)
+    consensus_open_parser.add_argument("--abstention-model", default="neutral")
+    consensus_open_parser.add_argument("--min-participation-ratio", type=float, default=0.5)
+    consensus_open_parser.add_argument("--actor", default="local-user")
+
+    comment_parser = subparsers.add_parser("comment")
+    comment_parser.add_argument("--project-root", default=".")
+    comment_parser.add_argument("--review-id", required=True)
+    comment_parser.add_argument("--content", required=True)
+    comment_parser.add_argument("--participant", default="local-user")
+    comment_parser.add_argument("--actor", default="local-user")
+
+    dispose_parser = subparsers.add_parser("dispose")
+    dispose_parser.add_argument("--project-root", default=".")
+    dispose_parser.add_argument("--review-id", required=True)
+    dispose_parser.add_argument("--comment-id", required=True)
+    dispose_parser.add_argument("--disposition", required=True)
+    dispose_parser.add_argument("--rationale", required=True)
+    dispose_parser.add_argument("--actor", default="local-user")
+
+    vote_parser = subparsers.add_parser("vote")
+    vote_parser.add_argument("--project-root", default=".")
+    vote_parser.add_argument("--review-id", required=True)
+    vote_parser.add_argument("--verdict", required=True)
+    vote_parser.add_argument("--participant", default="local-user")
+    vote_parser.add_argument("--rationale", default="")
+    vote_parser.add_argument("--condition", action="append", dest="conditions", default=[])
+    vote_parser.add_argument("--gating", action="store_true")
+    vote_parser.add_argument("--actor", default="local-user")
+
+    consensus_status_parser = subparsers.add_parser("consensus-status")
+    consensus_status_parser.add_argument("--project-root", default=".")
+    consensus_status_parser.add_argument("--review-id", required=True)
+    consensus_status_parser.add_argument("--cycle-id")
+
+    consensus_close_parser = subparsers.add_parser("consensus-close")
+    consensus_close_parser.add_argument("--project-root", default=".")
+    consensus_close_parser.add_argument("--review-id", required=True)
+    consensus_close_parser.add_argument("--cycle-id")
+    consensus_close_parser.add_argument("--actor", default="consensus-closeout")
+
+    consensus_recover_parser = subparsers.add_parser("consensus-recover")
+    consensus_recover_parser.add_argument("--project-root", default=".")
+    consensus_recover_parser.add_argument("--review-id", required=True)
+    consensus_recover_parser.add_argument("--path", required=True)
+    consensus_recover_parser.add_argument("--rationale", default="")
+    consensus_recover_parser.add_argument("--review-closes-in", type=int, default=86400)
+    consensus_recover_parser.add_argument("--actor", default="local-user")
+
     args = parser.parse_args(argv)
     project_root = Path(args.project_root)
 
@@ -221,6 +285,70 @@ def main(argv: list[str] | None = None) -> int:
         result = gen_checkpoint(
             project_root,
             message=args.message,
+            actor=args.actor,
+        )
+    elif args.command == "consensus-open":
+        result = gen_consensus_open(
+            project_root,
+            artifact=args.artifact,
+            roster=args.roster,
+            quorum=args.quorum,
+            review_id=args.review_id,
+            asset_version=args.asset_version,
+            min_duration_seconds=args.min_duration_seconds,
+            review_closes_in=args.review_closes_in,
+            abstention_model=args.abstention_model,
+            min_participation_ratio=args.min_participation_ratio,
+            actor=args.actor,
+        )
+    elif args.command == "comment":
+        result = gen_comment(
+            project_root,
+            review_id=args.review_id,
+            content=args.content,
+            participant=args.participant,
+            actor=args.actor,
+        )
+    elif args.command == "dispose":
+        result = gen_dispose(
+            project_root,
+            review_id=args.review_id,
+            comment_id=args.comment_id,
+            disposition=args.disposition,
+            rationale=args.rationale,
+            actor=args.actor,
+        )
+    elif args.command == "vote":
+        result = gen_vote(
+            project_root,
+            review_id=args.review_id,
+            verdict=args.verdict,
+            participant=args.participant,
+            rationale=args.rationale,
+            conditions=args.conditions,
+            gating=args.gating,
+            actor=args.actor,
+        )
+    elif args.command == "consensus-status":
+        result = gen_consensus_status(
+            project_root,
+            review_id=args.review_id,
+            cycle_id=args.cycle_id,
+        )
+    elif args.command == "consensus-close":
+        result = gen_consensus_close(
+            project_root,
+            review_id=args.review_id,
+            cycle_id=args.cycle_id,
+            actor=args.actor,
+        )
+    elif args.command == "consensus-recover":
+        result = gen_consensus_recover(
+            project_root,
+            review_id=args.review_id,
+            path=args.path,
+            rationale=args.rationale,
+            review_closes_in=args.review_closes_in,
             actor=args.actor,
         )
     else:

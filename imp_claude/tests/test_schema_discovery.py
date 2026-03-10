@@ -27,11 +27,9 @@ from genesis.schema_discovery import (
     DiscoveryConfig,
     DiscoveryResult,
     DiscoveryStatus,
-    FieldSchema,
     FieldType,
     SchemaDocument,
     execute_notebook,
-    extract_schema_from_notebook,
     generate_exploration_notebook,
     run_schema_discovery,
     write_schema_to_design_context,
@@ -41,13 +39,12 @@ from genesis.schema_discovery import (
 
 _HERE = Path(__file__).parent
 _TRANSACTIONS_CSV = _HERE / "data" / "transactions.csv"
-_PLUGIN_ROOT = (
-    _HERE.parent / "code" / ".claude-plugin" / "plugins" / "genesis"
-)
+_PLUGIN_ROOT = _HERE.parent / "code" / ".claude-plugin" / "plugins" / "genesis"
 _NAMED_COMP_YML = _PLUGIN_ROOT / "config" / "named_compositions.yml"
 
 
 # ── Fixtures ───────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def transactions_csv() -> Path:
@@ -92,7 +89,7 @@ def high_null_csv(tmp_path: Path) -> Path:
     p = tmp_path / "high_null.csv"
     p.write_text(
         "id,value,notes\n"
-        + "".join(f"{i},{i * 10},\n" for i in range(1, 8))   # 7 nulls
+        + "".join(f"{i},{i * 10},\n" for i in range(1, 8))  # 7 nulls
         + "8,80,present\n9,90,\n10,100,\n"
     )
     return p
@@ -102,9 +99,7 @@ def high_null_csv(tmp_path: Path) -> Path:
 def low_cardinality_csv(tmp_path: Path) -> Path:
     """CSV with a low-cardinality string column — enum candidate."""
     p = tmp_path / "low_card.csv"
-    rows = "\n".join(
-        f"row{i},{['red','green','blue'][i % 3]}" for i in range(20)
-    )
+    rows = "\n".join(f"row{i},{['red', 'green', 'blue'][i % 3]}" for i in range(20))
     p.write_text("id,colour\n" + rows + "\n")
     return p
 
@@ -112,6 +107,7 @@ def low_cardinality_csv(tmp_path: Path) -> Path:
 # ══════════════════════════════════════════════════════════════════════════════
 # TestGenerateExplorationNotebook
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestGenerateExplorationNotebook:
     """BROADCAST step: verify the generated .ipynb has correct structure."""
@@ -130,6 +126,7 @@ class TestGenerateExplorationNotebook:
     def test_notebook_has_six_cells(self, generated_notebook: Path):
         """1 markdown intro + 5 code cells (load, sample, profile, fold, output)."""
         import nbformat
+
         nb = nbformat.read(str(generated_notebook), as_version=4)
         assert len(nb.cells) == 6
 
@@ -137,6 +134,7 @@ class TestGenerateExplorationNotebook:
         self, basic_config: DiscoveryConfig, generated_notebook: Path
     ):
         import nbformat
+
         nb = nbformat.read(str(generated_notebook), as_version=4)
         load_cell = nb.cells[1].source  # Cell 1
         assert str(basic_config.dataset_path) in load_cell
@@ -145,12 +143,14 @@ class TestGenerateExplorationNotebook:
         self, basic_config: DiscoveryConfig, generated_notebook: Path
     ):
         import nbformat
+
         nb = nbformat.read(str(generated_notebook), as_version=4)
         sample_cell = nb.cells[2].source  # Cell 2
         assert str(basic_config.sample_size) in sample_cell
 
     def test_output_cell_has_schema_markers(self, generated_notebook: Path):
         import nbformat
+
         nb = nbformat.read(str(generated_notebook), as_version=4)
         output_cell = nb.cells[5].source  # Cell 5
         assert "SCHEMA_DOCUMENT_JSON_BEGIN" in output_cell
@@ -158,6 +158,7 @@ class TestGenerateExplorationNotebook:
 
     def test_profile_cell_contains_type_inference(self, generated_notebook: Path):
         import nbformat
+
         nb = nbformat.read(str(generated_notebook), as_version=4)
         profile_cell = nb.cells[3].source  # Cell 3
         assert "_infer_type" in profile_cell
@@ -171,13 +172,17 @@ class TestGenerateExplorationNotebook:
         nb_path = tmp_path / "test.ipynb"
         generate_exploration_notebook(config, nb_path)
         import nbformat
+
         nb = nbformat.read(str(nb_path), as_version=4)
         assert "read_parquet" in nb.cells[1].source
 
-    def test_csv_dataset_uses_read_csv(self, basic_config: DiscoveryConfig, tmp_path: Path):
+    def test_csv_dataset_uses_read_csv(
+        self, basic_config: DiscoveryConfig, tmp_path: Path
+    ):
         nb_path = tmp_path / "test.ipynb"
         generate_exploration_notebook(basic_config, nb_path)
         import nbformat
+
         nb = nbformat.read(str(nb_path), as_version=4)
         assert "read_csv" in nb.cells[1].source
 
@@ -185,6 +190,7 @@ class TestGenerateExplorationNotebook:
 # ══════════════════════════════════════════════════════════════════════════════
 # TestExecuteNotebook
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 @pytest.mark.slow
 class TestExecuteNotebook:
@@ -201,12 +207,12 @@ class TestExecuteNotebook:
         self, basic_config: DiscoveryConfig, generated_notebook: Path
     ):
         import nbformat
+
         executed = execute_notebook(generated_notebook, timeout=60)
         nb = nbformat.read(str(executed), as_version=4)
         # At least some code cells must have outputs
         code_cells_with_output = [
-            c for c in nb.cells
-            if c.cell_type == "code" and c.get("outputs")
+            c for c in nb.cells if c.cell_type == "code" and c.get("outputs")
         ]
         assert len(code_cells_with_output) >= 4
 
@@ -214,6 +220,7 @@ class TestExecuteNotebook:
         self, basic_config: DiscoveryConfig, generated_notebook: Path
     ):
         import nbformat
+
         executed = execute_notebook(generated_notebook, timeout=60)
         nb = nbformat.read(str(executed), as_version=4)
         all_output = " ".join(
@@ -226,6 +233,7 @@ class TestExecuteNotebook:
 # ══════════════════════════════════════════════════════════════════════════════
 # TestExtractSchema
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 @pytest.mark.slow
 class TestExtractSchema:
@@ -241,8 +249,15 @@ class TestExtractSchema:
 
     def test_all_field_names_present(self, executed_result: DiscoveryResult):
         names = {f.name for f in executed_result.schema.fields}
-        for expected in ("transaction_id", "amount", "currency", "status",
-                         "user_id", "created_at", "is_flagged"):
+        for expected in (
+            "transaction_id",
+            "amount",
+            "currency",
+            "status",
+            "user_id",
+            "created_at",
+            "is_flagged",
+        ):
             assert expected in names, f"Field {expected!r} missing from schema"
 
     def test_amount_inferred_as_float(self, executed_result: DiscoveryResult):
@@ -250,7 +265,9 @@ class TestExtractSchema:
         assert amount.inferred_type == FieldType.FLOAT
 
     def test_is_flagged_inferred_as_boolean(self, executed_result: DiscoveryResult):
-        flagged = next(f for f in executed_result.schema.fields if f.name == "is_flagged")
+        flagged = next(
+            f for f in executed_result.schema.fields if f.name == "is_flagged"
+        )
         assert flagged.inferred_type == FieldType.BOOLEAN
 
     def test_created_at_inferred_as_datetime(self, executed_result: DiscoveryResult):
@@ -259,7 +276,9 @@ class TestExtractSchema:
 
     def test_currency_low_cardinality_flagged(self, executed_result: DiscoveryResult):
         """currency has 3 unique values (USD/EUR/GBP) — should flag as enum candidate."""
-        currency = next(f for f in executed_result.schema.fields if f.name == "currency")
+        currency = next(
+            f for f in executed_result.schema.fields if f.name == "currency"
+        )
         questions = " ".join(currency.open_questions).lower()
         assert "cardinality" in questions or "enum" in questions
 
@@ -289,9 +308,7 @@ class TestExtractSchema:
         )
         result = run_schema_discovery(config)
         assert result.converged
-        notes = next(
-            (f for f in result.schema.fields if f.name == "notes"), None
-        )
+        notes = next((f for f in result.schema.fields if f.name == "notes"), None)
         assert notes is not None
         assert notes.null_rate > 0.5
         assert any("null" in q.lower() for q in notes.open_questions)
@@ -312,6 +329,7 @@ class TestExtractSchema:
 # ══════════════════════════════════════════════════════════════════════════════
 # TestRunSchemaDiscovery
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 @pytest.mark.slow
 class TestRunSchemaDiscovery:
@@ -339,7 +357,8 @@ class TestRunSchemaDiscovery:
         result = run_schema_discovery(config)
         assert not result.converged
         assert result.status in (
-            DiscoveryStatus.EXECUTION_FAILED, DiscoveryStatus.PARSE_FAILED
+            DiscoveryStatus.EXECUTION_FAILED,
+            DiscoveryStatus.PARSE_FAILED,
         )
         assert result.error is not None
 
@@ -356,6 +375,7 @@ class TestRunSchemaDiscovery:
 # ══════════════════════════════════════════════════════════════════════════════
 # TestWriteSchemaToDesignContext
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 @pytest.mark.slow
 class TestWriteSchemaToDesignContext:
@@ -383,8 +403,14 @@ class TestWriteSchemaToDesignContext:
         design_dir = tmp_path / "design_context"
         path = write_schema_to_design_context(executed_result.schema, design_dir)
         data = json.loads(path.read_text())
-        for key in ("dataset", "fields", "generated_at", "notebook_lineage",
-                    "open_questions", "row_count_sampled"):
+        for key in (
+            "dataset",
+            "fields",
+            "generated_at",
+            "notebook_lineage",
+            "open_questions",
+            "row_count_sampled",
+        ):
             assert key in data, f"Required key {key!r} missing from schema.json"
 
     def test_schema_json_fields_have_type(
@@ -395,7 +421,14 @@ class TestWriteSchemaToDesignContext:
         data = json.loads(path.read_text())
         for f in data["fields"]:
             assert "type" in f, f"Field {f['name']!r} missing 'type' key"
-            assert f["type"] in ("integer", "float", "string", "boolean", "datetime", "unknown")
+            assert f["type"] in (
+                "integer",
+                "float",
+                "string",
+                "boolean",
+                "datetime",
+                "unknown",
+            )
 
     def test_schema_json_has_all_columns(
         self, executed_result: DiscoveryResult, tmp_path: Path
@@ -432,6 +465,7 @@ class TestWriteSchemaToDesignContext:
 # ══════════════════════════════════════════════════════════════════════════════
 # TestDynamicIntentVector  — THE SHOW-OFF
 # ══════════════════════════════════════════════════════════════════════════════
+
 
 class TestDynamicIntentVector:
     """Demonstrates the full dynamic intent vector flow.
@@ -545,17 +579,13 @@ class TestDynamicIntentVector:
         )
 
         # Step 6: Verify evaluator-level signal — transaction_id is high-cardinality
-        txn_id = next(
-            f for f in schema_data["fields"] if f["name"] == "transaction_id"
-        )
+        txn_id = next(f for f in schema_data["fields"] if f["name"] == "transaction_id")
         assert txn_id["cardinality"] is None, (
             "transaction_id should be high-cardinality (None = ID-like field)"
         )
 
         # Step 7: Verify currency enum signal surfaced for human REVIEW (F_H gate)
-        currency = next(
-            f for f in schema_data["fields"] if f["name"] == "currency"
-        )
+        currency = next(f for f in schema_data["fields"] if f["name"] == "currency")
         currency_questions = " ".join(currency.get("open_questions", [])).lower()
         assert "cardinality" in currency_questions or "enum" in currency_questions, (
             "currency (3 unique values: USD/EUR/GBP) should flag as enum candidate"

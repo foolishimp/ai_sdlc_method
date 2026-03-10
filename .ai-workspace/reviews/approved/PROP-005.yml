@@ -1,0 +1,55 @@
+affected_req_keys:
+- REQ-TOOL-001
+- REQ-TOOL-003
+- REQ-TOOL-006
+- REQ-TOOL-007
+- REQ-TOOL-014
+- REQ-TOOL-015
+- REQ-UX-002
+- REQ-UX-003
+- REQ-UX-004
+- REQ-UX-005
+- REQ-UX-006
+approved_at: '2026-03-10T00:12:40.632210+00:00'
+created: '2026-03-09T00:00:11Z'
+description: 'Multiple tooling gaps remain from Phase 1a. REQ-TOOL-001 (graph visualisation),
+
+  REQ-TOOL-003 (spec boundary check CLI), REQ-TOOL-006 (telemetry dashboard),
+
+  REQ-TOOL-007 (coverage report generator), REQ-TOOL-014/015 (export/import).
+
+  UX features REQ-UX-002..006 (multi-command flows, status panels, escalation
+
+  awareness) also missing. Genesis monitor partially covers some of these.
+
+  '
+disposition: exists_converged
+feature_id: REQ-F-TOOL-001
+intent_id: INT-GAP-012
+proposal_id: PROP-005
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-005
+
+  Dismiss: /gen-review-proposal --dismiss PROP-005 --reason "{reason}"
+
+  '
+severity: medium
+source: gap_analysis
+status: approved
+suggested_vector:
+  feature: REQ-F-TOOL-001
+  profile: standard
+  requirements:
+  - REQ-TOOL-001
+  - REQ-TOOL-003
+  - REQ-TOOL-006
+  - REQ-TOOL-007
+  - REQ-TOOL-014
+  - REQ-TOOL-015
+  - REQ-UX-002
+  - REQ-UX-003
+  - REQ-UX-004
+  - REQ-UX-005
+  - REQ-UX-006
+  title: Tooling and UX Completion
+  vector_type: feature
+title: Close Tooling and UX Gaps (REQ-TOOL-001/003/006/007/014/015, REQ-UX-002+)

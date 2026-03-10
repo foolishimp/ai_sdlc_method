@@ -74,14 +74,31 @@ trajectory:
       Demo dataset: imp_claude/tests/data/transactions.csv
 
   unit_tests:
-    status: in_progress
+    status: converged
+    converged_at: "2026-03-10T00:00:00Z"
+    iteration: 2
     asset: "imp_claude/tests/test_schema_discovery.py"
+    evaluator_results:
+      tests_pass: pass
+      coverage_meets_threshold: pass
+      lint_passes: pass
+      format_check: pass
+      req_tags_present: pass
+      all_req_keys_covered: pass
+      code_quality: pass
+      test_quality: pass
+      req_tags_in_code: pass
+      req_tags_in_tests: pass
+      req_tags_valid_format: pass
+      all_req_keys_have_tests: pass
+      test_data_strategy: pass
     notes: >
-      6 test classes: TestGenerateExplorationNotebook (8 fast tests),
+      42/42 tests pass (21s). 93% coverage. 6 test classes: TestGenerateExplorationNotebook (8 fast),
       TestExecuteNotebook (3 slow), TestExtractSchema (13 slow),
       TestRunSchemaDiscovery (6 slow), TestWriteSchemaToDesignContext (7 slow),
-      TestDynamicIntentVector (4 tests: 3 fast + 1 slow end-to-end).
-      Slow tests marked @pytest.mark.slow — require nbconvert.
+      TestDynamicIntentVector (4 tests: 3 fast + 1 slow e2e).
+      Fixes: removed unused imports (field, datetime, FieldSchema, extract_schema_from_notebook);
+      ruff format applied to both source and test files.
 
   uat_tests:
     status: pending

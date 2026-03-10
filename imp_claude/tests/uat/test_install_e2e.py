@@ -1,4 +1,4 @@
-# Validates: REQ-TOOL-011 (Installability), REQ-UX-001 (State-Driven Routing)
+# Validates: REQ-TOOL-011 (Installability), REQ-TOOL-015 (Workspace Placement at Project Root), REQ-UX-001 (State-Driven Routing)
 """
 End-to-end test: install → state transitions → convergence.
 

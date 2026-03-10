@@ -1,0 +1,36 @@
+affected_req_keys:
+- REQ-TOOL-015
+approved_at: '2026-03-10T00:12:40.632210+00:00'
+created: '2026-03-10T00:00:00Z'
+description: 'REQ-TOOL-015 "Workspace Placement at Project Root" (Priority: Critical,
+  Phase: 1)
+
+  is implemented in gen-setup.py but has no test file carrying a Validates: REQ-TOOL-015
+
+  tag. The test coverage may already exist in test_install_e2e.py or test_tooling_ux.py
+
+  — the gap is the missing tag annotation, not necessarily missing test logic.
+
+  '
+disposition: created
+feature_id: REQ-F-TOOL-015
+intent_id: INT-007
+proposal_id: PROP-007
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-007
+
+  Dismiss: /gen-review-proposal --dismiss PROP-007 --reason "{reason}"
+
+  Note: likely a 1-line fix — add "# Validates: REQ-TOOL-015" to test_install_e2e.py
+
+  '
+severity: medium
+source: gap_analysis
+status: approved
+suggested_vector:
+  feature: REQ-TOOL-015
+  profile: minimal
+  requirements:
+  - REQ-TOOL-015
+  title: 'Tag installer tests with Validates: REQ-TOOL-015'
+  vector_type: feature
+title: 'Add Validates: REQ-TOOL-015 tag to installer tests'

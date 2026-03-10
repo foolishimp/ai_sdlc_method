@@ -1020,9 +1020,9 @@ class TestStartCommand:
         assert "./commands/gen-start.md" in plugin_json["commands"]
 
     @pytest.mark.tdd
-    def test_plugin_has_13_commands(self, plugin_json):
-        """plugin.json must have 13 commands."""
-        assert len(plugin_json["commands"]) == 13
+    def test_plugin_has_18_commands(self, plugin_json):
+        """plugin.json must have 18 commands."""
+        assert len(plugin_json["commands"]) == 18
 
     @pytest.mark.tdd
     def test_default_profile_in_template(self, project_constraints_template):

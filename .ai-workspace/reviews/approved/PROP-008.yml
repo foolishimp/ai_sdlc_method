@@ -1,0 +1,38 @@
+affected_req_keys:
+- REQ-EVOL-NFR-002
+approved_at: '2026-03-10T00:12:40.632210+00:00'
+created: '2026-03-10T00:00:00Z'
+description: 'REQ-EVOL-NFR-002 is referenced in workspace_gradient.py and workspace_state.py
+
+  with "# Implements: REQ-EVOL-NFR-002" but this key does not appear in
+
+  AISDLC_IMPLEMENTATION_REQUIREMENTS.md. Either: (a) define REQ-EVOL-NFR-002 in the
+
+  spec requirements, or (b) correct the tag to the closest defined key (REQ-EVOL-005
+
+  or REQ-ROBUST-003).
+
+  '
+disposition: created
+feature_id: REQ-F-EVOL-NFR-002
+intent_id: INT-008
+proposal_id: PROP-008
+review_instructions: 'Approve: /gen-review-proposal --approve PROP-008
+
+  Dismiss: /gen-review-proposal --dismiss PROP-008 --reason "{reason}"
+
+  Note: inspect workspace_gradient.py + workspace_state.py to determine correct REQ
+  key
+
+  '
+severity: low
+source: gap_analysis
+status: approved
+suggested_vector:
+  feature: REQ-EVOL-NFR-002
+  profile: minimal
+  requirements:
+  - REQ-EVOL-NFR-002
+  title: 'Resolve orphan tag: define in spec or correct to existing REQ key'
+  vector_type: feature
+title: Resolve orphan REQ-EVOL-NFR-002 tag in code
