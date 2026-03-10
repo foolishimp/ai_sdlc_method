@@ -74,11 +74,14 @@ COMMANDS = [
 ]
 
 ENGINE_FILES = [
-    "__init__.py", "__main__.py", "config_loader.py", "contracts.py",
-    "dispatch.py", "engine.py", "fd_classify.py", "fd_emit.py",
-    "fd_evaluate.py", "fd_route.py", "fd_sense.py", "fd_spawn.py",
-    "fp_functor.py", "functor.py", "models.py", "ol_event.py",
-    "proc.py", "workspace_state.py",
+    "__init__.py", "__main__.py", "config_loader.py", "consensus_engine.py",
+    "contracts.py", "dispatch.py", "dispatch_loop.py", "edge_runner.py",
+    "engine.py", "fd_classify.py", "fd_emit.py", "fd_evaluate.py",
+    "fd_route.py", "fd_sense.py", "fd_spawn.py", "feature_parallelism.py",
+    "feature_view.py", "fp_functor.py", "functor.py", "human_audit.py",
+    "intent_observer.py", "models.py", "ol_event.py", "proc.py",
+    "role_authority.py", "schema_discovery.py", "serialiser.py",
+    "spec_boundary.py", "workspace_gradient.py", "workspace_state.py",
 ]
 
 ENGINE_SCRIPTS = [
