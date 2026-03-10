@@ -29,7 +29,7 @@ from .consensus import (
     review_events,
 )
 from .events import append_run_event, load_events, utc_now
-from .intents import resolve_named_intent_payload
+from .intents import resolve_affected_features, resolve_named_intent_payload
 from .paths import RuntimePaths, bootstrap_workspace, detect_workspace_scope
 from .projections import (
     blocked_feature_details,
@@ -38,6 +38,7 @@ from .projections import (
     default_feature_document,
     detect_state,
     detect_stuck_features,
+    determine_next_edge,
     dump_yaml,
     feature_is_done,
     iter_features,
@@ -136,6 +137,48 @@ def _consensus_cycle_or_raise(paths: RuntimePaths, review_id: str) -> tuple[list
     if cycle is None:
         raise FileNotFoundError(f"Review not found: {review_id}")
     return events, cycle
+
+
+def _payload_facet(event) -> dict:
+    return event.raw.get("run", {}).get("facets", {}).get("sdlc:payload", {}) or {}
+
+
+def _intent_events(paths: RuntimePaths, *, intent_id: str | None = None) -> list:
+    events = load_events(paths.events_file)
+    selected = []
+    for event in events:
+        if event.semantic_type != "IntentRaised":
+            continue
+        payload = _payload_facet(event)
+        if intent_id and payload.get("intent_id") != intent_id:
+            continue
+        selected.append(event)
+    return selected
+
+
+def _handled_intent_pairs(paths: RuntimePaths) -> set[tuple[str, str]]:
+    handled: set[tuple[str, str]] = set()
+    for event in load_events(paths.events_file):
+        if event.semantic_type != "IterationStarted":
+            continue
+        payload = _payload_facet(event)
+        intent_id = str(payload.get("intent_id", "")).strip()
+        feature_id = str(payload.get("feature", "")).strip() or (event.feature or "")
+        if intent_id and feature_id:
+            handled.add((intent_id, feature_id))
+    return handled
+
+
+def _ensure_dispatch_feature(paths: RuntimePaths, feature_id: str) -> tuple[dict, Path]:
+    feature_doc, feature_path = load_feature(paths, feature_id)
+    if feature_doc is not None:
+        return feature_doc, feature_path
+    if not feature_id.startswith("REQ-F-"):
+        raise FileNotFoundError(f"No feature vector found for dispatch target: {feature_id}")
+    default_profile = load_project_constraints(paths).get("project", {}).get("default_profile", "standard")
+    feature_doc = default_feature_document(paths, feature_id=feature_id, profile_name=default_profile)
+    dump_yaml(feature_path, feature_doc)
+    return feature_doc, feature_path
 
 
 def _context_manifest_template() -> dict:
@@ -270,6 +313,8 @@ def _emit_composition_dispatch(
             "composition_expression": intent_payload.get("composition_expression"),
             "composition": composition,
             "vector_type": intent_payload.get("vector_type", "feature"),
+            "affected_features": list(intent_payload.get("affected_features") or []),
+            "affected_req_keys": list(intent_payload.get("affected_req_keys") or []),
             "intent_vector": intent_payload.get("intent_vector"),
         },
         causation_id=causation_id,
@@ -348,12 +393,17 @@ def gen_start(
     *,
     feature: str | None = None,
     edge: str | None = None,
+    auto: bool = False,
+    max_steps: int = 10,
+    run_agent: bool = False,
+    run_deterministic: bool = False,
+    actor: str = "intent-observer",
 ) -> dict:
     """Detect state and return the next recommended action."""
 
     paths = RuntimePaths(project_root)
     decision = decide_start_action(paths, feature=feature, edge=edge)
-    return {
+    result = {
         "state": decision.state,
         "action": decision.action,
         "feature": decision.feature,
@@ -361,6 +411,172 @@ def gen_start(
         "detail": decision.detail,
         "health": render_health_summary(paths) if paths.workspace_root.exists() else {},
         "blocked_features": blocked_feature_details(paths) if paths.workspace_root.exists() else [],
+    }
+    if not auto:
+        return result
+
+    paths = bootstrap_workspace(project_root)
+    steps = []
+    remaining = max(max_steps, 0)
+
+    while remaining > 0:
+        dispatch = gen_dispatch_intents(
+            project_root,
+            actor=actor,
+            max_dispatch=remaining,
+            run_agent=run_agent,
+            run_deterministic=run_deterministic,
+        )
+        if dispatch["dispatches"]:
+            steps.extend(dispatch["dispatches"])
+            remaining -= len(dispatch["dispatches"])
+            if remaining <= 0:
+                break
+
+        decision = decide_start_action(paths, feature=feature, edge=edge)
+        if decision.state != "IN_PROGRESS":
+            break
+
+        iterate = gen_iterate(
+            project_root,
+            feature=decision.feature,
+            edge=decision.edge,
+            actor=actor,
+            run_agent=run_agent,
+            run_deterministic=run_deterministic,
+        )
+        steps.append(
+            {
+                "kind": "iterate",
+                "feature": decision.feature,
+                "edge": decision.edge,
+                "start_run_id": iterate["start_run_id"],
+                "completed_run_id": iterate["completed_run_id"],
+                "status": iterate["status"],
+            }
+        )
+        remaining -= 1
+
+    final_decision = decide_start_action(paths, feature=feature, edge=edge)
+    result.update(
+        {
+            "state": final_decision.state,
+            "action": final_decision.action,
+            "feature": final_decision.feature,
+            "edge": final_decision.edge,
+            "detail": final_decision.detail,
+            "auto": True,
+            "steps": steps,
+            "steps_executed": len(steps),
+        }
+    )
+    return result
+
+
+def gen_dispatch_intents(
+    project_root: Path,
+    *,
+    intent_id: str | None = None,
+    actor: str = "intent-observer",
+    max_dispatch: int = 20,
+    run_agent: bool = False,
+    run_deterministic: bool = False,
+) -> dict:
+    """Dispatch unactioned intents into the first unconverged edge per feature."""
+
+    paths = bootstrap_workspace(project_root)
+    handled_pairs = _handled_intent_pairs(paths)
+    dispatches = []
+
+    for intent_event in _intent_events(paths, intent_id=intent_id):
+        payload = _payload_facet(intent_event)
+        current_intent_id = str(payload.get("intent_id", "")).strip()
+        if not current_intent_id:
+            continue
+        if payload.get("requires_spec_change") is True:
+            continue
+
+        scope = resolve_affected_features(
+            paths,
+            feature=payload.get("feature") or intent_event.feature,
+            affected_features=list(payload.get("affected_features") or []),
+            affected_req_keys=list(payload.get("affected_req_keys") or []),
+        )
+        if scope == ["all"]:
+            scoped_features = [
+                feature_doc.get("feature")
+                for feature_doc, _ in iter_features(paths)
+                if feature_doc.get("feature") and feature_doc.get("status") != "converged"
+            ]
+        else:
+            scoped_features = scope
+
+        for feature_id in scoped_features:
+            if len(dispatches) >= max_dispatch:
+                break
+            if (current_intent_id, feature_id) in handled_pairs:
+                continue
+
+            try:
+                feature_doc, _feature_path = _ensure_dispatch_feature(paths, feature_id)
+            except FileNotFoundError:
+                continue
+            dispatch_edge = determine_next_edge(paths, feature_doc)
+            if dispatch_edge is None:
+                continue
+
+            edge_started = append_run_event(
+                paths.events_file,
+                project_name=_project_name(paths),
+                semantic_type="edge_started",
+                actor=actor,
+                feature=feature_id,
+                edge=dispatch_edge,
+                payload={
+                    "intent_id": current_intent_id,
+                    "feature": feature_id,
+                    "edge": dispatch_edge,
+                    "signal_source": payload.get("signal_source"),
+                    "affected_features": list(scope),
+                    "affected_req_keys": list(payload.get("affected_req_keys") or []),
+                    "dispatch_mode": "bootstrap" if scope == ["all"] else "homeostasis",
+                },
+                causation_id=intent_event.raw.get("run", {}).get("runId"),
+                correlation_id=intent_event.raw.get("run", {}).get("facets", {}).get("sdlc:universal", {}).get("correlation_id"),
+                parent_run_id=intent_event.raw.get("run", {}).get("runId"),
+            )
+            iterate = gen_iterate(
+                project_root,
+                feature=feature_id,
+                edge=dispatch_edge,
+                profile=feature_doc.get("profile"),
+                actor=actor,
+                run_agent=run_agent,
+                run_deterministic=run_deterministic,
+                intent_id=current_intent_id,
+            )
+            handled_pairs.add((current_intent_id, feature_id))
+            dispatches.append(
+                {
+                    "kind": "intent_dispatch",
+                    "intent_id": current_intent_id,
+                    "feature": feature_id,
+                    "edge": dispatch_edge,
+                    "edge_started_run_id": edge_started["run"]["runId"],
+                    "iteration_start_run_id": iterate["start_run_id"],
+                    "completed_run_id": iterate["completed_run_id"],
+                    "status": iterate["status"],
+                }
+            )
+        if len(dispatches) >= max_dispatch:
+            break
+
+    status_markdown = _write_status(paths)
+    return {
+        "intent_id": intent_id,
+        "dispatches": dispatches,
+        "dispatched_count": len(dispatches),
+        "status_markdown": status_markdown,
     }
 
 
@@ -497,6 +713,7 @@ def gen_iterate(
     run_agent: bool = False,
     run_deterministic: bool = False,
     actor: str = "codex-runtime",
+    intent_id: str | None = None,
 ) -> dict:
     """Execute one minimal iteration and update projections."""
 
@@ -543,6 +760,7 @@ def gen_iterate(
             "feature": feature,
             "edge": edge,
             "iteration": iteration,
+            "intent_id": intent_id,
             "input_hash": context_hash,
             "candidate_artifacts": artifact_refs,
         },
@@ -563,6 +781,7 @@ def gen_iterate(
             "iteration": iteration,
             "delta": delta,
             "status": status,
+            "intent_id": intent_id,
             "profile": profile_name,
             "context_hash": context_hash,
             "vector_type": feature_doc.get("vector_type", "feature"),
@@ -618,6 +837,7 @@ def gen_iterate(
                 "iteration": iteration,
                 "delta": delta,
                 "status": "converged",
+                "intent_id": intent_id,
             },
             causation_id=completed["run"]["runId"],
             correlation_id=started["run"]["runId"],
@@ -633,6 +853,7 @@ def gen_iterate(
             signal_source="test_failure",
             feature=feature,
             edge=edge,
+            affected_features=[feature],
             affected_req_keys=[feature],
         )
         intent_payload.update(
@@ -897,6 +1118,11 @@ def gen_propose(
     req_keys = list(dict.fromkeys(affected_req_keys))
     if not req_keys:
         raise ValueError("affected_req_keys must not be empty")
+    affected_features = resolve_affected_features(
+        paths,
+        feature=feature or req_keys[0],
+        affected_req_keys=req_keys,
+    )
     spec_paths_list = list(spec_paths or _default_spec_paths(paths))
     baseline_hash = _hash_relative_paths(paths.project_root, spec_paths_list) if spec_paths_list else None
     intent_id = _next_intent_id(paths)
@@ -911,6 +1137,7 @@ def gen_propose(
         "signal_source": signal_source,
         "severity": "high",
         "vector_type": vector_type,
+        "affected_features": affected_features,
         "affected_req_keys": req_keys,
         "prior_intents": prior_intents_list,
         "edge_context": edge,
@@ -952,6 +1179,7 @@ def gen_propose(
             "title": title,
             "trigger": trigger,
             "signal_source": signal_source,
+            "affected_features": affected_features,
             "affected_req_keys": req_keys,
             "spec_paths": spec_paths_list,
             "baseline_hash": baseline_hash,
@@ -1006,6 +1234,12 @@ def gen_spec_modify(
         raise ValueError("spec_modified requires a spec file change; current hash matches proposal baseline")
 
     req_keys = list(dict.fromkeys(affected_req_keys or proposal_payload.get("affected_req_keys") or []))
+    affected_features = resolve_affected_features(
+        paths,
+        feature=proposal_payload.get("feature") or proposal_event.feature,
+        affected_features=list(proposal_payload.get("affected_features") or []),
+        affected_req_keys=req_keys,
+    )
     prior_intents = list(dict.fromkeys(proposal_payload.get("prior_intents") or [intent_id]))
     event = append_run_event(
         paths.events_file,
@@ -1019,6 +1253,7 @@ def gen_spec_modify(
             "intent_id": intent_id,
             "signal_source": proposal_payload.get("signal_source", "source_finding"),
             "what_changed": list(what_changed),
+            "affected_features": affected_features,
             "affected_req_keys": req_keys,
             "previous_hash": baseline_hash,
             "new_hash": new_hash,
@@ -1285,6 +1520,7 @@ def gen_gaps(
                 signal_source="gap",
                 feature=reqs[0],
                 edge="gap_analysis",
+                affected_features=[feature] if feature else None,
                 affected_req_keys=reqs,
             )
             intent_payload.update(
@@ -1912,6 +2148,7 @@ __all__ = [
     "gen_consensus_open",
     "gen_consensus_recover",
     "gen_consensus_status",
+    "gen_dispatch_intents",
     "gen_dispose",
     "gen_init",
     "gen_fold_back",

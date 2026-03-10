@@ -28,6 +28,9 @@ def semantic_to_ol_type(semantic_type: str) -> str:
         "ConvergenceAchieved": "COMPLETE",
         "IterationFailed": "FAIL",
         "IterationAbandoned": "ABORT",
+        "edge_started": "START",
+        "iteration_completed": "OTHER",
+        "edge_converged": "COMPLETE",
     }
     return mapping.get(semantic_type, "OTHER")
 

@@ -12,6 +12,7 @@ from .commands import (
     gen_consensus_open,
     gen_consensus_recover,
     gen_consensus_status,
+    gen_dispatch_intents,
     gen_dispose,
     gen_checkpoint,
     gen_init,
@@ -38,6 +39,11 @@ def main(argv: list[str] | None = None) -> int:
     start_parser.add_argument("--project-root", default=".")
     start_parser.add_argument("--feature")
     start_parser.add_argument("--edge")
+    start_parser.add_argument("--auto", action="store_true")
+    start_parser.add_argument("--max-steps", type=int, default=10)
+    start_parser.add_argument("--run-agent", action="store_true")
+    start_parser.add_argument("--run-deterministic", action="store_true")
+    start_parser.add_argument("--actor", default="intent-observer")
 
     init_parser = subparsers.add_parser("init")
     init_parser.add_argument("--project-root", default=".")
@@ -129,6 +135,14 @@ def main(argv: list[str] | None = None) -> int:
     checkpoint_parser.add_argument("--message", default="")
     checkpoint_parser.add_argument("--actor", default="codex-runtime")
 
+    dispatch_parser = subparsers.add_parser("dispatch-intents")
+    dispatch_parser.add_argument("--project-root", default=".")
+    dispatch_parser.add_argument("--intent-id")
+    dispatch_parser.add_argument("--max-dispatch", type=int, default=20)
+    dispatch_parser.add_argument("--run-agent", action="store_true")
+    dispatch_parser.add_argument("--run-deterministic", action="store_true")
+    dispatch_parser.add_argument("--actor", default="intent-observer")
+
     consensus_open_parser = subparsers.add_parser("consensus-open")
     consensus_open_parser.add_argument("--project-root", default=".")
     consensus_open_parser.add_argument("--artifact", required=True)
@@ -190,7 +204,16 @@ def main(argv: list[str] | None = None) -> int:
     project_root = Path(args.project_root)
 
     if args.command == "start":
-        result = gen_start(project_root, feature=args.feature, edge=args.edge)
+        result = gen_start(
+            project_root,
+            feature=args.feature,
+            edge=args.edge,
+            auto=args.auto,
+            max_steps=args.max_steps,
+            run_agent=args.run_agent,
+            run_deterministic=args.run_deterministic,
+            actor=args.actor,
+        )
     elif args.command == "init":
         result = gen_init(
             project_root,
@@ -286,6 +309,15 @@ def main(argv: list[str] | None = None) -> int:
             project_root,
             message=args.message,
             actor=args.actor,
+        )
+    elif args.command == "dispatch-intents":
+        result = gen_dispatch_intents(
+            project_root,
+            intent_id=args.intent_id,
+            actor=args.actor,
+            max_dispatch=args.max_dispatch,
+            run_agent=args.run_agent,
+            run_deterministic=args.run_deterministic,
         )
     elif args.command == "consensus-open":
         result = gen_consensus_open(

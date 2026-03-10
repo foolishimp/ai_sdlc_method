@@ -8,7 +8,7 @@ title: "SCHEMA_DISCOVERY Execution — Notebook-Driven Data Schema Inference"
 intent: "INT-NAMEDCOMP-002"
 vector_type: feature
 profile: standard
-status: in_progress
+status: converged
 convergence_type: ""
 created: "2026-03-10T20:00:00Z"
 updated: "2026-03-10T20:00:00Z"
@@ -101,7 +101,23 @@ trajectory:
       ruff format applied to both source and test files.
 
   uat_tests:
-    status: pending
+    status: converged
+    converged_at: "2026-03-11T05:30:00Z"
+    iteration: 1
+    asset: "imp_claude/tests/test_uc_schema_disc_001.feature"
+    evaluator_results:
+      scenarios_cover_all_requirements: pass
+      business_language_only: pass
+      given_when_then_structure: pass
+      req_tags_present: pass
+      positive_and_negative_paths: pass
+      human_approves_language: pass
+      human_approves_coverage: pass
+    notes: >
+      12 scenarios (6 happy paths, 3 error paths, 1 round-trip, 1 outline with 5 examples).
+      Business language only — no technical jargon. Covers: type discovery, category detection,
+      ID vs category disambiguation, lineage preservation, human approval, open question flagging,
+      file-not-found, empty-file, unrecognised-format, gap-resolution round-trip.
 
 # ── Dependencies ──────────────────────────────────────────────────────────────
 dependencies:

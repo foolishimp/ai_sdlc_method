@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .paths import CONFIG_ROOT, RuntimePaths
-from .projections import load_yaml
+from .projections import feature_lookup, load_yaml
 
 
 class _SafeFormatDict(dict):
@@ -42,12 +42,51 @@ def _render_expression(expression: str, context: dict) -> str:
     return expression.format_map(_SafeFormatDict(context))
 
 
+def resolve_affected_features(
+    paths: RuntimePaths,
+    *,
+    feature: str | None,
+    affected_features: list[str] | None = None,
+    affected_req_keys: list[str] | None = None,
+) -> list[str]:
+    """Resolve the feature-vector scope for one intent payload.
+
+    The canonical dispatch unit is a feature vector. If the caller only knows
+    REQ keys, collapse them to owning features where possible and widen to
+    ``["all"]`` when no precise feature scope can be derived.
+    """
+
+    resolved: list[str] = [item.strip() for item in affected_features or [] if str(item).strip()]
+    if feature and feature.startswith("REQ-F-"):
+        resolved.append(feature)
+
+    req_keys = [item.strip() for item in affected_req_keys or [] if str(item).strip()]
+    for req_key in req_keys:
+        if req_key.startswith("REQ-F-"):
+            resolved.append(req_key)
+
+    feature_docs = feature_lookup(paths)
+    unresolved_reqs = {
+        req_key for req_key in req_keys
+        if req_key not in resolved
+    }
+    if unresolved_reqs:
+        for feature_id, feature_doc in feature_docs.items():
+            owned = set(feature_doc.get("requirements") or [])
+            if unresolved_reqs & owned:
+                resolved.append(feature_id)
+
+    resolved = list(dict.fromkeys(item for item in resolved if item))
+    return resolved or ["all"]
+
+
 def resolve_named_intent_payload(
     paths: RuntimePaths,
     *,
     signal_source: str,
     feature: str | None,
     edge: str | None,
+    affected_features: list[str] | None = None,
     affected_req_keys: list[str] | None = None,
 ) -> dict:
     """Resolve a named composition and typed intent vector for an intent event."""
@@ -62,6 +101,12 @@ def resolve_named_intent_payload(
             break
 
     req_keys = list(affected_req_keys or ([] if feature is None else [feature]))
+    features = resolve_affected_features(
+        paths,
+        feature=feature,
+        affected_features=affected_features,
+        affected_req_keys=req_keys,
+    )
     if selected is None:
         resolution_level = "feature_set" if len(req_keys) > 1 else "feature"
         expression = "PLAN({signal_source})"
@@ -81,6 +126,8 @@ def resolve_named_intent_payload(
                 },
             ),
             "composition": composition,
+            "affected_features": features,
+            "affected_req_keys": req_keys,
             "intent_vector": {
                 "source": signal_source,
                 "parent": {"feature": feature, "edge": edge},
@@ -108,6 +155,8 @@ def resolve_named_intent_payload(
         "composition_name": selected_name,
         "composition_expression": expression,
         "composition": composition,
+        "affected_features": features,
+        "affected_req_keys": req_keys,
         "intent_vector": {
             "source": signal_source,
             "parent": {"feature": feature, "edge": edge},
@@ -122,5 +171,6 @@ def resolve_named_intent_payload(
 
 __all__ = [
     "load_named_compositions",
+    "resolve_affected_features",
     "resolve_named_intent_payload",
 ]

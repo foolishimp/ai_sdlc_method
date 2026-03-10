@@ -1,0 +1,29 @@
+proposal_id: "PROP-016"
+intent_id: "INT-021"
+status: draft
+severity: high
+created: "2026-03-11T05:00:01Z"
+source: gap_analysis
+
+title: "Workspace Analysis Edge — REQ-TOOL-016"
+description: |
+  REQ-TOOL-016 (Workspace Analysis Edge) is defined in the spec as:
+    iterate(Asset<workspace_state>, Context[spec, constraints, events, feature_vectors], Evaluators[configured per analysis type])
+  The workspace state is a first-class asset. Gap analysis and postmortem are iterate() invocations
+  on that asset — structurally identical to any other graph edge. This REQ key has zero code or test
+  coverage. Needs an implementation stub (or full implementation) in the genesis engine plus
+  corresponding unit tests.
+
+affected_req_keys:
+  - REQ-TOOL-016
+
+suggested_vector:
+  feature: "REQ-F-WORKSPACE-EDGE-001"
+  title: "Workspace Analysis Edge implementation"
+  vector_type: feature
+  profile: standard
+  requirements: [REQ-TOOL-016]
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-016
+  Dismiss: /gen-review-proposal --dismiss PROP-016 --reason "{reason}"

@@ -17,6 +17,7 @@ from imp_codex.runtime import (
     gen_gaps,
     gen_init,
     gen_iterate,
+    gen_dispatch_intents,
     gen_propose,
     gen_release,
     gen_review,
@@ -380,6 +381,7 @@ def test_gen_iterate_emits_intent_when_delta_is_stuck(tmp_path):
     assert payload["requires_spec_change"] is False
     assert payload["composition_name"] == "STUCK_REWORK"
     assert payload["composition_expression"] == "ITERATE(intent→requirements) -> REVIEW(REQ-F-STUCK-001)"
+    assert payload["affected_features"] == ["REQ-F-STUCK-001"]
     assert payload["intent_vector"]["resolution_level"] == "feature"
     assert payload["intent_vector"]["profile"] == "minimal"
     assert "Signals: 0 unactioned intent_raised" in Path(RuntimePaths(project_root).status_file).read_text()
@@ -573,6 +575,7 @@ def test_gen_gaps_reports_clusters_and_emits_intents(tmp_path):
     ]
     assert all(payload["composition_name"] == "TRACE_GAP_CLOSURE" for payload in gap_intents)
     assert all(payload["requires_spec_change"] is False for payload in gap_intents)
+    assert all(payload["affected_features"] for payload in gap_intents)
     assert all(payload["intent_vector"]["resolution_level"] == "feature_set" for payload in gap_intents)
     assert all(payload["intent_vector"]["profile"] == "minimal" for payload in gap_intents)
 
@@ -629,6 +632,7 @@ def test_gen_gaps_routes_spec_drift_into_feature_proposal(tmp_path):
         if event.semantic_type == "IntentRaised"
     ]
     spec_change_intent = next(payload for payload in intent_payloads if payload["requires_spec_change"] is True)
+    assert spec_change_intent["affected_features"] == ["REQ-F-AUTH-999"]
     assert spec_change_intent["affected_req_keys"] == ["REQ-F-AUTH-999"]
     assert spec_change_intent["signal_source"] == "spec_drift"
     assert spec_change_intent["composition_name"] is None
@@ -668,7 +672,9 @@ def test_gen_propose_emits_spec_change_intent_and_feature_proposal(tmp_path):
     intent_payload = events[0].raw["run"]["facets"]["sdlc:payload"]
     proposal_payload = events[1].raw["run"]["facets"]["sdlc:payload"]
     assert intent_payload["requires_spec_change"] is True
+    assert intent_payload["affected_features"] == ["REQ-F-AUTH-001"]
     assert proposal_payload["intent_id"] == result["intent_id"]
+    assert proposal_payload["affected_features"] == ["REQ-F-AUTH-001"]
     assert proposal_payload["baseline_hash"].startswith("sha256:")
 
     status = gen_status(project_root)
@@ -701,9 +707,64 @@ def test_gen_spec_modify_emits_hash_tracked_spec_modified(tmp_path):
     assert semantic_types == ["IntentRaised", "FeatureProposal", "SpecModified"]
     spec_payload = events[-1].raw["run"]["facets"]["sdlc:payload"]
     assert spec_payload["trigger_intent"] == proposal["intent_id"]
+    assert spec_payload["affected_features"] == ["REQ-F-AUTH-001", "REQ-F-AUTH-002"]
     assert spec_payload["previous_hash"] == proposal["baseline_hash"]
     assert spec_payload["new_hash"] == result["new_hash"]
     assert spec_payload["new_hash"] != spec_payload["previous_hash"]
+
+
+def test_gen_dispatch_intents_emits_edge_started_and_runs_first_edge(tmp_path):
+    project_root = tmp_path / "demo"
+    _write_intent(project_root)
+    paths = bootstrap_workspace(project_root, project_name="demo")
+    _write_feature(paths, "REQ-F-AUTO-001", profile="minimal")
+
+    append_run_event(
+        paths.events_file,
+        project_name="demo",
+        semantic_type="intent_raised",
+        actor="pytest",
+        feature="REQ-F-AUTO-001",
+        edge="gap_analysis",
+        payload={
+            "intent_id": "INT-001",
+            "trigger": "gap detected",
+            "delta": "coverage missing",
+            "signal_source": "gap",
+            "vector_type": "feature",
+            "severity": "high",
+            "requires_spec_change": False,
+            "affected_features": ["REQ-F-AUTO-001"],
+            "affected_req_keys": ["REQ-F-AUTO-001"],
+        },
+    )
+
+    result = gen_dispatch_intents(project_root, max_dispatch=1)
+
+    assert result["dispatched_count"] == 1
+    assert result["dispatches"][0]["intent_id"] == "INT-001"
+    assert result["dispatches"][0]["feature"] == "REQ-F-AUTO-001"
+    assert result["dispatches"][0]["edge"] == "intent→requirements"
+
+    event_types = [
+        event.raw["run"]["facets"]["sdlc:event_type"]["type"]
+        for event in load_events(paths.events_file)
+    ]
+    assert "edge_started" in event_types
+    assert "IterationCompleted" in event_types
+
+
+def test_gen_start_auto_executes_one_runtime_step(tmp_path):
+    project_root = tmp_path / "demo"
+    _write_intent(project_root)
+    paths = bootstrap_workspace(project_root, project_name="demo")
+    _write_feature(paths, "REQ-F-AUTO-002", profile="minimal")
+
+    result = gen_start(project_root, auto=True, max_steps=1)
+
+    assert result["auto"] is True
+    assert result["steps_executed"] == 1
+    assert result["steps"][0]["kind"] == "iterate"
 
 
 def test_gen_release_writes_manifest_and_emits_release_event(tmp_path):

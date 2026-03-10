@@ -169,3 +169,10 @@ Either define it in AISDLC_IMPLEMENTATION_REQUIREMENTS.md or correct tag to REQ-
 - **INT-TRACE-001**: Code annotation pass — 52/83 spec REQ keys have no Implements: tag
 - **INT-TRACE-002**: Test annotation pass — 1078 tests with no Validates: REQ-* links
 - **INT-TRACE-003**: Orphan fixture key cleanup in command .md files
+
+### REQ-F-SCHEMA-DISC-001: design→uat_tests CONVERGED
+**Date**: 2026-03-11T05:30:00Z
+**Iterations**: 1
+**Evaluators**: 7/7 checks passed (5 agent, 2 human)
+**Asset**: imp_claude/tests/test_uc_schema_disc_001.feature
+**Next edge**: (none — feature fully converged on standard profile)

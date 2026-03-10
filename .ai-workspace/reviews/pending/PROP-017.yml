@@ -1,0 +1,27 @@
+proposal_id: "PROP-017"
+intent_id: "INT-022"
+status: draft
+severity: medium
+created: "2026-03-11T05:00:01Z"
+source: gap_analysis
+
+title: "imp_codex runtime Implements: tag annotation pass"
+description: |
+  Six imp_codex runtime files modified in session 21 have no Implements: REQ-* traceability tags.
+  Files: __init__.py, __main__.py, commands.py, events.py, intents.py, projections.py.
+  These files implement runtime commands, events, intents, and projections — all of which map to
+  spec REQ keys (REQ-EVENT-*, REQ-COORD-*, REQ-LIFE-*, etc.). A targeted annotation pass is needed
+  to close the traceability gap for the Codex implementation tenant.
+
+affected_req_keys: []
+
+suggested_vector:
+  feature: "REQ-F-CDX-TAGS-001"
+  title: "imp_codex runtime REQ tag annotation pass"
+  vector_type: feature
+  profile: hotfix
+  requirements: []
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-017
+  Dismiss: /gen-review-proposal --dismiss PROP-017 --reason "{reason}"

@@ -434,6 +434,7 @@ def get_unactioned_signals(paths: RuntimePaths) -> list[NormalizedEvent]:
             "SpecModified",
             "CompositionDispatched",
             "FeatureProposal",
+            "IterationStarted",
         }:
             continue
         if event.feature:
