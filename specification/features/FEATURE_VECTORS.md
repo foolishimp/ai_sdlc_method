@@ -153,7 +153,7 @@ Continuous interoceptive and exteroceptive monitoring with affect triage pipelin
 - Interoceptive monitor framework (INTRO-001..007): event freshness, vector stall detection, test health, STATUS freshness, build health, spec/code drift, event log integrity
 - Exteroceptive monitor framework (EXTRO-001..004): dependency freshness, CVE scanning, runtime telemetry deviation, API contract changes
 - Affect triage pipeline: rule-based + agent-classified (tiered), severity weighting, escalation decision, profile-tunable thresholds
-- Homeostatic responses: probabilistic agent generates draft proposals only (no file modifications)
+- Homeostatic responses: F_D and F_P phases execute autonomously per ADR-S-032; F_H gates remain human-controlled (graduated autonomy)
 - Review boundary: tool interface separates autonomous sensing from human-approved changes
 - New event types: `interoceptive_signal`, `exteroceptive_signal`, `affect_triage`, `draft_proposal` in events.jsonl
 - Monitor registry: configurable per project and per projection profile (`sensory_monitors.yml`, `affect_triage.yml`)
@@ -284,6 +284,33 @@ LLM judgment construction loop for the engine — construct via single claude in
 - Cross-validating hybrid: engine delta_D as hard gate, LLM delta_P as soft construction
 
 **Dependencies**: REQ-F-ENGINE-001.|code⟩ (engine loop, evaluate, emit), REQ-F-EVAL-001.|code⟩ (evaluator framework for F_P agent checks)
+
+### REQ-F-DISPATCH-001: IntentObserver + EDGE_RUNNER — Autonomous Dispatch Loop
+
+The autonomous dispatch component that closes the homeostatic loop. Reads
+`intent_raised` events, identifies unhandled intents, determines the target
+feature+edge from `affected_features` and feature vector trajectories, and
+dispatches EDGE_RUNNER. EDGE_RUNNER composes F_D → F_P → F_H for a single
+feature+edge traversal.
+
+**Satisfies**: REQ-TOOL-016 AC-3, AC-4 (homeostatic loop closure), ADR-S-032
+
+**Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- IntentObserver: reads events.jsonl, finds intent_raised with no matching edge_started
+- Scope resolution: affected_features → feature vector lookup
+- Edge selection: first non-converged edge from feature vector trajectory (topological order)
+- Deduplication: edge_started as idempotency marker (prevents double-dispatch on resume)
+- EDGE_RUNNER: F_D gate → F_P manifest write → F_H escalation per edge policy
+- Bootstrap vs homeostasis: scope=all → full traversal; scope=specific → constrained
+- Brute-force first: converged edges exit immediately at F_D delta=0
+
+**Phase**: 2
+
+**Dependencies**: REQ-F-ENGINE-001.|code⟩, REQ-F-EVENT-001.|code⟩, REQ-F-TRACE-001.|code⟩, REQ-F-FP-001.|design⟩
+
+---
 
 ### REQ-F-EVOL-001: Spec Evolution Pipeline
 
@@ -578,7 +605,8 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 | REQ-EVENT-004 | REQ-F-EVENT-001 |
 | REQ-EVENT-005 | REQ-F-EVENT-001 |
 | REQ-TOOL-015 | REQ-F-TOOL-001 |
-| **85/85 requirements covered. No orphans.**
+| REQ-TOOL-016 | REQ-F-DISPATCH-001 |
+| **86/86 requirements covered. No orphans.**
 
 ---
 
@@ -648,6 +676,7 @@ Implement a shared discovery pass over workspace metadata (events.jsonl, feature
 | REQ-F-EVENT-001 | 4 | 1b+2 | ENGINE, ROBUST |
 | REQ-F-EVOL-001 | 5 | 1+2 | LIFE, EVENT, TOOL |
 | REQ-F-FP-001 | 4 | 2 | ENGINE, EVAL |
+| REQ-F-DISPATCH-001 | 1 | 2 | ENGINE, EVENT, TRACE, FP |
 | REQ-F-INTENT-001 | 3 | 2 | ENGINE, LIFE |
 | REQ-F-TELEM-001 | ~85 | 3 | ALL |
 | REQ-F-TOOL-015 | 1 | 1c | TOOL |
@@ -655,4 +684,4 @@ Implement a shared discovery pass over workspace metadata (events.jsonl, feature
 | REQ-F-ANAL-001 | 6 | 2 | ENGINE, EVENT, TOOL |
 | **Total** | **93+** | | |
 
-20 feature vectors. Full coverage. Critical path: ENGINE design.
+21 feature vectors. Full coverage. Critical path: ENGINE design.

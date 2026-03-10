@@ -651,9 +651,9 @@ class TestMethodologySelfConsistency:
 
     @pytest.mark.uat
     def test_eleven_active_feature_vectors(self):
-        """There must be exactly 25 active feature vectors (17 core + 8 CONS basis projections)."""
+        """There must be exactly 31 active feature vectors (core + CONS basis projections + phase 2)."""
         vectors = list(FEATURES_DIR.glob("*.yml"))
-        assert len(vectors) == 25, f"Expected 25 active vectors, got {len(vectors)}"
+        assert len(vectors) == 31, f"Expected 31 active vectors, got {len(vectors)}"
 
     @pytest.mark.uat
     def test_all_features_converged(self):

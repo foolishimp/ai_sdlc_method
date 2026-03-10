@@ -1,0 +1,28 @@
+# Implements: REQ-F-DISPATCH-001
+edge: intent_dispatch
+description: "IntentObserver reads unhandled intent_raised events and dispatches EDGE_RUNNER"
+
+evaluators:
+  - name: unhandled_intents_detected
+    type: F_D
+    check: "intent_raised events with no matching edge_started exist"
+    required: true
+  - name: scope_resolvable
+    type: F_D
+    check: "affected_features resolve to existing feature vectors"
+    required: true
+  - name: edge_dispatchable
+    type: F_D
+    check: "first non-converged edge exists in topological order"
+    required: true
+
+convergence:
+  rule: "all pending dispatches resolved (delta=0) or escalated to F_H"
+  min_passed_evaluators: 1
+
+dispatch:
+  bootstrap_scope: ["all"]  # triggers full traversal
+  max_rounds: 10
+  budget_usd_per_edge: 0.50
+  max_fp_iterations_per_edge: 3
+  brute_force: true  # traverse full profile chain; optimised localisation deferred

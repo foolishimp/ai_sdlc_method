@@ -422,8 +422,15 @@ class TestMethodologySelfConsistency:
                 # Extract filename from path like "edge_params/tdd.yml"
                 referenced.add(pathlib.Path(t["edge_config"]).name)
 
-        # Cross-cutting configs that are composed into other edges
-        cross_cutting = {"code_tagging.yml", "traceability.yml", "adr.yml"}
+        # Cross-cutting configs that are composed into other edges or are
+        # meta-level dispatch configs (not part of the main SDLC graph topology)
+        cross_cutting = {
+            "code_tagging.yml",
+            "traceability.yml",
+            "adr.yml",
+            "schema_discovery.yml",   # SCHEMA_DISCOVERY macro execution engine (NAMEDCOMP)
+            "intent_dispatch.yml",    # REQ-F-DISPATCH-001: IntentObserver + EDGE_RUNNER
+        }
 
         actual = {p.name for p in EDGE_PARAMS_DIR.glob("*.yml")}
         orphans = actual - referenced - cross_cutting
