@@ -1,0 +1,95 @@
+version: "2.11.0"
+date: "2026-03-11"
+tag: "v2.11.0"
+
+## Summary
+
+24 commits since v2.10.0. Three architectural pillars formalised as spec-level ADRs
+(ADR-S-032/033/034). Autonomous dispatch engine (IntentObserver + EDGE_RUNNER) converged.
+SCHEMA_DISCOVERY execution engine complete. Installer synced to 30-module manifest.
+Graduated autonomy replaces Draft-Only Autonomy.
+
+## Features
+
+### New: ADR-S-032 — IntentObserver + EDGE_RUNNER Dispatch Contract
+  - Stage 4 of ADR-S-008 pipeline: `intent_raised` → IntentObserver → EDGE_RUNNER
+  - Graduated Autonomy: F_D + F_P execute autonomously; F_H gates remain human-controlled
+  - `affected_features` as canonical dispatch field (feature = dispatch unit)
+  - Brute-force traversal with `edge_started` deduplication guard
+  - Cross-tenant ratified: Claude + Codex independent review
+
+### New: ADR-S-033 — Genesis-Enabled Systems
+  - Formalises two modes: "built with Genesis" vs "Genesis-enabled"
+  - Bridge contract: REQ key thread (spec → code → telemetry → intent_raised → build graph)
+  - Formal definition: 5 runtime criteria (REQ key threading, tolerances, event stream, intent gen, dispatch)
+  - LIFE-001 formally motivated as homeostatic bridge contract
+  - Two-sentence value proposition ratified
+
+### New: ADR-S-034 — Genesis Ecosystem
+  - Cooperative Genesis-enabled services co-evolving without central coordinator
+  - Niche discovery through mutual intent observation (5-step process)
+  - Two event stream layers: local (per-service) + ecosystem (cross-service)
+  - REQ key as ecosystem identifier for capability publishing and dependency declaration
+  - Three-sentence Genesis value proposition (ecosystem scale)
+
+### New: REQ-F-DISPATCH-001 — Autonomous Dispatch Engine
+  - intent_observer.py: find_unhandled_intents(), resolve_dispatch_targets(), get_pending_dispatches()
+  - edge_runner.py: EdgeRunResult, run_edge() — F_D gate → F_P manifest → F_H escalation
+  - dispatch_loop.py: run_dispatch_loop(), run_single_dispatch()
+  - 55 unit tests (test_intent_observer.py: 33, test_edge_runner.py: 22)
+  - F_H boundary respected: never autonomously resolves human gates
+
+### New: REQ-F-SCHEMA-DISC-001 — SCHEMA_DISCOVERY Execution Engine
+  - schema_discovery.py (~380 lines): notebook-driven schema inference
+  - generate_exploration_notebook() → execute_notebook() → extract_schema_from_notebook()
+  - 42 tests (test_schema_discovery.py, @pytest.mark.slow — requires nbconvert)
+  - All-unique cardinality detection for ID-pattern columns
+
+### New: Engine — IterationAbandoned OL event
+  - Emitted when max_iterations_per_edge exhausted (Phase B stall)
+  - Full OpenLineage envelope with causal runId threading
+
+### New: Two-lane test certification (ADR-019 Codex review)
+  - Lane 1: not e2e and not mcp (fast, deterministic)
+  - Lane 2: e2e or mcp (slow, real integrations)
+  - `mcp` marker added to pyproject.toml
+
+## Fixes
+
+### Installer sync — 30-module ENGINE_FILES manifest
+  - Added 12 previously missing modules: consensus_engine, dispatch_loop, edge_runner,
+    feature_parallelism, feature_view, human_audit, intent_observer, role_authority,
+    schema_discovery, serialiser, spec_boundary, workspace_gradient
+  - Installer now deploys complete genesis package to target projects
+
+### Spec: REQ-TOOL-016 rewrite
+  - Workspace analysis reframed as a graph edge (not a reporting layer)
+  - Grounded in iterate(Asset<workspace_state>, ...) — homeostatic loop closure
+
+## Marketplace Posts (cross-tenant knowledge)
+  - 20260311T000000_GAP_CONSENSUS-FP-dispatch-homeostatic-loop.md
+  - 20260311T010000_STRATEGY_intentobserver-edgerunner-consensus-as-edge-type.md
+  - 20260311T020000_STRATEGY_gap-analysis-is-fd-traversal-constrained-by-intent.md
+
+## REQ Key Coverage
+  requirements_total: 83
+  requirements_tagged_in_code: 86     # includes implementation-level REQ keys
+  layer_1_code_tags: PASS             # all code tagged Implements: REQ-*
+  layer_2_test_gaps: PASS             # all REQ keys have tests (last validated session 16)
+  layer_3_telemetry: ADVISORY         # code→cicd not started
+
+## Known Gaps (not blocking this release)
+  - REQ-F-FP-001: F_P actor MCP round-trip e2e not yet Lane 2 validated
+  - dispatch_monitor.py: ~50 line file watcher not yet built
+  - /gen-start --auto: not yet wired to dispatch_loop
+  - INT-TRACE-001: 52/83 spec REQ keys still missing Implements: tags
+  - INT-TRACE-002: 1078 tests without Validates: REQ-* links
+  - REQ-F-TELEM-001: req= telemetry tags not yet added to engine
+  - REQ-F-INTENT-001: intent dedup/prioritise code not yet built
+
+## Test Counts
+  lane_1: 1923 passed, 3 xfailed, 0 failed
+  e2e: 27 convergence + 19 monitor + 5 UAT = 51 (requires runtime)
+  uat: 275 passed (UAT suite)
+  engine_modules: 30
+  genesis_monitor: 574 passing
