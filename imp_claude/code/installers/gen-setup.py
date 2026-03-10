@@ -75,7 +75,7 @@ COMMANDS = [
 
 ENGINE_FILES = [
     "__init__.py", "__main__.py", "config_loader.py", "consensus_engine.py",
-    "contracts.py", "dispatch.py", "dispatch_loop.py", "edge_runner.py",
+    "contracts.py", "dispatch.py", "dispatch_loop.py", "dispatch_monitor.py", "edge_runner.py",
     "engine.py", "fd_classify.py", "fd_emit.py", "fd_evaluate.py",
     "fd_route.py", "fd_sense.py", "fd_spawn.py", "feature_parallelism.py",
     "feature_view.py", "fp_functor.py", "functor.py", "human_audit.py",
