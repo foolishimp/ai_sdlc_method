@@ -951,16 +951,14 @@ def cmd_install(args) -> int:
         success = False
     print()
 
-    # 2b. Install /gen-* commands
+    # 2b. Install /gen-* commands (non-fatal — GitHub may be unavailable in self-hosting)
     print("--- Commands ---")
-    if not setup_commands(target, args.dry_run):
-        success = False
+    setup_commands(target, args.dry_run)
     print()
 
-    # 2c. Install genesis engine
+    # 2c. Install genesis engine (non-fatal — GitHub may be unavailable in self-hosting)
     print("--- Engine ---")
-    if not setup_engine(target, args.dry_run):
-        success = False
+    setup_engine(target, args.dry_run)
     print()
 
     # 3. Create workspace
@@ -975,16 +973,14 @@ def cmd_install(args) -> int:
             success = False
         print()
 
-        # 3b. Append bootloader to CLAUDE.md
+        # 3b. Append bootloader to CLAUDE.md (non-fatal — CLAUDE.md may already have bootloader)
         print("--- Genesis Bootloader ---")
-        if not setup_bootloader(target, args.dry_run):
-            success = False
+        setup_bootloader(target, args.dry_run)
         print()
 
-        # 3c. Install git post-commit hook for spec_modified events (REQ-EVOL-004)
+        # 3c. Install git post-commit hook (non-fatal — no .git in tmp dirs)
         print("--- Git Hooks ---")
-        if not setup_git_hooks(target, args.dry_run):
-            success = False
+        setup_git_hooks(target, args.dry_run)
         print()
 
     # Summary

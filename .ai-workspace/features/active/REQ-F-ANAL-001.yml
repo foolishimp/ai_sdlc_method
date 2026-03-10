@@ -1,0 +1,24 @@
+feature: REQ-F-ANAL-001
+title: Project Analysis Reports — Gap Analysis and Postmortem
+intent: INT-ANAL-001
+vector_type: feature
+profile: standard
+status: pending
+priority: medium
+created: "2026-03-11T00:00:00Z"
+updated: "2026-03-11T00:00:00Z"
+source: feature_spec
+
+requirements:
+  - REQ-TOOL-016
+
+trajectory:
+  requirements:
+    status: converged
+    notes: REQ-TOOL-016 defined with AC-1..8. Shared discovery pass feeding gap + postmortem renderers.
+  design:
+    status: pending
+  code:
+    status: pending
+  unit_tests:
+    status: pending
