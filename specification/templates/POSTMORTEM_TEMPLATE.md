@@ -1,31 +1,44 @@
 # Postmortem Template — AI SDLC Asset Graph Model
 
-**Version**: 1.0
-**Reference**: AI_SDLC_ASSET_GRAPH_MODEL.md, GENESIS_BOOTLOADER.md §XII (Completeness Visibility)
+**Version**: 1.1
+**Reference**: AI_SDLC_ASSET_GRAPH_MODEL.md §VI (The Gradient), GENESIS_BOOTLOADER.md §VIII (Homeostasis), REQ-TOOL-016
 
 ---
 
-## Design Principle: Shared Discovery
+## Design Principle: Shared Discovery + Homeostatic Loop Closure
 
-Gap analysis and postmortem are two projections of the same discovery pass.
+Gap analysis and postmortem are two projections of the same discovery pass. But they are not just reports — they are **sensors**. Findings that remain as document annotations without corresponding `intent_raised` events have not completed the loop.
 
 ```
 Discovery Layer (run once)
   ├── Event stream            → Temporal reconstruction (postmortem)
   ├── Feature vector state    → Edge performance / convergence (both)
-  ├── Coverage map            → Gap analysis (gap) / coverage trends (postmortem)
+  ├── Coverage map (L1/2/3)  → Code coverage gaps  → intent_raised
+  ├── Methodology trace (L4) → Process gaps        → intent_raised
   └── Constraint surface      → Context validation (both)
 
          ┌─────────────────┐
 Discovery ┤                 ├── Gap Analysis   (forward: what is missing now)
-         │   same data     │
-         └─────────────────┘── Postmortem     (backward: what happened and why)
+         │   same data     ├── Postmortem     (backward: what happened and why)
+         └─────────────────┘── Event emission (§6 — closes the homeostatic loop)
 ```
 
-**When to use each**:
-- `/gen-gaps` mid-development → gap analysis section only (forward)
-- `/gen-postmortem` at release or retrospective → both sections from the same discovery
-- The discovery section is identical in both — it is never run twice for the same snapshot
+**The homeostatic invariant**: failure per iteration is acceptable. The purpose of the loop is to detect failures, convert them to intent vectors, and force iterate() back. A postmortem that finds root causes but emits no `intent_raised` events has produced a document. A postmortem that emits `intent_raised` events for each finding is a sensor — it forces the correction.
+
+**Layer 4 — Methodology Compliance Gaps** (extends /gen-gaps Layers 1–3):
+
+| Layer 4 check | Failure signal | Severity |
+|---|---|---|
+| All code edges have `edge_started` + `iteration_completed` + `edge_converged` | Feature built outside `/gen-iterate` path | High |
+| All shared edges have `iteration_completed` (even 1-pass convergences) | Iteration history invisible to monitor | Medium |
+| All edges in active profile traversed before release | Partial graph traversal at release | High |
+| Session gaps > 30 min have `session_gap` event | Session discontinuity unrecorded | Medium |
+| UAT edges traversed per-feature, not just aggregate | Per-feature acceptance not verified | Medium |
+
+**When to use**:
+- `/gen-gaps` mid-development → §1 Discovery + §2 Gap Analysis + §6 Event Emission (forward)
+- `/gen-postmortem` at release or retrospective → all sections + §6 Event Emission (both)
+- Discovery is run once; gap analysis and postmortem are renderers over the same output
 
 ---
 
@@ -272,6 +285,108 @@ Derived from §3e findings + §2 gaps. Ordered by priority.
 | Item | Description | Impact |
 |------|-------------|--------|
 | | | |
+
+---
+
+### 6. Event Emission — Homeostatic Loop Closure
+
+*MANDATORY. This section is not optional documentation — it is the mechanism by which the sensor fires. Execute after §2 and §3 are complete.*
+
+**Step 6a: Emit `gaps_validated`** (covers Layers 1–4):
+
+```json
+{
+  "event_type": "gaps_validated",
+  "timestamp": "{ISO 8601}",
+  "project": "{project name}",
+  "data": {
+    "layers_run": [1, 2, 3, 4],
+    "feature": "all",
+    "total_req_keys": "{n}",
+    "layer_results": {
+      "layer_1": "pass|fail",
+      "layer_2": "pass|fail",
+      "layer_3": "pass|advisory",
+      "layer_4": "pass|fail"
+    },
+    "methodology_compliance_flags": [
+      {"feature": "{id}", "edge": "{edge}", "issue": "no_events|no_iteration_completed|built_outside_gen_iterate|session_gap_unrecorded|uat_not_per_feature"}
+    ]
+  }
+}
+```
+
+**Step 6b: For each finding (gap analysis Layer 1–3 gap OR postmortem root cause OR Layer 4 compliance flag) — emit `intent_raised`**:
+
+```json
+{
+  "event_type": "intent_raised",
+  "timestamp": "{ISO 8601}",
+  "project": "{project name}",
+  "data": {
+    "intent_id": "INT-{SEQ}",
+    "trigger": "{what the discovery pass found}",
+    "delta": "{specific missing artifact or compliance failure}",
+    "signal_source": "gap|methodology_compliance|postmortem_root_cause",
+    "vector_type": "feature|hotfix",
+    "affected_req_keys": ["{REQ-*}"],
+    "affected_features": ["{REQ-F-*}"],
+    "severity": "high|medium|low",
+    "layer": "1|2|3|4"
+  }
+}
+```
+
+**Clustering rules**:
+- Group Layer 1/2/3 gaps by domain (all `REQ-F-AUTH-*` → one intent)
+- Group Layer 4 compliance flags by failure type (all "no events" → one intent per feature; session gap → one intent)
+- Postmortem root causes: one intent per distinct root cause category
+- Severity: High = blocks audit trail or correctness; Medium = process compliance; Low = cosmetic
+
+**Step 6c: For each `intent_raised` — emit `feature_proposal` and write to review queue**:
+
+```json
+{
+  "event_type": "feature_proposal",
+  "timestamp": "{ISO 8601}",
+  "project": "{project name}",
+  "data": {
+    "proposal_id": "PROP-{SEQ}",
+    "intent_id": "INT-{SEQ}",
+    "title": "{short description}",
+    "description": "{what the feature would fix — 2-3 sentences}",
+    "affected_req_keys": ["{REQ-*}"],
+    "severity": "high|medium|low",
+    "vector_type": "feature|hotfix",
+    "suggested_profile": "standard|hotfix|minimal",
+    "status": "draft",
+    "source": "gap_analysis|postmortem",
+    "review_path": ".ai-workspace/reviews/pending/PROP-{SEQ}.yml"
+  }
+}
+```
+
+Write corresponding `.ai-workspace/reviews/pending/PROP-{SEQ}.yml` for each proposal.
+
+**Step 6d: Summary**
+
+After emitting all events, display:
+
+```
+═══ HOMEOSTATIC LOOP CLOSURE ═══
+Layers run:        1, 2, 3, 4
+Layer 4 flags:     {n} methodology compliance gaps found
+intent_raised:     {n} events emitted
+feature_proposals: {n} proposals written to review queue
+
+Review queue: /gen-review-proposal to action pending proposals
+Loop status:  {CLOSED — all findings have corresponding intents}
+             | {PARTIAL — {n} findings could not be clustered}
+             | {OPEN — event emission failed, loop not closed}
+═══════════════════════════════
+```
+
+**Why this section is mandatory**: findings that stay in a document do not force iterate(). The homeostatic loop closes through events → proposals → feature vectors → iterate(), not through humans reading the report and manually deciding to act. The report is the human-readable rendering; the events are the machine-actionable signal. Both are required.
 
 ---
 
