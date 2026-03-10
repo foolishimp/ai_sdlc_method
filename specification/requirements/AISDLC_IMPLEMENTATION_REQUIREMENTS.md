@@ -1049,36 +1049,33 @@ The installer MUST place `.ai-workspace/` at the **project root** — the direct
 
 ---
 
-### REQ-TOOL-016: Project Analysis Reports — Metadata-Derived
+### REQ-TOOL-016: Workspace Analysis Edge
 
 **Priority**: High | **Phase**: 1
 
-The system shall derive two project analysis reports — **gap analysis** (forward projection: what is missing now) and **postmortem** (backward projection: what happened and why) — from the same workspace metadata artifacts. Neither report shall require information that is not already produced as a byproduct of normal methodology operation.
+The workspace state is an asset. Gap analysis and postmortem are `iterate()` invocations on that asset, structurally identical to any other graph edge. The evaluators define what delta means for the workspace asset; the homeostatic path is the same path that fires at every other edge.
 
-**Rationale**: If the methodology is being followed correctly (events emitted, feature vectors updated, code tagged), both reports are already latent in the workspace — they need only be rendered, not collected. This means the quality of both reports is a direct measure of methodology compliance. A project that cannot produce a reliable postmortem from its own metadata has not been running the methodology; it has been running a simulation of it.
+```
+iterate(
+  Asset<workspace_state>,
+  Context[spec, constraints, events, feature_vectors],
+  Evaluators[configured per analysis type]
+) → delta → intent_raised → iterate() back
+```
 
-**Discovery Sources** (shared by both reports):
-- `events.jsonl` — timeline, iteration counts, session structure, convergence history
-- Feature vectors (`features/active/*.yml`) — edge state, dependency DAG, evaluator results
-- Coverage map — REQ keys × code × tests × telemetry
-- Constraint surface (`project_constraints.yml`) — what was binding during construction
+This is not a reporting layer added on top of the methodology. It is the methodology applied to itself.
 
 **Acceptance Criteria**:
 
-- AC-1: Gap analysis derivable from discovery sources alone — no additional data collection step. Output: Layer 1 (REQ tag coverage), Layer 2 (test gaps), Layer 3 (telemetry gaps), open proposals.
-- AC-2: Postmortem derivable from discovery sources alone — no additional data collection step. Output: lifecycle timeline, session structure, edge performance, root causes, signals for next run.
-- AC-3: Gap analysis and postmortem executed against the same workspace snapshot produce **identical coverage numbers** — they are projections of the same source of truth, not independent measurements. Divergence is a bug in one of the renderers.
-- AC-4: When the event log is incomplete (missing `iteration_completed` or `edge_started` events for a feature), both reports **surface the incompleteness as an explicit data quality flag** — they do not silently treat missing events as "nothing happened". The flag must identify which features and edges are affected.
-- AC-5: The discovery pass is a single function invoked once; gap analysis and postmortem are two renderers over its output. Duplicate discovery implementations that can independently diverge are a spec violation.
-- AC-6: The template for both reports is versioned and stored in `specification/templates/` — it is part of the spec, not a tool implementation detail.
-- AC-7: **Findings SHALL close the homeostatic loop.** Every gap or root cause surfaced by either report SHALL be emitted as an `intent_raised` event into the event stream. Findings that remain only as document annotations without a corresponding event have not completed the loop — the report has been rendered but the sensor has not fired. A postmortem that produces a document but no events is a report; a postmortem that produces events is a sensor.
-- AC-8: **Layer 4 — Methodology Compliance Gaps.** The discovery pass SHALL check methodology trace completeness in addition to code coverage (Layers 1–3). Layer 4 checks: (a) all code edges have `edge_started` + `iteration_completed` + `edge_converged` events; (b) no feature converged without a formal `/gen-iterate` invocation (detectable by absent events); (c) all edges in the active profile have been traversed before release was tagged; (d) session gaps > 30 minutes are recorded as `session_gap` events, not silence. Layer 4 failures emit `intent_raised` with `signal_source: "methodology_compliance"` and are routed through the same proposal → feature vector → iterate() path as code coverage gaps.
+- AC-1: The workspace asset is fully derivable from artifacts already produced during normal methodology operation — `events.jsonl`, feature vectors, REQ key tags in code and tests. No additional data collection step.
+- AC-2: Gap analysis and postmortem are two evaluator configurations over the same asset. Running both on the same workspace snapshot produces identical coverage numbers — they read the same source of truth. Divergence is an evaluator bug.
+- AC-3: When delta > 0 — for any evaluator, of any type — `intent_raised` fires and routes through the standard homeostatic path: `intent_raised` → `feature_proposal` → feature vector → `iterate()`. There is no special handling for "analysis findings" vs any other delta. The loop is the same loop.
+- AC-4: An incomplete event log (missing `iteration_completed`, features with no events) is a delta on the workspace asset — not a data quality footnote. It is evaluated, emits `intent_raised`, and schedules an iterate() back exactly as a failing test would.
+- AC-5: The evaluator list for the workspace analysis edge is defined in configuration (`edge_params/workspace_analysis.yml`) following the same schema as all other edge configurations. It is not hardcoded in the analysis tool.
 
-**Rationale for AC-7 + AC-8**: Failure per iteration is acceptable — it is the expected state during development. The purpose of the homeostatic loop is to detect failures, convert them to intent vectors, and force the iteration back. A gap analysis or postmortem that finds a failure but does not emit an intent_raised event breaks the loop. The loop does not close through human reading of documents; it closes through events that create feature vectors that schedule iterate() calls. The discovery pass is the sensor; the event emission is the nerve signal; the iterate() call is the correction.
+**Traces To**: REQ-ITER-001 (Universal Iteration Function — this edge is an instance of it) | REQ-LIFE-002 (Telemetry and Homeostasis) | REQ-LIFE-003 (Feedback Loop Closure) | REQ-EVOL-003 (feature_proposal event) | Bootloader §VI (The Gradient — delta → work at every scale) | Bootloader §VIII (Homeostasis — intent is computed from delta(observed, spec))
 
-**Traces To**: REQ-TOOL-005 (Test Gap Analysis — Layer 1/2/3, already emits intent_raised) | REQ-LIFE-002 (Telemetry and Homeostasis) | REQ-LIFE-003 (Feedback Loop Closure) | REQ-EVOL-003 (feature_proposal event — Stage 2 affect triage) | REQ-EVENT-001 (Append-Only Event Stream) | REQ-SUPV-003 (Failure Observability) | Asset Graph Model §VI (The Gradient — delta → work at every scale) | Bootloader §VIII (Homeostasis: intent is computed from delta)
-
-**Validated By**: `specification/templates/POSTMORTEM_TEMPLATE.md` (template v1.0, §6 Event Emission to be added) | `docs/analysis/20260310_POSTMORTEM_data_mapper_test11.md` (first instantiation — AC-4 validated: event gaps surfaced; AC-7/AC-8 not yet implemented — test11 postmortem produced document but no intent_raised events for its 5 root causes)
+**Validated By**: `specification/templates/POSTMORTEM_TEMPLATE.md` | `docs/analysis/20260310_POSTMORTEM_data_mapper_test11.md`
 
 ---
 

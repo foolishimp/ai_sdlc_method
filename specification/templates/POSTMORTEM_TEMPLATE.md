@@ -1,44 +1,31 @@
 # Postmortem Template — AI SDLC Asset Graph Model
 
-**Version**: 1.1
-**Reference**: AI_SDLC_ASSET_GRAPH_MODEL.md §VI (The Gradient), GENESIS_BOOTLOADER.md §VIII (Homeostasis), REQ-TOOL-016
+**Version**: 2.0
+**Reference**: GENESIS_BOOTLOADER.md §VI (The Gradient), §VIII (Homeostasis), REQ-TOOL-016
 
 ---
 
-## Design Principle: Shared Discovery + Homeostatic Loop Closure
+## What This Is
 
-Gap analysis and postmortem are two projections of the same discovery pass. But they are not just reports — they are **sensors**. Findings that remain as document annotations without corresponding `intent_raised` events have not completed the loop.
+The workspace state is an asset. Running gap analysis or a postmortem is
+`iterate()` on that asset — structurally identical to any other graph edge:
 
 ```
-Discovery Layer (run once)
-  ├── Event stream            → Temporal reconstruction (postmortem)
-  ├── Feature vector state    → Edge performance / convergence (both)
-  ├── Coverage map (L1/2/3)  → Code coverage gaps  → intent_raised
-  ├── Methodology trace (L4) → Process gaps        → intent_raised
-  └── Constraint surface      → Context validation (both)
-
-         ┌─────────────────┐
-Discovery ┤                 ├── Gap Analysis   (forward: what is missing now)
-         │   same data     ├── Postmortem     (backward: what happened and why)
-         └─────────────────┘── Event emission (§6 — closes the homeostatic loop)
+iterate(
+  Asset<workspace_state>,
+  Context[spec, constraints, events, feature_vectors],
+  Evaluators[configured per analysis type]
+) → delta → intent_raised → iterate() back
 ```
 
-**The homeostatic invariant**: failure per iteration is acceptable. The purpose of the loop is to detect failures, convert them to intent vectors, and force iterate() back. A postmortem that finds root causes but emits no `intent_raised` events has produced a document. A postmortem that emits `intent_raised` events for each finding is a sensor — it forces the correction.
+Gap analysis and postmortem are two evaluator configurations — one reads
+forward (what is missing now), one reads backward (what happened and why).
+Both operate on the same asset. Both produce the same output when delta > 0:
+`intent_raised` → `feature_proposal` → feature vector → `iterate()`.
 
-**Layer 4 — Methodology Compliance Gaps** (extends /gen-gaps Layers 1–3):
-
-| Layer 4 check | Failure signal | Severity |
-|---|---|---|
-| All code edges have `edge_started` + `iteration_completed` + `edge_converged` | Feature built outside `/gen-iterate` path | High |
-| All shared edges have `iteration_completed` (even 1-pass convergences) | Iteration history invisible to monitor | Medium |
-| All edges in active profile traversed before release | Partial graph traversal at release | High |
-| Session gaps > 30 min have `session_gap` event | Session discontinuity unrecorded | Medium |
-| UAT edges traversed per-feature, not just aggregate | Per-feature acceptance not verified | Medium |
-
-**When to use**:
-- `/gen-gaps` mid-development → §1 Discovery + §2 Gap Analysis + §6 Event Emission (forward)
-- `/gen-postmortem` at release or retrospective → all sections + §6 Event Emission (both)
-- Discovery is run once; gap analysis and postmortem are renderers over the same output
+The document sections below are the human-readable rendering of that output.
+The event emission in §4 is the machine-actionable signal. Both are required.
+A postmortem that produces only a document has not closed the loop.
 
 ---
 
@@ -50,58 +37,55 @@ Discovery ┤                 ├── Gap Analysis   (forward: what is missing
 **Date**: [ISO 8601]
 **Method version**: [genesis method version]
 **Profile**: [standard | full | poc | spike | hotfix]
-**Reconstruction source**: events.jsonl ([N] events), [N] feature vectors,
-  project_constraints.yml, graph_topology.yml, release manifest
+**Asset**: workspace state at [snapshot timestamp]
+**Events**: [N] in events.jsonl | Feature vectors: [N] | Reconstruction: complete / partial
 ```
 
 ---
 
-### 1. Discovery
+### 1. Asset State — Workspace Discovery
 
-*This section is the shared substrate. It feeds both §2 (Gap Analysis) and §3 (Postmortem). Run once — project both views from it.*
+*Read the workspace asset once. §2, §3, and §4 all derive from this section.*
 
-#### 1a. Event Stream Summary
+#### 1a. Event Stream
 
-| # | event_type | feature | edge | timestamp | Notes |
-|---|-----------|---------|------|-----------|-------|
-| 1 | project_initialized | | | | |
-| … | … | | | | |
+| # | event_type | feature | edge | timestamp |
+|---|-----------|---------|------|-----------|
+| … | … | | | |
 
-**Event counts by type**:
+**Counts**:
 
-| event_type | count | Notes |
-|-----------|-------|-------|
-| edge_started | | |
-| iteration_completed | | |
-| edge_converged | | |
-| intent_raised | | |
-| feature_proposal | | |
-| gaps_validated | | |
-| release_created | | |
+| event_type | count |
+|-----------|-------|
+| edge_started | |
+| iteration_completed | |
+| edge_converged | |
+| intent_raised | |
+| feature_proposal | |
+| release_created | |
 
-**Completeness flags**:
-- [ ] Every `edge_started` has a matching `edge_converged`
-- [ ] Every `edge_started` has at least one `iteration_completed`
-- [ ] All feature code edges have events (not just feature vector state)
-- [ ] Session breaks are detectable from timestamp gaps
+**Delta flags** (these are evaluator failures — each will emit `intent_raised` in §4):
+- [ ] Features with no `edge_started` / `iteration_completed` / `edge_converged` events: [list]
+- [ ] Edges with `edge_started` but no `iteration_completed`: [list]
+- [ ] Session gaps > 30 min with no `session_gap` event: [list]
 
 #### 1b. Feature Vector State
 
-| Feature | Requirements | Design | Code | Unit Tests | UAT Tests | Overall |
-|---------|-------------|--------|------|-----------|----------|---------|
-| REQ-F-* | converged / pending | | | | | |
+| Feature | Req | Design | Code | Tests | UAT | Status |
+|---------|-----|--------|------|-------|-----|--------|
+| REQ-F-* | ✓/○ | ✓/○ | ✓/○ | ✓/○ | ✓/○ | converged / partial |
 
-**Dependency DAG**: [draw or describe topological order]
+Dependency DAG: [topological order]
 
-#### 1c. Coverage Map
+#### 1c. REQ Coverage
 
-| REQ Domain | Spec Keys | In Code | In Tests | In Telemetry | Status |
-|-----------|----------|---------|---------|-------------|--------|
-| [DOMAIN]  | N | N | N | N | COMPLETE / PARTIAL / MISSING |
-| **TOTAL** | N | N (%) | N (%) | N (%) | |
+| Domain | Spec | Code | Tests | Telemetry | Delta |
+|--------|------|------|-------|-----------|-------|
+| [DOM] | N | N | N | N | 0 / +N missing |
+| **Total** | N | N% | N% | N% | |
 
-**Orphan keys** (tagged in code/tests but not in spec): [list or NONE]
-**Synthetic keys** (created during design, not in original spec): [list or NONE]
+Orphan keys (in code/tests, not in spec): [list or NONE]
+Synthetic keys (created during design): [list or NONE]
 
 #### 1d. Constraint Surface
 
@@ -111,212 +95,110 @@ Discovery ┤                 ├── Gap Analysis   (forward: what is missing
 | deployment_target | | |
 | security_model | | |
 | build_system | | |
-| [advisory dimensions] | ADVISORY | |
 
 ---
 
-### 2. Gap Analysis
+### 2. Evaluator Results — Forward (Gap Analysis)
 
-*Forward projection from §1. Equivalent to `/gen-gaps` output at the time of this snapshot.*
+*What is the delta between the current workspace state and the spec?*
+*Each failing check below becomes an `intent_raised` event in §4.*
 
-#### 2a. Layer 1 — REQ Tag Coverage
+| Evaluator | Type | Delta | Severity |
+|-----------|------|-------|---------|
+| req_tags_in_code | F_D | 0 / N untagged files | high |
+| req_tags_in_tests | F_D | 0 / N untagged files | high |
+| all_req_keys_have_tests | F_D | 0 / N keys without tests | high |
+| telemetry_coverage | F_D | advisory / N keys untagged | medium |
+| event_log_complete | F_D | 0 / N features missing events | high |
+| all_profile_edges_traversed | F_D | 0 / N edges not traversed | high |
+| per_feature_uat | F_D | 0 / N features UAT pending | medium |
+| session_continuity | F_D | 0 / N unrecorded gaps | medium |
 
-| Check | Type | Result | Required |
-|-------|------|--------|---------|
-| req_tags_in_code | deterministic | PASS / FAIL | yes |
-| req_tags_in_tests | deterministic | PASS / FAIL | yes |
-| req_tags_valid_format | deterministic | PASS / FAIL | yes |
-| req_keys_exist_in_spec | agent | PASS / FAIL | yes |
-
-Untagged files: [list or NONE]
-Orphan keys: [list or NONE]
-
-#### 2b. Layer 2 — Test Gaps
-
-| Check | Type | Result | Required |
-|-------|------|--------|---------|
-| all_req_keys_have_tests | agent | PASS / FAIL | yes |
-
-Test gaps (REQ keys with no Validates: tag): [list or NONE]
-
-#### 2c. Layer 3 — Telemetry Gaps
-
-| Check | Type | Result | Required |
-|-------|------|--------|---------|
-| code_req_keys_have_telemetry | agent | PASS / ADVISORY | at code→cicd |
-
-Telemetry gaps: [list or ADVISORY — edge not yet traversed]
-
-#### 2d. Open Proposals
-
-| ID | Title | Severity | Source | Action |
-|----|-------|---------|--------|--------|
-| PROP-* | | high/medium/low | gap_analysis | pending / approved / dismissed |
+**Total delta**: [N failing evaluators]
+**Convergence**: [PASS — workspace asset converged] / [FAIL — delta > 0, iterate() required]
 
 ---
 
-### 3. Postmortem
+### 3. Evaluator Results — Backward (Postmortem)
 
-*Backward projection from §1. Temporal reconstruction, performance analysis, root causes.*
+*What happened? Temporal reconstruction from the event stream.*
+*Root causes are evaluator findings on the process, not the code.*
 
 #### 3a. Project Profile
 
 | | |
 |--|--|
 | **Project** | |
-| **Intent source** | |
-| **Start event** | event N — project_initialized |
-| **Release event** | event N — release_created |
-| **Wall-clock elapsed** | |
-| **Sessions** | N sessions (describe break pattern) |
-| **Build approach** | manual / engine-assisted / autonomous |
+| **Start** | event N — project_initialized — [timestamp] |
+| **Release** | event N — release_created — [timestamp] |
+| **Elapsed** | [wall clock, excluding session gaps] |
+| **Sessions** | N (gaps: [describe]) |
+| **Build mode** | manual / engine-assisted / autonomous |
 
-#### 3b. Lifecycle Timeline
+#### 3b. Edge Performance
 
-Reconstructed from event timestamps. One row per phase.
+| Edge | Feature | Iterations | Duration | Evaluators | Result |
+|------|---------|-----------|---------|-----------|--------|
+| requirements→feature_decomp | all | 1 | 5m | N/N | CONVERGED |
+| … | | | | | |
 
-| Phase | Events | Start | End | Duration | Key Output |
-|-------|--------|-------|-----|---------|-----------|
-| Initialization | 1–N | | | | project_initialized, baseline gaps |
-| Proposal generation | N–N | | | | N feature vectors created |
-| Specification chain | N–N | | | | all shared edges converged |
-| First code wave | N–N | | | | N features code+tests |
-| Session break | — | | | | [reason if known] |
-| Second code wave | N–N | | | | remaining features |
-| Validation & release | N–N | | | | gaps_validated, release_created |
+Re-iterations (> 1): [list — each is a delta that forced iterate() back, as designed]
+Unrecorded edges (feature vector says converged, no events): [list — evaluator failure]
 
-**Session structure** (gaps > 30 min between events):
+#### 3c. Root Causes
 
-| Session | Events | Start | End | Duration | Features touched |
-|---------|--------|-------|-----|---------|-----------------|
-| 1 | | | | | |
-| [gap] | — | | | N hours | [reason if known] |
-| 2 | | | | | |
+*Map each finding to its evaluator category. These feed §4.*
 
-#### 3c. Edge Performance
+| # | Observation | Evaluator category | Severity | Forces iterate() on |
+|---|------------|-------------------|---------|-------------------|
+| 1 | [what] | F_P gap / event emission / false convergence / spec gap / F_H blocked | high/med/low | [what edge/feature] |
 
-One row per edge traversed.
+Evaluator categories:
 
-| Edge | Feature | Start | End | Iterations | Evaluators | Result |
-|------|---------|-------|-----|-----------|-----------|--------|
-| requirements→feature_decomp | all | | | 1 | N/N | CONVERGED |
-| … | | | | | | |
+| Category | Meaning |
+|----------|---------|
+| F_P gap | Engine can evaluate but not construct autonomously — human latency fills the gap |
+| Event emission | `iterate()` ran but required events were not emitted |
+| False convergence | `delta=0` via skips, not via passing evaluators |
+| Spec gap | Underspecification surfaced during construction |
+| F_H blocked | Human gate not cleared — edge cannot advance |
+| Session discontinuity | Context not reconstructable across session boundary |
 
-**Re-iteration analysis**:
-- Edges with > 1 iteration: [list or NONE]
-- Root cause of each re-iteration: [compiler error class / evaluator failure type]
-- Resolution pattern: [how each was fixed]
+#### 3d. Methodology Version Delta
 
-**Velocity signals**:
-- Fastest edge: [edge name, duration]
-- Slowest edge: [edge name, duration, why]
-- Total active build time (excluding session gaps): [N hours]
-
-#### 3d. What Worked
-
-For each item: **observation** → **why it worked** → **methodology principle it validates**
-
-1. [Observation]
-   - Why: [mechanism]
-   - Validates: [Bootloader §N / REQ-* / ADR-*]
-
-#### 3e. What Didn't Work
-
-For each item: **observation** → **root cause** → **impact** → **fix for next run**
-
-1. [Observation]
-   - Root cause: [RC-1, RC-2, etc.]
-   - Impact: [what broke / what was invisible]
-   - Fix: [concrete action for next run]
-
-**Root cause taxonomy** (assign each finding to a category):
-
-| Category | Count | Description |
-|----------|-------|-------------|
-| F_P gap | | Engine can evaluate but not autonomously construct |
-| Event emission | | Required event not emitted |
-| Human gate | | F_H blocked progression |
-| Spec gap | | Underspecification discovered during construction |
-| Evaluator miscalibration | | Convergence claimed before work was complete |
-| Session discontinuity | | Context lost between sessions |
-| False convergence | | delta=0 via skips, not via passing checks |
-
-#### 3f. Methodology Version Delta
-
-What changed in the methodology between this run and the prior comparable run.
-
-| Aspect | Prior run | This run | Delta |
-|--------|-----------|----------|-------|
+| Aspect | Prior run | This run | Signal |
+|--------|-----------|----------|--------|
 | Method version | | | |
-| Event count | | | +/- N |
-| Re-iterations | | | +/- N |
-| Coverage | | | +/- % |
-| Build approach | | | |
-
-#### 3g. Signals for Next Run
-
-Derived from §3e findings + §2 gaps. Ordered by priority.
-
-1. **[Signal title]** — [what to change, what to enable, what to measure]
-   - Blocking: yes / no
-   - Tracked as: [REQ-* / backlog item / proposal]
+| Events emitted | N | N | ±N |
+| Edges re-iterated | N | N | ±N |
+| Coverage | N% | N% | ±N% |
 
 ---
 
-### 4. Release Assessment
+### 4. Event Emission — Loop Closure
 
-| Gate | Criterion | Required | Result | Notes |
-|------|-----------|---------|--------|-------|
-| F_D compile | sbt compile / equivalent | yes | PASS/FAIL | |
-| F_D tests | all tests pass | yes | N/N pass | |
-| REQ coverage | threshold (e.g. ≥90%) | yes | N% | |
-| Event log | complete (all edges instrumented) | yes | COMPLETE/PARTIAL | |
-| UAT | all features | recommended | N/N | |
-| Telemetry | req= tags in code | at code→cicd | N/A / PARTIAL | |
+*Mandatory. The document sections above are the rendering. This section is the signal.*
+*Execute after §2 and §3. One `intent_raised` per failing evaluator or root cause.*
 
-**Deferred scope** (explicitly excluded, not missed):
-
-| REQ Key | Reason | Target release |
-|---------|--------|---------------|
-| | | |
-
-**Known technical debt** (included but sub-optimal):
-
-| Item | Description | Impact |
-|------|-------------|--------|
-| | | |
-
----
-
-### 6. Event Emission — Homeostatic Loop Closure
-
-*MANDATORY. This section is not optional documentation — it is the mechanism by which the sensor fires. Execute after §2 and §3 are complete.*
-
-**Step 6a: Emit `gaps_validated`** (covers Layers 1–4):
+**4a. Emit `workspace_analysed`**:
 
 ```json
 {
-  "event_type": "gaps_validated",
+  "event_type": "workspace_analysed",
   "timestamp": "{ISO 8601}",
   "project": "{project name}",
   "data": {
-    "layers_run": [1, 2, 3, 4],
-    "feature": "all",
-    "total_req_keys": "{n}",
-    "layer_results": {
-      "layer_1": "pass|fail",
-      "layer_2": "pass|fail",
-      "layer_3": "pass|advisory",
-      "layer_4": "pass|fail"
-    },
-    "methodology_compliance_flags": [
-      {"feature": "{id}", "edge": "{edge}", "issue": "no_events|no_iteration_completed|built_outside_gen_iterate|session_gap_unrecorded|uat_not_per_feature"}
+    "analysis_type": "gap_analysis|postmortem|both",
+    "snapshot_timestamp": "{ISO 8601}",
+    "total_delta": "{N failing evaluators}",
+    "evaluator_results": [
+      {"name": "{evaluator}", "type": "F_D|F_P|F_H", "result": "pass|fail", "delta": "{N}"}
     ]
   }
 }
 ```
 
-**Step 6b: For each finding (gap analysis Layer 1–3 gap OR postmortem root cause OR Layer 4 compliance flag) — emit `intent_raised`**:
+**4b. For each failing evaluator or root cause — emit `intent_raised`**:
 
 ```json
 {
@@ -325,25 +207,17 @@ Derived from §3e findings + §2 gaps. Ordered by priority.
   "project": "{project name}",
   "data": {
     "intent_id": "INT-{SEQ}",
-    "trigger": "{what the discovery pass found}",
-    "delta": "{specific missing artifact or compliance failure}",
-    "signal_source": "gap|methodology_compliance|postmortem_root_cause",
+    "trigger": "{evaluator name} — {what it found}",
+    "delta": "{specific missing artifact or failure}",
+    "signal_source": "workspace_analysis",
     "vector_type": "feature|hotfix",
-    "affected_req_keys": ["{REQ-*}"],
-    "affected_features": ["{REQ-F-*}"],
     "severity": "high|medium|low",
-    "layer": "1|2|3|4"
+    "affected_features": ["{REQ-F-*}"]
   }
 }
 ```
 
-**Clustering rules**:
-- Group Layer 1/2/3 gaps by domain (all `REQ-F-AUTH-*` → one intent)
-- Group Layer 4 compliance flags by failure type (all "no events" → one intent per feature; session gap → one intent)
-- Postmortem root causes: one intent per distinct root cause category
-- Severity: High = blocks audit trail or correctness; Medium = process compliance; Low = cosmetic
-
-**Step 6c: For each `intent_raised` — emit `feature_proposal` and write to review queue**:
+**4c. For each `intent_raised` — emit `feature_proposal` and write `.ai-workspace/reviews/pending/PROP-{SEQ}.yml`**:
 
 ```json
 {
@@ -354,52 +228,38 @@ Derived from §3e findings + §2 gaps. Ordered by priority.
     "proposal_id": "PROP-{SEQ}",
     "intent_id": "INT-{SEQ}",
     "title": "{short description}",
-    "description": "{what the feature would fix — 2-3 sentences}",
-    "affected_req_keys": ["{REQ-*}"],
+    "description": "{what iterate() must fix}",
     "severity": "high|medium|low",
-    "vector_type": "feature|hotfix",
     "suggested_profile": "standard|hotfix|minimal",
     "status": "draft",
-    "source": "gap_analysis|postmortem",
-    "review_path": ".ai-workspace/reviews/pending/PROP-{SEQ}.yml"
+    "source": "workspace_analysis"
   }
 }
 ```
 
-Write corresponding `.ai-workspace/reviews/pending/PROP-{SEQ}.yml` for each proposal.
-
-**Step 6d: Summary**
-
-After emitting all events, display:
+**4d. Loop closure summary**:
 
 ```
-═══ HOMEOSTATIC LOOP CLOSURE ═══
-Layers run:        1, 2, 3, 4
-Layer 4 flags:     {n} methodology compliance gaps found
-intent_raised:     {n} events emitted
-feature_proposals: {n} proposals written to review queue
+═══ LOOP CLOSURE ═══
+Total delta:    {N} failing evaluators
+intent_raised:  {N} events emitted
+proposals:      {N} in review queue
 
-Review queue: /gen-review-proposal to action pending proposals
-Loop status:  {CLOSED — all findings have corresponding intents}
-             | {PARTIAL — {n} findings could not be clustered}
-             | {OPEN — event emission failed, loop not closed}
-═══════════════════════════════
+Next: /gen-review-proposal → approve → /gen-start (routes to iterate())
+Status: CLOSED / PARTIAL / OPEN
+═════════════════════
 ```
-
-**Why this section is mandatory**: findings that stay in a document do not force iterate(). The homeostatic loop closes through events → proposals → feature vectors → iterate(), not through humans reading the report and manually deciding to act. The report is the human-readable rendering; the events are the machine-actionable signal. Both are required.
 
 ---
 
 ### 5. Appendix
 
-#### 5a. Full Event Log
+#### 5a. Event Log Reference
 
-[paste or reference events.jsonl]
+[path to events.jsonl or inline if short]
 
-#### 5b. Feature Vector Summary
+#### 5b. Deferred Scope
 
-[condensed trajectory table — one row per feature, all edges]
-
-#### 5c. Deferred Proposals
-
-[any PROP-* not actioned, with disposition]
+| Item | Reason | Target |
+|------|--------|--------|
+| | | |
