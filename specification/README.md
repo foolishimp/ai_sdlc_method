@@ -33,11 +33,14 @@ specification/
 ├── verification/                ← DERIVED tier 3: how to verify an implementation satisfies requirements
 │   └── UAT_TEST_CASES.md
 │
-└── adrs/                        ← Spec-level architectural decisions (ADR-S-* series)
-    ├── ADR-S-001-specification-document-hierarchy.md
-    ├── ADR-S-002-multi-tenancy-model.md
-    ├── ...
-    └── ADR-S-012-event-stream-as-formal-model-medium.md
+├── adrs/                        ← Spec-level architectural decisions (ADR-S-* series)
+│   ├── ADR-S-001-specification-document-hierarchy.md
+│   ├── ADR-S-002-multi-tenancy-model.md
+│   ├── ...
+│   └── ADR-S-012-event-stream-as-formal-model-medium.md
+│
+└── templates/                   ← Reusable analysis templates
+    └── POSTMORTEM_TEMPLATE.md   ← Gap analysis + postmortem (shared discovery layer)
 ```
 
 ---
