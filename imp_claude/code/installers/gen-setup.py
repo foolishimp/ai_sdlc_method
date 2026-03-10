@@ -94,7 +94,7 @@ POST_COMMIT_HOOK_SCRIPT = "post-commit-spec-watch.sh"
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
-VERSION = "2.10.0"
+VERSION = "2.11.0"
 
 
 # =============================================================================
