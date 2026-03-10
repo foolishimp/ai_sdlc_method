@@ -114,6 +114,7 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-012](adrs/ADR-S-012-event-stream-as-formal-model-medium.md) | Event Stream Medium | All primitives operate on append-only event stream; Asset as projection; Saga invariant |
 | [ADR-S-025](adrs/ADR-S-025-consensus-functor.md) | CONSENSUS Functor | Multi-stakeholder F_H with quorum, participation floor, gating snapshot, typed outcome |
 | [ADR-S-026](adrs/ADR-S-026-named-compositions-and-intent-vectors.md) | Named Compositions + Intent Vectors | Five-level stack; PLAN/POC/SCHEMA_DISCOVERY/DATA_DISCOVERY macros; typed gap.intent output; intent vector tuple; project convergence vocabulary |
+| [ADR-S-032](adrs/ADR-S-032-intentobserver-edgerunner-dispatch-contract.md) | IntentObserver + EDGE_RUNNER | Autonomous dispatch contract; gap analysis = scoped F_D traversal; `affected_features` canonical field; graduated autonomy replaces draft-only |
 
 
 ---
