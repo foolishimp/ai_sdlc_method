@@ -1049,6 +1049,35 @@ The installer MUST place `.ai-workspace/` at the **project root** — the direct
 
 ---
 
+### REQ-TOOL-016: Project Analysis Reports — Metadata-Derived
+
+**Priority**: High | **Phase**: 1
+
+The system shall derive two project analysis reports — **gap analysis** (forward projection: what is missing now) and **postmortem** (backward projection: what happened and why) — from the same workspace metadata artifacts. Neither report shall require information that is not already produced as a byproduct of normal methodology operation.
+
+**Rationale**: If the methodology is being followed correctly (events emitted, feature vectors updated, code tagged), both reports are already latent in the workspace — they need only be rendered, not collected. This means the quality of both reports is a direct measure of methodology compliance. A project that cannot produce a reliable postmortem from its own metadata has not been running the methodology; it has been running a simulation of it.
+
+**Discovery Sources** (shared by both reports):
+- `events.jsonl` — timeline, iteration counts, session structure, convergence history
+- Feature vectors (`features/active/*.yml`) — edge state, dependency DAG, evaluator results
+- Coverage map — REQ keys × code × tests × telemetry
+- Constraint surface (`project_constraints.yml`) — what was binding during construction
+
+**Acceptance Criteria**:
+
+- AC-1: Gap analysis derivable from discovery sources alone — no additional data collection step. Output: Layer 1 (REQ tag coverage), Layer 2 (test gaps), Layer 3 (telemetry gaps), open proposals.
+- AC-2: Postmortem derivable from discovery sources alone — no additional data collection step. Output: lifecycle timeline, session structure, edge performance, root causes, signals for next run.
+- AC-3: Gap analysis and postmortem executed against the same workspace snapshot produce **identical coverage numbers** — they are projections of the same source of truth, not independent measurements. Divergence is a bug in one of the renderers.
+- AC-4: When the event log is incomplete (missing `iteration_completed` or `edge_started` events for a feature), both reports **surface the incompleteness as an explicit data quality flag** — they do not silently treat missing events as "nothing happened". The flag must identify which features and edges are affected.
+- AC-5: The discovery pass is a single function invoked once; gap analysis and postmortem are two renderers over its output. Duplicate discovery implementations that can independently diverge are a spec violation.
+- AC-6: The template for both reports is versioned and stored in `specification/templates/` — it is part of the spec, not a tool implementation detail.
+
+**Traces To**: REQ-TOOL-005 (Test Gap Analysis — gap analysis is one renderer over the shared discovery) | REQ-LIFE-002 (Telemetry and Homeostasis — postmortem closes the feedback loop) | REQ-EVENT-001 (Append-Only Event Stream — discovery source) | Asset Graph Model §XII (Completeness Visibility — both reports are visibility artefacts)
+
+**Validated By**: `specification/templates/POSTMORTEM_TEMPLATE.md` (template v1.0) | `docs/analysis/20260310_POSTMORTEM_data_mapper_test11.md` (first instantiation — test11 postmortem, AC-4 validated: INT-001/COV-001 event gaps surfaced explicitly as data quality flags)
+
+---
+
 ## 11. User Experience
 
 ### REQ-UX-001: State-Driven Routing

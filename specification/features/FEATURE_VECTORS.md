@@ -616,6 +616,19 @@ Resolve orphan tag in workspace_gradient.py and workspace_state.py — either de
 
 ---
 
+### REQ-F-ANAL-001: Project Analysis Reports — Gap Analysis and Postmortem
+- **Intent**: INT-ANAL-001
+- **Requirements**: REQ-TOOL-016
+- **Status**: pending
+- **Profile**: standard
+
+Implement a shared discovery pass over workspace metadata (events.jsonl, feature vectors, coverage map, project_constraints.yml) that feeds two renderers: gap analysis (forward projection — what is missing) and postmortem (backward projection — what happened and why). The discovery pass executes once; both reports are derived from its output. Implements AC-3 (identical coverage numbers across both reports on the same snapshot) and AC-4 (incomplete event log surfaces as explicit data quality flags in both outputs, not silence).
+
+**Design**: `specification/templates/POSTMORTEM_TEMPLATE.md` (§1 Discovery — shared substrate)
+**Reference instance**: `docs/analysis/20260310_POSTMORTEM_data_mapper_test11.md`
+
+---
+
 ## Summary
 
 | Feature Vector | Impl Reqs | Phase | Dependencies |
@@ -639,6 +652,7 @@ Resolve orphan tag in workspace_gradient.py and workspace_state.py — either de
 | REQ-F-TELEM-001 | ~85 | 3 | ALL |
 | REQ-F-TOOL-015 | 1 | 1c | TOOL |
 | REQ-F-EVOL-NFR-002 | 1 | 1b | EVOL |
-| **Total** | **87+** | | |
+| REQ-F-ANAL-001 | 6 | 2 | ENGINE, EVENT, TOOL |
+| **Total** | **93+** | | |
 
-19 feature vectors. Full coverage. Critical path: ENGINE design.
+20 feature vectors. Full coverage. Critical path: ENGINE design.
