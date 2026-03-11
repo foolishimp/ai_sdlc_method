@@ -1,0 +1,104 @@
+# Edge parameters: schema_discovery
+# Implements: REQ-F-SCHEMA-DISC-001 (SCHEMA_DISCOVERY Execution)
+# Reference: ADR-S-026 §6.2 (SCHEMA_DISCOVERY named composition)
+#
+# This edge fires when a feature's design context is missing a schema_document.
+# It is triggered by:  intent_raised { gap_type: missing_schema }
+#                   →  gap_type_dispatch: SCHEMA_DISCOVERY
+#
+# The edge drives:  BROADCAST ∘ iterate ∘ FOLD  (all F_D via notebook execution)
+# The caller handles: REVIEW (F_H)              (human approves discovered schema)
+
+edge: schema_discovery
+description: >
+  Execute SCHEMA_DISCOVERY named composition — notebook-driven schema inference
+  from a raw dataset.  Produces a schema_document that resolves a missing_schema
+  gap in the parent feature's design context.
+
+asset_type:
+  source: dataset                # input: a raw data file (CSV, parquet, JSON)
+  target: schema_document        # output: schema.json in the design context
+
+# ── Evaluators ────────────────────────────────────────────────────────────────
+
+evaluators:
+
+  - name: schema_document_present
+    type: deterministic
+    description: "schema.json exists in the design context directory"
+    check: "design_context_dir / 'schema.json' exists and is non-empty"
+    required: true
+
+  - name: all_fields_typed
+    type: deterministic
+    description: "Every field in schema.json has an inferred_type from the known set"
+    check: >
+      all(f['type'] in ('integer','float','string','boolean','datetime','unknown')
+          for f in schema_json['fields'])
+    required: true
+
+  - name: notebook_lineage_present
+    type: deterministic
+    description: "schema.json records the executed notebook path as lineage"
+    check: "schema_json['notebook_lineage'] is not None"
+    required: true
+
+  - name: open_questions_reviewed
+    type: agent
+    description: "Open questions are reviewed — either resolved or explicitly accepted"
+    check: >
+      All open_questions in schema.json are acknowledged.  For each question, the
+      agent confirms it is either: (a) resolved by additional context, (b) accepted
+      as expected behaviour, or (c) escalated to human REVIEW.
+    required: false
+
+  - name: human_approves_schema
+    type: human
+    description: "Human confirms the discovered schema is complete and fit for use"
+    check: >
+      Reviewer has examined schema.fields, open_questions, and at least scanned
+      the notebook_lineage artifact.  Schema is confirmed complete and fit for
+      downstream design use.
+    required: true
+
+# ── Convergence ───────────────────────────────────────────────────────────────
+
+convergence:
+  required_checks:
+    - schema_document_present
+    - all_fields_typed
+    - notebook_lineage_present
+    - human_approves_schema
+  human_required: true        # F_H gate at REVIEW step
+  delta_formula: "count of required checks not yet passing"
+
+# ── Execution Guidance ────────────────────────────────────────────────────────
+
+guidance:
+  - >
+    Run schema_discovery.run_schema_discovery(config) with the dataset path
+    from the composition bindings.  This executes BROADCAST ∘ iterate ∘ FOLD.
+  - >
+    Present result.schema.fields and result.schema.open_questions to the human
+    evaluator (F_H REVIEW step).
+  - >
+    On human approval, call write_schema_to_design_context(schema, design_context_dir)
+    to complete the fold-back.  This resolves the missing_schema gap.
+  - >
+    The notebook at result.notebook_path is the lineage artifact — preserve it
+    in .ai-workspace/agents/ alongside the fp_intent/fp_result files.
+  - >
+    Composition expression for fp_intent manifest:
+      macro: SCHEMA_DISCOVERY
+      bindings:
+        dataset: <path to raw dataset>
+        notebook_env: "local"    # or "jupyter://<host>" for remote
+        evaluation_criteria: [completeness, fitness_for_use]
+
+# ── Fold-back spec ────────────────────────────────────────────────────────────
+
+fold_back:
+  payload_type: schema_document
+  target: "parent_feature.design_context_dir / 'schema.json'"
+  triggers: "parent feature resumes requirements→design edge"
+  written_by: "schema_discovery.write_schema_to_design_context()"

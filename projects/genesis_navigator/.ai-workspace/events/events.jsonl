@@ -1,0 +1,1 @@
+{"event_type": "project_initialized", "timestamp": "2026-03-11T14:19:50Z", "project": "genesis_navigator", "data": {"method_version": "3.0.2", "installer": "gen-setup.py", "workspace_structure": "v2", "lineage_levels": ["methodology", "org", "policy", "domain", "prior", "project"]}}
