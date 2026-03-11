@@ -82,7 +82,7 @@ ENGINE_FILES = [
     "feature_view.py", "fp_functor.py", "functor.py", "human_audit.py",
     "intent_observer.py", "models.py", "ol_event.py", "proc.py",
     "role_authority.py", "schema_discovery.py", "serialiser.py",
-    "spec_boundary.py", "workspace_gradient.py", "workspace_state.py",
+    "spec_boundary.py", "workspace_analysis.py", "workspace_gradient.py", "workspace_state.py",
 ]
 
 ENGINE_SCRIPTS = [
@@ -95,7 +95,7 @@ POST_COMMIT_HOOK_SCRIPT = "post-commit-spec-watch.sh"
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
-VERSION = "3.0.0-beta.1"
+VERSION = "3.0.1"
 
 
 # =============================================================================

@@ -1,7 +1,7 @@
 {
   "name": "genesis",
-  "version": "3.0.0-beta.1",
-  "description": "AI SDLC Asset Graph Model v3.0 \u2014 full homeostatic loop. dispatch_monitor, /gen-start --auto autonomous dispatch, CONSENSUS\u2192dispatch closure, F_P MCP round-trip, SCHEMA_DISCOVERY engine. Universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, IntentEngine, CONSENSUS functor, multi-tenant design marketplace. 4 agents, 19 commands, configurable YAML topology.",
+  "version": "3.0.1",
+  "description": "AI SDLC Asset Graph Model v3.0.1 \u2014 full homeostatic loop + workspace analysis edge. dispatch_monitor, /gen-start --auto autonomous dispatch, CONSENSUS\u2192dispatch closure, F_P MCP round-trip, SCHEMA_DISCOVERY engine, workspace_analysis (iterate on workspace_state asset). Universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, IntentEngine, CONSENSUS functor, multi-tenant design marketplace. 4 agents, 19 commands, configurable YAML topology.",
   "author": {
     "name": "foolishimp"
   },
