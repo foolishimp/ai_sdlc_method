@@ -3,10 +3,10 @@ title: Telemetry Tagging Phase 1
 intent: INT-GAP-013
 vector_type: feature
 profile: hotfix
-status: pending
+status: iterating
 priority: medium
 created: "2026-03-10T00:00:00Z"
-updated: "2026-03-10T00:00:00Z"
+updated: "2026-03-11T22:00:00Z"
 source: feature_proposal
 proposal_id: PROP-006
 
@@ -23,10 +23,20 @@ requirements:
 
 trajectory:
   requirements:
-    status: pending
+    status: converged
+    converged_at: "2026-03-11T22:00:00Z"
+    notes: "REQ-LIFE-002 acceptance: telemetry tagged with feature vector IDs (REQ keys)"
   design:
-    status: pending
+    status: converged
+    converged_at: "2026-03-11T22:00:00Z"
+    notes: "stdlib logging with req= structured tag pattern; hotfix profile — no separate design doc"
   code:
-    status: pending
+    status: converged
+    converged_at: "2026-03-11T22:00:00Z"
+    asset: "imp_claude/code/genesis/engine.py, dispatch_loop.py, edge_runner.py"
+    notes: "req= tags at iterate_edge, run_edge, dispatch, edge_runner entry points"
   unit_tests:
-    status: pending
+    status: converged
+    converged_at: "2026-03-11T22:00:00Z"
+    asset: "imp_claude/tests/test_cli_engine.py::TestTelemetryLogging"
+    notes: "4 tests: iterate_edge req= tag, run_edge req= tag, exact feature_id match, delta in result"
