@@ -1,0 +1,137 @@
+# Edge parameters: workspace_analysis
+# Implements: REQ-TOOL-016 (Workspace Analysis Edge)
+# Reference: Bootloader §VI (The Gradient — delta(state, constraints) → work at every scale)
+#            Bootloader §IX (Homeostasis — intent is computed from delta(observed, spec))
+#
+# This edge treats the workspace itself as an asset and applies iterate() to it.
+# It is the methodology applied to itself — not a reporting layer added on top.
+#
+# iterate(
+#   Asset<workspace_state>,
+#   Context[spec, constraints, events, feature_vectors],
+#   Evaluators[configured below]
+# ) → delta → intent_raised → iterate() back
+
+edge: workspace_analysis
+description: >
+  Apply iterate() to the workspace_state asset. Evaluators compute delta between
+  the observed workspace (feature vectors, event log, REQ key tags) and the spec
+  (FEATURE_VECTORS.md, requirements). Non-zero delta → intent_raised → homeostatic
+  path. Same loop as every other edge. Same convergence mechanism.
+
+asset_type:
+  source: workspace_state     # input: the current workspace (events + vectors + tags)
+  target: workspace_state     # output: same asset with delta=0 (at rest)
+
+# ── Evaluators (AC-5: defined in config, not hardcoded) ───────────────────────
+
+evaluators:
+
+  - name: spec_workspace_aligned
+    type: deterministic
+    functional_unit: evaluate
+    description: >
+      All features defined in the spec have a workspace vector.
+      Zero PENDING gaps: spec_ids ⊆ workspace_ids.
+    check: >
+      len(gradient.pending) == 0
+    required: true
+    signal_source: gap
+    severity: warning
+
+  - name: no_orphan_vectors
+    type: deterministic
+    functional_unit: evaluate
+    description: >
+      No active workspace vectors exist outside the spec.
+      Zero active ORPHAN gaps: active_workspace_ids ⊆ spec_ids.
+      (Completed vectors are info-only — not a convergence blocker.)
+    check: >
+      all orphan items with severity != 'info' are absent
+    required: true
+    signal_source: process_gap
+    severity: warning
+
+  - name: no_stale_vectors
+    type: deterministic
+    functional_unit: evaluate
+    description: >
+      No in-progress feature vectors are stuck (unchanged > 30 days).
+    check: >
+      len(gradient.stale) == 0
+    required: false  # advisory — stale is a warning, not a convergence blocker
+    signal_source: refactoring
+    severity: info
+
+  - name: event_log_complete
+    type: deterministic
+    functional_unit: evaluate
+    description: >
+      Every active feature has at least one iteration_completed event in events.jsonl.
+      An incomplete event log is a delta on the workspace asset (AC-4) — not a
+      data quality footnote. It is evaluated, emits intent_raised, and schedules
+      an iterate() back exactly as a failing test would.
+    check: >
+      len(incomplete_features) == 0
+    required: true
+    signal_source: gap
+    severity: warning
+
+# ── Convergence ────────────────────────────────────────────────────────────────
+
+convergence:
+  required_checks:
+    - spec_workspace_aligned
+    - no_orphan_vectors
+    - event_log_complete
+  human_required: false  # F_D-only edge; F_H is optional for workspace reviews
+  delta_formula: "count of required checks not yet passing"
+  note: >
+    no_stale_vectors is advisory (required: false). Convergence is reached when
+    the three required F_D checks pass. Stale vectors emit intent_raised but
+    do not block convergence.
+
+# ── Execution Guidance ─────────────────────────────────────────────────────────
+
+guidance:
+  - >
+    Import workspace_analysis.run_workspace_analysis(workspace, project) to
+    execute iterate(WorkspaceAsset, Context[], Evaluators[]).
+  - >
+    The result.asset is the current workspace snapshot — fully derived from
+    events.jsonl, feature vectors, and workspace_gradient (AC-1).
+  - >
+    result.evaluator_results contains the evaluator check outcomes.
+    result.total_delta is the count of failing required checks.
+  - >
+    result.intent_proposals are draft intent_raised events for each delta item.
+    Present to human for decision before appending to events.jsonl (AC-3).
+  - >
+    AC-2: Run both gap_analysis and postmortem on the same workspace snapshot
+    by calling run_workspace_analysis() twice with different project names or
+    filter configs. Both read the same asset — divergence in coverage numbers
+    indicates an evaluator bug.
+  - >
+    AC-4: incomplete_features (active features with no iteration_completed events)
+    are evaluated as delta items. They emit intent_raised with signal_source=gap
+    and route through the standard homeostatic path.
+
+# ── Intent routing ─────────────────────────────────────────────────────────────
+
+intent_routing:
+  PENDING:
+    signal_source: gap
+    severity: warning
+    action: "/gen-spawn to create feature vector, or mark deferred in spec"
+  ORPHAN:
+    signal_source: process_gap
+    severity: warning
+    action: "Add to spec FEATURE_VECTORS.md, or archive workspace vector"
+  STALE:
+    signal_source: refactoring
+    severity: info
+    action: "Resume iteration, mark blocked, or archive if abandoned"
+  LOG_INCOMPLETE:
+    signal_source: gap
+    severity: warning
+    action: "Run /gen-iterate to record iteration events, or archive feature"
