@@ -117,6 +117,7 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-032](adrs/ADR-S-032-intentobserver-edgerunner-dispatch-contract.md) | IntentObserver + EDGE_RUNNER | Autonomous dispatch contract; gap analysis = scoped F_D traversal; `affected_features` canonical field; graduated autonomy replaces draft-only |
 | [ADR-S-033](adrs/ADR-S-033-genesis-enabled-systems.md) | Genesis-Enabled Systems | Build-time/runtime separation; REQ key thread as bridge; LIFE-001 as homeostatic bridge contract; two-sentence value proposition |
 | [ADR-S-034](adrs/ADR-S-034-genesis-ecosystem.md) | Genesis Ecosystem | Cooperative Genesis-enabled services co-evolving; niche discovery through mutual intent observation; ecosystem event stream; REQ key as ecosystem identifier |
+| [ADR-S-035](adrs/ADR-S-035-genesis-dsl-topology-language.md) | Genesis Topology Language (GTL) | **PROPOSED** — Python DSL over static YAML; compile-down to existing runtime contract; graph algebra (\, +, &) for profiles; operator registry (F_D/F_P/F_H); @composition decorator; explicit tenancy; Workspace resource declarations |
 
 
 ---
