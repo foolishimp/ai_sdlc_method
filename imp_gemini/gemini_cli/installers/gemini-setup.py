@@ -109,6 +109,28 @@ def detect_project_name(target: Path) -> str:
 # Logic
 # =============================================================================
 
+GRAPH_TOPOLOGY_TEMPLATE = """
+# AI SDLC Asset Graph Topology - Default
+version: "3.0.0"
+transitions:
+  - name: "intent\u2192requirements"
+    source: "intent"
+    target: "requirements"
+    evaluators: ["agent"]
+  - name: "requirements\u2192design"
+    source: "requirements"
+    target: "design"
+    evaluators: ["agent"]
+  - name: "design\u2192code"
+    source: "design"
+    target: "code"
+    evaluators: ["agent", "deterministic"]
+  - name: "code\u2194unit_tests"
+    source: "code"
+    target: "unit_tests"
+    evaluators: ["agent", "deterministic"]
+"""
+
 def setup_workspace(target: Path, project_name: str, dry_run: bool):
     print("--- Workspace Setup ---")
     ws = target / ".ai-workspace"
@@ -140,6 +162,9 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool):
             if content:
                 topology_path.write_text(content)
                 print_ok("Fetched graph_topology.yml")
+            else:
+                topology_path.write_text(GRAPH_TOPOLOGY_TEMPLATE)
+                print_ok("Created default graph_topology.yml (fetch failed)")
                 
         # Intent
         spec_dir = target / "specification"

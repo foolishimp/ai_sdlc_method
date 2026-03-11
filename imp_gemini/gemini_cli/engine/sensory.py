@@ -68,15 +68,15 @@ class SensoryService:
             if self.pid_file.exists():
                 self.pid_file.unlink()
 
-    def start_background_service(self):
+    def start_background_service(self, interval: int = 60):
         """Triggers the background process via shell (ADR-GG-005)."""
         if self.is_service_running():
             print("  [SENSE] Sensory service is already running.")
             return
 
         # Use the relative path to the entry point
-        cmd = f"python3 -m gemini_cli.engine.sensory_loop --workspace {self.workspace_root}"
-        print(f"  [SENSE] Launching background sensory process...")
+        cmd = f"python3 -m gemini_cli.engine.sensory_loop --workspace {self.workspace_root} --interval {interval}"
+        print(f"  [SENSE] Launching background sensory process ({interval}s interval)...")
         subprocess.Popen(cmd.split(), cwd=self.project_root, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def stop(self):
@@ -167,9 +167,12 @@ class SensoryService:
         is_initializing = getattr(self, "_sensory_initialized", False) == False
         
         # Scan core directories
-        for folder in ["specification", "design", "code", "tests"]:
+        for folder in ["specification", "design", "code", "tests", "comments"]:
             path = self.project_root / folder
-            if not path.exists(): continue
+            if not path.exists():
+                # Check inside .ai-workspace too
+                path = self.workspace_root / folder
+                if not path.exists(): continue
             
             for file in path.rglob("*"):
                 if file.is_file() and file.suffix in [".md", ".py", ".yml"]:

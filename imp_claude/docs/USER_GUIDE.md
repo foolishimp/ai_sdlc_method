@@ -1,6 +1,6 @@
 # Genesis User Guide
 
-**Version**: 2.10.0 | **Platform**: Claude Code | **Date**: 2026-03-10 (updated)
+**Version**: 3.0.2 | **Platform**: Claude Code | **Date**: 2026-03-12
 
 A practitioner guide for building software with the Genesis Asset Graph Model methodology.
 
@@ -26,6 +26,8 @@ A practitioner guide for building software with the Genesis Asset Graph Model me
 12. [Workspace Reference](#12-workspace-reference)
 13. [Pitfalls and FAQ](#13-pitfalls-and-faq)
 14. [Glossary](#14-glossary)
+15. [Engine CLI and Scripting](#15-engine-cli-and-scripting)
+16. [Genesis Monitor](#16-genesis-monitor)
 
 ---
 
@@ -125,6 +127,21 @@ Two commands cover daily workflow:
 
 The remaining 17 commands address specific scenarios; `/gen-start` handles routing automatically.
 
+### 1.8 Current Capability Shape (v3.0.2)
+
+`imp_claude` currently provides:
+- One-command installer: `python gen-setup.py <target>` (deploys bootloader + engine + commands)
+- 19 slash commands: `/gen-start`, `/gen-iterate`, `/gen-gaps`, `/gen-status`, and more
+- Deterministic engine CLI: `python -m genesis evaluate | run-edge | construct`
+- F_D (deterministic) + F_P (actor dispatch via MCP) + F_H (human gate / CONSENSUS) evaluator triad
+- `dispatch_monitor.py` — watches `events.jsonl`, fires `run_dispatch_loop()` on append
+- `/gen-start --auto` — homeostatic loop: dispatch pending intents → iterate → repeat
+- Live e2e proof for Claude convergence (4 standard-profile edges)
+
+Not yet in this version:
+- Background autonomous dispatch_monitor daemon (post-v3.0)
+- Installer telemetry (deferred to Phase 2 homeostasis)
+
 ---
 
 ## 2. Installation
@@ -139,13 +156,28 @@ curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_cl
 
 Restart Claude Code after installation.
 
-### 2.2 Verify
+**From a local clone** (if you have the repo already):
 
 ```bash
-curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 - verify
+cd /path/to/ai_sdlc_method
+python imp_claude/code/installers/gen-setup.py /path/to/target-project
+```
+
+### 2.2 Verify
+
+After install, in the target project:
+
+```bash
+PYTHONPATH=.genesis python -m genesis --help
 ```
 
 Or inside Claude Code, run `/gen-start`. State detection will report `NO_FEATURES` (the installer creates a template intent) and guide you to create your first feature vector.
+
+Optional smoke test from the repo root:
+
+```bash
+python -m pytest imp_claude/tests/ -m "not e2e and not mcp" -q
+```
 
 ### 2.3 What Gets Created
 
@@ -1429,9 +1461,170 @@ Profiles live in `.ai-workspace/graph/profiles/`. To customize:
 
 ---
 
+## 15. Engine CLI and Scripting
+
+Use the deterministic engine CLI when scripting, building CI checks, debugging the engine directly, or proving event/artifact sequences without a Claude Code session. The engine CLI is the explicit automation surface; for normal development use, prefer the slash commands.
+
+### 15.1 Evaluate an Asset (F_D gate)
+
+```bash
+cd /path/to/target-project
+PYTHONPATH=.genesis python -m genesis evaluate \
+  --edge "intent→requirements" \
+  --feature "REQ-F-DEMO-001" \
+  --asset specification/INTENT.md \
+  --deterministic-only
+```
+
+Reads the edge_params config, evaluates the asset against the checklist, emits Level 4 OL events into `.ai-workspace/events/events.jsonl`, and exits with the delta as the return code (0 = converged).
+
+### 15.2 Run a Full Edge Loop Until Convergence
+
+```bash
+PYTHONPATH=.genesis python -m genesis run-edge \
+  --edge "code↔unit_tests" \
+  --feature "REQ-F-DEMO-001" \
+  --asset src/demo.py \
+  --max-iterations 5
+```
+
+Loops: F_D gate → if delta > 0, write F_P intent manifest → wait for fold-back → F_D gate again → until converged or max iterations.
+
+### 15.3 Construct and Evaluate in One Call
+
+```bash
+PYTHONPATH=.genesis python -m genesis construct \
+  --edge "intent→requirements" \
+  --feature "REQ-F-DEMO-001" \
+  --asset specification/INTENT.md \
+  --output artifacts/requirements.md
+```
+
+F_P builds the output asset, then F_D gates it. Both events are emitted.
+
+### 15.4 Inspect Results
+
+```bash
+cat .ai-workspace/events/events.jsonl | python -m json.tool | grep event_type
+```
+
+Expected event sequence for a converged standard-profile run:
+- `project_initialized`
+- `edge_started`
+- `iteration_completed` (status: iterating)
+- `iteration_completed` (status: converged)
+- `edge_converged`
+
+### 15.5 Test Suite Lanes
+
+Two test lanes exist to separate fast deterministic tests from live-actor tests:
+
+**Lane 1 — deterministic (no Claude CLI required, safe for CI):**
+
+```bash
+python -m pytest imp_claude/tests/ -m "not e2e and not mcp" -q
+```
+
+**Lane 2 — live actor (requires Claude CLI):**
+
+```bash
+python -m pytest imp_claude/tests/e2e/ -m "e2e or mcp" -q
+```
+
+Specific e2e proofs:
+
+```bash
+# Full convergence e2e (requires Claude CLI — runs one /gen-start --auto session)
+python -m pytest imp_claude/tests/e2e/test_e2e_convergence.py -q
+
+# Archived convergence checks (validates a previously recorded run — no Claude CLI)
+python -m pytest imp_claude/tests/e2e/test_e2e_archived_convergence.py -q
+
+# Ecosystem / dispatch tests (all deterministic — no Claude CLI)
+python -m pytest imp_claude/tests/e2e/test_e2e_ecosystem.py -q
+
+# F_P actor dispatch e2e (requires active Claude Code session: CLAUDE_CODE_SSE_PORT set)
+python -m pytest imp_claude/tests/e2e/test_e2e_fp_dispatch.py -m mcp -q
+```
+
+### 15.6 What the Homeostatic Loop Means in v3.0.2
+
+The homeostatic loop is:
+
+```
+events.jsonl append
+    → dispatch_monitor.check_and_dispatch()
+        → intent_observer.get_pending_dispatches()
+        → run_dispatch_loop() → run_edge() [F_D → F_P → F_H]
+    → if F_H required: emit intent_raised{signal_source: human_gate_required}
+    → auto-mode pauses; human resolves
+    → CONSENSUS quorum → consensus_reached event
+    → dispatch_monitor fires again on next /gen-start --auto iteration
+```
+
+`dispatch_monitor` is a scan, not a daemon — it runs at the top of every `--auto` loop iteration. It is also importable: `from genesis.dispatch_monitor import check_and_dispatch`.
+
+A daemon-mode watcher (`run_monitor()`) exists in `dispatch_monitor.py` but is not yet wired to a background process. That is post-v3.0 work.
+
+From a user-experience perspective: run `/gen-start --auto` and let Claude manage dispatch. Claude pauses at F_H gates and surfaces them as human decisions. CONSENSUS quorum automatically resumes traversal on the next auto-loop pass.
+
+### 15.7 Key Engine Modules
+
+| Module | Role |
+|--------|------|
+| `genesis/__main__.py` | Engine CLI (`evaluate`, `run-edge`, `construct`) |
+| `genesis/engine.py` | `iterate_edge()`, `run_edge()` — the core loop |
+| `genesis/dispatch_monitor.py` | `check_and_dispatch()`, `run_monitor()` |
+| `genesis/intent_observer.py` | `get_pending_dispatches()` |
+| `genesis/edge_runner.py` | `run_edge()` — F_D → F_P → F_H gate |
+
+All 32 engine modules are deployed to `.genesis/genesis/` by the installer.
+
+---
+
+## 16. Genesis Monitor
+
+The Genesis Monitor is a real-time web dashboard that observes all projects under a root watch directory. It presents asset graphs, convergence status, feature vectors, TELEM signals, and Gantt charts via a web UI.
+
+### 16.1 Starting the Monitor
+
+```bash
+cd projects/genesis_monitor/imp_fastapi
+genesis-monitor --watch-dir /Users/jim/src/apps --port 8000
+```
+
+Open `http://localhost:8000` to see all projects with `.ai-workspace/` in the watch root, including archived e2e runs.
+
+### 16.2 What the Monitor Shows
+
+| Panel | What it displays |
+|-------|-----------------|
+| Asset Graph | D3 force-directed graph of asset types and converged edges |
+| Edge Convergence | Convergence status, iteration counts, and executor attribution |
+| Feature Matrix | All features × all edges — convergence heat map |
+| Feature Trajectory | Timeline of iterations and events per feature |
+| TELEM Signals | `intent_raised`, `affect_triage`, escalations, interoceptive signals |
+| STATUS.md Panel | Live STATUS.md rendered with Gantt chart |
+| Consensus Reviews | Open and completed CONSENSUS review sessions |
+| Consciousness Loop | Processing phases: reflex, affect, conscious |
+| Workspace Hierarchy | Project → sub-project nesting |
+
+### 16.3 Live Updates
+
+The monitor watches root directories (one FSEvent stream per root, not per project) and debounces rapid filesystem events per project. New projects discovered after startup appear automatically via a 30-second rescan.
+
+### 16.4 Archived E2E Runs
+
+Archived e2e runs at `imp_claude/tests/e2e/runs/e2e_VERSION_TIMESTAMP_SEQ/` are read-only snapshots — the monitor loads them at startup for post-analysis but does not watch them for changes. This gives you date/time snapshots of previous convergence runs for comparison.
+
+### 16.5 Multi-Tenant View
+
+Each project with a `.ai-workspace/` appears as a card, colour-coded by convergence state (ITERATING, CONVERGED, QUIESCENT, BOUNDED). The monitor is read-only — it never writes to any target project's workspace.
+
+---
+
 ## Further Reading
 
-- **[Quick Start](../imp_claude/QUICKSTART.md)** — One-page install and first run
 - **[Genesis Bootloader](GENESIS_BOOTLOADER.md)** — Minimal context for LLM sessions
 - **[Executive Summary](EXECUTIVE_SUMMARY.md)** — Condensed formal system overview
 - **[Asset Graph Model](AI_SDLC_ASSET_GRAPH_MODEL.md)** — Full formal specification

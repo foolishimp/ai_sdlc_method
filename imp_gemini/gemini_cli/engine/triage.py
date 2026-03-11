@@ -28,6 +28,15 @@ class AffectTriageEngine:
         valence = data.get("valence", {})
         severity = valence.get("severity", "info")
         
+        # 1. Check for specific comment signal (REQ-LIFE-006)
+        if data.get("name") == "artifact_write" and "comments/" in data.get("file", ""):
+            self._raise_intent(signal, {
+                "gap_type": "missing_consensus",
+                "description": f"New stakeholder comment detected: {data.get('file')}"
+            })
+            return
+
+        # 2. Rule-based triage
         rules = self.config.get("rules", [])
         for rule in rules:
             if rule.get("monitor_id") == monitor_id and rule.get("severity") == severity:
