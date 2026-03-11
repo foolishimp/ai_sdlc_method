@@ -374,11 +374,23 @@ class TestFeatureVectorConsistency:
 
     @pytest.mark.uat
     def test_all_spec_features_have_active_vectors(self):
-        """Every feature in FEATURE_VECTORS.md must have an active .yml file."""
+        """Every feature in FEATURE_VECTORS.md must have an active or completed .yml file."""
         spec_features = set(re.findall(r'(REQ-F-[A-Z][A-Z-]*[A-Z]-\d+)', self.spec_fv))
         active_features = set(self.vectors.keys())
-        missing = spec_features - active_features
-        assert not missing, f"Features in spec but no active vector: {sorted(missing)}"
+        # Also check completed/ — converged vectors are moved there
+        completed_dir = WORKSPACE / "features" / "completed"
+        completed_features: set = set()
+        for path in sorted(completed_dir.glob("*.yml")):
+            try:
+                import yaml as _yaml
+                data = _yaml.safe_load(path.read_text())
+                if data and "feature" in data:
+                    completed_features.add(data["feature"])
+            except Exception:
+                pass
+        all_known = active_features | completed_features
+        missing = spec_features - all_known
+        assert not missing, f"Features in spec but no active/completed vector: {sorted(missing)}"
 
     @pytest.mark.uat
     def test_no_orphan_active_vectors(self):

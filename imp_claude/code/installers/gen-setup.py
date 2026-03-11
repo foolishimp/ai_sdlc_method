@@ -9,8 +9,17 @@ AI SDLC Method v2 - Project Setup
 Self-contained installer that can be run directly from GitHub.
 
 Usage:
-    # Install plugin + create v2 workspace (default)
+    # Install from GitHub public repo (one-liner)
     curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 -
+
+    # Install from GitHub private repo (token via env var)
+    GITHUB_TOKEN=ghp_xxx python gen-setup.py
+
+    # Install from GitHub private repo (token via flag)
+    python gen-setup.py --github-token ghp_xxx
+
+    # Install from local disk clone (corporate / air-gapped)
+    python gen-setup.py --source /path/to/ai_sdlc_method
 
     # Install to a specific directory
     python gen-setup.py --target /path/to/project
@@ -41,15 +50,17 @@ What gets created:
 """
 
 import sys
+import os
 import json
 import argparse
 import shutil
 import subprocess
 import urllib.request
 import urllib.error
+from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 
 # =============================================================================
@@ -59,12 +70,22 @@ from typing import Dict, List, Tuple
 GITHUB_REPO = "foolishimp/ai_sdlc_method"
 PLUGIN_NAME = "genesis"
 MARKETPLACE_NAME = "genesis"
-PLUGIN_BASE = f"imp_claude/code/.claude-plugin/plugins/genesis"
-PLUGIN_JSON_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/plugin.json"
-GRAPH_TOPOLOGY_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/config/graph_topology.yml"
-BOOTLOADER_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/specification/core/GENESIS_BOOTLOADER.md"
-COMMANDS_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/commands"
-ENGINE_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/imp_claude/code/genesis"
+PLUGIN_BASE = "imp_claude/code/.claude-plugin/plugins/genesis"
+
+# Repo-relative paths (used for both GitHub and local disk source modes)
+PLUGIN_JSON_PATH = f"{PLUGIN_BASE}/plugin.json"
+GRAPH_TOPOLOGY_PATH = f"{PLUGIN_BASE}/config/graph_topology.yml"
+BOOTLOADER_PATH = "specification/core/GENESIS_BOOTLOADER.md"
+COMMANDS_BASE_PATH = f"{PLUGIN_BASE}/commands"
+ENGINE_BASE_PATH = "imp_claude/code/genesis"
+HOOKS_BASE_PATH = f"{PLUGIN_BASE}/hooks"
+
+# Legacy URL constants (kept for backward compat — derived from repo-relative paths)
+PLUGIN_JSON_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_JSON_PATH}"
+GRAPH_TOPOLOGY_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{GRAPH_TOPOLOGY_PATH}"
+BOOTLOADER_URL = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{BOOTLOADER_PATH}"
+COMMANDS_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{COMMANDS_BASE_PATH}"
+ENGINE_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{ENGINE_BASE_PATH}"
 
 COMMANDS = [
     "gen-checkpoint", "gen-escalate", "gen-gaps", "gen-init",
@@ -89,13 +110,115 @@ ENGINE_SCRIPTS = [
     "scripts/migrate_events_v1_to_v2.py",
 ]
 
-HOOKS_URL_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{PLUGIN_BASE}/hooks"
 POST_COMMIT_HOOK_SCRIPT = "post-commit-spec-watch.sh"
 
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
 VERSION = "3.0.1"
+
+
+# =============================================================================
+# Source Configuration — 3 modes for GitHub public, GitHub private, local disk
+# =============================================================================
+
+@dataclass
+class SourceConfig:
+    """Unified source configuration for fetching installer assets.
+
+    Three modes:
+      github-public   — unauthenticated raw.githubusercontent.com (default)
+      github-token    — token-authenticated GitHub (private repos, rate-limited CI)
+      local           — read from a local clone of ai_sdlc_method (air-gapped / corporate)
+    """
+    mode: str                        # "github-public" | "github-token" | "local"
+    token: str = ""                  # GitHub token (github-token mode only)
+    local_path: Optional[Path] = None  # Repo root path (local mode only)
+    branch: str = "main"             # GitHub branch (github modes only)
+
+    def describe(self) -> str:
+        if self.mode == "local":
+            return f"local:{self.local_path}"
+        if self.mode == "github-token":
+            masked = f"{self.token[:4]}***" if self.token else "???"
+            return f"github:{GITHUB_REPO}@{self.branch} (token {masked})"
+        return f"github:{GITHUB_REPO}@{self.branch}"
+
+
+def fetch_asset(source_config: SourceConfig, repo_relative_path: str, timeout: int = 10) -> str:
+    """Fetch a single asset by repo-relative path.
+
+    Dispatches to local filesystem read or authenticated/unauthenticated HTTP
+    depending on source_config.mode.
+    """
+    if source_config.mode == "local":
+        if source_config.local_path is None:
+            raise ValueError("local_path must be set for local source mode")
+        full_path = source_config.local_path / repo_relative_path
+        if not full_path.exists():
+            raise FileNotFoundError(f"Local asset not found: {full_path}")
+        return full_path.read_text(encoding="utf-8")
+
+    # GitHub modes (public or token-authenticated)
+    url = f"https://raw.githubusercontent.com/{GITHUB_REPO}/{source_config.branch}/{repo_relative_path}"
+    req = urllib.request.Request(url)
+    if source_config.token:
+        req.add_header("Authorization", f"token {source_config.token}")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8")
+
+
+def build_source_config(args) -> SourceConfig:
+    """Build SourceConfig from CLI args and environment.
+
+    Priority (first match wins):
+      1. --source PATH        → local mode
+      2. --github-token TOKEN → github-token mode
+      3. GITHUB_TOKEN env var → github-token mode
+      4. gh auth token CLI    → github-token mode
+      5. (default)            → github-public mode
+    """
+    branch = getattr(args, "branch", "main") or "main"
+
+    # 1. Local disk mode
+    local_source = getattr(args, "source", None)
+    if local_source:
+        local_path = Path(local_source).expanduser().resolve()
+        if not local_path.is_dir():
+            print_warn(f"--source path does not exist or is not a directory: {local_path}")
+        return SourceConfig(mode="local", local_path=local_path, branch=branch)
+
+    # 2. Explicit CLI token
+    token = getattr(args, "github_token", None)
+    if token:
+        return SourceConfig(mode="github-token", token=token, branch=branch)
+
+    # 3. GITHUB_TOKEN environment variable
+    env_token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if env_token:
+        return SourceConfig(mode="github-token", token=env_token, branch=branch)
+
+    # 4. gh CLI token (works for already-authenticated users)
+    gh_token = _get_gh_token()
+    if gh_token:
+        return SourceConfig(mode="github-token", token=gh_token, branch=branch)
+
+    # 5. Default: public unauthenticated
+    return SourceConfig(mode="github-public", branch=branch)
+
+
+def _get_gh_token() -> str:
+    """Get GitHub token from the gh CLI (silent — no output if not installed)."""
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "token"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    return ""
 
 
 # =============================================================================
@@ -242,21 +365,15 @@ def print_warn(msg: str):
 
 
 def get_github_token() -> str:
-    """Get GitHub token via gh CLI (works for private repos with credentials)."""
-    try:
-        result = subprocess.run(
-            ["gh", "auth", "token"],
-            capture_output=True, text=True, timeout=5
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
-    return ""
+    """Get GitHub token (env var preferred, then gh CLI). Kept for backward compat."""
+    env_token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if env_token:
+        return env_token
+    return _get_gh_token()
 
 
 def fetch_url(url: str, timeout: int = 10) -> str:
-    """Fetch URL with optional GitHub token auth for private repo support."""
+    """Fetch URL with optional GitHub token auth. Kept for backward compat."""
     token = get_github_token()
     req = urllib.request.Request(url)
     if token and "raw.githubusercontent.com" in url:
@@ -265,43 +382,16 @@ def fetch_url(url: str, timeout: int = 10) -> str:
         return r.read().decode("utf-8")
 
 
-def get_plugin_version() -> str:
-    """Fetch the latest plugin version from GitHub."""
+def get_plugin_version(source_config: Optional[SourceConfig] = None) -> str:
+    """Fetch the latest plugin version from the configured source."""
     try:
-        data = json.loads(fetch_url(PLUGIN_JSON_URL, timeout=5))
+        if source_config is not None:
+            data = json.loads(fetch_asset(source_config, PLUGIN_JSON_PATH, timeout=5))
+        else:
+            data = json.loads(fetch_url(PLUGIN_JSON_URL, timeout=5))
         return data.get("version", "unknown")
     except Exception:
         return VERSION
-
-
-def fetch_graph_topology() -> str:
-    """Fetch graph_topology.yml from GitHub. Falls back to local plugin if available."""
-    try:
-        return fetch_url(GRAPH_TOPOLOGY_URL, timeout=10)
-    except Exception:
-        pass
-
-    # Fallback: local plugin path (works for local development)
-    local_path = Path(__file__).parent.parent / ".claude-plugin" / "plugins" / "genesis" / "config" / "graph_topology.yml"
-    if local_path.exists():
-        return local_path.read_text()
-
-    return ""
-
-
-def fetch_bootloader() -> str:
-    """Fetch GENESIS_BOOTLOADER.md from GitHub. Falls back to local spec if available."""
-    try:
-        return fetch_url(BOOTLOADER_URL, timeout=10)
-    except Exception:
-        pass
-
-    # Fallback: local path (works for development in the ai_sdlc_method repo)
-    local_path = Path(__file__).resolve().parent.parent.parent.parent / "specification" / "core" / "GENESIS_BOOTLOADER.md"
-    if local_path.exists():
-        return local_path.read_text()
-
-    return ""
 
 
 def write_file(path: Path, content: str, dry_run: bool, force: bool = False) -> bool:
@@ -469,7 +559,8 @@ def setup_settings(target: Path, dry_run: bool) -> bool:
 # Workspace Setup (v2 structure)
 # =============================================================================
 
-def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
+def setup_workspace(target: Path, project_name: str, dry_run: bool,
+                    source_config: Optional[SourceConfig] = None) -> bool:
     """Create .ai-workspace/ with v2 structure."""
     now = datetime.now(timezone.utc)
     date_str = now.strftime("%Y-%m-%d %H:%M")
@@ -528,7 +619,7 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
         if dry_run:
             print_info("Would fetch and create: .ai-workspace/graph/graph_topology.yml")
         else:
-            topology_content = fetch_graph_topology()
+            topology_content = _fetch_graph_topology(source_config)
             if topology_content:
                 write_file(graph_topology_path, topology_content, dry_run)
             else:
@@ -562,20 +653,65 @@ def setup_workspace(target: Path, project_name: str, dry_run: bool) -> bool:
     return True
 
 
-def setup_commands(target: Path, dry_run: bool) -> bool:
-    """Fetch /gen-* commands from GitHub into .claude/commands/."""
+def _fetch_graph_topology(source_config: Optional[SourceConfig]) -> str:
+    """Fetch graph_topology.yml — uses source_config if provided, else legacy fallback."""
+    if source_config is not None:
+        try:
+            return fetch_asset(source_config, GRAPH_TOPOLOGY_PATH, timeout=10)
+        except Exception as e:
+            print_warn(f"Could not fetch graph_topology.yml from source: {e}")
+            return ""
+
+    # Legacy path: try GitHub, then local development fallback
+    try:
+        return fetch_url(GRAPH_TOPOLOGY_URL, timeout=10)
+    except Exception:
+        pass
+    local_path = Path(__file__).parent.parent / ".claude-plugin" / "plugins" / "genesis" / "config" / "graph_topology.yml"
+    if local_path.exists():
+        return local_path.read_text()
+    return ""
+
+
+def _fetch_bootloader(source_config: Optional[SourceConfig]) -> str:
+    """Fetch GENESIS_BOOTLOADER.md — uses source_config if provided, else legacy fallback."""
+    if source_config is not None:
+        try:
+            return fetch_asset(source_config, BOOTLOADER_PATH, timeout=10)
+        except Exception as e:
+            print_warn(f"Could not fetch GENESIS_BOOTLOADER.md from source: {e}")
+            return ""
+
+    # Legacy path: try GitHub, then local development fallback
+    try:
+        return fetch_url(BOOTLOADER_URL, timeout=10)
+    except Exception:
+        pass
+    local_path = Path(__file__).resolve().parent.parent.parent.parent / "specification" / "core" / "GENESIS_BOOTLOADER.md"
+    if local_path.exists():
+        return local_path.read_text()
+    return ""
+
+
+def setup_commands(target: Path, dry_run: bool,
+                   source_config: Optional[SourceConfig] = None) -> bool:
+    """Fetch /gen-* commands into .claude/commands/."""
     commands_dir = target / ".claude" / "commands"
 
     if dry_run:
-        print_info(f"Would fetch {len(COMMANDS)} commands from GitHub")
+        src_desc = source_config.describe() if source_config else f"github:{GITHUB_REPO}@main"
+        print_info(f"Would fetch {len(COMMANDS)} commands from {src_desc}")
         return True
 
     commands_dir.mkdir(parents=True, exist_ok=True)
     failed = []
     for cmd in COMMANDS:
-        url = f"{COMMANDS_URL_BASE}/{cmd}.md"
+        rel_path = f"{COMMANDS_BASE_PATH}/{cmd}.md"
         try:
-            content = fetch_url(url, timeout=10)
+            if source_config is not None:
+                content = fetch_asset(source_config, rel_path, timeout=10)
+            else:
+                content = fetch_url(f"{COMMANDS_URL_BASE}/{cmd}.md", timeout=10)
             dest = commands_dir / f"{cmd}.md"
             dest.unlink(missing_ok=True)
             dest.write_text(content)
@@ -583,23 +719,25 @@ def setup_commands(target: Path, dry_run: bool) -> bool:
             print_warn(f"Could not fetch {cmd}.md: {e}")
             failed.append(cmd)
     installed = len(COMMANDS) - len(failed)
-    print_ok(f"Installed {installed}/{len(COMMANDS)} commands from GitHub")
+    print_ok(f"Installed {installed}/{len(COMMANDS)} commands")
     if failed:
         print_warn(f"Failed: {', '.join(failed)}")
 
-    # Write version stamp so users can distinguish installed vs dev source
+    # Write version stamp
+    src_desc = source_config.describe() if source_config else f"github:{GITHUB_REPO}@main"
     stamp = commands_dir / ".genesis-installed"
     stamp.write_text(
         f"version: {VERSION}\n"
         f"installed: {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')}\n"
-        f"source: github:{GITHUB_REPO}@main\n"
+        f"source: {src_desc}\n"
     )
 
     return True
 
 
-def setup_engine(target: Path, dry_run: bool) -> bool:
-    """Fetch genesis engine source from GitHub into .genesis/genesis/.
+def setup_engine(target: Path, dry_run: bool,
+                 source_config: Optional[SourceConfig] = None) -> bool:
+    """Fetch genesis engine source into .genesis/genesis/.
 
     Installed at: .genesis/genesis/
     Invoked as:   PYTHONPATH=.genesis python -m genesis evaluate ...
@@ -607,7 +745,8 @@ def setup_engine(target: Path, dry_run: bool) -> bool:
     engine_dir = target / ".genesis" / "genesis"
 
     if dry_run:
-        print_info(f"Would fetch {len(ENGINE_FILES)} engine files from GitHub → .genesis/genesis/")
+        src_desc = source_config.describe() if source_config else f"github:{GITHUB_REPO}@main"
+        print_info(f"Would fetch {len(ENGINE_FILES)} engine files from {src_desc} → .genesis/genesis/")
         return True
 
     engine_dir.mkdir(parents=True, exist_ok=True)
@@ -615,9 +754,12 @@ def setup_engine(target: Path, dry_run: bool) -> bool:
 
     failed = []
     for filename in ENGINE_FILES + ENGINE_SCRIPTS:
-        url = f"{ENGINE_URL_BASE}/{filename}"
+        rel_path = f"{ENGINE_BASE_PATH}/{filename}"
         try:
-            content = fetch_url(url, timeout=10)
+            if source_config is not None:
+                content = fetch_asset(source_config, rel_path, timeout=10)
+            else:
+                content = fetch_url(f"{ENGINE_URL_BASE}/{filename}", timeout=10)
             dest = engine_dir / filename
             dest.unlink(missing_ok=True)
             dest.write_text(content)
@@ -627,19 +769,19 @@ def setup_engine(target: Path, dry_run: bool) -> bool:
 
     installed = len(ENGINE_FILES) + len(ENGINE_SCRIPTS) - len(failed)
     total = len(ENGINE_FILES) + len(ENGINE_SCRIPTS)
-    print_ok(f"Installed {installed}/{total} engine files from GitHub → .genesis/genesis/")
+    print_ok(f"Installed {installed}/{total} engine files → .genesis/genesis/")
     if failed:
         print_warn(f"Failed: {', '.join(failed)}")
 
     return True
 
 
-def setup_bootloader(target: Path, dry_run: bool) -> bool:
+def setup_bootloader(target: Path, dry_run: bool,
+                     source_config: Optional[SourceConfig] = None) -> bool:
     """Install or replace Genesis Bootloader in CLAUDE.md (always upgrades)."""
     claude_md = target / "CLAUDE.md"
 
-    # Fetch bootloader content first — need it regardless
-    bootloader = fetch_bootloader()
+    bootloader = _fetch_bootloader(source_config)
     if not bootloader:
         print_warn("Could not fetch GENESIS_BOOTLOADER.md — bootloader not installed")
         return False
@@ -658,7 +800,6 @@ def setup_bootloader(target: Path, dry_run: bool) -> bool:
     bootloader_section = f"{BOOTLOADER_START_MARKER}\n{bootloader}\n{BOOTLOADER_END_MARKER}\n"
 
     if BOOTLOADER_START_MARKER in existing:
-        # Replace existing bootloader block
         import re
         pattern = re.compile(
             re.escape(BOOTLOADER_START_MARKER) + r".*?" + re.escape(BOOTLOADER_END_MARKER) + r"\n?",
@@ -678,13 +819,13 @@ def setup_bootloader(target: Path, dry_run: bool) -> bool:
     return True
 
 
-def setup_git_hooks(target: Path, dry_run: bool) -> bool:
+def setup_git_hooks(target: Path, dry_run: bool,
+                    source_config: Optional[SourceConfig] = None) -> bool:
     """Install post-commit-spec-watch.sh into .git/hooks/post-commit (REQ-EVOL-004).
 
     Only runs if .git/ exists in target. Non-destructive — appends a call to the
     hook script rather than replacing an existing post-commit hook. Idempotent.
     """
-    import os
     git_dir = target / ".git"
     if not git_dir.is_dir():
         print_info("No .git/ found — skipping git hooks install")
@@ -693,11 +834,8 @@ def setup_git_hooks(target: Path, dry_run: bool) -> bool:
     hooks_dir = git_dir / "hooks"
     hook_file = hooks_dir / "post-commit"
     hook_script_name = POST_COMMIT_HOOK_SCRIPT
-
-    # The hook wrapper installed in .git/hooks/post-commit calls the genesis script
-    # which lives in the repo and is fetched from GitHub into .claude/genesis/hooks/
     genesis_hook_dest = target / ".claude" / "genesis" / "hooks" / hook_script_name
-    genesis_hook_url = f"{HOOKS_URL_BASE}/{hook_script_name}"
+    hook_rel_path = f"{HOOKS_BASE_PATH}/{hook_script_name}"
 
     if dry_run:
         if genesis_hook_dest.exists():
@@ -712,10 +850,14 @@ def setup_git_hooks(target: Path, dry_run: bool) -> bool:
 
     # Fetch the hook script
     try:
-        with urllib.request.urlopen(genesis_hook_url, timeout=10) as resp:
-            hook_content = resp.read().decode("utf-8")
+        if source_config is not None:
+            hook_content = fetch_asset(source_config, hook_rel_path, timeout=10)
+        else:
+            hook_url = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{hook_rel_path}"
+            with urllib.request.urlopen(hook_url, timeout=10) as resp:
+                hook_content = resp.read().decode("utf-8")
     except Exception as e:
-        print_warn(f"Could not fetch {hook_script_name} from GitHub: {e}")
+        print_warn(f"Could not fetch {hook_script_name}: {e}")
         print_warn("Skipping git hook install — run manually later")
         return True  # not fatal
 
@@ -814,7 +956,7 @@ def cmd_verify(args) -> int:
             print_error(f"{label}: MISSING — {path.relative_to(target)}")
             failed += 1
 
-    # Genesis Bootloader check (only for full installs — bootloader is part of workspace flow)
+    # Genesis Bootloader check (only for full installs)
     if not plugin_only:
         claude_md = target / "CLAUDE.md"
         if claude_md.exists():
@@ -845,7 +987,6 @@ def cmd_verify(args) -> int:
     engine_main = engine_dir / "__main__.py"
     if engine_main.exists():
         engine_files_present = sum(1 for f in ENGINE_FILES if (engine_dir / f).exists())
-        total = len(ENGINE_FILES) + len(ENGINE_SCRIPTS)
         print_ok(f"Engine: {engine_files_present}/{len(ENGINE_FILES)} files in .genesis/genesis/")
         print_info("  Run: PYTHONPATH=.genesis python -m genesis evaluate ...")
         passed += 1
@@ -945,12 +1086,16 @@ def cmd_install(args) -> int:
         )
         print()
 
-    version = get_plugin_version()
+    # Build source configuration
+    source_config = build_source_config(args)
+
+    version = get_plugin_version(source_config)
     print_banner("Project Setup", version)
 
     print_info(f"Target:  {target}")
     print_info(f"Project: {project_name}")
     print_info(f"Plugin:  {PLUGIN_NAME} v{version}")
+    print_info(f"Source:  {source_config.describe()}")
     print_info(f"Workspace: {'No' if args.no_workspace else 'Yes (v2 structure)'}")
     if args.dry_run:
         print_warn("DRY RUN — no changes will be made")
@@ -969,20 +1114,20 @@ def cmd_install(args) -> int:
         success = False
     print()
 
-    # 2b. Install /gen-* commands (non-fatal — GitHub may be unavailable in self-hosting)
+    # 2b. Install /gen-* commands (non-fatal — source may be temporarily unavailable)
     print("--- Commands ---")
-    setup_commands(target, args.dry_run)
+    setup_commands(target, args.dry_run, source_config)
     print()
 
-    # 2c. Install genesis engine (non-fatal — GitHub may be unavailable in self-hosting)
+    # 2c. Install genesis engine (non-fatal)
     print("--- Engine ---")
-    setup_engine(target, args.dry_run)
+    setup_engine(target, args.dry_run, source_config)
     print()
 
     # 3. Create workspace
     if not args.no_workspace:
         print("--- Workspace (v2) ---")
-        if not setup_workspace(target, project_name, args.dry_run):
+        if not setup_workspace(target, project_name, args.dry_run, source_config):
             success = False
         print()
 
@@ -991,14 +1136,14 @@ def cmd_install(args) -> int:
             success = False
         print()
 
-        # 3b. Append bootloader to CLAUDE.md (non-fatal — CLAUDE.md may already have bootloader)
+        # 3b. Append bootloader to CLAUDE.md (non-fatal)
         print("--- Genesis Bootloader ---")
-        setup_bootloader(target, args.dry_run)
+        setup_bootloader(target, args.dry_run, source_config)
         print()
 
         # 3c. Install git post-commit hook (non-fatal — no .git in tmp dirs)
         print("--- Git Hooks ---")
-        setup_git_hooks(target, args.dry_run)
+        setup_git_hooks(target, args.dry_run, source_config)
         print()
 
     # Summary
@@ -1010,7 +1155,7 @@ def cmd_install(args) -> int:
         print()
         print("  What was created:")
         print("    .claude/settings.json          Plugin config (GitHub marketplace)")
-        print("    .claude/commands/gen-*.md      Slash commands (fetched from GitHub)")
+        print("    .claude/commands/gen-*.md      Slash commands")
         print("    .genesis/genesis/              Engine source (PYTHONPATH=.genesis python -m genesis)")
         if not args.no_workspace:
             print("    .ai-workspace/events/          Event log (source of truth)")
@@ -1044,18 +1189,22 @@ def main():
         description="AI SDLC Method v2 — Project Setup",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
-Examples:
-  # Install from GitHub (one-liner)
-  curl -sL https://raw.githubusercontent.com/foolishimp/ai_sdlc_method/main/imp_claude/code/installers/gen-setup.py | python3 -
+Source modes:
+  GitHub public (default):
+    curl -sL https://raw.githubusercontent.com/.../gen-setup.py | python3 -
+    python gen-setup.py
 
-  # Install to current directory
-  python gen-setup.py
+  GitHub private / authenticated:
+    GITHUB_TOKEN=ghp_xxx python gen-setup.py
+    python gen-setup.py --github-token ghp_xxx
 
-  # Preview changes
-  python gen-setup.py --dry-run
+  Local disk clone (corporate / air-gapped):
+    python gen-setup.py --source /path/to/ai_sdlc_method
 
-  # Verify installation
-  python gen-setup.py verify
+Other options:
+  python gen-setup.py --target /path/to/project   Install to a specific directory
+  python gen-setup.py --dry-run                   Preview changes without writing
+  python gen-setup.py verify                      Verify existing installation
 """,
     )
 
@@ -1066,9 +1215,28 @@ Examples:
     verify_parser.add_argument("--target", default=".", help="Target directory")
 
     # Default command arguments
-    parser.add_argument("--target", default=".", help="Target directory")
+    parser.add_argument("--target", default=".", help="Target directory (default: current directory)")
     parser.add_argument("--no-workspace", action="store_true", help="Skip .ai-workspace/ creation")
     parser.add_argument("--dry-run", action="store_true", help="Preview changes without writing")
+
+    # Source mode arguments
+    source_group = parser.add_argument_group("source mode (mutually exclusive)")
+    source_group.add_argument(
+        "--source",
+        metavar="PATH",
+        help="Local disk path to ai_sdlc_method clone (corporate / air-gapped installs)",
+    )
+    source_group.add_argument(
+        "--github-token",
+        metavar="TOKEN",
+        help="GitHub personal access token for private repo access (or set GITHUB_TOKEN env var)",
+    )
+    source_group.add_argument(
+        "--branch",
+        default="main",
+        metavar="BRANCH",
+        help="GitHub branch to install from (default: main)",
+    )
 
     args = parser.parse_args()
 
