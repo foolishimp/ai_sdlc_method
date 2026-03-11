@@ -36,6 +36,11 @@ COMMANDS_DIR = PLUGIN_ROOT / "commands"
 AGENTS_DIR = PLUGIN_ROOT / "agents"
 RUNS_DIR = pathlib.Path(__file__).parent / "runs"
 
+# Fixed repo-local directory for the live e2e workspace.
+# genesis_monitor scans /Users/jim/src/apps and will find .ai-workspace/ here.
+# Named to match the codex pattern: imp_claude/.pytest_tmp/<name>
+E2E_LIVE_BASEDIR = PROJECT_ROOT / "imp_claude" / ".pytest_tmp"
+
 # Module-level state set by converged_project fixture,
 # consumed by pytest_sessionfinish for deferred archival.
 _archive_path: pathlib.Path | None = None
@@ -838,8 +843,18 @@ def run_claude_headless(
 
 @pytest.fixture(scope="session")
 def e2e_project_dir(tmp_path_factory) -> pathlib.Path:
-    """Create a fully scaffolded test project for Claude to converge."""
-    project_dir = tmp_path_factory.mktemp("temperature-converter")
+    """Create a fully scaffolded test project for Claude to converge.
+
+    Uses a fixed repo-local directory (imp_claude/.pytest_tmp/temperature-converter)
+    so genesis_monitor can find the live .ai-workspace/ during test runs.
+    This mirrors the imp_codex pattern: imp_codex/.pytest_tmp/codex-e2e-temperature-converter0.
+    """
+    E2E_LIVE_BASEDIR.mkdir(parents=True, exist_ok=True)
+    project_dir = E2E_LIVE_BASEDIR / "temperature-converter"
+    # Clean up previous run so test starts from a known-good state
+    if project_dir.exists():
+        shutil.rmtree(project_dir)
+    project_dir.mkdir()
     timestamp = datetime.now(timezone.utc).isoformat()
 
     # 1. Git init + config
