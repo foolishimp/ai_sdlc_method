@@ -215,6 +215,7 @@ def _project_comments(events: Iterable[NormalizedEvent], review_id: str, cycle_i
                 "comment_id": comment_id,
                 "participant": str(payload.get("participant", "")).strip(),
                 "timestamp": event.event_time,
+                "run_id": event.raw.get("run", {}).get("runId"),
                 "content": payload.get("content", ""),
                 "content_ref": payload.get("content_ref", ""),
                 "asset_version": payload.get("asset_version") or "v1",

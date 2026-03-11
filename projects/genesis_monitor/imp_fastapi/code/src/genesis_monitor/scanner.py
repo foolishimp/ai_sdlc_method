@@ -4,7 +4,7 @@
 import os
 from pathlib import Path
 
-PRUNE_DIRS = {".git", "node_modules", "__pycache__", ".venv", ".tox", ".mypy_cache"}
+PRUNE_DIRS = {".git", "node_modules", "__pycache__", ".venv", ".tox", ".mypy_cache", "runs", ".ai-workspace"}
 
 
 def scan_roots(roots: list[Path]) -> list[Path]:
@@ -20,10 +20,10 @@ def scan_roots(roots: list[Path]) -> list[Path]:
             projects.append(root)
 
         for dirpath, dirnames, _filenames in os.walk(root):
-            dirnames[:] = [d for d in dirnames if d not in PRUNE_DIRS]
-
             if ".ai-workspace" in dirnames:
                 projects.append(Path(dirpath))
+
+            dirnames[:] = [d for d in dirnames if d not in PRUNE_DIRS]
 
     return sorted(list(set(projects)))
 

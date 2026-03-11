@@ -6,15 +6,20 @@ import { api } from '../api/client'
 import { StatusView } from '../components/StatusView'
 import { GapView } from '../components/GapView'
 import { QueueView } from '../components/QueueView'
+import { StateBadge } from '../components/ui/Badge'
 
 type Tab = 'status' | 'gaps' | 'queue'
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'status', label: 'Status' },
+  { key: 'gaps', label: 'Gaps' },
+  { key: 'queue', label: 'Queue' },
+]
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<Tab>('status')
-
   const projectId = id ?? ''
 
   const { data: project, isLoading, error } = useQuery({
@@ -23,58 +28,80 @@ export function ProjectDetailPage() {
     enabled: !!projectId,
   })
 
-  if (!projectId) return <div style={{ padding: '32px' }}>Invalid project ID</div>
-  if (isLoading) return <div style={{ padding: '32px', textAlign: 'center' }}>Loading…</div>
-  if (error) return <div style={{ padding: '32px', color: '#dc2626' }}>Error: {String(error)}</div>
-  if (!project) return null
-
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'status', label: 'Status' },
-    { key: 'gaps', label: 'Gaps' },
-    { key: 'queue', label: 'Queue' },
-  ]
-
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-        <button onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>← Back</button>
-        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>{project.name}</h1>
-        <button
-          onClick={() => {
-            queryClient.invalidateQueries({ queryKey: ['project', projectId] })
-            queryClient.invalidateQueries({ queryKey: ['gaps', projectId] })
-            queryClient.invalidateQueries({ queryKey: ['queue', projectId] })
-          }}
-          style={{ marginLeft: 'auto', padding: '8px 16px', cursor: 'pointer' }}
-        >
-          Refresh
-        </button>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      {/* Header */}
+      <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface)', padding: '0 32px', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          {/* Top bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', height: '56px' }}>
+            <button
+              onClick={() => navigate('/')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '4px',
+                padding: '4px 10px', borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border)', background: 'transparent',
+                color: 'var(--text-secondary)', fontSize: '13px',
+              }}
+            >
+              ← Projects
+            </button>
+            <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+              <div style={{ width: 22, height: 22, borderRadius: '5px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'white', flexShrink: 0 }}>G</div>
+              <span style={{ fontWeight: 600, fontSize: '15px' }}>{project?.name ?? projectId}</span>
+              {project && <StateBadge state={project.state} />}
+            </div>
+            <button
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ['project', projectId] })
+                queryClient.invalidateQueries({ queryKey: ['gaps', projectId] })
+                queryClient.invalidateQueries({ queryKey: ['queue', projectId] })
+              }}
+              style={{
+                padding: '5px 12px', borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border)', background: 'transparent',
+                color: 'var(--text-secondary)', fontSize: '13px',
+              }}
+            >
+              ↻ Refresh
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: '0' }}>
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                data-testid={`tab-${tab.key}`}
+                style={{
+                  padding: '10px 16px',
+                  border: 'none',
+                  borderBottom: `2px solid ${activeTab === tab.key ? 'var(--accent)' : 'transparent'}`,
+                  background: 'none',
+                  color: activeTab === tab.key ? 'var(--accent)' : 'var(--text-secondary)',
+                  fontWeight: activeTab === tab.key ? 600 : 400,
+                  fontSize: '13px',
+                  transition: 'color 0.1s',
+                  marginBottom: '-1px',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid #e5e7eb', marginBottom: '24px' }}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            data-testid={`tab-${tab.key}`}
-            style={{
-              padding: '8px 20px',
-              border: 'none',
-              borderBottom: activeTab === tab.key ? '2px solid #2563eb' : '2px solid transparent',
-              background: 'none',
-              cursor: 'pointer',
-              fontWeight: activeTab === tab.key ? 'bold' : 'normal',
-              color: activeTab === tab.key ? '#2563eb' : 'inherit',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Content */}
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px' }}>
+        {isLoading && <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '64px 0' }}>Loading…</div>}
+        {error && <div style={{ padding: '16px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 'var(--radius)', color: '#991b1b' }}>{String(error)}</div>}
+        {project && activeTab === 'status' && <StatusView project={project} projectId={projectId} />}
+        {activeTab === 'gaps' && projectId && <GapView projectId={projectId} />}
+        {activeTab === 'queue' && projectId && <QueueView projectId={projectId} />}
       </div>
-
-      {activeTab === 'status' && <StatusView project={project} />}
-      {activeTab === 'gaps' && <GapView projectId={projectId} />}
-      {activeTab === 'queue' && <QueueView projectId={projectId} />}
     </div>
   )
 }

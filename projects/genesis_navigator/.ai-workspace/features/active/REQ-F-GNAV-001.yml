@@ -4,7 +4,7 @@ feature:
   intent: INT-001
   vector_type: feature
   profile: standard
-  status: iterating
+  status: converged
   priority: critical
 
 satisfies:
@@ -57,13 +57,22 @@ trajectory:
     converged_at: "2026-03-12T06:10:00Z"
     asset: "specification/features/FEATURE_VECTORS.md"
   requirements_design:
-    status: iterating
+    status: converged
     iteration: 1
+    delta: 0
     started_at: "2026-03-12T06:11:00Z"
+    converged_at: "2026-03-12T09:00:00Z"
+    asset: "imp_react_vite/design/DESIGN.md"
   design_code:
-    status: pending
+    status: converged
+    iteration: 1
+    delta: 0
+    converged_at: "2026-03-12T11:00:00Z"
   code_unit_tests:
-    status: pending
+    status: converged
+    iteration: 1
+    delta: 0
+    converged_at: "2026-03-12T12:00:00Z"
 
 constraints:
   acceptance_criteria:

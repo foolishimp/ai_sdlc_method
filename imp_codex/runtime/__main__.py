@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict
 import json
 from pathlib import Path
 
@@ -30,6 +31,9 @@ from .commands import (
     gen_trace,
     gen_vote,
 )
+from .consensus_observer import run_consensus_observer
+from .fp_worker import run_fp_work, run_pending_fp_work
+from .intent_observer import run_intent_observer
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -144,6 +148,24 @@ def main(argv: list[str] | None = None) -> int:
     dispatch_parser.add_argument("--run-deterministic", action="store_true")
     dispatch_parser.add_argument("--actor", default="intent-observer")
 
+    observer_parser = subparsers.add_parser("intent-observer")
+    observer_parser.add_argument("--project-root", default=".")
+    observer_parser.add_argument("--poll-interval-seconds", type=float, default=5.0)
+    observer_parser.add_argument("--max-polls", type=int)
+    observer_parser.add_argument("--idle-polls-before-stop", type=int)
+    observer_parser.add_argument("--max-dispatch-per-poll", type=int, default=20)
+    observer_parser.add_argument("--once", action="store_true")
+    observer_parser.add_argument("--run-agent", action="store_true")
+    observer_parser.add_argument("--run-deterministic", action="store_true")
+    observer_parser.add_argument("--actor", default="intent-observer")
+
+    fp_work_parser = subparsers.add_parser("fp-work")
+    fp_work_parser.add_argument("--project-root", default=".")
+    fp_work_selector = fp_work_parser.add_mutually_exclusive_group(required=True)
+    fp_work_selector.add_argument("--run-id")
+    fp_work_selector.add_argument("--all", action="store_true")
+    fp_work_parser.add_argument("--actor", default="fp-worker")
+
     consensus_open_parser = subparsers.add_parser("consensus-open")
     consensus_open_parser.add_argument("--project-root", default=".")
     consensus_open_parser.add_argument("--artifact", required=True)
@@ -186,6 +208,12 @@ def main(argv: list[str] | None = None) -> int:
     consensus_status_parser.add_argument("--project-root", default=".")
     consensus_status_parser.add_argument("--review-id", required=True)
     consensus_status_parser.add_argument("--cycle-id")
+
+    consensus_observe_parser = subparsers.add_parser("consensus-observe")
+    consensus_observe_parser.add_argument("--project-root", default=".")
+    consensus_observe_parser.add_argument("--review-id")
+    consensus_observe_parser.add_argument("--now")
+    consensus_observe_parser.add_argument("--actor", default="consensus-observer")
 
     consensus_close_parser = subparsers.add_parser("consensus-close")
     consensus_close_parser.add_argument("--project-root", default=".")
@@ -320,6 +348,44 @@ def main(argv: list[str] | None = None) -> int:
             run_agent=args.run_agent,
             run_deterministic=args.run_deterministic,
         )
+    elif args.command == "intent-observer":
+        observer_result = run_intent_observer(
+            project_root,
+            actor=args.actor,
+            poll_interval_seconds=args.poll_interval_seconds,
+            max_polls=args.max_polls,
+            idle_polls_before_stop=args.idle_polls_before_stop,
+            max_dispatch_per_poll=args.max_dispatch_per_poll,
+            once=args.once,
+            run_agent=args.run_agent,
+            run_deterministic=args.run_deterministic,
+        )
+        result = {
+            "actor": observer_result.actor,
+            "polls": observer_result.polls,
+            "idle_polls": observer_result.idle_polls,
+            "dispatched_count": observer_result.dispatched_count,
+            "dispatches": observer_result.dispatches,
+            "stopped_reason": observer_result.stopped_reason,
+        }
+    elif args.command == "fp-work":
+        if args.all:
+            worker_results = run_pending_fp_work(
+                project_root,
+                actor=args.actor,
+            )
+        else:
+            worker_results = [
+                run_fp_work(
+                    project_root,
+                    run_id=args.run_id,
+                    actor=args.actor,
+                )
+            ]
+        result = {
+            "processed_count": len(worker_results),
+            "results": [asdict(item) for item in worker_results],
+        }
     elif args.command == "consensus-open":
         result = gen_consensus_open(
             project_root,
@@ -368,6 +434,19 @@ def main(argv: list[str] | None = None) -> int:
             review_id=args.review_id,
             cycle_id=args.cycle_id,
         )
+    elif args.command == "consensus-observe":
+        observer_result = run_consensus_observer(
+            project_root,
+            review_id=args.review_id,
+            actor=args.actor,
+            now=args.now,
+        )
+        result = {
+            "processed_reviews": observer_result.processed_reviews,
+            "actions_written": observer_result.actions_written,
+            "closeouts_emitted": observer_result.closeouts_emitted,
+            "reviews": observer_result.reviews,
+        }
     elif args.command == "consensus-close":
         result = gen_consensus_close(
             project_root,

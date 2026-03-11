@@ -31,6 +31,7 @@ from .consensus import (
 )
 from .events import append_run_event, load_events, utc_now
 from .edge_runner import DispatchTarget, run_edge
+from .fp_supervisor import scan_pending_fp_runs
 from .intents import resolve_affected_features, resolve_named_intent_payload
 from .paths import RuntimePaths, bootstrap_workspace, detect_workspace_scope
 from .projections import (
@@ -591,6 +592,16 @@ def gen_start(
     """Detect state and return the next recommended action."""
 
     paths = RuntimePaths(project_root)
+    recovery = {"scanned": 0, "retries_scheduled": 0, "escalations": 0, "gap_events": 0, "manifests": []}
+    if paths.workspace_root.exists():
+        recovery_result = scan_pending_fp_runs(project_root, actor=actor)
+        recovery = {
+            "scanned": recovery_result.scanned,
+            "retries_scheduled": recovery_result.retries_scheduled,
+            "escalations": recovery_result.escalations,
+            "gap_events": recovery_result.gap_events,
+            "manifests": recovery_result.manifests,
+        }
     decision = decide_start_action(paths, feature=feature, edge=edge)
     result = {
         "state": decision.state,
@@ -598,6 +609,7 @@ def gen_start(
         "feature": decision.feature,
         "edge": decision.edge,
         "detail": decision.detail,
+        "recovery": recovery,
         "health": render_health_summary(paths) if paths.workspace_root.exists() else {},
         "blocked_features": blocked_feature_details(paths) if paths.workspace_root.exists() else [],
     }

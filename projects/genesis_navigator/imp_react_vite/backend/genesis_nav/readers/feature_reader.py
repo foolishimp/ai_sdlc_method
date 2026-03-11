@@ -60,9 +60,17 @@ def read_features(workspace_path: Path) -> list[dict]:
                     data = yaml.safe_load(fh)
                 if not isinstance(data, dict):
                     data = {}
-                # Ensure feature_id is present
+                # Unwrap nested `feature:` block (canonical Genesis YAML format)
+                if "feature" in data and isinstance(data["feature"], dict):
+                    inner = dict(data["feature"])
+                    # Merge remaining top-level keys (trajectory, constraints, etc.)
+                    for k, v in data.items():
+                        if k != "feature":
+                            inner.setdefault(k, v)
+                    data = inner
+                # Normalise id → feature_id
                 if "feature_id" not in data:
-                    data["feature_id"] = stem
+                    data["feature_id"] = data.pop("id", stem)
                 features.append(data)
             except Exception as exc:  # noqa: BLE001
                 features.append(

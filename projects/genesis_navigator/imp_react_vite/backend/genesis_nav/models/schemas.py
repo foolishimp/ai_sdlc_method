@@ -9,6 +9,7 @@ All models are read-only projections of workspace state.
 # Implements: REQ-F-STAT-002
 # Implements: REQ-F-STAT-003
 # Implements: REQ-F-STAT-004
+# Implements: REQ-F-FEATDETAIL-001
 # Implements: REQ-NFR-ARCH-002
 
 from __future__ import annotations
@@ -81,6 +82,12 @@ class FeatureDetail(BaseModel):
     )
     error: Optional[str] = Field(
         None, description="Parse error message if feature YAML was malformed."
+    )
+    satisfies: list[str] = Field(
+        default_factory=list, description="REQ keys this feature satisfies."
+    )
+    acceptance_criteria: list[str] = Field(
+        default_factory=list, description="Acceptance criteria from feature vector constraints."
     )
 
 

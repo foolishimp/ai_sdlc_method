@@ -1,6 +1,6 @@
 # Active Tasks — imp_gemini (Gemini tenant)
 
-*Updated: 2026-03-11T11:35:55.822139+00:00*
+*Updated: 2026-03-11T15:34:25.007990+00:00*
 *Overriding goal: [ACTIVE_TASKS.md](../../../tasks/active/ACTIVE_TASKS.md)*
 
 ---
@@ -22,20 +22,10 @@ Focus: Metabolic Honesty and Transactional Integrity.
 
 ### Active Implementation Tasks
 
-#### REQ-F-ADR-LINK-001: Untitled
-- **Status**: in_progress
-- **Next Edge**: intent→requirements
-- **Action**: `/gen-start --feature REQ-F-ADR-LINK-001`
-
 #### REQ-F-TRACING-001: Untitled
 - **Status**: pending
 - **Next Edge**: intent→requirements
 - **Action**: `/gen-start --feature REQ-F-TRACING-001`
-
-#### REQ-F-PREFECT-ENGINE-001: Untitled
-- **Status**: in_progress
-- **Next Edge**: intent→requirements
-- **Action**: `/gen-start --feature REQ-F-PREFECT-ENGINE-001`
 
 #### GLOBAL: Untitled
 - **Status**: pending
@@ -49,6 +39,8 @@ Focus: Metabolic Honesty and Transactional Integrity.
 
 
 ### Recently Converged
+- [x] REQ-F-PREFECT-ENGINE-001: Untitled
 - [x] REQ-F-MOCK-001: Untitled
 - [x] REQ-F-SENSE-001: Untitled
 - [x] REQ-F-EVENT-001: Untitled
+- [x] REQ-F-ADR-LINK-001: Untitled

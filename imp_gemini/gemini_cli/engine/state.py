@@ -232,7 +232,7 @@ class Projector:
             facets = ev.get("run", {}).get("facets", {})
             req_facet = facets.get("sdlc_req_keys", {})
             payload = facets.get("sdlc:payload", {})
-            type_facet = facets.get("sdlc_event_type", {})
+            type_facet = facets.get("sdlc_event_type") or facets.get("sdlc:event_type") or {}
             
             e_type = type_facet.get("type") or ev.get("event_type")
             feat = req_facet.get("feature_id") or payload.get("feature") or ev.get("feature")
@@ -260,16 +260,37 @@ class Projector:
             elif e_type in ("iteration_completed", "IterationCompleted"):
                 data = ev.get("data") or ev.get("_metadata", {}).get("original_data", {})
                 payload = facets.get("sdlc:payload", {})
-                delta = data.get("delta") if data.get("delta") is not None else payload.get("delta", -1)
+                delta_facet = facets.get("sdlc_delta", {})
+                
+                delta = data.get("delta")
+                if delta is None:
+                    delta = payload.get("delta")
+                if delta is None:
+                    delta = delta_facet.get("value")
+                if delta is None:
+                    delta = -1
                 
                 traj = status[feat].setdefault("trajectory", {})
                 if edge_name not in traj:
                     traj[edge_name] = {}
                 
                 # T = cumulative iteration count across all events for this feature
-                t_val = sum(1 for e in events[:events.index(ev)+1] if (e.get("event_type") or facets.get("sdlc_event_type", {}).get("type")) in ("iteration_completed", "IterationCompleted") and (e.get("feature") or facets.get("sdlc_req_keys", {}).get("feature_id")) == feat)
+                t_val = sum(1 for e in events[:events.index(ev)+1] if (
+                    e.get("event_type") or e.get("run", {}).get("facets", {}).get("sdlc_event_type", {}).get("type")
+                ) in ("iteration_completed", "IterationCompleted") and (
+                    e.get("feature") or 
+                    e.get("run", {}).get("facets", {}).get("sdlc_req_keys", {}).get("feature_id") or 
+                    e.get("run", {}).get("facets", {}).get("sdlc:payload", {}).get("feature") or
+                    e.get("run", {}).get("facets", {}).get("sdlc:universal", {}).get("instance_id")
+                ) == feat)
                 
-                new_status = "converged" if (delta == 0 or payload.get("converged")) else "iterating"
+                converged_val = payload.get("converged")
+                if converged_val is None:
+                    converged_val = delta_facet.get("converged")
+                if converged_val is None:
+                    converged_val = (delta == 0)
+                    
+                new_status = "converged" if converged_val else "iterating"
                 
                 traj[edge_name].update({
                     "status": new_status, 

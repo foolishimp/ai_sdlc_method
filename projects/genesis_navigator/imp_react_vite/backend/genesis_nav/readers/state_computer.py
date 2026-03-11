@@ -81,10 +81,14 @@ def compute_hamiltonian(events: list[dict], feature_id: str) -> dict:
         Dict with keys ``H`` (int), ``T`` (int), ``V`` (int), ``flat`` (bool).
     """
     # Collect (original_index, event) pairs for iteration_completed events
+    # Events may use "feature" or "feature_id" depending on emitter
+    def _fid(e: dict) -> str:
+        return e.get("feature_id") or e.get("feature") or ""
+
     feature_iterations: list[tuple[int, dict]] = [
         (i, e)
         for i, e in enumerate(events)
-        if e.get("event_type") == "iteration_completed" and e.get("feature_id") == feature_id
+        if e.get("event_type") == "iteration_completed" and _fid(e) == feature_id
     ]
 
     T = len(feature_iterations)
@@ -136,7 +140,7 @@ def build_feature_detail(feature_dict: dict, events: list[dict]) -> dict:
     edge_map: dict[str, dict] = {}
 
     for ev in events:
-        if ev.get("feature_id") != feature_id:
+        if (ev.get("feature_id") or ev.get("feature") or "") != feature_id:
             continue
         ev_type = ev.get("event_type", "")
         edge = ev.get("edge", "")

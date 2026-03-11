@@ -1,4 +1,5 @@
 // Implements: REQ-F-SHELL-001, REQ-F-SHELL-002
+import './styles.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'

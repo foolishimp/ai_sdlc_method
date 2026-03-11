@@ -168,6 +168,10 @@ class RuntimePaths:
         return self.codex_context_dir / "project_constraints.yml"
 
     @property
+    def runtime_robustness_path(self) -> Path:
+        return self.codex_context_dir / "runtime_robustness.yml"
+
+    @property
     def specification_dir(self) -> Path:
         return self.project_root / "specification"
 
@@ -244,6 +248,8 @@ def bootstrap_workspace(
         constraints["project"]["name"] = project_name or paths.project_root.name
         constraints["project"]["default_profile"] = default_profile
         _write_yaml(paths.project_constraints_path, constraints)
+    if not paths.runtime_robustness_path.exists():
+        shutil.copy2(CONFIG_ROOT / "runtime_robustness.yml", paths.runtime_robustness_path)
 
     return paths
 

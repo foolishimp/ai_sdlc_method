@@ -70,6 +70,15 @@ def load_edge_checklist(paths: RuntimePaths, edge: str) -> list[dict]:
     return load_yaml(config_path).get("checklist", [])
 
 
+def load_edge_config(paths: RuntimePaths, edge: str) -> dict:
+    """Load the full edge configuration document for an edge."""
+
+    config_path = _edge_config_path(paths, edge)
+    if config_path is None or not config_path.exists():
+        return {}
+    return load_yaml(config_path)
+
+
 def _has_value(value) -> bool:
     if isinstance(value, str):
         return bool(value.strip())
@@ -391,6 +400,7 @@ def run_agent_checks(paths: RuntimePaths, edge: str, *, feature: str | None = No
 
 __all__ = [
     "load_edge_checklist",
+    "load_edge_config",
     "resolve_template",
     "run_agent_checks",
     "run_deterministic_checks",

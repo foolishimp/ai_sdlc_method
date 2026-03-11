@@ -1,0 +1,18 @@
+id: REQ-F-ADR-LINK-001
+source: gap
+parent_vector_id: ''
+resolution_level: unknown
+vector_type: feature
+profile: standard
+status: converged
+composition_expression: {}
+trajectory:
+  test_cases:
+    status: converged
+    delta: 0
+    iteration: 1
+    updated_at: '2026-03-11T15:29:11.518241+00:00'
+    mode: headless
+    engine_run_id: a3c23c81-a0ce-45be-9852-9c93adcb0a16
+    asset: tests/test_adr_link_verification.py
+updated_at: '2026-03-11T15:29:11.518125+00:00'

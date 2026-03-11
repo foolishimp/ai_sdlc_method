@@ -1,0 +1,6 @@
+---
+fp_supervisor:
+  timeout_seconds: 300
+  stall_seconds: 120
+  max_retries: 2
+  classify_missing_result_as: stall

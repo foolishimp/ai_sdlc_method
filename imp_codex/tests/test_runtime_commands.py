@@ -28,6 +28,7 @@ from imp_codex.runtime import (
     gen_trace,
 )
 from imp_codex.runtime.events import load_events
+from imp_codex.runtime.fp_supervisor import load_fp_manifest, save_fp_manifest
 from imp_codex.runtime.paths import detect_workspace_scope
 
 
@@ -428,6 +429,84 @@ def test_gen_start_reports_all_blocked_when_dependencies_unresolved(tmp_path):
             "reasons": ["dependency REQ-F-MISSING-001 unresolved"],
         }
     ]
+
+
+def test_gen_start_scans_stale_fp_manifest_and_schedules_retry(tmp_path, monkeypatch):
+    project_root = tmp_path / "demo"
+    _write_intent(project_root)
+
+    import imp_codex.runtime.edge_runner as er
+
+    monkeypatch.setattr(er, "_run_fd_evaluation", lambda *a, **kw: (1, ["check_a"]))
+    monkeypatch.setattr(er, "_check_fp_result", lambda *_args, **_kwargs: None)
+
+    dispatch = er.run_edge(
+        er.DispatchTarget(
+            intent_id="INT-001",
+            feature_id="REQ-F-RECOVER-001",
+            edge="design→code",
+            feature_vector={"feature": "REQ-F-RECOVER-001", "profile": "minimal", "trajectory": {}},
+        ),
+        project_root,
+    )
+    manifest_path = Path(dispatch.fp_manifest_path)
+    manifest = load_fp_manifest(manifest_path)
+    manifest["created_at"] = "2026-03-10T00:00:00Z"
+    manifest["last_progress_at"] = "2026-03-10T00:00:00Z"
+    save_fp_manifest(manifest_path, manifest)
+
+    result = gen_start(project_root, actor="intent-observer")
+
+    assert result["recovery"]["scanned"] == 1
+    assert result["recovery"]["retries_scheduled"] == 1
+    semantic_types = [
+        event.raw.get("run", {}).get("facets", {}).get("sdlc:event_type", {}).get("type")
+        for event in load_events(RuntimePaths(project_root).events_file)
+    ]
+    assert "IterationFailed" in semantic_types
+
+
+def test_gen_start_emits_gap_detected_and_escalates_stale_fp_manifest(tmp_path, monkeypatch):
+    project_root = tmp_path / "demo"
+    _write_intent(project_root)
+    paths = bootstrap_workspace(project_root, project_name="demo")
+    _write_feature(paths, "REQ-F-GAP-001", profile="minimal")
+
+    import imp_codex.runtime.edge_runner as er
+
+    monkeypatch.setattr(er, "_run_fd_evaluation", lambda *a, **kw: (1, ["check_a"]))
+    monkeypatch.setattr(er, "_check_fp_result", lambda *_args, **_kwargs: None)
+
+    dispatch = er.run_edge(
+        er.DispatchTarget(
+            intent_id="INT-001",
+            feature_id="REQ-F-GAP-001",
+            edge="design→code",
+            feature_vector={"feature": "REQ-F-GAP-001", "profile": "minimal", "trajectory": {}},
+        ),
+        project_root,
+    )
+    manifest_path = Path(dispatch.fp_manifest_path)
+    manifest = load_fp_manifest(manifest_path)
+    manifest["created_at"] = "2026-03-10T00:00:00Z"
+    manifest["last_progress_at"] = "2026-03-10T00:00:00Z"
+    manifest["retry_count"] = manifest["max_retries"]
+    save_fp_manifest(manifest_path, manifest)
+
+    feature_file = RuntimePaths(project_root).active_features_dir / "REQ-F-GAP-001.yml"
+    feature_file.write_text(feature_file.read_text() + "\n# drifted\n")
+
+    result = gen_start(project_root, actor="intent-observer")
+
+    assert result["recovery"]["gap_events"] == 1
+    assert result["recovery"]["escalations"] == 1
+    semantic_types = [
+        event.raw.get("run", {}).get("facets", {}).get("sdlc:event_type", {}).get("type")
+        for event in load_events(RuntimePaths(project_root).events_file)
+    ]
+    assert "gap_detected" in semantic_types
+    assert "IterationAbandoned" in semantic_types
+    assert "intent_raised" in semantic_types
 
 
 def test_gen_review_records_human_decision_and_persists_feature(tmp_path):

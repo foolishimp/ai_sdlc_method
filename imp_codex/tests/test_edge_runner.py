@@ -6,6 +6,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import yaml
+
 from imp_codex.runtime.edge_runner import (
     COST_PER_FP_ITERATION,
     DispatchTarget,
@@ -15,6 +17,7 @@ from imp_codex.runtime.edge_runner import (
     run_edge,
 )
 from imp_codex.runtime.events import load_events
+from imp_codex.runtime.paths import RuntimePaths, bootstrap_workspace
 
 
 def _make_target(
@@ -42,6 +45,35 @@ def _event_types(events_path: Path) -> list[str]:
         event.raw.get("run", {}).get("facets", {}).get("sdlc:event_type", {}).get("type")
         for event in load_events(events_path)
     ]
+
+
+def _configure_noop_tools(paths: RuntimePaths) -> None:
+    constraints = yaml.safe_load(paths.project_constraints_path.read_text())
+    for tool_name in ("syntax_checker", "linter", "type_checker", "test_runner", "coverage", "formatter"):
+        constraints["tools"][tool_name]["command"] = "python"
+        constraints["tools"][tool_name]["args"] = "-c \"print('ok')\""
+    paths.project_constraints_path.write_text(yaml.safe_dump(constraints, sort_keys=False))
+
+
+def _configure_agent_invocation(paths: RuntimePaths) -> Path:
+    constraints = yaml.safe_load(paths.project_constraints_path.read_text())
+    constraints["agent_invocation"] = {
+        "mode": "file",
+        "fallback": "fail",
+        "file": ".ai-workspace/codex/context/agent_evaluations.json",
+    }
+    paths.project_constraints_path.write_text(yaml.safe_dump(constraints, sort_keys=False))
+    return paths.codex_context_dir / "agent_evaluations.json"
+
+
+def _write_feature(paths: RuntimePaths, feature_id: str) -> None:
+    feature_doc = yaml.safe_load(paths.feature_template_path.read_text())
+    feature_doc["feature"] = feature_id
+    feature_doc["title"] = feature_id
+    feature_doc["profile"] = "minimal"
+    feature_doc["status"] = "in_progress"
+    feature_doc["trajectory"] = {"intent→requirements": {"status": "converged", "delta": 0}}
+    (paths.active_features_dir / f"{feature_id}.yml").write_text(yaml.safe_dump(feature_doc, sort_keys=False))
 
 
 def test_fd_converged_returns_converged_status(tmp_path, monkeypatch):
@@ -158,6 +190,72 @@ def test_max_fp_iterations_escalates_to_fh_required(tmp_path, monkeypatch):
     assert intent_events[0].raw["run"]["facets"]["sdlc:payload"]["signal_source"] == "human_gate_required"
 
 
+def test_pending_review_with_consensus_policy_opens_review_cycle(tmp_path, monkeypatch):
+    target = _make_target(
+        feature_id="REQ-F-CONS-001",
+        edge="intent→requirements",
+        feature_vector={
+            "feature": "REQ-F-CONS-001",
+            "profile": "standard",
+            "trajectory": {},
+        },
+    )
+
+    import imp_codex.runtime.edge_runner as er
+
+    monkeypatch.setattr(
+        er,
+        "_review_policy",
+        lambda *_args, **_kwargs: {
+            "mode": "consensus",
+            "roster": ["human:alice", "human:bob"],
+            "quorum": "majority",
+            "asset_version": "v1",
+            "min_duration_seconds": 0,
+            "review_closes_in": 86400,
+        },
+    )
+
+    result = run_edge(target, tmp_path)
+
+    assert result.status == "consensus_requested"
+    assert result.fh_mode == "consensus"
+    assert result.review_id is not None
+    assert result.cycle_id == "CYCLE-001"
+    assert result.consensus_requested_run_id is not None
+    assert "ConsensusRequested" in result.events_emitted
+    assert "consensus_requested" in _event_types(tmp_path / ".ai-workspace" / "events" / "events.jsonl")
+
+
+def test_budget_exhaustion_with_consensus_policy_opens_review_cycle(tmp_path, monkeypatch):
+    target = _make_target(feature_id="REQ-F-CONS-002", edge="design→code")
+
+    import imp_codex.runtime.edge_runner as er
+
+    monkeypatch.setattr(er, "_run_fd_evaluation", lambda *a, **kw: (1, ["check_a"]))
+    monkeypatch.setattr(
+        er,
+        "_review_policy",
+        lambda *_args, **_kwargs: {
+            "mode": "consensus",
+            "roster": ["human:alice", "human:bob"],
+            "quorum": "majority",
+            "asset_version": "v2",
+            "min_duration_seconds": 0,
+            "review_closes_in": 86400,
+        },
+    )
+
+    result = run_edge(target, tmp_path, budget_usd=0.0)
+
+    assert result.status == "consensus_requested"
+    assert result.fh_mode == "consensus"
+    assert result.review_id is not None
+    semantic_types = _event_types(tmp_path / ".ai-workspace" / "events" / "events.jsonl")
+    assert "consensus_requested" in semantic_types
+    assert "intent_raised" not in semantic_types
+
+
 def test_budget_exhaustion_escalates_before_fp_dispatch(tmp_path, monkeypatch):
     target = _make_target()
 
@@ -179,6 +277,41 @@ def test_budget_exhaustion_escalates_before_fp_dispatch(tmp_path, monkeypatch):
     result = run_edge(target, tmp_path, budget_usd=COST_PER_FP_ITERATION / 3)
 
     assert result.status == "fh_required"
+
+
+def test_fp_failure_result_emits_iteration_failed_and_schedules_retry(tmp_path, monkeypatch):
+    target = _make_target(feature_id="REQ-F-RETRY-001", edge="design→code")
+
+    import imp_codex.runtime.edge_runner as er
+
+    monkeypatch.setattr(er, "_run_fd_evaluation", lambda *a, **kw: (1, ["check_a"]))
+    monkeypatch.setattr(er, "_check_fp_result", lambda *_args, **_kwargs: {"status": "timeout", "cost_usd": 0.0})
+
+    result = run_edge(target, tmp_path, max_fp_iterations=3)
+
+    assert result.status == "fp_dispatched"
+    assert result.fp_manifest_path
+    assert Path(result.fp_manifest_path).exists()
+    semantic_types = _event_types(tmp_path / ".ai-workspace" / "events" / "events.jsonl")
+    assert semantic_types.count("edge_started") == 2
+    assert "IterationFailed" in semantic_types
+
+
+def test_terminal_fp_failure_routes_to_human_gate(tmp_path, monkeypatch):
+    target = _make_target(feature_id="REQ-F-FP-FAIL-001", edge="design→code")
+
+    import imp_codex.runtime.edge_runner as er
+
+    monkeypatch.setattr(er, "_run_fd_evaluation", lambda *a, **kw: (1, ["check_a"]))
+    monkeypatch.setattr(er, "_check_fp_result", lambda *_args, **_kwargs: {"status": "timeout", "cost_usd": 0.0})
+
+    result = run_edge(target, tmp_path, max_fp_iterations=1)
+
+    assert result.status == "fh_required"
+    assert result.intent_run_id is not None
+    semantic_types = _event_types(tmp_path / ".ai-workspace" / "events" / "events.jsonl")
+    assert "IterationAbandoned" in semantic_types
+    assert "intent_raised" in semantic_types
 
 
 def test_run_id_is_unique_per_invocation(tmp_path, monkeypatch):
@@ -268,3 +401,107 @@ def test_default_run_edge_populates_iteration_run_ids(tmp_path):
     semantic_types = [event.semantic_type for event in load_events(tmp_path / ".ai-workspace" / "events" / "events.jsonl")]
     assert "IterationStarted" in semantic_types
     assert "IterationCompleted" in semantic_types
+
+
+def test_run_edge_run_agent_executes_fp_work_and_converges_with_file_contract(tmp_path):
+    project_root = tmp_path / "demo"
+    paths = bootstrap_workspace(project_root, project_name="demo")
+    _configure_noop_tools(paths)
+    invocation_file = _configure_agent_invocation(paths)
+
+    specification = project_root / "specification"
+    specification.mkdir(parents=True, exist_ok=True)
+    (specification / "INTENT.md").write_text("# Intent\n\nBuild auth.\n")
+    (specification / "requirements.md").write_text("# Requirements\n\n- REQ-F-AUTH-001\n")
+
+    design_dir = project_root / "imp_codex" / "design"
+    design_dir.mkdir(parents=True, exist_ok=True)
+    (design_dir / "auth_design.md").write_text(
+        "\n".join(
+            [
+                "# Auth Design",
+                "",
+                "Implements: REQ-F-AUTH-001",
+                "Interfaces",
+                "Dependencies",
+            ]
+        )
+        + "\n"
+    )
+    _write_feature(paths, "REQ-F-AUTH-001")
+
+    invocation_file.write_text(
+        json.dumps(
+            {
+                "evaluations": [
+                    {
+                        "feature": "REQ-F-AUTH-001",
+                        "edge": "design→code",
+                        "name": "code_matches_design",
+                        "result": "pass",
+                    },
+                    {
+                        "feature": "REQ-F-AUTH-001",
+                        "edge": "design→code",
+                        "name": "req_tags_present",
+                        "result": "pass",
+                    },
+                    {
+                        "feature": "REQ-F-AUTH-001",
+                        "edge": "design→code",
+                        "name": "follows_coding_standards",
+                        "result": "pass",
+                    },
+                ],
+                "fp_results": [
+                    {
+                        "feature": "REQ-F-AUTH-001",
+                        "edge": "design→code",
+                        "status": "completed",
+                        "message": "Generated auth implementation",
+                        "converged": False,
+                        "delta": 1,
+                        "cost_usd": 0.15,
+                        "artifacts": [
+                            {
+                                "path": "src/auth.py",
+                                "content": "\n".join(
+                                    [
+                                        "# Implements: REQ-F-AUTH-001",
+                                        "",
+                                        "def login() -> bool:",
+                                        "    return True",
+                                    ]
+                                )
+                                + "\n",
+                            }
+                        ],
+                    }
+                ],
+            },
+            indent=2,
+        )
+    )
+
+    target = _make_target(
+        feature_id="REQ-F-AUTH-001",
+        edge="design→code",
+        feature_vector={
+            "feature": "REQ-F-AUTH-001",
+            "profile": "minimal",
+            "status": "in_progress",
+            "trajectory": {"intent→requirements": {"status": "converged", "delta": 0}},
+        },
+    )
+
+    result = run_edge(target, project_root, run_agent=True)
+
+    assert result.status == "converged"
+    assert result.iterations == 2
+    assert result.fp_manifest_path
+    assert (project_root / "src" / "auth.py").exists()
+    manifest = json.loads(Path(result.fp_manifest_path).read_text())
+    assert manifest["status"] == "completed"
+    fp_result = _check_fp_result(project_root, result.run_id)
+    assert fp_result is not None
+    assert fp_result["provider"] == "file"

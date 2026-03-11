@@ -1,0 +1,42 @@
+feature:
+  id: REQ-F-FEATDETAIL-001
+  title: "Feature Detail Page — Full Feature Spec View"
+  intent: INT-001
+  vector_type: feature
+  profile: standard
+  status: converged
+  priority: high
+
+satisfies:
+  - REQ-F-FEATDETAIL-001
+
+trajectory:
+  design_code:
+    status: converged
+    iteration: 1
+    delta: 0
+    started_at: "2026-03-12T12:00:00Z"
+    converged_at: "2026-03-12T12:30:00Z"
+  code_unit_tests:
+    status: converged
+    iteration: 1
+    delta: 0
+    started_at: "2026-03-12T12:31:00Z"
+    converged_at: "2026-03-12T12:35:00Z"
+
+constraints:
+  acceptance_criteria:
+    - "Route /projects/:id/features/:featureId renders feature detail page"
+    - "Page shows: feature ID, title, status badge, current edge, delta, H/T/V Hamiltonian"
+    - "Satisfies list renders each REQ key as a ReqLink (clickable to genesis_monitor)"
+    - "Acceptance criteria from feature vector rendered as a checklist"
+    - "Trajectory shows all edges: status icon, iteration count, started_at, converged_at"
+    - "Every REQ key displayed anywhere in the navigator is a link (ReqLink pattern)"
+    - "Deep-link /projects/:id/features/:featureId works directly"
+    - "Back navigation returns to project detail"
+    - "GET /api/projects/{id}/features/{feature_id} backend endpoint returns full feature data"
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium

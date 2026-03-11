@@ -1,0 +1,34 @@
+feature:
+  id: REQ-F-HISTENGINE-001
+  title: "Session History Backend — Run Listing and Event Timeline"
+  intent: INT-001
+  vector_type: feature
+  profile: standard
+  status: pending
+  priority: high
+
+satisfies:
+  - REQ-F-HIST-001
+  - REQ-F-HIST-002
+  - REQ-F-HIST-003
+  - REQ-F-API-005
+
+trajectory:
+  design_code:
+    status: pending
+  code_unit_tests:
+    status: pending
+
+constraints:
+  acceptance_criteria:
+    - "GET /api/projects/{id}/runs returns list of run summaries (run_id, timestamp, event_count, edges_traversed, final_state)"
+    - "GET /api/projects/{id}/runs/current returns live workspace as a run with run_id='current'"
+    - "GET /api/projects/{id}/runs/{run_id} returns full event timeline grouped by feature+edge"
+    - "Archived e2e runs at tests/e2e/runs/e2e_*/ are discovered and listed"
+    - "Backend tests confirm zero filesystem writes (REQ-NFR-ARCH-002)"
+    - "All handler tests pass with mocked filesystem"
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium

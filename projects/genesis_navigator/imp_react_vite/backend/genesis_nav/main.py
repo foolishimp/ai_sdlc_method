@@ -6,6 +6,7 @@ environment-variable coupling and keeps the config explicit.
 """
 
 # Implements: REQ-F-API-001
+# Implements: REQ-F-FEATDETAIL-001
 # Implements: REQ-NFR-ARCH-002
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from genesis_nav.routers import detail as detail_router
+from genesis_nav.routers import feature as feature_router
 from genesis_nav.routers import gaps as gaps_router
 from genesis_nav.routers import projects as projects_router
 from genesis_nav.routers import queue as queue_router
@@ -72,6 +74,7 @@ def create_app() -> FastAPI:
 
     application.include_router(projects_router.router)
     application.include_router(detail_router.router)
+    application.include_router(feature_router.router)
     application.include_router(gaps_router.router)
     application.include_router(queue_router.router)
 

@@ -1,0 +1,84 @@
+/* src/styles.css — dark theme */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+
+  --bg:       #0d0f14;
+  --surface:  #161b22;
+  --surface-2:#1e2530;
+  --border:   #2a3140;
+  --border-strong: #3d4b5c;
+
+  --text-primary:   #e2e8f0;
+  --text-secondary: #8b949e;
+  --text-muted:     #4d5b6b;
+  --text-inverse:   #0d0f14;
+
+  --accent:       #4493f8;
+  --accent-light: #1a3050;
+
+  /* State colors — slightly muted for dark bg */
+  --state-iterating-bg:   #1a2d4a;
+  --state-iterating-text: #60a5fa;
+  --state-iterating-dot:  #3b82f6;
+
+  --state-converged-bg:   #0f2e1a;
+  --state-converged-text: #4ade80;
+  --state-converged-dot:  #22c55e;
+
+  --state-quiescent-bg:   #2e2208;
+  --state-quiescent-text: #fbbf24;
+  --state-quiescent-dot:  #eab308;
+
+  --state-bounded-bg:     #1e1330;
+  --state-bounded-text:   #a78bfa;
+  --state-bounded-dot:    #8b5cf6;
+
+  --state-uninitialized-bg:   #1a1f28;
+  --state-uninitialized-text: #6b7280;
+  --state-uninitialized-dot:  #4b5563;
+
+  /* Queue type colors */
+  --stuck-bg:    #2e0f0f;
+  --stuck-text:  #f87171;
+  --blocked-bg:  #2d1f08;
+  --blocked-text:#fbbf24;
+  --gap-bg:      #1e1330;
+  --gap-text:    #a78bfa;
+  --progress-bg: #0f1f38;
+  --progress-text:#60a5fa;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow:    0 4px 6px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+
+  --radius-sm: 4px;
+  --radius:    8px;
+  --radius-lg: 12px;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }

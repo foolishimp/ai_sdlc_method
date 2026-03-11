@@ -1,0 +1,33 @@
+feature:
+  id: REQ-F-HISTVIEW-001
+  title: "Session History Frontend — Run List and Timeline View"
+  intent: INT-001
+  vector_type: feature
+  profile: standard
+  status: pending
+  priority: medium
+
+satisfies:
+  - REQ-F-HIST-001
+  - REQ-F-HIST-002
+
+trajectory:
+  design_code:
+    status: pending
+  code_unit_tests:
+    status: pending
+
+constraints:
+  acceptance_criteria:
+    - "History tab in project detail view shows list of runs sorted newest-first"
+    - "'Current Session' run appears first and is visually distinguished"
+    - "Each run card shows: run_id, timestamp, event_count, edges_traversed, final_state badge"
+    - "Selecting a run shows chronological event timeline grouped by feature then edge"
+    - "edge_started / iteration_completed / edge_converged events visually distinguished"
+    - "Empty state shown when no runs available"
+    - "Uses LoadingConsole for slow API calls"
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
