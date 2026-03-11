@@ -5,7 +5,7 @@ import dataclasses
 import json
 import logging
 import re as _re
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from genesis_monitor.models.events import (
@@ -208,11 +208,18 @@ def _infer_executor(ev: "Event", raw: dict, *, is_ol: bool) -> None:
 
 
 def _parse_timestamp(ts: str) -> datetime:
-    if not ts: return datetime.now()
+    if not ts:
+        return datetime.now(timezone.utc)
     try:
-        if ts.endswith("Z"): ts = ts.replace("Z", "+00:00")
-        return datetime.fromisoformat(ts)
-    except: return datetime.now()
+        if ts.endswith("Z"):
+            ts = ts.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(ts)
+        # Normalise to UTC-aware so all timestamps are comparable
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except Exception:
+        return datetime.now(timezone.utc)
 
 
 _REFLEX_LOG_TYPES = frozenset({
