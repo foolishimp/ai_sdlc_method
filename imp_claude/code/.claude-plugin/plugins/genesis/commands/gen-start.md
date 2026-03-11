@@ -44,7 +44,7 @@ Enter 1, 2, or 3 (or press Enter for option 1):
 ## Usage
 
 ```
-/gen-start [--feature "REQ-F-*"] [--edge "source→target"] [--auto] [--profile "standard"]
+/gen-start [--feature "REQ-F-*"] [--edge "source→target"] [--auto] [--profile "standard"] [--asset "path/to/file"]
 ```
 
 | Option | Description |
@@ -54,6 +54,7 @@ Enter 1, 2, or 3 (or press Enter for option 1):
 | `--edge` | Override automatic edge determination |
 | `--auto` | Loop: iterate → check convergence → next edge → repeat (pauses at human gates) |
 | `--profile` | Override default profile for new features |
+| `--asset` | Inject an existing document as the candidate asset for the current edge (skips construction from scratch) |
 
 ## Instructions
 
@@ -176,9 +177,61 @@ Edge: code↔unit_tests (TDD co-evolution)
   Profile: standard (includes this edge)
 ```
 
+#### 5b.5: Candidate Asset Detection (Asset Injection)
+
+Before delegating to iterate, scan for an existing document that could serve as the candidate for the **target** asset type of the current edge. If found, inject it — do not construct from scratch.
+
+This step is **agent-executed, not user-prompted**. The agent reads the filesystem, finds the document, and passes it as `--asset` to the engine call. Only surface to the user if genuinely ambiguous (multiple candidates, or conflicting signals).
+
+**Scan paths by target asset type** (check in order, first match wins):
+
+| Target asset | Conventional paths to scan |
+|---|---|
+| `requirements` | `REQUIREMENTS.md`, `requirements.md`, `docs/requirements.md`, `specification/requirements/*.md` |
+| `design` | `DESIGN.md`, `ARCHITECTURE.md`, `docs/design.md`, `docs/architecture.md` |
+| `feature_decomposition` | `FEATURES.md`, `specification/features/FEATURE_VECTORS.md` |
+| `uat_tests` | `UAT.md`, `tests/uat/*.feature`, `spec/*.feature` |
+| `intent` | `INTENT.md`, `specification/INTENT.md`, `docs/intent.md` |
+| `code`, `unit_tests` | (skip — directory assets, not single-file candidates) |
+
+**Auto-inject behaviour** (no dialog):
+
+1. Read the candidate file.
+2. Run the engine in deterministic-only mode to establish the starting delta:
+   ```bash
+   PYTHONPATH=.genesis python -m genesis evaluate \
+     --edge "{edge}" \
+     --asset "{file}" \
+     --feature "{feature_id}" \
+     --deterministic-only
+   ```
+3. Report result:
+   ```
+   Found: REQUIREMENTS.md → evaluating against {edge} checklist
+   F_D result: delta={n}, {passed}/{total} checks pass
+   ```
+4. If **converged** (delta=0):
+   - Mark edge as converged in feature vector (`produced_asset_ref: {file}`).
+   - Emit `edge_converged` event to `events.jsonl`.
+   - Display: `✓ {file} satisfies all F_D checks — {edge} converged. Proceeding to next edge.`
+   - Re-run Step 5b for the next edge.
+5. If **not converged** (delta>0):
+   - Show the failing checks briefly.
+   - Proceed to Step 5c with `--asset {file}` — the document becomes the iteration 1 candidate.
+   - The full iterate loop (F_D gate → F_P construction via MCP if needed → F_D re-evaluate) runs from there.
+
+**Ambiguity — ask the user only when**:
+- Multiple candidates found for the same asset type (e.g., both `REQUIREMENTS.md` and `docs/requirements.md` exist)
+- The candidate file is very large (>2000 lines) or appears to be a different format than expected
+- `--asset` was explicitly passed AND a different candidate was auto-detected (conflict)
+
+**If no candidate found**: Skip this step, proceed to Step 5c. The iterate agent constructs the asset from scratch.
+
 #### 5c: Delegate to Iterate
 
 Delegate to `/gen-iterate --edge "{source}→{target}" --feature "{feature_id}"`.
+
+Pass `--asset {file}` if an existing document was selected in Step 5b.5.
 
 ### Step 6: Release/Gaps (ALL_CONVERGED)
 
