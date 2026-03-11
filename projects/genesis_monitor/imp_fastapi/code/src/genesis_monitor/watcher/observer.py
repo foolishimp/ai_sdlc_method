@@ -1,9 +1,11 @@
 # Implements: REQ-F-WATCH-001, REQ-F-WATCH-002
 """Watchdog-based filesystem observer with debouncing and periodic discovery.
 
-Watches only .ai-workspace/ directories (not entire root trees) to avoid
-processing thousands of irrelevant filesystem events. A periodic rescan
-discovers new projects that appear after startup.
+Watches the root watch_dirs (one FSEvent stream per root) rather than one
+stream per project. This avoids hitting macOS's FSEvent stream limit when
+many archived e2e run directories are visible to the scanner.
+
+A periodic rescan discovers new projects that appear after startup.
 """
 
 from __future__ import annotations
@@ -27,50 +29,63 @@ logger = logging.getLogger(__name__)
 RESCAN_INTERVAL_S = 30
 
 
-class _WorkspaceHandler(FileSystemEventHandler):
-    """Handles events from a specific .ai-workspace/ directory."""
+class _RootHandler(FileSystemEventHandler):
+    """Handles events from a root watch directory.
+
+    Routes each filesystem event to the affected project (if any) and
+    debounces refreshes per project to avoid redundant work.
+    """
 
     def __init__(
         self,
-        project_id: str,
         registry: ProjectRegistry,
         broadcaster: SSEBroadcaster,
         debounce_ms: int,
     ) -> None:
-        self._project_id = project_id
         self._registry = registry
         self._broadcaster = broadcaster
         self._debounce_s = debounce_ms / 1000.0
-        self._timer: threading.Timer | None = None
-        self._timer_lock = threading.Lock()
+        self._timers: dict[str, threading.Timer] = {}
+        self._lock = threading.Lock()
 
     def on_any_event(self, event: FileSystemEvent) -> None:
-        # Debounce: reset timer for this project
-        with self._timer_lock:
-            if self._timer:
-                self._timer.cancel()
+        affected_path = Path(event.src_path)
+        project_id = self._find_project(affected_path)
+        if project_id is None:
+            return
+        with self._lock:
+            existing = self._timers.get(project_id)
+            if existing:
+                existing.cancel()
+            timer = threading.Timer(self._debounce_s, self._fire_refresh, [project_id])
+            timer.daemon = True
+            timer.start()
+            self._timers[project_id] = timer
 
-            self._timer = threading.Timer(
-                self._debounce_s,
-                self._fire_refresh,
-            )
-            self._timer.start()
+    def _find_project(self, changed_path: Path) -> str | None:
+        """Return the project_id whose path contains changed_path, or None."""
+        for project in self._registry.list_projects():
+            try:
+                changed_path.relative_to(project.path)
+                return project.project_id
+            except ValueError:
+                continue
+        return None
 
-    def _fire_refresh(self) -> None:
-        """Called after debounce window — refresh project and notify clients."""
-        logger.info("Refreshing project: %s", self._project_id)
-        self._registry.refresh_project(self._project_id)
-        self._broadcaster.send("project_updated", {"project_id": self._project_id})
-
-        with self._timer_lock:
-            self._timer = None
+    def _fire_refresh(self, project_id: str) -> None:
+        logger.info("Refreshing project: %s", project_id)
+        self._registry.refresh_project(project_id)
+        self._broadcaster.send("project_updated", {"project_id": project_id})
+        with self._lock:
+            self._timers.pop(project_id, None)
 
 
 class WorkspaceWatcher:
-    """Watches .ai-workspace/ directories for changes.
+    """Watches root directories for workspace changes.
 
     Two mechanisms:
-    1. Watchdog observers on each known .ai-workspace/ dir (instant updates).
+    1. One watchdog observer per root watch_dir (not per project) — avoids
+       hitting the macOS FSEvent stream limit when many projects are scanned.
     2. Periodic rescan of roots to discover new projects (every 30s).
     """
 
@@ -90,15 +105,19 @@ class WorkspaceWatcher:
         self._stopped = False
 
     def start(self, roots: list[Path]) -> None:
-        """Start watching .ai-workspace/ dirs and periodic rescan."""
+        """Start watching root dirs and periodic rescan."""
         self._roots = [r.expanduser().resolve() for r in roots]
 
-        # Watch existing projects
+        # Record all currently known projects (for rescan diff)
         for project in self._registry.list_projects():
-            self._watch_project(project.project_id, project.path)
+            self._known_paths.add(project.path)
 
-        count = len(self._known_paths)
-        logger.info("Watching %d .ai-workspace/ directories", count)
+        # One handler + schedule per root — O(roots) FSEvent streams, not O(projects)
+        handler = _RootHandler(self._registry, self._broadcaster, self._debounce_ms)
+        for root in self._roots:
+            if root.is_dir():
+                self._observer.schedule(handler, str(root), recursive=True)
+                logger.info("Watching root: %s", root)
 
         self._observer.start()
         self._schedule_rescan()
@@ -111,19 +130,6 @@ class WorkspaceWatcher:
         self._observer.stop()
         self._observer.join(timeout=5)
 
-    def _watch_project(self, project_id: str, project_path: Path) -> None:
-        """Add a watchdog schedule for a project's .ai-workspace/."""
-        ws_dir = project_path / ".ai-workspace"
-        if ws_dir.is_dir() and project_path not in self._known_paths:
-            handler = _WorkspaceHandler(
-                project_id,
-                self._registry,
-                self._broadcaster,
-                self._debounce_ms,
-            )
-            self._observer.schedule(handler, str(ws_dir), recursive=True)
-            self._known_paths.add(project_path)
-
     def _schedule_rescan(self) -> None:
         """Schedule the next periodic rescan."""
         if self._stopped:
@@ -133,7 +139,7 @@ class WorkspaceWatcher:
         self._rescan_timer.start()
 
     def _rescan(self) -> None:
-        """Rescan roots for new projects and start watching them."""
+        """Rescan roots for new projects."""
         if self._stopped:
             return
 
@@ -143,7 +149,7 @@ class WorkspaceWatcher:
 
             for path in new_paths:
                 project = self._registry.add_project(path)
-                self._watch_project(project.project_id, path)
+                self._known_paths.add(path)
                 self._broadcaster.send("project_added", {
                     "project_id": project.project_id,
                 })

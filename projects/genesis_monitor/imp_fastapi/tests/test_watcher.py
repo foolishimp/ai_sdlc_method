@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch, call
 
 import pytest
 
-from genesis_monitor.watcher.observer import WorkspaceWatcher, _WorkspaceHandler, RESCAN_INTERVAL_S
+from genesis_monitor.watcher.observer import WorkspaceWatcher, _RootHandler, RESCAN_INTERVAL_S
 
 
 # ── REQ-F-WATCH-001: WorkspaceWatcher instantiation ───────────────────────────
@@ -74,8 +74,12 @@ class TestWorkspaceWatcherLifecycle:
 
         assert len(watcher._known_paths) == 0
 
-    def test_start_with_project_watches_workspace_dir(self, tmp_path: Path):
-        """REQ-F-WATCH-001 AC-2: only .ai-workspace/ dirs are watched."""
+    def test_start_watches_root_dirs_not_individual_projects(self, tmp_path: Path):
+        """REQ-F-WATCH-001 AC-2: root dirs are watched (one stream per root, not per project).
+
+        This avoids hitting the macOS FSEvent stream limit when many archived
+        e2e runs are visible as projects.
+        """
         ws = tmp_path / "myproject" / ".ai-workspace"
         ws.mkdir(parents=True)
 
@@ -100,8 +104,9 @@ class TestWorkspaceWatcherLifecycle:
             watcher.start([tmp_path])
             watcher.stop()
 
+        # Exactly one watch for the root, not one per project
         assert len(watched_dirs) == 1
-        assert ".ai-workspace" in watched_dirs[0]
+        assert watched_dirs[0] == str(tmp_path)
 
     def test_stop_sets_stopped_flag(self, tmp_path: Path):
         """REQ-F-WATCH-001: stop() marks the watcher as stopped."""
@@ -136,63 +141,82 @@ class TestWorkspaceWatcherLifecycle:
         assert watcher._stopped is True
 
 
-# ── REQ-F-WATCH-001: _WorkspaceHandler debounce ───────────────────────────────
+# ── REQ-F-WATCH-001: _RootHandler debounce ────────────────────────────────────
 
 
-class TestWorkspaceHandler:
+class TestRootHandler:
 
-    def _make_handler(self, debounce_ms=50):
+    def _make_handler(self, project_path: Path | None = None, debounce_ms=50):
         registry = MagicMock()
         broadcaster = MagicMock()
-        handler = _WorkspaceHandler("test-project", registry, broadcaster, debounce_ms)
+        if project_path is not None:
+            proj = MagicMock()
+            proj.project_id = "test-project"
+            proj.path = project_path
+            registry.list_projects.return_value = [proj]
+        else:
+            registry.list_projects.return_value = []
+        handler = _RootHandler(registry, broadcaster, debounce_ms)
         return handler, registry, broadcaster
 
-    def test_fire_refresh_calls_registry_refresh(self):
+    def test_fire_refresh_calls_registry_refresh(self, tmp_path):
         """REQ-F-WATCH-001: _fire_refresh calls registry.refresh_project."""
-        handler, registry, broadcaster = self._make_handler()
-        handler._fire_refresh()
+        handler, registry, broadcaster = self._make_handler(tmp_path)
+        handler._fire_refresh("test-project")
         registry.refresh_project.assert_called_once_with("test-project")
 
-    def test_fire_refresh_sends_broadcaster_event(self):
+    def test_fire_refresh_sends_broadcaster_event(self, tmp_path):
         """REQ-F-WATCH-001: _fire_refresh notifies clients via broadcaster."""
-        handler, registry, broadcaster = self._make_handler()
-        handler._fire_refresh()
+        handler, registry, broadcaster = self._make_handler(tmp_path)
+        handler._fire_refresh("test-project")
         broadcaster.send.assert_called_once()
         args = broadcaster.send.call_args
         assert args[0][0] == "project_updated"
         assert args[0][1]["project_id"] == "test-project"
 
-    def test_on_any_event_creates_debounce_timer(self):
-        """REQ-F-WATCH-001: rapid filesystem events are debounced."""
-        handler, _, _ = self._make_handler(debounce_ms=200)
+    def test_on_any_event_ignores_unrelated_path(self, tmp_path):
+        """REQ-F-WATCH-001: events outside any known project are ignored."""
+        handler, registry, broadcaster = self._make_handler(tmp_path / "myproject")
         event = MagicMock()
+        event.src_path = str(tmp_path / "unrelated" / "file.txt")
         handler.on_any_event(event)
-        assert handler._timer is not None
-        # Clean up
-        handler._timer.cancel()
+        assert len(handler._timers) == 0
 
-    def test_on_any_event_resets_timer_on_second_event(self):
-        """REQ-F-WATCH-001: second event cancels the first timer (debounce)."""
-        handler, _, _ = self._make_handler(debounce_ms=500)
+    def test_on_any_event_creates_debounce_timer(self, tmp_path):
+        """REQ-F-WATCH-001: event inside a known project creates a debounce timer."""
+        project_path = tmp_path / "myproject"
+        handler, _, _ = self._make_handler(project_path, debounce_ms=200)
         event = MagicMock()
+        event.src_path = str(project_path / ".ai-workspace" / "events.jsonl")
+        handler.on_any_event(event)
+        assert "test-project" in handler._timers
+        handler._timers["test-project"].cancel()
+
+    def test_on_any_event_resets_timer_on_second_event(self, tmp_path):
+        """REQ-F-WATCH-001: second event resets the debounce timer."""
+        project_path = tmp_path / "myproject"
+        handler, _, _ = self._make_handler(project_path, debounce_ms=500)
+        event = MagicMock()
+        event.src_path = str(project_path / ".ai-workspace" / "events.jsonl")
 
         handler.on_any_event(event)
-        first_timer = handler._timer
+        first_timer = handler._timers.get("test-project")
 
         handler.on_any_event(event)
-        second_timer = handler._timer
+        second_timer = handler._timers.get("test-project")
 
         assert second_timer is not first_timer
-        # Clean up
-        if handler._timer:
-            handler._timer.cancel()
+        if second_timer:
+            second_timer.cancel()
 
-    def test_debounce_fires_after_delay(self):
+    def test_debounce_fires_after_delay(self, tmp_path):
         """REQ-F-WATCH-001: refresh fires after the debounce window elapses."""
-        handler, registry, broadcaster = self._make_handler(debounce_ms=50)
+        project_path = tmp_path / "myproject"
+        handler, registry, broadcaster = self._make_handler(project_path, debounce_ms=50)
         event = MagicMock()
+        event.src_path = str(project_path / ".ai-workspace" / "events.jsonl")
         handler.on_any_event(event)
-        time.sleep(0.15)  # wait longer than debounce
+        time.sleep(0.15)
         registry.refresh_project.assert_called_once_with("test-project")
 
 
@@ -221,7 +245,6 @@ class TestPeriodicRescan:
 
         with patch("genesis_monitor.watcher.observer.scan_roots",
                    return_value=[new_project_path]), \
-             patch.object(watcher._observer, "schedule"), \
              patch.object(watcher, "_schedule_rescan"):
             watcher._rescan()
 
