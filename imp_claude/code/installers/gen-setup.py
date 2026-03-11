@@ -78,6 +78,7 @@ GRAPH_TOPOLOGY_PATH = f"{PLUGIN_BASE}/config/graph_topology.yml"
 BOOTLOADER_PATH = "specification/core/GENESIS_BOOTLOADER.md"
 COMMANDS_BASE_PATH = f"{PLUGIN_BASE}/commands"
 ENGINE_BASE_PATH = "imp_claude/code/genesis"
+EDGE_PARAMS_BASE_PATH = f"{PLUGIN_BASE}/config/edge_params"
 HOOKS_BASE_PATH = f"{PLUGIN_BASE}/hooks"
 
 # Legacy URL constants (kept for backward compat — derived from repo-relative paths)
@@ -110,12 +111,23 @@ ENGINE_SCRIPTS = [
     "scripts/migrate_events_v1_to_v2.py",
 ]
 
+EDGE_PARAMS_FILES = [
+    "adr.yml", "bdd.yml", "code_tagging.yml",
+    "composition_consensus.yml", "composition_review.yml",
+    "design_code.yml", "design_module_decomp.yml", "design_tests.yml",
+    "feature_decomp_design_rec.yml", "feedback_loop.yml",
+    "intent_dispatch.yml", "intent_requirements.yml",
+    "module_decomp_basis_proj.yml", "requirements_design.yml",
+    "requirements_feature_decomp.yml", "schema_discovery.yml",
+    "tdd.yml", "traceability.yml", "workspace_analysis.yml",
+]
+
 POST_COMMIT_HOOK_SCRIPT = "post-commit-spec-watch.sh"
 
 BOOTLOADER_START_MARKER = "<!-- GENESIS_BOOTLOADER_START -->"
 BOOTLOADER_END_MARKER = "<!-- GENESIS_BOOTLOADER_END -->"
 
-VERSION = "3.0.1"
+VERSION = "3.0.2"
 
 
 # =============================================================================
@@ -751,6 +763,8 @@ def setup_engine(target: Path, dry_run: bool,
 
     engine_dir.mkdir(parents=True, exist_ok=True)
     (engine_dir / "scripts").mkdir(exist_ok=True)
+    edge_params_dir = engine_dir / "config" / "edge_params"
+    edge_params_dir.mkdir(parents=True, exist_ok=True)
 
     failed = []
     for filename in ENGINE_FILES + ENGINE_SCRIPTS:
@@ -767,11 +781,34 @@ def setup_engine(target: Path, dry_run: bool,
             print_warn(f"Could not fetch {filename}: {e}")
             failed.append(filename)
 
+    # Install edge_params configs — required by the engine for deterministic evaluation
+    edge_params_failed = []
+    for filename in EDGE_PARAMS_FILES:
+        rel_path = f"{EDGE_PARAMS_BASE_PATH}/{filename}"
+        try:
+            if source_config is not None:
+                content = fetch_asset(source_config, rel_path, timeout=10)
+            else:
+                content = fetch_url(
+                    f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{rel_path}",
+                    timeout=10,
+                )
+            dest = edge_params_dir / filename
+            dest.unlink(missing_ok=True)
+            dest.write_text(content)
+        except Exception as e:
+            print_warn(f"Could not fetch edge_params/{filename}: {e}")
+            edge_params_failed.append(filename)
+
     installed = len(ENGINE_FILES) + len(ENGINE_SCRIPTS) - len(failed)
     total = len(ENGINE_FILES) + len(ENGINE_SCRIPTS)
+    ep_installed = len(EDGE_PARAMS_FILES) - len(edge_params_failed)
     print_ok(f"Installed {installed}/{total} engine files → .genesis/genesis/")
+    print_ok(f"Installed {ep_installed}/{len(EDGE_PARAMS_FILES)} edge_params configs → .genesis/genesis/config/edge_params/")
     if failed:
-        print_warn(f"Failed: {', '.join(failed)}")
+        print_warn(f"Failed engine files: {', '.join(failed)}")
+    if edge_params_failed:
+        print_warn(f"Failed edge_params: {', '.join(edge_params_failed)}")
 
     return True
 
