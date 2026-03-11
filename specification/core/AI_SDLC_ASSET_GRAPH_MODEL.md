@@ -173,7 +173,7 @@ Biologically, a cell IS a Markov blanket. The cell membrane separates internal b
 
 - **Nucleus** (eukaryote): bounded substructure within the cell — the design tenant (ADR-027) is the beginning of this
 - **Multicellular coordination**: multiple projects forming tissue — signalling through live lineage, cell differentiation (platform project, feature project, data project), specialisation
-- **Organs**: clusters of differentiated projects with coordinated function — the tournament pattern (ADR-S-018) is the first primitive multicellular structure
+- **Organs**: clusters of differentiated projects with coordinated function — parallel spawn with fold-back (ADR-S-023) is the first primitive multicellular structure
 
 The methodology will evolve through these stages. The formal system (four primitives, one operation) remains invariant across all stages — only the nesting depth and coupling topology change.
 

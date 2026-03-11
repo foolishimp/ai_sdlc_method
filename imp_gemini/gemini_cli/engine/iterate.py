@@ -15,7 +15,7 @@ from .stateless import run_iteration
 class Functor(Protocol):
     def evaluate(self, candidate: str, context: Dict) -> FunctorResult: ...
 
-# Implements: REQ-ITER-001, REQ-ITER-002, REQ-ROBUST-002, REQ-GRAPH-004, REQ-EVOL-001, REQ-F-EVOL-001, ADR-S-018
+# Implements: REQ-ITER-001, REQ-ITER-002, REQ-ROBUST-002, REQ-GRAPH-004, REQ-EVOL-001, REQ-F-EVOL-001
 class IterateEngine:
     """Universal iteration engine for all graph edges.
     Implements the Markov Blanket pattern via project fingerprinting and run archival.
@@ -144,19 +144,18 @@ class IterateEngine:
                     resolved.append({"child_run_id": ev["run"]["runId"], "feature_id": req_facet.get("feature_id"), "edge": req_facet.get("edge"), "outputs": ev.get("outputs", []), "delta": ev.get("run", {}).get("facets", {}).get("sdlc_delta", {}).get("value", 0)})
         return resolved
 
-    def iterate_edge(self, edge: str, feature_id: str, asset_path: Path, context: Dict[str, Any], iteration: int = 1, mode: str = "auto", checklist: List[Dict[str, Any]] = None, construct: bool = False) -> IterationRecord:
+    def iterate_edge(self, edge: str, feature_id: str, asset_path: Path, context: Dict[str, Any], iteration: int = 1, construct: bool = False, edge_run_id: str = None, edge_correlation_id: str = None) -> IterationRecord:
         """Run one iteration on a single edge as a Unit of Work transaction."""
         report = run_iteration(
             feature_id=feature_id,
             edge=edge,
             asset_path=asset_path,
-            context=context,
+            context={**context, "edge_run_id": edge_run_id, "edge_correlation_id": edge_correlation_id},
             functors=self.functor_map,
             store=self.store,
             constraints=self.constraints,
             iteration=iteration,
-            construct=construct,
-            checklist=checklist
+            construct=construct
         )
         
         # Archive for audit
@@ -177,12 +176,19 @@ class IterateEngine:
                 )
                 break
                 
+        # Compute cumulative T from events
+        from .fd_spawn import load_events
+        events = load_events(self.workspace_root)
+        cumulative_t = sum(1 for e in events if e.get("event_type") == "iteration_completed" and e.get("feature") == feature_id)
+        
         record = IterationRecord(
             edge=edge, 
             iteration=iteration, 
             report=report, 
             construct_result=report.construct_result,
-            plan_result=plan_res
+            plan_result=plan_res,
+            hamiltonian_T=cumulative_t,
+            hamiltonian_V=max(0, report.delta)
         )
         return record
 
@@ -218,7 +224,7 @@ class IterateEngine:
         data["status"] = status
         data["updated_at"] = datetime.now(timezone.utc).isoformat()
         
-        parts = re.split(r"->|\u2192|\u2194", edge)
+        parts = re.split(r"->|→|↔", edge)
         traj_key = parts[-1].strip()
         data.setdefault("trajectory", {})[traj_key] = {
             "status": status, 
@@ -254,36 +260,89 @@ class IterateEngine:
                     last_deltas[key] = delta
         return violations
 
-    def run_edge(self, edge: str, feature_id: str, asset_path: Path, context: Dict[str, Any], mode: str = "auto", checklist: List[Dict[str, Any]] = None, construct: bool = False, max_iterations: int = 10, wall_timeout: int = 3600, stall_timeout: int = 300, parent_run_id: str = None) -> List[IterationRecord]:
-        """Iterate on a single edge until convergence or budget exhaustion (Finding #1)."""
-        import time
-        base_iteration = context.get("iteration_count", 0); records = []
-        start_time = time.time(); last_mtime, last_count = self.get_liveness_signal()
+    def run_edge(self, edge: str, feature_id: str, asset_path: Path, context: Dict[str, Any], mode: str = "auto", construct: bool = False, max_iterations: int = 10, wall_timeout: int = 3600, stall_timeout: int = 300, parent_run_id: str = None) -> List[IterationRecord]:
+        """Iterate on a single edge until convergence or budget exhaustion."""
+        from .ol_event import emit_ol_event, make_ol_event
+        from .fd_spawn import detect_spawn_condition, create_child_vector, link_parent_child, emit_spawn_events, load_events
+        
+        events_path = self.workspace_root / "events" / "events.jsonl"
+        project_name = self.constraints.get("project_id") or "imp_gemini"
+        
+        # Emit EdgeStarted
+        edge_run_id = emit_ol_event(
+            events_path,
+            make_ol_event(
+                "EdgeStarted",
+                edge,
+                project_name,
+                feature_id,
+                "genesis-engine",
+                payload={"feature": feature_id, "edge": edge}
+            )
+        )
+        
+        records = []
+        start_time = time.time()
+        last_mtime, last_count = self.get_liveness_signal()
         last_activity = time.time()
+        
         for i in range(1, max_iterations + 1):
-            iter_num = base_iteration + i
-            record = self.iterate_edge(edge=edge, feature_id=feature_id, asset_path=asset_path, context={**context, "parent_run_id": parent_run_id}, iteration=iter_num, mode=mode, checklist=checklist, construct=construct)
+            record = self.iterate_edge(
+                edge=edge, 
+                feature_id=feature_id, 
+                asset_path=asset_path, 
+                context=context, 
+                iteration=i, 
+                construct=construct,
+                edge_run_id=edge_run_id,
+                edge_correlation_id=edge_run_id
+            )
             records.append(record)
             
-            # Legacy event emission for tests
-            status = "converged" if record.report.converged else "iterating"
-            if record.report.spawn: 
-                status = "blocked"
-                self.emit_event("compensation_triggered", feature=feature_id, edge=edge, data={"reason": "recursion_spawned"})
-            
-            self.emit_event("iteration_completed", feature=feature_id, edge=edge, data={"status": status, "delta": record.report.delta, "iteration": iter_num})
-            self.update_intent_vector(feature_id, edge, iter_num, status, record.report.delta, str(asset_path), mode=mode, plan_result=record.plan_result)
+            # Update Intent Vector
+            status = "converged" if record.converged else "iterating"
+            self.update_intent_vector(feature_id, edge, i, status, record.delta, str(asset_path), mode=mode, run_id=edge_run_id, plan_result=record.plan_result)
 
-            if record.report.converged or record.report.spawn: break
+            if record.converged:
+                # Emit EdgeConverged
+                emit_ol_event(
+                    events_path,
+                    make_ol_event(
+                        "EdgeConverged",
+                        edge,
+                        project_name,
+                        feature_id,
+                        "genesis-engine",
+                        causation_id=edge_run_id,
+                        correlation_id=edge_run_id,
+                        payload={"feature": feature_id, "edge": edge, "iteration": i}
+                    )
+                )
+                break
+            
+            # Spawn detection
+            events = load_events(self.workspace_root)
+            spawn_req = detect_spawn_condition(events, feature_id, edge, threshold=3)
+            if spawn_req:
+                spawn_res = create_child_vector(self.workspace_root, spawn_req, project_name)
+                link_parent_child(self.workspace_root, feature_id, spawn_res.child_id, spawn_req.vector_type, spawn_req)
+                emit_spawn_events(self.workspace_root, project_name, spawn_req, spawn_res)
+                
+                # Mark as blocked in Intent Vector
+                self.update_intent_vector(feature_id, edge, i, "blocked", record.delta, str(asset_path), mode=mode, run_id=edge_run_id)
+                break
+
             if time.time() - start_time > wall_timeout: break
             cur_mtime, cur_count = self.get_liveness_signal()
             if cur_mtime > last_mtime or cur_count != last_count:
-                last_mtime, last_count = cur_mtime, cur_count; last_activity = time.time()
+                last_mtime, last_count = cur_mtime, cur_count
+                last_activity = time.time()
             elif time.time() - last_activity > stall_timeout: break
+                
         return records
 
     def run_tournament(self, edge: str, feature_id: str, context: Dict[str, Any], candidates: List[str]) -> IterationRecord:
-        """Execute a parallel competitive tournament (ADR-S-018).
+        """Execute parallel spawn with fold-back (ADR-S-023, ADR-S-024).
         Spawns N child vectors, evaluates them, and merges the winner.
         """
         # 1. Parallel Spawn

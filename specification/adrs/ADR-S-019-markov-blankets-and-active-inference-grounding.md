@@ -74,7 +74,7 @@ This is the basis of the lineage DAG (**ADR-S-022**, implementation): live linea
 **Evolutionary stages** (where the methodology currently sits and where it is going):
 - **Prokaryote** (current): single-cell, working blanket, no bounded nucleus — the project workspace IS the cell.
 - **Eukaryote** (next): bounded sub-structures (e.g. design tenants) within the workspace — internal specialisation.
-- **Multicellular** (future): projects coupled through live lineage — the first primitive multicellular structure; tournament pattern (ADR-S-018) is the first division of labour.
+- **Multicellular** (future): projects coupled through live lineage — the first primitive multicellular structure; parallel spawn with fold-back (ADR-S-023) is the first division of labour.
 
 ---
 

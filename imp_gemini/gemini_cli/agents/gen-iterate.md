@@ -41,7 +41,7 @@ Emit `source_finding` events for each gap found. A `source_finding` that cannot 
 
 ### Step 3: Minimise Free Energy (Action)
 - If **V > 0**: Construct a new candidate or apply a fix to the asset to resolve the failing checks.
-- If the ambiguity is persistent and meets spawn criteria: Recommend a **Spawn** (ADR-S-018) — spawn a Discovery vector or Spike vector to resolve the uncertainty.
+- If the ambiguity is persistent and meets spawn criteria: Recommend a **Spawn** (ADR-S-023) — spawn a Discovery vector or Spike vector to resolve the uncertainty.
 - discovery vectors resolve SOURCE_AMBIGUITY gaps; poc vectors validate feasibility.
 
 ### Step 4: Evaluate (Validation)
