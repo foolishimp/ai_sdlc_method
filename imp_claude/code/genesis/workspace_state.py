@@ -812,7 +812,7 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
         )
         passed += 1
 
-    # 6. Spec Hash Consistency (REQ-EVOL-NFR-002)
+    # 6. Spec Hash Consistency (REQ-EVOL-004)
     drift = verify_spec_hashes(workspace)
     if drift:
         results.append(
@@ -841,7 +841,7 @@ def verify_genesis_compliance(workspace: Path) -> dict[str, Any]:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# SPEC HASH VERIFICATION (REQ-EVOL-NFR-002)
+# SPEC HASH VERIFICATION (REQ-EVOL-004)
 # ═══════════════════════════════════════════════════════════════════════
 
 
@@ -857,7 +857,7 @@ def verify_spec_hashes(
     A file not in the event log at all is NOT reported as drift — drift only occurs
     when a spec_modified event was emitted and the current file no longer matches.
 
-    Implements: REQ-EVOL-NFR-002 (Spec Hash Verification)
+    Implements: REQ-EVOL-004 (Spec Hash Verification)
     """
     ws_dir = _workspace_dir(workspace)
     events_file = ws_dir / "events" / "events.jsonl"

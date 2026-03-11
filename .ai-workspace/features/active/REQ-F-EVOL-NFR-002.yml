@@ -3,25 +3,35 @@ title: "Resolve orphan REQ-EVOL-NFR-002 - define in spec or correct tag"
 intent: INT-008
 vector_type: feature
 profile: minimal
-status: pending
+status: converged
 priority: low
 created: "2026-03-10T00:00:00Z"
-updated: "2026-03-10T00:00:00Z"
+updated: "2026-03-11T06:30:00Z"
 source: feature_proposal
 proposal_id: PROP-008
 
 description: |
   REQ-EVOL-NFR-002 is referenced in workspace_gradient.py and workspace_state.py
   with "# Implements: REQ-EVOL-NFR-002" but this key does not appear in
-  AISDLC_IMPLEMENTATION_REQUIREMENTS.md. Resolution: (a) define REQ-EVOL-NFR-002
-  in the spec, or (b) correct the tag to the closest defined key (REQ-EVOL-005
-  or REQ-ROBUST-003).
+  AISDLC_IMPLEMENTATION_REQUIREMENTS.md. Resolution: corrected the tag to
+  REQ-EVOL-004 (Spec Hash Verification) which covers the same behaviour and
+  is defined in the spec. workspace_state.py already had REQ-EVOL-004 at file
+  header; the inline comments and workspace_gradient.py tag now consistently
+  reference REQ-EVOL-004.
 
 requirements:
-  - REQ-EVOL-NFR-002
+  - REQ-EVOL-004
 
 trajectory:
   requirements:
-    status: pending
+    status: converged
+    notes: "Resolution chosen: correct orphan tag to REQ-EVOL-004 (same coverage, defined in spec)"
+    converged_at: "2026-03-11T06:30:00Z"
   code:
-    status: pending
+    status: converged
+    notes: "workspace_gradient.py and workspace_state.py: all REQ-EVOL-NFR-002 → REQ-EVOL-004"
+    converged_at: "2026-03-11T06:30:00Z"
+    evaluator_results:
+      orphan_tag_eliminated: pass
+      replacement_key_exists_in_spec: pass
+      no_other_orphan_references: pass

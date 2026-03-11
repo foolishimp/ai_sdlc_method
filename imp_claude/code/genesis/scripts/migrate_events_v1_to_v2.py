@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Implements: REQ-EVENT-001 (OpenLineage event construction — migrate v1 bespoke to OL RunEvent format)
+# Implements: REQ-ROBUST-003 (Crash Recovery via Event Log Gap Detection — migrate interrupted logs)
 """
 migrate_events_v1_to_v2.py — Migrate events.jsonl from v1 (bespoke) to v2 (OpenLineage RunEvent).
 
