@@ -1,6 +1,8 @@
 proposal_id: "PROP-017"
 intent_id: "INT-022"
-status: draft
+status: dismissed
+dismissed_at: "2026-03-11T22:10:00Z"
+dismissed_reason: "Delivered — imp_codex runtime # Implements: tags added to all 6 files this session"
 severity: medium
 created: "2026-03-11T05:00:01Z"
 source: gap_analysis

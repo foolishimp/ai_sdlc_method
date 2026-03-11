@@ -1,6 +1,8 @@
 proposal_id: PROP-015
 intent_id: INT-020
-status: draft
+status: dismissed
+dismissed_at: "2026-03-11T22:10:00Z"
+dismissed_reason: "Delivered — REQ-F-TELEM-001 converged (engine.py, dispatch_loop.py, edge_runner.py + 4 tests)"
 severity: medium
 created: '2026-03-10T18:54:17Z'
 source: gap_analysis

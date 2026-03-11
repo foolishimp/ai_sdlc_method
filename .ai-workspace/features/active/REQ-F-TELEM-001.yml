@@ -3,10 +3,11 @@ title: Telemetry Tagging Phase 1
 intent: INT-GAP-013
 vector_type: feature
 profile: hotfix
-status: iterating
+status: converged
 priority: medium
 created: "2026-03-10T00:00:00Z"
-updated: "2026-03-11T22:00:00Z"
+updated: "2026-03-11T22:10:00Z"
+converged_at: "2026-03-11T22:10:00Z"
 source: feature_proposal
 proposal_id: PROP-006
 

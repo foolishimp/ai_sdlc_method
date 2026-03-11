@@ -121,17 +121,18 @@ consciousness loop — system cannot autonomously generate/compose intent withou
 
 ---
 
-## New: REQ-F-TELEM-001 — Telemetry Tagging Phase 1
+## REQ-F-TELEM-001 — Telemetry Tagging Phase 1
 
-**Status**: Pending
+**Status**: Converged (2026-03-11)
 **Source**: PROP-006 (approved 2026-03-10)
-**Priority**: medium
 
-Add `req=` telemetry tags to logging/metrics across engine.py, evaluator execution,
-and command execution paths. ~85 REQ keys to tag. Required for Phase 2 homeostasis.
+Phase 1 delivered: `req="{feature_id}"` structured log tags in engine.py, dispatch_loop.py, edge_runner.py. 4 tests.
 
-**Requirements**: all implemented REQ keys
-**Start with**: `/gen-iterate --edge "code↔unit_tests" --feature "REQ-F-TELEM-001"`
+### Known Deferred Gap: installer (code→cicd) telemetry
+
+**Disposition**: Deferred to Phase 2 homeostasis work
+**Reason**: The installer (`gen-setup.py`) IS the `code→cicd` edge for Genesis. It currently has no `req=` log calls. This is a real L3 gap but non-blocking — installer telemetry only matters once a homeostasis monitor is reading the event stream from a running deployment. That monitor doesn't exist yet.
+**Re-open when**: REQ-LIFE-002 Phase 2 work begins (homeostasis edge, runtime monitoring).
 
 ---
 
