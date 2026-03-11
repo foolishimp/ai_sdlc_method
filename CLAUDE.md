@@ -176,7 +176,7 @@ See **[specification/README.md](specification/README.md)** for the full document
 
 ## Current Status
 
-**Version**: v3.0.0-beta.1 (Asset Graph Model)
+**Version**: v3.0.1 (Asset Graph Model)
 
 | Stage | Status |
 |-------|--------|

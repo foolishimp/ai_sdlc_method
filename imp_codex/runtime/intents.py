@@ -1,3 +1,4 @@
+# Implements: REQ-F-NAMEDCOMP-001, REQ-F-INTENT-001
 """Named composition registry and typed intent payload helpers."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# Implements: REQ-F-ENGINE-001, REQ-F-LIFE-001, REQ-F-EVENT-001, REQ-F-UX-001
 """Executable Codex runtime primitives for the methodology tenant."""
 
 from .commands import (

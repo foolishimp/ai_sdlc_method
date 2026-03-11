@@ -1,3 +1,4 @@
+# Implements: REQ-F-ENGINE-001, REQ-F-EVOL-001
 """Replay-derived projections for features, routing, and status."""
 
 from __future__ import annotations

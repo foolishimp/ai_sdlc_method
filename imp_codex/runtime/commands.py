@@ -1,3 +1,4 @@
+# Implements: REQ-F-UX-001, REQ-F-ENGINE-001, REQ-F-LIFE-001
 """Thin executable command stubs for the Codex runtime."""
 
 from __future__ import annotations

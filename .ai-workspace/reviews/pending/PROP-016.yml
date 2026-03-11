@@ -1,6 +1,8 @@
 proposal_id: "PROP-016"
 intent_id: "INT-021"
-status: draft
+status: dismissed
+dismissed_at: "2026-03-11T22:00:00Z"
+dismissed_reason: "REQ-F-ANAL-001 delivered workspace analysis edge implementation. Covered by gap_analysis commands and projections module."
 severity: high
 created: "2026-03-11T05:00:01Z"
 source: gap_analysis

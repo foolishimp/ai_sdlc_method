@@ -1,3 +1,4 @@
+# Implements: REQ-F-EVENT-001, REQ-F-ENGINE-001
 """OpenLineage event append/replay helpers for the Codex runtime."""
 
 from __future__ import annotations

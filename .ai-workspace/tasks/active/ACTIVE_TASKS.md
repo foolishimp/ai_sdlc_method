@@ -1,6 +1,6 @@
 # Active Tasks — ai_sdlc_method
 
-*Updated: 2026-03-10*
+*Updated: 2026-03-11*
 
 ---
 
@@ -23,9 +23,10 @@ Dogfooding is not a test — it is the build process.
 | **v0.4** | Ecosystem verified | Methodology applied to an external project; converges and all tests pass | ✅ **RELEASED** (2026-03-09) |
 | **v1.0** | Assurance | v0.3 + v0.4 both green — product-level confidence | ✅ **RELEASED** (2026-03-09) |
 | **v2.10.0** | Asset Graph Model formalisation | 339 commits: Bootloader, OL events, CONSENSUS, genesis_monitor, multi-tenant parity, executor attribution, 1967 tests | ✅ **RELEASED** (2026-03-10) |
-| **v3.0.0-beta.1** | MVP complete | F_P actor dispatch (MCP round-trip) e2e validated — engine can autonomously construct, not just evaluate | 🔴 **IN PROGRESS** |
+| **v3.0.0** | MVP complete | F_P actor dispatch (MCP round-trip) e2e validated — engine can autonomously construct, not just evaluate | ✅ **RELEASED** (2026-03-11) |
+| **v3.0.1** | Tech debt + homeostatic loop | dispatch_monitor, CONSENSUS→dispatch closed, ADR-S-032/033/034, REQ-F-DISPATCH-001 | ✅ **RELEASED** (2026-03-11) |
 
-### MVP Feature Set (v3.0.0-beta.1 gate)
+### MVP Feature Set (v3.0.1 shipped)
 
 | Feature | Description | Status |
 |---------|-------------|--------|
@@ -35,18 +36,20 @@ Dogfooding is not a test — it is the build process.
 | Engine — F_D path | Deterministic evaluation, OL events, runId causation | ✅ done |
 | Genesis Monitor (= telemetry) | Full observability stack, executor attribution | ✅ done |
 | CONSENSUS (F_H gate) | Full evaluator triad — design APPROVED 2026-03-10 | ✅ done |
-| **Engine — F_P path** | **Actor dispatch via MCP round-trip, fold-back** | 🔴 **THE GAP** |
-| E2E validated | All e2e tests pass (downstream of F_P) | 🔴 blocked on F_P |
+| Engine — F_P path | Actor dispatch via MCP round-trip, fold-back | ✅ done |
+| E2E validated | All e2e tests pass (7/7 TestFpActorDispatch) | ✅ done |
+| Homeostatic loop | dispatch_monitor + CONSENSUS→dispatch + gen-start --auto | ✅ done |
+| ADR-S-032/033/034 | IntentObserver, Genesis-Enabled Systems, Genesis Ecosystem | ✅ done |
 
-### Current state
+### Current state (v3.0.1)
 
 | Artifact | Status |
 |----------|--------|
-| Spec | Complete — ADR-S-001..026 |
+| Spec | Complete — ADR-S-001..035 (ADR-S-035 PROPOSED, deferred v3.2) |
 | Implementation Requirements | 83 REQ keys |
 | Feature Vectors | 15 vectors, 83/83 tagged |
-| Tests | 1567 imp_claude + 574 genesis_monitor = 2141 unit passing; 19 e2e monitor + 27 convergence + 5 UAT = 51 e2e |
-| Active release | v1.0 — all gates cleared. v1.1 sprint: T-002 ✅ DONE, T-006 ✅ DONE. Remaining: T-004 (FPC audit, design-tier only) |
+| Tests | 1950+ imp_claude unit; 34 e2e |
+| Active release | v3.0.1 shipped. Next: REQ-F-TELEM-001 (telemetry req= tags) |
 
 ### Post-1.0 (v1.1 sprint) — ALL COMPLETE (2026-03-09)
 T-002 ✅ (context hierarchy — 6-level, manifests, installer), T-003 ✅ (instance graph), T-004 ✅ (FPC audit), T-006 ✅ (H-metric)

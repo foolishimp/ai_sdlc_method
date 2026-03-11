@@ -1,3 +1,4 @@
+# Implements: REQ-F-UX-001, REQ-F-ENGINE-001
 """CLI wrapper for the minimal executable Codex runtime."""
 
 from __future__ import annotations
