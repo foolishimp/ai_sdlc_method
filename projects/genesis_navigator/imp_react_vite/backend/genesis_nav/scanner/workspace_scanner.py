@@ -38,6 +38,27 @@ _STATE_WINDOW = 50
 _TAIL_READ_BYTES = 32_768  # 32 KiB — plenty for 50 JSON lines
 
 
+def get_project_path(root: Path, project_id: str) -> Path | None:
+    """Find the filesystem path for a project given its project_id.
+
+    Performs a full workspace scan and returns the path of the project whose
+    ``project_id`` matches.  Returns ``None`` if no match is found.
+
+    Args:
+        root: Absolute path to the directory to scan.
+        project_id: The project identifier to look up (as returned by
+            :func:`scan_workspace`).
+
+    Returns:
+        :class:`~pathlib.Path` to the project root, or ``None``.
+    """
+    summaries = scan_workspace(root)
+    for summary in summaries:
+        if summary.project_id == project_id:
+            return Path(summary.path)
+    return None
+
+
 def scan_workspace(root: Path) -> list[ProjectSummary]:
     """Scan *root* recursively and return one ProjectSummary per Genesis project.
 

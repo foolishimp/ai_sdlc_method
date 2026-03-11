@@ -13,7 +13,10 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from genesis_nav.routers import detail as detail_router
+from genesis_nav.routers import gaps as gaps_router
 from genesis_nav.routers import projects as projects_router
+from genesis_nav.routers import queue as queue_router
 
 # ---------------------------------------------------------------------------
 # Module-level config — set by cli.py before uvicorn starts
@@ -68,6 +71,9 @@ def create_app() -> FastAPI:
     )
 
     application.include_router(projects_router.router)
+    application.include_router(detail_router.router)
+    application.include_router(gaps_router.router)
+    application.include_router(queue_router.router)
 
     @application.get("/health", tags=["meta"])
     def health() -> dict[str, str]:

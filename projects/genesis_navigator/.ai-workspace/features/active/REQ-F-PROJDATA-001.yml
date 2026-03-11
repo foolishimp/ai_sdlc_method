@@ -1,0 +1,41 @@
+feature:
+  id: REQ-F-PROJDATA-001
+  title: "Project Data Reader + Detail API"
+  intent: INT-001
+  vector_type: feature
+  profile: standard
+  status: converged
+  priority: critical
+
+satisfies:
+  - REQ-F-STAT-001
+  - REQ-F-STAT-002
+  - REQ-F-STAT-003
+  - REQ-F-STAT-004
+  - REQ-F-API-002
+  - REQ-NFR-PERF-002
+
+trajectory:
+  design_code:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-12T07:00:00Z"
+    converged_at: "2026-03-12T08:00:00Z"
+  code_unit_tests:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-12T08:00:00Z"
+    converged_at: "2026-03-12T09:00:00Z"
+
+constraints:
+  acceptance_criteria:
+    - "GET /api/projects/{id} responds within 1000ms for 50 features, 10k events"
+    - "Project state computed per three-state algorithm (ITERATING/QUIESCENT/CONVERGED/BOUNDED)"
+    - "Hamiltonian H=T+V per feature where T=iteration_completed count, V=last delta"
+    - "Malformed YAML returns feature with status=error and parse error message"
+    - "Malformed JSON lines in events.jsonl are skipped; project still loads"
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
