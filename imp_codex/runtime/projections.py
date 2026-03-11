@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Iterable
 
 import yaml
@@ -100,6 +101,65 @@ def feature_lookup(paths: RuntimePaths) -> dict[str, dict]:
         feature_doc.get("feature"): feature_doc
         for feature_doc, _ in iter_features(paths)
         if feature_doc.get("feature")
+    }
+
+
+REQ_FEATURE_ID_RE = re.compile(r"\bREQ-F-[A-Z0-9-]+-\d+\b")
+
+
+def extract_spec_feature_ids(spec_features_path: Path) -> list[str]:
+    """Extract sorted unique REQ-F identifiers from a spec feature document."""
+
+    if not spec_features_path.exists():
+        return []
+    feature_ids = REQ_FEATURE_ID_RE.findall(spec_features_path.read_text())
+    return sorted(dict.fromkeys(feature_ids))
+
+
+def compute_spec_workspace_join(
+    project_root: Path,
+    *,
+    spec_features_path: Path | None = None,
+) -> dict:
+    """JOIN spec-defined feature IDs with workspace feature vectors.
+
+    ACTIVE means present in spec and workspace active vectors.
+    COMPLETED means present in spec and workspace completed vectors.
+    PENDING means present in spec but absent from workspace.
+    ORPHAN means present in workspace but absent from spec.
+    """
+
+    paths = RuntimePaths(project_root)
+    spec_path = spec_features_path or (paths.specification_dir / "features" / "FEATURE_VECTORS.md")
+    spec_ids = extract_spec_feature_ids(spec_path)
+    spec_set = set(spec_ids)
+
+    active_ids = sorted(
+        feature_doc.get("feature")
+        for feature_doc, _path in iter_features(paths)
+        if feature_doc.get("feature")
+        and feature_doc.get("status") != "converged"
+        and _path.parent == paths.active_features_dir
+    )
+    completed_ids = sorted(
+        feature_doc.get("feature")
+        for feature_doc, _path in iter_features(paths)
+        if feature_doc.get("feature")
+        and (_path.parent == paths.completed_features_dir or feature_doc.get("status") == "converged")
+    )
+
+    active_set = set(active_ids)
+    completed_set = set(completed_ids)
+    workspace_set = active_set | completed_set
+
+    return {
+        "spec_readable": spec_path.exists(),
+        "spec_count": len(spec_ids),
+        "workspace_count": len(workspace_set),
+        "active": sorted(spec_set & active_set),
+        "completed": sorted(spec_set & completed_set),
+        "pending": sorted(spec_set - workspace_set),
+        "orphan": sorted(workspace_set - spec_set),
     }
 
 

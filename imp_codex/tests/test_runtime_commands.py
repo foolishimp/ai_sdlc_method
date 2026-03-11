@@ -745,6 +745,8 @@ def test_gen_dispatch_intents_emits_edge_started_and_runs_first_edge(tmp_path):
     assert result["dispatches"][0]["intent_id"] == "INT-001"
     assert result["dispatches"][0]["feature"] == "REQ-F-AUTO-001"
     assert result["dispatches"][0]["edge"] == "intent→requirements"
+    assert result["dispatches"][0]["edge_started_run_id"] is not None
+    assert result["dispatches"][0]["completed_run_id"] is not None
 
     event_types = [
         event.raw["run"]["facets"]["sdlc:event_type"]["type"]

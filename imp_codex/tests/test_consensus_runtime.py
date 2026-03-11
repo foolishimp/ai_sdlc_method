@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
+import yaml
 
 from imp_codex.runtime import (
     RuntimePaths,
@@ -50,6 +51,9 @@ def test_consensus_cycle_passes_after_disposition_and_closeout(tmp_path):
 
     assert opened["cycle_id"] == "CYCLE-001"
     assert opened["state"]["outcome"] == "deferred"
+    review_doc = yaml.safe_load(Path(opened["review_path"]).read_text())
+    assert review_doc["review_id"] == opened["review_id"]
+    assert review_doc["cycle_id"] == "CYCLE-001"
 
     comment = gen_comment(
         project_root,
@@ -60,6 +64,7 @@ def test_consensus_cycle_passes_after_disposition_and_closeout(tmp_path):
     )
     assert comment["gating"] is True
     assert comment["state"]["gating_comments_remaining"] == ["COMMENT-001"]
+    assert Path(comment["comment_path"]).exists()
 
     disposed = gen_dispose(
         project_root,
@@ -70,8 +75,10 @@ def test_consensus_cycle_passes_after_disposition_and_closeout(tmp_path):
         event_time=_ts(20),
     )
     assert disposed["state"]["gating_comments_remaining"] == []
+    disposition_doc = yaml.safe_load(Path(disposed["disposition_path"]).read_text())
+    assert disposition_doc["disposition"] == "resolved"
 
-    gen_vote(
+    alice_vote = gen_vote(
         project_root,
         review_id=opened["review_id"],
         participant="alice",
@@ -79,7 +86,7 @@ def test_consensus_cycle_passes_after_disposition_and_closeout(tmp_path):
         rationale="Recovery language is now explicit.",
         event_time=_ts(30),
     )
-    gen_vote(
+    bob_vote = gen_vote(
         project_root,
         review_id=opened["review_id"],
         participant="bob",
@@ -87,6 +94,8 @@ def test_consensus_cycle_passes_after_disposition_and_closeout(tmp_path):
         rationale="Ready to merge.",
         event_time=_ts(40),
     )
+    assert Path(alice_vote["vote_path"]).exists()
+    assert Path(bob_vote["vote_path"]).exists()
 
     status = gen_consensus_status(
         project_root,
@@ -106,6 +115,8 @@ def test_consensus_cycle_passes_after_disposition_and_closeout(tmp_path):
     )
     assert closed["emitted"] is True
     assert closed["outcome"] == "passed"
+    outcome_doc = yaml.safe_load(Path(closed["outcome_path"]).read_text())
+    assert outcome_doc["outcome"] == "passed"
 
     second_close = gen_consensus_close(
         project_root,
@@ -138,6 +149,50 @@ def test_consensus_cycle_passes_after_disposition_and_closeout(tmp_path):
     replay = load_events(RuntimePaths(project_root).events_file)
     assert len(gating_comments(replay, opened["review_id"], "CYCLE-001")) == 1
     assert len(late_comments(replay, opened["review_id"], "CYCLE-001")) == 1
+
+
+def test_gating_vote_triggers_comment_event_and_written_review_trail(tmp_path):
+    project_root = tmp_path / "demo"
+    artifact = _write_review_artifact(project_root, "specification/adrs/ADR-002.md")
+
+    opened = gen_consensus_open(
+        project_root,
+        artifact=artifact,
+        roster="alice,bob",
+        review_id="REVIEW-adr-002-1",
+        review_closes_in=600,
+        event_time=_ts(0),
+    )
+
+    voted = gen_vote(
+        project_root,
+        review_id=opened["review_id"],
+        participant="alice",
+        verdict="reject",
+        rationale="Need rollback details before approval.",
+        gating=True,
+        event_time=_ts(5),
+    )
+
+    assert voted["comment_run_id"] is not None
+    vote_doc = yaml.safe_load(Path(voted["vote_path"]).read_text())
+    assert vote_doc["verdict"] == "reject"
+    assert vote_doc["participant"] == "alice"
+
+    comment_text = Path(voted["comment_path"]).read_text()
+    assert "Need rollback details before approval." in comment_text
+    assert "gating: true" in comment_text
+
+    events = load_events(RuntimePaths(project_root).events_file)
+    assert [event.semantic_type for event in events] == [
+        "ConsensusRequested",
+        "VoteCast",
+        "CommentReceived",
+    ]
+    vote_payload = events[1].raw["run"]["facets"]["sdlc:payload"]
+    comment_payload = events[2].raw["run"]["facets"]["sdlc:payload"]
+    assert vote_payload["vote_ref"].endswith("votes/alice.yml")
+    assert comment_payload["content_ref"].endswith("comments/COMMENT-001.md")
 
 
 def test_consensus_tie_failure_can_reopen_and_pass_new_cycle(tmp_path):

@@ -24,12 +24,19 @@ from .commands import (
     gen_trace,
     gen_vote,
 )
+from .edge_runner import DispatchTarget, EdgeRunResult, run_edge
 from .events import append_run_event, load_events
 from .paths import RuntimePaths, bootstrap_workspace
+from .workspace_analysis import WorkspaceAnalysisResult, WorkspaceAsset, build_workspace_asset, run_workspace_analysis
 
 __all__ = [
+    "DispatchTarget",
+    "EdgeRunResult",
     "RuntimePaths",
+    "WorkspaceAnalysisResult",
+    "WorkspaceAsset",
     "append_run_event",
+    "build_workspace_asset",
     "bootstrap_workspace",
     "gen_comment",
     "gen_checkpoint",
@@ -53,4 +60,6 @@ __all__ = [
     "gen_trace",
     "gen_vote",
     "load_events",
+    "run_edge",
+    "run_workspace_analysis",
 ]

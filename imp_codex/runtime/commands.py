@@ -30,6 +30,7 @@ from .consensus import (
     review_events,
 )
 from .events import append_run_event, load_events, utc_now
+from .edge_runner import DispatchTarget, run_edge
 from .intents import resolve_affected_features, resolve_named_intent_payload
 from .paths import RuntimePaths, bootstrap_workspace, detect_workspace_scope
 from .projections import (
@@ -190,6 +191,193 @@ def _context_manifest_template() -> dict:
         "aggregate_hash": "pending",
         "entries": [],
     }
+
+
+def _workspace_rel(paths: RuntimePaths, path: Path) -> str:
+    return str(path.relative_to(paths.workspace_root))
+
+
+def _consensus_cycle_dir(paths: RuntimePaths, review_id: str, cycle_id: str) -> Path:
+    cycle_dir = paths.consensus_reviews_dir / review_id / cycle_id
+    cycle_dir.mkdir(parents=True, exist_ok=True)
+    return cycle_dir
+
+
+def _consensus_review_path(paths: RuntimePaths, review_id: str, cycle_id: str) -> Path:
+    return _consensus_cycle_dir(paths, review_id, cycle_id) / "review.yml"
+
+
+def _consensus_comment_path(paths: RuntimePaths, review_id: str, cycle_id: str, comment_id: str) -> Path:
+    comments_dir = _consensus_cycle_dir(paths, review_id, cycle_id) / "comments"
+    comments_dir.mkdir(parents=True, exist_ok=True)
+    return comments_dir / f"{comment_id}.md"
+
+
+def _consensus_disposition_path(paths: RuntimePaths, review_id: str, cycle_id: str, comment_id: str) -> Path:
+    dispositions_dir = _consensus_cycle_dir(paths, review_id, cycle_id) / "dispositions"
+    dispositions_dir.mkdir(parents=True, exist_ok=True)
+    return dispositions_dir / f"{comment_id}.yml"
+
+
+def _consensus_vote_path(paths: RuntimePaths, review_id: str, cycle_id: str, participant: str) -> Path:
+    votes_dir = _consensus_cycle_dir(paths, review_id, cycle_id) / "votes"
+    votes_dir.mkdir(parents=True, exist_ok=True)
+    safe_participant = re.sub(r"[^A-Za-z0-9._-]+", "-", participant).strip("-") or "participant"
+    return votes_dir / f"{safe_participant}.yml"
+
+
+def _consensus_outcome_path(paths: RuntimePaths, review_id: str, cycle_id: str) -> Path:
+    return _consensus_cycle_dir(paths, review_id, cycle_id) / "outcome.yml"
+
+
+def _consensus_recovery_path(paths: RuntimePaths, review_id: str, cycle_id: str) -> Path:
+    return _consensus_cycle_dir(paths, review_id, cycle_id) / "recovery.yml"
+
+
+def _write_consensus_review_record(
+    paths: RuntimePaths,
+    *,
+    payload: dict,
+    requested_run_id: str | None = None,
+    review_path: Path | None = None,
+) -> Path:
+    path = review_path or _consensus_review_path(paths, payload["review_id"], payload["cycle_id"])
+    review_doc = dict(payload)
+    review_doc["status"] = "open"
+    if requested_run_id:
+        review_doc["requested_run_id"] = requested_run_id
+    dump_yaml(path, review_doc)
+    return path
+
+
+def _write_consensus_comment_record(
+    paths: RuntimePaths,
+    *,
+    review_id: str,
+    cycle_id: str,
+    comment_id: str,
+    participant: str,
+    content: str,
+    gating: bool,
+    asset_version: str,
+    comment_run_id: str | None = None,
+    comment_path: Path | None = None,
+) -> Path:
+    path = comment_path or _consensus_comment_path(paths, review_id, cycle_id, comment_id)
+    lines = [
+        "# Consensus Comment",
+        "",
+        f"- review_id: {review_id}",
+        f"- cycle_id: {cycle_id}",
+        f"- comment_id: {comment_id}",
+        f"- participant: {participant}",
+        f"- gating: {str(gating).lower()}",
+        f"- asset_version: {asset_version}",
+    ]
+    if comment_run_id:
+        lines.append(f"- comment_run_id: {comment_run_id}")
+    lines.extend(["", content.strip(), ""])
+    path.write_text("\n".join(lines))
+    return path
+
+
+def _write_consensus_disposition_record(
+    paths: RuntimePaths,
+    *,
+    review_id: str,
+    cycle_id: str,
+    comment_id: str,
+    original_participant: str,
+    disposition: str,
+    rationale: str,
+    material_change: bool,
+    disposition_run_id: str | None = None,
+    disposition_path: Path | None = None,
+) -> Path:
+    path = disposition_path or _consensus_disposition_path(paths, review_id, cycle_id, comment_id)
+    dump_yaml(
+        path,
+        {
+            "review_id": review_id,
+            "cycle_id": cycle_id,
+            "comment_id": comment_id,
+            "original_participant": original_participant,
+            "disposition": disposition,
+            "rationale": rationale,
+            "material_change": material_change,
+            "comment_dispositioned_run_id": disposition_run_id,
+        },
+    )
+    return path
+
+
+def _write_consensus_vote_record(
+    paths: RuntimePaths,
+    *,
+    review_id: str,
+    cycle_id: str,
+    participant: str,
+    verdict: str,
+    rationale: str,
+    conditions: list[str],
+    counts_toward_quorum: bool,
+    vote_run_id: str | None = None,
+    vote_path: Path | None = None,
+) -> Path:
+    path = vote_path or _consensus_vote_path(paths, review_id, cycle_id, participant)
+    dump_yaml(
+        path,
+        {
+            "review_id": review_id,
+            "cycle_id": cycle_id,
+            "participant": participant,
+            "verdict": verdict,
+            "rationale": rationale,
+            "conditions": conditions,
+            "counts_toward_quorum": counts_toward_quorum,
+            "vote_run_id": vote_run_id,
+        },
+    )
+    return path
+
+
+def _write_consensus_outcome_record(
+    paths: RuntimePaths,
+    *,
+    state: dict,
+    terminal_run_id: str | None = None,
+    outcome_path: Path | None = None,
+) -> Path:
+    path = outcome_path or _consensus_outcome_path(paths, state["review_id"], state["cycle_id"])
+    outcome_doc = dict(state)
+    if terminal_run_id:
+        outcome_doc["terminal_run_id"] = terminal_run_id
+    dump_yaml(path, outcome_doc)
+    return path
+
+
+def _write_consensus_recovery_record(
+    paths: RuntimePaths,
+    *,
+    review_id: str,
+    cycle_id: str,
+    path_choice: str,
+    rationale: str,
+    recovery_run_id: str | None = None,
+    recovery_path: Path | None = None,
+) -> Path:
+    path = recovery_path or _consensus_recovery_path(paths, review_id, cycle_id)
+    dump_yaml(
+        path,
+        {
+            "review_id": review_id,
+            "cycle_id": cycle_id,
+            "path": path_choice,
+            "rationale": rationale,
+            "recovery_path_selected_run_id": recovery_run_id,
+        },
+    )
+    return path
 
 
 def _intent_placeholder(project_name: str) -> str:
@@ -526,35 +714,20 @@ def gen_dispatch_intents(
             if dispatch_edge is None:
                 continue
 
-            edge_started = append_run_event(
-                paths.events_file,
-                project_name=_project_name(paths),
-                semantic_type="edge_started",
-                actor=actor,
-                feature=feature_id,
-                edge=dispatch_edge,
-                payload={
-                    "intent_id": current_intent_id,
-                    "feature": feature_id,
-                    "edge": dispatch_edge,
-                    "signal_source": payload.get("signal_source"),
-                    "affected_features": list(scope),
-                    "affected_req_keys": list(payload.get("affected_req_keys") or []),
-                    "dispatch_mode": "bootstrap" if scope == ["all"] else "homeostasis",
-                },
-                causation_id=intent_event.raw.get("run", {}).get("runId"),
-                correlation_id=intent_event.raw.get("run", {}).get("facets", {}).get("sdlc:universal", {}).get("correlation_id"),
-                parent_run_id=intent_event.raw.get("run", {}).get("runId"),
-            )
-            iterate = gen_iterate(
+            edge_run = run_edge(
+                DispatchTarget(
+                    intent_id=current_intent_id,
+                    feature_id=feature_id,
+                    edge=dispatch_edge,
+                    intent_event=intent_event.raw,
+                    feature_vector=feature_doc,
+                ),
                 project_root,
-                feature=feature_id,
-                edge=dispatch_edge,
-                profile=feature_doc.get("profile"),
+                paths.events_file,
+                project=_project_name(paths),
                 actor=actor,
                 run_agent=run_agent,
                 run_deterministic=run_deterministic,
-                intent_id=current_intent_id,
             )
             handled_pairs.add((current_intent_id, feature_id))
             dispatches.append(
@@ -563,10 +736,14 @@ def gen_dispatch_intents(
                     "intent_id": current_intent_id,
                     "feature": feature_id,
                     "edge": dispatch_edge,
-                    "edge_started_run_id": edge_started["run"]["runId"],
-                    "iteration_start_run_id": iterate["start_run_id"],
-                    "completed_run_id": iterate["completed_run_id"],
-                    "status": iterate["status"],
+                    "edge_started_run_id": edge_run.edge_started_run_id,
+                    "iteration_start_run_id": edge_run.iteration_start_run_id,
+                    "completed_run_id": edge_run.completed_run_id,
+                    "convergence_run_id": edge_run.convergence_run_id,
+                    "intent_run_id": edge_run.intent_run_id,
+                    "status": edge_run.status,
+                    "delta": edge_run.delta,
+                    "fp_manifest_path": edge_run.fp_manifest_path,
                 }
             )
         if len(dispatches) >= max_dispatch:
@@ -1642,6 +1819,7 @@ def gen_consensus_open(
         raise ValueError("review_closes_at must be >= published_at + min_duration_seconds")
 
     cycle_id = next_cycle_id(events, review_id)
+    review_path = _consensus_review_path(paths, review_id, cycle_id)
     payload = {
         "review_id": review_id,
         "cycle_id": cycle_id,
@@ -1657,6 +1835,7 @@ def gen_consensus_open(
         "quorum_threshold": quorum,
         "abstention_model": abstention_model,
         "min_participation_ratio": float(min_participation_ratio),
+        "review_ref": _workspace_rel(paths, review_path),
     }
     event = append_run_event(
         paths.events_file,
@@ -1667,6 +1846,12 @@ def gen_consensus_open(
         edge="consensus",
         payload=payload,
         event_time=payload["published_at"],
+    )
+    _write_consensus_review_record(
+        paths,
+        payload=payload,
+        requested_run_id=event["run"]["runId"],
+        review_path=review_path,
     )
     status_markdown = _write_status(paths)
     state = quorum_state(load_events(paths.events_file), review_id, cycle_id, now=payload["published_at"])
@@ -1679,6 +1864,7 @@ def gen_consensus_open(
         "published_at": payload["published_at"],
         "review_closes_at": payload["review_closes_at"],
         "consensus_requested_run_id": event["run"]["runId"],
+        "review_path": str(review_path),
         "state": state,
         "status_markdown": status_markdown,
     }
@@ -1703,6 +1889,7 @@ def gen_comment(
     comment_time = parse_timestamp(event_time or utc_now())
     gating = cycle["terminal_event"] is None and comment_time <= parse_timestamp(cycle["review_closes_at"])
     comment_id = next_comment_id(events, review_id, cycle["cycle_id"])
+    comment_path = _consensus_comment_path(paths, review_id, cycle["cycle_id"], comment_id)
 
     event = append_run_event(
         paths.events_file,
@@ -1718,9 +1905,22 @@ def gen_comment(
             "participant": participant,
             "asset_version": cycle["asset_version"],
             "content": content,
+            "content_ref": _workspace_rel(paths, comment_path),
             "gating": gating,
         },
         event_time=format_timestamp(comment_time),
+    )
+    _write_consensus_comment_record(
+        paths,
+        review_id=review_id,
+        cycle_id=cycle["cycle_id"],
+        comment_id=comment_id,
+        participant=participant,
+        content=content,
+        gating=gating,
+        asset_version=cycle["asset_version"],
+        comment_run_id=event["run"]["runId"],
+        comment_path=comment_path,
     )
     status_markdown = _write_status(paths)
     state = quorum_state(load_events(paths.events_file), review_id, cycle["cycle_id"], now=event["eventTime"])
@@ -1730,6 +1930,7 @@ def gen_comment(
         "comment_id": comment_id,
         "gating": gating,
         "comment_run_id": event["run"]["runId"],
+        "comment_path": str(comment_path),
         "state": state,
         "status_markdown": status_markdown,
     }
@@ -1776,6 +1977,7 @@ def gen_dispose(
             raise ValueError(f"Comment already dispositioned: {comment_id}")
 
     disposition_time = format_timestamp(parse_timestamp(event_time or utc_now()))
+    disposition_path = _consensus_disposition_path(paths, review_id, cycle["cycle_id"], comment_id)
     event = append_run_event(
         paths.events_file,
         project_name=_project_name(paths),
@@ -1790,9 +1992,22 @@ def gen_dispose(
             "original_participant": target_comment.get("participant", ""),
             "disposition": disposition,
             "rationale": rationale,
+            "response_ref": _workspace_rel(paths, disposition_path),
             "material_change": disposition == "scope_change",
         },
         event_time=disposition_time,
+    )
+    _write_consensus_disposition_record(
+        paths,
+        review_id=review_id,
+        cycle_id=cycle["cycle_id"],
+        comment_id=comment_id,
+        original_participant=target_comment.get("participant", ""),
+        disposition=disposition,
+        rationale=rationale,
+        material_change=disposition == "scope_change",
+        disposition_run_id=event["run"]["runId"],
+        disposition_path=disposition_path,
     )
     spec_event = None
     if disposition == "scope_change":
@@ -1824,6 +2039,7 @@ def gen_dispose(
         "disposition": disposition,
         "comment_dispositioned_run_id": event["run"]["runId"],
         "spec_modified_run_id": spec_event["run"]["runId"] if spec_event else None,
+        "disposition_path": str(disposition_path),
         "state": state,
         "status_markdown": status_markdown,
     }
@@ -1857,6 +2073,7 @@ def gen_vote(
     roster_ids = {participant_entry["id"] for participant_entry in cycle["participants"]}
     in_roster = participant in roster_ids
     conditions_list = list(conditions or [])
+    vote_path = _consensus_vote_path(paths, review_id, cycle["cycle_id"], participant)
 
     vote_event = append_run_event(
         paths.events_file,
@@ -1874,12 +2091,27 @@ def gen_vote(
             "rationale": rationale,
             "conditions": conditions_list,
             "counts_toward_quorum": in_roster,
+            "vote_ref": _workspace_rel(paths, vote_path),
         },
         event_time=format_timestamp(vote_time),
     )
+    _write_consensus_vote_record(
+        paths,
+        review_id=review_id,
+        cycle_id=cycle["cycle_id"],
+        participant=participant,
+        verdict=verdict,
+        rationale=rationale,
+        conditions=conditions_list,
+        counts_toward_quorum=in_roster,
+        vote_run_id=vote_event["run"]["runId"],
+        vote_path=vote_path,
+    )
     comment_event = None
+    comment_path = None
     if gating and rationale.strip():
         comment_id = next_comment_id(load_events(paths.events_file), review_id, cycle["cycle_id"])
+        comment_path = _consensus_comment_path(paths, review_id, cycle["cycle_id"], comment_id)
         comment_event = append_run_event(
             paths.events_file,
             project_name=_project_name(paths),
@@ -1894,12 +2126,25 @@ def gen_vote(
                 "participant": participant,
                 "asset_version": cycle["asset_version"],
                 "content": rationale,
+                "content_ref": _workspace_rel(paths, comment_path),
                 "gating": True,
             },
             causation_id=vote_event["run"]["runId"],
             correlation_id=vote_event["run"]["runId"],
             parent_run_id=vote_event["run"]["runId"],
             event_time=format_timestamp(vote_time),
+        )
+        _write_consensus_comment_record(
+            paths,
+            review_id=review_id,
+            cycle_id=cycle["cycle_id"],
+            comment_id=comment_id,
+            participant=participant,
+            content=rationale,
+            gating=True,
+            asset_version=cycle["asset_version"],
+            comment_run_id=comment_event["run"]["runId"],
+            comment_path=comment_path,
         )
     status_markdown = _write_status(paths)
     state = quorum_state(load_events(paths.events_file), review_id, cycle["cycle_id"], now=vote_event["eventTime"])
@@ -1910,7 +2155,9 @@ def gen_vote(
         "verdict": verdict,
         "counts_toward_quorum": in_roster,
         "vote_run_id": vote_event["run"]["runId"],
+        "vote_path": str(vote_path),
         "comment_run_id": comment_event["run"]["runId"] if comment_event else None,
+        "comment_path": str(comment_path) if comment_path else None,
         "state": state,
         "status_markdown": status_markdown,
     }
@@ -1963,6 +2210,7 @@ def gen_consensus_close(
         }
 
     semantic_type = "consensus_reached" if state["outcome"] == "passed" else "consensus_failed"
+    outcome_path = _consensus_outcome_path(paths, state["review_id"], state["cycle_id"])
     payload = {
         "review_id": state["review_id"],
         "cycle_id": state["cycle_id"],
@@ -1975,6 +2223,7 @@ def gen_consensus_close(
         "approve_ratio": state["approve_ratio"],
         "participation_ratio": state["participation_ratio"],
         "available_paths": state["available_paths"],
+        "outcome_ref": _workspace_rel(paths, outcome_path),
     }
     if semantic_type == "consensus_reached":
         payload["gating_comments_total"] = state["gating_comments_total"]
@@ -1995,12 +2244,19 @@ def gen_consensus_close(
     )
     status_markdown = _write_status(paths)
     state = quorum_state(load_events(paths.events_file), review_id, state["cycle_id"], now=close_time)
+    _write_consensus_outcome_record(
+        paths,
+        state=state,
+        terminal_run_id=event["run"]["runId"],
+        outcome_path=outcome_path,
+    )
     return {
         "review_id": review_id,
         "cycle_id": state["cycle_id"],
         "outcome": state["outcome"],
         "emitted": True,
         "terminal_run_id": event["run"]["runId"],
+        "outcome_path": str(outcome_path),
         "state": state,
         "status_markdown": status_markdown,
     }
@@ -2032,6 +2288,7 @@ def gen_consensus_recover(
         if event.semantic_type == "RecoveryPathSelected":
             raise ValueError(f"Recovery path already selected for {review_id} {state['cycle_id']}")
 
+    recovery_path = _consensus_recovery_path(paths, review_id, state["cycle_id"])
     selection_event = append_run_event(
         paths.events_file,
         project_name=_project_name(paths),
@@ -2045,15 +2302,27 @@ def gen_consensus_recover(
             "asset_id": state["asset_id"],
             "path": path,
             "rationale": rationale,
+            "recovery_ref": _workspace_rel(paths, recovery_path),
         },
         event_time=recovery_time,
     )
+    _write_consensus_recovery_record(
+        paths,
+        review_id=review_id,
+        cycle_id=state["cycle_id"],
+        path_choice=path,
+        rationale=rationale,
+        recovery_run_id=selection_event["run"]["runId"],
+        recovery_path=recovery_path,
+    )
 
     reopened = None
+    reopened_review_path = None
     if path == "re_open":
         events = load_events(paths.events_file)
         next_cycle = next_cycle_id(events, review_id)
         cycle = current_cycle(events, review_id)
+        reopened_review_path = _consensus_review_path(paths, review_id, next_cycle)
         reopened = append_run_event(
             paths.events_file,
             project_name=_project_name(paths),
@@ -2078,11 +2347,18 @@ def gen_consensus_recover(
                 "quorum_threshold": cycle["quorum_threshold"] if cycle else "majority",
                 "abstention_model": cycle["abstention_model"] if cycle else "neutral",
                 "min_participation_ratio": cycle["min_participation_ratio"] if cycle else 0.5,
+                "review_ref": _workspace_rel(paths, reopened_review_path),
             },
             causation_id=selection_event["run"]["runId"],
             correlation_id=selection_event["run"]["runId"],
             parent_run_id=selection_event["run"]["runId"],
             event_time=recovery_time,
+        )
+        _write_consensus_review_record(
+            paths,
+            payload=payload_for(load_events(paths.events_file)[-1]),
+            requested_run_id=reopened["run"]["runId"],
+            review_path=reopened_review_path,
         )
     status_markdown = _write_status(paths)
     return {
@@ -2090,6 +2366,8 @@ def gen_consensus_recover(
         "path": path,
         "recovery_path_selected_run_id": selection_event["run"]["runId"],
         "review_reopened_run_id": reopened["run"]["runId"] if reopened else None,
+        "recovery_path": str(recovery_path),
+        "reopened_review_path": str(reopened_review_path) if reopened_review_path else None,
         "state": quorum_state(load_events(paths.events_file), review_id, now=recovery_time),
         "status_markdown": status_markdown,
     }

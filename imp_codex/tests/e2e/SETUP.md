@@ -13,11 +13,18 @@ CODEX_E2E_MODE=real pytest -q imp_codex/tests/e2e -m e2e
 ```
 
 Real mode defaults to model `gpt-5-codex`.
+Real mode also forces `model_reasoning_effort="high"` unless you override it.
 
 Optional model override for real mode:
 
 ```bash
 CODEX_E2E_MODE=real CODEX_E2E_MODEL=<your_model_alias> pytest -q imp_codex/tests/e2e -m e2e
+```
+
+Optional effort override for real mode:
+
+```bash
+CODEX_E2E_MODE=real CODEX_E2E_REASONING_EFFORT=medium pytest -q imp_codex/tests/e2e -m e2e
 ```
 
 Or run the full Codex suite (includes e2e):

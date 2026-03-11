@@ -480,6 +480,7 @@ def run_codex_headless(
     prompt: str,
     *,
     model: str | None = None,
+    reasoning_effort: str | None = None,
     wall_timeout: float = 1800.0,
     stall_timeout: float = 300.0,
     log_dir: pathlib.Path | None = None,
@@ -506,6 +507,8 @@ def run_codex_headless(
     ]
     if model:
         cmd.extend(["-m", model])
+    effort = reasoning_effort or os.environ.get("CODEX_E2E_REASONING_EFFORT", "high").strip() or "high"
+    cmd.extend(["-c", f'model_reasoning_effort="{effort}"'])
     cmd.append(prompt)
 
     start = time.time()
@@ -881,6 +884,7 @@ def real_converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
     meta_dir.mkdir(exist_ok=True)
 
     model = os.environ.get("CODEX_E2E_MODEL", "gpt-5-codex").strip()
+    reasoning_effort = os.environ.get("CODEX_E2E_REASONING_EFFORT", "high").strip() or "high"
     prompt = textwrap.dedent(
         """\
         Execute these shell commands exactly and then exit:
@@ -897,7 +901,7 @@ def real_converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
     print(f"\n{'=' * 60}")
     print("E2E: Starting real Codex run (codex exec)")
     print(f"E2E: Project dir: {project_dir}")
-    print(f"E2E: Mode: real  model={model}")
+    print(f"E2E: Mode: real  model={model} effort={reasoning_effort}")
     print(f"E2E: Logs: {meta_dir}")
     print(f"{'=' * 60}\n", flush=True)
 
@@ -905,6 +909,7 @@ def real_converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
         project_dir,
         prompt,
         model=model,
+        reasoning_effort=reasoning_effort,
         log_dir=meta_dir,
     )
 
@@ -919,6 +924,7 @@ def real_converged_project(e2e_project_dir: pathlib.Path) -> pathlib.Path:
                 "timed_out": result.timed_out,
                 "stall_killed": stall_killed,
                 "model": model,
+                "reasoning_effort": reasoning_effort,
             },
             indent=2,
         )

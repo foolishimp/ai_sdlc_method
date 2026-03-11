@@ -104,6 +104,14 @@ class RuntimePaths:
         return self.tasks_root / "finished"
 
     @property
+    def reviews_root(self) -> Path:
+        return self.workspace_root / "reviews"
+
+    @property
+    def consensus_reviews_dir(self) -> Path:
+        return self.reviews_root / "consensus"
+
+    @property
     def features_root(self) -> Path:
         return self.workspace_root / "features"
 
@@ -184,6 +192,8 @@ class RuntimePaths:
             self.tasks_root,
             self.active_tasks_dir,
             self.finished_tasks_dir,
+            self.reviews_root,
+            self.consensus_reviews_dir,
             self.graph_dir,
             self.edges_dir,
             self.profiles_dir,

@@ -1,0 +1,42 @@
+# Edge Parameterisation: Workspace State Analysis
+# Implements: REQ-TOOL-016, REQ-ITER-001, REQ-LIFE-003
+
+---
+
+edge: "workspace_state→intent"
+pattern: workspace_analysis
+description: |
+  Build Asset<workspace_state> from existing workspace artifacts, evaluate the
+  current gradient, and emit intent candidates when the workspace is not at rest.
+
+evaluators:
+  - name: spec_aligned
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "Every REQ-F feature in the specification has a matching workspace vector."
+    required: true
+
+  - name: no_orphans
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "Active workspace vectors are declared by the specification."
+    required: true
+
+  - name: no_stale
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "No feature remains duplicated across active and completed state."
+    required: true
+
+  - name: log_complete
+    type: deterministic
+    functional_unit: evaluate
+    criterion: "Every active feature has at least one event-log trace."
+    required: true
+
+convergence:
+  required_checks:
+    - spec_aligned
+    - no_orphans
+    - no_stale
+    - log_complete
