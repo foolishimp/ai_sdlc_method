@@ -239,11 +239,13 @@ class TestIterateFunction:
             assert "convergence" in config, (
                 f"Edge config '{edge_name}' missing required section 'convergence'"
             )
-            # Either has a 'checklist' or has layer-based checks (cross-cutting)
+            # Either has a 'checklist', 'evaluators' (F_D/F_P/F_H list),
+            # or layer-based checks (cross-cutting traceability configs)
             has_checklist = "checklist" in config
+            has_evaluators = "evaluators" in config
             has_layers = any(k.startswith("layer_") for k in config)
-            assert has_checklist or has_layers, (
-                f"Edge config '{edge_name}' must have 'checklist' or layer-based checks"
+            assert has_checklist or has_evaluators or has_layers, (
+                f"Edge config '{edge_name}' must have 'checklist', 'evaluators', or layer-based checks"
             )
 
         # 3. Validate that the same agent handles all edges (not specialised agents)

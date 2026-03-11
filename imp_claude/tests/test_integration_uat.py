@@ -231,7 +231,7 @@ class TestEventLogIntegrity:
         # Engine evaluator events (v3+)
         "evaluator_detail", "fp_failure", "status_generated",
         # Consciousness loop / proposal events (ADR-011)
-        "feature_proposal", "feature_proposal_dismissed",
+        "feature_proposal", "feature_proposal_dismissed", "proposal_dismissed",
         # Legacy event types (pre-v2.8 — still valid in historical log)
         "evaluator_ran", "feature_spawned", "finding_raised",
         "telemetry_signal_emitted",
@@ -375,7 +375,7 @@ class TestFeatureVectorConsistency:
     @pytest.mark.uat
     def test_all_spec_features_have_active_vectors(self):
         """Every feature in FEATURE_VECTORS.md must have an active .yml file."""
-        spec_features = set(re.findall(r'(REQ-F-[A-Z]+-\d+)', self.spec_fv))
+        spec_features = set(re.findall(r'(REQ-F-[A-Z][A-Z-]*[A-Z]-\d+)', self.spec_fv))
         active_features = set(self.vectors.keys())
         missing = spec_features - active_features
         assert not missing, f"Features in spec but no active vector: {sorted(missing)}"
@@ -390,7 +390,7 @@ class TestFeatureVectorConsistency:
         """
         top_level_features = set(re.findall(r'### (REQ-F-[A-Z]+-\d+):', self.spec_fv))
         # All REQ-F-* IDs mentioned anywhere in spec (includes table entries for child vectors)
-        all_mentioned = set(re.findall(r'(REQ-F-[A-Z]+-\d+)', self.spec_fv))
+        all_mentioned = set(re.findall(r'(REQ-F-[A-Z][A-Z-]*[A-Z]-\d+)', self.spec_fv))
         active_features = set(self.vectors.keys())
 
         for fid in active_features:

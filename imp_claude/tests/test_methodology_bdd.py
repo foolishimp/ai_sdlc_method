@@ -428,8 +428,9 @@ class TestMethodologySelfConsistency:
             "code_tagging.yml",
             "traceability.yml",
             "adr.yml",
-            "schema_discovery.yml",   # SCHEMA_DISCOVERY macro execution engine (NAMEDCOMP)
-            "intent_dispatch.yml",    # REQ-F-DISPATCH-001: IntentObserver + EDGE_RUNNER
+            "schema_discovery.yml",     # SCHEMA_DISCOVERY macro execution engine (NAMEDCOMP)
+            "intent_dispatch.yml",      # REQ-F-DISPATCH-001: IntentObserver + EDGE_RUNNER
+            "workspace_analysis.yml",   # REQ-TOOL-016: Workspace Analysis Edge (self-hosted)
         }
 
         actual = {p.name for p in EDGE_PARAMS_DIR.glob("*.yml")}

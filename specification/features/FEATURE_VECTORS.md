@@ -419,6 +419,8 @@ The five-level compositional stack and intent vector envelope specified in ADR-S
 
 **Feature decomposition**: [NAMEDCOMP_FEATURE_DECOMPOSITION.md](NAMEDCOMP_FEATURE_DECOMPOSITION.md) — 6 sub-features (5 MVP + NC-006 deferred)
 
+**Child vectors**: REQ-F-SCHEMA-DISC-001 (SCHEMA_DISCOVERY execution layer — notebook-driven schema inference, first fully-executable NAMEDCOMP macro)
+
 **Design recommendations**: [NAMEDCOMP_DESIGN_RECOMMENDATIONS.md](NAMEDCOMP_DESIGN_RECOMMENDATIONS.md) — 6 design phases
 
 ---
