@@ -1,4 +1,5 @@
 # Implements: REQ-F-DISPATCH-001
+# Implements: REQ-LIFE-002 (Telemetry — req= structured log tags at dispatch points)
 """Dispatch loop — top-level orchestrator wiring IntentObserver → EDGE_RUNNER.
 
 This is what `/gen-start --auto` should call. Finds all pending dispatches,
@@ -15,6 +16,7 @@ Design decisions:
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -23,6 +25,8 @@ from pathlib import Path
 from .edge_runner import EdgeRunResult, run_edge
 from .intent_observer import DispatchTarget, get_pending_dispatches
 from .ol_event import emit_ol_event, make_ol_event
+
+_log = logging.getLogger(__name__)
 
 
 # ── Data classes ───────────────────────────────────────────────────────────────
@@ -105,13 +109,20 @@ def _run_target_safely(
     project_name: str,
 ) -> EdgeRunResult | None:
     """Run EDGE_RUNNER for target, catching all exceptions gracefully."""
+    _log.info(f'dispatch req="{target.feature_id}" edge="{target.edge}" intent="{target.intent_id}"')
     try:
-        return run_edge(
+        result = run_edge(
             target=target,
             workspace_root=workspace_root,
             events_path=events_path,
             project_name=project_name,
         )
+        if result is not None:
+            _log.info(
+                f'dispatch_done req="{target.feature_id}" edge="{target.edge}" '
+                f'status="{result.status}"'
+            )
+        return result
     except Exception as exc:
         # Emit error event so the failure is observable
         try:

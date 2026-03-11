@@ -1,5 +1,6 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ROBUST-007 (Failure Event Emission)
 # Implements: REQ-ITER-002 (Convergence and Promotion — iterate_edge loop, delta=0 → promotion)
+# Implements: REQ-LIFE-002 (Telemetry — req= structured log tags at iterate/edge/convergence points)
 """Deterministic engine — owns the graph traversal loop.
 
 F_D controls: routing, emission, delta computation, convergence decisions.
@@ -20,9 +21,12 @@ state. Agent checks are SKIPPED in the engine — they belong to the actor.
 """
 
 import hashlib
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+
+_log = logging.getLogger(__name__)
 
 from .config_loader import load_yaml, resolve_checklist
 from .contracts import FpActorResultMissing, Intent
@@ -105,6 +109,7 @@ def iterate_edge(
     """
     fp_result = None
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
+    _log.info(f'iterate_edge req="{feature_id}" edge="{edge}" iteration={iteration}')
 
     # Emit IterationStarted — required by REQ-EVENT-003 event taxonomy
     # causation_id = EdgeStarted runId; correlation_id = same (edge-scoped chain)
@@ -279,6 +284,10 @@ def iterate_edge(
         if cr.required and cr.outcome in (CheckOutcome.FAIL, CheckOutcome.ERROR)
     )
     converged = delta == 0
+    _log.info(
+        f'iteration_result req="{feature_id}" edge="{edge}" iteration={iteration} '
+        f'delta={delta} converged={converged}'
+    )
 
     evaluation = EvaluationResult(
         edge=edge,
@@ -413,6 +422,7 @@ def run_edge(
     records = []
     prior_failures: list[str] = []
     events_path = config.workspace_path / ".ai-workspace" / "events" / "events.jsonl"
+    _log.info(f'run_edge req="{feature_id}" edge="{edge}"')
 
     # Emit EdgeStarted — root of the causal chain for this edge traversal.
     # edge_run_id threads through all child events (T-005: transaction model).
@@ -489,6 +499,19 @@ def run_edge(
             )
             record.evaluation.spawn_requested = spawn_result.child_id
             break  # Parent is now blocked — stop iterating
+
+    # Log edge completion
+    if records:
+        last = records[-1].evaluation
+        if last.converged:
+            _log.info(f'edge_converged req="{feature_id}" edge="{edge}" iterations={len(records)}')
+        elif last.spawn_requested:
+            _log.info(f'edge_spawn req="{feature_id}" edge="{edge}" child="{last.spawn_requested}"')
+        else:
+            _log.warning(
+                f'edge_abandoned req="{feature_id}" edge="{edge}" '
+                f'iterations={len(records)} delta={last.delta}'
+            )
 
     # Emit IterationAbandoned if max iterations reached without convergence or spawn
     if records and not records[-1].evaluation.converged and not records[-1].evaluation.spawn_requested:

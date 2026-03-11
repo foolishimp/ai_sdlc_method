@@ -1,4 +1,5 @@
 # Implements: REQ-F-DISPATCH-001
+# Implements: REQ-LIFE-002 (Telemetry — req= structured log tags at edge execution points)
 """EDGE_RUNNER — composes F_D → F_P → F_H for a single feature+edge traversal.
 
 This is the effector half of the homeostatic dispatch loop. Given a
@@ -24,6 +25,7 @@ Design decisions (ADR-S-032):
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -33,6 +35,8 @@ import yaml
 
 from .intent_observer import DispatchTarget
 from .ol_event import emit_ol_event, make_ol_event
+
+_log = logging.getLogger(__name__)
 
 
 # ── Config constants ───────────────────────────────────────────────────────────
@@ -265,6 +269,7 @@ def run_edge(
     cost_usd = 0.0
     fp_iteration = 0
     failures: list[str] = []
+    _log.info(f'edge_runner req="{target.feature_id}" edge="{target.edge}" intent="{target.intent_id}"')
 
     # Emit edge_started (carries intent_id — IntentObserver idempotency marker)
     edge_started_id = _emit(

@@ -1,4 +1,4 @@
-# Validates: REQ-ITER-001, REQ-SUPV-003, REQ-LIFE-001
+# Validates: REQ-ITER-001, REQ-SUPV-003, REQ-LIFE-001, REQ-LIFE-002
 """CLI engine tests — evaluate and run-edge via iterate_edge/run_edge.
 
 Tests that __main__.py delegates to engine.py correctly, that deterministic_only
@@ -536,3 +536,101 @@ class TestCLIErrorHandling:
         )
         result = _build_config(args, workspace)
         assert result is None
+
+
+# ── Telemetry logging tests (REQ-LIFE-002) ───────────────────────────────────
+
+
+class TestTelemetryLogging:
+    """Verify req= structured log tags are emitted at key engine execution points.
+
+    # Validates: REQ-LIFE-002
+    """
+
+    def _make_config(self, tmp_path):
+        """Build minimal engine config for telemetry tests."""
+        return make_engine_config(tmp_path, green_constraints())
+
+    def test_iterate_edge_logs_req_tag(self, tmp_path, caplog):
+        """iterate_edge emits a log record containing req="{feature_id}"."""
+        import logging
+
+        config = self._make_config(tmp_path)
+        edge_config = _minimal_edge_config()
+        feature_id = "REQ-F-TELEM-001"
+
+        with caplog.at_level(logging.INFO, logger="genesis.engine"):
+            iterate_edge(
+                edge="intent→requirements",
+                edge_config=edge_config,
+                config=config,
+                feature_id=feature_id,
+                asset_content="# test asset",
+                iteration=1,
+            )
+
+        log_text = " ".join(r.message for r in caplog.records)
+        assert f'req="{feature_id}"' in log_text, (
+            f"Expected req=\"{feature_id}\" in engine logs; got: {log_text[:300]}"
+        )
+
+    def test_run_edge_logs_req_tag(self, tmp_path, caplog):
+        """run_edge emits a log record containing req="{feature_id}"."""
+        import logging
+
+        config = self._make_config(tmp_path)
+        feature_id = "REQ-F-TELEM-002"
+        profile = {"graph": {"skip": []}}
+
+        with caplog.at_level(logging.INFO, logger="genesis.engine"):
+            run_edge(
+                edge="intent→requirements",
+                config=config,
+                feature_id=feature_id,
+                profile=profile,
+                asset_content="# test asset",
+            )
+
+        log_text = " ".join(r.message for r in caplog.records)
+        assert f'req="{feature_id}"' in log_text, (
+            f"Expected req=\"{feature_id}\" in engine logs; got: {log_text[:300]}"
+        )
+
+    def test_req_tag_contains_actual_feature_id(self, tmp_path, caplog):
+        """req= tag value matches the feature_id passed to iterate_edge."""
+        import logging
+
+        config = self._make_config(tmp_path)
+        feature_id = "REQ-F-AUTH-001"
+
+        with caplog.at_level(logging.INFO, logger="genesis.engine"):
+            iterate_edge(
+                edge="intent→requirements",
+                edge_config=_minimal_edge_config(),
+                config=config,
+                feature_id=feature_id,
+                asset_content="# auth asset",
+                iteration=1,
+            )
+
+        # The req= tag must contain the exact REQ key, not a placeholder
+        assert f'req="{feature_id}"' in " ".join(r.message for r in caplog.records)
+
+    def test_iteration_result_log_includes_delta(self, tmp_path, caplog):
+        """iteration_result log includes delta value."""
+        import logging
+
+        config = self._make_config(tmp_path)
+
+        with caplog.at_level(logging.INFO, logger="genesis.engine"):
+            iterate_edge(
+                edge="intent→requirements",
+                edge_config=_minimal_edge_config(),
+                config=config,
+                feature_id="REQ-F-TEST-001",
+                asset_content="# test",
+                iteration=1,
+            )
+
+        log_text = " ".join(r.message for r in caplog.records)
+        assert "delta=" in log_text
