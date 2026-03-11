@@ -64,8 +64,9 @@ class StatusCommand:
         ]
         
         for feat, data in status_data.items():
-            for edge, state in data["trajectory"].items():
-                if state == "converged":
+            for edge, state_info in data["trajectory"].items():
+                status_str = state_info.get("status") if isinstance(state_info, dict) else state_info
+                if status_str == "converged":
                     converged_count += 1
                 else:
                     in_progress_count += 1
@@ -103,18 +104,20 @@ State: {current_state.value}
                     status = state_info.get("status", "unknown")
                     iter_count = state_info.get("iteration", 0)
                     delta = state_info.get("delta", 0)
+                    t_val = state_info.get("hamiltonian_T", iter_count)
+                    v_val = state_info.get("hamiltonian_V", delta)
                     
                     # Compute Hamiltonian
-                    h_val = iter_count + delta
+                    h_val = t_val + v_val
                     
                     # Determine Diagnostic Pattern (ADR-S-020)
-                    # For simplicity in this view, we just show the current state
                     diagnostic = "Healthy"
                     if status == "blocked": diagnostic = "Blocked"
-                    elif delta > 5: diagnostic = "Dense Surface"
+                    elif v_val > 5: diagnostic = "Dense Surface"
+                    elif t_val > 15: diagnostic = "High Friction"
                     elif delta == 0: diagnostic = "Converged"
                     
-                    content += f"| {edge} | {status} | {iter_count} | {delta} | {h_val} | {diagnostic} |\n"
+                    content += f"| {edge} | {status} | {t_val} | {v_val} | {h_val} | {diagnostic} |\n"
                 else:
                     status = state_info
                     content += f"| {edge} | {status} | N/A | N/A | N/A | N/A |\n"

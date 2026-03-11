@@ -14,12 +14,14 @@ def test_otlp_relay_mapping(tmp_path):
     log_path.parent.mkdir()
     
     # Mock OpenTelemetry
-    with patch("gemini_cli.engine.otlp_relay.trace") as mock_trace:
+    with patch("opentelemetry.trace") as mock_trace:
         mock_tracer = MagicMock()
         mock_trace.get_tracer.return_value = mock_tracer
         
-        # Instantiate Relay
-        relay = OTLPRelay(workspace_root)
+        # Instantiate Relay (bypass constructor OTLP check)
+        with patch("gemini_cli.engine.otlp_relay.OTLP_AVAILABLE", True):
+            relay = OTLPRelay(workspace_root)
+        
         relay.tracer = mock_tracer # Force mock tracer
         
         # Create a sample OpenLineage event
@@ -69,7 +71,7 @@ def test_otlp_relay_completion_status(tmp_path):
     log_path = workspace_root / "events" / "events.jsonl"
     log_path.parent.mkdir()
     
-    with patch("gemini_cli.engine.otlp_relay.trace") as mock_trace:
+    with patch("opentelemetry.trace") as mock_trace:
         from opentelemetry import trace as otel_trace
         # Only mock the tracer, keep Status/StatusCode real
         mock_trace.StatusCode = otel_trace.StatusCode
@@ -80,7 +82,8 @@ def test_otlp_relay_completion_status(tmp_path):
         mock_tracer.start_as_current_span.return_value.__enter__.return_value = mock_span
         mock_trace.get_tracer.return_value = mock_tracer
         
-        relay = OTLPRelay(workspace_root)
+        with patch("gemini_cli.engine.otlp_relay.OTLP_AVAILABLE", True):
+            relay = OTLPRelay(workspace_root)
         relay.tracer = mock_tracer
         
         # Complete event
@@ -94,4 +97,8 @@ def test_otlp_relay_completion_status(tmp_path):
         # Verify span status was set to OK
         mock_span.set_status.assert_called()
         status = mock_span.set_status.call_args[0][0]
-        assert status.status_code == otel_trace.StatusCode.OK
+        
+        # Extract numeric status code
+        actual_code = getattr(status.status_code, "value", status.status_code)
+        expected_code = getattr(otel_trace.StatusCode.OK, "value", otel_trace.StatusCode.OK)
+        assert int(actual_code) == int(expected_code)

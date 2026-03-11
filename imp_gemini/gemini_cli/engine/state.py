@@ -213,6 +213,9 @@ class Projector:
         # 1. Load authoritative keys from specification if available
         if project_root:
             spec_features_path = project_root / "specification" / "features" / "FEATURE_VECTORS.md"
+            if not spec_features_path.exists():
+                spec_features_path = project_root / "specification" / "features.md"
+                
             if spec_features_path.exists():
                 import re
                 content = spec_features_path.read_text()
@@ -222,27 +225,69 @@ class Projector:
                     status[fid] = {"title": title, "status": "pending", "trajectory": {}, "source": "spec"}
 
         # 2. Project event ledger over status (Events are authoritative for workspace/code)
+        # Sort events by timestamp to ensure correct projection order
+        events = sorted(events, key=lambda x: x.get("timestamp") or x.get("eventTime") or "")
+        
         for ev in events:
             facets = ev.get("run", {}).get("facets", {})
             req_facet = facets.get("sdlc_req_keys", {})
+            payload = facets.get("sdlc:payload", {})
             type_facet = facets.get("sdlc_event_type", {})
+            
             e_type = type_facet.get("type") or ev.get("event_type")
-            feat = req_facet.get("feature_id") or ev.get("feature")
-            edge_name = req_facet.get("edge") or ev.get("edge")
+            feat = req_facet.get("feature_id") or payload.get("feature") or ev.get("feature")
+            edge_name = req_facet.get("edge") or payload.get("edge") or ev.get("edge")
 
             if not feat: continue
             if feat not in status: status[feat] = {"status": "pending", "trajectory": {}, "source": "workspace"}
-            if edge_name:
-                edge_name = edge_name.replace("->", "→").replace("↔", "→")
             
-            if e_type == "edge_started":
-                status[feat]["trajectory"][edge_name] = {"status": "iterating", "iteration": Projector.get_iteration_count(events, feat, edge_name)}
+            if edge_name:
+                edge_name = edge_name.replace("->", "\u2192").replace("\u2194", "\u2192")
+            
+            if e_type in ("edge_started", "EdgeStarted"):
+                status[feat].setdefault("trajectory", {})[edge_name] = {
+                    "status": "iterating", 
+                    "iteration": Projector.get_iteration_count(events, feat, edge_name),
+                    "hamiltonian_T": 0,
+                    "hamiltonian_V": 0
+                }
                 status[feat]["status"] = "in_progress"
-            elif e_type == "edge_converged":
-                status[feat]["trajectory"][edge_name] = {"status": "converged", "iteration": Projector.get_iteration_count(events, feat, edge_name), "delta": 0}
-            elif e_type == "iteration_completed":
+            elif e_type in ("edge_converged", "EdgeConverged"):
+                traj = status[feat].setdefault("trajectory", {})
+                if edge_name not in traj:
+                    traj[edge_name] = {"iteration": 0}
+                traj[edge_name].update({"status": "converged", "delta": 0, "hamiltonian_V": 0})
+            elif e_type in ("iteration_completed", "IterationCompleted"):
                 data = ev.get("data") or ev.get("_metadata", {}).get("original_data", {})
-                status[feat]["trajectory"][edge_name] = {"status": "iterating", "delta": data.get("delta"), "iteration": Projector.get_iteration_count(events, feat, edge_name)}
+                payload = facets.get("sdlc:payload", {})
+                delta = data.get("delta") if data.get("delta") is not None else payload.get("delta", -1)
+                
+                traj = status[feat].setdefault("trajectory", {})
+                if edge_name not in traj:
+                    traj[edge_name] = {}
+                
+                # T = cumulative iteration count across all events for this feature
+                t_val = sum(1 for e in events[:events.index(ev)+1] if (e.get("event_type") or facets.get("sdlc_event_type", {}).get("type")) in ("iteration_completed", "IterationCompleted") and (e.get("feature") or facets.get("sdlc_req_keys", {}).get("feature_id")) == feat)
+                
+                new_status = "converged" if (delta == 0 or payload.get("converged")) else "iterating"
+                
+                traj[edge_name].update({
+                    "status": new_status, 
+                    "delta": delta, 
+                    "iteration": data.get("iteration") or payload.get("iteration", 0),
+                    "hamiltonian_T": t_val,
+                    "hamiltonian_V": max(0, int(delta)) if delta is not None else 0
+                })
+            elif e_type in ("spawn_created", "SpawnCreated"):
+                payload = facets.get("sdlc:payload", {})
+                parent_feat = payload.get("parent_feature")
+                child_feat = payload.get("child_feature")
+                edge = payload.get("triggered_at_edge")
+                if parent_feat and child_feat and edge:
+                    edge = edge.replace("->", "\u2192").replace("\u2194", "\u2192")
+                    if parent_feat in status:
+                        status[parent_feat].setdefault("trajectory", {}).setdefault(edge, {})["status"] = "blocked"
+                        status[parent_feat]["trajectory"][edge]["blocked_by"] = child_feat
 
         for feat_id, data in status.items():
             if data["trajectory"]:

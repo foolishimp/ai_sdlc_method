@@ -291,7 +291,7 @@ class IterateEngine:
                 edge=edge, 
                 feature_id=feature_id, 
                 asset_path=asset_path, 
-                context=context, 
+                context={**context, "iteration_count": i}, 
                 iteration=i, 
                 construct=construct,
                 edge_run_id=edge_run_id,
@@ -301,6 +301,8 @@ class IterateEngine:
             
             # Update Intent Vector
             status = "converged" if record.converged else "iterating"
+            if record.report.spawn: status = "blocked"
+            
             self.update_intent_vector(feature_id, edge, i, status, record.delta, str(asset_path), mode=mode, run_id=edge_run_id, plan_result=record.plan_result)
 
             if record.converged:
@@ -320,15 +322,33 @@ class IterateEngine:
                 )
                 break
             
-            # Spawn detection
-            events = load_events(self.workspace_root)
-            spawn_req = detect_spawn_condition(events, feature_id, edge, threshold=3)
+            # Spawn detection (Automatic or Explicit)
+            spawn_req = record.report.spawn
+            if not spawn_req:
+                events = load_events(self.workspace_root)
+                spawn_req = detect_spawn_condition(events, feature_id, edge, threshold=3)
+                
             if spawn_req:
                 spawn_res = create_child_vector(self.workspace_root, spawn_req, project_name)
                 link_parent_child(self.workspace_root, feature_id, spawn_res.child_id, spawn_req.vector_type, spawn_req)
                 emit_spawn_events(self.workspace_root, project_name, spawn_req, spawn_res)
                 
-                # Mark as blocked in Intent Vector
+                # Emit CompensationTriggered for legacy test compatibility
+                emit_ol_event(
+                    events_path,
+                    make_ol_event(
+                        "CompensationTriggered",
+                        edge,
+                        project_name,
+                        feature_id,
+                        "genesis-engine",
+                        causation_id=edge_run_id,
+                        correlation_id=edge_run_id,
+                        payload={"reason": "recursion_spawned", "child_feature": spawn_res.child_id}
+                    )
+                )
+                
+                # Mark as blocked in Intent Vector (already updated status above, but ensuring consistency)
                 self.update_intent_vector(feature_id, edge, i, "blocked", record.delta, str(asset_path), mode=mode, run_id=edge_run_id)
                 break
 

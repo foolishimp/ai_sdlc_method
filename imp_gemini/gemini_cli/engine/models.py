@@ -11,9 +11,40 @@ class Outcome(Enum):
 
 @dataclass
 class SpawnRequest:
+    """Request to spawn a child vector \u2014 output of stuck-delta detection."""
     question: str
-    vector_type: str = "discovery"
+    parent_feature: str
+    triggered_at_edge: str
+    vector_type: str = "discovery"  # discovery | spike | poc | hotfix
     context_hints: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class FoldBackResult:
+    """Result of folding a child's results back to parent."""
+    parent_id: str
+    child_id: str
+    payload_path: str
+    parent_unblocked: bool
+    event_emitted: bool
+
+@dataclass
+class InstanceNode:
+    """A feature instance positioned on the asset graph topology (derived projection)."""
+    feature_id: str
+    zoom_level: int
+    current_edge: str
+    status: str
+    delta: int
+    parent_id: Optional[str] = None
+    converged_edges: List[str] = field(default_factory=list)
+    # Hamiltonian H = T + V (ADR-S-020)
+    hamiltonian_T: int = 0   # cumulative iteration count (kinetic \u2014 work done)
+    hamiltonian_V: int = 0   # current delta >= 0 (potential \u2014 work remaining)
+
+    @property
+    def hamiltonian(self) -> int:
+        """H = T + V \u2014 total traversal cost at this point in phase space."""
+        return self.hamiltonian_T + self.hamiltonian_V
 
 @dataclass
 class FunctorResult:
@@ -84,13 +115,16 @@ class IntentVector:
 
 @dataclass
 class IterationRecord:
-    """Record of one iteration — what happened, what was decided."""
+    """Record of one iteration \u2014 what happened, what was decided."""
     edge: str
     iteration: int
     report: 'IterationReport'
     event_emitted: bool = True
     construct_result: Optional[ConstructResult] = None
     plan_result: Optional[PlanResult] = None
+    # Hamiltonian H = T + V (ADR-S-020)
+    hamiltonian_T: int = 0   # cumulative iteration count (kinetic \u2014 work done)
+    hamiltonian_V: int = 0   # current delta >= 0 (potential \u2014 work remaining)
 
     @property
     def converged(self) -> bool:
@@ -104,6 +138,10 @@ class IterationRecord:
     def guardrail_results(self) -> List[Any]:
         return self.report.guardrail_results
 
+    @property
+    def hamiltonian(self) -> int:
+        return self.hamiltonian_T + self.hamiltonian_V
+
 @dataclass
 class EngineConfig:
     """Configuration for the engine."""
@@ -115,11 +153,13 @@ class EngineConfig:
     graph_topology: Dict[str, Any]
     model: str = "gemini-2.0-flash"
     max_iterations_per_edge: int = 10
-    gemini_timeout: int = 120
+    gemini_timeout: int = 300  # v3.0 timeout
     deterministic_only: bool = False
     fd_timeout: int = 120
     stall_timeout: int = 60
     sanitize_env: bool = True
+    budget_usd: float = 2.0  # v3.0 budget constraint
+
 
 @dataclass
 class IterationReport:

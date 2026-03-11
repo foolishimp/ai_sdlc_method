@@ -11,8 +11,8 @@ trajectory:
     status: iterating
     delta: -1
     iteration: 10
-    updated_at: '2026-03-08T16:13:05.524177+00:00'
+    updated_at: '2026-03-11T11:55:15.061402+00:00'
     mode: auto
-    engine_run_id: null
-    asset: /private/var/folders/rz/r6wxvr0n15d906k2s0jw8j2h0000gn/T/pytest-of-jim/pytest-81/test_iterate_engine_aborts_on_0/asset.txt
-updated_at: '2026-03-08T16:13:05.524170+00:00'
+    engine_run_id: d82b9a54-860c-45fc-9c89-33daacc76ce3
+    asset: /private/var/folders/rz/r6wxvr0n15d906k2s0jw8j2h0000gn/T/pytest-of-jim/pytest-57/test_iterate_engine_aborts_on_0/asset.txt
+updated_at: '2026-03-11T11:55:15.061391+00:00'

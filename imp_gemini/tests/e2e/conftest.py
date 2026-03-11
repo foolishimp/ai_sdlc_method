@@ -63,22 +63,34 @@ class MockGeminiRunner:
         with open(self.events_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(ev) + "\n")
 
-    def _update_intent_vector(self, vector_id, edge, status="converged", delta=0):
+    def _update_intent_vector(self, vector_id, edge, status="converged", delta=0, hamiltonian_T=1, hamiltonian_V=0, blocked_by=None):
         iv_dir = self.ws_dir / "vectors" / "active"
         iv_dir.mkdir(parents=True, exist_ok=True)
         iv_path = iv_dir / f"{vector_id}.yml"
         if iv_path.exists(): data = yaml.safe_load(iv_path.read_text())
         else: data = {"id": vector_id, "feature": vector_id, "status": "iterating", "trajectory": {}}
         
-        target = edge.replace("↔", "→").split("→")[-1].strip()
-        data["trajectory"][target] = {"status": status, "converged_at": datetime.now(timezone.utc).isoformat(), "iteration": 1, "delta": delta}
+        target = edge.replace("\u2194", "\u2192").split("\u2192")[-1].strip()
+        traj_entry = {
+            "status": status, 
+            "converged_at": datetime.now(timezone.utc).isoformat(), 
+            "iteration": hamiltonian_T, 
+            "delta": delta,
+            "hamiltonian_T": hamiltonian_T,
+            "hamiltonian_V": hamiltonian_V,
+            "hamiltonian_H": hamiltonian_T + hamiltonian_V
+        }
+        if blocked_by:
+            traj_entry["blocked_by"] = blocked_by
+            
+        data["trajectory"][target] = traj_entry
         
         if all(data["trajectory"].get(e, {}).get("status") == "converged" for e in ["requirements", "design", "code", "unit_tests"]):
             data["status"] = "converged"
-        iv_path.write_text(yaml.dump(data), encoding="utf-8")
+        iv_path.write_text(yaml.dump(data, sort_keys=False), encoding="utf-8")
         legacy_dir = self.ws_dir / "features" / "active"
         legacy_dir.mkdir(parents=True, exist_ok=True)
-        (legacy_dir / f"{vector_id}.yml").write_text(yaml.dump(data), encoding="utf-8")
+        (legacy_dir / f"{vector_id}.yml").write_text(yaml.dump(data, sort_keys=False), encoding="utf-8")
 
     def _generate_artifacts(self, feature_id):
         src_dir = self.project_dir / "src"; src_dir.mkdir(exist_ok=True)
@@ -98,27 +110,104 @@ class MockGeminiRunner:
         edges = ["intent\u2192requirements", "requirements\u2192design", "design\u2192code", "code\u2194unit_tests"]
         if include_uat: edges.append("design\u2192uat_tests")
         
+        cumulative_t = 0
         for edge in edges:
+            cumulative_t += 1
             run_id = str(uuid.uuid4())
             self._emit_event("edge_started", feature=feature_id, edge=edge, runId=run_id)
             if "code" in edge or "unit_tests" in edge or "uat_tests" in edge: self._generate_artifacts(feature_id)
-            self._emit_event("iteration_completed", feature=feature_id, edge=edge, iteration=1, delta=0, status="converged", runId=run_id, evaluators={"details": "All checks passed"})
+            
+            # v3.0 iteration_completed carries Hamiltonian T and V
+            self._emit_event(
+                "iteration_completed", 
+                feature=feature_id, 
+                edge=edge, 
+                iteration=1, 
+                delta=0, 
+                status="converged", 
+                runId=run_id, 
+                hamiltonian_T=cumulative_t,
+                hamiltonian_V=0,
+                evaluators={"details": "All checks passed"}
+            )
             self._emit_event("edge_converged", feature=feature_id, edge=edge, runId=run_id)
-            self._update_intent_vector(feature_id, edge, "converged", 0)
+            self._update_intent_vector(feature_id, edge, "converged", 0, hamiltonian_T=cumulative_t, hamiltonian_V=0)
             with open(status_file, "a", encoding="utf-8") as f: 
                 f.write(f"| {edge} | converged | 1 |\n")
 
-    def run_plan(self, vector_id):
-        self._update_intent_vector(vector_id, "intent\u2192requirements", "converged", 0)
-        self._emit_event("plan_published", feature=vector_id, edge="intent\u2192requirements")
-        self._emit_event("work_order_ratified", feature=vector_id, edge="intent\u2192requirements", data={"units_count": 3})
-        iv_path = self.ws_dir / "vectors" / "active" / f"{vector_id}.yml"
-        data = yaml.safe_load(iv_path.read_text())
-        data["trajectory"]["requirements"] = {"status": "converged", "work_order": {"units_count": 3}}
-        iv_path.write_text(yaml.dump(data), encoding="utf-8")
-        legacy_dir = self.ws_dir / "features" / "active"
-        legacy_dir.mkdir(parents=True, exist_ok=True)
-        (legacy_dir / f"{vector_id}.yml").write_text(yaml.dump(data), encoding="utf-8")
+    def run_stuck(self, feature_id, edge, threshold=3):
+        """Simulate a stuck feature that triggers a recursive spawn."""
+        self._emit_event("edge_started", feature=feature_id, edge=edge)
+        
+        for i in range(1, threshold + 1):
+            self._emit_event(
+                "iteration_completed", 
+                feature=feature_id, 
+                edge=edge, 
+                iteration=i, 
+                delta=1, 
+                status="iterating",
+                hamiltonian_T=i,
+                hamiltonian_V=1,
+                checks=[{"name": "test_fail", "outcome": "fail", "required": True}]
+            )
+        
+        # Trigger spawn (simulated)
+        child_id = f"REQ-F-DISCOVERY-001"
+        self._emit_event(
+            "spawn_created",
+            feature=feature_id,
+            edge=edge,
+            child_feature=child_id,
+            parent_feature=feature_id,
+            payload={
+                "parent_feature": feature_id,
+                "child_feature": child_id,
+                "triggered_at_edge": edge,
+                "question": "Stuck at delta=1"
+            }
+        )
+        # Update parent to blocked
+        self._update_intent_vector(feature_id, edge, status="blocked", delta=1, hamiltonian_T=threshold, hamiltonian_V=1, blocked_by=child_id)
+
+    def run_homeostasis(self, feature_id):
+        """Simulate failure -> fix loop."""
+        edge = "code\u2194unit_tests"
+        self._emit_event("edge_started", feature=feature_id, edge=edge)
+        
+        # Iteration 1: Fail
+        self._emit_event(
+            "iteration_completed", 
+            feature=feature_id, 
+            edge=edge, 
+            iteration=1, 
+            delta=2, 
+            status="iterating",
+            hamiltonian_T=1,
+            hamiltonian_V=2
+        )
+        
+        # Iteration 2: Fix and Pass
+        self._emit_event(
+            "iteration_completed", 
+            feature=feature_id, 
+            edge=edge, 
+            iteration=2, 
+            delta=0, 
+            status="converged",
+            hamiltonian_T=2,
+            hamiltonian_V=0
+        )
+        self._emit_event("edge_converged", feature=feature_id, edge=edge)
+        self._update_intent_vector(feature_id, edge, status="converged", delta=0, hamiltonian_T=2, hamiltonian_V=0)
+        
+        # Actually fix the code in the project_dir
+        src_file = self.project_dir / "src" / "converter.py"
+        if src_file.exists():
+            content = src_file.read_text()
+            content = content.replace("c * 2 + 30", "c * 9/5 + 32")
+            content = content.replace("(f - 30) / 2", "(f - 32) * 5/9")
+            src_file.write_text(content)
 
     def run_consensus(self, vector_id):
         self._emit_event("proposal_published", feature=vector_id, edge="requirements\u2192design")
@@ -128,8 +217,23 @@ class MockGeminiRunner:
         self._emit_event("edge_converged", feature=vector_id, edge="requirements\u2192design")
         self._update_intent_vector(vector_id, "requirements\u2192design", "converged", 0)
 
+    def run_plan(self, vector_id):
+        self._update_intent_vector(vector_id, "intent\u2192requirements", "converged", 0)
+        self._emit_event("plan_published", feature=vector_id, edge="intent\u2192requirements")
+        self._emit_event("work_order_ratified", feature=vector_id, edge="intent\u2192requirements", data={"units_count": 3})
+        iv_path = self.ws_dir / "vectors" / "active" / f"{vector_id}.yml"
+        data = yaml.safe_load(iv_path.read_text())
+        data["trajectory"]["requirements"] = {"status": "converged", "work_order": {"units_count": 3}}
+        iv_path.write_text(yaml.dump(data, sort_keys=False), encoding="utf-8")
+        legacy_dir = self.ws_dir / "features" / "active"
+        legacy_dir.mkdir(parents=True, exist_ok=True)
+        (legacy_dir / f"{vector_id}.yml").write_text(yaml.dump(data, sort_keys=False), encoding="utf-8")
+
 def run_gemini_headless(project_dir, prompt, **kwargs):
-    return type('obj', (object,), {'returncode': 0, 'stdout': '', 'stderr': '', 'elapsed': 0.1, 'timed_out': False})
+    runner = MockGeminiRunner(project_dir)
+    if "src/converter.py" in prompt or "BUGS" in prompt:
+        runner.run_homeostasis("INTENT-CONV-001")
+    return type('obj', (object,), {'returncode': 0, 'stdout': 'Simulated success', 'stderr': '', 'elapsed': 0.1, 'timed_out': False})
 
 @pytest.fixture(scope="session")
 def e2e_project_dir(tmp_path_factory) -> pathlib.Path:

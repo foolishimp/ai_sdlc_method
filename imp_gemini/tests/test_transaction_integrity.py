@@ -36,16 +36,30 @@ def test_iteration_emits_manifest(workspace, tmp_path):
     )
     
     events = store.load_all()
-    start_ev = next(e for e in events if e["eventType"] == "START")
-    complete_ev = next(e for e in events if e["eventType"] == "COMPLETE")
+    
+    def find_ev(et):
+        for e in events:
+            if e.get("eventType") == et: return e
+            facets = e.get("run", {}).get("facets", {})
+            if facets.get("sdlc:event_type", {}).get("type") == et: return e
+            if facets.get("sdlc_event_type", {}).get("type") == et: return e
+        return None
+
+    start_ev = find_ev("START") or find_ev("IterationStarted")
+    complete_ev = find_ev("COMPLETE") or find_ev("IterationCompleted")
+    
+    assert start_ev is not None, f"START event not found in {events}"
+    assert complete_ev is not None, f"COMPLETE event not found in {events}"
     
     # Verify START manifest
-    start_manifest = start_ev["run"]["facets"]["sdlc_manifest"]
+    start_payload = start_ev["run"]["facets"].get("sdlc:payload") or start_ev["run"]["facets"].get("sdlc_manifest")
+    start_manifest = start_payload.get("sdlc_manifest") if "sdlc_manifest" in start_payload else start_payload
     assert len(start_manifest["inputs"]) == 1
     assert start_manifest["inputs"][0]["path"] == "asset.txt"
     assert start_manifest["inputs"][0]["hash"] is not None
     
     # Verify COMPLETE manifest
-    complete_manifest = complete_ev["run"]["facets"]["sdlc_manifest"]
+    complete_payload = complete_ev["run"]["facets"].get("sdlc:payload") or complete_ev["run"]["facets"].get("sdlc_manifest")
+    complete_manifest = complete_payload.get("sdlc_manifest") if "sdlc_manifest" in complete_payload else complete_payload
     assert len(complete_manifest["outputs"]) == 1
     assert complete_manifest["outputs"][0]["path"] == "asset.txt"

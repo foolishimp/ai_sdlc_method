@@ -30,6 +30,7 @@ class OTLPRelay:
         self._last_position = 0
         
         if OTLP_AVAILABLE:
+            from opentelemetry.sdk.resources import Resource
             resource = Resource.create({"service.name": "ai-sdlc-method", "project": "imp_gemini"})
             self.provider = TracerProvider(resource=resource)
             try:

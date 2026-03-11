@@ -52,7 +52,9 @@ class GeminiFunctor:
             if iteration_count >= 5:
                 spawn = SpawnRequest(
                     question=f"Feature stuck after {iteration_count} iterations. Investigate root cause.",
-                    vector_type="discovery"
+                    vector_type="discovery",
+                    parent_feature=context.get("feature_id", "unknown"),
+                    triggered_at_edge=context.get("edge", "unknown")
                 )
                 res = FunctorResult(
                     name="sub_agent_eval",
@@ -182,7 +184,12 @@ class GeminiFunctor:
                 outcome=Outcome.FAIL,
                 delta=1,
                 reasoning=f"Sub-Agent requested recursion: {reason}",
-                spawn=SpawnRequest(question=reason, vector_type="discovery")
+                spawn=SpawnRequest(
+                    question=reason, 
+                    vector_type="discovery",
+                    parent_feature=context.get("feature_id", "unknown"),
+                    triggered_at_edge=context.get("edge", "unknown")
+                )
             )
         else:
             feedback = input("Provide feedback for the next iteration: ")

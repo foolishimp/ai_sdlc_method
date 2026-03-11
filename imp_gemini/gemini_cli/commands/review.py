@@ -15,39 +15,62 @@ class ReviewCommand:
         self.project_root = workspace_root.parent
         self.store = EventStore(workspace_root)
 
-    def run(self, action: str = "list", proposal_id: str = None):
+    def run(self, action: str = "list", proposal_id: str = None, decision: str = None, reason: str = None, actor: str = "human"):
         events = self.store.load_all()
-        # Filter for feature_proposal events (v2 schema: facets.sdlc_event_type.type)
+        
+        # 1. Feature Proposals
         proposals = []
         for e in events:
             facets = e.get("run", {}).get("facets", {})
             type_facet = facets.get("sdlc_event_type", {})
-            if type_facet.get("type") == "feature_proposal":
+            if type_facet.get("type") == "feature_proposal" or e.get("event_type") == "feature_proposal":
                 proposals.append(e)
         
-        # Filter for only latest status of each proposal
         latest_proposals = {}
         for p in proposals:
-            data = p.get("_metadata", {}).get("original_data", {})
+            data = p.get("data") or p.get("_metadata", {}).get("original_data", {})
             pid = data.get("proposal_id")
             if pid:
                 latest_proposals[pid] = p
 
+        # 2. Human Gates (Phase 4)
+        from gemini_cli.engine.human_audit import get_pending_gates
+        pending_gates = get_pending_gates(events)
+
         if action == "list":
             print("\nPENDING FEATURE PROPOSALS")
             print("="*40)
+            if not latest_proposals:
+                print("No pending feature proposals.")
             for pid, p in latest_proposals.items():
-                data = p.get("_metadata", {}).get("original_data", {})
+                data = p.get("data") or p.get("_metadata", {}).get("original_data", {})
                 print(f"[{pid}] {data.get('feature_id')}: {data.get('title')}")
-                print(f"      Intent: {data.get('intent_id')} | Triggered: {p.get('eventTime')}")
+                print(f"      Intent: {data.get('intent_id')} | Triggered: {p.get('eventTime') or p.get('timestamp')}")
+            
+            print("\nPENDING HUMAN GATES")
+            print("="*40)
+            if not pending_gates:
+                print("No pending human gates.")
+            for gate in pending_gates:
+                print(f"[{gate['event_id'][:8]}] {gate['feature']} @ {gate['edge']}")
+                print(f"           Trigger: {gate.get('trigger')} | Iteration: {gate.get('iteration')}")
             return
 
         if not proposal_id:
-            print("Error: Action requires --id")
+            print("Error: Action requires --id (proposal_id or gate_id)")
+            return
+
+        # Check if it's a gate decision
+        gate_to_decide = next((g for g in pending_gates if g["event_id"].startswith(proposal_id)), None)
+        if gate_to_decide:
+            if not decision:
+                print("Error: Gate decision requires --decision (approve|reject|defer)")
+                return
+            self._decide_gate(gate_to_decide, decision, reason or "Manual decision", actor)
             return
 
         if proposal_id not in latest_proposals:
-            print(f"Error: Proposal {proposal_id} not found.")
+            print(f"Error: Proposal/Gate {proposal_id} not found.")
             return
 
         proposal = latest_proposals[proposal_id]
@@ -61,6 +84,24 @@ class ReviewCommand:
                 data={"proposal_id": proposal_id}
             )
             print(f"Proposal {proposal_id} dismissed.")
+
+    def _decide_gate(self, gate: Dict, decision: str, reason: str, actor: str):
+        from gemini_cli.engine.human_audit import emit_human_decision
+        events_path = self.workspace_root / "events" / "events.jsonl"
+        project_name = self.store._get_project_name() if hasattr(self.store, "_get_project_name") else "imp_gemini"
+        
+        emit_human_decision(
+            events_path=events_path,
+            feature=gate["feature"],
+            edge=gate["edge"],
+            project=project_name,
+            actor=actor,
+            decision=decision,
+            reason=reason,
+            gate_event_id=gate["event_id"],
+            iteration=gate.get("iteration", 1)
+        )
+        print(f"Decision '{decision}' recorded for gate {gate['event_id'][:8]}.")
 
     def _promote_proposal(self, proposal: Dict):
         data = proposal.get("_metadata", {}).get("original_data", {})

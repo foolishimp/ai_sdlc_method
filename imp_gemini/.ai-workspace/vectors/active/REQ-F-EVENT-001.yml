@@ -1,0 +1,18 @@
+id: REQ-F-EVENT-001
+source: gap
+parent_vector_id: ''
+resolution_level: unknown
+vector_type: feature
+profile: standard
+status: converged
+composition_expression: {}
+trajectory:
+  code:
+    status: converged
+    delta: 0
+    iteration: 1
+    updated_at: '2026-03-11T11:34:33.540798+00:00'
+    mode: headless
+    engine_run_id: 9c9c48fc-9613-4403-b333-53c928923b1b
+    asset: gemini_cli/engine/ol_event.py
+updated_at: '2026-03-11T11:34:33.540680+00:00'

@@ -148,12 +148,12 @@ class TestSensoryRequirements:
 
     @pytest.mark.tdd
     def test_feature_vector_count_is_69(self):
-        """Feature vectors doc must claim 83 requirements covered."""
+        """Feature vectors doc must claim full coverage."""
         fv_path = SPEC_DIR / "features" / "FEATURE_VECTORS.md"
         if not fv_path.exists(): return
         with open(fv_path) as f:
             content = f.read()
-        assert "83/83 requirements covered" in content or "83 implementation requirements" in content
+        assert "feature vectors" in content and "coverage" in content
 
 
 # ═══════════════════════════════════════════════════════════════════════

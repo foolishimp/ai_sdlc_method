@@ -1,0 +1,23 @@
+id: REQ-F-DISCOVERY-001
+feature: REQ-F-DISCOVERY-001
+title: "Why is unknown stuck on design\u2192code? Failing checks: unknown checks.\
+  \ Delta has b"
+intent: SPAWN-unknown
+vector_type: discovery
+profile: minimal
+status: pending
+created_at: '2026-03-11T11:55:13.174268+00:00'
+updated_at: '2026-03-11T11:55:13.174268+00:00'
+parent:
+  feature: unknown
+  edge: "design\u2192code"
+  reason: "Why is unknown stuck on design\u2192code? Failing checks: unknown checks.\
+    \ Delta has been 1 for 3 consecutive iterations."
+children: []
+time_box:
+  enabled: true
+  duration: 1 day
+  started: ''
+  on_expiry: fold_back
+trajectory: {}
+composition_expression: {}

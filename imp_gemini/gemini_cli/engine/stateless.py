@@ -12,6 +12,8 @@ from typing import List, Dict, Any, Optional
 from .models import IterationReport, FunctorResult, Outcome, ConstructResult
 from .guardrails import GuardrailEngine
 
+from .ol_event import emit_ol_event, make_ol_event, iteration_started, iteration_completed
+
 def run_iteration(
     feature_id: str,
     edge: str,
@@ -24,20 +26,39 @@ def run_iteration(
     construct: bool = False,
     checklist: List[Dict[str, Any]] = None
 ) -> IterationReport:
-    """Perform a single stateless iteration.
-    
-    This is the core 'Metabolism' of the system.
-    """
+    """Perform a single stateless iteration."""
+    events_path = store.workspace_root / "events" / "events.jsonl"
+    project_name = constraints.get("project_id") or "imp_gemini"
+    edge_run_id = context.get("edge_run_id")
+    edge_correlation_id = context.get("edge_correlation_id")
+
     # 1. START transaction
-    start_event = store.emit(
-        event_type="iteration_started",
-        feature=feature_id,
-        edge=edge,
-        data={**context, "iteration": iteration},
-        eventType="START",
-        inputs=[asset_path] if asset_path.exists() else []
+    inputs = []
+    if asset_path.exists():
+        try:
+            rel_path = str(asset_path.relative_to(store.workspace_root.parent))
+        except ValueError:
+            rel_path = asset_path.name
+        inputs = [{"path": rel_path, "hash": store._hash_file(asset_path)}]
+
+    iter_run_id = emit_ol_event(
+        events_path,
+        iteration_started(
+            project=project_name,
+            instance_id=feature_id,
+            actor="genesis-engine",
+            edge=edge,
+            causation_id=edge_run_id,
+            correlation_id=edge_correlation_id,
+            payload={
+                "feature": feature_id, 
+                "edge": edge, 
+                "iteration": iteration,
+                "sdlc_manifest": {"inputs": inputs} # Backward compat or extra facet
+            },
+            inputs=[str(asset_path)] if asset_path.exists() else []
+        )
     )
-    transaction_id = start_event["run"]["runId"]
 
     # 2. Pre-flight Guardrails
     guardrails = GuardrailEngine(constraints)
@@ -51,14 +72,18 @@ def run_iteration(
             functor_results=[],
             guardrail_results=gr_results
         )
-        store.emit(
-            event_type="iteration_failed",
-            feature=feature_id,
-            edge=edge,
-            delta=-1,
-            data={"reason": "pre-flight guardrail failure"},
-            eventType="FAIL",
-            parent_run_id=transaction_id
+        emit_ol_event(
+            events_path,
+            make_ol_event(
+                "IterationFailed",
+                edge,
+                project_name,
+                feature_id,
+                "genesis-engine",
+                causation_id=iter_run_id,
+                correlation_id=edge_correlation_id,
+                payload={"reason": "pre-flight guardrail failure", "feature": feature_id, "edge": edge}
+            )
         )
         return report
 
@@ -85,7 +110,7 @@ def run_iteration(
             **check, 
             "constraints": constraints,
             "iteration": iteration,
-            "parent_run_id": transaction_id
+            "parent_run_id": iter_run_id
         })
         results.append(res)
         if res.next_candidate is not None:
@@ -113,19 +138,38 @@ def run_iteration(
     converged = (total_delta == 0 and not spawn_req and all(r.passed for r in post_gr_results))
 
     # 8. COMPLETE transaction
-    store.emit(
-        event_type="iteration_completed",
-        feature=feature_id,
-        edge=edge,
-        delta=total_delta,
-        data={
-            "iteration": iteration,
-            "converged": converged,
-            "functor_results": [r.outcome.value for r in results]
-        },
-        eventType="COMPLETE",
-        outputs=[asset_path] if asset_path.exists() else [],
-        parent_run_id=transaction_id
+    outputs = []
+    if asset_path.exists():
+        try:
+            rel_path = str(asset_path.relative_to(store.workspace_root.parent))
+        except ValueError:
+            rel_path = asset_path.name
+        outputs = [{"path": rel_path, "hash": store._hash_file(asset_path)}]
+
+    status = "converged" if converged else "iterating"
+    if spawn_req: status = "blocked"
+
+    emit_ol_event(
+        events_path,
+        iteration_completed(
+            project=project_name,
+            instance_id=feature_id,
+            actor="genesis-engine",
+            edge=edge,
+            delta=total_delta,
+            causation_id=iter_run_id,
+            correlation_id=edge_correlation_id,
+            payload={
+                "iteration": iteration,
+                "converged": converged,
+                "status": status,
+                "feature": feature_id,
+                "edge": edge,
+                "delta": total_delta,
+                "sdlc_manifest": {"outputs": outputs}
+            },
+            outputs=[str(asset_path)] if asset_path.exists() else []
+        )
     )
 
     return IterationReport(

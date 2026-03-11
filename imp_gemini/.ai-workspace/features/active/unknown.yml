@@ -9,3 +9,10 @@ trajectory:
     mode: auto
     status: converged
     updated_at: '2026-03-07T17:09:16.675209+00:00'
+  design_code:
+    status: blocked
+    blocked_by: REQ-F-DISCOVERY-001
+children:
+- feature: REQ-F-DISCOVERY-001
+  fold_back_status: pending
+updated_at: '2026-03-11T11:55:13.175122+00:00'

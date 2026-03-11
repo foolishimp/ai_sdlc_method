@@ -43,8 +43,8 @@ def test_iterate_engine_convergence(workspace):
                 reasoning="test",
                 next_candidate="# Implements: REQ-TEST-001\npass" if passed else candidate
             )
-    engine = IterateEngine(functors=[MockFunctor()])
-    asset_path = workspace / "asset.txt"
+    engine = IterateEngine(functors=[MockFunctor()], project_root=workspace.parent)
+    asset_path = workspace.parent / "asset.txt"
     
     # Test Failure
     asset_path.write_text("fail")

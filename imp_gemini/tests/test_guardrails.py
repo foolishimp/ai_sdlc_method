@@ -36,7 +36,7 @@ def test_security_guardrail_block():
 def test_iterate_engine_aborts_on_guardrail(tmp_path):
     # Arrange
     constraints = {"classification": "confidential"}
-    engine = IterateEngine(functors=[], constraints=constraints)
+    engine = IterateEngine(functors=[], constraints=constraints, project_root=tmp_path)
     
     asset = tmp_path / "asset.txt"
     asset.write_text("content")

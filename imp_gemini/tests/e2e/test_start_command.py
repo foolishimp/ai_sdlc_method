@@ -2,9 +2,11 @@ import pytest
 import subprocess
 from pathlib import Path
 
+import sys
+
 def run_gemini(workspace, cmd, *args):
     ws_path = workspace / ".ai-workspace"
-    full_cmd = ["python3", "-m", "gemini_cli.cli", "--workspace", str(ws_path), cmd] + list(args)
+    full_cmd = [sys.executable, "-m", "gemini_cli.cli", "--workspace", str(ws_path), cmd] + list(args)
     # Ensure PYTHONPATH includes the current directory and parent so genesis_core is found
     env = {"PYTHONPATH": f"{Path.cwd()}:{Path.cwd().parent}"}
     return subprocess.run(full_cmd, capture_output=True, text=True, env=env)

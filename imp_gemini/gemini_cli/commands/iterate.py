@@ -100,23 +100,7 @@ class IterateCommand:
         tgt_input = edge_parts[-1].strip().lower()
         normalized_edge = f"{src_input}\u2192{tgt_input}"
         
-        transitions = topology.topology.get("transitions", [])
-        edge_config = {}
-        evaluator_types = ["agent", "human"] # Default
-        
-        for t in transitions:
-            if (src_input == t.get("source", "").lower() and tgt_input == t.get("target", "").lower()) or \
-               (edge.lower() in t.get("name", "").lower()):
-                edge_config = t
-                evaluator_types = t.get("evaluators", evaluator_types)
-                break
-        
-        resolved_checklist = loader.resolve_checklist(edge_config)
-        if not resolved_checklist and evaluator_types:
-            resolved_checklist = [{"evaluator": et} for et in evaluator_types]
-        
         # 2. Configure Stateless Engine with Dynamic Routing (ADR-GG-002)
-        # Map edges to specialized sub-agents
         SUB_AGENT_MAPPING = {
             "code\u2194unit_tests": "test_fixing_agent",
             "design\u2192code": "source_implementation_agent",
@@ -135,80 +119,59 @@ class IterateCommand:
         
         engine = IterateEngine(functor_map=functor_map, constraints=loader.constraints, project_root=self.workspace_root.parent)
         
-        # 3. Determine T (Iteration Count)
-        events = self.store.load_all()
-        iter_count = Projector.get_iteration_count(events, feature, normalized_edge)
-        current_iteration = iter_count + 1
-        
-        if iter_count == 0:
-            engine.emit_event("edge_started", feature=feature, edge=normalized_edge, data={"mode": mode_label})
-        
         asset_path = Path(asset)
         
-        # 4. Load context
+        # 3. Load context
         fv_path = self.workspace_root / "features" / "active" / f"{feature}.yml"
         fv_data = {}
         if fv_path.exists():
             with open(fv_path, "r") as f:
                 fv_data = yaml.safe_load(f) or {}
 
-        print(f"  [METABOLISM] Iteration {current_iteration} (Mode: {mode_label})")
-
-        # 5. Run Stateless Metabolic Pass
-        # We use engine.iterate_edge as the Unit of Work proxy to the stateless logic
-        record = engine.iterate_edge(
+        # 4. Run Orchestrated Edge Traversal (Phase 2)
+        records = engine.run_edge(
             edge=normalized_edge,
             feature_id=feature,
             asset_path=asset_path,
             context={
                 "asset_name": asset,
                 "edge": normalized_edge,
-                "iteration_count": iter_count,
                 "mode": mode,
                 "feature_id": feature,
                 "feature_vector": fv_data
             },
-            iteration=current_iteration,
             mode=mode,
-            checklist=resolved_checklist
+            construct=(mode != "interactive"),
+            max_iterations=10
         )
         
-        report = record.report
+        if not records:
+            return False
+            
+        last_record = records[-1]
         
-        # 6. Post-iteration Side-effects (Status Update)
-        status = "converged" if report.converged else "iterating"
-        if report.spawn: status = "blocked"
-        
-        engine.emit_event("iteration_completed", feature=feature, edge=normalized_edge, data={
-            "status": status, 
-            "delta": report.delta, 
-            "iteration": current_iteration
-        })
-        
-        engine.update_feature_vector(feature, normalized_edge, current_iteration, status, report.delta, str(asset_path), mode=mode)
-
-        # 7. Display Results
-        for res in report.functor_results:
+        # 5. Display Results of last iteration
+        for res in last_record.report.functor_results:
             icon = "[PASS]" if res.outcome == Outcome.PASS else "[FAIL]"
             print(f"    {icon} {res.name}: {res.reasoning} (Delta: {res.delta})")
             
-        for g in report.guardrail_results:
+        for g in last_record.report.guardrail_results:
             icon = "[SAFE]" if g.passed else "[WARN]"
             print(f"    {icon} Guardrail {g.name}: {g.message}")
 
-        # 8. Handle Recursion
-        if report.spawn:
-            self._handle_spawn(report.spawn, feature, normalized_edge, depth, mode)
-            return True
-
-        if report.converged:
-            print(f"\nSuccess! {normalized_edge} converged.")
-            engine.emit_event("edge_converged", feature=feature, edge=normalized_edge, data={})
+        if last_record.converged:
+            print(f"\nSuccess! {normalized_edge} converged after {len(records)} iterations.")
             return True
         
-        # Hamiltonian Insight
-        h_val = current_iteration + report.delta
-        print(f"\nIteration Complete. Delta (V): {report.delta}, Hamiltonian (H): {h_val}")
+        # Check if blocked by spawn
+        from gemini_cli.engine.fd_spawn import load_events
+        events = load_events(self.workspace_root)
+        relevant_spawn = next((e for e in reversed(events) if e.get("event_type") == "spawn_created" and e.get("feature") == feature and e.get("edge") == normalized_edge), None)
+        if relevant_spawn:
+            print(f"\n[RECURSION] Edge blocked by spawned child vector.")
+            return True
+
+        print(f"\nIteration set complete. Final Delta (V): {last_record.delta}, Hamiltonian (H): {last_record.hamiltonian}")
         return False
 
     def _run_startup_health_check(self):

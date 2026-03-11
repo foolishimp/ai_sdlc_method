@@ -127,67 +127,36 @@ def main():
         from gemini_cli.commands.sync_context import SyncContextCommand
         SyncContextCommand(workspace_root, design_name=design_name).run()
     elif args.command == "start":
-        state_mgr = StateManager(workspace_root=str(workspace_root.absolute()))
-        store = EventStore(workspace_root)
+        from gemini_cli.internal.workspace_state import detect_workspace_state, get_active_features, select_next_feature, get_next_edge
         
-        # ADR-S-015: Transaction Integrity Check
-        events = store.load_all()
-        open_starts = {}
-        for ev in events:
-            if ev.get("eventType") == "START":
-                open_starts[ev["run"]["runId"]] = ev
-            elif ev.get("eventType") in ("COMPLETE", "FAIL", "ABORT"):
-                run_id = ev["run"]["runId"]
-                parent_id = ev.get("run", {}).get("facets", {}).get("parent_run_id", {}).get("runId")
-                if parent_id: open_starts.pop(parent_id, None)
-                open_starts.pop(run_id, None)
+        state_str = detect_workspace_state(workspace_root.parent)
+        print(f"\nDetected State: {state_str}")
         
-        if open_starts:
-            print("\n[RECOVERY] Detected open transaction(s). Verifying integrity...")
-            for rid, ev in open_starts.items():
-                manifest = ev.get("run", {}).get("facets", {}).get("sdlc_manifest", {})
-                inputs = manifest.get("inputs", [])
-                
-                integrity_failure = False
-                for inp in inputs:
-                    path = project_root / inp["path"]
-                    expected_hash = inp["hash"]
-                    if not path.exists():
-                        print(f"  [ERROR] Input artifact missing: {inp['path']}")
-                        integrity_failure = True
-                        break
-                    actual_hash = store._hash_file(path)
-                    if actual_hash != expected_hash:
-                        print(f"  [ERROR] Input artifact mutated: {inp['path']}")
-                        print(f"          Expected: {expected_hash[:8]}")
-                        print(f"          Actual:   {actual_hash[:8]}")
-                        integrity_failure = True
-                        break
-                
-                if integrity_failure:
-                    print(f"\n  [ABORT] Cannot resume transaction {rid[:8]}. Filesystem has mutated.")
-                    print("  Action: Manually resolve conflicts or revert to last stable checkpoint.")
-                    store.emit("transaction_aborted", feature=ev.get("feature", "unknown"), data={"reason": "integrity_failure", "run_id": rid}, eventType="ABORT")
-                    sys.exit(1)
-                else:
-                    print(f"  [RESUME] Transaction {rid[:8]} is stable. Resuming...")
-
-        current_state = state_mgr.get_current_state()
-        print(f"\nDetected State: {current_state.value}")
-        if current_state == ProjectState.UNINITIALISED:
+        if state_str == "UNINITIALISED":
             print("Project not initialized. Run /gen-init to bootstrap.")
-        elif current_state == ProjectState.NEEDS_INTENT:
+        elif state_str == "NEEDS_CONSTRAINTS":
+            print("Action Required: Define project constraints in .ai-workspace/context/project_constraints.yml")
+        elif state_str == "NEEDS_INTENT":
             print("Action Required: Define project intent in specification/INTENT.md")
-        elif current_state == ProjectState.NO_FEATURES:
+        elif state_str == "NO_FEATURES":
             print("Action Required: Spawn your first feature vector using /gen-spawn.")
-        elif current_state == ProjectState.IN_PROGRESS:
-            feature = state_mgr.get_next_actionable_feature()
+        elif state_str == "STUCK":
+            print("Project is STUCK. One or more features have repeated deltas.")
+            print("Action: Run /gen-review or manually intervene.")
+        elif state_str == "ALL_BLOCKED":
+            print("Project is ALL_BLOCKED. All active features are waiting on child vectors.")
+            print("Action: Complete child vectors or fold them back.")
+        elif state_str == "IN_PROGRESS":
+            features = get_active_features(workspace_root.parent)
+            feature = select_next_feature(features)
             if feature:
-                print(f"Next Logical Step: Feature {feature.get('feature')} on {state_mgr.get_next_edge(feature)}")
-        elif current_state == ProjectState.ALL_CONVERGED:
-            print("All features converged! 🎉 Ready for release.")
+                edge = get_next_edge(feature)
+                print(f"Next Logical Step: Feature {feature.get('feature')} on {edge}")
+                print(f"Action: /gen-iterate --feature {feature.get('feature')} --edge \"{edge}\" --mode auto")
+        elif state_str == "ALL_CONVERGED":
+            print("All features converged! Ready for release.")
         else:
-            print(f"Status: {current_state.value}")
+            print(f"Status: {state_str}")
     elif args.command == "iterate":
         IterateCommand(workspace_root, design_name=design_name).run(args.feature, args.edge, args.asset, args.mode)
     elif args.command == "checkpoint":
