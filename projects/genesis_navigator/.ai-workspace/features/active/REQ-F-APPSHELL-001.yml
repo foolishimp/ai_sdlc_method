@@ -1,0 +1,41 @@
+feature:
+  id: REQ-F-APPSHELL-001
+  title: "React App Shell + Router"
+  intent: INT-001
+  vector_type: feature
+  profile: standard
+  status: converged
+  priority: critical
+
+satisfies:
+  - REQ-F-SHELL-001
+  - REQ-F-SHELL-002
+  - REQ-F-SHELL-003
+  - REQ-F-NAV-002
+  - REQ-NFR-ARCH-001
+
+trajectory:
+  design_code:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-12T09:00:00Z"
+    converged_at: "2026-03-12T10:00:00Z"
+  code_unit_tests:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-12T10:00:00Z"
+    converged_at: "2026-03-12T11:00:00Z"
+
+constraints:
+  acceptance_criteria:
+    - "App renders at / with project list view"
+    - "App renders at /projects/:id with project detail view"
+    - "React Router v7 two-route setup (no additional URL routes)"
+    - "TanStack Query QueryClientProvider wraps the app"
+    - "TypeScript strict mode, no any types in shell code"
+    - "Vite 6 dev server starts without errors"
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
