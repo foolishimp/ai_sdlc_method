@@ -1,0 +1,27 @@
+feature: REQ-F-DISCOVERY-001
+title: "Why is REQ-F-SCANNER-001 stuck on code\u2194unit_tests? Failing checks: tests_pass,\
+  \ c"
+intent: SPAWN-REQ-F-SCANNER-001
+vector_type: discovery
+profile: minimal
+status: pending
+convergence_type: ''
+created: '2026-03-11T14:55:51.848789+00:00'
+updated: '2026-03-11T14:55:51.848789+00:00'
+parent:
+  feature: REQ-F-SCANNER-001
+  edge: "code\u2194unit_tests"
+  reason: "Why is REQ-F-SCANNER-001 stuck on code\u2194unit_tests? Failing checks:\
+    \ tests_pass, coverage_meets_threshold, format_check. Delta has been 3 for 3 consecutive\
+    \ iterations."
+children: []
+time_box:
+  enabled: true
+  duration: 1 day
+  started: ''
+  on_expiry: fold_back
+trajectory: {}
+constraints:
+  acceptance_criteria: []
+  threshold_overrides: {}
+  additional_checks: []

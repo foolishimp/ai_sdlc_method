@@ -47,12 +47,74 @@ constraints:
   error_handling:
     strategy: ""     # fail-fast | retry | circuit-breaker
 
+# ═══════════════════════════════════════════════════════════════
+# TOOLS — resolves $tools.* in edge checklists
+# ═══════════════════════════════════════════════════════════════
+
+tools:
+  test_runner:
+    command: "python -m pytest"
+    args: "imp_react_vite/backend/tests/ -q"
+    pass_criterion: "exit code 0"
+    required: true
+
+  coverage:
+    command: "python -m pytest"
+    args: "--cov=imp_react_vite/backend/genesis_nav --cov-report=term-missing imp_react_vite/backend/tests/ -q"
+    pass_criterion: "coverage percentage >= 0.80"
+    required: true
+
+  linter:
+    command: "ruff check"
+    args: "imp_react_vite/backend/genesis_nav/"
+    pass_criterion: "exit code 0"
+    required: true
+
+  formatter:
+    command: "ruff format"
+    args: "--check imp_react_vite/backend/genesis_nav/"
+    pass_criterion: "exit code 0"
+    required: true
+
+  syntax_checker:
+    command: "python -m py_compile"
+    args: "imp_react_vite/backend/genesis_nav/__init__.py imp_react_vite/backend/genesis_nav/main.py imp_react_vite/backend/genesis_nav/cli.py imp_react_vite/backend/genesis_nav/scanner/workspace_scanner.py imp_react_vite/backend/genesis_nav/scanner/project_identity.py imp_react_vite/backend/genesis_nav/models/schemas.py imp_react_vite/backend/genesis_nav/routers/projects.py"
+    pass_criterion: "exit code 0"
+    required: true
+
+  type_checker:
+    command: "echo"
+    args: "type checking deferred to post-MVP"
+    pass_criterion: "exit code 0"
+    required: false
+
+# ═══════════════════════════════════════════════════════════════
+# THRESHOLDS
+# ═══════════════════════════════════════════════════════════════
+
+thresholds:
+  test_coverage_minimum: 0.80
+  max_function_lines: 50
+  max_file_lines: 300
+  max_cyclomatic_complexity: 10
+
+# ═══════════════════════════════════════════════════════════════
+# STANDARDS
+# ═══════════════════════════════════════════════════════════════
+
+standards:
+  style_guide: "PEP 8 via ruff"
+  docstrings: "Google style, required for public functions"
+  type_hints: "required — all public functions must have type annotations"
+  test_structure: "AAA pattern, pytest fixtures, no ordering dependencies"
+
+# ═══════════════════════════════════════════════════════════════
 # Multi-tenant folder structure (REQ-TOOL-012, REQ-TOOL-013)
 # Controls where design→code edge places generated source code.
 # Each design variant gets its own imp_<name>/ directory.
 structure:
   design_tenants:
-    # - name: ""               # e.g., "scala_spark", "python_django"
-    #   output_dir: ""         # e.g., "imp_scala_spark/"
-    #   description: ""        # e.g., "Scala 2.13 + Spark 3.5 implementation"
+    - name: "react_vite"
+      output_dir: "imp_react_vite/"
+      description: "React 19 + Vite 6 frontend + FastAPI Python backend"
   root_code_policy: reject     # reject | warn — whether source code at project root is allowed
