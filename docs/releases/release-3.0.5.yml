@@ -1,0 +1,73 @@
+version: "3.0.5"
+date: "2026-03-13"
+context_hash: "sha256:383866260b82d9ca519a7ab3d1f40e0b2c0317f1"
+
+## Changes since v3.0.4
+
+### Specification
+- ADR-S-039: Bug Triage and Post-Mortem Escalation (new)
+  - Two-phase model: fix+log (reflex) → post-mortem triage (conscious)
+  - bug_fixed event schema with provisional root_cause classification
+  - Gradient test: coding_error → delta=0 discard; design_flaw → intent_raised escalate
+- Bootloader §XX: calibration clause for bug handling (no vector required for fixes)
+- Bootloader bumped to v3.0.1
+
+### genesis_manager (first-party implementation)
+- REQ-F-VIS-001: Professional dark theme — all 17 TSX components rethemed to semantic token system
+- WorkspaceSidebar: 64px icon sidebar with active-state nav wired to all workspace pages
+- genesis_manager v0.1.0 released (first tagged release of the React app)
+- All 7 MVP features converged (PROJ, NAV, UX, OVR, SUP, EVI, CTL)
+
+features_included:
+  # imp_claude — converged
+  - REQ-F-ANAL-001: converged      # workspace analysis
+  - REQ-F-CONS-001: converged      # consensus basis projections (8 vectors)
+  - REQ-F-CONS-002: converged
+  - REQ-F-CONS-003: converged
+  - REQ-F-CONS-005: converged
+  - REQ-F-CONS-006: converged
+  - REQ-F-CONS-007: converged
+  - REQ-F-CONS-008: converged
+  - REQ-F-CONS-009: converged
+  - REQ-F-CONSENSUS-001: converged # consensus engine
+  - REQ-F-COORD-001: converged
+  - REQ-F-CTX-001: converged
+  - REQ-F-DISPATCH-001: converged  # intent observer + edge runner
+  - REQ-F-EDGE-001: converged
+  - REQ-F-ENGINE-001: converged
+  - REQ-F-EVAL-001: converged
+  - REQ-F-EVENT-001: converged
+  - REQ-F-EVOL-001: converged
+  - REQ-F-FP-001: converged
+  - REQ-F-INTENT-001: converged
+  - REQ-F-LIFE-001: converged
+  - REQ-F-NAMEDCOMP-001: converged
+  - REQ-F-PROXY-001: converged     # human proxy mode
+  - REQ-F-ROBUST-001: converged
+  - REQ-F-RUNTIME-001: converged
+  - REQ-F-SCHEMA-DISC-001: converged
+  - REQ-F-SENSE-001: converged
+  - REQ-F-SENSE-002: converged
+  - REQ-F-SUPV-001: converged
+  - REQ-F-TELEM-001: converged
+  - REQ-F-TOOL-001: converged
+  - REQ-F-TOOL-015: converged
+  - REQ-F-TRACE-001: converged
+  - REQ-F-UX-001: converged
+  - REQ-F-UX-002: converged
+
+coverage:
+  requirements: "87/87 (100%)"   # L1+L2 PASS per session 22 gen-gaps
+  design: "35/35 (100%)"
+  code: "35/35 (100%)"
+  tests: "1950+ passing"
+  uat: "275 UAT tests passing"
+
+known_gaps:
+  - REQ-F-TELEM-001: req= telemetry tags not yet in engine runtime paths (code→cicd not started)
+  - REQ-F-CTL-001: genesis_manager control surface — PROP-GM-001 test coverage pending
+  - REQ-F-REL-001..003: genesis_manager release dashboard — deferred post-MVP
+
+spec_additions:
+  - ADR-S-039: Bug Triage and Post-Mortem Escalation
+  - Bootloader v3.0.1: §XX calibration clause
