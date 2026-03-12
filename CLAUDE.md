@@ -272,7 +272,7 @@ pytest imp_claude/tests/ -v
 <!-- GENESIS_BOOTLOADER_START -->
 # Genesis Bootloader: LLM Constraint Context for the AI SDLC
 
-**Version**: 2.9.0
+**Version**: 3.0.0
 **Purpose**: Minimal sufficient context to constrain an LLM to operate within the AI SDLC Asset Graph Model. Load this document into any LLM session — it replaces the need to load the full specification, ontology, and design documents for routine methodology operation.
 
 ---
@@ -663,6 +663,48 @@ When working on any project under this methodology:
 10. **Verify invariants**: graph, iteration, evaluators, context, event stream, visibility — any missing = invalid instance
 
 The commands, configurations, and tooling are valid emergences from these constraints. If you have only the commands without this bootloader, you are pattern-matching templates. If you have this bootloader, you can derive the commands.
+
+---
+
+## XIX. Workspace Write Territory and Autonomous Mode Constraints
+
+### Agent Write Territory (hard constraint — not a convention)
+
+The `.ai-workspace/` directory is partitioned by agent identity. Violating these boundaries corrupts the design marketplace and is equivalent to modifying another agent's event stream.
+
+| Territory | Who writes | Rule |
+|-----------|-----------|------|
+| `events/events.jsonl` | All agents | Append-only. Never modify or delete existing lines. |
+| `features/active/*.yml` | Owning agent | State projection — update only the feature you are iterating. |
+| `features/completed/*.yml` | Owning agent | Move from active/ on full convergence. |
+| `comments/claude/` | Claude Code only | Claude writes here. Never write to `comments/codex/`, `comments/gemini/`, or `comments/bedrock/`. |
+| `comments/codex/` | Codex only | Same exclusivity — Claude must not write here. |
+| `comments/gemini/` | Gemini only | Same. |
+| `reviews/pending/PROP-*.yml` | All agents | Proposals written by any agent; human gate resolves. |
+| `reviews/proxy-log/` | Proxy actor only | Written by `--human-proxy` mode before each `review_approved` event. |
+
+**Post naming**: `YYYYMMDDTHHMMSS_CATEGORY_SUBJECT.md`. Categories: `REVIEW`, `STRATEGY`, `GAP`, `SCHEMA`, `HANDOFF`, `MATRIX`. Each file carries sufficient context for independent evaluation. Posts are immutable once written — supersede with a new file, never edit.
+
+**Invariant**: An agent reading a comment post in another agent's directory does not confer write rights there. Reading is unrestricted; writing is territory-bound.
+
+### Human Proxy Mode (`--human-proxy`)
+
+Human proxy mode allows the LLM to act as an authorised F_H substitute during unattended `--auto` runs. It does not remove the F_H gate — it substitutes the actor.
+
+**Activation constraint**: `--human-proxy` requires `--auto`. Used alone it is an error. It is never activated by config, env var, or inference — explicit flag only, per invocation only. It is never persisted to workspace state.
+
+**Proxy evaluation protocol**: At each F_H gate, the proxy:
+1. Loads the candidate artifact and the gate's F_H criteria
+2. Evaluates each required criterion with explicit evidence
+3. Computes the decision: `approved` iff all required criteria pass; `rejected` if any fail
+4. Writes a proxy-log file to `.ai-workspace/reviews/proxy-log/{ISO}_{feature}_{edge}.md` **before** emitting any event
+5. Emits `review_approved{actor: "human-proxy", proxy_log: "{path}"}` on approval
+
+**Rejection halt**: A proxy rejection pauses the auto-loop immediately. The proxy may not re-invoke iterate on the rejected edge in the same session (`rejected_in_session` set is checked). The feature remains `iterating`.
+
+**Actor field invariant**: Every `review_approved` event must carry `actor` field. Proxy decisions use `actor: "human-proxy"` (never `"human"`, never absent). Human decisions use `actor: "human"`. This is the auditability mechanism — the two must never be confused.
+
+**Morning review**: `/gen-status` surfaces proxy decisions made since the last attended session. Humans dismiss with a `Reviewed: {date}` line or override via `/gen-review`. Proxy decisions are provisional — the human is the authority, not the proxy.
 
 ---
 
