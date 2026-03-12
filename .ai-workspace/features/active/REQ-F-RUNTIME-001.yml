@@ -52,7 +52,6 @@ description: |
     Deferred to daemon mode work.
 
 requirements:
-  - REQ-F-DISPATCH-001
   - REQ-SUPV-003
 
 constraints:
