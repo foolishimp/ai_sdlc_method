@@ -28,20 +28,25 @@ profile: standard
 status: converged
 title: Event Stream & Projections
 trajectory:
+  intent:
+    status: converged
+  requirements:
+    status: converged
+  feature_decomposition:
+    status: converged
+  design:
+    status: converged
   code:
-    converged_at: '2026-03-07T17:30:00Z'
-    delta: 0
-    iteration: 1
     status: converged
-  design: converged
-  feature_decomposition: converged
-  intent: converged
-  requirements: converged
-  uat_tests: pending
+    iteration: 1
+    delta: 0
+    converged_at: '2026-03-07T17:30:00Z'
   unit_tests:
-    converged_at: '2026-03-07T17:30:00Z'
-    delta: 0
-    iteration: 1
     status: converged
+    iteration: 1
+    delta: 0
+    converged_at: '2026-03-07T17:30:00Z'
+  uat_tests:
+    status: pending
 updated: '2026-03-07T17:30:00Z'
 vector_type: feature

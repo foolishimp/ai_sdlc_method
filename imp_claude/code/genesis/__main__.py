@@ -512,6 +512,137 @@ def cmd_construct(args: argparse.Namespace) -> int:
     return 0 if ev.converged else 1
 
 
+
+
+# ── context subcommand ────────────────────────────────────────────
+
+
+def cmd_context(args: argparse.Namespace) -> int:
+    """Print workspace state for /gen-genesis session bootstrap.
+
+    Reads active feature vectors, recent events, and pending proposals.
+    Outputs clean text — no ad-hoc Python required in the command definition.
+    """
+    import glob
+
+    try:
+        import yaml
+    except ImportError:
+        print("error: PyYAML required (pip install pyyaml)", file=sys.stderr)
+        return 1
+
+    workspace = Path(args.workspace) if args.workspace else _find_workspace(Path.cwd())
+    ws = workspace / ".ai-workspace"
+
+    # ── Project name ───────────────────────────────────────────────────────────────────────────
+    project_name = workspace.name
+    constraints_path = ws / "context" / "project_constraints.yml"
+    if constraints_path.exists():
+        try:
+            c = yaml.safe_load(constraints_path.read_text()) or {}
+            project_name = (c.get("project") or {}).get("name") or project_name
+        except Exception:
+            pass
+
+    # ── Active features ─────────────────────────────────────────────────────────────────────
+    EDGE_ORDER = [
+        "intent", "requirements", "feature_decomposition",
+        "design", "code", "unit_tests", "uat_tests", "cicd",
+    ]
+    features = []
+    for fpath in sorted(glob.glob(str(ws / "features" / "active" / "*.yml"))):
+        try:
+            d = yaml.safe_load(open(fpath).read())
+            if not isinstance(d, dict):
+                continue
+            fid = d.get("feature", Path(fpath).stem)
+            title = d.get("title", "")
+            status = d.get("status", "")
+            traj = d.get("trajectory") or {}
+            current_edge = None
+            for edge in EDGE_ORDER:
+                entry = traj.get(edge)
+                if entry is None:
+                    continue
+                edge_status = entry.get("status") if isinstance(entry, dict) else str(entry)
+                if edge_status != "converged":
+                    current_edge = edge
+                    break
+            # Top-level status is authoritative — a feature marked converged
+            # may still have individual edges at "pending" (e.g. uat deferred).
+            resolved_edge = "all_converged" if status == "converged" else (current_edge or "all_converged")
+            features.append({
+                "id": fid, "title": title,
+                "status": status,
+                "current_edge": resolved_edge,
+            })
+        except Exception as e:
+            print(f"  [warn] skipped {Path(fpath).name}: {e}", file=sys.stderr)
+
+    # ── Completed / events / proposals ──────────────────────────────────────────
+    completed = list(glob.glob(str(ws / "features" / "completed" / "*.yml")))
+
+    events_path = ws / "events" / "events.jsonl"
+    recent_events: list[str] = []
+    if events_path.exists():
+        lines = events_path.read_text().splitlines()
+        for line in reversed(lines[-20:]):
+            try:
+                e = json.loads(line)
+                recent_events.append(e.get("event_type", ""))
+                if len(recent_events) >= 5:
+                    break
+            except Exception:
+                pass
+        recent_events.reverse()
+
+    proposals = []
+    for ppath in sorted(glob.glob(str(ws / "reviews" / "pending" / "PROP-*.yml"))):
+        try:
+            p = yaml.safe_load(open(ppath).read()) or {}
+            if p.get("status") == "draft":
+                proposals.append({
+                    "id": p.get("proposal_id", Path(ppath).stem),
+                    "severity": p.get("severity", ""),
+                    "title": (p.get("title") or "")[:60],
+                })
+        except Exception:
+            pass
+
+    # ── Derive state ─────────────────────────────────────────────────────────────────────────
+    total = len(features)
+    converged_count = sum(1 for f in features if f["status"] == "converged")
+    in_progress = [f for f in features if f["current_edge"] != "all_converged"]
+    if in_progress:
+        state = "IN_PROGRESS"
+    elif converged_count == total and total > 0:
+        state = "ALL_CONVERGED"
+    else:
+        state = "UNKNOWN"
+
+    # ── Output ───────────────────────────────────────────────────────────────────────────────
+    print(f"project:     {project_name}")
+    print(f"state:       {state}")
+    print(f"features:    {converged_count}/{total} converged"
+          + (f", {len(in_progress)} in-progress" if in_progress else ""))
+    print(f"completed:   {len(completed)}")
+    if recent_events:
+        print(f"last_events: {', '.join(recent_events)}")
+    print()
+    if in_progress:
+        print("in_progress:")
+        for f in in_progress:
+            print(f"  {f['id']:<30}  edge={f['current_edge']}  \"{f['title'][:45]}\"")
+        print()
+    if proposals:
+        print("proposals (draft):")
+        for p in proposals:
+            print(f"  {p['id']}  {p['severity']:<8}  {p['title']}")
+        print()
+    if not in_progress and not proposals:
+        print("ready: all features converged, no pending proposals")
+    return 0
+
 # \u2500\u2500 Shared CLI args \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 
@@ -635,6 +766,15 @@ def main() -> int:
         help="Path to write constructed artifact",
     )
 
+    # context subcommand — session bootstrap for /gen-genesis
+    context_parser = subparsers.add_parser(
+        "context",
+        help="Print workspace state for session bootstrap (/gen-genesis)",
+    )
+    context_parser.add_argument(
+        "--workspace", default=None, help="Workspace root (auto-detected if omitted)"
+    )
+
     args = parser.parse_args()
 
     if args.command == "evaluate":
@@ -643,6 +783,8 @@ def main() -> int:
         return cmd_run_edge(args)
     elif args.command == "construct":
         return cmd_construct(args)
+    elif args.command == "context":
+        return cmd_context(args)
     else:
         parser.print_help()
         return 1

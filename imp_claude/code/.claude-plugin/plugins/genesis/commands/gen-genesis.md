@@ -33,15 +33,25 @@ The bootloader defines:
 
 ### Step 2: Read Workspace State
 
-Read the following to build a personalised routing context:
+Run the genesis engine's `context` subcommand to get a clean workspace summary:
 
-1. **Active features** — all `.ai-workspace/features/active/*.yml`
-   - For each: feature ID, title, current edge (first non-converged trajectory entry)
-2. **Completed features** — list `.ai-workspace/features/completed/` (count only)
-3. **Last 10 events** — tail of `.ai-workspace/events/events.jsonl`
-   - Identify the most recently touched feature and edge
-4. **Pending proposals** — list `.ai-workspace/reviews/pending/PROP-*.yml` if any
-5. **Project name** — from `.ai-workspace/context/project_constraints.yml` or directory name
+```bash
+PYTHONPATH=.genesis python -m genesis context
+```
+
+This prints project name, state, feature convergence counts, recent events, and
+pending proposals in a single clean call — no ad-hoc parsing required.
+
+If `.genesis/` is not present (dev-tree install), fall back to:
+
+```bash
+PYTHONPATH=imp_claude/code python -m genesis context
+```
+
+Parse the output to build the personalised routing context:
+- `state:` line → current project state
+- `in_progress:` block → features needing iteration (feature + edge)
+- `proposals (draft):` block → proposals awaiting review
 
 ### Step 3: Build the NL Routing Table
 
