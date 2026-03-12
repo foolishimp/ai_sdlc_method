@@ -185,11 +185,18 @@ else:
          AND (feature == vector.feature_id OR instance_id == vector.feature_id)
          AND edge == edge_name
          (iteration_completed alone does NOT satisfy — it is a lifecycle event, not terminal convergence)
-       if not found → FAIL, emit intent_raised{signal_source: "convergence_without_evidence",
-                              affected_features: [feature_id], edge: edge_name, severity: "high"}
+       if not found → FAIL, record in health_checked failed_checks list:
+                              {check_name: "convergence_evidence_present",
+                               feature: feature_id, edge: edge_name,
+                               observation: "convergence_without_evidence"}
    ```
    - Message: "Convergence claimed for {feature}/{edge} — no stream evidence. Retroactive evaluation required."
    - Remediation: run real evaluators against the artifacts; if clean, append `edge_converged` with `emission: retroactive`
+   - **Output path**: findings are included in the `health_checked` event (REQ-SUPV-003). The INTRO-008
+     sensory monitor (running in the sensory service) emits `interoceptive_signal{monitor_id: INTRO-008}`,
+     which affect triage routes to `intent_raised{signal_source: convergence_without_evidence}`.
+     The health check and the sensory monitor are two invocation paths for the same check — neither
+     emits `intent_raised` directly.
 
 **Project Rollup line** (add after feature counts):
 ```

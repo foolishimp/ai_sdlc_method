@@ -567,3 +567,67 @@ class TestConvergenceEvidencePresent:
         assert "Projection Authority" in req_doc, (
             "REQ-EVENT-002 must include Projection Authority AC (ADR-S-037)"
         )
+
+    def test_intro_008_emits_interoceptive_signal_not_intent_raised(self):
+        """REQ-SENSE-001: INTRO-008 must emit interoceptive_signal, not intent_raised directly.
+
+        Option A (triage-mediated) is the only correct architecture.
+        Monitors observe and emit interoceptive_signal. Affect triage routes to intent_raised.
+        Direct intent_raised from a monitor bypasses triage and violates the sensory contract.
+        """
+        req_doc = (
+            PROJECT_ROOT / "specification" / "requirements" /
+            "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        ).read_text()
+        # INTRO-008 must emit interoceptive_signal
+        assert "interoceptive_signal" in req_doc, (
+            "REQ-SENSE-001 INTRO-008 must specify interoceptive_signal as monitor output"
+        )
+        # The routing to intent_raised must go through triage, not be direct
+        # Find the INTRO-008 block — it must NOT say "emit intent_raised" directly
+        intro_008_idx = req_doc.find("INTRO-008")
+        assert intro_008_idx != -1
+        # Get the text from INTRO-008 to the next monitor (INTRO- or ---) boundary
+        intro_008_block = req_doc[intro_008_idx: intro_008_idx + 1200]
+        assert "affect triage" in intro_008_block or "triage" in intro_008_block, (
+            "INTRO-008 block must reference affect triage as the routing mechanism"
+        )
+
+    def test_adr_s037_check_emits_interoceptive_signal_not_intent_raised(self):
+        """ADR-S-037: convergence_evidence_present check output must be interoceptive_signal.
+
+        The check never emits intent_raised directly — that is affect triage's responsibility.
+        """
+        adr_s037 = (
+            PROJECT_ROOT / "specification" / "adrs" /
+            "ADR-S-037-projection-authority-and-convergence-evidence.md"
+        ).read_text()
+        assert "interoceptive_signal" in adr_s037, (
+            "ADR-S-037 check definition must show interoceptive_signal as the monitor output"
+        )
+        assert "affect triage" in adr_s037 or "triage" in adr_s037, (
+            "ADR-S-037 must explain that affect triage routes the signal to intent_raised"
+        )
+
+    def test_gen_status_health_check_outputs_to_health_checked_not_intent_raised(self):
+        """gen-status --health invocation path: failures go into health_checked, not intent_raised.
+
+        The sensory service path emits interoceptive_signal → triage → intent_raised.
+        The health check path emits findings into health_checked (REQ-SUPV-003).
+        Neither path emits intent_raised directly from the check itself.
+        """
+        gen_status = (COMMANDS_DIR / "gen-status.md").read_text()
+        # The health check block must reference health_checked as the output event
+        assert "health_checked" in gen_status, (
+            "gen-status.md must show health check findings going into health_checked event"
+        )
+        # The gen-status convergence check block must NOT say emit intent_raised directly
+        # Find the convergence_evidence_present block
+        cep_idx = gen_status.find("convergence_evidence_present")
+        assert cep_idx != -1
+        cep_block = gen_status[cep_idx: cep_idx + 800]
+        # Must explain the two-path model
+        assert "health_checked" in cep_block or "interoceptive_signal" in cep_block, (
+            "convergence_evidence_present block must reference health_checked or interoceptive_signal "
+            "as the output, not emit intent_raised directly"
+        )

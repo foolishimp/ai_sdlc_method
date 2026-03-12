@@ -57,7 +57,14 @@ convergence_evidence_present (F_D):
         AND edge == edge_name
 
       if not found → FAIL:
-        report: "convergence claimed for {feature}/{edge} — no stream evidence"
+        emit: interoceptive_signal {
+          monitor_id: "INTRO-008",
+          severity: "critical",
+          observation: "convergence_without_evidence",
+          affected_features: [feature_id],
+          edge: edge_name
+        }
+        (affect triage then routes this to intent_raised{signal_source: convergence_without_evidence})
 ```
 
 The check requires a **terminal convergence event** (`edge_converged` / `ConvergenceAchieved`
@@ -68,8 +75,10 @@ per REQ-EVENT-003), not any lifecycle event. Explicitly:
   `IterationCompleted` is a lifecycle event, not a terminal convergence event
 - `edge_converged` / `ConvergenceAchieved`: satisfies it
 
-This alignment with REQ-EVENT-003's convergence event class (`ConvergenceAchieved`) keeps
-the check consistent with the canonical event taxonomy.
+**Output contract**: the monitor emits `interoceptive_signal` and stops. It never emits
+`intent_raised` directly. The affect triage pipeline (REQ-SENSE-003) reads the signal,
+classifies severity, and generates `intent_raised` if the threshold warrants it. This
+preserves the sensory layer contract: observe → triage → route.
 
 ### 3. Retroactive Attribution Rule
 
