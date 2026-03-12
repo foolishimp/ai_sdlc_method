@@ -446,7 +446,7 @@ Every observer point that detects a non-trivial delta shall emit an `intent_rais
 All observations that feed back into the intent system shall be classified by signal source. Classification is an **affect phase** operation (§4.3) — it requires pattern recognition and severity assessment but not full deliberation. Classification enables telemetry analysis (which signal types generate the most work, which are noise).
 
 **Acceptance Criteria**:
-- Seven signal source types recognised: `gap` (traceability validation), `test_failure` (stuck delta or test revealing upstream deficiency), `refactoring` (structural debt beyond current scope), `source_finding` (backward gap detection escalation), `process_gap` (inward gap detection — methodology deficiency), `runtime_feedback` (production telemetry deviation), `ecosystem` (external change)
+- Eight signal source types recognised: `gap` (traceability validation), `test_failure` (stuck delta or test revealing upstream deficiency), `refactoring` (structural debt beyond current scope), `source_finding` (backward gap detection escalation), `process_gap` (inward gap detection — methodology deficiency), `runtime_feedback` (production telemetry deviation), `ecosystem` (external change), `convergence_without_evidence` (workspace convergence claim not backed by event stream — see ADR-S-037)
 - Each signal source has an intent template in the feedback loop edge configuration
 - Signal source recorded in every `intent_raised` event
 - Development-time signals (gap, test_failure, refactoring, source_finding, process_gap) use the same mechanism as production signals (runtime_feedback, ecosystem)
@@ -612,7 +612,8 @@ The system shall continuously observe its own health state, independent of itera
 
 **Acceptance Criteria**:
 - Monitors run within a long-running sensory service, on a configurable schedule (default: daily) or on workspace open, not only during iterate()
-- Minimum interoceptive monitors (INTRO-001 through INTRO-007): event freshness, feature vector stall, test health, state view freshness, build health, spec/code drift, event log integrity
+- Minimum interoceptive monitors (INTRO-001 through INTRO-008): event freshness, feature vector stall, test health, state view freshness, build health, spec/code drift, event log integrity, convergence evidence validation
+- INTRO-008 `convergence_evidence_present` (F_D): for each feature vector with `trajectory[edge].status == "converged"`, verify the event stream contains a terminal convergence event matching that feature+edge. Required event: `ConvergenceAchieved` (canonical per REQ-EVENT-003) or its implementation binding `edge_converged`. An `IterationCompleted` alone is not sufficient — `IterationCompleted` is a lifecycle event; only a terminal convergence event (`ConvergenceAchieved`/`edge_converged`) satisfies the check. FAIL if any converged edge lacks stream evidence. Emit `intent_raised{signal_source: convergence_without_evidence}` for each gap. See ADR-S-037.
 - Each monitor produces a typed signal with: monitor_id, observation_timestamp, metric_value, threshold, severity (info/warning/critical)
 - Signals feed into the affect triage pipeline (§4.3, §4.5.4) — not directly to conscious review
 - Interoceptive signals logged to events.jsonl as `interoceptive_signal` event type
@@ -1593,8 +1594,9 @@ All observable methodology state (Assets, STATUS, Feature Vectors) MUST be deriv
 - **Completeness**: Any prior state can be reconstructed by replaying to that point
 - **Isolation**: Projections are isolated by `instance_id`
 - Implementations MAY use materialised views (e.g. working tree) but MUST stay in sync with the stream
+- **Projection Authority** (ADR-S-037): A materialised workspace claim MUST NOT assert a stronger convergence state than the event substrate supports. A feature vector claiming `status: converged` on an edge where the stream contains no convergence event for that feature+edge is an invalid projection. The `convergence_evidence_present` F_D check (INTRO-008 in REQ-SENSE-001) is the enforcing sensor for this rule.
 
-**Traces To**: Asset Graph Model §7.4.2 | ADR-S-012 | Ontology #9, #11
+**Traces To**: Asset Graph Model §7.4.2 | ADR-S-012 | ADR-S-037 | Ontology #9, #11
 
 ---
 

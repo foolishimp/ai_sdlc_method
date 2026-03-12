@@ -1,6 +1,9 @@
 # Validates: REQ-LIFE-013
 # Validates: REQ-SENSE-006
 # Validates: REQ-SUPV-002
+# Validates: REQ-SENSE-001
+# Validates: REQ-EVENT-002
+# Validates: REQ-LIFE-006
 """Tests for lifecycle gates, artifact observation, and constraint tolerances.
 
 Covers:
@@ -445,4 +448,122 @@ class TestConstraintTolerances:
         expected = {"reflex.log", "specEventLog", "escalate"}
         assert signals == expected, (
             f"classify_tolerance_breach must produce all 3 signal types: {expected}, got: {signals}"
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# REQ-SENSE-001 INTRO-008, REQ-EVENT-002, REQ-LIFE-006: Convergence Evidence
+# (ADR-S-037: Projection Authority and Convergence Evidence Validation)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class TestConvergenceEvidencePresent:
+    """REQ-SENSE-001 INTRO-008: convergence_evidence_present F_D check.
+
+    Validates: REQ-SENSE-001 (INTRO-008 monitor), REQ-EVENT-002 (Projection Authority),
+               REQ-LIFE-006 (convergence_without_evidence signal source)
+    """
+
+    def test_known_signal_sources_includes_convergence_without_evidence(self):
+        """REQ-LIFE-006: convergence_without_evidence is a named signal source.
+
+        ADR-S-037 adds this as the 8th signal source type.
+        """
+        from genesis.fd_classify import KNOWN_SIGNAL_SOURCES
+        assert "convergence_without_evidence" in KNOWN_SIGNAL_SOURCES, (
+            "KNOWN_SIGNAL_SOURCES must include 'convergence_without_evidence' (ADR-S-037)"
+        )
+
+    def test_known_signal_sources_has_all_req_life_006_types(self):
+        """REQ-LIFE-006: all 8 signal source types present in KNOWN_SIGNAL_SOURCES."""
+        from genesis.fd_classify import KNOWN_SIGNAL_SOURCES
+        required = {
+            "gap", "test_failure", "refactoring", "source_finding",
+            "process_gap", "runtime_feedback", "ecosystem",
+            "convergence_without_evidence",
+        }
+        missing = required - KNOWN_SIGNAL_SOURCES
+        assert not missing, (
+            f"KNOWN_SIGNAL_SOURCES missing REQ-LIFE-006 required sources: {missing}"
+        )
+
+    def test_gen_status_health_spec_includes_convergence_evidence_check(self):
+        """REQ-SENSE-001 INTRO-008: gen-status --health spec must define convergence_evidence_present."""
+        gen_status = (COMMANDS_DIR / "gen-status.md").read_text()
+        assert "convergence_evidence_present" in gen_status, (
+            "gen-status.md --health section must define the convergence_evidence_present F_D check (ADR-S-037)"
+        )
+
+    def test_gen_status_health_references_adr_s_037(self):
+        """REQ-EVENT-002: projection authority enforcement must reference ADR-S-037."""
+        gen_status = (COMMANDS_DIR / "gen-status.md").read_text()
+        assert "ADR-S-037" in gen_status, (
+            "gen-status.md must reference ADR-S-037 for projection authority traceability"
+        )
+
+    def test_gen_status_health_emits_convergence_without_evidence_intent(self):
+        """REQ-LIFE-006: health check failure must emit intent_raised with correct signal_source."""
+        gen_status = (COMMANDS_DIR / "gen-status.md").read_text()
+        assert "convergence_without_evidence" in gen_status, (
+            "gen-status.md must specify intent_raised{signal_source: convergence_without_evidence} "
+            "as the health check failure output (ADR-S-037)"
+        )
+
+    def test_convergence_evidence_check_requires_stream_event(self):
+        """REQ-EVENT-002: check must verify event stream, not just YAML assertion.
+
+        The check logic in gen-status.md must search events.jsonl, not trust the YAML.
+        """
+        gen_status = (COMMANDS_DIR / "gen-status.md").read_text()
+        assert "events.jsonl" in gen_status, (
+            "convergence_evidence_present check must search events.jsonl, not trust YAML state"
+        )
+        assert "edge_converged" in gen_status, (
+            "check must look for edge_converged event type as valid convergence evidence"
+        )
+
+    def test_retroactive_events_use_emission_retroactive_field(self):
+        """REQ-EVENT-005: retroactive convergence events use emission: retroactive (not a custom field).
+
+        ADR-S-037 §3 aligns with REQ-EVENT-005 naming — no separate 'retroactive: true' data field.
+        """
+        adr_s037 = (
+            PROJECT_ROOT / "specification" / "adrs" /
+            "ADR-S-037-projection-authority-and-convergence-evidence.md"
+        ).read_text()
+        # Must use the REQ-EVENT-005 canonical field name
+        assert 'emission.*retroactive' in adr_s037 or '"emission": "retroactive"' in adr_s037 or \
+               "emission: retroactive" in adr_s037, (
+            "ADR-S-037 must use emission: retroactive (REQ-EVENT-005 field) not a custom retroactive field"
+        )
+        # Must use canonical REQ-EVENT-005 form; any mention of retroactive: true should be as
+        # negative example only (e.g., in a naming note), not as a spec prescription.
+        # Check: the naming note must reference emission: retroactive as the canonical form.
+        assert "emission: retroactive" in adr_s037 or '"emission": "retroactive"' in adr_s037, (
+            "ADR-S-037 must canonically reference emission: retroactive (REQ-EVENT-005 field)"
+        )
+
+    def test_req_sense_001_lists_intro_008(self):
+        """REQ-SENSE-001: convergence_evidence_present must appear in the minimum monitors list."""
+        req_doc = (
+            PROJECT_ROOT / "specification" / "requirements" /
+            "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        ).read_text()
+        assert "INTRO-008" in req_doc, (
+            "AISDLC_IMPLEMENTATION_REQUIREMENTS.md REQ-SENSE-001 must list INTRO-008 "
+            "convergence_evidence_present monitor"
+        )
+        assert "convergence_evidence_present" in req_doc, (
+            "AISDLC_IMPLEMENTATION_REQUIREMENTS.md must define convergence_evidence_present "
+            "as a required interoceptive monitor (ADR-S-037)"
+        )
+
+    def test_req_event_002_has_projection_authority_ac(self):
+        """REQ-EVENT-002: Projection Contract must include Projection Authority enforcement AC."""
+        req_doc = (
+            PROJECT_ROOT / "specification" / "requirements" /
+            "AISDLC_IMPLEMENTATION_REQUIREMENTS.md"
+        ).read_text()
+        assert "Projection Authority" in req_doc, (
+            "REQ-EVENT-002 must include Projection Authority AC (ADR-S-037)"
         )

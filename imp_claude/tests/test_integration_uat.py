@@ -542,6 +542,7 @@ class TestObserverIntegration:
         "gap", "test_failure", "refactoring", "source_finding",
         "process_gap", "runtime_feedback", "ecosystem",
         "discovery", "optimisation", "user", "TELEM",
+        "convergence_without_evidence",  # ADR-S-037: workspace integrity check
     }
 
     @pytest.mark.uat

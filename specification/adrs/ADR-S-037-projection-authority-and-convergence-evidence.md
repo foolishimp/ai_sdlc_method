@@ -51,34 +51,44 @@ convergence_evidence_present (F_D):
   for each feature vector in .ai-workspace/features/active/ + completed/:
     for each edge where trajectory[edge].status == "converged":
 
-      search events.jsonl for a convergence event matching:
-        event_type in {edge_converged, iteration_completed}
+      search events.jsonl for a terminal convergence event matching:
+        event_type in {edge_converged, ConvergenceAchieved}   ← canonical per REQ-EVENT-003
         AND (feature == vector.feature_id OR instance_id == vector.feature_id)
         AND edge == edge_name
-        AND status == "converged" (where field present)
 
       if not found → FAIL:
         report: "convergence claimed for {feature}/{edge} — no stream evidence"
 ```
 
-The check requires an actual convergence event, not just any lifecycle event. An
-`edge_started` alone does not satisfy it. An `iteration_completed` with `status: iterating`
-does not satisfy it. Only a terminal convergence record satisfies it.
+The check requires a **terminal convergence event** (`edge_converged` / `ConvergenceAchieved`
+per REQ-EVENT-003), not any lifecycle event. Explicitly:
+
+- `edge_started` alone: does NOT satisfy it
+- `iteration_completed` (even with `status: converged`): does NOT satisfy it —
+  `IterationCompleted` is a lifecycle event, not a terminal convergence event
+- `edge_converged` / `ConvergenceAchieved`: satisfies it
+
+This alignment with REQ-EVENT-003's convergence event class (`ConvergenceAchieved`) keeps
+the check consistent with the canonical event taxonomy.
 
 ### 3. Retroactive Attribution Rule
 
 Retroactively populated convergence events are valid provided they are:
 - Grounded in a real evaluator run against the actual artifacts (tests passed, delta=0)
 - Appended to the stream with accurate timestamps reflecting when evaluation occurred
-- Marked with `"retroactive": true` in the event data so observability debt remains legible
+- Marked with `"emission": "retroactive"` on the event (per REQ-EVENT-005 executor attribution schema)
+  so observability debt remains legible
 
 A retroactive event that accurately records a real evaluator result closes the evidence gap.
 A retroactive event that fabricates a result violates this rule and the Projection Authority
 Rule simultaneously.
 
-The `retroactive` marker is not a penalty — it is traceability. It distinguishes "we ran
-real evaluators after the fact and confirmed clean" from "we always had stream evidence."
+The `emission: retroactive` marker is not a penalty — it is traceability. It distinguishes
+"we ran real evaluators after the fact and confirmed clean" from "we always had stream evidence."
 Both are valid states. Only the latter is invisible to future readers without the marker.
+
+**Naming**: Use `"emission": "retroactive"` (REQ-EVENT-005 field) not a separate `"retroactive": true`
+data field. These are the same concept; REQ-EVENT-005's schema is canonical.
 
 ---
 

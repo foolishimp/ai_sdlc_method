@@ -175,6 +175,21 @@ else:
 2. `blocked_disposition_completeness` — WARN if any vector has `status: blocked` with `disposition: null`
    when project claims BOUNDED state
    - Message: "{N} blocked vectors have null disposition — project cannot claim BOUNDED"
+3. `convergence_evidence_present` (F_D, ADR-S-037) — FAIL if any feature vector claims `status: converged`
+   on an edge where the event stream contains no supporting convergence event:
+   ```
+   for each feature vector in active/ + completed/:
+     for each edge where trajectory[edge].status == "converged":
+       search events.jsonl for a terminal convergence event:
+         event_type in {edge_converged, ConvergenceAchieved}   ← REQ-EVENT-003 canonical
+         AND (feature == vector.feature_id OR instance_id == vector.feature_id)
+         AND edge == edge_name
+         (iteration_completed alone does NOT satisfy — it is a lifecycle event, not terminal convergence)
+       if not found → FAIL, emit intent_raised{signal_source: "convergence_without_evidence",
+                              affected_features: [feature_id], edge: edge_name, severity: "high"}
+   ```
+   - Message: "Convergence claimed for {feature}/{edge} — no stream evidence. Retroactive evaluation required."
+   - Remediation: run real evaluators against the artifacts; if clean, append `edge_converged` with `emission: retroactive`
 
 **Project Rollup line** (add after feature counts):
 ```
@@ -552,6 +567,7 @@ How to perform the Genesis Self-Compliance checks:
 - **Stuck detection**: features with δ unchanged for 3+ iterations
 - **Constraint resolution**: mandatory dimensions filled at design edge
 - **Time-box monitoring**: approaching or expired time boxes
+- **Convergence evidence** (ADR-S-037): every converged edge has stream-backed evidence (`convergence_evidence_present` check)
 
 **Event emission** (REQ-SUPV-003 — failure observability):
 
