@@ -57,6 +57,7 @@ Standard patterns (always present):
 | "find gaps" / "coverage" / "what's missing" | `/gen-gaps` | REQ-TOOL-005 |
 | "release" / "ship it" | `/gen-release` | Graph terminal edge |
 | "start" / "go" / "continue" / "next" | `/gen-start --auto` | REQ-UX-001 |
+| "new feature" / "add feature" / "create feature" | `/gen-spawn --type feature` | REQ-FEAT-001 |
 
 Workspace-personalised entries (generated from active features):
 

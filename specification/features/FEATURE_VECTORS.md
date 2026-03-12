@@ -146,6 +146,9 @@ Continuous interoceptive and exteroceptive monitoring with affect triage pipelin
 
 **Satisfies**: REQ-SENSE-001, REQ-SENSE-002, REQ-SENSE-003, REQ-SENSE-004, REQ-SENSE-005, REQ-SENSE-006, REQ-SUPV-003
 
+**Child vectors**:
+- REQ-F-SENSE-002: INTRO-008 gen-start health wiring — wire `sense_convergence_evidence()` into gen-start Step 10 and add EDGE_RUNNER handler for `convergence_without_evidence` intents
+
 **Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
 **What converges**:
@@ -193,6 +196,9 @@ Plugin architecture, workspace, commands, release, test gap analysis, hooks, sca
 Two-command UX layer: state-driven routing (Start), project-wide observability (Status), progressive disclosure, automatic feature/edge selection, recovery and self-healing, human gate awareness (escalation notification), edge zoom management.
 
 **Satisfies**: REQ-UX-001, REQ-UX-002, REQ-UX-003, REQ-UX-004, REQ-UX-005, REQ-UX-006, REQ-UX-007
+
+**Child vectors**:
+- REQ-F-UX-002: Natural Language Intent Dispatch — **Satisfies**: REQ-UX-008
 
 **Trajectory**: |req⟩ → |feat_decomp⟩ → |design⟩ → |mod_decomp⟩ → |basis_proj⟩ → |code⟩ ↔ |tests⟩
 
@@ -583,6 +589,7 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 | REQ-UX-005 | REQ-F-UX-001 |
 | REQ-UX-006 | REQ-F-UX-001 |
 | REQ-UX-007 | REQ-F-UX-001 |
+| REQ-UX-008 | REQ-F-UX-002 |
 | REQ-COORD-001 | REQ-F-COORD-001 |
 | REQ-COORD-002 | REQ-F-COORD-001 |
 | REQ-COORD-003 | REQ-F-COORD-001 |

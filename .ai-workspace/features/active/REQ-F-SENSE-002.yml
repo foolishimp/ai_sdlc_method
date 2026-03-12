@@ -6,6 +6,7 @@ profile: standard
 status: in_progress
 created: "2026-03-12T11:57:59Z"
 updated: "2026-03-12T11:57:59Z"
+parent: REQ-F-SENSE-001
 parent_id: REQ-SENSE-001
 spawned_by: INT-023
 

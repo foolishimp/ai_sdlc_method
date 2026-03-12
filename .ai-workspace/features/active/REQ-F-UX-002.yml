@@ -3,9 +3,10 @@ title: "Natural language intent dispatch — adventure-game UX layer"
 intent: INT-024
 vector_type: feature
 profile: standard
-status: in_progress
+status: converged
 created: "2026-03-12T11:57:59Z"
 updated: "2026-03-12T11:57:59Z"
+parent: REQ-F-UX-001
 parent_id: REQ-F-UX-001
 spawned_by: INT-024
 
@@ -29,16 +30,16 @@ requirements:
 
 constraints:
   acceptance_criteria:
-    - "what's broken" / "health check" routes to gen-status --health
-    - "fix it" / "start" / "continue" routes to gen-start --auto
-    - "find gaps" / "coverage" routes to gen-gaps
-    - "where am I" / "status" routes to gen-status
-    - "new feature X" / "add X" routes to gen-spawn --type feature
-    - "release" routes to gen-release
-    - Ambiguous inputs prompt for clarification — single minimal question
-    - Routing is deterministic for unambiguous intents
-    - Routing emits intent_routed event to events.jsonl
-    - Routing layer is itself observable (no silent dispatch)
+    - '"what''s broken" / "health check" routes to gen-status --health'
+    - '"fix it" / "start" / "continue" routes to gen-start --auto'
+    - '"find gaps" / "coverage" routes to gen-gaps'
+    - '"where am I" / "status" routes to gen-status'
+    - '"new feature X" / "add X" routes to gen-spawn --type feature'
+    - '"release" routes to gen-release'
+    - "Ambiguous inputs prompt for clarification — single minimal question"
+    - "Routing is deterministic for unambiguous intents"
+    - "Routing emits intent_routed event to events.jsonl"
+    - "Routing layer is itself observable (no silent dispatch)"
 
 trajectory:
   intent:
@@ -48,15 +49,29 @@ trajectory:
     notes: "INT-024 raised — UX evaluator identified missing NL dispatch layer"
 
   requirements:
-    status: iterating
+    status: converged
     iteration: 1
-    notes: "REQ-UX-008 added to spec — requirements edge in progress"
+    converged_at: "2026-03-12T12:19:00Z"
+    notes: "REQ-UX-008 in spec, feature vector spawned, acceptance criteria defined"
 
   design:
-    status: pending
+    status: converged
+    iteration: 1
+    started_at: "2026-03-12T12:20:00Z"
+    converged_at: "2026-03-12T12:23:05Z"
+    asset: "imp_claude/design/features/REQ-F-UX-002-nl-dispatch-design.md"
+    notes: "15/15 checks pass — human approved architecture (ADR-S-038)"
 
   code:
-    status: pending
+    status: converged
+    iteration: 1
+    started_at: "2026-03-12T12:28:00Z"
+    converged_at: "2026-03-12T12:31:05Z"
+    asset: "imp_claude/tests/test_nl_dispatch.py"
+    notes: "25 tests; fd_classify wired (intent_routed→routing); gen-genesis routing table completed"
 
   unit_tests:
-    status: pending
+    status: converged
+    iteration: 1
+    converged_at: "2026-03-12T12:31:05Z"
+    notes: "25/25 pass — co-evolved with code (test-first for NL dispatch)"

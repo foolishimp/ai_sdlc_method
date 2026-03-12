@@ -203,6 +203,9 @@ def classify_signal_source(event: dict) -> str:
         "compensation_completed": "convergence",
         # Health
         "health_checked": "health",
+        # NL dispatch (REQ-UX-008, ADR-S-038)
+        "intent_routed": "routing",
+        "session_bootstrap": "lifecycle",
     }
 
     if event_type:

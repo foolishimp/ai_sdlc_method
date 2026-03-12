@@ -1,0 +1,31 @@
+proposal_id: "PROP-018"
+intent_id: "INT-025"
+status: draft
+severity: high
+created: "2026-03-12T12:19:25Z"
+source: gap_analysis
+
+title: "Add test coverage for REQ-UX-008 Natural Language Intent Dispatch"
+description: |
+  REQ-UX-008 was added to the spec during session 22. The feature vector
+  REQ-F-UX-002 is currently at the requirements edge with no tests yet.
+  Tests should validate: NL routing confidence thresholds (≥0.85 silent,
+  0.50–0.85 two options, <0.50 single question), intent_routed event
+  emission with correct schema, cold-start guarantee from durable artifacts,
+  and routing determinism given same input state.
+
+affected_req_keys:
+  - REQ-UX-008
+
+suggested_vector:
+  feature: "REQ-F-UX-002"
+  title: "Natural Language Intent Dispatch"
+  vector_type: feature
+  profile: standard
+  requirements: [REQ-UX-008, REQ-UX-001, REQ-UX-002]
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-018
+  Dismiss: /gen-review-proposal --dismiss PROP-018 --reason "{reason}"
+  Note: REQ-F-UX-002 is the active feature vector for this work.
+  Test gap will close when REQ-F-UX-002 reaches code↔unit_tests edge.
