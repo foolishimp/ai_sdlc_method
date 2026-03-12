@@ -1218,6 +1218,31 @@ The system shall provide a user experience for expanding any graph edge into a s
 
 ---
 
+### REQ-UX-008: Natural Language Intent Dispatch
+
+**Priority**: High | **Phase**: 2
+
+The system shall accept natural language input as a sufficient entry point to trigger the appropriate methodology operation chain. Users shall not need to know command names, flags, or internal routing parameters. The LLM agent acts as the NLP routing layer, mapping user intent to methodology verbs and F_D process chains.
+
+**Acceptance Criteria**:
+- A natural language prompt ("fix the navigator gaps", "what's broken?", "find gaps", "where am I?") routes to the correct methodology operation without requiring explicit command syntax
+- Common intent patterns are pre-mapped to methodology operations:
+  - `"what's broken" | "health check"` → `gen-status --health`
+  - `"fix it" | "start" | "continue"` → `gen-start --auto`
+  - `"find gaps" | "coverage"` → `gen-gaps`
+  - `"where am I" | "status"` → `gen-status`
+  - `"new feature" | "add X"` → `gen-spawn --type feature`
+  - `"release"` → `gen-release`
+- Ambiguous inputs prompt for clarification with the minimum necessary question (not a full menu)
+- The routing is deterministic for unambiguous intents — same input produces same operation
+- Methodology operations themselves are unchanged — only the invocation mechanism is abstracted
+- The routing layer is itself a F_D check: if routing confidence is below threshold, escalate to F_H clarification prompt
+- Natural language routing is logged as an `intent_routed` event for observability
+
+**Traces To**: Asset Graph Model §7.4 (IntentEngine — intent as computation) | REQ-UX-001 (State-Driven Routing — NL dispatch is a layer above state routing) | REQ-UX-002 (Progressive Disclosure — NL is the lowest-friction entry point)
+
+---
+
 ## 12. Multi-Agent Coordination
 
 ### REQ-COORD-001: Agent Identity

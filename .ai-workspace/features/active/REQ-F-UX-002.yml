@@ -1,0 +1,62 @@
+feature: REQ-F-UX-002
+title: "Natural language intent dispatch — adventure-game UX layer"
+intent: INT-024
+vector_type: feature
+profile: standard
+status: in_progress
+created: "2026-03-12T11:57:59Z"
+updated: "2026-03-12T11:57:59Z"
+parent_id: REQ-F-UX-001
+spawned_by: INT-024
+
+description: |
+  Users currently must know command names (/gen-start, /gen-gaps, /gen-status --health)
+  and their flags to invoke methodology operations. The adventure-game UX model: the
+  user types natural language and the LLM routes to the correct F_D process chain.
+
+  The LLM (Claude) acts as the NLP routing layer. Common intent patterns are pre-mapped
+  to methodology operations. Ambiguous inputs prompt for clarification with a minimal
+  question. The routing itself is logged as an intent_routed event for observability.
+  Methodology operations are unchanged — only the invocation mechanism is abstracted.
+
+  This is the difference between "go to the cave" (natural language) and knowing to
+  type NORTH, TAKE TORCH, OPEN DOOR (command vocabulary).
+
+requirements:
+  - REQ-UX-008
+  - REQ-UX-001
+  - REQ-UX-002
+
+constraints:
+  acceptance_criteria:
+    - "what's broken" / "health check" routes to gen-status --health
+    - "fix it" / "start" / "continue" routes to gen-start --auto
+    - "find gaps" / "coverage" routes to gen-gaps
+    - "where am I" / "status" routes to gen-status
+    - "new feature X" / "add X" routes to gen-spawn --type feature
+    - "release" routes to gen-release
+    - Ambiguous inputs prompt for clarification — single minimal question
+    - Routing is deterministic for unambiguous intents
+    - Routing emits intent_routed event to events.jsonl
+    - Routing layer is itself observable (no silent dispatch)
+
+trajectory:
+  intent:
+    status: converged
+    iteration: 1
+    converged_at: "2026-03-12T11:57:59Z"
+    notes: "INT-024 raised — UX evaluator identified missing NL dispatch layer"
+
+  requirements:
+    status: iterating
+    iteration: 1
+    notes: "REQ-UX-008 added to spec — requirements edge in progress"
+
+  design:
+    status: pending
+
+  code:
+    status: pending
+
+  unit_tests:
+    status: pending

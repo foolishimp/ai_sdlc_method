@@ -1,0 +1,59 @@
+feature: REQ-F-SENSE-002
+title: "Wire INTRO-008 into gen-start health pass and EDGE_RUNNER dispatch"
+intent: INT-023
+vector_type: feature
+profile: standard
+status: in_progress
+created: "2026-03-12T11:57:59Z"
+updated: "2026-03-12T11:57:59Z"
+parent_id: REQ-SENSE-001
+spawned_by: INT-023
+
+description: |
+  INTRO-008 (convergence_evidence_present) is implemented in workspace_integrity.py
+  and callable via fd_sense.sense_convergence_evidence(), but two wiring gaps remain:
+
+  Gap 1 — gen-start Step 10 health check does not invoke sense_convergence_evidence().
+  Every gen-start invocation runs a quick health pass; INTRO-008 must be part of it.
+  When breached, emit interoceptive_signal → affect triage → intent_raised per Option A.
+
+  Gap 2 — EDGE_RUNNER has no handler for convergence_without_evidence intents.
+  The dispatch_monitor (gen-start --auto Step 9) picks up intent_raised events and
+  routes via EDGE_RUNNER. A convergence_without_evidence intent does not map to a
+  feature graph edge; it maps to a retroactive repair action. EDGE_RUNNER needs a
+  handler that surfaces the gaps and presents an F_H gate for human confirmation
+  before appending edge_converged{emission: retroactive} events.
+
+requirements:
+  - REQ-SENSE-001
+  - REQ-UX-005
+  - REQ-EVENT-002
+
+constraints:
+  acceptance_criteria:
+    - gen-start Step 10 invokes sense_convergence_evidence() on every health pass
+    - When breached, gen-start emits interoceptive_signal (not intent_raised directly — Option A)
+    - EDGE_RUNNER has a handler for intent_type: convergence_without_evidence
+    - Handler presents F_H gate: lists gaps, asks human to confirm retroactive repair
+    - On confirmation, appends edge_converged{emission: retroactive} per gap
+    - After repair, re-running gen-start health pass returns breached=False
+    - Tests cover: health pass fires INTRO-008, repair path closes gaps, F_H gate blocks without confirmation
+
+trajectory:
+  intent:
+    status: converged
+    iteration: 1
+    converged_at: "2026-03-12T11:57:59Z"
+    notes: "INT-023 raised — process gap identified in gen-gaps L1 analysis"
+
+  requirements:
+    status: pending
+
+  design:
+    status: pending
+
+  code:
+    status: pending
+
+  unit_tests:
+    status: pending
