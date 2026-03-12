@@ -3,10 +3,10 @@ title: Supervision Console
 intent: INT-001
 vector_type: feature
 profile: standard
-status: iterating
+status: converged
 convergence_type: ''
 created: '2026-03-13T00:21:00Z'
-updated: '2026-03-13T11:30:00Z'
+updated: '2026-03-13T16:51:00Z'
 source_kind: parent_spawn
 trigger_event: "edge_converged:REQ-F-SYSTEM-001:requirements\u2192feature_decomposition"
 target_asset_type: design
@@ -70,12 +70,16 @@ trajectory:
     produced_asset_ref: imp_react_vite/design/module_decomp/BASIS_PROJECTIONS.md
     escalations: []
   code:
-    status: pending
-    iteration: 0
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T16:50:00Z'
+    produced_asset_ref: imp_react_vite/code/
     escalations: []
   unit_tests:
-    status: pending
-    iteration: 0
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T16:50:00Z'
+    produced_asset_ref: imp_react_vite/code/src/__tests__/server/
     escalations: []
   uat_tests:
     status: pending
