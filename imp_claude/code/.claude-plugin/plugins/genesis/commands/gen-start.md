@@ -372,6 +372,30 @@ On every invocation, before state detection, run a quick health check:
 | Orphaned spawns | Child vectors with `parent.feature` pointing to non-existent parent | Offer: "Spawn {id} has no parent. Link to feature or archive?" |
 | Stuck features | δ unchanged 3+ iterations | Detected in state machine (Step 7) |
 | Unresolved constraints | Mandatory dimensions empty when feature is at design edge | Detected in state machine (Step 2) |
+| Convergence without stream evidence | `sense_convergence_evidence()` breached — YAML claims converged edge, no terminal `edge_converged` event in stream (INTRO-008) | Emit `interoceptive_signal{family: gap, contract: projection_authority, scope: [{feature, edge}, ...]}` → affect triage → `intent_raised{signal_source: gap}`. Detection only — repair via `gen-status --repair`. |
+
+**INTRO-008 gen-start Step 10 pseudocode** (detection only — LLM executes this before state detection):
+```python
+from genesis.fd_sense import sense_convergence_evidence
+result = sense_convergence_evidence(workspace_root, events_path)
+if result.breached:
+    report = result.data  # ConvergenceEvidenceReport
+    emit_event({
+        "event_type": "interoceptive_signal",
+        "data": {
+            "family": "gap",
+            "contract": "projection_authority",
+            "scope": [
+                {"feature": gap.feature_id, "edge": gap.edge}
+                for gap in report.gaps
+            ],
+            "severity": "critical",
+            "monitor_id": "INTRO-008",
+        }
+    })
+    # affect triage + intent_raised handled by existing pipeline
+    # no repair here — gen-status --repair is the explicit repair surface
+```
 
 Recovery is always non-destructive — never silently delete user data. Always ask before modifying.
 

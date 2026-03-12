@@ -8,7 +8,7 @@ Display the current state of all feature vectors and their trajectories through 
 ## Usage
 
 ```
-/gen-status [--feature "REQ-F-*"] [--verbose] [--gantt] [--health] [--functor]
+/gen-status [--feature "REQ-F-*"] [--verbose] [--gantt] [--health] [--repair] [--functor]
 ```
 
 | Option | Description |
@@ -17,7 +17,8 @@ Display the current state of all feature vectors and their trajectories through 
 | `--feature` | Show detailed status for a specific feature |
 | `--verbose` | Show iteration history and evaluator details |
 | `--gantt` | Show Mermaid Gantt chart of feature build schedule |
-| `--health` | Run Genesis self-compliance and workspace health check (bootloader, invariants, tolerances, events, spawns, stuck detection) |
+| `--health` | Run Genesis self-compliance and workspace health check (bootloader, invariants, tolerances, events, spawns, stuck detection). **Read-only by default** — reports findings, does not mutate state. |
+| `--repair` | Run INTRO-008 gap detection then present F_H gate for retroactive convergence evidence repair. Explicit mutation surface — emits `edge_converged{emission: retroactive}` only after human confirmation. Calls `workspace_repair.repair_convergence_evidence()`. |
 | `--functor` | Show functor encoding registry, per-unit categories, and escalation history |
 
 ## Instructions
@@ -585,6 +586,86 @@ After all checks complete, emit a `health_checked` event to `events.jsonl`:
 ```
 
 This enables health trending: the LLM evaluator can detect patterns like "same check failing across consecutive health runs" and generate improvement intents. Without this event, health check results exist only in stdout — invisible to the homeostatic loop.
+
+### Repair View (--repair)
+
+Run INTRO-008 gap detection, then present an F_H gate for retroactive evidence repair.
+
+**This is the only mutating operation in gen-status.** All other flags (`--health`, `--gantt`, `--verbose`, `--functor`) are read-only projections.
+
+**Step 1: Detect gaps**
+
+```python
+from genesis.fd_sense import sense_convergence_evidence
+result = sense_convergence_evidence(workspace_root, events_path)
+```
+
+If `result.breached` is False, output: `INTRO-008: no evidence gaps found. No repair needed.` and stop.
+
+**Step 2: Present F_H gate**
+
+```python
+from genesis.workspace_repair import format_repair_prompt
+print(format_repair_prompt(result.data.gaps))
+```
+
+Output format:
+```
+PROJECTION AUTHORITY REPAIR — {N} gap(s) detected by INTRO-008
+
+  Gap 1: {feature_id} / {edge}
+    Claim:    workspace YAML status=converged
+    Evidence: no edge_converged terminal event in stream
+    Action if approved: append edge_converged{emission: retroactive, executor: human}
+
+  ...
+
+  These gaps predate the INTRO-008 enforcement check.
+  Retroactive closure records that convergence occurred; it does not re-validate the work.
+  The validity of each repair rests on the accuracy of your confirmation.
+
+  Confirm repairs? [y/n/selective]
+  (y = approve all, n = reject all, selective = approve per gap)
+```
+
+**Step 3: Collect confirmation**
+
+- `y` — approve all gaps
+- `n` — reject all gaps (no events emitted)
+- `selective` — present each gap individually, collect per-gap y/n
+
+**Step 4: Call repair_convergence_evidence()**
+
+```python
+from genesis.workspace_repair import repair_convergence_evidence, RepairProvenance
+
+provenance = RepairProvenance(
+    confirmed_by="{session_id or human_id}",
+    basis="human_confirmation_repair",
+)
+repair_result = repair_convergence_evidence(
+    gaps=result.data.gaps,
+    provenance=provenance,
+    events_path=events_path,
+    approved=approved_gap_keys,   # None = all, [] = none
+)
+```
+
+**Step 5: Report**
+
+```
+REPAIR COMPLETE — {n} gap(s) repaired, {m} skipped
+
+  Repaired:
+    ✓ {feature_id} / {edge} — edge_converged{emission: retroactive} appended
+
+  Skipped:
+    ✗ {feature_id} / {edge} — not confirmed
+
+Re-run gen-status --health to verify INTRO-008 passes.
+```
+
+**Repair validity contract**: The emitted `edge_converged` event is only as truthful as the human's attestation. The function records the confirmation — it does not re-validate the work. The `confirmed_by` and `basis` fields in the event provide audit trail.
 
 ### Event Sourcing Architecture
 
