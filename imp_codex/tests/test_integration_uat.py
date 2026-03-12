@@ -274,6 +274,13 @@ class TestEventLogIntegrity:
         "telemetry_signal_emitted", "iteration_failed",
         "iteration_abandoned", "evaluator_detail", "status_generated",
         "artifact_modified", "feature_converged",
+        # OL-native CamelCase variants (emitted by genesis engine)
+        "IterationStarted", "IterationCompleted", "IterationFailed", "IterationAbandoned",
+        "EvaluatorDetail", "EdgeStarted", "EdgeConverged", "EdgeClaimed", "EdgeReleased",
+        "FpFailure", "SpawnCreated", "SpawnFoldedBack",
+        "CommandError",
+        # CONSENSUS events (ADR-S-025, ADR-S-031)
+        "consensus_requested", "vote_cast", "consensus_reached", "consensus_failed",
     }
 
     @pytest.fixture(autouse=True)

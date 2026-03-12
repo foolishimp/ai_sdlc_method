@@ -242,6 +242,9 @@ class TestEventLogIntegrity:
         "EvaluatorDetail", "EdgeStarted", "EdgeConverged",
         "FpFailure", "SpawnCreated", "SpawnFoldedBack",
         "EdgeClaimed", "EdgeReleased",
+        "CommandError",
+        # CONSENSUS events (ADR-S-025, ADR-S-031)
+        "consensus_requested", "vote_cast", "consensus_reached", "consensus_failed",
     }
 
     @pytest.fixture(autouse=True)
