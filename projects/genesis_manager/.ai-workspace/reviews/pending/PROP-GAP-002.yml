@@ -1,0 +1,31 @@
+proposal_id: "PROP-GAP-002"
+intent_id: "INT-GAP-002"
+status: draft
+severity: medium
+created: "2026-03-13T18:00:02Z"
+source: gap_analysis
+
+title: "Backfill FSNAV requirements into spec documents"
+description: |
+  REQ-F-FSNAV-001, REQ-F-FSNAV-002, and REQ-F-FSNAV-003 are fully
+  implemented and tested but are not present in specification/requirements/
+  REQUIREMENTS.md or specification/features/FEATURE_VECTORS.md.
+  The spec was not updated when the feature was built.
+  Action: add the three FSNAV requirements to REQUIREMENTS.md and
+  add the FSNAV feature vector entry to FEATURE_VECTORS.md.
+
+affected_req_keys:
+  - REQ-F-FSNAV-001
+  - REQ-F-FSNAV-002
+  - REQ-F-FSNAV-003
+
+suggested_vector:
+  feature: "REQ-F-SPECUPD-001"
+  title: "Spec backfill — FSNAV requirements"
+  vector_type: feature
+  profile: minimal
+  requirements: [REQ-F-FSNAV-001, REQ-F-FSNAV-002, REQ-F-FSNAV-003]
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-GAP-002
+  Dismiss: /gen-review-proposal --dismiss PROP-GAP-002 --reason "{reason}"

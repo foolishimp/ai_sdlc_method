@@ -15,8 +15,10 @@ import {
   getOverview,
   getGates,
   getFeatures,
+  getFeatureDetail,
 } from '../readers/WorkspaceReader.js';
 import { scan } from '../readers/TraceabilityScanner.js';
+import { readAll } from '../readers/EventLogReader.js';
 
 const router = Router();
 
@@ -110,6 +112,75 @@ router.get('/:id/traceability', async (req: Request, res: Response): Promise<voi
   } catch (err) {
     console.error('[GET /workspaces/:id/traceability]', err);
     res.status(500).json({ message: 'Failed to scan traceability' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/workspaces/:id/features/:featureId
+// Implements: REQ-F-NAV-003
+// ---------------------------------------------------------------------------
+
+router.get('/:id/features/:featureId', async (req: Request, res: Response): Promise<void> => {
+  const id = req.params['id'] as string;
+  const featureId = req.params['featureId'] as string;
+  try {
+    const workspacePath = await resolveWorkspacePath(id, res);
+    if (!workspacePath) return;
+
+    const detail = await getFeatureDetail(workspacePath, featureId);
+    if (!detail) {
+      res.status(404).json({ message: `Feature '${featureId}' not found` });
+      return;
+    }
+    res.json(detail);
+  } catch (err) {
+    console.error('[GET /workspaces/:id/features/:featureId]', err);
+    res.status(500).json({ message: 'Failed to load feature detail' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/workspaces/:id/events[?feature=REQ-F-*]
+// Returns all events from events.jsonl, optionally filtered by feature field.
+// Implements: REQ-F-EVI-002
+// ---------------------------------------------------------------------------
+
+router.get('/:id/events', async (req: Request, res: Response): Promise<void> => {
+  const id = req.params['id'] as string;
+  const featureFilter = typeof req.query['feature'] === 'string' ? req.query['feature'] : null;
+
+  try {
+    const workspacePath = await resolveWorkspacePath(id, res);
+    if (!workspacePath) return;
+
+    const eventsPath = path.join(workspacePath, 'events', 'events.jsonl');
+    const { events } = await readAll(eventsPath);
+
+    const filtered = featureFilter
+      ? events.filter((e) => (e as Record<string, unknown>)['feature'] === featureFilter)
+      : events;
+
+    // Shape each event for the client
+    const result = filtered.map((e, i) => {
+      const raw = e as Record<string, unknown>;
+      const data = (raw['data'] ?? {}) as Record<string, unknown>;
+      return {
+        eventIndex: i,
+        eventType: raw['event_type'] ?? '',
+        timestamp: raw['timestamp'] ?? '',
+        feature: raw['feature'] ?? null,
+        edge: raw['edge'] ?? null,
+        iteration: raw['iteration'] ?? data['iteration'] ?? null,
+        delta: raw['delta'] ?? data['delta'] ?? null,
+        runId: raw['run_id'] ?? null,
+        raw: e,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('[GET /workspaces/:id/events]', err);
+    res.status(500).json({ message: 'Failed to load events' });
   }
 });
 

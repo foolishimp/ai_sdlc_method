@@ -25,18 +25,18 @@ function formatAge(ageMs: number): string {
 export function HumanGateQueue({ workspaceId, gates, onApprove, onReject }: HumanGateQueueProps): React.JSX.Element {
   if (gates.length === 0) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border-b border-green-100">
-        <span className="w-2 h-2 rounded-full bg-green-500" />
-        <span className="text-sm text-green-700 font-medium">No pending gates</span>
+      <div className="flex items-center gap-2 px-4 py-2 bg-emerald-900/20 border-b border-emerald-800/40">
+        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+        <span className="text-sm text-emerald-400 font-medium">No pending gates</span>
       </div>
     )
   }
 
   return (
-    <div className="border-b bg-orange-50">
+    <div className="border-b border-orange-800/40 bg-orange-900/20">
       <div className="px-4 py-2 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-        <span className="text-sm font-semibold text-orange-900">
+        <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+        <span className="text-sm font-semibold text-orange-300">
           {gates.length} pending gate{gates.length !== 1 ? 's' : ''}
         </span>
       </div>

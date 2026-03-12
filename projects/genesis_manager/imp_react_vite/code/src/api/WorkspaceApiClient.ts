@@ -6,6 +6,7 @@ import type {
   WorkspaceOverview,
   GateItem,
   FeatureVector,
+  FeatureDetail,
   TraceabilityEntry,
   WorkspaceEvent,
   EventPayload,
@@ -87,6 +88,16 @@ export class WorkspaceApiClient {
   async getFeatures(id: string): Promise<FeatureVector[]> {
     const res = await fetch(`${this.baseUrl}/api/workspaces/${encodeURIComponent(id)}/features`)
     return handleResponse<FeatureVector[]>(res)
+  }
+
+  // ─── Feature Detail ──────────────────────────────────────────────────────
+
+  // Implements: REQ-F-NAV-003
+  async getFeatureDetail(id: string, featureId: string): Promise<FeatureDetail> {
+    const res = await fetch(
+      `${this.baseUrl}/api/workspaces/${encodeURIComponent(id)}/features/${encodeURIComponent(featureId)}`,
+    )
+    return handleResponse<FeatureDetail>(res)
   }
 
   // ─── Events ──────────────────────────────────────────────────────────────

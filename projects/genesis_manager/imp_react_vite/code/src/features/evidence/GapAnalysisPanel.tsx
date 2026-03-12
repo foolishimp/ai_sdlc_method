@@ -15,10 +15,10 @@ function LayerSection({ label, layer }: { label: string; layer: GapLayer | null 
   if (!layer) return <></>
   const statusColor =
     layer.status === 'PASS'
-      ? 'text-emerald-400 bg-green-50 border-green-200'
+      ? 'text-emerald-400 bg-emerald-900/20 border-emerald-800/60'
       : layer.status === 'ADVISORY'
-      ? 'text-amber-400 bg-amber-950/20 border-amber-200'
-      : 'text-red-400 bg-red-950/20 border-red-200'
+      ? 'text-amber-400 bg-amber-900/20 border-amber-800/60'
+      : 'text-red-400 bg-red-900/20 border-red-800/60'
 
   return (
     <div className="rounded border p-3">
@@ -35,7 +35,7 @@ function LayerSection({ label, layer }: { label: string; layer: GapLayer | null 
         <ul className="space-y-1">
           {layer.gaps.map((gap) => (
             <li key={gap.reqKey} className="text-xs text-foreground/80">
-              <span className="font-mono text-red-600">{gap.reqKey}</span>
+              <span className="font-mono text-red-400">{gap.reqKey}</span>
               {gap.description && <span className="ml-1 text-muted-foreground">— {gap.description}</span>}
             </li>
           ))}

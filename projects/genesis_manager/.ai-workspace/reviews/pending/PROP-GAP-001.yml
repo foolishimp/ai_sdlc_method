@@ -1,0 +1,57 @@
+proposal_id: "PROP-GAP-001"
+intent_id: "INT-GAP-001"
+status: draft
+severity: high
+created: "2026-03-13T18:00:01Z"
+source: gap_analysis
+
+title: "Add Validates: tags to uncovered feature tests"
+description: |
+  31 of 42 spec REQ keys have no Validates: tag in any test file.
+  The existing test suite covers the features but the traceability
+  annotations are missing — tests exist for the behaviour but the
+  formal link from spec key → test is absent.
+  Action: audit each test file and add Validates: REQ-* comments
+  to the appropriate test suites. REL-001/002/003 are not yet
+  implemented so those three can be deferred.
+
+affected_req_keys:
+  - REQ-BR-SUPV-001
+  - REQ-BR-SUPV-002
+  - REQ-DATA-WORK-001
+  - REQ-DATA-WORK-002
+  - REQ-F-CTL-001
+  - REQ-F-CTL-003
+  - REQ-F-EVI-002
+  - REQ-F-EVI-003
+  - REQ-F-EVI-004
+  - REQ-F-NAV-001
+  - REQ-F-NAV-002
+  - REQ-F-NAV-003
+  - REQ-F-NAV-004
+  - REQ-F-NAV-005
+  - REQ-F-OVR-002
+  - REQ-F-OVR-003
+  - REQ-F-OVR-004
+  - REQ-F-PROJ-002
+  - REQ-F-PROJ-003
+  - REQ-F-SUP-002
+  - REQ-F-SUP-003
+  - REQ-F-FSNAV-003
+  - REQ-F-SYSTEM-001
+  - REQ-F-UX-001
+  - REQ-F-UX-002
+  - REQ-F-VIS-001
+  - REQ-NFR-ACC-001
+  - REQ-NFR-PERF-001
+
+suggested_vector:
+  feature: "REQ-F-TRACE-001"
+  title: "Traceability tag backfill — Validates: annotations"
+  vector_type: feature
+  profile: hotfix
+  requirements: [REQ-F-CTL-001, REQ-F-EVI-002, REQ-F-NAV-001, REQ-F-OVR-002, REQ-F-PROJ-002, REQ-F-SUP-002, REQ-F-SYSTEM-001, REQ-F-UX-001, REQ-F-UX-002, REQ-F-VIS-001]
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-GAP-001
+  Dismiss: /gen-review-proposal --dismiss PROP-GAP-001 --reason "{reason}"

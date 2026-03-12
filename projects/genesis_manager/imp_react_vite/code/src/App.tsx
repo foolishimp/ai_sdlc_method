@@ -7,6 +7,7 @@ import { ProjectListPage } from './features/project-nav/ProjectListPage'
 import { ProjectOverviewPage } from './features/overview/ProjectOverviewPage'
 import { SupervisionConsolePage } from './features/supervision/SupervisionConsolePage'
 import { EvidenceBrowserPage } from './features/evidence/EvidenceBrowserPage'
+import { FeatureDetailPage } from './features/feature-detail/FeatureDetailPage'
 import { ROUTES } from './routing/routes'
 
 // Router configuration — all canonical routes
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
   {
     path: ROUTES.EVIDENCE,
     element: <EvidenceBrowserPage />,
+  },
+  {
+    path: ROUTES.FEATURE_DETAIL,
+    element: <FeatureDetailPage />,
   },
   {
     // /project/:workspaceId → redirect to overview

@@ -31,8 +31,8 @@ export function FreshnessIndicator({
   // State: refreshing
   if (isRefreshing) {
     return (
-      <span className={`${base} bg-blue-50 text-primary`}>
-        <span className="animate-spin inline-block w-3 h-3 border border-blue-500 border-t-transparent rounded-full" />
+      <span className={`${base} bg-muted text-primary`}>
+        <span className="animate-spin inline-block w-3 h-3 border border-primary border-t-transparent rounded-full" />
         Refreshing…
       </span>
     )
@@ -74,8 +74,8 @@ export function FreshnessIndicator({
 
   // State: fresh
   return (
-    <span className={`${base} bg-green-50 text-emerald-400`}>
-      <span className="w-2 h-2 rounded-full bg-green-500" />
+    <span className={`${base} bg-muted text-emerald-400`}>
+      <span className="w-2 h-2 rounded-full bg-emerald-500" />
       Last refreshed {ageSec}s ago
     </span>
   )

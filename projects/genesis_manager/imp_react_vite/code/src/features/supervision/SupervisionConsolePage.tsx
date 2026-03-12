@@ -83,9 +83,18 @@ export function SupervisionConsolePage(): React.JSX.Element {
 
   const visibleGates = gates.filter((g) => !removedGateIds.has(g.id))
 
-  // Map FeatureVector[] to SupervisionFeature[] with autoModeEnabled derived from events
-  // In production the server computes this; here we pass basic defaults
-  const supervisionFeatures: SupervisionFeature[] = (features as unknown as SupervisionFeature[])
+  // Map FeatureVector[] → SupervisionFeature[].
+  // Include all features — converged shown at bottom so auto-mode is always controllable.
+  const supervisionFeatures: SupervisionFeature[] = features
+    .map((f) => ({
+      featureId: f.featureId,
+      title: f.title,
+      currentEdge: f.currentEdge ?? '',
+      iterationNumber: 0,
+      delta: f.currentDelta ?? 0,
+      status: (f.status as SupervisionFeature['status']) ?? 'pending',
+      autoModeEnabled: f.autoModeEnabled,
+    }))
 
   const selectedFeature = selectedFeatureId
     ? supervisionFeatures.find((f) => f.featureId === selectedFeatureId) ?? null

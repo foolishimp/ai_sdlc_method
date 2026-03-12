@@ -264,6 +264,9 @@ describe('getGates', () => {
 describe('getFeatures', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    // getFeatures now also reads events.jsonl for derived fields.
+    // Default: no events file present (ENOENT) — handled gracefully by readAll.
+    mockReadFile.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }))
   })
 
   it('returns empty array when active/ and completed/ dirs do not exist', async () => {

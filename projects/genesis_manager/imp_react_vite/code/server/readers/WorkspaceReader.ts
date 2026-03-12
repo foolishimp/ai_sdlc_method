@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import { Dirent } from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
-import { readAll, computeIsStuck } from './EventLogReader.js';
+import { readAll, computeIsStuck, computeAutoMode } from './EventLogReader.js';
 import type {
   WorkspaceSummary,
   WorkspaceOverview,
@@ -103,11 +103,30 @@ function toFeatureVector(raw: Record<string, unknown>): FeatureVector {
     }
   }
 
+  const satisfies: string[] = Array.isArray(raw['satisfies'])
+    ? (raw['satisfies'] as unknown[]).filter((s) => typeof s === 'string') as string[]
+    : [];
+
+  const childVectors: string[] = Array.isArray(raw['children'])
+    ? (raw['children'] as unknown[])
+        .filter((c) => c && typeof c === 'object' && typeof (c as Record<string, unknown>)['feature'] === 'string')
+        .map((c) => (c as Record<string, unknown>)['feature'] as string)
+    : [];
+
   return {
+    // featureId — client-facing name; raw YAML field is 'feature'
+    featureId: typeof raw['feature'] === 'string' ? raw['feature'] : 'unknown',
+    // Keep internal field for server-side lookups
     feature: typeof raw['feature'] === 'string' ? raw['feature'] : 'unknown',
     title: typeof raw['title'] === 'string' ? raw['title'] : '',
     status: typeof raw['status'] === 'string' ? raw['status'] : 'pending',
     trajectory,
+    satisfies,
+    childVectors,
+    // Derived from events — set by getFeatures() after event scan
+    currentEdge: null,
+    currentDelta: null,
+    autoModeEnabled: false,
   };
 }
 
@@ -299,10 +318,182 @@ export async function getGates(workspacePath: string): Promise<GateItem[]> {
 
 /**
  * Return all feature vectors (active + completed) for the workspace.
+ * currentEdge, currentDelta, and autoModeEnabled are derived from events.
  */
 export async function getFeatures(
   workspacePath: string,
 ): Promise<FeatureVector[]> {
   const rawFeatures = await readFeatureYamls(workspacePath);
-  return rawFeatures.map(toFeatureVector);
+  const features = rawFeatures.map(toFeatureVector);
+
+  // Derive event-based fields from the event log
+  const eventsPath = path.join(workspacePath, 'events', 'events.jsonl');
+  const { events } = await readAll(eventsPath);
+
+  for (const f of features) {
+    // currentEdge + currentDelta: last iteration_completed for this feature
+    for (let i = events.length - 1; i >= 0; i--) {
+      const ev = events[i];
+      if (ev.feature === f.feature && ev.event_type === 'iteration_completed' && ev.edge) {
+        f.currentEdge = ev.edge;
+        f.currentDelta = typeof ev['delta'] === 'number' ? (ev['delta'] as number) : null;
+        break;
+      }
+    }
+    // Reset delta to 0 if the edge then converged
+    for (let i = events.length - 1; i >= 0; i--) {
+      const ev = events[i];
+      if (ev.feature === f.feature && ev.event_type === 'edge_converged') {
+        if (ev.edge === f.currentEdge) f.currentDelta = 0;
+        break;
+      }
+    }
+    // autoModeEnabled: most recent auto_mode_set event
+    f.autoModeEnabled = computeAutoMode(events, f.feature);
+  }
+
+  return features;
+}
+
+// ---------------------------------------------------------------------------
+// Feature detail
+// ---------------------------------------------------------------------------
+
+export interface FeatureEdgeStatus {
+  edge: string;
+  status: string;
+  iterationCount: number;
+  delta: number | null;
+  lastRunId: string | null;
+  convergedAt: string | null;
+  producedAsset: string | null;
+}
+
+export interface FeatureEventSummary {
+  eventIndex: number;
+  eventType: string;
+  timestamp: string;
+  edge: string | null;
+  iteration: number | null;
+  delta: number | null;
+  runId: string | null;
+  raw: Record<string, unknown>;
+}
+
+export interface FeatureDetail {
+  featureId: string;
+  title: string;
+  status: string;
+  currentEdge: string | null;
+  currentDelta: number | null;
+  satisfies: string[];
+  childVectors: string[];
+  edges: FeatureEdgeStatus[];
+  events: FeatureEventSummary[];
+}
+
+/**
+ * Return a rich feature detail for a single feature, including trajectory
+ * and recent events filtered to this feature.
+ * Implements: REQ-F-NAV-003
+ */
+export async function getFeatureDetail(
+  workspacePath: string,
+  featureId: string,
+): Promise<FeatureDetail | null> {
+  const rawFeatures = await readFeatureYamls(workspacePath);
+  const raw = rawFeatures.find((r) => r['feature'] === featureId);
+  if (!raw) return null;
+
+  // ── Events for this feature ───────────────────────────────────────────────
+  const eventsPath = path.join(workspacePath, 'events', 'events.jsonl');
+  const { events: allEvents } = await readAll(eventsPath);
+  const featureEvents = allEvents
+    .map((ev, idx) => ({ ev, globalIndex: idx }))
+    .filter(({ ev }) => ev.feature === featureId);
+
+  // Build per-edge last delta and runId from events
+  const edgeDelta: Record<string, number | null> = {};
+  const edgeRunId: Record<string, string | null> = {};
+  for (const { ev } of featureEvents) {
+    if (ev.event_type === 'iteration_completed' && ev.edge) {
+      edgeDelta[ev.edge] = typeof ev['delta'] === 'number' ? (ev['delta'] as number) : null;
+      edgeRunId[ev.edge] = typeof ev['run_id'] === 'string' ? (ev['run_id'] as string) : null;
+    }
+    if (ev.event_type === 'edge_converged' && ev.edge) {
+      edgeDelta[ev.edge] = 0;
+    }
+  }
+
+  // ── Trajectory edges ─────────────────────────────────────────────────────
+  const edges: FeatureEdgeStatus[] = [];
+  if (raw['trajectory'] && typeof raw['trajectory'] === 'object') {
+    const traj = raw['trajectory'] as Record<string, unknown>;
+    for (const [edgeName, val] of Object.entries(traj)) {
+      if (val && typeof val === 'object') {
+        const e = val as Record<string, unknown>;
+        edges.push({
+          edge: edgeName,
+          status: typeof e['status'] === 'string' ? e['status'] : 'pending',
+          iterationCount: typeof e['iteration'] === 'number' ? (e['iteration'] as number) : 0,
+          delta: edgeDelta[edgeName] ?? null,
+          lastRunId: edgeRunId[edgeName] ?? null,
+          convergedAt: typeof e['converged_at'] === 'string' ? (e['converged_at'] as string) : null,
+          producedAsset: typeof e['produced_asset_ref'] === 'string' ? (e['produced_asset_ref'] as string) : null,
+        });
+      }
+    }
+  }
+
+  // ── Derive current edge and delta ─────────────────────────────────────────
+  const inProgressEdge = edges.find((e) => e.status !== 'converged' && e.status !== 'pending');
+  let currentEdge: string | null = inProgressEdge?.edge ?? null;
+  let currentDelta: number | null = inProgressEdge?.delta ?? null;
+  if (!currentEdge) {
+    // Derive from events
+    for (let i = allEvents.length - 1; i >= 0; i--) {
+      const ev = allEvents[i];
+      if (ev.feature === featureId && ev.event_type === 'iteration_completed' && ev.edge) {
+        currentEdge = ev.edge;
+        currentDelta = typeof ev['delta'] === 'number' ? (ev['delta'] as number) : null;
+        break;
+      }
+    }
+  }
+
+  // ── Recent events (last 50, in chronological order) ──────────────────────
+  const recentEvents: FeatureEventSummary[] = featureEvents.slice(-50).map(({ ev, globalIndex }) => ({
+    eventIndex: globalIndex,
+    eventType: ev.event_type,
+    timestamp: ev.timestamp,
+    edge: ev.edge ?? null,
+    iteration: typeof ev['iteration'] === 'number' ? (ev['iteration'] as number) : null,
+    delta: typeof ev['delta'] === 'number' ? (ev['delta'] as number) : null,
+    runId: typeof ev['run_id'] === 'string' ? (ev['run_id'] as string) : null,
+    raw: ev as unknown as Record<string, unknown>,
+  }));
+
+  // ── Satisfies ─────────────────────────────────────────────────────────────
+  const satisfies: string[] = Array.isArray(raw['satisfies'])
+    ? (raw['satisfies'] as unknown[]).filter((s) => typeof s === 'string') as string[]
+    : [];
+
+  // ── Children ──────────────────────────────────────────────────────────────
+  const childVectors: string[] = Array.isArray(raw['children'])
+    ? (raw['children'] as unknown[])
+        .filter((c) => c && typeof c === 'object' && typeof (c as Record<string, unknown>)['feature'] === 'string')
+        .map((c) => (c as Record<string, unknown>)['feature'] as string)
+    : [];
+
+  return {
+    featureId,
+    title: typeof raw['title'] === 'string' ? raw['title'] : '',
+    status: typeof raw['status'] === 'string' ? raw['status'] : 'pending',
+    currentEdge,
+    currentDelta,
+    satisfies,
+    childVectors,
+    edges,
+    events: recentEvents,
+  };
 }

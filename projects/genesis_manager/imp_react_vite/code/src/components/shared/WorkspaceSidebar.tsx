@@ -58,20 +58,23 @@ export function WorkspaceSidebar({ workspaceId, projectName }: WorkspaceSidebarP
 
       <div className="w-8 h-px bg-border mb-1" />
 
-      {/* Workspace initial */}
-      <div
-        className="w-8 h-8 rounded-md bg-primary/20 text-primary flex items-center justify-center text-xs font-bold mb-2"
-        title={projectName}
+      {/* Workspace badge — links to project overview (project home) */}
+      <Link
+        to={buildOverviewPath(workspaceId)}
+        title={`${projectName} — Overview`}
+        className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold mb-1 transition-colors ${
+          isOverview
+            ? 'bg-primary text-primary-foreground ring-2 ring-primary/50'
+            : 'bg-primary/20 text-primary hover:bg-primary/30'
+        }`}
       >
         {projectName.slice(0, 2).toUpperCase()}
-      </div>
+      </Link>
+      {/* Project name label under badge */}
+      <span className="text-[10px] text-muted-foreground/60 leading-none max-w-[56px] truncate text-center mb-2">
+        {projectName}
+      </span>
 
-      <NavItem
-        to={buildOverviewPath(workspaceId)}
-        label="Overview"
-        icon="◉"
-        active={isOverview}
-      />
       <NavItem
         to={buildSupervisionPath(workspaceId)}
         label="Supervise"

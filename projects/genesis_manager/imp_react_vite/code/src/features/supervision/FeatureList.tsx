@@ -17,6 +17,7 @@ interface FeatureListProps {
 
 function statusBadge(status: SupervisionFeature['status']): React.JSX.Element {
   const map: Record<string, string> = {
+    converged: 'bg-emerald-900/30 text-emerald-400',
     stuck: 'bg-amber-950/30 text-amber-400',
     blocked: 'bg-red-950/30 text-red-400',
     in_progress: 'bg-blue-950/30 text-blue-400',
@@ -38,7 +39,7 @@ function blockReasonLabel(feature: SupervisionFeature): string {
   return 'Blocked'
 }
 
-const STATUS_ORDER: SupervisionFeature['status'][] = ['stuck', 'blocked', 'in_progress', 'pending']
+const STATUS_ORDER: SupervisionFeature['status'][] = ['stuck', 'blocked', 'in_progress', 'pending', 'converged']
 
 // FeatureList — all features sorted: stuck > blocked > in_progress > pending.
 // Implements: REQ-F-SUP-001 AC2, REQ-F-SUP-003, REQ-F-SUP-004
@@ -58,7 +59,7 @@ export function FeatureList({
   if (sorted.length === 0) {
     return (
       <div className="flex items-center justify-center py-16 text-muted-foreground/60 text-sm italic">
-        All features running smoothly — no attention required.
+        No features in workspace.
       </div>
     )
   }
@@ -80,6 +81,7 @@ export function FeatureList({
                 {section === 'blocked' && 'Blocked'}
                 {section === 'in_progress' && 'In Progress'}
                 {section === 'pending' && 'Pending'}
+                {section === 'converged' && 'Converged'}
               </div>
             )}
 
@@ -89,6 +91,8 @@ export function FeatureList({
                   ? 'bg-amber-950/20'
                   : feature.status === 'blocked'
                   ? 'bg-red-950/20'
+                  : feature.status === 'converged'
+                  ? 'opacity-50'
                   : 'bg-secondary'
               }`}
             >

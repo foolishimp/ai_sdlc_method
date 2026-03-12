@@ -104,6 +104,7 @@ export interface FeatureVector {
   currentDelta: number | null
   satisfies: string[] // REQ-* keys
   childVectors: string[]
+  autoModeEnabled: boolean
 }
 
 // ─── Feature Trajectory (for NavHandle detail page) ───────────────────────────
@@ -165,6 +166,41 @@ export interface EventPayload {
   parent_feature?: string
   reason?: string
   [key: string]: unknown
+}
+
+// ─── Feature Detail (REQ-F-NAV-003) ───────────────────────────────────────────
+
+export interface FeatureEdgeStatus {
+  edge: string
+  status: string
+  iterationCount: number
+  delta: number | null
+  lastRunId: string | null
+  convergedAt: string | null
+  producedAsset: string | null
+}
+
+export interface FeatureEventSummary {
+  eventIndex: number
+  eventType: string
+  timestamp: string
+  edge: string | null
+  iteration: number | null
+  delta: number | null
+  runId: string | null
+  raw: Record<string, unknown>
+}
+
+export interface FeatureDetail {
+  featureId: string
+  title: string
+  status: string
+  currentEdge: string | null
+  currentDelta: number | null
+  satisfies: string[]
+  childVectors: string[]
+  edges: FeatureEdgeStatus[]
+  events: FeatureEventSummary[]
 }
 
 // ─── Gap Analysis ─────────────────────────────────────────────────────────────

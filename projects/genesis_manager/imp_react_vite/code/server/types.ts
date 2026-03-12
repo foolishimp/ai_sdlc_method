@@ -86,10 +86,16 @@ export interface GateItem {
 }
 
 export interface FeatureVector {
-  feature: string;
+  featureId: string;
+  feature: string; // same value — kept for internal lookups
   title: string;
   status: string;
   trajectory: Record<string, { status: string; iteration: number }>;
+  satisfies: string[];
+  childVectors: string[];
+  currentEdge: string | null;
+  currentDelta: number | null;
+  autoModeEnabled: boolean;
 }
 
 export interface FeatureStatusSummary {

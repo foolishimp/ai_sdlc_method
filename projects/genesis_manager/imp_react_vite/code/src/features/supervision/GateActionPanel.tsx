@@ -43,9 +43,9 @@ export function GateActionPanel({ workspaceId: _workspaceId, gate, onApprove, on
   const rejectCmd = CMD.rejectGate(gate.featureId, gate.edge, comment, gate.gateName)
 
   return (
-    <div className="border border-orange-200 rounded-lg p-3 bg-orange-50">
+    <div className="border border-orange-800/40 rounded-lg p-3 bg-orange-900/20">
       <div className="mb-2">
-        <span className="text-xs font-semibold text-orange-800 uppercase tracking-wide">
+        <span className="text-xs font-semibold text-orange-300 uppercase tracking-wide">
           Gate: {gate.gateName}
         </span>
         <span className="ml-2 text-xs text-muted-foreground">{gate.edge}</span>
