@@ -119,6 +119,7 @@ Constraint-Emergence Ontology  (external)
 | [ADR-S-034](adrs/ADR-S-034-genesis-ecosystem.md) | Genesis Ecosystem | Cooperative Genesis-enabled services co-evolving; niche discovery through mutual intent observation; ecosystem event stream; REQ key as ecosystem identifier |
 | [ADR-S-035](adrs/ADR-S-035-genesis-dsl-topology-language.md) | Genesis Topology Language (GTL) | **PROPOSED** — Python DSL over static YAML; compile-down to existing runtime contract; graph algebra (\, +, &) for profiles; operator registry (F_D/F_P/F_H); @composition decorator; explicit tenancy; Workspace resource declarations |
 | [ADR-S-036](adrs/ADR-S-036-invariants-as-termination-conditions-not-procedures.md) | Invariants as Termination Conditions | Makes explicit an inferred consequence of §II and §XI: the methodology prescribes what must hold at convergence (invariants), not how to get there (path). Agent freedom over path; F_D checks termination. Two-pass and one-pass executions are equally valid if invariants hold. |
+| [ADR-S-036.1](adrs/ADR-S-036.1-invariant-primes-and-terminal-manifestations.md) | Invariant Primes + Terminal Manifestations | Amends ADR-S-036: two-layer model — 5 invariant primes (asset convergence, traceability, observability, state legibility, homeostatic closure) as irreducible validity basis; terminal manifestations as required evidence layer. Conformance = prime satisfaction + accurate manifestations. |
 
 
 ---
