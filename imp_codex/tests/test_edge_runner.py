@@ -59,7 +59,7 @@ def _configure_agent_invocation(paths: RuntimePaths) -> Path:
     constraints = yaml.safe_load(paths.project_constraints_path.read_text())
     constraints["agent_invocation"] = {
         "mode": "file",
-        "fallback": "fail",
+        "fallback": "heuristic",
         "file": ".ai-workspace/codex/context/agent_evaluations.json",
     }
     paths.project_constraints_path.write_text(yaml.safe_dump(constraints, sort_keys=False))
@@ -70,9 +70,13 @@ def _write_feature(paths: RuntimePaths, feature_id: str) -> None:
     feature_doc = yaml.safe_load(paths.feature_template_path.read_text())
     feature_doc["feature"] = feature_id
     feature_doc["title"] = feature_id
-    feature_doc["profile"] = "minimal"
+    feature_doc["profile"] = "standard"
     feature_doc["status"] = "in_progress"
-    feature_doc["trajectory"] = {"intent→requirements": {"status": "converged", "delta": 0}}
+    feature_doc["trajectory"] = {
+        "requirements": {"status": "converged", "delta": 0},
+        "design": {"status": "converged", "delta": 0},
+        "code": {"status": "converged", "delta": 0},
+    }
     (paths.active_features_dir / f"{feature_id}.yml").write_text(yaml.safe_dump(feature_doc, sort_keys=False))
 
 
@@ -414,51 +418,17 @@ def test_run_edge_run_agent_executes_fp_work_and_converges_with_file_contract(tm
     (specification / "INTENT.md").write_text("# Intent\n\nBuild auth.\n")
     (specification / "requirements.md").write_text("# Requirements\n\n- REQ-F-AUTH-001\n")
 
-    design_dir = project_root / "imp_codex" / "design"
-    design_dir.mkdir(parents=True, exist_ok=True)
-    (design_dir / "auth_design.md").write_text(
-        "\n".join(
-            [
-                "# Auth Design",
-                "",
-                "Implements: REQ-F-AUTH-001",
-                "Interfaces",
-                "Dependencies",
-            ]
-        )
-        + "\n"
-    )
     _write_feature(paths, "REQ-F-AUTH-001")
 
     invocation_file.write_text(
         json.dumps(
             {
-                "evaluations": [
-                    {
-                        "feature": "REQ-F-AUTH-001",
-                        "edge": "design→code",
-                        "name": "code_matches_design",
-                        "result": "pass",
-                    },
-                    {
-                        "feature": "REQ-F-AUTH-001",
-                        "edge": "design→code",
-                        "name": "req_tags_present",
-                        "result": "pass",
-                    },
-                    {
-                        "feature": "REQ-F-AUTH-001",
-                        "edge": "design→code",
-                        "name": "follows_coding_standards",
-                        "result": "pass",
-                    },
-                ],
                 "fp_results": [
                     {
                         "feature": "REQ-F-AUTH-001",
-                        "edge": "design→code",
+                        "edge": "code↔unit_tests",
                         "status": "completed",
-                        "message": "Generated auth implementation",
+                        "message": "Generated code and tests",
                         "converged": False,
                         "delta": 1,
                         "cost_usd": 0.15,
@@ -474,6 +444,18 @@ def test_run_edge_run_agent_executes_fp_work_and_converges_with_file_contract(tm
                                     ]
                                 )
                                 + "\n",
+                            },
+                            {
+                                "path": "tests/test_auth.py",
+                                "content": "\n".join(
+                                    [
+                                        "# Validates: REQ-F-AUTH-001",
+                                        "",
+                                        "def test_login() -> None:",
+                                        "    assert True",
+                                    ]
+                                )
+                                + "\n",
                             }
                         ],
                     }
@@ -485,12 +467,16 @@ def test_run_edge_run_agent_executes_fp_work_and_converges_with_file_contract(tm
 
     target = _make_target(
         feature_id="REQ-F-AUTH-001",
-        edge="design→code",
+        edge="code↔unit_tests",
         feature_vector={
             "feature": "REQ-F-AUTH-001",
-            "profile": "minimal",
+            "profile": "standard",
             "status": "in_progress",
-            "trajectory": {"intent→requirements": {"status": "converged", "delta": 0}},
+            "trajectory": {
+                "requirements": {"status": "converged", "delta": 0},
+                "design": {"status": "converged", "delta": 0},
+                "code": {"status": "converged", "delta": 0},
+            },
         },
     )
 
@@ -500,6 +486,7 @@ def test_run_edge_run_agent_executes_fp_work_and_converges_with_file_contract(tm
     assert result.iterations == 2
     assert result.fp_manifest_path
     assert (project_root / "src" / "auth.py").exists()
+    assert (project_root / "tests" / "test_auth.py").exists()
     manifest = json.loads(Path(result.fp_manifest_path).read_text())
     assert manifest["status"] == "completed"
     fp_result = _check_fp_result(project_root, result.run_id)

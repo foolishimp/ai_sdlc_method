@@ -503,7 +503,7 @@ def run_edge(
                 iterations=iterations,
                 cost_usd=round(total_cost, 4),
                 failed_checks=[],
-                fp_manifest_path="",
+                fp_manifest_path=manifest_path,
                 events_emitted=events_emitted,
                 iteration_start_run_id=iteration_start_run_id,
                 completed_run_id=completed_run_id,
