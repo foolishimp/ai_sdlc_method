@@ -13,6 +13,8 @@ import type {
   GateItem,
   FeatureVector,
   WorkspaceEvent,
+  InProgressFeature,
+  RecentActivity,
 } from '../types.js';
 
 // ---------------------------------------------------------------------------
@@ -32,10 +34,11 @@ async function readProjectName(workspacePath: string): Promise<string> {
       if (typeof doc['project_name'] === 'string') return doc['project_name'];
       if (typeof doc['name'] === 'string') return doc['name'];
     }
-    return 'unknown';
   } catch {
-    return 'unknown';
+    // fall through to path-based name
   }
+  // Fall back to the parent directory name of the .ai-workspace path
+  return path.basename(path.dirname(workspacePath));
 }
 
 /**
@@ -189,17 +192,20 @@ export async function getWorkspaceSummary(
   const name = await readProjectName(workspacePath);
 
   return {
-    id: workspaceId,
-    path: workspacePath,
-    name,
-    pendingGates: pendingGates.length,
-    stuckFeatures,
-    lastEventAt,
+    workspaceId,
+    projectName: name,
+    activeFeatureCount: 0, // derived from feature vectors if needed
+    pendingGateCount: pendingGates.length,
+    stuckFeatureCount: stuckFeatures,
+    lastEventTimestamp: lastEventAt,
+    hasAttentionRequired: pendingGates.length > 0 || stuckFeatures > 0,
+    available: true,
   };
 }
 
 /**
- * Return a WorkspaceOverview with feature vectors and recent events.
+ * Return a WorkspaceOverview with computed status counts, in-progress features,
+ * and recent activity — shaped to match the client's WorkspaceOverview interface.
  */
 export async function getOverview(
   workspacePath: string,
@@ -207,19 +213,78 @@ export async function getOverview(
 ): Promise<WorkspaceOverview> {
   const eventsPath = path.join(workspacePath, 'events', 'events.jsonl');
   const { events } = await readAll(eventsPath);
-  const recentEvents = events.slice(-20);
 
   const rawFeatures = await readFeatureYamls(workspacePath);
   const features = rawFeatures.map(toFeatureVector);
-
   const projectName = await readProjectName(workspacePath);
+  const pendingGates = derivePendingGates(events);
+
+  // ── Status counts ──────────────────────────────────────────────────────────
+  const statusCounts = { converged: 0, in_progress: 0, blocked: 0, pending: 0, pendingGates: pendingGates.length };
+  for (const f of features) {
+    const s = f.status;
+    if (s === 'converged') statusCounts.converged++;
+    else if (s === 'in_progress' || s === 'iterating') statusCounts.in_progress++;
+    else if (s === 'blocked') statusCounts.blocked++;
+    else statusCounts.pending++;
+  }
+
+  // ── In-progress features ───────────────────────────────────────────────────
+  // Build per-feature last-event timestamps and latest delta from events
+  const featureLastEvents: Record<string, string> = {};
+  const featureDelta: Record<string, number> = {};
+  const featureEdge: Record<string, string> = {};
+  const featureIter: Record<string, number> = {};
+  for (const ev of events) {
+    const fid = ev.feature;
+    if (!fid) continue;
+    featureLastEvents[fid] = ev.timestamp;
+    if (ev.event_type === 'iteration_completed') {
+      featureDelta[fid] = typeof ev['delta'] === 'number' ? (ev['delta'] as number) : 0;
+      featureEdge[fid] = ev.edge ?? '';
+      featureIter[fid] = typeof ev['iteration'] === 'number' ? (ev['iteration'] as number) : 0;
+    }
+    if (ev.event_type === 'edge_converged') {
+      featureDelta[fid] = 0;
+    }
+  }
+
+  const inProgressFeatures: InProgressFeature[] = features
+    .filter((f) => f.status !== 'converged' && f.status !== 'pending')
+    .map((f) => ({
+      featureId: f.feature,
+      title: f.title,
+      currentEdge: featureEdge[f.feature] ?? '',
+      iterationNumber: featureIter[f.feature] ?? 0,
+      delta: featureDelta[f.feature] ?? 0,
+      lastEventAt: featureLastEvents[f.feature] ?? new Date().toISOString(),
+    }));
+
+  // ── Recent activity — last iteration_completed event ──────────────────────
+  let recentActivity: RecentActivity | null = null;
+  for (let i = events.length - 1; i >= 0; i--) {
+    const ev = events[i];
+    if (ev.event_type === 'iteration_completed' && ev.feature && ev.edge) {
+      recentActivity = {
+        featureId: ev.feature,
+        edge: ev.edge,
+        iterationNumber: typeof ev['iteration'] === 'number' ? (ev['iteration'] as number) : 0,
+        timestamp: ev.timestamp,
+        delta: typeof ev['delta'] === 'number' ? (ev['delta'] as number) : 0,
+        runId: typeof ev['run_id'] === 'string' ? (ev['run_id'] as string) : null,
+      };
+      break;
+    }
+  }
 
   return {
-    workspaceId,
     projectName,
-    features,
-    recentEvents,
-    lastRefreshed: new Date().toISOString(),
+    methodVersion: 'v2.9',
+    statusCounts,
+    inProgressFeatures,
+    recentActivity,
+    featureLastEvents,
+    pendingGateCount: pendingGates.length,
   };
 }
 

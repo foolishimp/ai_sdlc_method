@@ -67,11 +67,11 @@ describe('getWorkspaceSummary', () => {
     mockReadFile.mockRejectedValueOnce(err)
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc123')
-    expect(summary.pendingGates).toBe(0)
-    expect(summary.lastEventAt).toBeNull()
+    expect(summary.pendingGateCount).toBe(0)
+    expect(summary.lastEventTimestamp).toBeNull()
   })
 
-  it('returns correct pendingGates count for unresolved review_requested', async () => {
+  it('returns correct pendingGateCount for unresolved review_requested', async () => {
     const events = [
       makeEventLine({ event_type: 'review_requested', feature: 'F1', edge: 'code', gate_name: 'g1' }),
     ].join('\n')
@@ -80,10 +80,10 @@ describe('getWorkspaceSummary', () => {
     mockReadFile.mockRejectedValueOnce(constraintsErr) // project_constraints.yml
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc123')
-    expect(summary.pendingGates).toBe(1)
+    expect(summary.pendingGateCount).toBe(1)
   })
 
-  it('returns 0 pendingGates when review_approved follows review_requested for same triple', async () => {
+  it('returns 0 pendingGateCount when review_approved follows review_requested for same triple', async () => {
     const events = [
       makeEventLine({ event_type: 'review_requested', feature: 'F1', edge: 'code', gate_name: 'g1' }),
       makeEventLine({ event_type: 'review_approved', feature: 'F1', edge: 'code', gate_name: 'g1' }),
@@ -93,10 +93,10 @@ describe('getWorkspaceSummary', () => {
     mockReadFile.mockRejectedValueOnce(err)
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc123')
-    expect(summary.pendingGates).toBe(0)
+    expect(summary.pendingGateCount).toBe(0)
   })
 
-  it('returns 0 pendingGates when review_rejected follows review_requested', async () => {
+  it('returns 0 pendingGateCount when review_rejected follows review_requested', async () => {
     const events = [
       makeEventLine({ event_type: 'review_requested', feature: 'F1', edge: 'code', gate_name: 'g1' }),
       makeEventLine({ event_type: 'review_rejected', feature: 'F1', edge: 'code', gate_name: 'g1' }),
@@ -106,10 +106,10 @@ describe('getWorkspaceSummary', () => {
     mockReadFile.mockRejectedValueOnce(err)
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc123')
-    expect(summary.pendingGates).toBe(0)
+    expect(summary.pendingGateCount).toBe(0)
   })
 
-  it('returns the timestamp of the last event as lastEventAt', async () => {
+  it('returns the timestamp of the last event as lastEventTimestamp', async () => {
     const events = [
       makeEventLine({ event_type: 'x', timestamp: '2026-01-01T10:00:00Z' }),
       makeEventLine({ event_type: 'y', timestamp: '2026-01-02T12:00:00Z' }),
@@ -119,7 +119,7 @@ describe('getWorkspaceSummary', () => {
     mockReadFile.mockRejectedValueOnce(err)
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc123')
-    expect(summary.lastEventAt).toBe('2026-01-02T12:00:00Z')
+    expect(summary.lastEventTimestamp).toBe('2026-01-02T12:00:00Z')
   })
 
   it('returns project name from project_constraints.yml project_name field', async () => {
@@ -129,7 +129,7 @@ describe('getWorkspaceSummary', () => {
     mockYamlLoad.mockReturnValueOnce({ project_name: 'My Workspace' })
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc123')
-    expect(summary.name).toBe('My Workspace')
+    expect(summary.projectName).toBe('My Workspace')
   })
 
   it('returns project name from name field when project_name is absent', async () => {
@@ -139,16 +139,17 @@ describe('getWorkspaceSummary', () => {
     mockYamlLoad.mockReturnValueOnce({ name: 'Fallback Name' })
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc123')
-    expect(summary.name).toBe('Fallback Name')
+    expect(summary.projectName).toBe('Fallback Name')
   })
 
-  it('returns "unknown" when project_constraints.yml is missing', async () => {
+  it('falls back to parent directory name when project_constraints.yml is missing', async () => {
     const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
     mockReadFile.mockRejectedValueOnce(err) // events.jsonl
     mockReadFile.mockRejectedValueOnce(err) // constraints
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc123')
-    expect(summary.name).toBe('unknown')
+    // WORKSPACE = '/workspace/project' → dirname = '/workspace' → basename = 'workspace'
+    expect(summary.projectName).toBe('workspace')
   })
 
   it('includes the workspaceId in the result', async () => {
@@ -157,11 +158,11 @@ describe('getWorkspaceSummary', () => {
     mockReadFile.mockRejectedValueOnce(err)
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'myid123')
-    expect(summary.id).toBe('myid123')
-    expect(summary.path).toBe(WORKSPACE)
+    expect(summary.workspaceId).toBe('myid123')
+    expect(summary.available).toBe(true)
   })
 
-  it('counts stuckFeatures from iteration_completed events', async () => {
+  it('counts stuckFeatureCount from iteration_completed events', async () => {
     // 3 identical-delta events for F1:code → stuck
     const events = [
       makeEventLine({ event_type: 'iteration_completed', feature: 'F1', edge: 'code', delta: 2 }),
@@ -173,7 +174,7 @@ describe('getWorkspaceSummary', () => {
     mockReadFile.mockRejectedValueOnce(err)
 
     const summary = await getWorkspaceSummary(WORKSPACE, 'abc')
-    expect(summary.stuckFeatures).toBe(1)
+    expect(summary.stuckFeatureCount).toBe(1)
   })
 })
 
@@ -353,57 +354,54 @@ describe('getOverview', () => {
     vi.resetAllMocks()
   })
 
-  it('returns an overview with lastRefreshed as ISO timestamp', async () => {
+  it('returns projectName and methodVersion in the overview', async () => {
     const eventsErr = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
     mockReadFile.mockRejectedValueOnce(eventsErr) // events.jsonl
     const readdirErr = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
     mockReaddir.mockRejectedValue(readdirErr) // features dirs
     mockReadFile.mockRejectedValueOnce(eventsErr) // project_constraints.yml
 
-    const before = new Date().toISOString()
     const overview = await getOverview(WORKSPACE, 'ws1')
-    const after = new Date().toISOString()
 
-    expect(overview.lastRefreshed).toBeDefined()
-    expect(overview.lastRefreshed >= before).toBe(true)
-    expect(overview.lastRefreshed <= after).toBe(true)
+    expect(overview.projectName).toBeDefined()
+    expect(overview.methodVersion).toBe('v2.9')
   })
 
-  it('returns the workspaceId in the overview', async () => {
+  it('returns statusCounts with numeric fields', async () => {
     const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
     mockReadFile.mockRejectedValueOnce(err)
     mockReaddir.mockRejectedValue(err)
     mockReadFile.mockRejectedValueOnce(err)
 
     const overview = await getOverview(WORKSPACE, 'ws-abc-123')
-    expect(overview.workspaceId).toBe('ws-abc-123')
+    expect(typeof overview.statusCounts.converged).toBe('number')
+    expect(typeof overview.statusCounts.in_progress).toBe('number')
+    expect(typeof overview.statusCounts.pending).toBe('number')
+    expect(typeof overview.statusCounts.pendingGates).toBe('number')
   })
 
-  it('returns recentEvents from the last 20 events', async () => {
-    const lines = Array.from({ length: 25 }, (_, i) =>
-      makeEventLine({ event_type: 'x', timestamp: `2026-01-${String(i + 1).padStart(2, '0')}T00:00:00Z` }),
-    ).join('\n')
-    mockReadFile.mockResolvedValueOnce(lines) // events.jsonl
+  it('returns pendingGateCount as a number', async () => {
     const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
+    mockReadFile.mockRejectedValueOnce(err)
     mockReaddir.mockRejectedValue(err)
-    mockReadFile.mockRejectedValueOnce(err) // constraints
+    mockReadFile.mockRejectedValueOnce(err)
 
     const overview = await getOverview(WORKSPACE, 'ws1')
-    expect(overview.recentEvents).toHaveLength(20)
+    expect(typeof overview.pendingGateCount).toBe('number')
   })
 
-  it('includes features in the overview', async () => {
+  it('returns inProgressFeatures derived from feature vectors', async () => {
     const err = Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
     mockReadFile.mockRejectedValueOnce(err) // events.jsonl
     const activeDirents = [makeDirent('F1.yml', true, false)]
     mockReaddir.mockResolvedValueOnce(activeDirents as unknown as Dirent[])
     mockReaddir.mockRejectedValueOnce(err)
     mockReadFile.mockResolvedValueOnce('feature: F1')
-    mockYamlLoad.mockReturnValueOnce({ feature: 'F1' })
+    mockYamlLoad.mockReturnValueOnce({ feature: 'F1', title: 'My Feature', status: 'iterating' })
     mockReadFile.mockRejectedValueOnce(err) // constraints
 
     const overview = await getOverview(WORKSPACE, 'ws1')
-    expect(overview.features).toHaveLength(1)
-    expect(overview.features[0].feature).toBe('F1')
+    expect(Array.isArray(overview.inProgressFeatures)).toBe(true)
+    expect(overview.statusCounts.in_progress).toBeGreaterThan(0)
   })
 })

@@ -38,15 +38,15 @@ export function SpawnFeaturePanel({ workspaceId, parentFeatureId, onComplete }: 
   }
 
   return (
-    <div className="flex flex-col gap-3 p-3 border rounded-lg bg-gray-50">
-      <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Spawn Child Vector</h4>
+    <div className="flex flex-col gap-3 p-3 border rounded-lg bg-background">
+      <h4 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">Spawn Child Vector</h4>
 
       <div>
-        <label className="block text-xs text-gray-600 mb-1">Type</label>
+        <label className="block text-xs text-muted-foreground mb-1">Type</label>
         <select
           value={childType}
           onChange={(e) => setChildType(e.target.value as ChildVectorType)}
-          className="w-full text-sm border border-gray-300 rounded px-2 py-1.5"
+          className="w-full text-sm border border-border rounded px-2 py-1.5"
         >
           <option value="discovery">Discovery</option>
           <option value="spike">Spike</option>
@@ -56,7 +56,7 @@ export function SpawnFeaturePanel({ workspaceId, parentFeatureId, onComplete }: 
       </div>
 
       <div>
-        <label className="block text-xs text-gray-600 mb-1">
+        <label className="block text-xs text-muted-foreground mb-1">
           Reason <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -64,7 +64,7 @@ export function SpawnFeaturePanel({ workspaceId, parentFeatureId, onComplete }: 
           onChange={(e) => setReason(e.target.value)}
           rows={2}
           placeholder="Why is this child vector needed?"
-          className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 resize-none"
+          className="w-full text-sm border border-border rounded px-2 py-1.5 resize-none"
         />
       </div>
 

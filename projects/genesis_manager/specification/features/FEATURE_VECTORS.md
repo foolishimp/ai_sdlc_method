@@ -286,3 +286,23 @@ Once Level 1 (PROJ) and Level 2 (NAV + UX) converge:
 - **REL** is deferred; no parallel opportunity needed
 
 Maximum parallelism after Level 2: 3 features simultaneously (OVR, SUP, EVI).
+
+---
+
+## REQ-F-VIS-001: Professional Dark Theme and Visual Hierarchy
+
+**Title**: Application Visual Design
+**Priority**: High
+**Profile**: standard
+**Depends On**: REQ-F-PROJ-001, REQ-F-OVR-001, REQ-F-SUP-001, REQ-F-EVI-001, REQ-F-CTL-001
+
+**Satisfies**:
+- REQ-F-VIS-001
+
+**Description**: Retheme all production components to use the semantic CSS token system. The CSS variables already define a professional dark blue-gray theme; the components must be wired to it. Adds semantic status colors and consistent visual hierarchy across all pages.
+
+**Scope**:
+- 17 TSX files: replace hardcoded `bg-white`/`bg-gray-*`/`text-gray-*` with `bg-background`/`bg-secondary`/`text-foreground`/`border-border` tokens
+- `index.css`: ensure `body` uses token background/foreground
+- Status color semantics: converged=emerald-400, iterating=blue-400, blocked=amber-400, stuck=red-400
+- Persistent navigation sidebar on workspace-level pages

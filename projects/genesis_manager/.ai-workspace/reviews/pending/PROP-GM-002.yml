@@ -1,0 +1,33 @@
+proposal_id: "PROP-GM-002"
+intent_id: "INT-GM-002"
+status: draft
+severity: medium
+created: "2026-03-13T17:30:05Z"
+source: gap_analysis
+
+title: "Release management feature implementation (REQ-F-REL-001..003)"
+description: |
+  Implement the three release management features currently defined in the spec but with no
+  code or test coverage: release initiation with version tagging (REQ-F-REL-001), automated
+  release notes generation from events.jsonl (REQ-F-REL-002), and release history view
+  showing past releases with REQ key coverage (REQ-F-REL-003). These represent the "ship it"
+  workflow — completing the inner loop from feature development to versioned delivery.
+
+affected_req_keys:
+  - REQ-F-REL-001
+  - REQ-F-REL-002
+  - REQ-F-REL-003
+
+suggested_vector:
+  feature: "REQ-F-REL-001"
+  title: "Release management: initiation, notes, history"
+  vector_type: feature
+  profile: standard
+  requirements:
+    - REQ-F-REL-001
+    - REQ-F-REL-002
+    - REQ-F-REL-003
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-GM-002
+  Dismiss: /gen-review-proposal --dismiss PROP-GM-002 --reason "{reason}"

@@ -48,7 +48,7 @@ export function GateActionPanel({ workspaceId: _workspaceId, gate, onApprove, on
         <span className="text-xs font-semibold text-orange-800 uppercase tracking-wide">
           Gate: {gate.gateName}
         </span>
-        <span className="ml-2 text-xs text-gray-500">{gate.edge}</span>
+        <span className="ml-2 text-xs text-muted-foreground">{gate.edge}</span>
       </div>
 
       <CommandLabel command={approveCmd}>

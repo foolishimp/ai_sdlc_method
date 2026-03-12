@@ -558,6 +558,25 @@ genesis_manager is a **builder supervision console** for a person using Genesis 
 
 ## Non-Functional Requirements
 
+### REQ-F-VIS-001: Professional Dark Theme and Visual Hierarchy
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The application must present a professional dark-theme UI using the semantic CSS token system. White or light-gray backgrounds are unacceptable. Status states (converged, stuck, blocked, iterating, pending) must have distinct semantic colors. All components must use the CSS variable token system — not hardcoded Tailwind color classes.
+
+**Acceptance Criteria**:
+- All page backgrounds use `bg-background` (HSL 222 14% 10%) — no `bg-white` or `bg-gray-50` in production components
+- Panel/card surfaces use `bg-secondary` (HSL 222 14% 16%) for visual elevation
+- All text uses `text-foreground` or `text-muted-foreground` — no hardcoded `text-gray-*` classes for non-decorative content
+- Semantic status colors: converged=`text-emerald-400`, iterating=`text-blue-400`, blocked=`text-amber-400`, stuck=`text-red-400`, pending=`text-muted-foreground`
+- Navigation sidebar or persistent nav structure on all workspace-level pages
+- Border separators use `border-border` token
+
+**Traces To**: INT-001
+
+---
+
 ### REQ-NFR-PERF-001: Overview Page Load Time
 
 **Priority**: High

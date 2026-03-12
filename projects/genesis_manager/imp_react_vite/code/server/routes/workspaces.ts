@@ -39,12 +39,14 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
       } catch {
         // Workspace path unavailable — return a degraded summary (REQ-F-PROJ-004)
         summaries.push({
-          id: reg.id,
-          path: reg.path,
-          name: reg.name,
-          pendingGates: 0,
-          stuckFeatures: 0,
-          lastEventAt: null,
+          workspaceId: reg.id,
+          projectName: reg.name,
+          activeFeatureCount: 0,
+          pendingGateCount: 0,
+          stuckFeatureCount: 0,
+          lastEventTimestamp: null,
+          hasAttentionRequired: false,
+          available: false,
         });
       }
     }
@@ -112,12 +114,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     res.status(201).json(summary);
   } catch {
     res.status(201).json({
-      id,
-      path: normalised,
-      name: path.basename(path.dirname(normalised)),
-      pendingGates: 0,
-      stuckFeatures: 0,
-      lastEventAt: null,
+      workspaceId: id,
+      projectName: path.basename(path.dirname(normalised)),
+      activeFeatureCount: 0,
+      pendingGateCount: 0,
+      stuckFeatureCount: 0,
+      lastEventTimestamp: null,
+      hasAttentionRequired: false,
+      available: true,
     } satisfies WorkspaceSummary);
   }
 });

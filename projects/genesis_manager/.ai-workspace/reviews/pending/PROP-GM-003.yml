@@ -1,0 +1,32 @@
+proposal_id: "PROP-GM-003"
+intent_id: "INT-GM-003"
+status: draft
+severity: low
+created: "2026-03-13T17:30:06Z"
+source: gap_analysis
+
+title: "NFR and system bootstrap REQ key tagging (advisory)"
+description: |
+  Add Implements: REQ-F-SYSTEM-001 to server/index.ts and src/main.tsx (bootstrap entry points).
+  Add Implements: REQ-NFR-ACC-001 to UI components that use ARIA labels, keyboard navigation,
+  and focus management. Add Implements: REQ-NFR-PERF-001 to loading state components and async
+  data fetching hooks. These are advisory traceability fixes — no behavior change required.
+
+affected_req_keys:
+  - REQ-F-SYSTEM-001
+  - REQ-NFR-ACC-001
+  - REQ-NFR-PERF-001
+
+suggested_vector:
+  feature: "REQ-F-NFR-001"
+  title: "NFR and system traceability annotation pass"
+  vector_type: feature
+  profile: minimal
+  requirements:
+    - REQ-F-SYSTEM-001
+    - REQ-NFR-ACC-001
+    - REQ-NFR-PERF-001
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-GM-003
+  Dismiss: /gen-review-proposal --dismiss PROP-GM-003 --reason "{reason}"

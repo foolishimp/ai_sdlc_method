@@ -36,25 +36,25 @@ export function FeatureStatusCounts({ counts, onTileClick }: FeatureStatusCounts
       <Tile
         label="Converged"
         value={counts.converged}
-        colorClass="bg-green-50 border-green-200 text-green-800"
+        colorClass="bg-green-50 border-green-200 text-emerald-400"
         onClick={() => onTileClick?.('converged')}
       />
       <Tile
         label="In Progress"
         value={counts.in_progress}
-        colorClass="bg-blue-50 border-blue-200 text-blue-800"
+        colorClass="bg-blue-50 border-blue-200 text-blue-400"
         onClick={() => onTileClick?.('in_progress')}
       />
       <Tile
         label="Blocked"
         value={counts.blocked}
-        colorClass="bg-red-50 border-red-200 text-red-800"
+        colorClass="bg-red-950/20 border-red-200 text-red-400"
         onClick={() => onTileClick?.('blocked')}
       />
       <Tile
         label="Pending"
         value={counts.pending}
-        colorClass="bg-gray-50 border-gray-200 text-gray-700"
+        colorClass="bg-background border-border text-foreground/80"
         onClick={() => onTileClick?.('pending')}
       />
       {/* Pending gates — visually prominent per REQ-BR-SUPV-002 */}
@@ -64,8 +64,8 @@ export function FeatureStatusCounts({ counts, onTileClick }: FeatureStatusCounts
         accent
         colorClass={
           counts.pendingGates > 0
-            ? 'bg-orange-100 border-orange-400 text-orange-900 ring-1 ring-orange-400'
-            : 'bg-gray-50 border-gray-200 text-gray-500'
+            ? 'bg-orange-950/30 border-orange-400 text-orange-900 ring-1 ring-orange-400'
+            : 'bg-background border-border text-muted-foreground'
         }
         onClick={() => onTileClick?.('pending_gates')}
       />

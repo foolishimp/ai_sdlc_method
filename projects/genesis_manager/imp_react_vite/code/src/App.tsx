@@ -36,9 +36,9 @@ const router = createBrowserRouter([
   {
     path: ROUTES.NOT_FOUND,
     element: (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <p className="text-2xl font-bold text-gray-400 mb-2">Page not found</p>
+          <p className="text-2xl font-bold text-muted-foreground/60 mb-2">Page not found</p>
           <a href="/" className="text-blue-600 hover:underline text-sm">Return to projects</a>
         </div>
       </div>

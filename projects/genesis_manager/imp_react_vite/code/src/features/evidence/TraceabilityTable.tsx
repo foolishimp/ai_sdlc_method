@@ -52,12 +52,12 @@ export function TraceabilityTable({ workspaceId, entries, loading }: Traceabilit
   const pct = (n: number) => total > 0 ? `${Math.round((n / total) * 100)}%` : '—'
 
   if (loading) {
-    return <div className="p-4 text-gray-400 text-sm">Loading traceability data…</div>
+    return <div className="p-4 text-muted-foreground/60 text-sm">Loading traceability data…</div>
   }
 
   const SortHeader = ({ label, key }: { label: string; key: SortKey }) => (
     <th
-      className="text-left pb-1 pr-3 text-xs font-medium text-gray-500 cursor-pointer hover:text-gray-800 select-none"
+      className="text-left pb-1 pr-3 text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none"
       onClick={() => handleSort(key)}
     >
       {label} {sortKey === key ? (sortDir === 'asc' ? '↑' : '↓') : ''}
@@ -85,13 +85,13 @@ export function TraceabilityTable({ workspaceId, entries, loading }: Traceabilit
 
       {/* Progress bars */}
       <div className="space-y-1">
-        <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+        <div className="h-2 rounded-full bg-muted overflow-hidden">
           <div
             className="h-full bg-blue-500 transition-all"
             style={{ width: total > 0 ? `${(taggedCode / total) * 100}%` : '0%' }}
           />
         </div>
-        <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+        <div className="h-2 rounded-full bg-muted overflow-hidden">
           <div
             className="h-full bg-green-500 transition-all"
             style={{ width: total > 0 ? `${(taggedTests / total) * 100}%` : '0%' }}
@@ -109,27 +109,27 @@ export function TraceabilityTable({ workspaceId, entries, loading }: Traceabilit
               <SortHeader label="Tests" key="tests" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-border/50">
             {sorted.map((entry) => (
-              <tr key={entry.reqKey} className="hover:bg-gray-50">
+              <tr key={entry.reqKey} className="hover:bg-background">
                 <td className="py-1.5 pr-3">
                   <button
                     onClick={() => navigate(buildReqPath(workspaceId, entry.reqKey))}
-                    className="font-mono text-xs text-blue-700 hover:underline"
+                    className="font-mono text-xs text-primary hover:underline"
                   >
                     {entry.reqKey}
                   </button>
                 </td>
                 <td className="py-1.5 pr-3">
                   {entry.taggedInCode ? (
-                    <span className="text-xs text-green-700">✓</span>
+                    <span className="text-xs text-emerald-400">✓</span>
                   ) : (
                     <span className="text-xs text-red-500">✗</span>
                   )}
                 </td>
                 <td className="py-1.5">
                   {entry.taggedInTests ? (
-                    <span className="text-xs text-green-700">✓</span>
+                    <span className="text-xs text-emerald-400">✓</span>
                   ) : (
                     <span className="text-xs text-red-500">✗</span>
                   )}

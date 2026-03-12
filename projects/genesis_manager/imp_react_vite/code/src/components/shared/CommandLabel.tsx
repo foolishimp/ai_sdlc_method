@@ -15,7 +15,7 @@ export function CommandLabel({ command, children, className }: CommandLabelProps
   return (
     <div className={`flex flex-col gap-1 ${className ?? ''}`}>
       {children}
-      <span className="text-xs font-mono text-gray-400 pl-0.5 select-all">
+      <span className="text-xs font-mono text-muted-foreground pl-0.5 select-all">
         {command}
       </span>
     </div>

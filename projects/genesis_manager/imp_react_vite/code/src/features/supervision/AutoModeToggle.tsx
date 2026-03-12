@@ -48,12 +48,12 @@ export function AutoModeToggle({
         role="switch"
         aria-checked={currentlyEnabled}
         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-          currentlyEnabled ? 'bg-blue-600' : 'bg-gray-300'
+          currentlyEnabled ? 'bg-primary' : 'bg-muted'
         }`}
         title={CMD.setAutoMode(featureId, !currentlyEnabled)}
       >
         <span
-          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-secondary shadow transition-transform ${
             currentlyEnabled ? 'translate-x-4' : 'translate-x-0.5'
           }`}
         />

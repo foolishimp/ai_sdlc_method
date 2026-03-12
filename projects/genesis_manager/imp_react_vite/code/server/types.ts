@@ -67,12 +67,14 @@ export interface WorkspaceEvent {
 }
 
 export interface WorkspaceSummary {
-  id: string;
-  path: string;
-  name: string;
-  pendingGates: number;
-  stuckFeatures: number;
-  lastEventAt: string | null;
+  workspaceId: string;
+  projectName: string;
+  activeFeatureCount: number;
+  pendingGateCount: number;
+  stuckFeatureCount: number;
+  lastEventTimestamp: string | null;
+  hasAttentionRequired: boolean;
+  available: boolean;
 }
 
 export interface GateItem {
@@ -90,12 +92,40 @@ export interface FeatureVector {
   trajectory: Record<string, { status: string; iteration: number }>;
 }
 
+export interface FeatureStatusSummary {
+  converged: number;
+  in_progress: number;
+  blocked: number;
+  pending: number;
+  pendingGates: number;
+}
+
+export interface InProgressFeature {
+  featureId: string;
+  title: string;
+  currentEdge: string;
+  iterationNumber: number;
+  delta: number;
+  lastEventAt: string;
+}
+
+export interface RecentActivity {
+  featureId: string;
+  edge: string;
+  iterationNumber: number;
+  timestamp: string;
+  delta: number;
+  runId: string | null;
+}
+
 export interface WorkspaceOverview {
-  workspaceId: string;
   projectName: string;
-  features: FeatureVector[];
-  recentEvents: WorkspaceEvent[];
-  lastRefreshed: string;
+  methodVersion: string;
+  statusCounts: FeatureStatusSummary;
+  inProgressFeatures: InProgressFeature[];
+  recentActivity: RecentActivity | null;
+  featureLastEvents: Record<string, string>;
+  pendingGateCount: number;
 }
 
 export interface TraceabilityEntry {

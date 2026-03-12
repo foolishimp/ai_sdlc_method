@@ -189,6 +189,22 @@ export interface GapAnalysisData {
   l3: GapLayer | null
 }
 
+// ─── Filesystem Browse (REQ-F-FSNAV-001) ─────────────────────────────────────
+
+export interface FsEntry {
+  name: string
+  absolutePath: string
+  isDir: true
+  hasWorkspace: boolean
+}
+
+export interface FsBrowseResult {
+  path: string
+  parent: string | null
+  entries: FsEntry[]
+  truncated?: boolean
+}
+
 // ─── Errors ───────────────────────────────────────────────────────────────────
 
 export interface ApiError {

@@ -1,0 +1,72 @@
+feature: REQ-F-VIS-001
+title: Professional Dark Theme and Visual Hierarchy
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+convergence_type: standard
+created: '2026-03-13T17:45:00Z'
+updated: '2026-03-13T17:55:00Z'
+source_kind: human_intent
+trigger_event: "human_intent:visual_design_unacceptable_baseline"
+target_asset_type: code
+produced_asset_ref: null
+disposition: null
+disposition_rationale: null
+functor:
+  encoding_source: profile
+  mode: interactive
+  valence: medium
+  overrides: {}
+
+satisfies:
+  - REQ-F-VIS-001
+
+trajectory:
+  intent:
+    status: converged
+    iteration: 0
+    converged_at: '2026-03-13T17:45:00Z'
+    produced_asset_ref: specification/INTENT.md
+  requirements:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T17:46:00Z'
+    produced_asset_ref: specification/requirements/REQUIREMENTS.md
+  feature_decomposition:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T17:47:00Z'
+    produced_asset_ref: specification/features/FEATURE_VECTORS.md
+  design_recommendations:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T17:48:00Z'
+    produced_asset_ref: null
+  design:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T17:49:00Z'
+    produced_asset_ref: null
+  module_decomposition:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T17:50:00Z'
+    produced_asset_ref: null
+  basis_projections:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T17:51:00Z'
+    produced_asset_ref: null
+  code:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-13T17:52:00Z'
+    converged_at: '2026-03-13T17:55:00Z'
+    produced_asset_ref: src/components/shared/CommandLabel.tsx
+  unit_tests:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-13T17:52:00Z'
+    converged_at: '2026-03-13T17:55:00Z'
+    produced_asset_ref: src/__tests__/server/workspaceReader.test.ts

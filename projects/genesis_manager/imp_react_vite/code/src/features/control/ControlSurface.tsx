@@ -67,25 +67,25 @@ export function ControlSurface({ workspaceId, feature, onActionComplete, onClose
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 bg-white">
+    <div className="flex flex-col gap-4 p-4 bg-secondary">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Control Surface</p>
-          <p className="font-mono text-sm text-blue-700">{feature.featureId}</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Control Surface</p>
+          <p className="font-mono text-sm text-primary">{feature.featureId}</p>
         </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+        <button onClick={onClose} className="text-muted-foreground/60 hover:text-muted-foreground text-lg leading-none">×</button>
       </div>
 
       {/* Start iteration */}
       <div className="border rounded-lg p-3">
-        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Start Iteration</h4>
+        <h4 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide mb-2">Start Iteration</h4>
         <input
           type="text"
           value={selectedEdge}
           onChange={(e) => setSelectedEdge(e.target.value)}
           placeholder="Edge (e.g. design)"
-          className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 mb-2"
+          className="w-full text-sm border border-border rounded px-2 py-1.5 mb-2"
         />
         <CommandLabel command={CMD.startIteration(feature.featureId, selectedEdge)}>
           <button
@@ -118,8 +118,8 @@ export function ControlSurface({ workspaceId, feature, onActionComplete, onClose
       {/* Auto-mode */}
       <div className="border rounded-lg p-3 flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold text-gray-700">Auto Mode</p>
-          <p className="text-xs text-gray-400">Continuously iterate until a gate</p>
+          <p className="text-xs font-semibold text-foreground/80">Auto Mode</p>
+          <p className="text-xs text-muted-foreground/60">Continuously iterate until a gate</p>
         </div>
         <AutoModeToggle
           workspaceId={workspaceId}

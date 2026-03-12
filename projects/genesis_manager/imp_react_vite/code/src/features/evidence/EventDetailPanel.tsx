@@ -19,7 +19,7 @@ export function EventDetailPanel({ workspaceId, event, loading }: EventDetailPan
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+      <div className="flex items-center justify-center h-32 text-muted-foreground/60 text-sm">
         Loading event…
       </div>
     )
@@ -27,7 +27,7 @@ export function EventDetailPanel({ workspaceId, event, loading }: EventDetailPan
 
   if (!event) {
     return (
-      <div className="flex items-center justify-center h-32 text-gray-400 text-sm italic">
+      <div className="flex items-center justify-center h-32 text-muted-foreground/60 text-sm italic">
         Select an event to view its details.
       </div>
     )
@@ -36,19 +36,19 @@ export function EventDetailPanel({ workspaceId, event, loading }: EventDetailPan
   return (
     <div className="p-4 flex flex-col gap-4">
       {/* Human-readable summary */}
-      <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <div className="rounded-lg bg-background border border-border p-3">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
           Event #{event.eventIndex}
         </p>
-        <p className="text-sm font-medium text-gray-900 mb-1">{event.eventType}</p>
-        <div className="text-xs text-gray-600 space-y-0.5">
+        <p className="text-sm font-medium text-foreground mb-1">{event.eventType}</p>
+        <div className="text-xs text-muted-foreground space-y-0.5">
           {event.timestamp && <div>Time: {new Date(event.timestamp).toLocaleString()}</div>}
           {event.feature && (
             <div className="flex items-center gap-1">
               Feature:{' '}
               <button
                 onClick={() => navigate(buildFeaturePath(workspaceId, event.feature!))}
-                className="font-mono text-blue-700 hover:underline"
+                className="font-mono text-primary hover:underline"
               >
                 {event.feature}
               </button>
@@ -66,7 +66,7 @@ export function EventDetailPanel({ workspaceId, event, loading }: EventDetailPan
               Run:{' '}
               <button
                 onClick={() => navigate(buildRunPath(workspaceId, event.runId!))}
-                className="font-mono text-xs text-blue-700 hover:underline truncate max-w-xs"
+                className="font-mono text-xs text-primary hover:underline truncate max-w-xs"
               >
                 {event.runId}
               </button>
@@ -77,7 +77,7 @@ export function EventDetailPanel({ workspaceId, event, loading }: EventDetailPan
 
       {/* Raw JSON */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Raw JSON</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Raw JSON</p>
         <pre className="text-xs bg-gray-900 text-green-300 rounded p-3 overflow-x-auto">
           {JSON.stringify(event.raw, null, 2)}
         </pre>

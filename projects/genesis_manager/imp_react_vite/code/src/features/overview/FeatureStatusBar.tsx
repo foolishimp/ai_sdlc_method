@@ -14,7 +14,7 @@ export function FeatureStatusBar({ counts, className }: FeatureStatusBarProps): 
   const total = counts.converged + counts.in_progress + counts.blocked + counts.pending
   if (total === 0) {
     return (
-      <div className={`h-3 rounded-full bg-gray-100 ${className ?? ''}`} />
+      <div className={`h-3 rounded-full bg-muted ${className ?? ''}`} />
     )
   }
 
@@ -46,7 +46,7 @@ export function FeatureStatusBar({ counts, className }: FeatureStatusBarProps): 
       {counts.pending > 0 && (
         <div
           style={{ width: pct(counts.pending) }}
-          className="bg-gray-300"
+          className="bg-muted"
           title={`${counts.pending} pending`}
         />
       )}

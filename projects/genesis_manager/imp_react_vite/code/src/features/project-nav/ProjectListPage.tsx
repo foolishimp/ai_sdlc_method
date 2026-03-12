@@ -30,12 +30,12 @@ export function ProjectListPage(): React.JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
+      <header className="bg-secondary border-b px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Genesis Manager</h1>
-          <p className="text-xs text-gray-500">Local workspace dashboard</p>
+          <h1 className="text-lg font-bold text-foreground">Genesis Manager</h1>
+          <p className="text-xs text-muted-foreground">Local workspace dashboard</p>
         </div>
         <div className="flex items-center gap-3">
           <FreshnessIndicator
@@ -56,8 +56,8 @@ export function ProjectListPage(): React.JSX.Element {
       <main className="max-w-2xl mx-auto px-6 py-8">
         {sorted.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-400 text-lg mb-2">No workspaces registered</p>
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="text-muted-foreground/60 text-lg mb-2">No workspaces registered</p>
+            <p className="text-muted-foreground/60 text-sm mb-6">
               Add a Genesis workspace to get started.
             </p>
             <button
@@ -69,7 +69,7 @@ export function ProjectListPage(): React.JSX.Element {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               {sorted.length} workspace{sorted.length !== 1 ? 's' : ''}
             </h2>
             {sorted.map((summary) => (

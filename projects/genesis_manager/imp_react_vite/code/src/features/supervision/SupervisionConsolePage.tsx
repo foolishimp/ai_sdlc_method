@@ -1,7 +1,7 @@
-// Implements: REQ-F-SUP-001, REQ-BR-SUPV-002
+// Implements: REQ-F-SUP-001, REQ-F-VIS-001, REQ-BR-SUPV-002
 
 import React, { useEffect, useState, useCallback } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useProjectStore } from '../../stores/projectStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { apiClient } from '../../api/WorkspaceApiClient'
@@ -9,6 +9,7 @@ import { FreshnessIndicator } from '../../components/shared/FreshnessIndicator'
 import { HumanGateQueue } from './HumanGateQueue'
 import { FeatureList } from './FeatureList'
 import { ControlSurface } from '../control/ControlSurface'
+import { WorkspaceSidebar } from '../../components/shared/WorkspaceSidebar'
 import type { GateDecision, SupervisionFeature } from '../../api/types'
 
 // SupervisionConsolePage — two-panel layout: sticky HumanGateQueue + scrollable FeatureList.
@@ -20,6 +21,7 @@ export function SupervisionConsolePage(): React.JSX.Element {
   const loadWorkspace = useWorkspaceStore((s) => s.loadWorkspace)
   const gates = useWorkspaceStore((s) => s.gates)
   const features = useWorkspaceStore((s) => s.features)
+  const overview = useWorkspaceStore((s) => s.overview)
   const setActiveProject = useProjectStore((s) => s.setActiveProject)
   const lastRefreshed = useProjectStore((s) => s.lastRefreshed)
   const pollingError = useProjectStore((s) => s.pollingError)
@@ -89,62 +91,67 @@ export function SupervisionConsolePage(): React.JSX.Element {
     ? supervisionFeatures.find((f) => f.featureId === selectedFeatureId) ?? null
     : null
 
+  const projectName = overview?.projectName ?? ''
+
   return (
-    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
-      {/* Header */}
-      <header className="flex-shrink-0 bg-white border-b px-4 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-gray-400 hover:text-gray-600 text-sm">← Projects</Link>
-          <span className="font-semibold text-gray-900">Supervision Console</span>
-        </div>
-        <FreshnessIndicator
-          lastRefreshed={lastRefreshed}
-          isRefreshing={isRefreshing}
-          error={pollingError}
-        />
-      </header>
+    <div className="h-screen overflow-hidden flex flex-row bg-background">
+      {/* Sidebar nav */}
+      <WorkspaceSidebar workspaceId={id} projectName={projectName} />
 
-      {/* Sticky gate queue — REQ-BR-SUPV-002 */}
-      <div className="flex-shrink-0">
-        <HumanGateQueue
-          workspaceId={id}
-          gates={visibleGates}
-          onApprove={handleApprove}
-          onReject={handleReject}
-        />
-      </div>
+      {/* Main content column */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {/* Header */}
+        <header className="flex-shrink-0 bg-secondary border-b px-4 h-12 flex items-center justify-between">
+          <span className="font-semibold text-foreground">Supervision Console</span>
+          <FreshnessIndicator
+            lastRefreshed={lastRefreshed}
+            isRefreshing={isRefreshing}
+            error={pollingError}
+          />
+        </header>
 
-      {/* Body — two columns: feature list + control surface */}
-      <div className="flex-1 overflow-hidden flex divide-x divide-gray-200">
-        {/* Left: feature list */}
-        <div className="flex-1 overflow-y-auto">
-          <FeatureList
+        {/* Sticky gate queue — REQ-BR-SUPV-002 */}
+        <div className="flex-shrink-0">
+          <HumanGateQueue
             workspaceId={id}
-            features={supervisionFeatures}
+            gates={visibleGates}
             onApprove={handleApprove}
             onReject={handleReject}
-            onAutoModeChange={() => void refresh()}
           />
         </div>
 
-        {/* Right: control surface (contextual) */}
-        {selectedFeature && (
-          <div className="w-80 flex-shrink-0 overflow-y-auto">
-            <ControlSurface
+        {/* Body — two columns: feature list + control surface */}
+        <div className="flex-1 overflow-hidden flex divide-x divide-border">
+          {/* Left: feature list */}
+          <div className="flex-1 overflow-y-auto">
+            <FeatureList
               workspaceId={id}
-              feature={selectedFeature}
-              onActionComplete={() => void refresh()}
-              onClose={() => setSelectedFeatureId(null)}
+              features={supervisionFeatures}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onAutoModeChange={() => void refresh()}
             />
           </div>
-        )}
-      </div>
 
-      {/* Feature selector (click on a feature row to open ControlSurface) */}
-      <div className="flex-shrink-0 bg-white border-t px-4 py-2 text-xs text-gray-400">
-        {selectedFeatureId
-          ? `Selected: ${selectedFeatureId} — click again to deselect`
-          : 'Click a feature to open the control surface'}
+          {/* Right: control surface (contextual) */}
+          {selectedFeature && (
+            <div className="w-80 flex-shrink-0 overflow-y-auto">
+              <ControlSurface
+                workspaceId={id}
+                feature={selectedFeature}
+                onActionComplete={() => void refresh()}
+                onClose={() => setSelectedFeatureId(null)}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Feature selector status bar */}
+        <div className="flex-shrink-0 bg-secondary border-t px-4 py-2 text-xs text-muted-foreground/60">
+          {selectedFeatureId
+            ? `Selected: ${selectedFeatureId} — click again to deselect`
+            : 'Click a feature to open the control surface'}
+        </div>
       </div>
     </div>
   )

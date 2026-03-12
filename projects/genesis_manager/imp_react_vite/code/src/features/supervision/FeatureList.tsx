@@ -17,13 +17,13 @@ interface FeatureListProps {
 
 function statusBadge(status: SupervisionFeature['status']): React.JSX.Element {
   const map: Record<string, string> = {
-    stuck: 'bg-amber-100 text-amber-800',
-    blocked: 'bg-red-100 text-red-800',
-    in_progress: 'bg-blue-100 text-blue-800',
-    pending: 'bg-gray-100 text-gray-600',
+    stuck: 'bg-amber-950/30 text-amber-400',
+    blocked: 'bg-red-950/30 text-red-400',
+    in_progress: 'bg-blue-950/30 text-blue-400',
+    pending: 'bg-muted text-muted-foreground',
   }
   return (
-    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${map[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${map[status] ?? 'bg-muted text-muted-foreground'}`}>
       {status.replace('_', ' ')}
     </span>
   )
@@ -57,7 +57,7 @@ export function FeatureList({
 
   if (sorted.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16 text-gray-400 text-sm italic">
+      <div className="flex items-center justify-center py-16 text-muted-foreground/60 text-sm italic">
         All features running smoothly — no attention required.
       </div>
     )
@@ -66,7 +66,7 @@ export function FeatureList({
   let lastSection = ''
 
   return (
-    <div className="flex flex-col divide-y divide-gray-100">
+    <div className="flex flex-col divide-y divide-border/50">
       {sorted.map((feature) => {
         const section = feature.status
         const showHeader = section !== lastSection
@@ -75,7 +75,7 @@ export function FeatureList({
         return (
           <React.Fragment key={feature.featureId}>
             {showHeader && (
-              <div className="px-4 py-1 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide sticky top-0">
+              <div className="px-4 py-1 bg-background text-xs font-semibold text-muted-foreground uppercase tracking-wide sticky top-0">
                 {section === 'stuck' && 'Stuck'}
                 {section === 'blocked' && 'Blocked'}
                 {section === 'in_progress' && 'In Progress'}
@@ -86,26 +86,26 @@ export function FeatureList({
             <div
               className={`px-4 py-3 flex flex-col gap-2 ${
                 feature.status === 'stuck'
-                  ? 'bg-amber-50'
+                  ? 'bg-amber-950/20'
                   : feature.status === 'blocked'
-                  ? 'bg-red-50'
-                  : 'bg-white'
+                  ? 'bg-red-950/20'
+                  : 'bg-secondary'
               }`}
             >
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigate(buildFeaturePath(workspaceId, feature.featureId))}
-                  className="font-mono text-sm text-blue-700 hover:underline"
+                  className="font-mono text-sm text-primary hover:underline"
                 >
                   {feature.featureId}
                 </button>
                 {statusBadge(feature.status)}
-                <span className="text-xs text-gray-500">{feature.currentEdge}</span>
-                <span className="text-xs text-gray-400 ml-auto">δ = {feature.delta}</span>
+                <span className="text-xs text-muted-foreground">{feature.currentEdge}</span>
+                <span className="text-xs text-muted-foreground/60 ml-auto">δ = {feature.delta}</span>
 
                 {/* Auto-mode toggle visible in every row — REQ-BR-SUPV-001 */}
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-gray-400">Auto</span>
+                  <span className="text-xs text-muted-foreground/60">Auto</span>
                   <AutoModeToggle
                     workspaceId={workspaceId}
                     featureId={feature.featureId}
@@ -117,14 +117,14 @@ export function FeatureList({
 
               {/* Stuck detail — Implements: REQ-F-SUP-004 */}
               {feature.status === 'stuck' && feature.consecutiveStuckIterations !== undefined && (
-                <p className="text-xs text-amber-700">
+                <p className="text-xs text-amber-400">
                   δ unchanged for {feature.consecutiveStuckIterations} consecutive iterations on {feature.currentEdge}
                 </p>
               )}
 
               {/* Blocked detail — Implements: REQ-F-SUP-003 */}
               {feature.status === 'blocked' && (
-                <p className="text-xs text-red-700">{blockReasonLabel(feature)}</p>
+                <p className="text-xs text-red-400">{blockReasonLabel(feature)}</p>
               )}
 
               {/* Inline gate actions for blocked-by-gate features */}

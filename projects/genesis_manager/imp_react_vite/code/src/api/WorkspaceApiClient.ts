@@ -11,6 +11,7 @@ import type {
   EventPayload,
   GapAnalysisData,
   ApiError,
+  FsBrowseResult,
 } from './types'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
@@ -121,6 +122,16 @@ export class WorkspaceApiClient {
       { method: 'POST' },
     )
     return handleResponse<GapAnalysisData>(res)
+  }
+
+  // ─── Filesystem Browse ───────────────────────────────────────────────────
+
+  // Implements: REQ-F-FSNAV-001
+  async browsePath(path?: string): Promise<FsBrowseResult> {
+    const url = new URL(`${this.baseUrl}/api/fs/browse`)
+    if (path) url.searchParams.set('path', path)
+    const res = await fetch(url.toString())
+    return handleResponse<FsBrowseResult>(res)
   }
 
   // ─── Write actions ───────────────────────────────────────────────────────

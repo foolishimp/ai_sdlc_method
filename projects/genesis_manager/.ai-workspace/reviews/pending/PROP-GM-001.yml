@@ -1,0 +1,85 @@
+proposal_id: "PROP-GM-001"
+intent_id: "INT-GM-001"
+status: draft
+severity: high
+created: "2026-03-13T17:30:04Z"
+source: gap_analysis
+
+title: "Frontend & handler unit tests for 24 untested REQ keys"
+description: |
+  Add Vitest unit tests for all React components (CTL, EVI, NAV, OVR, PROJ, SUP, UX, BR-SUPV)
+  and Express handlers (DATA-WORK write path) that have Implements: tags but no Validates: coverage.
+  The existing 4 test files cover server-side reader modules only. Frontend components, the API
+  client, navigation routes, and write handlers have zero test coverage. This gap affects 24 of
+  38 spec REQ keys — 63% of the spec is unverified at the code↔unit_tests edge.
+
+affected_req_keys:
+  - REQ-BR-SUPV-001
+  - REQ-BR-SUPV-002
+  - REQ-DATA-WORK-001
+  - REQ-DATA-WORK-002
+  - REQ-F-CTL-001
+  - REQ-F-CTL-002
+  - REQ-F-CTL-003
+  - REQ-F-EVI-002
+  - REQ-F-EVI-003
+  - REQ-F-EVI-004
+  - REQ-F-NAV-001
+  - REQ-F-NAV-002
+  - REQ-F-NAV-003
+  - REQ-F-NAV-004
+  - REQ-F-NAV-005
+  - REQ-F-OVR-002
+  - REQ-F-OVR-003
+  - REQ-F-OVR-004
+  - REQ-F-PROJ-002
+  - REQ-F-PROJ-003
+  - REQ-F-SUP-002
+  - REQ-F-SUP-003
+  - REQ-F-UX-001
+  - REQ-F-UX-002
+
+suggested_vector:
+  feature: "REQ-F-TEST-001"
+  title: "Frontend and handler unit test suite"
+  vector_type: feature
+  profile: standard
+  requirements:
+    - REQ-BR-SUPV-001
+    - REQ-BR-SUPV-002
+    - REQ-DATA-WORK-001
+    - REQ-DATA-WORK-002
+    - REQ-F-CTL-001
+    - REQ-F-CTL-002
+    - REQ-F-CTL-003
+    - REQ-F-EVI-002
+    - REQ-F-EVI-003
+    - REQ-F-EVI-004
+    - REQ-F-NAV-001
+    - REQ-F-NAV-002
+    - REQ-F-NAV-003
+    - REQ-F-NAV-004
+    - REQ-F-NAV-005
+    - REQ-F-OVR-002
+    - REQ-F-OVR-003
+    - REQ-F-OVR-004
+    - REQ-F-PROJ-002
+    - REQ-F-PROJ-003
+    - REQ-F-SUP-002
+    - REQ-F-SUP-003
+    - REQ-F-UX-001
+    - REQ-F-UX-002
+
+test_approach: |
+  React Testing Library (@testing-library/react) for component tests.
+  vi.mock for API client and Zustand stores.
+  Vitest with jsdom environment for UI, node environment for route handlers.
+  Priority order:
+    1. Express routes: nav.ts, events.ts, EventEmitHandler (write path)
+    2. Zustand stores: workspaceStore, projectStore (mock API client)
+    3. React components: GateActionPanel, HumanGateQueue, FeatureList, ProjectCard
+    4. Navigation: navHandle resolution, routes
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-GM-001
+  Dismiss: /gen-review-proposal --dismiss PROP-GM-001 --reason "{reason}"

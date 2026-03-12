@@ -31,7 +31,7 @@ export function FreshnessIndicator({
   // State: refreshing
   if (isRefreshing) {
     return (
-      <span className={`${base} bg-blue-50 text-blue-700`}>
+      <span className={`${base} bg-blue-50 text-primary`}>
         <span className="animate-spin inline-block w-3 h-3 border border-blue-500 border-t-transparent rounded-full" />
         Refreshing…
       </span>
@@ -41,8 +41,8 @@ export function FreshnessIndicator({
   // State: error
   if (error) {
     return (
-      <span className={`${base} bg-red-50 text-red-700`}>
-        <span className="w-2 h-2 rounded-full bg-red-500" />
+      <span className={`${base} bg-red-950/20 text-red-400`}>
+        <span className="w-2 h-2 rounded-full bg-red-950/200" />
         Workspace unavailable: {error}
       </span>
     )
@@ -51,8 +51,8 @@ export function FreshnessIndicator({
   // State: loading (never refreshed)
   if (!lastRefreshed) {
     return (
-      <span className={`${base} bg-gray-100 text-gray-500`}>
-        <span className="w-2 h-2 rounded-full bg-gray-400" />
+      <span className={`${base} bg-muted text-muted-foreground`}>
+        <span className="w-2 h-2 rounded-full bg-muted-foreground" />
         Loading…
       </span>
     )
@@ -65,8 +65,8 @@ export function FreshnessIndicator({
   // State: stale (>60s)
   if (stale) {
     return (
-      <span className={`${base} bg-red-50 text-red-700`}>
-        <span className="w-2 h-2 rounded-full bg-red-500" />
+      <span className={`${base} bg-red-950/20 text-red-400`}>
+        <span className="w-2 h-2 rounded-full bg-red-950/200" />
         Last refreshed {ageSec}s ago — stale
       </span>
     )
@@ -74,7 +74,7 @@ export function FreshnessIndicator({
 
   // State: fresh
   return (
-    <span className={`${base} bg-green-50 text-green-700`}>
+    <span className={`${base} bg-green-50 text-emerald-400`}>
       <span className="w-2 h-2 rounded-full bg-green-500" />
       Last refreshed {ageSec}s ago
     </span>

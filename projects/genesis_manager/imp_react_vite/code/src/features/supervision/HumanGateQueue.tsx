@@ -46,9 +46,9 @@ export function HumanGateQueue({ workspaceId, gates, onApprove, onReject }: Huma
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-mono text-xs text-blue-700">{gate.featureId}</span>
-                <span className="text-xs text-gray-400">·</span>
-                <span className="text-xs text-gray-600">{gate.edge}</span>
-                <span className="text-xs text-gray-400 ml-auto">{formatAge(gate.ageMs)}</span>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="text-xs text-muted-foreground">{gate.edge}</span>
+                <span className="text-xs text-muted-foreground ml-auto">{formatAge(gate.ageMs)}</span>
               </div>
               <GateActionPanel
                 workspaceId={workspaceId}

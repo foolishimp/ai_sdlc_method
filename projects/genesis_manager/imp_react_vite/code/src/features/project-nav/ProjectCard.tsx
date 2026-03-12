@@ -27,40 +27,40 @@ export function ProjectCard({ summary, isActive, onSelect }: ProjectCardProps): 
     ? 'border-blue-500 shadow-md'
     : hasAttentionRequired
     ? 'border-orange-400'
-    : 'border-gray-200 hover:border-gray-300'
+    : 'border-border hover:border-border'
 
   return (
     <button
       onClick={() => onSelect(workspaceId)}
-      className={`w-full text-left p-4 rounded-lg border-2 transition-colors bg-white ${borderClass} ${
+      className={`w-full text-left p-4 rounded-lg border-2 transition-colors bg-secondary ${borderClass} ${
         !available ? 'opacity-60' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-semibold text-gray-900 truncate">{projectName}</p>
-          <p className="text-xs text-gray-500 font-mono truncate">{workspaceId}</p>
+          <p className="font-semibold text-foreground truncate">{projectName}</p>
+          <p className="text-xs text-muted-foreground font-mono truncate">{workspaceId}</p>
         </div>
 
         {/* Attention badge — Implements: REQ-F-PROJ-002 */}
         {hasAttentionRequired && available && (
-          <span className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+          <span className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-950/30 text-orange-400">
             Needs attention
           </span>
         )}
 
         {/* Unavailable badge — Implements: REQ-F-PROJ-004 */}
         {!available && (
-          <span className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+          <span className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
             Unavailable
           </span>
         )}
       </div>
 
       {available && (
-        <div className="mt-3 flex gap-4 text-xs text-gray-600">
+        <div className="mt-3 flex gap-4 text-xs text-muted-foreground">
           <span>
-            <span className="font-medium text-gray-900">{activeFeatureCount}</span>{' '}
+            <span className="font-medium text-foreground">{activeFeatureCount}</span>{' '}
             active features
           </span>
           {pendingGateCount > 0 && (
@@ -69,7 +69,7 @@ export function ProjectCard({ summary, isActive, onSelect }: ProjectCardProps): 
             </span>
           )}
           {stuckFeatureCount > 0 && (
-            <span className="font-medium text-amber-700">
+            <span className="font-medium text-amber-400">
               {stuckFeatureCount} stuck
             </span>
           )}

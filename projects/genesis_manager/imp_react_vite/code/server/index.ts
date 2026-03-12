@@ -18,6 +18,7 @@ import workspaceRouter from './routes/workspace.js';
 import eventsRouter from './routes/events.js';
 import gapAnalysisRouter from './routes/gapAnalysis.js';
 import navRouter from './routes/nav.js';
+import fsRouter from './routes/fs.js';
 
 // ---------------------------------------------------------------------------
 // ESM __dirname shim
@@ -38,7 +39,7 @@ app.use(
     origin:
       process.env['NODE_ENV'] === 'production'
         ? false
-        : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+        : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'],
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type'],
   }),
@@ -65,6 +66,10 @@ app.use('/api/workspaces', gapAnalysisRouter);
 
 // Navigation resolution: GET /api/features/:id, /api/req/:key, /api/events/:index
 app.use('/api', navRouter);
+
+// Filesystem browse: GET /api/fs/browse?path=<dir>
+// Implements: REQ-F-FSNAV-001
+app.use('/api/fs', fsRouter);
 
 // ---------------------------------------------------------------------------
 // Static SPA serving (production only)
