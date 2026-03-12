@@ -1,0 +1,207 @@
+# Feature Vector — REQ-F-SYSTEM-001
+# Implements: REQ-FEAT-001 (Feature Vector Trajectories)
+# Created by /gen-start --auto (root feature vector, abiogenesis)
+
+---
+
+feature: "REQ-F-SYSTEM-001"
+title: "Genesis Manager — System Requirements and Feature Decomposition"
+intent: "INT-001"
+vector_type: feature
+profile: standard
+status: converged
+convergence_type: ""
+created: "2026-03-13T00:00:00Z"
+updated: "2026-03-13T00:00:00Z"
+
+# ═══════════════════════════════════════════════════════════════════════
+# INTENT VECTOR ENVELOPE
+# ═══════════════════════════════════════════════════════════════════════
+
+source_kind: abiogenesis
+trigger_event: null
+target_asset_type: feature_decomposition
+produced_asset_ref: null
+disposition: null
+disposition_rationale: null
+
+# ═══════════════════════════════════════════════════════════════════════
+# FUNCTOR ENCODING
+# ═══════════════════════════════════════════════════════════════════════
+
+functor:
+  encoding_source: profile
+  mode: interactive
+  valence: medium
+  overrides: {}
+
+# ═══════════════════════════════════════════════════════════════════════
+# TIME BOX
+# ═══════════════════════════════════════════════════════════════════════
+
+time_box:
+  enabled: false
+
+# ═══════════════════════════════════════════════════════════════════════
+# PARENT / CHILD RELATIONSHIPS
+# ═══════════════════════════════════════════════════════════════════════
+
+parent:
+  feature: ""
+  edge: ""
+  reason: ""
+
+children: []
+
+# ═══════════════════════════════════════════════════════════════════════
+# TRAJECTORY
+# ═══════════════════════════════════════════════════════════════════════
+# Standard profile edge chain:
+#   intent → requirements → feature_decomposition → design →
+#   module_decomposition → basis_projections → code ↔ unit_tests
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-13T00:05:00Z"
+    converged_at: "2026-03-13T00:15:00Z"
+    asset: "specification/requirements/REQUIREMENTS.md"
+    escalations: []
+    evaluator_results:
+      agent: pass
+      human: pass
+
+  feature_decomposition:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-13T00:18:00Z"
+    converged_at: "2026-03-13T00:20:02Z"
+    asset: "specification/features/FEATURE_VECTORS.md"
+    escalations: []
+    evaluator_results:
+      agent: pass
+      human: pass
+
+  design:
+    status: pending
+    iteration: 0
+    escalations: []
+
+  module_decomposition:
+    status: pending
+    iteration: 0
+    escalations: []
+
+  basis_projections:
+    status: pending
+    iteration: 0
+    escalations: []
+
+  code:
+    status: pending
+    iteration: 0
+    escalations: []
+
+  unit_tests:
+    status: pending
+    iteration: 0
+    escalations: []
+
+  uat_tests:
+    status: pending
+    iteration: 0
+    escalations: []
+
+# ═══════════════════════════════════════════════════════════════════════
+# DEPENDENCIES
+# ═══════════════════════════════════════════════════════════════════════
+
+dependencies: []
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONSTRAINTS (Feature-Specific)
+# ═══════════════════════════════════════════════════════════════════════
+# genesis_manager is a builder supervision console.
+# Requirements edge: produce a complete requirements document with REQ-F-* keys
+#   covering all 6 work areas from the intent.
+# Feature decomposition edge: decompose REQ keys into domain feature vectors
+#   (PROJ, OVR, SUP, EVI, CTL, REL, NAV, UX domains).
+
+constraints:
+  acceptance_criteria:
+    # ─── Requirements edge ACs ────────────────────────────────────────────
+    - id: "AC-SYS-001"
+      description: "Requirements cover all 6 work areas: Projects, Overview, Supervision, Evidence, Control, Release"
+      evaluator: agent
+      check: "Each work area from INTENT.md has at least one REQ-F-* key in REQUIREMENTS.md"
+      req: "REQ-F-SYSTEM-001"
+      required: true
+
+    - id: "AC-SYS-002"
+      description: "Navigation invariant captured — every technical identifier is a navigation handle"
+      evaluator: agent
+      check: "REQ-F-NAV-001 through REQ-F-NAV-005 present and cover REQ keys, feature IDs, run IDs, events, canonical pages"
+      req: "REQ-F-SYSTEM-001"
+      required: true
+
+    - id: "AC-SYS-003"
+      description: "Human approves requirements scope and completeness"
+      evaluator: human
+      check: "Human explicitly approves requirements document at specification/requirements/REQUIREMENTS.md"
+      req: "REQ-F-SYSTEM-001"
+      required: true
+
+    - id: "AC-SYS-004"
+      description: "Human approves requirements priority assignments"
+      evaluator: human
+      check: "Human confirms critical/high/medium priority assignments are correct"
+      req: "REQ-F-SYSTEM-001"
+      required: true
+
+    # ─── Feature decomposition edge ACs ──────────────────────────────────
+    - id: "AC-SYS-005"
+      description: "Feature decomposition covers all REQ-F-* keys (F_D coverage check)"
+      evaluator: deterministic
+      check: "Every REQ-F-* key in REQUIREMENTS.md appears in satisfies: field of at least one feature vector"
+      req: "REQ-F-SYSTEM-001"
+      required: true
+
+    - id: "AC-SYS-006"
+      description: "Human approves feature decomposition, dependency ordering, and MVP boundary"
+      evaluator: human
+      check: "Human explicitly approves feature decomposition and MVP scope"
+      req: "REQ-F-SYSTEM-001"
+      required: true
+
+    # ─── Critical REQ key bindings ────────────────────────────────────────
+    - id: "AC-SYS-007"
+      description: "Human gate queue is complete and actionable in-UI (REQ-F-SUP-002)"
+      evaluator: human
+      check: "Human confirms supervision work area shows all pending gates with approve/reject actions"
+      req: "REQ-F-SUP-002"
+      required: true
+
+    - id: "AC-SYS-008"
+      description: "All navigation handles resolve — no dead links (REQ-NFR-ACC-001)"
+      evaluator: deterministic
+      check: "Automated link checker finds 0 dead navigation handles across all rendered pages"
+      req: "REQ-NFR-ACC-001"
+      required: true
+
+    - id: "AC-SYS-009"
+      description: "Workspace is sole data source — no separate database (REQ-DATA-WORK-001)"
+      evaluator: agent
+      check: "Implementation has no persistence layer beyond filesystem reads and browser localStorage"
+      req: "REQ-DATA-WORK-001"
+      required: true
+
+    - id: "AC-SYS-010"
+      description: "No autonomous execution — all commands explicitly user-initiated (REQ-BR-SUPV-001)"
+      evaluator: agent
+      check: "No background process invokes Genesis commands without user action"
+      req: "REQ-BR-SUPV-001"
+      required: true
+
+  threshold_overrides: {}
+  additional_checks: []

@@ -1,0 +1,270 @@
+# Edge Parameterisation: Requirements → Feature Decomposition
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2.1, §2.6, ADR-S-006
+
+---
+
+edge: "requirements→feature_decomposition"
+pattern: feature_decomposition
+description: |
+  Transform structured requirements into a dependency-ordered feature build plan.
+  This edge is on the SPEC side of the spec/design boundary — fully tech-agnostic.
+  Output: feature list, dependency DAG, build order, MVP scope.
+  The design edge receives this structured plan instead of raw requirements.
+
+# Feature decomposition outputs
+outputs:
+  features:
+    description: "Buildable feature units, each containing one or more related REQ-F-* keys"
+    required: true
+    template: |
+      ### Feature: {REQ-F-ID} — {Name}
+
+      **Satisfies**: {list of REQ keys}
+
+      **What converges**:
+      - {Observable outcome 1}
+      - {Observable outcome 2}
+
+      **Dependencies**: {other Feature IDs that must converge first, or "None"}
+
+      **MVP**: {Yes | No | Deferred — reason}
+
+  dependency_dag:
+    description: "Adjacency list showing which features must converge before others can start"
+    required: true
+    format: |
+      | Feature | Depends On |
+      |---------|-----------|
+      | REQ-F-AUTH-001 | REQ-F-USER-001 (user model must exist first) |
+      | REQ-F-USER-001 | None |
+
+  build_order:
+    description: "Topological sort of dependency DAG — the order features should be built"
+    required: true
+
+  mvp_scope:
+    description: "The connected subgraph of features that constitute a working MVP"
+    required: true
+    format: "List of feature IDs included in MVP, plus the exclusion rationale for deferred features"
+
+# Document structure template
+document_structure:
+  required_sections:
+    - title: "Feature Inventory"
+      description: "All features derived from REQ-F-* keys, with satisfies mapping"
+    - title: "Dependency Graph"
+      description: "Mermaid DAG showing feature dependencies"
+    - title: "Build Order"
+      description: "Numbered list: which features to build first, with blocking rationale"
+    - title: "MVP Scope"
+      description: "Which features are MVP (connected, working end-to-end) vs deferred"
+    - title: "REQ Key Coverage"
+      description: "Table: every REQ-F-* key → which feature it belongs to"
+  recommended_sections:
+    - title: "Risk Assessment"
+      description: "Which features carry the most uncertainty; which should be spiked first"
+    - title: "Parallel Opportunities"
+      description: "Which features can be built concurrently (no dependency between them)"
+
+# ═══════════════════════════════════════════════════════════════════════
+# SOURCE ANALYSIS CHECKS (Backward — analyse the requirements)
+# ═══════════════════════════════════════════════════════════════════════
+
+source_analysis:
+
+  - name: "requirements_groupable"
+    functional_unit: sense
+    criterion: |
+      Read the requirements and identify natural groupings of REQ-F-* keys that
+      represent a coherent capability a user cares about.
+      Flag requirements that are hard to group — these may indicate:
+        - Requirements that are cross-cutting (infrastructure, not a user feature)
+        - Requirements that are too coarse (need splitting)
+        - Requirements that are too fine (should be merged)
+      Record each anomaly as SOURCE_AMBIGUITY.
+    required: true
+
+  - name: "dependencies_inferable"
+    functional_unit: sense
+    criterion: |
+      For each grouping, identify the logical dependencies:
+      - Which capabilities require other capabilities to exist first?
+      - Which can be built independently?
+      Record any ambiguous dependencies as SOURCE_AMBIGUITY with the question to resolve.
+    required: true
+
+  - name: "mvp_criteria_present"
+    functional_unit: sense
+    criterion: |
+      Check whether the requirements specify any MVP or priority criteria.
+      If not, flag as SOURCE_GAP — MVP scope cannot be formally derived without
+      a priority signal. The human must decide.
+    required: true
+
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR CHECKLIST (Forward — evaluate the generated decomposition)
+# ═══════════════════════════════════════════════════════════════════════
+
+checklist:
+
+  # ─── Coverage ────────────────────────────────────────────────────────
+
+  - name: "all_req_f_keys_assigned"
+    type: deterministic
+    functional_unit: evaluate
+    criterion: |
+      Every REQ-F-* key from the requirements document appears in exactly one
+      feature's 'Satisfies' list. No REQ-F-* key is unassigned. No REQ-F-* key
+      is assigned to more than one feature.
+    source: default
+    required: true
+
+  - name: "no_non_f_keys_in_features"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Features contain only REQ-F-* (functional) keys. Non-functional (REQ-NFR-*),
+      tooling (REQ-TOOL-*), and supervision (REQ-SUPV-*) requirements are not
+      assigned to features — they are cross-cutting constraints that design resolves.
+      Flag any misclassification.
+    source: default
+    required: false
+
+  # ─── DAG integrity ───────────────────────────────────────────────────
+
+  - name: "dependency_dag_acyclic"
+    type: deterministic
+    functional_unit: evaluate
+    criterion: |
+      The dependency graph has no cycles. A topological sort succeeds.
+      All dependency references point to known feature IDs.
+    source: default
+    required: true
+
+  - name: "build_order_consistent"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      The build order matches the topological sort of the dependency DAG.
+      No feature appears before its dependencies in the build order.
+    source: default
+    required: true
+
+  # ─── MVP scope ───────────────────────────────────────────────────────
+
+  - name: "mvp_scope_is_connected"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      The MVP scope forms a connected, end-to-end working subset:
+      - All features in MVP scope have their dependencies also in MVP scope
+      - At least one user-facing feature is in MVP scope
+      - The MVP scope is not the entire feature set (or there must be an explicit
+        rationale for why no deferral is possible)
+    source: default
+    required: true
+
+  - name: "deferred_scope_justified"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Every deferred feature has an explicit rationale:
+      - "Not needed for MVP value delivery"
+      - "Depends on MVP learning"
+      - "Technical risk — spike planned first"
+      Deferred features with no rationale are flagged.
+    source: default
+    required: false
+
+  # ─── Tech-agnosticism check ──────────────────────────────────────────
+
+  - name: "decomposition_is_tech_agnostic"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      The feature decomposition contains no technology references.
+      Features describe WHAT (user capability), not HOW (implementation).
+      Any feature description that names a technology, framework, database,
+      cloud provider, or programming language is a violation — flag it.
+    source: default
+    required: true
+
+  # ─── Document structure ──────────────────────────────────────────────
+
+  - name: "document_has_required_sections"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Document contains all required sections: Feature Inventory, Dependency Graph
+      (Mermaid DAG), Build Order, MVP Scope, REQ Key Coverage table.
+    source: default
+    required: true
+
+  - name: "mermaid_dag_present"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      A Mermaid graph diagram renders the feature dependency DAG.
+      Nodes are labelled with feature IDs and short names.
+    source: default
+    required: true
+
+  # ─── Human validation ───────────────────────────────────────────────
+
+  - name: "human_approves_feature_plan"
+    type: human
+    functional_unit: evaluate
+    criterion: |
+      Human confirms:
+      1. Feature groupings make sense — each feature is a coherent, nameable capability
+      2. Dependencies are correct — build order matches domain knowledge
+      3. MVP scope is right — the minimum set that delivers real value
+    source: default
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTEXT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+context_guidance:
+  required:
+    - "The requirements document (source asset)"
+    - "project_constraints.yml — for priority signals and MVP criteria"
+  recommended:
+    - "INT-* intent documents — to understand the user goals that drive features"
+    - "Domain glossary — to name features in user language"
+  notes: |
+    Feature Decomposition is SPEC work, not design work.
+    Do NOT reference technologies, frameworks, or implementation choices.
+    The output must be valid across all implementations (Claude, Gemini, Codex).
+    If you find yourself writing "we'll use PostgreSQL for the user table",
+    stop — that is Design, not Feature Decomposition.
+
+# ═══════════════════════════════════════════════════════════════════════
+# AGENT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+agent_guidance: |
+  When decomposing requirements into features:
+
+  1. READ the requirements document thoroughly — understand what the system does
+  2. GROUP REQ-F-* keys into coherent user-facing capabilities:
+     - A feature is something a user cares about: "can log in", "can search products"
+     - Not an implementation concern: "has a users table", "has a JWT library"
+  3. IDENTIFY logical dependencies:
+     - Can you build feature B before feature A converges? If not, A→B dependency.
+     - Dependencies must be logical (domain), not technical (implementation)
+  4. DRAW the dependency DAG — Mermaid graph syntax
+  5. DERIVE build order via topological sort
+  6. SCOPE the MVP:
+     - Ask: what is the smallest connected set of features that delivers real value?
+     - All dependencies of MVP features must also be in MVP scope
+     - Be conservative — prefer smaller MVP with explicit deferral reasoning
+  7. CHECK tech-agnosticism: review every sentence — does it name a technology?
+     If yes, remove it. The technology decision happens at Design.
+  8. EVALUATE against checklist
+  9. Present to human for approval — especially MVP scope (human decision)
+  10. Report: source findings, checklist results, process gaps

@@ -1,0 +1,210 @@
+# Edge Parameterisation: Design → Module Decomposition
+# Reference: AI_SDLC_ASSET_GRAPH_MODEL.md §2.1, ADR-S-007
+
+---
+
+edge: "design→module_decomposition"
+pattern: module_decomposition
+description: |
+  Map architectural components from the Design to concrete code modules.
+  Produces a module dependency DAG, interface contracts, and build scaffolding.
+  This is the first step between Design and Code — it maps architecture to implementation structure.
+  The output enables orthogonal parallel construction (agents work on isolated modules).
+
+# Module decomposition outputs
+outputs:
+  module_map:
+    description: "Every architectural component mapped to one or more code modules (package/directory)"
+    required: true
+    template: |
+      ### Module: {module-name}
+
+      **Implements**: {list of architectural components from Design}
+      **Path**: {package path, e.g. src/auth/ or com.example.auth}
+
+      **Responsibilities**:
+      - {What this module does}
+
+      **Exposes**:
+      - {Public API signatures visible to other modules}
+
+      **Depends On**:
+      - {module-name}: {why/what call}
+
+  dependency_dag:
+    description: "Acyclic dependency graph between modules"
+    required: true
+    format: |
+      | Module | Depends On | Reason |
+      |--------|-----------|--------|
+      | auth-module | user-module | lookup_user() |
+      | user-module | None | — |
+
+  interface_contracts:
+    description: "Public API contracts for all inter-module calls"
+    required: true
+    template: |
+      #### Contract: {source-module} → {target-module}
+      - `{function_name}({args}) → {return_type} | {error_type}`
+
+  build_config:
+    description: "Build system scaffolding derived from module structure"
+    required: false
+    note: "Only required when build system is non-trivial (multi-module monorepo, sbt, etc.)"
+
+# Document structure
+document_structure:
+  required_sections:
+    - title: "Module Map"
+      description: "Every design component → code module mapping; Mermaid diagram"
+    - title: "Module Dependency DAG"
+      description: "Acyclic dependency graph; topological order"
+    - title: "Interface Contracts"
+      description: "All inter-module API contracts"
+  recommended_sections:
+    - title: "Build Configuration"
+      description: "Package manager / build tool scaffolding for module structure"
+    - title: "Parallelism Analysis"
+      description: "Which modules are independent and can be built concurrently"
+
+# ═══════════════════════════════════════════════════════════════════════
+# SOURCE ANALYSIS CHECKS (Backward — analyse the design)
+# ═══════════════════════════════════════════════════════════════════════
+
+source_analysis:
+
+  - name: "components_decomposable"
+    functional_unit: sense
+    criterion: |
+      For each architectural component in the Design, assess whether it maps cleanly
+      to one module or requires splitting. Flag components that are:
+        - Too coarse (implement multiple unrelated responsibilities)
+        - Too fine (should be co-located with a sibling)
+      Record each anomaly as SOURCE_AMBIGUITY.
+    required: true
+
+  - name: "dependency_constraints_inferable"
+    functional_unit: sense
+    criterion: |
+      From the Design's component dependencies, identify which become module-level
+      dependencies. Flag any circular dependencies already present in the design —
+      these must be resolved before the DAG can be acyclic.
+    required: true
+
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR CHECKLIST (Forward — evaluate the module decomposition)
+# ═══════════════════════════════════════════════════════════════════════
+
+checklist:
+
+  # ─── Coverage ────────────────────────────────────────────────────────
+
+  - name: "all_components_mapped"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Every architectural component in the Design is mapped to at least one module.
+      No component is unmapped. No module exists without a corresponding component.
+    source: default
+    required: true
+
+  # ─── DAG integrity ───────────────────────────────────────────────────
+
+  - name: "module_dag_acyclic"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      The module dependency graph has no cycles. A topological sort succeeds.
+      All dependency references point to modules that are defined in this decomposition.
+    source: default
+    required: true
+
+  - name: "dag_matches_design_constraints"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      The module dependency direction matches the architectural layering in the Design.
+      A module in the "infrastructure" layer must not depend on the "domain" layer.
+      Check that no dependency inverts the intended architectural hierarchy.
+    source: default
+    required: true
+
+  # ─── Interface contracts ─────────────────────────────────────────────
+
+  - name: "all_inter_module_calls_contracted"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Every cross-module call has a corresponding interface contract.
+      No module calls another module's internals — only contracted public APIs.
+      Contract format: function_name(args) → ReturnType | ErrorType
+    source: default
+    required: true
+
+  - name: "contracts_are_verifiable"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Interface contracts are precise enough to be tested:
+      - Types are named (not "object" or "any")
+      - Error types are named (not "throws" or "error")
+      - Return values are deterministic given inputs
+    source: default
+    required: false
+
+  # ─── Human validation ───────────────────────────────────────────────
+
+  - name: "human_approves_module_structure"
+    type: human
+    functional_unit: evaluate
+    criterion: |
+      Human confirms:
+      1. Module boundaries make sense — each module is a coherent unit of deployment/ownership
+      2. No obvious God modules (one module doing everything)
+      3. Dependency direction matches intended architecture
+      4. Interface contracts are reasonable — no leaky abstractions
+    source: default
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTEXT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+context_guidance:
+  required:
+    - "The Design document (source asset) — component list, ADRs, dependency decisions"
+    - "feature_decomposition artifact — to know which features will be built (informs module granularity)"
+    - "project_constraints.yml — ecosystem_compatibility and build_system dimensions"
+  recommended:
+    - "ADRs from Design — especially ecosystem, build system, and deployment target decisions"
+    - "Build system documentation for the chosen tech stack"
+  notes: |
+    Module Decomposition is DESIGN work — it is technology-bound.
+    Unlike Feature Decomposition (which is tech-agnostic), module names, paths, and
+    interface signatures are specific to the chosen language and build system.
+    The output must match the ecosystem_compatibility and build_system ADRs.
+
+# ═══════════════════════════════════════════════════════════════════════
+# AGENT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+agent_guidance: |
+  When decomposing the design into modules:
+
+  1. READ the Design document — understand all components and their responsibilities
+  2. MAP each component to a code module (directory/package):
+     - One-to-one is simplest; split only when responsibilities clearly diverge
+     - Module granularity: what a single developer would own and test independently
+  3. BUILD the dependency DAG:
+     - Only allow dependencies that match the architectural layering (domain, app, infra)
+     - Detect and eliminate cycles — propose inversion of control if necessary
+  4. DEFINE interface contracts for every cross-module call:
+     - Be explicit about types and error modes
+     - Contracts become stub/mock specs for parallel construction
+  5. VERIFY the DAG is acyclic — topological sort must succeed
+  6. CHECK against Design ADRs — does the module structure match ecosystem_compatibility?
+  7. Present to human for approval — module boundaries affect ownership and deployment
+  8. Report: source findings, checklist results, process gaps

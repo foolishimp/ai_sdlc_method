@@ -1,0 +1,94 @@
+feature: REQ-F-SUP-001
+title: Supervision Console
+intent: INT-001
+vector_type: feature
+profile: standard
+status: iterating
+convergence_type: ''
+created: '2026-03-13T00:21:00Z'
+updated: '2026-03-13T11:30:00Z'
+source_kind: parent_spawn
+trigger_event: "edge_converged:REQ-F-SYSTEM-001:requirements\u2192feature_decomposition"
+target_asset_type: design
+produced_asset_ref: null
+disposition: null
+disposition_rationale: null
+functor:
+  encoding_source: profile
+  mode: interactive
+  valence: medium
+  overrides: {}
+time_box:
+  enabled: false
+parent:
+  feature: REQ-F-SYSTEM-001
+  edge: "requirements\u2192feature_decomposition"
+  reason: Spawned from system bootstrap vector after feature decomposition converged
+children: []
+satisfies:
+- REQ-F-SUP-001
+- REQ-F-SUP-002
+- REQ-F-SUP-003
+- REQ-F-SUP-004
+trajectory:
+  requirements:
+    status: converged
+    iteration: 0
+    converged_at: '2026-03-13T00:15:03Z'
+    asset: specification/requirements/REQUIREMENTS.md
+    escalations: []
+    note: Inherited from REQ-F-SYSTEM-001 system bootstrap vector
+  feature_decomposition:
+    status: converged
+    iteration: 0
+    converged_at: '2026-03-13T00:20:02Z'
+    asset: specification/features/FEATURE_VECTORS.md
+    escalations: []
+    note: Inherited from REQ-F-SYSTEM-001 system bootstrap vector
+  design_recommendations:
+    status: converged
+    iteration: 1
+    escalations: []
+    converged_at: '2026-03-13T11:30:00Z'
+    produced_asset_ref: specification/design_recommendations/DESIGN_RECOMMENDATIONS.md
+  design:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T12:45:00Z'
+    produced_asset_ref: imp_react_vite/design/REQ-F-SUP-001-design.md
+    escalations: []
+  module_decomposition:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T14:00:00Z'
+    produced_asset_ref: imp_react_vite/design/module_decomp/MODULE_DECOMPOSITION.md
+    escalations: []
+  basis_projections:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-13T14:50:00Z'
+    produced_asset_ref: imp_react_vite/design/module_decomp/BASIS_PROJECTIONS.md
+    escalations: []
+  code:
+    status: pending
+    iteration: 0
+    escalations: []
+  unit_tests:
+    status: pending
+    iteration: 0
+    escalations: []
+  uat_tests:
+    status: pending
+    iteration: 0
+    escalations: []
+dependencies:
+- feature: REQ-F-NAV-001
+  asset: design
+  status: pending
+- feature: REQ-F-UX-001
+  asset: design
+  status: pending
+constraints:
+  acceptance_criteria: []
+  threshold_overrides: {}
+  additional_checks: []

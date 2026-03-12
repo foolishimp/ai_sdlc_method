@@ -1,0 +1,66 @@
+# Project Constraints — genesis_manager
+# Implements: REQ-CTX-001 (Context as Constraint Surface)
+# Resolved: 2026-03-13T11:00:00Z by proxy (human-proxy)
+
+project:
+  name: "genesis_manager"
+  kind: "application"
+  language: "TypeScript"
+  test_runner: "vitest"
+
+# Mandatory dimensions (resolved at requirements→design edge)
+constraints:
+  ecosystem_compatibility:
+    language: "TypeScript"
+    version: "5.x"
+    runtime: "Browser (SPA)"
+    frameworks:
+      - "React 18"
+      - "Vite 5"
+      - "React Router 6"
+      - "Zustand (state management)"
+      - "React Testing Library"
+
+  deployment_target:
+    platform: "Static web application"
+    cloud_provider: "none (local-first; self-hostable)"
+    environment_tiers:
+      - "local-dev"
+      - "self-hosted"
+
+  security_model:
+    authentication: "none (single-user local tool)"
+    authorisation: "none (single-user — no roles)"
+    data_protection: "local filesystem only; no remote data transmission"
+
+  build_system:
+    tool: "Vite + npm"
+    module_structure: "src/ with feature-based directories"
+    ci_integration: "none initially"
+
+  # Advisory dimensions
+  data_governance:
+    classification: "local project data only"
+    retention: "controlled by user filesystem"
+    regulations: []
+
+  performance_envelope:
+    p99_latency_ms: 200    # UI navigation transitions
+    throughput_rps: null   # not applicable — single user
+
+  observability:
+    logging: "browser console"
+    metrics: "none initially"
+    tracing: "none initially"
+
+  error_handling:
+    strategy: "fail-visible"  # React Error Boundaries; errors surface to user
+
+# Multi-tenant folder structure (REQ-TOOL-012, REQ-TOOL-013)
+structure:
+  design_tenants:
+    - name: "react_vite"
+      output_dir: "imp_react_vite/"
+      description: "React + Vite web application — primary implementation tenant"
+  active_tenant: "react_vite"
+  root_code_policy: reject
