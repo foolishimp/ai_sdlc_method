@@ -1,39 +1,34 @@
-feature:
-  id: REQ-F-GAPENGINE-001
-  title: "Gap Analysis Engine"
-  intent: INT-001
-  vector_type: feature
-  profile: standard
-  status: converged
-  priority: high
-
+feature: REQ-F-GAPENGINE-001
+title: Gap Analysis Engine
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+priority: high
 satisfies:
-  - REQ-F-GAP-001
-  - REQ-F-GAP-002
-  - REQ-F-GAP-003
-  - REQ-F-GAP-004
-  - REQ-F-API-003
-
+- REQ-F-GAP-001
+- REQ-F-GAP-002
+- REQ-F-GAP-003
+- REQ-F-GAP-004
+- REQ-F-API-003
 trajectory:
   design_code:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T07:00:00Z"
-    converged_at: "2026-03-12T08:00:00Z"
+    started_at: '2026-03-12T07:00:00Z'
+    converged_at: '2026-03-12T08:00:00Z'
   code_unit_tests:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T08:00:00Z"
-    converged_at: "2026-03-12T09:00:00Z"
-
+    started_at: '2026-03-12T08:00:00Z'
+    converged_at: '2026-03-12T09:00:00Z'
 constraints:
   acceptance_criteria:
-    - "GET /api/projects/{id}/gaps responds within 2000ms"
-    - "Layer 1: code files missing Implements: REQ-* tags detected"
-    - "Layer 2: REQ keys in spec with no corresponding test file detected"
-    - "Layer 3: telemetry gap advisory (code→cicd not started)"
-    - "Malformed YAML feature files skipped gracefully"
-
+  - GET /api/projects/{id}/gaps responds within 2000ms
+  - 'Layer 1: code files missing Implements: REQ-* tags detected'
+  - 'Layer 2: REQ keys in spec with no corresponding test file detected'
+  - 'Layer 3: telemetry gap advisory (code→cicd not started)'
+  - Malformed YAML feature files skipped gracefully
 functor:
   strategy: balanced
   mode: interactive

@@ -1,38 +1,33 @@
-feature:
-  id: REQ-F-QUEUEENGINE-001
-  title: "Queue/Proposals Engine"
-  intent: INT-001
-  vector_type: feature
-  profile: standard
-  status: converged
-  priority: high
-
+feature: REQ-F-QUEUEENGINE-001
+title: Queue/Proposals Engine
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+priority: high
 satisfies:
-  - REQ-F-QUEUE-001
-  - REQ-F-QUEUE-002
-  - REQ-F-QUEUE-003
-  - REQ-F-API-004
-
+- REQ-F-QUEUE-001
+- REQ-F-QUEUE-002
+- REQ-F-QUEUE-003
+- REQ-F-API-004
 trajectory:
   design_code:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T07:00:00Z"
-    converged_at: "2026-03-12T08:00:00Z"
+    started_at: '2026-03-12T07:00:00Z'
+    converged_at: '2026-03-12T08:00:00Z'
   code_unit_tests:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T08:00:00Z"
-    converged_at: "2026-03-12T09:00:00Z"
-
+    started_at: '2026-03-12T08:00:00Z'
+    converged_at: '2026-03-12T09:00:00Z'
 constraints:
   acceptance_criteria:
-    - "GET /api/projects/{id}/queue responds within 1000ms"
-    - "STUCK items ranked highest (delta unchanged 3+ iterations)"
-    - "BLOCKED items include blocking feature reference"
-    - "GAP_CLUSTER groups related REQ key gaps"
-    - "IN_PROGRESS items show current edge and iteration count"
-
+  - GET /api/projects/{id}/queue responds within 1000ms
+  - STUCK items ranked highest (delta unchanged 3+ iterations)
+  - BLOCKED items include blocking feature reference
+  - GAP_CLUSTER groups related REQ key gaps
+  - IN_PROGRESS items show current edge and iteration count
 functor:
   strategy: balanced
   mode: interactive

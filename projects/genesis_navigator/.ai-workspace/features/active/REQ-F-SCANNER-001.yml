@@ -1,32 +1,28 @@
-feature:
-  id: REQ-F-SCANNER-001
-  title: Workspace Scanner + FastAPI Shell
-  intent: INT-001
-  vector_type: feature
-  profile: standard
-  status: converged
-  priority: critical
-
+feature: REQ-F-SCANNER-001
+title: Workspace Scanner + FastAPI Shell
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+priority: critical
 satisfies:
-  - REQ-F-NAV-001
-  - REQ-F-API-001
-  - REQ-NFR-PERF-001
-  - REQ-NFR-ARCH-002
-  - REQ-BR-001
-  - REQ-BR-002
-
+- REQ-F-NAV-001
+- REQ-F-API-001
+- REQ-NFR-PERF-001
+- REQ-NFR-ARCH-002
+- REQ-BR-001
+- REQ-BR-002
 trajectory:
   design_code:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T06:40:00Z"
-    converged_at: "2026-03-12T07:30:00Z"
+    started_at: '2026-03-12T06:40:00Z'
+    converged_at: '2026-03-12T07:30:00Z'
   code_unit_tests:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T07:30:00Z"
-    converged_at: "2026-03-12T08:30:00Z"
-
+    started_at: '2026-03-12T07:30:00Z'
+    converged_at: '2026-03-12T08:30:00Z'
 constraints:
   acceptance_criteria:
   - GET /api/projects responds within 2000ms for 200 projects
@@ -34,7 +30,6 @@ constraints:
   - project_id derived from directory name, stable across root renames
   - Zero open(..., 'w') calls in scanner or API handlers
   - All API handler tests assert no filesystem writes (assert_no_writes fixture)
-
 functor:
   strategy: balanced
   mode: interactive

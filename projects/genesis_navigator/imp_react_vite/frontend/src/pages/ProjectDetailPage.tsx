@@ -1,4 +1,4 @@
-// Implements: REQ-F-STAT-002, REQ-F-STAT-003, REQ-F-STAT-004
+// Implements: REQ-F-STAT-002, REQ-F-STAT-003, REQ-F-STAT-004, REQ-F-HIST-001, REQ-F-HIST-002
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -6,13 +6,15 @@ import { api } from '../api/client'
 import { StatusView } from '../components/StatusView'
 import { GapView } from '../components/GapView'
 import { QueueView } from '../components/QueueView'
+import { HistoryView } from '../components/HistoryView'
 import { StateBadge } from '../components/ui/Badge'
 
-type Tab = 'status' | 'gaps' | 'queue'
+type Tab = 'status' | 'gaps' | 'queue' | 'history'
 const TABS: { key: Tab; label: string }[] = [
   { key: 'status', label: 'Status' },
   { key: 'gaps', label: 'Gaps' },
   { key: 'queue', label: 'Queue' },
+  { key: 'history', label: 'History' },
 ]
 
 export function ProjectDetailPage() {
@@ -57,6 +59,7 @@ export function ProjectDetailPage() {
                 queryClient.invalidateQueries({ queryKey: ['project', projectId] })
                 queryClient.invalidateQueries({ queryKey: ['gaps', projectId] })
                 queryClient.invalidateQueries({ queryKey: ['queue', projectId] })
+                queryClient.invalidateQueries({ queryKey: ['runs', projectId] })
               }}
               style={{
                 padding: '5px 12px', borderRadius: 'var(--radius-sm)',
@@ -101,6 +104,7 @@ export function ProjectDetailPage() {
         {project && activeTab === 'status' && <StatusView project={project} projectId={projectId} />}
         {activeTab === 'gaps' && projectId && <GapView projectId={projectId} />}
         {activeTab === 'queue' && projectId && <QueueView projectId={projectId} />}
+        {activeTab === 'history' && projectId && <HistoryView projectId={projectId} />}
       </div>
     </div>
   )

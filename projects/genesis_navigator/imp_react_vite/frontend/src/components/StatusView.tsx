@@ -89,8 +89,8 @@ export function StatusView({ project, projectId }: { project: ProjectDetail; pro
   const iterating = project.features.filter(f => f.status === 'iterating' || f.status === 'in_progress').length
   const converged = project.features.filter(f => f.status === 'converged').length
   const blocked = project.features.filter(f => f.status === 'blocked').length
-  const lastEvent = project.last_event_at
-    ? new Date(project.last_event_at).toLocaleString()
+  const edgePct = project.total_edges > 0
+    ? `${Math.round(100 * project.converged_edges / project.total_edges)}%`
     : '—'
 
   return (
@@ -99,7 +99,7 @@ export function StatusView({ project, projectId }: { project: ProjectDetail; pro
         <StatCard label="State" value={project.state} />
         <StatCard label="Iterating" value={iterating} sub={`of ${project.features.length} features`} />
         <StatCard label="Converged" value={converged} sub={`of ${project.features.length} features`} />
-        <StatCard label="Last Event" value={lastEvent} />
+        <StatCard label="Edges" value={`${project.converged_edges}/${project.total_edges}`} sub={edgePct} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>

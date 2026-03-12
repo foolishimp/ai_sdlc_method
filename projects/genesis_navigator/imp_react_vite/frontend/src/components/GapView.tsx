@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
 import type { BackendGapLayer } from '../api/types'
 import { LoadingConsole } from './LoadingConsole'
-import { ReqLink, projectSlug } from './ui/ReqLink'
+import { ReqLink } from './ui/ReqLink'
 
 const GAP_MESSAGES = [
   'Reading .ai-workspace/features/active/*.yml',
@@ -78,7 +78,7 @@ function LayerSection({ meta, layer, pSlug }: { meta: typeof LAYER_META[number];
             <tbody>
               {layer.gaps.map((gap, i) => (
                 <tr key={`${gap.req_key}-${i}`} style={{ borderBottom: i < layer.gaps.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                  <td style={{ padding: '10px 12px' }}><ReqLink reqKey={gap.req_key} projectSlug={pSlug} /></td>
+                  <td style={{ padding: '10px 12px' }}><ReqLink reqKey={gap.req_key} localProjectId={projectId} /></td>
                   <td style={{ padding: '10px 12px', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
                     {gap.gap_type.replace('_', ' ')}
                   </td>
@@ -98,7 +98,6 @@ function LayerSection({ meta, layer, pSlug }: { meta: typeof LAYER_META[number];
 }
 
 export function GapView({ projectId }: { projectId: string }) {
-  const pSlug = projectSlug(projectId)
   const { data: report, isLoading, error } = useQuery({
     queryKey: ['gaps', projectId],
     queryFn: () => api.getGaps(projectId),

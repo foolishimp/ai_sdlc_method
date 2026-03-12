@@ -1,37 +1,32 @@
-feature:
-  id: REQ-F-STATUSVIEW-001
-  title: "Status View — Feature Trajectory Display"
-  intent: INT-001
-  vector_type: feature
-  profile: standard
-  status: converged
-  priority: high
-
+feature: REQ-F-STATUSVIEW-001
+title: Status View — Feature Trajectory Display
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+priority: high
 satisfies:
-  - REQ-F-STAT-001
-  - REQ-F-STAT-002
-  - REQ-F-STAT-003
-  - REQ-F-STAT-004
-
+- REQ-F-STAT-001
+- REQ-F-STAT-002
+- REQ-F-STAT-003
+- REQ-F-STAT-004
 trajectory:
   design_code:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T09:00:00Z"
-    converged_at: "2026-03-12T10:00:00Z"
+    started_at: '2026-03-12T09:00:00Z'
+    converged_at: '2026-03-12T10:00:00Z'
   code_unit_tests:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T10:00:00Z"
-    converged_at: "2026-03-12T11:00:00Z"
-
+    started_at: '2026-03-12T10:00:00Z'
+    converged_at: '2026-03-12T11:00:00Z'
 constraints:
   acceptance_criteria:
-    - "Feature trajectories rendered with ✓/●/○/✗ edge status indicators"
-    - "Hamiltonian H=T+V displayed per feature"
-    - "Project state badge (ITERATING/QUIESCENT/CONVERGED/BOUNDED) visible"
-    - "Empty state shown when no features present"
-
+  - Feature trajectories rendered with ✓/●/○/✗ edge status indicators
+  - Hamiltonian H=T+V displayed per feature
+  - Project state badge (ITERATING/QUIESCENT/CONVERGED/BOUNDED) visible
+  - Empty state shown when no features present
 functor:
   strategy: balanced
   mode: interactive

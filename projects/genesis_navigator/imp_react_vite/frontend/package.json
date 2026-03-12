@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "update-api-snapshot": "curl -s http://localhost:8765/openapi.json > src/api/openapi-snapshot.json && echo 'Snapshot updated'"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",

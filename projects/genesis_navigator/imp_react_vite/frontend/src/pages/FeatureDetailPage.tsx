@@ -1,8 +1,8 @@
 // Implements: REQ-F-FEATDETAIL-001
-import { useParams, useNavigate, Link } from 'react-router'
+import { useParams, useNavigate } from 'react-router'
+import { ReqLink } from '../components/ui/ReqLink'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
-import { ReqLink, projectSlug } from '../components/ui/ReqLink'
 
 const STATUS_COLORS: Record<string, string> = {
   converged: 'var(--state-converged)',
@@ -116,11 +116,28 @@ export function FeatureDetailPage() {
         )}
         {error && (
           <div style={{
-            padding: '16px', background: '#fee2e222',
-            border: '1px solid #ef444444', borderRadius: 'var(--radius)',
-            color: '#ef4444',
+            padding: '24px 28px',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)',
           }}>
-            {String(error)}
+            <div style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--accent)', marginBottom: '8px' }}>
+              {fid}
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+              No feature vector found
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              <strong>{fid}</strong> is a requirement key defined in the spec, but no feature vector has been
+              created for it yet. To build it, run:
+            </div>
+            <div style={{
+              marginTop: '12px', padding: '10px 14px',
+              background: 'var(--surface-2)', borderRadius: 'var(--radius-sm)',
+              fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--accent)',
+            }}>
+              /gen-spawn --feature "{fid}"
+            </div>
           </div>
         )}
 
@@ -151,18 +168,6 @@ export function FeatureDetailPage() {
                     />
                   </div>
                 </div>
-                <a
-                  href={`http://localhost:8000/project/${projectSlug(projectId)}/feature/${feature.feature_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    fontSize: '12px', color: 'var(--text-muted)',
-                    textDecoration: 'none', padding: '6px 10px',
-                    border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
-                  }}
-                >
-                  ↗ Genesis Monitor
-                </a>
               </div>
             </div>
 

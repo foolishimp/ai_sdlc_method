@@ -1,0 +1,491 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Genesis Navigator API",
+    "description": "Read-only REST API for visualising Genesis project state.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/projects": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "List Projects",
+        "description": "Return all Genesis projects discovered under the configured root directory.\n\nScans the root directory set at startup via :mod:`genesis_nav.main`\n``_config[\"root_dir\"]``. The scan is synchronous and runs in the request\nthread; at \u2264200 projects it completes well within the 2-second budget\n(REQ-NFR-PERF-001).\n\nReturns:\n    JSON array of :class:`~genesis_nav.models.schemas.ProjectSummary` objects.",
+        "operationId": "list_projects_api_projects_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Projects Api Projects Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Get Project Detail",
+        "description": "Return full detail for a single Genesis project.\n\nLocates the project by scanning the configured workspace root, then reads\nall feature vectors and events to build a\n:class:`~genesis_nav.models.schemas.ProjectDetail` response.\n\nArgs:\n    project_id: The unique project identifier (as returned by\n        ``GET /api/projects``).\n\nReturns:\n    A :class:`~genesis_nav.models.schemas.ProjectDetail` dict.\n\nRaises:\n    HTTPException: 404 if no project with ``project_id`` is found.",
+        "operationId": "get_project_detail_api_projects__project_id__get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/features/{feature_id}": {
+      "get": {
+        "tags": [
+          "features"
+        ],
+        "summary": "Get Feature Detail",
+        "description": "Return full spec detail for a single feature vector.\n\nLocates the feature by scanning active and completed feature directories,\ncombines the YAML spec data with event-derived trajectory and Hamiltonian.\n\nArgs:\n    project_id: Project identifier (from ``GET /api/projects``).\n    feature_id: Feature identifier (e.g. ``REQ-F-AUTH-001``).\n\nReturns:\n    A :class:`~genesis_nav.models.schemas.FeatureDetail` dict including\n    ``satisfies`` and ``acceptance_criteria`` fields.\n\nRaises:\n    HTTPException: 404 if project or feature not found.",
+        "operationId": "get_feature_detail_api_projects__project_id__features__feature_id__get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "feature_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Feature Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/gaps": {
+      "get": {
+        "tags": [
+          "gaps"
+        ],
+        "summary": "Get Project Gaps",
+        "description": "Return the three-layer gap analysis report for a Genesis project.\n\nScans the project for ``specification/requirements/REQUIREMENTS.md`` to\ncollect the authoritative REQ key set, then compares against code\nannotations (``# Implements:``), test annotations (``# Validates:``),\nand telemetry annotations (``req=\"...\"``).\n\nArgs:\n    project_id: The unique project identifier (as returned by\n        ``GET /api/projects``).\n\nReturns:\n    A :class:`~genesis_nav.models.schemas.GapReport` dict.\n\nRaises:\n    HTTPException: 404 if no project with ``project_id`` is found.",
+        "operationId": "get_project_gaps_api_projects__project_id__gaps_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/queue": {
+      "get": {
+        "tags": [
+          "queue"
+        ],
+        "summary": "Get Project Queue",
+        "description": "Return the ranked decision queue for a Genesis project.\n\nCombines feature vector status, event history, and gap analysis to surface\nthe most urgent next action for the practitioner.\n\nArgs:\n    project_id: The unique project identifier (as returned by\n        ``GET /api/projects``).\n\nReturns:\n    List of :class:`~genesis_nav.models.schemas.QueueItem` dicts, sorted\n    by urgency.  Returns a single \"healthy\" item when no issues are found.\n\nRaises:\n    HTTPException: 404 if no project with ``project_id`` is found.",
+        "operationId": "get_project_queue_api_projects__project_id__queue_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/runs": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "List Runs",
+        "description": "List all runs for a project.\n\nReturns the current live workspace run first, followed by archived e2e\nruns sorted newest-first.\n\nArgs:\n    project_id: Project identifier (from ``GET /api/projects``).\n\nReturns:\n    List of :class:`~genesis_nav.models.schemas.RunSummary` objects.\n\nRaises:\n    HTTPException: 404 if project not found.",
+        "operationId": "list_runs_api_projects__project_id__runs_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/runs/current": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Current Run",
+        "description": "Return the live workspace as a run summary.\n\nArgs:\n    project_id: Project identifier.\n\nReturns:\n    A :class:`~genesis_nav.models.schemas.RunSummary` with run_id='current'.\n\nRaises:\n    HTTPException: 404 if project not found.",
+        "operationId": "get_current_run_api_projects__project_id__runs_current_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Run Timeline",
+        "description": "Return the full event timeline for a specific run.\n\nEvents are grouped into segments by (feature, edge) in chronological order.\n\nArgs:\n    project_id: Project identifier.\n    run_id: 'current' for the live workspace, or an archived run directory name.\n\nReturns:\n    A :class:`~genesis_nav.models.schemas.RunTimeline` object.\n\nRaises:\n    HTTPException: 404 if project or run not found.",
+        "operationId": "get_run_timeline_api_projects__project_id__runs__run_id__get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Health",
+        "description": "Return a simple liveness probe.\n\nReturns:\n    ``{\"status\": \"ok\"}``",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ProjectState": {
+        "type": "string",
+        "enum": [
+          "ITERATING",
+          "QUIESCENT",
+          "CONVERGED",
+          "BOUNDED",
+          "uninitialized"
+        ],
+        "title": "ProjectState",
+        "description": "Lifecycle state of a Genesis project workspace."
+      },
+      "ProjectSummary": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "title": "Project Id",
+            "description": "Unique project identifier derived from directory name."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Human-readable project name (directory name)."
+          },
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "description": "Absolute filesystem path to the project root."
+          },
+          "state": {
+            "$ref": "#/components/schemas/ProjectState",
+            "description": "Computed lifecycle state."
+          },
+          "active_feature_count": {
+            "type": "integer",
+            "title": "Active Feature Count",
+            "description": "Number of YAML files in .ai-workspace/features/active/."
+          },
+          "converged_feature_count": {
+            "type": "integer",
+            "title": "Converged Feature Count",
+            "description": "Number of YAML files in .ai-workspace/features/completed/."
+          },
+          "last_event_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Event At",
+            "description": "ISO 8601 timestamp of the most recent event in events.jsonl."
+          },
+          "scan_duration_ms": {
+            "type": "number",
+            "title": "Scan Duration Ms",
+            "description": "Time taken to scan and compute this project entry, in milliseconds."
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_id",
+          "name",
+          "path",
+          "state",
+          "active_feature_count",
+          "converged_feature_count",
+          "scan_duration_ms"
+        ],
+        "title": "ProjectSummary",
+        "description": "Summary of a single Genesis project returned by GET /api/projects."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

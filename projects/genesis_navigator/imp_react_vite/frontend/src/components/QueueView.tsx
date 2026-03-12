@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
 import { LoadingConsole } from './LoadingConsole'
 import type { QueueItem } from '../api/types'
-import { ReqLink, projectSlug } from './ui/ReqLink'
+import { ReqLink } from './ui/ReqLink'
 
 const QUEUE_MESSAGES = [
   'Reading .ai-workspace/events/events.jsonl',
@@ -46,7 +46,7 @@ function QueueCard({ item, pSlug }: { item: QueueItem; pSlug: string }) {
           {item.severity}
         </span>
         {item.feature_id && (
-          <ReqLink reqKey={item.feature_id} projectSlug={pSlug} style={{ color: 'var(--text-secondary)' }} />
+          <ReqLink reqKey={item.feature_id} localProjectId={projectId} style={{ color: 'var(--text-secondary)' }} />
         )}
         {item.detail.delta !== null && (
           <span style={{ marginLeft: 'auto', fontSize: '18px', fontWeight: 700, color: item.detail.delta > 0 ? 'var(--stuck-text)' : 'var(--state-converged-text)' }}>
@@ -61,7 +61,7 @@ function QueueCard({ item, pSlug }: { item: QueueItem; pSlug: string }) {
       {item.detail.gap_keys.length > 0 && (
         <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
           {item.detail.gap_keys.slice(0, 6).map((k, i) => (
-            <span key={k}>{i > 0 && ' · '}<ReqLink reqKey={k} projectSlug={pSlug} style={{ fontSize: '11px' }} /></span>
+            <span key={k}>{i > 0 && ' · '}<ReqLink reqKey={k} localProjectId={projectId} style={{ fontSize: '11px' }} /></span>
           ))}
           {item.detail.gap_keys.length > 6 && ` +${item.detail.gap_keys.length - 6}`}
         </div>
@@ -81,7 +81,6 @@ function QueueCard({ item, pSlug }: { item: QueueItem; pSlug: string }) {
 }
 
 export function QueueView({ projectId }: { projectId: string }) {
-  const pSlug = projectSlug(projectId)
   const { data: items, isLoading, error } = useQuery({
     queryKey: ['queue', projectId],
     queryFn: () => api.getQueue(projectId),

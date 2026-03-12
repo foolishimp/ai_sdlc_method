@@ -5,11 +5,15 @@ All models are read-only projections of workspace state.
 
 # Implements: REQ-F-API-001
 # Implements: REQ-F-API-002
+# Implements: REQ-F-API-005
 # Implements: REQ-F-STAT-001
 # Implements: REQ-F-STAT-002
 # Implements: REQ-F-STAT-003
 # Implements: REQ-F-STAT-004
 # Implements: REQ-F-FEATDETAIL-001
+# Implements: REQ-F-HIST-001
+# Implements: REQ-F-HIST-002
+# Implements: REQ-F-HIST-003
 # Implements: REQ-NFR-ARCH-002
 
 from __future__ import annotations
@@ -169,6 +173,48 @@ class QueueItemDetail(BaseModel):
     iteration_history: list[int] = Field(
         default_factory=list, description="Last 3 delta values for stuck features."
     )
+
+
+# ---------------------------------------------------------------------------
+# Run History models (REQ-F-HISTENGINE-001)
+# ---------------------------------------------------------------------------
+
+
+class RunSummary(BaseModel):
+    """Summary of a single genesis run (live workspace or archived e2e run)."""
+
+    run_id: str = Field(..., description="'current' for live workspace; directory name for archived runs.")
+    timestamp: Optional[str] = Field(None, description="ISO 8601 timestamp of first event in run.")
+    event_count: int = Field(..., description="Total number of events in the run.")
+    edges_traversed: int = Field(..., description="Count of unique feature+edge pairs that converged.")
+    final_state: str = Field(..., description="Computed project state at end of run.")
+    is_current: bool = Field(..., description="True for the live workspace run.")
+
+
+class RunEvent(BaseModel):
+    """A single event from a run's event stream."""
+
+    event_type: str = Field(..., description="Event type (e.g. 'edge_started', 'iteration_completed').")
+    timestamp: Optional[str] = Field(None, description="ISO 8601 timestamp.")
+    feature: Optional[str] = Field(None, description="Associated feature ID, if any.")
+    edge: Optional[str] = Field(None, description="Associated edge, if any.")
+    data: dict[str, Any] = Field(default_factory=dict, description="Remaining event fields.")
+
+
+class RunSegment(BaseModel):
+    """A group of events sharing the same feature+edge context."""
+
+    feature: Optional[str] = Field(None, description="Feature ID for this segment, or None for project-level events.")
+    edge: Optional[str] = Field(None, description="Edge for this segment, or None.")
+    events: list[RunEvent] = Field(default_factory=list, description="Events in this segment, chronological.")
+
+
+class RunTimeline(BaseModel):
+    """Full event timeline for a run, grouped into feature+edge segments."""
+
+    run_id: str = Field(..., description="Run identifier.")
+    event_count: int = Field(..., description="Total events in this run.")
+    segments: list[RunSegment] = Field(default_factory=list, description="Events grouped by feature+edge.")
 
 
 class QueueItem(BaseModel):

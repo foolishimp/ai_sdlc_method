@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from genesis_nav.routers import detail as detail_router
 from genesis_nav.routers import feature as feature_router
 from genesis_nav.routers import gaps as gaps_router
+from genesis_nav.routers import history as history_router
 from genesis_nav.routers import projects as projects_router
 from genesis_nav.routers import queue as queue_router
 
@@ -77,6 +78,8 @@ def create_app() -> FastAPI:
     application.include_router(feature_router.router)
     application.include_router(gaps_router.router)
     application.include_router(queue_router.router)
+    # history router: /runs/current must be registered before /runs/{run_id}
+    application.include_router(history_router.router)
 
     @application.get("/health", tags=["meta"])
     def health() -> dict[str, str]:

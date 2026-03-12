@@ -1,0 +1,28 @@
+proposal_id: "PROP-002"
+intent_id: "INT-GAPS-002"
+status: draft
+severity: high
+created: "2026-03-12T02:00:05Z"
+source: gap_analysis
+
+title: "Performance test — REQ-NFR-PERF-001 scan < 2000ms for 200 projects"
+description: |
+  REQ-NFR-PERF-001 is critical-priority: project scan must complete under 2000ms
+  for 200 projects. Currently zero test coverage. A backend pytest fixture should
+  create 200 minimal fake project directories, invoke the scanner, and assert
+  elapsed time < 2000ms. This is a fast deterministic test (no IO bottleneck at scale).
+
+affected_req_keys:
+  - REQ-NFR-PERF-001
+
+suggested_vector:
+  feature: "REQ-F-SCANNER-001"
+  title: "Scanner Performance Test"
+  vector_type: feature
+  profile: hotfix
+  requirements:
+    - REQ-NFR-PERF-001
+
+review_instructions: |
+  Approve: /gen-review-proposal --approve PROP-002
+  Dismiss: /gen-review-proposal --dismiss PROP-002 --reason "<reason>"

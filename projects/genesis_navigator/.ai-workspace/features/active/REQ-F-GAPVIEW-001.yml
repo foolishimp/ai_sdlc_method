@@ -1,37 +1,32 @@
-feature:
-  id: REQ-F-GAPVIEW-001
-  title: "Gap View — Traceability Gap Display"
-  intent: INT-001
-  vector_type: feature
-  profile: standard
-  status: converged
-  priority: high
-
+feature: REQ-F-GAPVIEW-001
+title: Gap View — Traceability Gap Display
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+priority: high
 satisfies:
-  - REQ-F-GAP-001
-  - REQ-F-GAP-002
-  - REQ-F-GAP-003
-  - REQ-F-GAP-004
-
+- REQ-F-GAP-001
+- REQ-F-GAP-002
+- REQ-F-GAP-003
+- REQ-F-GAP-004
 trajectory:
   design_code:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T09:00:00Z"
-    converged_at: "2026-03-12T10:00:00Z"
+    started_at: '2026-03-12T09:00:00Z'
+    converged_at: '2026-03-12T10:00:00Z'
   code_unit_tests:
     status: converged
     iteration: 1
-    started_at: "2026-03-12T10:00:00Z"
-    converged_at: "2026-03-12T11:00:00Z"
-
+    started_at: '2026-03-12T10:00:00Z'
+    converged_at: '2026-03-12T11:00:00Z'
 constraints:
   acceptance_criteria:
-    - "Layer 1/2/3 gap results displayed with PASS/FAIL/ADVISORY badges"
-    - "Gap table shows REQ key, severity, description per layer"
-    - "Summary counts (total REQ keys, covered, gaps) visible"
-    - "Empty state when no gaps in a layer"
-
+  - Layer 1/2/3 gap results displayed with PASS/FAIL/ADVISORY badges
+  - Gap table shows REQ key, severity, description per layer
+  - Summary counts (total REQ keys, covered, gaps) visible
+  - Empty state when no gaps in a layer
 functor:
   strategy: balanced
   mode: interactive

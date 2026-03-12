@@ -1,18 +1,16 @@
-// Implements: REQ-F-API-001, REQ-F-API-002, REQ-F-API-003, REQ-F-API-004, REQ-F-FEATDETAIL-001
+// Implements: REQ-F-API-001, REQ-F-API-002, REQ-F-API-003, REQ-F-API-004, REQ-F-FEATDETAIL-001, REQ-F-HIST-001, REQ-F-HIST-002
 
 export type ProjectState = 'ITERATING' | 'QUIESCENT' | 'CONVERGED' | 'BOUNDED'
 
 export interface ProjectSummary {
   project_id: string
   name: string
-  root_path: string
+  path: string
   state: ProjectState
-  feature_count: number
-  converged_count: number
-  iterating_count: number
-  blocked_count: number
-  event_count: number
+  active_feature_count: number
+  converged_feature_count: number
   last_event_at: string | null
+  scan_duration_ms: number
 }
 
 export interface EdgeTrajectory {
@@ -49,7 +47,8 @@ export interface ProjectDetail {
   name: string
   state: ProjectState
   features: FeatureDetail[]
-  last_event_at: string | null
+  total_edges: number
+  converged_edges: number
 }
 
 export interface BackendGapItem {
@@ -92,4 +91,35 @@ export interface QueueItem {
   description: string
   command: string
   detail: QueueItemDetail
+}
+
+export type RunFinalState = 'ITERATING' | 'CONVERGED' | 'UNINITIALIZED'
+
+export interface RunSummary {
+  run_id: string
+  timestamp: string | null
+  event_count: number
+  edges_traversed: number
+  final_state: RunFinalState
+  is_current: boolean
+}
+
+export interface RunEvent {
+  event_type: string
+  timestamp: string | null
+  feature: string | null
+  edge: string | null
+  data: Record<string, unknown>
+}
+
+export interface RunSegment {
+  feature: string | null
+  edge: string | null
+  events: RunEvent[]
+}
+
+export interface RunTimeline {
+  run_id: string
+  event_count: number
+  segments: RunSegment[]
 }

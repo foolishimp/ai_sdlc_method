@@ -45,11 +45,11 @@ function ProjectRow({ project, onClick }: { project: ProjectSummary; onClick: ()
       <div>
         <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '2px' }}>{project.name}</div>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-          {project.root_path}
+          {project.path}
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{project.feature_count}</div>
+        <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{project.active_feature_count}</div>
         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>features</div>
       </div>
       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>

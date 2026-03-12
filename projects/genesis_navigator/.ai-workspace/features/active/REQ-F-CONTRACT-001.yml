@@ -1,32 +1,38 @@
-feature:
-  id: REQ-F-CONTRACT-001
-  title: "API Contract Tests — TypeScript Types vs OpenAPI Schema"
-  intent: INT-001
-  vector_type: feature
-  profile: standard
-  status: pending
-  priority: high
-
+feature: REQ-F-CONTRACT-001
+title: API Contract Tests — TypeScript Types vs OpenAPI Schema
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+priority: high
 satisfies:
-  - REQ-NFR-CONTRACT-001
-  - REQ-NFR-ARCH-001
-
+- REQ-NFR-CONTRACT-001
+- REQ-NFR-ARCH-001
 trajectory:
   design_code:
-    status: pending
+    status: converged
+    iteration: 1
+    started_at: '2026-03-12T01:30:00Z'
+    converged_at: '2026-03-12T01:40:00Z'
+    evaluators: 6/6
+    asset: imp_react_vite/frontend/src/api/__tests__/api-contract.test.ts
   code_unit_tests:
-    status: pending
-
+    status: converged
+    iteration: 1
+    started_at: '2026-03-12T01:41:00Z'
+    converged_at: '2026-03-12T01:42:00Z'
+    evaluators: 5/5
+    asset: imp_react_vite/frontend/src/api/__tests__/api-contract.test.ts
 constraints:
   acceptance_criteria:
-    - "imp_react_vite/frontend/src/api/__tests__/api-contract.test.ts exists and passes"
-    - "Test validates all TypeScript interfaces in types.ts against openapi-snapshot.json"
-    - "openapi-snapshot.json committed at imp_react_vite/frontend/src/api/openapi-snapshot.json"
-    - "npm run update-api-snapshot regenerates openapi-snapshot.json from live backend"
-    - "Contract test failures show human-readable field-level diffs"
-    - "Test runs with npm test (vitest) without requiring running backend"
-    - "Snapshot covers: ProjectSummary, ProjectDetail, FeatureDetail, GapReport, QueueItem, Hamiltonian"
-
+  - imp_react_vite/frontend/src/api/__tests__/api-contract.test.ts exists and passes
+  - Test validates all TypeScript interfaces in types.ts against openapi-snapshot.json
+  - openapi-snapshot.json committed at imp_react_vite/frontend/src/api/openapi-snapshot.json
+  - npm run update-api-snapshot regenerates openapi-snapshot.json from live backend
+  - Contract test failures show human-readable field-level diffs
+  - Test runs with npm test (vitest) without requiring running backend
+  - 'Snapshot covers: ProjectSummary, ProjectDetail, FeatureDetail, GapReport, QueueItem,
+    Hamiltonian'
 functor:
   strategy: balanced
   mode: interactive

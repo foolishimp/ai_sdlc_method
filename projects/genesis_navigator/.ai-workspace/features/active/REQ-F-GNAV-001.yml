@@ -1,87 +1,82 @@
-feature:
-  id: REQ-F-GNAV-001
-  title: "Genesis Navigator Application"
-  intent: INT-001
-  vector_type: feature
-  profile: standard
-  status: converged
-  priority: critical
-
+feature: REQ-F-GNAV-001
+title: Genesis Navigator Application
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+priority: critical
 satisfies:
-  - REQ-F-NAV-001
-  - REQ-F-NAV-002
-  - REQ-F-NAV-003
-  - REQ-F-NAV-004
-  - REQ-F-STAT-001
-  - REQ-F-STAT-002
-  - REQ-F-STAT-003
-  - REQ-F-STAT-004
-  - REQ-F-GAP-001
-  - REQ-F-GAP-002
-  - REQ-F-GAP-003
-  - REQ-F-GAP-004
-  - REQ-F-QUEUE-001
-  - REQ-F-QUEUE-002
-  - REQ-F-QUEUE-003
-  - REQ-F-HIST-001
-  - REQ-F-HIST-002
-  - REQ-F-HIST-003
-  - REQ-F-API-001
-  - REQ-F-API-002
-  - REQ-F-API-003
-  - REQ-F-API-004
-  - REQ-F-API-005
-  - REQ-NFR-PERF-001
-  - REQ-NFR-PERF-002
-  - REQ-NFR-UX-001
-  - REQ-NFR-UX-002
-  - REQ-NFR-ARCH-001
-  - REQ-NFR-ARCH-002
-  - REQ-BR-001
-  - REQ-BR-002
-  - REQ-BR-003
-
+- REQ-F-NAV-001
+- REQ-F-NAV-002
+- REQ-F-NAV-003
+- REQ-F-NAV-004
+- REQ-F-STAT-001
+- REQ-F-STAT-002
+- REQ-F-STAT-003
+- REQ-F-STAT-004
+- REQ-F-GAP-001
+- REQ-F-GAP-002
+- REQ-F-GAP-003
+- REQ-F-GAP-004
+- REQ-F-QUEUE-001
+- REQ-F-QUEUE-002
+- REQ-F-QUEUE-003
+- REQ-F-HIST-001
+- REQ-F-HIST-002
+- REQ-F-HIST-003
+- REQ-F-API-001
+- REQ-F-API-002
+- REQ-F-API-003
+- REQ-F-API-004
+- REQ-F-API-005
+- REQ-NFR-PERF-001
+- REQ-NFR-PERF-002
+- REQ-NFR-UX-001
+- REQ-NFR-UX-002
+- REQ-NFR-ARCH-001
+- REQ-NFR-ARCH-002
+- REQ-BR-001
+- REQ-BR-002
+- REQ-BR-003
 trajectory:
   intent_requirements:
     status: converged
     iteration: 1
     delta: 0
-    started_at: "2026-03-12T00:00:00Z"
-    converged_at: "2026-03-12T00:00:00Z"
-    asset: "specification/requirements/REQUIREMENTS.md"
+    started_at: '2026-03-12T00:00:00Z'
+    converged_at: '2026-03-12T00:00:00Z'
+    asset: specification/requirements/REQUIREMENTS.md
   requirements_feature_decomposition:
     status: converged
     iteration: 1
     delta: 0
-    started_at: "2026-03-12T06:05:00Z"
-    converged_at: "2026-03-12T06:10:00Z"
-    asset: "specification/features/FEATURE_VECTORS.md"
+    started_at: '2026-03-12T06:05:00Z'
+    converged_at: '2026-03-12T06:10:00Z'
+    asset: specification/features/FEATURE_VECTORS.md
   requirements_design:
     status: converged
     iteration: 1
     delta: 0
-    started_at: "2026-03-12T06:11:00Z"
-    converged_at: "2026-03-12T09:00:00Z"
-    asset: "imp_react_vite/design/DESIGN.md"
+    started_at: '2026-03-12T06:11:00Z'
+    converged_at: '2026-03-12T09:00:00Z'
+    asset: imp_react_vite/design/DESIGN.md
   design_code:
     status: converged
     iteration: 1
     delta: 0
-    converged_at: "2026-03-12T11:00:00Z"
+    converged_at: '2026-03-12T11:00:00Z'
   code_unit_tests:
     status: converged
     iteration: 1
     delta: 0
-    converged_at: "2026-03-12T12:00:00Z"
-
+    converged_at: '2026-03-12T12:00:00Z'
 constraints:
   acceptance_criteria:
-    - "GET /api/projects responds within 2000ms for 200 projects"
-    - "GET /api/projects/{id} responds within 1000ms"
-    - "All REQ keys discoverable from specification/requirements/REQUIREMENTS.md"
-    - "Backend handler tests confirm zero filesystem writes"
-    - "Frontend builds against mock API satisfying OpenAPI schema"
-
+  - GET /api/projects responds within 2000ms for 200 projects
+  - GET /api/projects/{id} responds within 1000ms
+  - All REQ keys discoverable from specification/requirements/REQUIREMENTS.md
+  - Backend handler tests confirm zero filesystem writes
+  - Frontend builds against mock API satisfying OpenAPI schema
 functor:
   strategy: balanced
   mode: interactive

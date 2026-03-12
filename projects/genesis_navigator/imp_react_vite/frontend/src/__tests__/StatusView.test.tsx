@@ -1,6 +1,7 @@
 // Validates: REQ-F-STAT-001, REQ-F-STAT-002, REQ-F-STAT-003, REQ-F-STAT-004
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
+import { MemoryRouter } from 'react-router'
 import { StatusView } from '../components/StatusView'
 import type { ProjectDetail } from '../api/types'
 
@@ -23,39 +24,39 @@ const mockProject: ProjectDetail = {
       error: null,
     },
   ],
-  last_event_at: '2026-03-12T10:00:00Z',
+  total_edges: 10,
+  converged_edges: 7,
 }
 
 describe('StatusView', () => {
   it('renders project state', () => {
-    render(<StatusView project={mockProject} projectId="proj-1" />)
+    render(<MemoryRouter><StatusView project={mockProject} projectId="proj-1" /></MemoryRouter>)
     expect(screen.getByTestId('status-view')).toBeInTheDocument()
     expect(screen.getByText('ITERATING')).toBeInTheDocument()
   })
 
   it('renders feature trajectory', () => {
-    render(<StatusView project={mockProject} projectId="proj-1" />)
+    render(<MemoryRouter><StatusView project={mockProject} projectId="proj-1" /></MemoryRouter>)
     expect(screen.getByRole('link', { name: 'REQ-F-TEST-001' })).toBeInTheDocument()
     expect(screen.getByText(/design_code/)).toBeInTheDocument()
     expect(screen.getByText(/code_unit_tests/)).toBeInTheDocument()
   })
 
   it('renders Hamiltonian values', () => {
-    render(<StatusView project={mockProject} projectId="proj-1" />)
+    render(<MemoryRouter><StatusView project={mockProject} projectId="proj-1" /></MemoryRouter>)
     expect(screen.getByText(/H=6/)).toBeInTheDocument()
     expect(screen.getByText(/T=3/)).toBeInTheDocument()
     expect(screen.getByText(/V=3/)).toBeInTheDocument()
   })
 
   it('shows empty state when no features', () => {
-    render(<StatusView project={{ ...mockProject, features: [] }} projectId="proj-1" />)
+    render(<MemoryRouter><StatusView project={{ ...mockProject, features: [] }} projectId="proj-1" /></MemoryRouter>)
     expect(screen.getByText('No feature vectors found.')).toBeInTheDocument()
   })
 
-  it('renders feature_id as a clickable link', () => {
-    render(<StatusView project={mockProject} projectId="proj-1" />)
+  it('renders feature_id as a link to the feature detail page', () => {
+    render(<MemoryRouter><StatusView project={mockProject} projectId="proj-1" /></MemoryRouter>)
     const link = screen.getByRole('link', { name: 'REQ-F-TEST-001' })
-    expect(link).toHaveAttribute('href', 'http://localhost:8000/project/proj-1/feature/REQ-F-TEST-001')
-    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('href', '/projects/proj-1/features/REQ-F-TEST-001')
   })
 })

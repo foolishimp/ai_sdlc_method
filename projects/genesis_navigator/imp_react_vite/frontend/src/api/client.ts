@@ -1,5 +1,5 @@
-// Implements: REQ-F-API-001, REQ-F-API-002, REQ-F-API-003, REQ-F-API-004, REQ-F-FEATDETAIL-001
-import type { ProjectSummary, ProjectDetail, FeatureDetail, GapReport, QueueItem } from './types'
+// Implements: REQ-F-API-001, REQ-F-API-002, REQ-F-API-003, REQ-F-API-004, REQ-F-FEATDETAIL-001, REQ-F-HIST-001, REQ-F-HIST-002, REQ-F-API-005
+import type { ProjectSummary, ProjectDetail, FeatureDetail, GapReport, QueueItem, RunSummary, RunTimeline } from './types'
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url)
@@ -25,5 +25,13 @@ export const api = {
   getFeature: (projectId: string, featureId: string): Promise<FeatureDetail> =>
     fetchJson<FeatureDetail>(
       `/api/projects/${encodeURIComponent(projectId)}/features/${encodeURIComponent(featureId)}`
+    ),
+
+  listRuns: (projectId: string): Promise<RunSummary[]> =>
+    fetchJson<RunSummary[]>(`/api/projects/${encodeURIComponent(projectId)}/runs`),
+
+  getRunTimeline: (projectId: string, runId: string): Promise<RunTimeline> =>
+    fetchJson<RunTimeline>(
+      `/api/projects/${encodeURIComponent(projectId)}/runs/${encodeURIComponent(runId)}`
     ),
 }

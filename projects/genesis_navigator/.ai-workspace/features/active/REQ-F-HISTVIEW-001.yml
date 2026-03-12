@@ -1,32 +1,38 @@
-feature:
-  id: REQ-F-HISTVIEW-001
-  title: "Session History Frontend — Run List and Timeline View"
-  intent: INT-001
-  vector_type: feature
-  profile: standard
-  status: pending
-  priority: medium
-
+feature: REQ-F-HISTVIEW-001
+title: Session History Frontend — Run List and Timeline View
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+priority: medium
 satisfies:
-  - REQ-F-HIST-001
-  - REQ-F-HIST-002
-
+- REQ-F-HIST-001
+- REQ-F-HIST-002
 trajectory:
   design_code:
-    status: pending
+    status: converged
+    iteration: 1
+    started_at: '2026-03-12T01:10:00Z'
+    converged_at: '2026-03-12T01:20:00Z'
+    evaluators: 6/6
+    asset: imp_react_vite/frontend/src/components/HistoryView.tsx
   code_unit_tests:
-    status: pending
-
+    status: converged
+    iteration: 1
+    started_at: '2026-03-12T01:21:00Z'
+    converged_at: '2026-03-12T01:22:00Z'
+    evaluators: 5/5
+    asset: imp_react_vite/frontend/src/__tests__/HistoryView.test.tsx
 constraints:
   acceptance_criteria:
-    - "History tab in project detail view shows list of runs sorted newest-first"
-    - "'Current Session' run appears first and is visually distinguished"
-    - "Each run card shows: run_id, timestamp, event_count, edges_traversed, final_state badge"
-    - "Selecting a run shows chronological event timeline grouped by feature then edge"
-    - "edge_started / iteration_completed / edge_converged events visually distinguished"
-    - "Empty state shown when no runs available"
-    - "Uses LoadingConsole for slow API calls"
-
+  - History tab in project detail view shows list of runs sorted newest-first
+  - '''Current Session'' run appears first and is visually distinguished'
+  - 'Each run card shows: run_id, timestamp, event_count, edges_traversed, final_state
+    badge'
+  - Selecting a run shows chronological event timeline grouped by feature then edge
+  - edge_started / iteration_completed / edge_converged events visually distinguished
+  - Empty state shown when no runs available
+  - Uses LoadingConsole for slow API calls
 functor:
   strategy: balanced
   mode: interactive
