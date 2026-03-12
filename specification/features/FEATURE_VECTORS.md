@@ -1,7 +1,7 @@
 # AI SDLC — Project Genesis: Feature Vector Decomposition
 
-**Version**: 1.9.0
-**Date**: 2026-03-05
+**Version**: 1.10.0
+**Date**: 2026-03-13
 **Derived From**: [AISDLC_IMPLEMENTATION_REQUIREMENTS.md](../requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md) (v3.13.0)
 **Method**: Asset Graph Model §6.4 (Task Planning as Trajectory Optimisation)
 
@@ -315,6 +315,38 @@ feature+edge traversal.
 **Phase**: 2
 
 **Dependencies**: REQ-F-ENGINE-001.|code⟩, REQ-F-EVENT-001.|code⟩, REQ-F-TRACE-001.|code⟩, REQ-F-FP-001.|design⟩
+
+---
+
+### REQ-F-RUNTIME-001: Typed Outcome Algebra for the Dispatch Path
+
+Typed sum types for every control-flow boundary in the dispatch path, eliminating
+exception-as-control-flow and ambiguous sentinel values. Identified as architectural
+debt in the Codex functional kernel review (INT-026, 2026-03-13).
+
+**Satisfies**: REQ-F-DISPATCH-001 (typed outcome refinement), ADR-S-024 (invocation
+contract), ADR-S-032 (EDGE_RUNNER dispatch contract — typed result boundaries)
+
+**Trajectory**: |req⟩ → |design⟩ → |code⟩ ↔ |tests⟩
+
+**What converges**:
+- `FdOutcome = FdPassed | FdFailed | FdError`: `_run_fd_evaluation()` returns typed
+  outcome; exception paths set `evaluator_error`, not `delta` — Gap 1
+- `FpOutcome = FpSkipped | FpPending | FpReturned | FpFailed`: `FpFunctor.invoke()`
+  always returns `FpOutcome`, never raises — Gap 2
+- `IterationCompleted` carries only iteration data; `intent_raised` is the sole
+  authoritative F_H gate signal — Gap 3
+- `DispatchTarget.intent_events: list[dict]` retains all contributing intents;
+  `edge_started` carries `handled_intent_ids`; idempotency from list membership — Gap 4
+- `_compute_quiescence()`: 3-state check (pending + parked fp_dispatched + unresolved fh)
+  — Gap 5
+- `IntentEvent` typed dataclass at intake boundary (replaces raw event dicts) — Gap 6
+
+**Phase**: 2
+
+**Dependencies**: REQ-F-DISPATCH-001.|code⟩ (typed outcomes refine the dispatch path)
+
+**Child of**: REQ-F-DISPATCH-001 (spawned 2026-03-13 via INT-026)
 
 ---
 
@@ -686,11 +718,12 @@ Implement a shared discovery pass over workspace metadata (events.jsonl, feature
 | REQ-F-EVOL-001 | 5 | 1+2 | LIFE, EVENT, TOOL |
 | REQ-F-FP-001 | 4 | 2 | ENGINE, EVAL |
 | REQ-F-DISPATCH-001 | 1 | 2 | ENGINE, EVENT, TRACE, FP |
+| REQ-F-RUNTIME-001 | 7 gaps | 2 | DISPATCH |
 | REQ-F-INTENT-001 | 3 | 2 | ENGINE, LIFE |
 | REQ-F-TELEM-001 | ~85 | 3 | ALL |
 | REQ-F-TOOL-015 | 1 | 1c | TOOL |
 | REQ-F-EVOL-NFR-002 | 1 | 1b | EVOL |
 | REQ-F-ANAL-001 | 6 | 2 | ENGINE, EVENT, TOOL |
-| **Total** | **93+** | | |
+| **Total** | **100+** | | |
 
-21 feature vectors. Full coverage. Critical path: ENGINE design.
+22 feature vectors. Full coverage. Critical path: ENGINE design.

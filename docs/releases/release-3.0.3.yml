@@ -1,0 +1,82 @@
+version: "3.0.3"
+date: "2026-03-13"
+codename: "Typed Outcome Algebra"
+context_hash: "sha256:7626ad9cfbe7c80d5721255ab6859570180f9aa207cf3bf490c43ccc322c889d"
+
+milestone: |
+  v3.0.3 completes the typed outcome algebra across the entire dispatch path.
+  All infrastructure failure modes are now distinguishable from domain work:
+  FdOutcome/FpOutcome sum types replace exception-as-control-flow throughout.
+  All 34 active feature vectors are converged. 89/89 REQ keys covered.
+
+features_included:
+  REQ-F-RUNTIME-001:
+    title: "Typed Outcome Algebra for the Dispatch Path"
+    status: converged
+    notes: |
+      6 dispatch path gaps closed (Gap 7 deferred to daemon mode):
+      - Gap 1: FdOutcome sum type — evaluator_error distinct from delta
+      - Gap 2: FpOutcome sum type — FpSkipped|FpPending|FpReturned|FpFailed
+      - Gap 3: IterationCompleted = pure observation; intent_raised is sole F_H signal
+      - Gap 4: DispatchTarget.intent_events list + handled_intent_ids idempotency
+      - Gap 5: _compute_quiescence() — 3-state (pending + parked + unresolved fh)
+      - Gap 6: IntentEvent typed dataclass at intake boundary
+  REQ-F-UX-002:
+    title: "Natural Language Intent Dispatch (/gen-genesis)"
+    status: converged
+    notes: |
+      /gen-genesis command — session bootstrap + NL intent routing.
+      ADR-S-038 (Natural Language Intent Dispatch) ratified.
+      NL utterances route to named compositions via dispatch table.
+  REQ-F-SENSE-002:
+    title: "INTRO-008 Health Wiring (Codex Findings 1-4)"
+    status: converged
+    notes: |
+      ADR-S-037 (Projection Authority + Convergence Evidence) fully implemented.
+      convergence_evidence_present evaluator enforces that convergence claims
+      carry produced_asset_ref — traceability chain cannot be broken silently.
+  REQ-F-ANAL-001:
+    title: "Workspace Analysis"
+    status: converged
+    notes: |
+      WorkspaceAsset typed asset, build_workspace_asset, run_workspace_analysis.
+      4 F_D evaluators: spec_workspace_aligned, no_orphan_vectors,
+      no_stale_vectors, event_log_complete. 38 tests.
+
+changelog:
+  features:
+    - "REQ-F-RUNTIME-001: FdOutcome/FpOutcome sum types — infrastructure failure distinct from domain delta"
+    - "REQ-F-RUNTIME-001: DispatchTarget.intent_events multi-intent idempotency"
+    - "REQ-F-RUNTIME-001: _compute_quiescence() 3-state check (Gaps 1-6)"
+    - "REQ-F-UX-002: /gen-genesis NL intent dispatch — ADR-S-038"
+    - "REQ-F-SENSE-002: convergence_evidence_present evaluator — ADR-S-037"
+    - "REQ-F-ANAL-001: WorkspaceAsset + workspace analysis edge"
+  improvements:
+    - "engine.py: FpOutcome pattern matching replaces exception-as-control-flow"
+    - "intent_observer.py: IntentEvent typed dataclass at intake boundary"
+    - "dispatch_loop.py: quiescence derivation corrected to workspace property"
+    - "FEATURE_VECTORS.md: REQ-F-RUNTIME-001 registered (v1.10.0), 22 vectors"
+  fixes:
+    - "Codex findings 1-4: INTRO-008 sensory layer contract enforced"
+
+coverage:
+  features_active: 34
+  features_converged: 34
+  features_pending: 0
+  features_orphan: 0
+  spec_req_keys: 89
+  code_tagged: 89
+  test_tagged: 89
+  coverage_pct_l1: 100
+  coverage_pct_l2: 100
+  coverage_pct_l3: "advisory (code→cicd not started)"
+  test_count_lane1_approx: 1550
+  test_count_lane2_e2e: 34
+  event_log_total: 1602
+
+known_gaps:
+  - "REQ-F-TELEM-001: req= telemetry tags — engine paths unobserved (code→cicd not started)"
+  - "REQ-F-RUNTIME-001 Gap 7: dispatch_monitor cursor-based replay (deferred to daemon mode)"
+  - "PROP-018: REQ-UX-008 test coverage — 1 draft proposal pending review"
+
+spec_version: "FEATURE_VECTORS.md v1.10.0 (22 vectors)"

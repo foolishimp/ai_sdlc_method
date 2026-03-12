@@ -29,3 +29,11 @@ trajectory:
     status: converged
     converged_at: "2026-03-11T06:00:00Z"
     notes: "55 tests in test_intent_observer.py (33) + test_edge_runner.py (22), all pass"
+
+children:
+  - feature: "REQ-F-RUNTIME-001"
+    vector_type: feature
+    status: in_progress
+    fold_back_status: pending
+    fold_back_payload: ""
+    reason: "Typed outcome algebra for dispatch path — evaluator_error, FpOutcome sum type, single F_H event"
