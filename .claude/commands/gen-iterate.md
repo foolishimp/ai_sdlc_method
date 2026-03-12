@@ -6,6 +6,39 @@ Run one iteration of `iterate(Asset, Context[], Evaluators)` on a specific graph
 
 <!-- Implements: REQ-UX-004 (Automatic Feature and Edge Selection) -->
 
+## Execution Model
+
+This is an **agent instruction set**, not a user command. Users invoke `/gen-start`; this document governs how the agent orchestrates the iterate function internally.
+
+Two real entry points exist in practice:
+
+**1. Shell script / CI (no LLM)**
+```bash
+PYTHONPATH=.genesis python -m genesis evaluate \
+  --edge "requirements→design" \
+  --asset REQUIREMENTS.md \
+  --feature "REQ-F-AUTH-001" \
+  --deterministic-only
+```
+Pure F_D gate. Fast, free, reproducible. No LLM involved.
+
+**2. Claude CLI → Python engine → MCP (interactive / full loop)**
+```
+Claude Code session (reads this instruction set)
+  └→ Bash tool: python -m genesis evaluate/run-edge   ← F_D deterministic gate
+       └→ delta=0: edge converged — done
+       └→ delta>0, needs construction:
+            engine writes fp_intent_{run_id}.json, raises FpActorResultMissing
+            └→ Claude reads manifest, calls mcp__claude-code-runner__claude_code   ← F_P actor
+                 actor writes fp_result_{run_id}.json (fold-back result)
+            └→ Bash tool: python -m genesis evaluate (iteration N+1)   ← F_D re-evaluates
+                 └→ delta=0: converged
+```
+
+The Python engine is the **F_D judge** — it determines convergence. It cannot call MCP. It signals the need for F_P construction by writing a manifest file and raising `FpActorResultMissing`. The Claude layer reads the manifest and dispatches the F_P actor via MCP. The engine re-evaluates the fold-back result on the next Bash call.
+
+**Context establishment**: Before calling the engine, the agent reads the workspace (events.jsonl, feature vectors, existing documents) to determine the correct `--edge`, `--feature`, and `--asset` parameters. The engine call is fully parameterised — the agent does the routing, the engine does the evaluation.
+
 ## Auto-selection from Context
 
 When `/gen-iterate` is invoked **without** `--edge` or `--feature` arguments, the command automatically detects the current feature and the appropriate next edge from the workspace state. This eliminates the need to remember or type feature IDs and edge names during active iteration.
@@ -80,7 +113,7 @@ If the user provides `--feature` but not `--edge` (or vice versa), auto-select o
 ## Usage
 
 ```
-/gen-iterate [--edge "{source}→{target}"] [--feature "REQ-F-{DOMAIN}-{SEQ}"] [--mode {interactive|engine|auto}] [--profile {name}]
+/gen-iterate [--edge "{source}→{target}"] [--feature "REQ-F-{DOMAIN}-{SEQ}"] [--mode {interactive|engine|auto}] [--profile {name}] [--asset "path/to/file"]
 ```
 
 | Option | Description |
@@ -89,6 +122,7 @@ If the user provides `--feature` but not `--edge` (or vice versa), auto-select o
 | `--feature` | The feature vector (REQ-F-*) being worked on |
 | `--mode` | Execution mode: `interactive` (LLM agent, default), `engine` (F_D deterministic CLI), `auto` (engine for deterministic edges, interactive otherwise) |
 | `--profile` | Projection profile to use (full, standard, poc, spike, hotfix, minimal). Overrides feature vector's profile if set. |
+| `--asset` | Inject an existing document as the iteration 1 candidate. Skips construction from scratch — Genesis evaluates and improves this document instead. |
 
 **Deterministic edges** (engine mode applies): `code↔unit_tests`, `design→test_cases`, `design→uat_tests`
 
@@ -100,10 +134,30 @@ This command is the primary workflow action. It invokes the iterate agent on a s
 
 Determine the execution mode from `--mode` (default: `interactive`):
 
+**Asset injection** (`--asset` supplied):
+
+When `--asset` is provided, the specified file is the iteration 1 candidate. The command does NOT construct a new candidate from scratch — it evaluates and improves the supplied document.
+
+- **`engine` mode** + `--asset`: passes `--asset {file}` directly to the engine CLI. The engine evaluates the existing document against the edge checklist.
+- **`interactive` mode** + `--asset`: the LLM agent receives the file content as the current candidate (not a blank slate). It evaluates and iterates on the document rather than generating a new one.
+- **`auto` mode** + `--asset`: uses `engine` mode for deterministic edges, `interactive` for others — both receive the injected asset.
+
+**Two-pass pattern for pre-existing documents:**
+```
+Pass 1: evaluate only (--deterministic-only)
+  → If converged: edge complete, no further iteration needed
+  → If delta>0:   shows which checks fail
+
+Pass 2: iterate from failing state
+  → F_P constructs fixes to the document
+  → F_D re-evaluates
+  → Loop until converged
+```
+
 **`engine` mode** — F_D deterministic gate + optional F_P actor dispatch loop:
 
 **Phase A: F_D evaluation (always runs first)**
-1. Locate the primary asset for the feature+edge (from the feature vector trajectory, or ask the user)
+1. Locate the primary asset for the feature+edge (from `--asset` if supplied, otherwise from the feature vector trajectory, or ask the user)
 2. Run via Bash:
    ```bash
    PYTHONPATH={plugin_root}/code python -m genesis evaluate \

@@ -1,5 +1,6 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-COORD-002 (Feature Assignment via Events)
 # Implements: REQ-EDGE-004 (Code Tagging), REQ-LIFE-006 (Signal Source Classification)
+# Implements: REQ-SENSE-001 (Interoceptive Monitoring — convergence_evidence_present INTRO-008)
 """F_D classify — deterministic classification of REQ tags, source findings, signals."""
 
 import re
@@ -9,6 +10,18 @@ from .models import ClassificationResult
 _REQ_TAG_PATTERN = re.compile(r"(Implements|Validates):\s*REQ-[A-Z]+(?:-[A-Z]+)*-\d+")
 
 _REQ_KEY_PATTERN = re.compile(r"REQ-[A-Z]+(?:-[A-Z]+)*-\d+")
+
+# REQ-LIFE-006: canonical signal source types (8 types including ADR-S-037 addition)
+KNOWN_SIGNAL_SOURCES = {
+    "gap",                        # traceability validation
+    "test_failure",               # stuck delta or test revealing upstream deficiency
+    "refactoring",                # structural debt beyond current scope
+    "source_finding",             # backward gap detection escalation
+    "process_gap",                # inward gap detection — methodology deficiency
+    "runtime_feedback",           # production telemetry deviation
+    "ecosystem",                  # external change
+    "convergence_without_evidence",  # workspace convergence claim not backed by event stream (ADR-S-037)
+}
 
 # Keyword sets for source finding classification
 _AMBIGUITY_KEYWORDS = {
@@ -190,6 +203,9 @@ def classify_signal_source(event: dict) -> str:
         "compensation_completed": "convergence",
         # Health
         "health_checked": "health",
+        # NL dispatch (REQ-UX-008, ADR-S-038)
+        "intent_routed": "routing",
+        "session_bootstrap": "lifecycle",
     }
 
     if event_type:

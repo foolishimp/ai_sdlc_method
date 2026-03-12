@@ -49,17 +49,23 @@ def _find_constraints(workspace: Path) -> Path:
 
 
 def _find_edge_params(workspace: Path) -> Path:
-    """Find edge_params directory \u2014 try workspace then plugin."""
+    """Find edge_params directory.
+
+    Search order:
+    1. .ai-workspace/graph/edge_params/         - project-local (highest priority)
+    2. .ai-workspace/graph/edges/               - legacy alias
+    3. genesis/config/edge_params/ (pkg-local)  - installed by gen-setup.py alongside engine
+    4. ../.claude-plugin/.../edge_params/       - source dev tree (imp_claude/code/)
+    5. workspace/imp_claude/.../edge_params/    - monorepo root fallback
+    """
+    _pkg_dir = Path(__file__).resolve().parent  # genesis/ package dir
+    _module_root = _pkg_dir.parent              # imp_claude/code or .genesis
     candidates = [
+        workspace / ".ai-workspace" / "graph" / "edge_params",
         workspace / ".ai-workspace" / "graph" / "edges",
-        workspace
-        / "imp_claude"
-        / "code"
-        / ".claude-plugin"
-        / "plugins"
-        / "genesis"
-        / "config"
-        / "edge_params",
+        _pkg_dir / "config" / "edge_params",
+        _module_root / ".claude-plugin" / "plugins" / "genesis" / "config" / "edge_params",
+        workspace / "imp_claude" / "code" / ".claude-plugin" / "plugins" / "genesis" / "config" / "edge_params",
     ]
     for c in candidates:
         if c.is_dir():
@@ -565,6 +571,16 @@ def _add_shared_args(parser: argparse.ArgumentParser) -> None:
 
 
 def main() -> int:
+    # Configure structured logging so req= telemetry tags appear in stderr
+    # when the engine is run as a subprocess (not just via caplog in tests).
+    import logging
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(name)s %(levelname)s %(message)s",
+        stream=sys.stderr,
+    )
+
     parser = argparse.ArgumentParser(
         prog="genesis",
         description="Genesis F_D engine \u2014 deterministic evaluation with Level 4 events",

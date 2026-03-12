@@ -1,6 +1,7 @@
 # Implements: REQ-LIFE-009 (Spec Review as Gradient Check)
 # Implements: REQ-FEAT-003 (Task Planning as Trajectory Optimisation — gradient-driven work ordering)
 # Implements: REQ-INTENT-001 (Intent Capture), REQ-INTENT-002 (Intent as Spec)
+# Implements: REQ-EVOL-004 (Spec Hash Verification — verify_spec_hashes, compute_context_hash)
 """Workspace gradient — delta(workspace_state, spec) → work.
 
 Computes the gradient between what the spec asserts and what the workspace
@@ -42,7 +43,7 @@ DELTA_STALE = "STALE"  # Workspace vector exists but status is in_progress and v
 DELTA_SPEC_DRIFT = (
     "SPEC_DRIFT"  # Spec file content doesn't match last spec_modified event hash
 )
-# Implements: REQ-EVOL-NFR-002 (Spec Hash Verification)
+# Implements: REQ-EVOL-004 (Spec Hash Verification — spec_hash computation for drift detection)
 
 # Signal source classification (REQ-LIFE-006)
 SIGNAL_GAP = "gap"  # traceability gap

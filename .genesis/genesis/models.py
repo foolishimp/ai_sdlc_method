@@ -106,6 +106,7 @@ class SenseResult:
     threshold: object = None
     breached: bool = False
     detail: str = ""
+    data: object = None  # structured payload; caller uses to drive per-gap signal emission
 
 
 @dataclass

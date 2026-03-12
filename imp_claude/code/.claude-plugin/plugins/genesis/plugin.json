@@ -1,7 +1,7 @@
 {
   "name": "genesis",
-  "version": "3.0.2",
-  "description": "AI SDLC Asset Graph Model v3.0.2 — full homeostatic loop + workspace analysis edge. dispatch_monitor, /gen-start --auto autonomous dispatch, CONSENSUS→dispatch closure, F_P MCP round-trip, SCHEMA_DISCOVERY engine, workspace_analysis. Installer ships edge_params configs; engine resolves configs in installed projects; dispatch intent_id contract enforced; 34 ecosystem e2e tests. Universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, IntentEngine, CONSENSUS functor, multi-tenant design marketplace. 4 agents, 19 commands, configurable YAML topology.",
+  "version": "3.0.3",
+  "description": "AI SDLC Asset Graph Model v3.0.3 — typed outcome algebra + NL intent dispatch. FdOutcome/FpOutcome sum types eliminate exception-as-control-flow in dispatch path; FpFunctor.invoke() never raises; DispatchTarget multi-intent idempotency; 3-state quiescence. /gen-genesis NL intent routing (ADR-S-038); convergence_evidence_present evaluator (ADR-S-037); workspace analysis edge. 34/34 features converged, 89/89 REQ keys covered. Universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, IntentEngine, CONSENSUS functor, multi-tenant design marketplace. 4 agents, 19 commands, configurable YAML topology.",
   "author": {
     "name": "foolishimp"
   },

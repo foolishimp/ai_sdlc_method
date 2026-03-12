@@ -1,4 +1,6 @@
 # Implements: REQ-F-DISPATCH-001
+# Implements: REQ-F-RUNTIME-001
+# Implements: REQ-LIFE-002 (Telemetry — req= structured log tags at edge execution points)
 """EDGE_RUNNER — composes F_D → F_P → F_H for a single feature+edge traversal.
 
 This is the effector half of the homeostatic dispatch loop. Given a
@@ -24,6 +26,7 @@ Design decisions (ADR-S-032):
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -33,6 +36,9 @@ import yaml
 
 from .intent_observer import DispatchTarget
 from .ol_event import emit_ol_event, make_ol_event
+from .outcome_types import FdError, FdFailed, FdOutcome, FdPassed
+
+_log = logging.getLogger(__name__)
 
 
 # ── Config constants ───────────────────────────────────────────────────────────
@@ -49,13 +55,14 @@ class EdgeRunResult:
     run_id: str
     feature_id: str
     edge: str
-    status: str  # "converged" | "fp_dispatched" | "fh_required" | "stuck"
+    status: str  # "converged" | "fp_dispatched" | "fh_required" | "stuck" | "evaluator_error"
     delta: int
     iterations: int
     cost_usd: float
     events_emitted: list[str] = field(default_factory=list)
     fp_manifest_path: str = ""
     error: str = ""
+    evaluator_error: str = ""  # non-empty only when status == "evaluator_error"
 
 
 # ── F_D evaluation ─────────────────────────────────────────────────────────────
@@ -66,11 +73,14 @@ def _run_fd_evaluation(
     workspace_root: Path,
     edge_run_id: str,
     project_name: str,
-) -> tuple[int, list[str]]:
+) -> FdOutcome:
     """Run F_D deterministic evaluation for the given feature+edge.
 
-    Returns (delta, list_of_failed_check_names).
-    Falls back to delta=1 on import error (engine not available in test context).
+    Returns FdOutcome:
+      FdPassed  — all checks pass
+      FdFailed  — checks failed (delta > 0)
+      FdError   — evaluator infrastructure broken (NOT a domain delta;
+                  callers must NOT iterate as if feature work is pending)
     """
     try:
         import sys
@@ -134,8 +144,8 @@ def _run_fd_evaluation(
             edge_config_path = edge_params_dir / f"{fname}.yml"
 
         if not edge_config_path.exists():
-            # No edge config — cannot evaluate, treat as delta=1
-            return 1, [f"no_edge_config:{target.edge}"]
+            # No edge config — evaluator infrastructure unavailable
+            return FdError(error=f"no_edge_config:{target.edge}")
 
         edge_config = load_yaml(edge_config_path)
 
@@ -156,11 +166,17 @@ def _run_fd_evaluation(
             for cr in record.evaluation.checks
             if cr.required and cr.outcome.value in ("fail", "error")
         ]
-        return record.evaluation.delta, failures
+        if record.evaluation.delta == 0:
+            return FdPassed(delta=0, checks=[
+                cr.name for cr in record.evaluation.checks
+                if cr.outcome.value == "pass"
+            ])
+        return FdFailed(delta=record.evaluation.delta, failures=failures)
 
     except Exception as exc:
-        # Engine not available or config error — treat as delta=1
-        return 1, [f"engine_error:{exc}"]
+        import traceback as _tb
+        # Infrastructure / config failure — NOT a domain delta
+        return FdError(error=str(exc), traceback=_tb.format_exc())
 
 
 # ── F_P manifest ───────────────────────────────────────────────────────────────
@@ -265,8 +281,18 @@ def run_edge(
     cost_usd = 0.0
     fp_iteration = 0
     failures: list[str] = []
+    _log.info(f'edge_runner req="{target.feature_id}" edge="{target.edge}" intent="{target.intent_id}"')
 
-    # Emit edge_started (carries intent_id — IntentObserver idempotency marker)
+    # Emit edge_started — carries intent_id (primary) + handled_intent_ids (all)
+    # This closes out every contributing intent so find_unhandled_intents()
+    # does not re-dispatch any of them on the next pass.
+    all_intent_ids = [
+        (e.get("data") or e).get("intent_id", "")
+        for e in (target.intent_events or [])
+        if (e.get("data") or e).get("intent_id")
+    ]
+    if not all_intent_ids and target.intent_id:
+        all_intent_ids = [target.intent_id]
     edge_started_id = _emit(
         events_path,
         "EdgeStarted",
@@ -278,15 +304,51 @@ def run_edge(
             "feature": target.feature_id,
             "edge": target.edge,
             "intent_id": target.intent_id,
+            "handled_intent_ids": all_intent_ids,
             "source": "edge_runner",
         },
     )
     events_emitted.append("EdgeStarted")
 
     # ── Phase 1: F_D evaluation ────────────────────────────────────────────────
-    delta, failures = _run_fd_evaluation(target, workspace_root, edge_started_id, project_name)
+    fd_result = _run_fd_evaluation(target, workspace_root, edge_started_id, project_name)
 
-    # Emit IterationCompleted for the F_D pass
+    # Pattern-match on FdOutcome — infrastructure failure is NOT a domain delta
+    if isinstance(fd_result, FdError):
+        _emit(
+            events_path,
+            "IterationCompleted",
+            target,
+            project_name,
+            run_id,
+            edge_started_id,
+            {
+                "feature": target.feature_id,
+                "edge": target.edge,
+                "iteration": 1,
+                "delta": None,           # no measurement taken
+                "status": "evaluator_error",
+                "evaluator_error": fd_result.error,
+                "error_class": "infrastructure",
+            },
+        )
+        events_emitted.append("IterationCompleted:evaluator_error")
+        return EdgeRunResult(
+            run_id=run_id,
+            feature_id=target.feature_id,
+            edge=target.edge,
+            status="evaluator_error",
+            delta=0,
+            iterations=1,
+            cost_usd=0.0,
+            events_emitted=events_emitted,
+            evaluator_error=fd_result.error,
+        )
+
+    delta = fd_result.delta
+    failures = fd_result.failures if isinstance(fd_result, FdFailed) else []
+
+    # Emit IterationCompleted for the F_D pass (pure observation — no routing directives)
     _emit(
         events_path,
         "IterationCompleted",
@@ -387,7 +449,12 @@ def run_edge(
             )
 
         # Fold-back result available — re-evaluate F_D
-        delta, failures = _run_fd_evaluation(target, workspace_root, edge_started_id, project_name)
+        fd_result2 = _run_fd_evaluation(target, workspace_root, edge_started_id, project_name)
+        if isinstance(fd_result2, FdError):
+            delta, failures = delta, failures  # retain prior delta/failures
+        else:
+            delta = fd_result2.delta
+            failures = fd_result2.failures if isinstance(fd_result2, FdFailed) else []
         _emit(
             events_path,
             "IterationCompleted",
@@ -439,7 +506,9 @@ def run_edge(
             )
 
     # ── Phase 3: F_H escalation ────────────────────────────────────────────────
-    # F_P exhausted (or budget exceeded) — escalate to human gate
+    # F_P exhausted (or budget exceeded) — escalate to human gate.
+    # IterationCompleted is a pure observation record — no routing directives.
+    # intent_raised is the sole authoritative F_H signal (ADR-S-032).
     _emit(
         events_path,
         "IterationCompleted",
@@ -453,37 +522,12 @@ def run_edge(
             "iteration": 1 + fp_iteration,
             "delta": delta,
             "status": "fh_required",
-            "phase": "F_H",
             "fp_iterations_exhausted": fp_iteration,
             "budget_usd": budget_usd,
             "cost_usd": cost_usd,
         },
     )
     events_emitted.append("IterationCompleted")
-
-    # Emit intent_raised for human escalation
-    _emit(
-        events_path,
-        "IterationCompleted",  # Use intent_raised-like payload but within iteration chain
-        target,
-        project_name,
-        run_id,
-        edge_started_id,
-        {
-            "feature": target.feature_id,
-            "edge": target.edge,
-            "intent_id": target.intent_id,
-            "signal_source": "human_gate_required",
-            "delta": delta,
-            "failures": failures[:10],
-            "fp_iterations_attempted": fp_iteration,
-            "reason": (
-                f"F_P exhausted after {fp_iteration} iterations. "
-                f"Delta={delta}. Human review required."
-            ),
-        },
-    )
-    events_emitted.append("FH_escalation")
 
     # Emit a proper intent_raised event for the human gate
     emit_ol_event(
