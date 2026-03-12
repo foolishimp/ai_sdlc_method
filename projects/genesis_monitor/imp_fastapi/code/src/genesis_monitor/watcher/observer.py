@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
-from genesis_monitor.scanner import scan_roots
+from genesis_monitor.scanner import PRUNE_DIRS, scan_roots
 
 if TYPE_CHECKING:
     from genesis_monitor.registry import ProjectRegistry
@@ -27,6 +27,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 RESCAN_INTERVAL_S = 30
+
+# Path components that indicate noisy, non-workspace file changes.
+# Changes inside these directories do not carry methodology signal and
+# would continuously reset the debounce timer (e.g. Vite HMR, pytest cache).
+_NOISY_DIRS = PRUNE_DIRS | {".vite", "dist", "build", ".pytest_cache"}
 
 
 class _RootHandler(FileSystemEventHandler):
@@ -50,6 +55,10 @@ class _RootHandler(FileSystemEventHandler):
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         affected_path = Path(event.src_path)
+        # Skip events from noisy directories (node_modules, .vite, dist, etc.)
+        # to prevent continuous debounce resets from dev tooling (Vite HMR, esbuild).
+        if any(part in _NOISY_DIRS for part in affected_path.parts):
+            return
         project_id = self._find_project(affected_path)
         if project_id is None:
             return
