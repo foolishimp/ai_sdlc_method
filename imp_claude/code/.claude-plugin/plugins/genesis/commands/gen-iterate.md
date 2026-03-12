@@ -113,7 +113,7 @@ If the user provides `--feature` but not `--edge` (or vice versa), auto-select o
 ## Usage
 
 ```
-/gen-iterate [--edge "{source}→{target}"] [--feature "REQ-F-{DOMAIN}-{SEQ}"] [--mode {interactive|engine|auto}] [--profile {name}] [--asset "path/to/file"]
+/gen-iterate [--edge "{source}→{target}"] [--feature "REQ-F-{DOMAIN}-{SEQ}"] [--mode {interactive|engine|auto}] [--profile {name}] [--asset "path/to/file"] [--human-proxy]
 ```
 
 | Option | Description |
@@ -123,6 +123,7 @@ If the user provides `--feature` but not `--edge` (or vice versa), auto-select o
 | `--mode` | Execution mode: `interactive` (LLM agent, default), `engine` (F_D deterministic CLI), `auto` (engine for deterministic edges, interactive otherwise) |
 | `--profile` | Projection profile to use (full, standard, poc, spike, hotfix, minimal). Overrides feature vector's profile if set. |
 | `--asset` | Inject an existing document as the iteration 1 candidate. Skips construction from scratch — Genesis evaluates and improves this document instead. |
+| `--human-proxy` | Fulfil F_H gates by LLM proxy evaluation rather than pausing for human input. Passed by `gen-start --human-proxy`. All proxy decisions written to `.ai-workspace/reviews/proxy-log/` before event emission. |
 
 **Deterministic edges** (engine mode applies): `code↔unit_tests`, `design→test_cases`, `design→uat_tests`
 
@@ -306,8 +307,99 @@ The agent performs three directions of gap detection:
    - Update status (iterating | converged | blocked | time_box_expired)
 
 2. If human evaluator required:
+
+   **Standard path** (default — `--human-proxy` not set):
    - Present the candidate for review
    - Record approval/rejection/feedback
+   - Emit `review_approved` event with `actor: "human"`
+
+   **Proxy path** (`--human-proxy` set):
+
+   Execute the following proxy evaluation protocol for the F_H gate:
+
+   a. **Load artifact**: read the candidate asset produced in this iteration
+   b. **Load F_H criteria**: all `type: human` checks with `required: true` from the effective checklist
+   c. **Evaluate each criterion**:
+      ```
+      For each F_H criterion:
+        - Read the criterion text exactly as defined in the edge checklist
+        - Find specific evidence in the artifact that addresses it
+        - Record: criterion name, evidence (quoted), satisfied (yes/no), reasoning
+        - Do not introduce additional standards beyond the defined criteria
+      ```
+   d. **Compute decision**: `approved` if every required F_H criterion is satisfied; `rejected` if any fails
+   e. **Write proxy log** (BEFORE emitting event — REQ-F-HPRX-003):
+      - Directory: `.ai-workspace/reviews/proxy-log/` (create if absent)
+      - Filename: `{ISO-timestamp}_{feature-id}_{edge-source}-to-{edge-target}.md`
+      - Format: see Proxy Log Format section below
+   f. **Emit `review_approved` event** with `actor: "human-proxy"`, `proxy_log: "{relative path}"`, `reasoning: "{summary}"`
+   g. **On approval**: mark F_H checks passed; continue iteration normally
+   h. **On rejection**: halt with rejection report (see Proxy Rejection Report below); return `proxy_rejected: true` to caller
+
+   **Proxy Log Format**:
+   ```markdown
+   # Proxy Decision Log
+
+   **Feature**: {feature-id}
+   **Edge**: {source}→{target}
+   **Iteration**: {n}
+   **Timestamp**: {ISO 8601}
+   **Decision**: approved | rejected | incomplete
+
+   (Use `incomplete` if session is interrupted mid-evaluation — do not emit review_approved for incomplete entries)
+
+   ---
+
+   ## Artifact Evaluated
+
+   **Path**: {path}
+
+   ---
+
+   ## F_H Criteria Evaluation
+
+   ### {criterion name}
+
+   **Criterion**: {full criterion text}
+   **Evidence**: > {specific quote or observation}
+   **Satisfied**: yes | no
+   **Reasoning**: {why}
+
+   (repeat for each F_H criterion)
+
+   ---
+
+   ## Overall Decision
+
+   **Decision**: approved | rejected
+   **Summary**: {2-3 sentence plain-language summary}
+
+   ---
+
+   ## Override Instructions
+
+   To override: /gen-review --feature {feature-id} --edge "{source}→{target}"
+   ```
+
+   **Proxy Rejection Report** (printed to terminal on rejection):
+   ```
+   ╔═══════════════════════════════════════════════════════╗
+   ║ PROXY REJECTION — Auto-mode paused                    ║
+   ╠═══════════════════════════════════════════════════════╣
+   ║ Feature:   {feature-id}                               ║
+   ║ Edge:      {source}→{target}                          ║
+   ║ Criterion: {failing criterion name}                   ║
+   ║ Reason:    {proxy reasoning for failure}              ║
+   ║                                                       ║
+   ║ Log:       {path to proxy-log file}                   ║
+   ║                                                       ║
+   ║ To resolve:                                           ║
+   ║   1. Review the log file                              ║
+   ║   2. Revise the artifact                              ║
+   ║   3. Re-run: /gen-start --auto --human-proxy          ║
+   ╚═══════════════════════════════════════════════════════╝
+   ```
+   After rejection: feature remains `iterating` at this edge; no self-correction attempt.
 
 3. **Extended convergence check** (for discovery, spike, PoC, hotfix vectors):
    - If `vector_type` is not `feature`:

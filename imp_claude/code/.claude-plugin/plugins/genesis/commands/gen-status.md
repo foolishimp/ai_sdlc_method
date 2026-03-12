@@ -65,6 +65,7 @@ Project Rollup:
   Signals:   1 unactioned intent_raised
   Proposals: 2 draft proposals awaiting review
   Functor:   standard/interactive/medium — 0 overrides, 2 η
+  Approvals: 5 human, 3 proxy
 
 Active Features:
   feature          title                      edge            iter  δ   H
@@ -83,6 +84,19 @@ Draft Proposals Queue:
   PROP-001  high    "Add tests for REQ-F-AUTH-002"       2d ago  → /gen-review-proposal --show PROP-001
   PROP-002  medium  "Telemetry for REQ-F-DB-001"         1d ago  → /gen-review-proposal --show PROP-002
   Use /gen-review-proposal to review. 2 proposals awaiting human gate.
+
+Proxy Decisions (pending morning review):
+  3 decisions made since last attended session (2026-03-13T08:00:00Z)
+  ┌──────────────────────┬──────────────────────────┬──────────┬──────┐
+  │ Feature              │ Edge                     │ Decision │ Age  │
+  ├──────────────────────┼──────────────────────────┼──────────┼──────┤
+  │ REQ-F-AUTH-001       │ intent→requirements      │ approved │ 4h   │
+  │ REQ-F-AUTH-001       │ requirements→design      │ approved │ 3h   │
+  │ REQ-F-DB-001         │ intent→requirements      │ approved │ 2h   │
+  └──────────────────────┴──────────────────────────┴──────────┴──────┘
+  To review: cat .ai-workspace/reviews/proxy-log/{filename}.md
+  To override: /gen-review --feature {id} --edge "{edge}"
+  To dismiss: add "Reviewed: {date}" line to the log file
 
 Feature Scope (spec→workspace JOIN):
   Spec:     15 features defined
@@ -279,6 +293,28 @@ If ORPHAN count > 0, also add a recommendation to the Next Actions section:
 ```
   [WARN] {N} ORPHAN workspace features not in spec: {IDs} — archive or add to spec
 ```
+
+#### Proxy Decisions Queue (REQ-F-HPRX-006, REQ-NFR-HPRX-002)
+
+Read `.ai-workspace/reviews/proxy-log/*.md` and identify entries pending morning review.
+
+**Detection of "pending review"**:
+1. Find the timestamp of the last `review_approved{actor: "human"}` event in `events.jsonl` — this is the "last attended session" timestamp. If no such event exists, use epoch (all proxy decisions are pending).
+2. Proxy-log files with a file timestamp after the last attended session timestamp are "pending morning review".
+3. Files with a `Reviewed: {date}` line are considered dismissed — exclude them.
+
+**Display rules**:
+- If 0 pending entries: output `Proxy Decisions: none pending` — positive health signal.
+- If entries exist: show count in Project Rollup (`Approvals: N human, M proxy`) and the full table in the Proxy Decisions section.
+
+**Approval counts** (REQ-NFR-HPRX-002): Count `review_approved` events in `events.jsonl` by `actor` field:
+- `actor: "human"` (or absent `actor`, treated as `"human"`) → human approval count
+- `actor: "human-proxy"` → proxy approval count
+- Display in Project Rollup: `Approvals: {n} human, {m} proxy`
+
+**Override**: `/gen-review --feature {id} --edge "{edge}"` re-opens the gate for human evaluation. On human rejection, feature reverts to `iterating` at that edge; the proxy `review_approved` event is superseded.
+
+**Dismiss**: Add a `Reviewed: {ISO-date}` line anywhere in the proxy-log file. `/gen-status` excludes dismissed files from the pending count.
 
 #### Draft Proposals Queue (REQ-EVOL-005)
 

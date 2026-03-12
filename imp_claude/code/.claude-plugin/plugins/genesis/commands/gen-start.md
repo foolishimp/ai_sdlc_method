@@ -44,7 +44,7 @@ Enter 1, 2, or 3 (or press Enter for option 1):
 ## Usage
 
 ```
-/gen-start [--feature "REQ-F-*"] [--edge "source→target"] [--auto] [--profile "standard"] [--asset "path/to/file"]
+/gen-start [--feature "REQ-F-*"] [--edge "source→target"] [--auto] [--human-proxy] [--profile "standard"] [--asset "path/to/file"]
 ```
 
 | Option | Description |
@@ -53,6 +53,7 @@ Enter 1, 2, or 3 (or press Enter for option 1):
 | `--feature` | Override automatic feature selection |
 | `--edge` | Override automatic edge determination |
 | `--auto` | Loop: iterate → check convergence → next edge → repeat (pauses at human gates) |
+| `--human-proxy` | Activate LLM proxy evaluation at F_H gates during unattended runs. Only valid with `--auto`; used alone produces an error. Per-invocation only — never persisted to workspace, never activated by config or env var. All proxy decisions are logged to `.ai-workspace/reviews/proxy-log/` for morning review. |
 | `--profile` | Override default profile for new features |
 | `--asset` | Inject an existing document as the candidate asset for the current edge (skips construction from scratch) |
 
@@ -281,7 +282,31 @@ Recommended actions:
 
 ### Step 9: Auto-Mode Loop
 
-When `--auto` is provided, loop:
+When `--auto` is provided, first validate flags:
+
+```
+# Flag validation (before loop)
+if --human-proxy and not --auto:
+    error: "--human-proxy requires --auto"
+    exit
+
+proxy_mode = (--human-proxy is set)
+rejected_in_session = {}  # Set of (feature_id, edge) pairs rejected by proxy this session
+
+if proxy_mode:
+    # Report any incomplete proxy-log entries from prior sessions
+    incomplete = [f for f in glob(".ai-workspace/reviews/proxy-log/*.md")
+                  if "Decision**: incomplete" in read(f)]
+    if incomplete:
+        print("⚠ Incomplete proxy decisions from prior session:")
+        for f in incomplete:
+            print(f"  {f}")
+        print("  Resolve manually (/gen-review) or re-run the affected edge.")
+
+    print("[proxy mode active]")
+```
+
+Then loop:
 
 ```
 while state == IN_PROGRESS:
@@ -305,11 +330,15 @@ while state == IN_PROGRESS:
         re-detect state
         continue
 
+    if proxy_mode:
+        print("[proxy mode active]")
+
     feature = select_feature()
     edge = determine_edge(feature)
 
-    # Pause at human gates
-    if edge.human_required:
+    # Proxy mode: do not pause at F_H gates — delegate proxy evaluation to gen-iterate
+    # Standard mode: pause at human gates
+    if edge.human_required and not proxy_mode:
         print("Human gate: {edge} requires human review. Pausing auto-mode.")
         delegate to /gen-review
         break
@@ -329,7 +358,13 @@ while state == IN_PROGRESS:
         print("Time-box expired for {feature}. Pausing auto-mode.")
         break
 
-    delegate to /gen-iterate --edge "{edge}" --feature "{feature}"
+    result = delegate to /gen-iterate --edge "{edge}" --feature "{feature}" [--human-proxy if proxy_mode]
+
+    # Proxy rejection halts loop (gen-iterate sets result.proxy_rejected = true)
+    if result.proxy_rejected:
+        rejected_in_session.add((feature, edge))
+        break  # gen-iterate already printed the rejection report
+
     re-detect state
 ```
 
