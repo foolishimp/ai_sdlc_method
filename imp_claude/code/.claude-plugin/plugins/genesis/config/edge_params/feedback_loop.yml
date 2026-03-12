@@ -137,6 +137,26 @@ sources:
       **Affected Requirements**: {REQ keys}
       **Description**: {What's ambiguous/missing in the upstream asset}
 
+  convergence_without_evidence:
+    signal_source: convergence_without_evidence
+    description: "Workspace YAML claims converged but no terminal event in stream (ADR-S-037)"
+    trigger: |
+      - INTRO-008 sensory monitor detects edge with status: converged but no
+        edge_converged or ConvergenceAchieved event in events.jsonl
+      - Routed here via interoceptive_signal → affect triage
+        (monitor never emits intent_raised directly — Option A contract)
+    intent_template: |
+      ## INT-{SEQ}: Retroactive convergence evidence — {feature_id}/{edge}
+
+      **Source**: convergence_without_evidence
+      **Priority**: Critical — workspace authority claim unsupported by event substrate
+      **Triggered By**: INTRO-008 — {N} edges claim converged without stream evidence
+      **Affected Features**: {feature_ids}
+      **Description**: Workspace vector claims status: converged but event stream
+        contains no terminal convergence event (edge_converged or ConvergenceAchieved)
+        for the stated edge. Retroactive repair required.
+      **Repair**: Append edge_converged{emission: retroactive} per ADR-S-037 §3
+
   process_gap_escalation:
     signal_source: process_gap
     description: "Inward gap detection finds methodology deficiency"

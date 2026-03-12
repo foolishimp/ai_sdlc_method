@@ -621,7 +621,7 @@ All methodology commands emit events to `.ai-workspace/events/events.jsonl`. Eve
 
 **`intent_raised`** — emitted when ANY observer detects a delta that warrants a new intent (§7.7.2):
 ```json
-{"event_type": "intent_raised", "timestamp": "...", "project": "...", "data": {"intent_id": "INT-{SEQ}", "trigger": "what signal caused this", "delta": "expected vs observed", "signal_source": "gap|test_failure|refactoring|source_finding|process_gap|runtime_feedback|ecosystem|user|TELEM", "vector_type": "feature|discovery|spike|poc|hotfix", "affected_req_keys": ["REQ-*"], "prior_intents": ["INT-* chain"], "edge_context": "which edge was active", "severity": "critical|high|medium|low"}}
+{"event_type": "intent_raised", "timestamp": "...", "project": "...", "data": {"intent_id": "INT-{SEQ}", "trigger": "what signal caused this", "delta": "expected vs observed", "signal_source": "gap|test_failure|refactoring|source_finding|process_gap|runtime_feedback|ecosystem|convergence_without_evidence|user|TELEM", "vector_type": "feature|discovery|spike|poc|hotfix", "affected_req_keys": ["REQ-*"], "prior_intents": ["INT-* chain"], "edge_context": "which edge was active", "severity": "critical|high|medium|low"}}
 ```
 
 **`spec_modified`** — emitted when the spec absorbs a signal and updates (§7.7.3):
@@ -687,6 +687,7 @@ The `intent_raised` event is not limited to the `telemetry→intent` edge. **Eve
 | TDD refactor phase | `refactoring` | Cross-cutting structural debt beyond current scope |
 | Production telemetry | `runtime_feedback` | SLA violation detected |
 | Ecosystem monitoring | `ecosystem` | Dependency deprecated |
+| INTRO-008 sensory (via triage) | `convergence_without_evidence` | Workspace YAML claims converged, no event in stream (ADR-S-037) |
 
 When ANY of these observers detects a non-trivial delta:
 1. Emit `intent_raised` event with full causal chain

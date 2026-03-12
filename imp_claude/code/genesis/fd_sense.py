@@ -4,6 +4,7 @@
 # Implements: REQ-SENSE-006 (Artifact Write Observation)
 # Implements: REQ-INTENT-003 (Eco-Intent Generation), REQ-LIFE-010 (Development Observer Agent)
 # Implements: REQ-LIFE-011 (CI/CD Observer Agent), REQ-LIFE-012 (Ops Observer Agent)
+# Implements: REQ-EVENT-002 (Projection Authority — INTRO-008 convergence_evidence_present)
 """F_D sense — deterministic sensing: file scanning, staleness, integrity checks."""
 
 import json
@@ -367,6 +368,40 @@ def sense_spec_code_drift(
         breached=breached,
         detail=f"{len(tagged_keys)}/{len(spec_keys)} spec keys tagged in code"
         + (f", untagged: {sorted(untagged)[:5]}" if untagged else ""),
+    )
+
+
+def sense_convergence_evidence(
+    workspace_root: Path,
+    events_path: Path | None = None,
+) -> SenseResult:
+    """INTRO-008: convergence_evidence_present — Projection Authority check.
+
+    Scans all feature vectors for edges claiming status: converged with no
+    terminal convergence event (edge_converged / ConvergenceAchieved) in the
+    event stream. Returns a breached SenseResult when gaps exist.
+
+    The caller is responsible for emitting interoceptive_signal per gap and
+    routing through affect triage → intent_raised. This function only senses.
+    It never emits events directly (REQ-SENSE-001 Option A contract).
+    """
+    from .workspace_integrity import check_convergence_evidence
+
+    report = check_convergence_evidence(workspace_root, events_path)
+    breached = not report.passed
+    detail = (
+        f"{report.delta} converged edge(s) lack terminal event evidence "
+        f"({report.checked_edges} edges checked across {report.checked_features} features)"
+        if breached
+        else f"All {report.checked_edges} converged edges have stream evidence "
+             f"({report.checked_features} features checked)"
+    )
+    return SenseResult(
+        monitor_name="convergence_evidence_present",
+        value=report.delta,
+        threshold=0,
+        breached=breached,
+        detail=detail,
     )
 
 

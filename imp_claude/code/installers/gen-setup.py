@@ -104,7 +104,8 @@ ENGINE_FILES = [
     "feature_view.py", "fp_functor.py", "functor.py", "human_audit.py",
     "intent_observer.py", "models.py", "ol_event.py", "proc.py",
     "role_authority.py", "schema_discovery.py", "serialiser.py",
-    "spec_boundary.py", "workspace_analysis.py", "workspace_gradient.py", "workspace_state.py",
+    "spec_boundary.py", "workspace_analysis.py", "workspace_gradient.py",
+    "workspace_integrity.py", "workspace_state.py",
 ]
 
 ENGINE_SCRIPTS = [

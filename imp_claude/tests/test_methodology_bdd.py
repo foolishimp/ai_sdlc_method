@@ -1116,7 +1116,7 @@ class TestSignalSourceClassification:
     """
     GIVEN the feedback loop edge configuration
     WHEN signals are classified
-    THEN all seven signal sources are recognised with intent templates.
+    THEN all eight signal sources are recognised with intent templates.
 
     Validates: REQ-LIFE-006
     """
@@ -1125,11 +1125,12 @@ class TestSignalSourceClassification:
         "gap", "test_failure", "refactoring",
         "source_finding", "process_gap",
         "runtime_feedback", "ecosystem",
+        "convergence_without_evidence",  # ADR-S-037
     }
 
     @pytest.mark.bdd
     def test_feedback_loop_has_all_signal_sources(self):
-        """Feedback loop edge config must define all 7 signal source types."""
+        """Feedback loop edge config must define all 8 signal source types."""
         feedback_loop = load_yaml(EDGE_PARAMS_DIR / "feedback_loop.yml")
         sources = feedback_loop.get("sources", {})
         source_names = set()

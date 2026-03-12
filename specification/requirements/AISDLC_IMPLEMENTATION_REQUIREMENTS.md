@@ -432,7 +432,7 @@ Every observer point that detects a non-trivial delta shall emit an `intent_rais
 - `intent_raised` event emitted to `events.jsonl` whenever an observer detects a delta warranting action beyond the current iteration
 - Event includes: `intent_id`, `trigger`, `delta`, `signal_source`, `vector_type`, `affected_req_keys`, `prior_intents`, `edge_context`, `severity`
 - The `prior_intents` field traces the causal chain — if intent A led to spec change that caused intent B, the chain A→B is recorded
-- Signal sources classified as one of: `gap`, `test_failure`, `refactoring`, `source_finding`, `process_gap`, `runtime_feedback`, `ecosystem`
+- Signal sources classified as one of: `gap`, `test_failure`, `refactoring`, `source_finding`, `process_gap`, `runtime_feedback`, `ecosystem`, `convergence_without_evidence`
 - Human presented with generated intent for decision (create feature vector, acknowledge, or dismiss)
 
 **Traces To**: Asset Graph Model §7.3.1 (Intent Events as First-Class Objects) | Ontology #49 (teleodynamic — self-maintaining), #46 (living encoding)

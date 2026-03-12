@@ -156,7 +156,7 @@ escalation:
         note: "Advisory — agent self-reports confidence when available"
 
 # ═══════════════════════════════════════════════════════════════════════
-# SIGNAL SOURCES (ADR-011 — 7 sources at every observer point)
+# SIGNAL SOURCES (ADR-011 — 8 sources at every observer point)
 # ═══════════════════════════════════════════════════════════════════════
 #
 # Every observer point can emit intent_raised events. Classification
@@ -205,6 +205,12 @@ signal_sources:
     observer_point: "External monitoring"
     typical_output: spec_event_log  # triage first
     response_pattern: "Assess impact; spawn vector if breaking"
+
+  - id: convergence_without_evidence
+    description: "Workspace YAML claims converged but no terminal event in stream (ADR-S-037)"
+    observer_point: "INTRO-008 sensory monitor (via interoceptive_signal → affect triage)"
+    typical_output: escalate
+    response_pattern: "Retroactive repair — append edge_converged{emission: retroactive} for each gap"
 
 # ═══════════════════════════════════════════════════════════════════════
 # TOLERANCE SCHEMA (§5.3, ADR-016)

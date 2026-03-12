@@ -640,9 +640,9 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_3_0_1(self, plugin_json):
-        """plugin.json version must be 3.0.1."""
-        assert plugin_json["version"] == "3.0.1"
+    def test_plugin_version_is_3_0_2(self, plugin_json):
+        """plugin.json version must be 3.0.2."""
+        assert plugin_json["version"] == "3.0.2"
 
     @pytest.mark.tdd
     def test_graph_topology_version_is_2_9(self, graph_topology):
@@ -673,6 +673,7 @@ class TestFeedbackLoopConfig:
         "gap", "test_failure", "refactoring",
         "source_finding", "process_gap",
         "runtime_feedback", "ecosystem",
+        "convergence_without_evidence",  # ADR-S-037
     }
 
     @pytest.mark.tdd
@@ -688,7 +689,7 @@ class TestFeedbackLoopConfig:
 
     @pytest.mark.tdd
     def test_feedback_loop_signal_sources_are_complete(self, all_edge_configs):
-        """All 7 signal source types must be defined."""
+        """All 8 signal source types must be defined."""
         feedback = all_edge_configs["feedback_loop"]
         sources = feedback.get("sources", {})
         found_signals = set()

@@ -30,6 +30,7 @@ from .fd_classify import (
     classify_signal_source,
 )
 from .fd_sense import (
+    sense_convergence_evidence,
     sense_event_freshness,
     sense_event_log_integrity,
     sense_feature_stall,
