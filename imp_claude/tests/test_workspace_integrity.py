@@ -26,6 +26,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+import genesis  # package-level export test
 from genesis.fd_sense import sense_convergence_evidence
 from genesis.workspace_integrity import (
     TERMINAL_CONVERGENCE_EVENTS,
@@ -663,6 +664,22 @@ class TestFeatureVectorParsing:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+class TestPackageExport:
+    """sense_convergence_evidence must be importable from the genesis package root."""
+
+    def test_importable_from_package_root(self):
+        """genesis.sense_convergence_evidence must exist in __all__."""
+        assert hasattr(genesis, "sense_convergence_evidence"), (
+            "sense_convergence_evidence missing from genesis package root — "
+            "check __all__ in genesis/__init__.py"
+        )
+        assert "sense_convergence_evidence" in genesis.__all__
+
+    def test_package_root_and_module_are_same_function(self):
+        """Package root export and fd_sense direct import must be the same object."""
+        assert genesis.sense_convergence_evidence is sense_convergence_evidence
+
+
 class TestSensoryWiring:
     """sense_convergence_evidence() is the wired INTRO-008 callable in fd_sense.
 
@@ -678,9 +695,11 @@ class TestSensoryWiring:
         assert result.breached is False
         assert result.value == 0
         assert result.monitor_name == "convergence_evidence_present"
+        assert result.data is not None
+        assert isinstance(result.data, ConvergenceEvidenceReport)
 
     def test_sense_returns_breached_true_when_gaps_exist(self, tmp_path):
-        """Converged edge with no event → SenseResult(breached=True, value=N)."""
+        """Converged edge with no event → SenseResult(breached=True, value=N, data.gaps populated)."""
         ws = make_workspace(tmp_path)
         write_vector(ws, "REQ-F-AUTH-001", {"code↔unit_tests": {"status": "converged"}})
         write_events(ws, [])
@@ -688,6 +707,12 @@ class TestSensoryWiring:
         assert result.breached is True
         assert result.value == 1
         assert result.threshold == 0
+        # data carries the full report — caller can emit per-gap interoceptive_signal
+        assert isinstance(result.data, ConvergenceEvidenceReport)
+        assert len(result.data.gaps) == 1
+        assert result.data.gaps[0].feature_id == "REQ-F-AUTH-001"
+        sig = result.data.gaps[0].as_interoceptive_signal()
+        assert sig["monitor_id"] == "INTRO-008"
 
     def test_sense_value_equals_gap_count(self, tmp_path):
         """value field equals number of edges with missing evidence."""

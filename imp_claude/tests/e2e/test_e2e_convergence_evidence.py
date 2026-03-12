@@ -90,11 +90,20 @@ def _iteration_completed(feature: str, edge: str, status: str = "converged") -> 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TestGenesisNavigatorScenario
 #
-# Exact reconstruction of the genesis_navigator post-mortem (2026-03-12):
-#   - 13 features, all claiming converged on 2 edges
-#   - 94 events in the stream, zero edge_converged or ConvergenceAchieved
+# Structurally faithful simulation of the genesis_navigator post-mortem (2026-03-12):
+#   - 13 features, all claiming converged on 2 edges  (same as production)
+#   - 131 synthetic lifecycle events: 1 project_initialized +
+#     13 features × 2 edges × 5 events (edge_started, 3× iteration_completed,
+#     1× iteration_completed{status:converged}) — same pattern as production,
+#     synthetic timestamps
+#   - Zero edge_converged or ConvergenceAchieved events  (same as production)
 #   - Software: functionally correct
 #   - Methodology: evidentially broken (dark convergence)
+#
+# Note: the actual genesis_navigator events.jsonl had ~94 events with fewer
+# iteration_completed events per edge. This simulation uses a consistent 5-event
+# pattern per edge for repeatability. The critical invariant under test is the
+# same: lifecycle events alone do not satisfy the convergence evidence check.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -130,8 +139,9 @@ class TestGenesisNavigatorScenario:
         return root
 
     def _build_lifecycle_events_no_convergence(self, root: Path):
-        """94 lifecycle events — project_initialized, edge_started, iteration_completed.
-        Zero edge_converged. Simulates the actual genesis_navigator events.jsonl.
+        """131 lifecycle events — project_initialized, edge_started, iteration_completed.
+        Zero edge_converged. Structurally simulates the genesis_navigator pattern.
+        Event count: 1 + 13 features × 2 edges × 5 events = 131.
         """
         events = [{"event_type": "project_initialized", "project": "genesis_navigator"}]
         for fid in self.FEATURES:
@@ -176,7 +186,10 @@ class TestGenesisNavigatorScenario:
 
         report = check_convergence_evidence(root)
 
-        assert event_count > 0, "Should have lifecycle events"
+        # 1 project_initialized + 13 features × 2 edges × 5 events = 131
+        assert event_count == 131, (
+            f"Expected 131 synthetic lifecycle events, got {event_count}"
+        )
         assert not report.passed, (
             f"With {event_count} lifecycle events but zero terminal convergence events, "
             "check must still FAIL for all 26 edges"

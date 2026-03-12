@@ -1635,6 +1635,7 @@ Implementations SHALL emit the required event types with mandatory fields as def
 - Lifecycle: `IterationStarted`, `IterationCompleted`, `IterationFailed`
 - Convergence: `EvaluatorVoted`, `ConsensusReached`, `ConvergenceAchieved`
 - Context: `ContextArrived` (supports push context)
+- Routing: `intent_routed` — emitted by NL dispatch layer (REQ-UX-008); fields: `input`, `routed_to`, `confidence`, `feature`, `edge`, `basis`
 - Mandatory fields: `instance_id`, `actor`, `timestamp`
 - Aligned with OpenLineage (ADR-S-011)
 

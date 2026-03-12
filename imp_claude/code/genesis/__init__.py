@@ -81,6 +81,7 @@ __all__ = [
     "classify_source_finding",
     "classify_signal_source",
     # Sense
+    "sense_convergence_evidence",
     "sense_event_freshness",
     "sense_event_log_integrity",
     "sense_feature_stall",

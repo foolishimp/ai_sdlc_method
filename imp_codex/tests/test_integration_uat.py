@@ -281,6 +281,8 @@ class TestEventLogIntegrity:
         "CommandError",
         # CONSENSUS events (ADR-S-025, ADR-S-031)
         "consensus_requested", "vote_cast", "consensus_reached", "consensus_failed",
+        # NL dispatch (REQ-UX-008, ADR-S-038)
+        "intent_routed",
     }
 
     @pytest.fixture(autouse=True)

@@ -402,6 +402,7 @@ def sense_convergence_evidence(
         threshold=0,
         breached=breached,
         detail=detail,
+        data=report,  # ConvergenceEvidenceReport — caller uses report.gaps for per-gap signal emission
     )
 
 
