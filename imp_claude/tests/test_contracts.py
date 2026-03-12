@@ -106,25 +106,24 @@ class TestFpFunctorMcpUnavailable:
     """When MCP is not available, functor returns a skipped StepResult immediately."""
 
     def test_skip_when_no_mcp(self, tmp_path):
+        """MCP unavailable → FpSkipped (not a StepResult; F_D-only mode per ADR-019)."""
+        from genesis.outcome_types import FpSkipped
         intent = Intent(edge="code↔unit_tests", feature="REQ-F-ENGINE-001")
         env = {k: v for k, v in os.environ.items() if k != "CLAUDE_CODE_SSE_PORT"}
         with patch.dict(os.environ, env, clear=True):
             result = FpFunctor().invoke(intent, tmp_path)
 
-        assert result.run_id == intent.run_id
-        assert result.converged is False
-        assert result.delta == -1
-        assert result.audit.skipped is True
-        assert result.audit.transport == "none"
-        assert result.artifacts == []
-        assert result.spawns == []
+        assert isinstance(result, FpSkipped)
+        assert "MCP unavailable" in result.reason
 
     def test_skip_preserves_run_id(self, tmp_path):
+        """MCP unavailable → FpSkipped; skipped outcome carries reason string."""
+        from genesis.outcome_types import FpSkipped
         intent = Intent(edge="e", feature="f", run_id="fixed-id")
         env = {k: v for k, v in os.environ.items() if k != "CLAUDE_CODE_SSE_PORT"}
         with patch.dict(os.environ, env, clear=True):
             result = FpFunctor().invoke(intent, tmp_path)
-        assert result.run_id == "fixed-id"
+        assert isinstance(result, FpSkipped)
 
 
 class TestFpFunctorMcpAvailable:
@@ -136,6 +135,8 @@ class TestFpFunctorMcpAvailable:
         (result_dir / f"fp_result_{run_id}.json").write_text(json.dumps(payload))
 
     def test_converged_result(self, tmp_path):
+        """MCP available, fold-back result exists → FpReturned with converged data."""
+        from genesis.outcome_types import FpReturned
         intent = Intent(edge="code↔unit_tests", feature="REQ-F-ENGINE-001")
         self._write_result(tmp_path, intent.run_id, {
             "converged": True,
@@ -149,15 +150,18 @@ class TestFpFunctorMcpAvailable:
         with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
             result = FpFunctor().invoke(intent, tmp_path)
 
-        assert result.converged is True
-        assert result.delta == 0
-        assert result.cost_usd == pytest.approx(0.42)
-        assert len(result.artifacts) == 1
-        assert result.artifacts[0].path == "src/engine.py"
-        assert result.audit.transport == "mcp"
-        assert result.audit.skipped is False
+        assert isinstance(result, FpReturned)
+        assert result.result["converged"] is True
+        assert result.result["delta"] == 0
+        assert result.result["cost_usd"] == pytest.approx(0.42)
+        assert len(result.result["artifacts"]) == 1
+        assert result.result["artifacts"][0]["path"] == "src/engine.py"
+        assert result.result["audit"]["transport"] == "mcp"
+        assert result.result["audit"]["skipped"] is False
 
     def test_unconverged_result(self, tmp_path):
+        """Fold-back result with delta > 0 → FpReturned with unconverged data."""
+        from genesis.outcome_types import FpReturned
         intent = Intent(edge="code↔unit_tests", feature="REQ-F-ENGINE-001")
         self._write_result(tmp_path, intent.run_id, {
             "converged": False,
@@ -169,10 +173,13 @@ class TestFpFunctorMcpAvailable:
         with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
             result = FpFunctor().invoke(intent, tmp_path)
 
-        assert result.converged is False
-        assert result.delta == 3
+        assert isinstance(result, FpReturned)
+        assert result.result["converged"] is False
+        assert result.result["delta"] == 3
 
     def test_budget_capped_flag(self, tmp_path):
+        """cost_usd > budget_usd → FpReturned with budget_capped in audit."""
+        from genesis.outcome_types import FpReturned
         intent = Intent(edge="e", feature="f", budget_usd=1.0)
         self._write_result(tmp_path, intent.run_id, {
             "converged": False,
@@ -184,21 +191,25 @@ class TestFpFunctorMcpAvailable:
         with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
             result = FpFunctor().invoke(intent, tmp_path)
 
-        assert result.audit.budget_capped is True
+        assert isinstance(result, FpReturned)
+        assert result.result["audit"]["budget_capped"] is True
 
-    def test_no_result_file_raises_fp_actor_result_missing(self, tmp_path):
-        """MCP available but no fold-back result yet → FpActorResultMissing raised.
+    def test_no_result_file_returns_fp_pending(self, tmp_path):
+        """MCP available but no fold-back result yet → FpPending (not a raise).
 
-        When MCP IS available, the actor must respond. Missing result is an observable
-        failure (not a transparent skip). The engine catches this and emits FpFailure.
+        invoke() never raises — observable failure returned as FpPending.
+        The manifest is written; the LLM layer reads it and invokes the actor.
         ADR-024 / T-COMPLY-008 fold-back protocol.
         """
+        from genesis.outcome_types import FpPending
         intent = Intent(edge="e", feature="f")
         with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
-            with pytest.raises(FpActorResultMissing):
-                FpFunctor().invoke(intent, tmp_path)
+            result = FpFunctor().invoke(intent, tmp_path)
+        assert isinstance(result, FpPending)
 
     def test_spawn_records_parsed(self, tmp_path):
+        """Fold-back result with spawn records → FpReturned with spawns in result dict."""
+        from genesis.outcome_types import FpReturned
         intent = Intent(edge="e", feature="f")
         self._write_result(tmp_path, intent.run_id, {
             "converged": True,
@@ -213,6 +224,7 @@ class TestFpFunctorMcpAvailable:
         with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
             result = FpFunctor().invoke(intent, tmp_path)
 
-        assert len(result.spawns) == 1
-        assert result.spawns[0].child_run_id == "child-1"
-        assert result.spawns[0].feature == "REQ-F-SUB-001"
+        assert isinstance(result, FpReturned)
+        assert len(result.result["spawns"]) == 1
+        assert result.result["spawns"][0]["child_run_id"] == "child-1"
+        assert result.result["spawns"][0]["feature"] == "REQ-F-SUB-001"

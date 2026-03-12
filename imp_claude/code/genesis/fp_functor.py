@@ -1,4 +1,5 @@
 # Implements: REQ-ROBUST-001 (Actor Isolation), REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ITER-001 (Universal Iteration)
+# Implements: REQ-F-RUNTIME-001
 # Design ADRs: ADR-019 (F_D-only evaluation path — skipped=True is valid mode, not degraded), ADR-023 (no subprocess / no claude -p), ADR-024 (recursive actor model — fold-back file is the transport contract)
 """ADR-024 F_P functor — invoke actor via MCP with constrained Intent.
 
@@ -31,39 +32,61 @@ from .contracts import (
     VersionedArtifact,
 )
 from .functor import mcp_available
+from .outcome_types import FpFailed, FpOutcome, FpPending, FpReturned, FpSkipped
 
 
 class FpFunctor:
     """F_P functor implementation — MCP actor invocation."""
 
-    def invoke(self, intent: Intent, state: Path) -> StepResult:
-        """Invoke the F_P actor via MCP.
+    def invoke(self, intent: Intent, state: Path) -> FpOutcome:
+        """Invoke the F_P actor via MCP. Returns FpOutcome (never raises).
 
-        If MCP is unavailable, returns a skipped StepResult immediately.
-        The engine continues with F_D results only — this is not a degraded
-        mode, it is the F_D-only evaluation path (ADR-019).
+        FpSkipped  — MCP unavailable; F_D-only mode (ADR-019, not an error)
+        FpPending  — manifest written; actor not yet invoked
+        FpReturned — actor completed; fold-back result available
+        FpFailed   — actor invocation or result-parse failed (observable)
         """
         if not mcp_available():
-            return StepResult(
-                run_id=intent.run_id,
-                converged=False,
-                delta=-1,
-                workspace=state,
-                audit=StepAudit(
-                    functor_type="F_P",
-                    transport="none",
-                    skipped=True,
-                ),
-            )
+            return FpSkipped(reason="MCP unavailable — F_D-only mode (ADR-019)")
 
         prompt = _build_actor_prompt(intent, state)
         t0 = time.monotonic()
 
-        # FpActorResultMissing propagates — engine handles it as an observable failure,
-        # NOT a silent skip. Other unexpected exceptions also propagate (no broad catch).
-        raw = _mcp_invoke(prompt, state, intent)
+        try:
+            raw = _mcp_invoke(prompt, state, intent)
+        except FpActorResultMissing as exc:
+            # Manifest written but no fold-back result yet — pending, not failed
+            agents_dir = state / ".ai-workspace" / "agents"
+            manifest_path = agents_dir / f"fp_intent_{intent.run_id}.json"
+            return FpPending(manifest_path=manifest_path)
+        except Exception as exc:
+            import traceback as _tb
+            return FpFailed(error=str(exc), traceback=_tb.format_exc())
+
         duration_ms = int((time.monotonic() - t0) * 1000)
-        return _parse_actor_result(intent, raw, duration_ms, state)
+        try:
+            step_result = _parse_actor_result(intent, raw, duration_ms, state)
+            return FpReturned(result={
+                "converged": step_result.converged,
+                "delta": step_result.delta,
+                "cost_usd": step_result.cost_usd,
+                "artifacts": [
+                    {"path": a.path, "content_hash": a.content_hash, "previous_hash": a.previous_hash}
+                    for a in step_result.artifacts
+                ],
+                "spawns": [
+                    {"child_run_id": s.child_run_id, "feature": s.feature, "edge": s.edge, "reason": s.reason}
+                    for s in step_result.spawns
+                ],
+                "audit": {
+                    "transport": step_result.audit.transport if step_result.audit else "mcp",
+                    "skipped": False,
+                    "budget_capped": step_result.audit.budget_capped if step_result.audit else False,
+                },
+            })
+        except Exception as exc:
+            import traceback as _tb
+            return FpFailed(error=f"result parse failed: {exc}", traceback=_tb.format_exc())
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────

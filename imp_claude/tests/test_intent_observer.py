@@ -382,7 +382,7 @@ class TestResolveDispatchTargets:
         intent = _make_intent_raised("INT-001", ["REQ-F-TEST-001"])
         targets = resolve_dispatch_targets(intent, workspace)
         assert len(targets) == 1
-        assert targets[0].intent_event["intent_id"] == "INT-001"
+        assert targets[0].intent_events[0]["intent_id"] == "INT-001"
 
     def test_target_carries_feature_vector(self, tmp_path):
         """DispatchTarget carries the loaded feature vector."""

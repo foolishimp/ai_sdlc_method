@@ -1,4 +1,5 @@
 # Implements: REQ-F-DISPATCH-001
+# Implements: REQ-F-RUNTIME-001
 # Implements: REQ-LIFE-002 (Telemetry — req= structured log tags at dispatch points)
 """Dispatch loop — top-level orchestrator wiring IntentObserver → EDGE_RUNNER.
 
@@ -44,6 +45,90 @@ class DispatchSummary:
     stuck: int = 0
     errors: int = 0
     results: list[EdgeRunResult] = field(default_factory=list)
+
+
+# ── Quiescence ─────────────────────────────────────────────────────────────────
+
+# Event types that close an fh_required gate for a (feature, edge)
+_FH_RESOLUTION_EVENTS = {"consensus_reached", "review_approved", "edge_converged"}
+
+
+def _has_unresolved_fh_gates(events_path: Path) -> bool:
+    """Return True if any fh_required escalation has no matching resolution event.
+
+    An fh_required gate is opened by:
+        intent_raised{signal_source: human_gate_required, feature: X, edge: Y}
+
+    It closes when any of _FH_RESOLUTION_EVENTS appears for the same (feature, edge)
+    after the opening event.
+    """
+    if not events_path.exists():
+        return False
+
+    events: list[dict] = []
+    for line in events_path.read_text().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            events.append(json.loads(line))
+        except Exception:
+            continue
+
+    # Collect open gates in order
+    open_gates: list[tuple[str, str]] = []  # (feature, edge) for each unresolved gate
+    for ev in events:
+        et = ev.get("event_type", "")
+        data = ev.get("data", {}) or {}
+
+        # Open gate
+        if et == "intent_raised":
+            src = data.get("signal_source") or ev.get("signal_source", "")
+            if src == "human_gate_required":
+                feat = (data.get("affected_features") or [""])[0] or data.get("feature", "")
+                edge = data.get("edge", "") or ev.get("edge", "")
+                if feat:
+                    open_gates.append((feat, edge))
+
+        # Close gate
+        elif et in _FH_RESOLUTION_EVENTS:
+            feat = data.get("feature", "") or ev.get("feature", "")
+            edge = data.get("edge", "") or ev.get("edge", "")
+            key = (feat, edge)
+            if key in open_gates:
+                open_gates.remove(key)
+
+    return len(open_gates) > 0
+
+
+def _compute_quiescence(workspace_root: Path) -> bool:
+    """Workspace is quiescent iff no pending work in ANY state.
+
+    Three conditions — all must be false for quiescence:
+    1. Unhandled intents ready to dispatch (get_pending_dispatches)
+    2. In-flight fp_dispatched manifests awaiting fold-back
+    3. Unresolved fh_required escalations awaiting human gate resolution
+    """
+    if get_pending_dispatches(workspace_root):
+        return False
+
+    # Parked fp_dispatched: manifests with status pending or dispatched
+    agents_dir = workspace_root / ".ai-workspace" / "agents"
+    if agents_dir.exists():
+        for p in agents_dir.glob("fp_intent_*.json"):
+            try:
+                data = json.loads(p.read_text())
+                if data.get("status") in ("pending", "dispatched"):
+                    return False
+            except Exception:
+                pass
+
+    # Parked fh_required: unresolved human gate escalations
+    events_path = workspace_root / ".ai-workspace" / "events" / "events.jsonl"
+    if _has_unresolved_fh_gates(events_path):
+        return False
+
+    return True
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -240,7 +325,7 @@ def run_dispatch_loop(
         "fh_required": summary.fh_required,
         "stuck": summary.stuck,
         "errors": summary.errors,
-        "quiescent": summary.converged > 0 and summary.fp_dispatched == 0 and summary.fh_required == 0,
+        "quiescent": _compute_quiescence(workspace_root),
     }
 
 

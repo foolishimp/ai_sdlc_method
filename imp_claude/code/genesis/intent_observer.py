@@ -1,4 +1,5 @@
 # Implements: REQ-F-DISPATCH-001
+# Implements: REQ-F-RUNTIME-001
 """IntentObserver — reads intent_raised events, identifies unhandled intents,
 resolves dispatch targets.
 
@@ -29,6 +30,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+
+from .outcome_types import IntentEvent
 
 
 # ── Profile → edge order maps ─────────────────────────────────────────────────
@@ -74,12 +77,18 @@ PROFILE_EDGE_ORDERS: dict[str, list[str]] = {
 
 @dataclass
 class DispatchTarget:
-    """A single dispatch unit: one feature + one edge to run EDGE_RUNNER on."""
+    """A single dispatch unit: one feature + one edge to run EDGE_RUNNER on.
+
+    intent_id     — primary intent (first / canonical; used for backward-compat lookup)
+    intent_events — ALL contributing intent_raised events for this (feature, edge) pair.
+                    Populated by get_pending_dispatches() when multiple intents are merged.
+                    edge_started emits handled_intent_ids from this list to close them all.
+    """
 
     intent_id: str
     feature_id: str
     edge: str
-    intent_event: dict = field(default_factory=dict)
+    intent_events: list[dict] = field(default_factory=list)   # replaces intent_event (singular)
     feature_vector: dict = field(default_factory=dict)
 
 
@@ -180,19 +189,24 @@ def _get_affected_features(event: dict[str, Any]) -> list[str]:
 def _get_dispatched_intent_ids(events: list[dict[str, Any]]) -> set[str]:
     """Return set of intent_ids for which edge_started has been emitted.
 
-    An edge_started that carries intent_id means the intent was dispatched.
+    Reads both the primary intent_id (backward compat) and the full
+    handled_intent_ids list (new — closes all contributing intents so that
+    merged multi-intent DispatchTargets do not re-appear as unhandled).
     """
     dispatched: set[str] = set()
     for ev in events:
         if ev.get("event_type") != "edge_started":
             continue
-        # Check for intent_id in various locations
-        iid = (
-            ev.get("intent_id")
-            or (ev.get("data", {}) or {}).get("intent_id")
-        )
+        data = ev.get("data", {}) or {}
+        # Primary intent_id (backward compat)
+        iid = ev.get("intent_id") or data.get("intent_id")
         if iid:
             dispatched.add(str(iid))
+        # All contributing intent_ids (new field)
+        all_ids = data.get("handled_intent_ids") or ev.get("handled_intent_ids") or []
+        for aid in all_ids:
+            if aid:
+                dispatched.add(str(aid))
     return dispatched
 
 
@@ -279,6 +293,7 @@ def resolve_dispatch_targets(
 ) -> list[DispatchTarget]:
     """From a single intent_raised event, return list of DispatchTarget.
 
+    Projects the raw event dict to IntentEvent at intake boundary.
     Each DispatchTarget is (intent_id, feature_id, edge) — one per affected feature
     that has a non-converged edge. If affected_features == ["all"], scans all active
     feature vectors.
@@ -318,7 +333,7 @@ def resolve_dispatch_targets(
                 intent_id=intent_id,
                 feature_id=feature_id,
                 edge=edge,
-                intent_event=intent_event,
+                intent_events=[intent_event],   # single event per resolve; merged in get_pending_dispatches
                 feature_vector=fv,
             )
         )
@@ -331,21 +346,28 @@ def get_pending_dispatches(workspace_root: Path) -> list[DispatchTarget]:
 
     Entry point for the dispatch loop. Returns all DispatchTargets ready for
     EDGE_RUNNER to execute.
+
+    Deduplication: one work unit per (feature_id, edge). When multiple intents
+    target the same (feature, edge), they are merged into a single DispatchTarget
+    that carries ALL contributing intent_events. EDGE_RUNNER then emits
+    edge_started with handled_intent_ids listing all of them, so none remain
+    unhandled on the next pass (idempotency closure).
     """
     events_path = workspace_root / ".ai-workspace" / "events" / "events.jsonl"
     unhandled = find_unhandled_intents(events_path)
 
-    all_targets: list[DispatchTarget] = []
-    seen: set[tuple[str, str, str]] = set()  # dedup by (intent_id, feature_id, edge)
+    merged: dict[tuple[str, str], DispatchTarget] = {}
 
     for intent_event in unhandled:
         targets = resolve_dispatch_targets(intent_event, workspace_root)
         for t in targets:
-            # Dedup by (feature_id, edge) — prevents double-dispatch of the same
-            # edge even if triggered by multiple intents. First intent wins.
             key = (t.feature_id, t.edge)
-            if key not in seen:
-                seen.add(key)
-                all_targets.append(t)
+            if key not in merged:
+                merged[key] = t
+            else:
+                # Accumulate contributing events; primary intent_id (first) is kept
+                merged[key].intent_events.extend(t.intent_events)
+
+    all_targets = list(merged.values())
 
     return all_targets

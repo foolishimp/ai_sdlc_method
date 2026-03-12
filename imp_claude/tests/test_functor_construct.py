@@ -1,4 +1,5 @@
 # Validates: REQ-ROBUST-002 (Supervisor Pattern), REQ-ITER-001 (Universal Iteration)
+# Validates: REQ-F-RUNTIME-001
 """Tests for ADR-024 engine integration — FpFunctor MCP actor path."""
 
 import json
@@ -58,7 +59,7 @@ class TestEngineConstructIntegration:
         assert record.evaluation.converged is True  # No checks = converged
 
     def test_iterate_edge_with_construct_mcp_unavailable(self, tmp_path):
-        """When MCP unavailable, construct=True → FpFunctor returns skipped StepResult."""
+        """When MCP unavailable, construct=True → FpSkipped → fp_result=None (ADR-019 F_D-only mode)."""
         from genesis.engine import iterate_edge
 
         config = self._make_engine_config(tmp_path)
@@ -75,9 +76,9 @@ class TestEngineConstructIntegration:
                 construct=True,
             )
 
-        assert record.fp_result is not None
-        assert record.fp_result.audit.skipped is True
-        assert record.fp_result.delta == -1
+        # FpSkipped → engine enters F_D-only mode; fp_result is None (not an error)
+        assert record.fp_result is None
+        assert record.evaluation.converged is True  # no checks = converged
 
     def test_agent_checks_always_skip(self, tmp_path):
         """ADR-024: agent checks are always SKIP in the engine."""
@@ -115,21 +116,21 @@ class TestEngineConstructIntegration:
     def test_fp_actor_metadata_in_event(self, tmp_path):
         """Actor invocation metadata included in emitted iteration_completed event."""
         from genesis.engine import iterate_edge
-        from genesis.contracts import StepResult, StepAudit
+        from genesis.outcome_types import FpReturned
 
         config = self._make_engine_config(tmp_path)
         events_path = tmp_path / ".ai-workspace" / "events" / "events.jsonl"
 
-        mock_result = StepResult(
-            run_id="test-run",
-            converged=True,
-            delta=0,
-            cost_usd=0.42,
-            duration_ms=5000,
-            audit=StepAudit(functor_type="F_P", transport="mcp"),
-        )
+        mock_outcome = FpReturned(result={
+            "converged": True,
+            "delta": 0,
+            "cost_usd": 0.42,
+            "artifacts": [],
+            "spawns": [],
+            "audit": {"transport": "mcp", "skipped": False, "budget_capped": False},
+        })
 
-        with patch("genesis.fp_functor.FpFunctor.invoke", return_value=mock_result):
+        with patch("genesis.fp_functor.FpFunctor.invoke", return_value=mock_outcome):
             with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
                 iterate_edge(
                     edge="design→code",
@@ -218,30 +219,33 @@ class TestFpActorResultMissing:
         assert record.fp_result is None
         assert record.evaluation.converged is True  # No checks = converged
 
-    def test_fp_actor_result_missing_is_distinct_from_skip(self, tmp_path):
-        """FpActorResultMissing is raised by functor, not suppressed as skipped=True."""
+    def test_fp_actor_result_missing_returns_fp_pending(self, tmp_path):
+        """When MCP available but fold-back missing → FpPending (not FpSkipped, not exception)."""
         from genesis.fp_functor import FpFunctor
-        from genesis.contracts import FpActorResultMissing, Intent
+        from genesis.contracts import Intent
+        from genesis.outcome_types import FpPending
 
         intent = Intent(edge="design→code", feature="REQ-F-TEST-001")
 
         with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
-            with pytest.raises(FpActorResultMissing):
-                FpFunctor().invoke(intent, tmp_path)
+            result = FpFunctor().invoke(intent, tmp_path)
+
+        assert isinstance(result, FpPending)
+        assert result.manifest_path.name == f"fp_intent_{intent.run_id}.json"
 
     def test_intent_manifest_written_before_result_check(self, tmp_path):
         """T-008: intent manifest written to agents dir for actor to discover."""
         from genesis.fp_functor import FpFunctor
-        from genesis.contracts import FpActorResultMissing, Intent
+        from genesis.contracts import Intent
+        from genesis.outcome_types import FpPending
         import json
 
         intent = Intent(edge="design→code", feature="REQ-F-TEST-001")
 
         with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9000"}):
-            try:
-                FpFunctor().invoke(intent, tmp_path)
-            except FpActorResultMissing:
-                pass
+            result = FpFunctor().invoke(intent, tmp_path)
+
+        assert isinstance(result, FpPending)
 
         # Manifest must be written even when no fold-back result exists yet
         manifest_path = tmp_path / ".ai-workspace" / "agents" / f"fp_intent_{intent.run_id}.json"

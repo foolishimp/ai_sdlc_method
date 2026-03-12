@@ -1,4 +1,5 @@
 # Implements: REQ-ITER-003 (Functor Encoding Tracking), REQ-EVAL-002 (Evaluator Composition), REQ-ROBUST-002 (Supervisor Pattern for F_P Calls), REQ-ROBUST-007 (Failure Event Emission)
+# Implements: REQ-F-RUNTIME-001
 # Implements: REQ-ITER-002 (Convergence and Promotion — iterate_edge loop, delta=0 → promotion)
 # Implements: REQ-LIFE-002 (Telemetry — req= structured log tags at iterate/edge/convergence points)
 """Deterministic engine — owns the graph traversal loop.
@@ -29,7 +30,7 @@ from typing import Optional
 _log = logging.getLogger(__name__)
 
 from .config_loader import load_yaml, resolve_checklist
-from .contracts import FpActorResultMissing, Intent
+from .contracts import Intent
 from .ol_event import emit_ol_event, make_ol_event
 from .fd_evaluate import run_check as fd_run_check
 from .fd_route import select_next_edge, select_profile
@@ -39,6 +40,7 @@ from .models import (
     CheckResult,
     EvaluationResult,
 )
+from .outcome_types import FpFailed, FpPending, FpReturned, FpSkipped
 
 
 @dataclass
@@ -144,11 +146,13 @@ def iterate_edge(
             failures=prior_failures or [],
             budget_usd=config.budget_usd,
         )
-        try:
-            fp_result = FpFunctor().invoke(intent, config.workspace_path)
-        except FpActorResultMissing as exc:
-            # MCP is available but no fold-back result — observable failure (T-007).
-            # Emit FpFailure so the event log records the gap; continue F_D only.
+        fp_outcome = FpFunctor().invoke(intent, config.workspace_path)
+
+        if isinstance(fp_outcome, FpSkipped):
+            # MCP unavailable — F_D-only mode (ADR-019). Not an error; no event needed.
+            fp_result = None
+        elif isinstance(fp_outcome, FpPending):
+            # Manifest written but no fold-back result yet — observable gap (T-007).
             emit_ol_event(
                 events_path,
                 make_ol_event(
@@ -167,19 +171,13 @@ def iterate_edge(
                         "cost_usd": 0.0,
                         "duration_ms": 0,
                         "phase": "construct",
-                        "error": str(exc),
+                        "error": f"Actor not yet invoked — manifest at {fp_outcome.manifest_path}",
                     },
                 ),
             )
-            fp_result = None  # F_D evaluation proceeds without F_P result
-
-        # Emit FpFailure event if actor was invoked but did not converge (REQ-ROBUST-007)
-        if (
-            fp_result
-            and not fp_result.audit.skipped
-            and not fp_result.converged
-            and fp_result.delta > 0
-        ):
+            fp_result = None
+        elif isinstance(fp_outcome, FpFailed):
+            # Actor invocation or result-parse error — emit and continue F_D only.
             emit_ol_event(
                 events_path,
                 make_ol_event(
@@ -194,13 +192,43 @@ def iterate_edge(
                         "feature": feature_id,
                         "edge": edge,
                         "iteration": iteration,
-                        "transport": fp_result.audit.transport,
-                        "cost_usd": fp_result.cost_usd,
-                        "duration_ms": fp_result.duration_ms,
+                        "transport": "mcp",
+                        "cost_usd": 0.0,
+                        "duration_ms": 0,
                         "phase": "construct",
+                        "error": fp_outcome.error,
                     },
                 ),
             )
+            fp_result = None
+        else:
+            # FpReturned — actor completed with fold-back result.
+            assert isinstance(fp_outcome, FpReturned)
+            fp_result = fp_outcome.result  # dict: converged, delta, cost_usd, artifacts, spawns, audit
+
+            # Emit FpFailure if actor returned but did not converge (REQ-ROBUST-007)
+            if not fp_result.get("converged") and fp_result.get("delta", 0) > 0:
+                emit_ol_event(
+                    events_path,
+                    make_ol_event(
+                        "FpFailure",
+                        edge,
+                        config.project_name,
+                        feature_id,
+                        "genesis-engine",
+                        causation_id=iter_run_id,
+                        correlation_id=edge_correlation_id,
+                        payload={
+                            "feature": feature_id,
+                            "edge": edge,
+                            "iteration": iteration,
+                            "transport": (fp_result.get("audit") or {}).get("transport", "mcp"),
+                            "cost_usd": fp_result.get("cost_usd", 0.0),
+                            "duration_ms": 0,
+                            "phase": "construct",
+                        },
+                    ),
+                )
 
     # 2. F_D: Resolve checklist
     checks = resolve_checklist(edge_config, config.constraints)
@@ -331,14 +359,16 @@ def iterate_edge(
         escalations=escalations,
     )
 
-    if fp_result is not None and not fp_result.audit.skipped:
+    if fp_result is not None:
+        # fp_result is now a dict from FpReturned.result
+        audit = fp_result.get("audit") or {}
         event_data["fp_actor"] = {
-            "transport": fp_result.audit.transport,
-            "converged": fp_result.converged,
-            "cost_usd": fp_result.cost_usd,
-            "duration_ms": fp_result.duration_ms,
-            "artifacts": len(fp_result.artifacts),
-            "spawns": len(fp_result.spawns),
+            "transport": audit.get("transport", "mcp"),
+            "converged": fp_result.get("converged", False),
+            "cost_usd": fp_result.get("cost_usd", 0.0),
+            "duration_ms": 0,
+            "artifacts": len(fp_result.get("artifacts", [])),
+            "spawns": len(fp_result.get("spawns", [])),
         }
 
     completed_run_id = emit_ol_event(
