@@ -1,3 +1,10 @@
+---
+title: "Genesis Obligations — Product Specification v1"
+author: "Dimitar Popov"
+date: "2026-03-13"
+subtitle: "Global Regulatory Obligation Intelligence and Constraint-Mapping System"
+---
+
 # STRATEGY: Genesis Obligations product specification v1
 
 **Author**: Dimitar Popov
