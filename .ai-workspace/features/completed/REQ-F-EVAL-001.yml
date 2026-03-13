@@ -1,0 +1,42 @@
+feature: REQ-F-EVAL-001
+title: Evaluator Framework
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: converged
+created: "2026-02-19T10:00:00Z"
+updated: "2026-02-21T10:00:00Z"
+parent_id: REQ-F-ENGINE-001
+
+description: |
+  The three evaluator types (Human, Agent, Deterministic) and their
+  composition per edge. Includes evaluator_defaults.yml and regime classification.
+
+requirements:
+  - REQ-EVAL-001
+  - REQ-EVAL-002
+  - REQ-EVAL-003
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+  design:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_architecture: pass
+      human_approval: pass
+  code:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+      deterministic_config_validation: pass
+  unit_tests:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      deterministic_pytest: pass

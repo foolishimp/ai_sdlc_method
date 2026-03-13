@@ -1,0 +1,75 @@
+feature: REQ-F-CONS-009
+title: Event Emission — full OL event taxonomy, append-only, required fields
+parent: REQ-F-CONSENSUS-001
+vector_type: feature
+profile: standard
+status: converged
+description: 'Feature vector projection of REQ-F-CONSENSUS-001.
+
+  See CONSENSUS_FEATURE_DECOMPOSITION.md §Feature REQ-F-CONS-009 for acceptance criteria.
+
+  '
+source_asset: specification/features/CONSENSUS_FEATURE_DECOMPOSITION.md
+trajectory:
+  requirements:
+    status: converged
+    asset: specification/adrs/ADR-S-025-consensus-functor.md
+    converged_at: '2026-03-08T17:45:00Z'
+    notes: Inherited from REQ-F-CONSENSUS-001 — ADR-S-025 ratified
+  design:
+    status: converged
+    iteration: 3
+    converged_at: '2026-03-09T12:00:00Z'
+    asset: imp_claude/design/CONSENSUS_DESIGN.md
+    notes: Design converged at parent feature level — iteration 3 adds versioning
+      semantics
+  code:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-09T05:33:12Z'
+    asset: imp_claude/code/genesis/consensus_engine.py
+    notes: Code asset exists — command/engine implementation written and evaluated
+  unit_tests:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-09T05:33:12Z'
+    asset: imp_claude/tests/test_uc_consensus_001.py
+    notes: Covered by test_uc_consensus_001.py — 47 tests, all pass
+evaluator_contracts:
+  module: all CONSENSUS components
+  note: Cross-cutting event emission contract — verified across all components
+  contracts:
+  - id: CONS-009-C1
+    condition: any CONSENSUS event emitted
+    required_fields: '[event_type, review_id, timestamp, project, actor]'
+    result: event is valid JSON, appended to .ai-workspace/events/events.jsonl
+  - id: CONS-009-C2
+    condition: event_type field
+    valid_values: '[consensus_requested, comment_received, vote_cast, asset_version_published,
+      consensus_reached, consensus_failed, recovery_path_selected]'
+    invalid_values: '[proposal_published, asset_version_changed]'
+    note: canonical names enforced — deprecated names rejected
+  - id: CONS-009-C3
+    condition: events.jsonl
+    result: append-only — no event line is modified or deleted after writing
+  - id: CONS-009-C4
+    condition: session rehydration
+    invariant: project_review_state(all_events, review_id, close_time) produces identical
+      votes and comments regardless of how many times called with the same inputs
+  - id: CONS-009-C5
+    condition: event sequence for a review_id
+    invariant: consensus_reached or consensus_failed appears at most once per review_id
+      — terminal events are idempotent
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  active_units:
+    evaluate: F_D
+    construct: F_P
+    classify: F_D
+    route: F_H
+    propose: F_P
+    sense: F_D
+    emit: F_D
+    decide: F_H

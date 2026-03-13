@@ -1,0 +1,71 @@
+feature: REQ-F-CONS-003
+title: Comment Disposition — resolved|rejected|acknowledged|scope_change lifecycle
+parent: REQ-F-CONSENSUS-001
+vector_type: feature
+profile: standard
+status: converged
+description: 'Feature vector projection of REQ-F-CONSENSUS-001.
+
+  See CONSENSUS_FEATURE_DECOMPOSITION.md §Feature REQ-F-CONS-003 for acceptance criteria.
+
+  '
+source_asset: specification/features/CONSENSUS_FEATURE_DECOMPOSITION.md
+trajectory:
+  requirements:
+    status: converged
+    asset: specification/adrs/ADR-S-025-consensus-functor.md
+    converged_at: '2026-03-08T17:45:00Z'
+    notes: Inherited from REQ-F-CONSENSUS-001 — ADR-S-025 ratified
+  design:
+    status: converged
+    iteration: 3
+    converged_at: '2026-03-09T12:00:00Z'
+    asset: imp_claude/design/CONSENSUS_DESIGN.md
+    notes: Design converged at parent feature level — iteration 3 adds versioning
+      semantics
+  code:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-09T05:33:12Z'
+    asset: imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-dispose.md
+    notes: Code asset exists — command/engine implementation written and evaluated
+  unit_tests:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-09T05:33:12Z'
+    asset: imp_claude/tests/test_uc_consensus_001.py
+    notes: Covered by test_uc_consensus_001.py — 47 tests, all pass
+evaluator_contracts:
+  module: imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-dispose.md
+  note: gen-dispose command to be created — REQ-F-CONS-003 implementation
+  contracts:
+  - id: CONS-003-C1
+    condition: disposition set on gating comment
+    valid_values: '[resolved, rejected, acknowledged, scope_change]'
+    requires: non-empty rationale string
+  - id: CONS-003-C2
+    condition: disposition = scope_change
+    emits: spec_modified event in addition to comment disposition update
+  - id: CONS-003-C3
+    condition: 'gating comment with disposition: null'
+    result: gating_comments_dispositioned check returns false — blocks convergence
+  - id: CONS-003-C4
+    condition: all gating comments have non-null disposition
+    result: gating_comments_dispositioned check returns true
+  - id: CONS-003-C5
+    condition: 'late comment (gating: false)'
+    result: disposition has no effect on convergence gate — late comments are context
+      only
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  active_units:
+    evaluate: F_D
+    construct: F_P
+    classify: F_D
+    route: F_H
+    propose: F_P
+    sense: F_D
+    emit: F_D
+    decide: F_H

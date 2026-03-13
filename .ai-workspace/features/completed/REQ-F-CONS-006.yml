@@ -1,0 +1,91 @@
+feature: REQ-F-CONS-006
+title: Quorum Gate — five deterministic checks, consensus_engine.py
+parent: REQ-F-CONSENSUS-001
+vector_type: feature
+profile: standard
+status: converged
+description: 'Feature vector projection of REQ-F-CONSENSUS-001.
+
+  See CONSENSUS_FEATURE_DECOMPOSITION.md §Feature REQ-F-CONS-006 for acceptance criteria.
+
+  '
+source_asset: specification/features/CONSENSUS_FEATURE_DECOMPOSITION.md
+trajectory:
+  requirements:
+    status: converged
+    asset: specification/adrs/ADR-S-025-consensus-functor.md
+    converged_at: '2026-03-08T17:45:00Z'
+    notes: Inherited from REQ-F-CONSENSUS-001 — ADR-S-025 ratified
+  design:
+    status: converged
+    iteration: 3
+    converged_at: '2026-03-09T12:00:00Z'
+    asset: imp_claude/design/CONSENSUS_DESIGN.md
+    notes: Design converged at parent feature level — iteration 3 adds versioning
+      semantics
+  code:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-09T05:33:12Z'
+    asset: imp_claude/code/genesis/consensus_engine.py
+    notes: Code asset exists — command/engine implementation written and evaluated
+  unit_tests:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-09T05:33:12Z'
+    asset: imp_claude/tests/test_uc_consensus_001.py
+    notes: Covered by test_uc_consensus_001.py — 47 tests, all pass
+evaluator_contracts:
+  module: imp_claude/code/genesis/consensus_engine.py
+  contracts:
+  - id: CONS-006-C1
+    function: evaluate_quorum(config, votes, comments, now)
+    condition: all 5 checks pass
+    returns: QuorumResult(converged=True, failure_reason=None)
+  - id: CONS-006-C2
+    function: evaluate_quorum
+    condition: now < published_at + min_duration_seconds
+    returns: QuorumResult(converged=False, failure_reason=MIN_DURATION_NOT_ELAPSED)
+  - id: CONS-006-C3
+    function: evaluate_quorum
+    condition: now < review_closes_at
+    returns: QuorumResult(converged=False, failure_reason=WINDOW_CLOSED_INSUFFICIENT_VOTES)
+  - id: CONS-006-C4
+    function: evaluate_quorum
+    condition: eligible_votes / roster_size < min_participation_ratio
+    returns: QuorumResult(converged=False, failure_reason=PARTICIPATION_FLOOR_NOT_MET)
+  - id: CONS-006-C5
+    function: evaluate_quorum
+    condition: approve_ratio exactly 0.5 with majority threshold
+    returns: QuorumResult(converged=False, failure_reason=TIE)
+  - id: CONS-006-C6
+    function: evaluate_quorum
+    condition: 'any gating comment has disposition: null'
+    returns: QuorumResult(converged=False, failure_reason=GATING_COMMENTS_UNDISPOSITIONED)
+  - id: CONS-006-C7
+    function: _effective_votes(votes)
+    condition: same participant has multiple vote_cast events
+    returns: only the most-recent vote per participant — earlier votes excluded from
+      tally
+  - id: CONS-006-C8
+    function: project_review_state(events, review_id, review_closes_at)
+    condition: asset_version_published event with materiality=material present
+    returns: votes list excludes all vote_cast events timestamped before the material
+      change
+  - id: CONS-006-C9
+    function: project_review_state
+    condition: comment_received events span multiple asset versions
+    returns: all gating comments included regardless of which asset version they reference
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  active_units:
+    evaluate: F_D
+    construct: F_P
+    classify: F_D
+    route: F_H
+    propose: F_P
+    sense: F_D
+    emit: F_D
+    decide: F_H

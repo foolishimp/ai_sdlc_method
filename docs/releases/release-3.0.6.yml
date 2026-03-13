@@ -1,0 +1,103 @@
+version: "3.0.6"
+date: "2026-03-14"
+context_hash: "sha256:9e97070aac74eff6"
+git_tag: "v3.0.6"
+commits_since_prior: 33
+
+## Changelog
+
+### Features
+- REQ-F-PROXY-001: Human Proxy Mode — --human-proxy flag, proxy-log, actor attribution, rejection halt, session guard (UC-12 UAT converged)
+- REQ-F-EVENT-001: Event Stream & Projections — append-only log, projection contract, event taxonomy, executor attribution, saga compensation (UC-13 UAT converged)
+- feat(genesis_manager): EvidenceBrowser rework + REQ-F-FSNAV-001 design + supervision fixes
+
+### Specification
+- spec(adr-s-035): Genesis Topology Language (GTL) — Python library direction ACCEPTED, supersedes custom text DSL
+- spec(gtl): GTL v0.2.1 — Package/Asset/Edge/Operator/Rule/Context/Overlay object model with constitutional invariants
+  - Constitutional bindings: PackageSnapshot, context_snapshot_id, governing_snapshots[]
+  - Compiler invariants enforced at construction (ValueError at import)
+  - Typed Operative condition, Audit surfaces (topology vs traversal)
+  - Two reference implementations: genesis_obligations + genesis_sdlc with 4 profiles
+- spec(theory): Genesis monadic structure exploration — monoid, functor, state monad
+- spec(invariant): intent→requirements as universally epistemically hard edge
+- spec(strategy): Genesis as constitutional OS, enterprise architecture package
+- spec(codex): genesis_obligations strategic session — entitlements, obligations
+
+### REQ Key Coverage
+| Category | Covered | Total | % |
+|----------|---------|-------|---|
+| Functional (REQ-F-*) | 36 features converged | 36 | 100% |
+| L2 Test Coverage | 89/89 spec keys | 89 | 100% |
+| L1 Code Tags | 65/89 spec keys (py+md) | 89 | 73% |
+| L3 Telemetry | advisory (code→cicd not started) | — | — |
+
+features_included:
+  - REQ-F-ANAL-001: converged
+  - REQ-F-CONS-001: converged
+  - REQ-F-CONS-002: converged
+  - REQ-F-CONS-003: converged
+  - REQ-F-CONS-005: converged
+  - REQ-F-CONS-006: converged
+  - REQ-F-CONS-007: converged
+  - REQ-F-CONS-008: converged
+  - REQ-F-CONS-009: converged
+  - REQ-F-CONSENSUS-001: converged
+  - REQ-F-COORD-001: converged
+  - REQ-F-CTX-001: converged
+  - REQ-F-DISPATCH-001: converged
+  - REQ-F-EDGE-001: converged
+  - REQ-F-ENGINE-001: converged
+  - REQ-F-EVAL-001: converged
+  - REQ-F-EVENT-001: converged
+  - REQ-F-EVOL-001: converged
+  - REQ-F-EVOL-NFR-002: converged
+  - REQ-F-FP-001: converged
+  - REQ-F-INTENT-001: converged
+  - REQ-F-LIFE-001: converged
+  - REQ-F-NAMEDCOMP-001: converged
+  - REQ-F-PROXY-001: converged
+  - REQ-F-ROBUST-001: converged
+  - REQ-F-RUNTIME-001: converged
+  - REQ-F-SCHEMA-DISC-001: converged
+  - REQ-F-SENSE-001: converged
+  - REQ-F-SENSE-002: converged
+  - REQ-F-SUPV-001: converged
+  - REQ-F-TELEM-001: converged
+  - REQ-F-TOOL-001: converged
+  - REQ-F-TOOL-015: converged
+  - REQ-F-TRACE-001: converged
+  - REQ-F-UX-001: converged
+  - REQ-F-UX-002: converged
+
+coverage:
+  features: 36/36 (100%)
+  l2_tests: 89/89 (100%)
+  l1_code_tags: 65/89 (73%)
+  l3_telemetry: advisory
+
+known_gaps:
+  - REQ-EVENT-003: Implements: tag missing (queued PROP-009)
+  - REQ-EVENT-004: Implements: tag missing (queued PROP-009)
+  - REQ-ROBUST-007: Implements: tag missing (queued PROP-010)
+  - REQ-ROBUST-008: Implements: tag missing (queued PROP-010)
+  - REQ-LIFE-004: Implements: tag missing (queued PROP-011)
+  - REQ-LIFE-008: Implements: tag missing (queued PROP-011)
+  - REQ-TOOL-003: Implements: tag missing (queued PROP-012)
+  - REQ-TOOL-006: Implements: tag missing (queued PROP-012)
+  - REQ-TOOL-007: Implements: tag missing (queued PROP-012)
+  - REQ-TOOL-013: Implements: tag missing (queued PROP-012)
+  - REQ-TOOL-014: Implements: tag missing (queued PROP-012)
+  - REQ-GRAPH-003: Implements: tag missing (queued PROP-013)
+  - REQ-COORD-003: Implements: tag missing (queued PROP-013)
+  - REQ-CTX-002: Implements: tag missing (queued PROP-013)
+  - REQ-UX-003: Implements: tag missing (queued PROP-013)
+  - REQ-UX-005: Implements: tag missing (queued PROP-013)
+  - REQ-SUPV-001: Implements: tag missing (queued PROP-013)
+  - REQ-SUPV-003: Implements: tag missing (queued PROP-013)
+  - REQ-SENSE-003: Implements: tag missing (queued PROP-013)
+  - REQ-SENSE-005: Implements: tag missing (queued PROP-013)
+  - REQ-EDGE-002: Implements: tag missing (queued PROP-014)
+  - REQ-EDGE-003: Implements: tag missing (queued PROP-014)
+  - REQ-EVAL-002: Implements: tag missing (queued PROP-014)
+  - REQ-INTENT-002: Implements: tag missing (queued PROP-014)
+  - L3 telemetry (req= tags): code→cicd not started (queued PROP-015)

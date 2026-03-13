@@ -1,0 +1,43 @@
+feature: REQ-F-TELEM-001
+title: Telemetry Tagging Phase 1
+intent: INT-GAP-013
+vector_type: feature
+profile: hotfix
+status: converged
+priority: medium
+created: "2026-03-10T00:00:00Z"
+updated: "2026-03-11T22:10:00Z"
+converged_at: "2026-03-11T22:10:00Z"
+source: feature_proposal
+proposal_id: PROP-006
+
+description: |
+  Telemetry observability (req= tags in logging/metrics) is missing for ~85
+  REQ keys in production code. Phase 2 homeostasis requires the sensory system
+  to read req= tagged events from running code. Scope: add req= tags to all
+  engine.py, evaluator execution, and command execution paths. Low effort
+  per-file; high breadth.
+
+requirements:
+  - REQ-LIFE-002
+  - REQ-LIFE-003
+
+trajectory:
+  requirements:
+    status: converged
+    converged_at: "2026-03-11T22:00:00Z"
+    notes: "REQ-LIFE-002 acceptance: telemetry tagged with feature vector IDs (REQ keys)"
+  design:
+    status: converged
+    converged_at: "2026-03-11T22:00:00Z"
+    notes: "stdlib logging with req= structured tag pattern; hotfix profile — no separate design doc"
+  code:
+    status: converged
+    converged_at: "2026-03-11T22:00:00Z"
+    asset: "imp_claude/code/genesis/engine.py, dispatch_loop.py, edge_runner.py"
+    notes: "req= tags at iterate_edge, run_edge, dispatch, edge_runner entry points"
+  unit_tests:
+    status: converged
+    converged_at: "2026-03-11T22:00:00Z"
+    asset: "imp_claude/tests/test_cli_engine.py::TestTelemetryLogging"
+    notes: "4 tests: iterate_edge req= tag, run_edge req= tag, exact feature_id match, delta in result"

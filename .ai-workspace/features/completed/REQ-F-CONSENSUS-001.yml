@@ -1,0 +1,101 @@
+feature: REQ-F-CONSENSUS-001
+title: "CONSENSUS Functor Implementation"
+intent: "INT-CONSENSUS-001"
+vector_type: feature
+profile: standard
+status: converged
+
+description: |
+  Implement the CONSENSUS multi-stakeholder evaluator functor as specified in
+  ADR-S-025. CONSENSUS is a parameterisation of F_H with roster, quorum rule,
+  and participation floor — enabling multi-party evaluation across governance
+  edges (spec review, ADR acceptance, release gates, public review).
+
+source_asset: "specification/adrs/ADR-S-025-consensus-functor.md"
+
+trajectory:
+  requirements:
+    status: converged
+    asset: "specification/adrs/ADR-S-025-consensus-functor.md"
+    converged_at: "2026-03-08T17:45:00Z"
+    notes: "ADR-S-025 ratified — serves as requirements for implementation"
+
+  feature_decomposition:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-08T17:50:00Z"
+    converged_at: "2026-03-08T18:00:00Z"
+    asset: "specification/features/CONSENSUS_FEATURE_DECOMPOSITION.md"
+    evaluators_passed: 6
+    evaluators_total: 6
+    delta: 0
+
+  design_recommendations:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-08T18:01:00Z"
+    converged_at: "2026-03-08T18:15:00Z"
+    asset: "specification/features/CONSENSUS_DESIGN_RECOMMENDATIONS.md"
+    evaluators_passed: 6
+    evaluators_total: 6
+    delta: 0
+
+  design:
+    status: converged
+    iteration: 3
+    started_at: "2026-03-09T00:00:00Z"
+    converged_at: "2026-03-10T00:00:00Z"
+    asset: "imp_claude/design/CONSENSUS_DESIGN.md"
+    evaluators_passed: 14
+    evaluators_total: 14
+    delta: 0
+    notes: |
+      Iteration 3 — versioning semantics (most-recent-per-relay votes, version-agnostic
+      gating comments, asset_version_published). ADR-S-031 written. ADR-S-025 updated
+      with supervisory saga kernel framing and terminal-resolution liveness invariant.
+      human_approves_architecture: APPROVED 2026-03-10 (human gate — F_H).
+    projections:
+      - REQ-F-CONS-001  # Review Publication
+      - REQ-F-CONS-002  # Comment Collection and Gating
+      - REQ-F-CONS-003  # Comment Disposition
+      - REQ-F-CONS-005  # Voting
+      - REQ-F-CONS-006  # Quorum Gate
+      - REQ-F-CONS-007  # Convergence Outcomes
+      - REQ-F-CONS-008  # Recovery Paths
+      - REQ-F-CONS-009  # Event Emission
+
+  code:
+    status: converged
+    converged_at: "2026-03-09T17:30:00Z"
+    asset: "imp_claude/code/genesis/consensus_engine.py"
+    notes: "Converged via projections REQ-F-CONS-001..009 — all 8 code edges converged"
+
+  unit_tests:
+    status: converged
+    converged_at: "2026-03-09T17:30:00Z"
+    asset: "imp_claude/tests/test_uc_consensus_001.py"
+    notes: "47 tests passing — all CONS projections covered"
+
+  uat_tests:
+    status: converged
+    converged_at: "2026-03-09T17:30:00Z"
+    asset: "imp_claude/tests/test_uc_consensus_001.py"
+    notes: "UAT-UC-CONSENSUS-001..002 covered by TestUCConsensus001HappyPath/002Rejection"
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  active_units:
+    evaluate: F_D
+    construct: F_P
+    classify: F_D
+    route: F_H
+    propose: F_P
+    sense: F_D
+    emit: F_D
+    decide: F_H
+
+constraints:
+  spec_boundary: tech_agnostic  # feature_decomposition is still on spec side
+  cross_tenant: true            # output must be valid for Claude, Gemini, Codex

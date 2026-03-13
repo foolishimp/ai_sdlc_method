@@ -1,0 +1,45 @@
+feature: REQ-F-ENGINE-001
+title: Asset Graph Engine
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: converged
+created: "2026-02-19T08:00:00Z"
+updated: "2026-02-21T10:00:00Z"
+
+description: |
+  The core graph topology, iteration function, and convergence/promotion mechanism.
+  Foundation for all other features.
+
+requirements:
+  - REQ-GRAPH-001
+  - REQ-GRAPH-002
+  - REQ-GRAPH-003
+  - REQ-ITER-001
+  - REQ-ITER-002
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+      agent_consistency: pass
+  design:
+    status: converged
+    iteration: 2
+    evaluator_results:
+      agent_architecture: pass
+      agent_adr_coverage: pass
+      human_approval: pass
+  code:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+      deterministic_config_validation: pass
+  unit_tests:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      deterministic_pytest: pass

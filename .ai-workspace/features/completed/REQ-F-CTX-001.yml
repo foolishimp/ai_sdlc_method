@@ -1,0 +1,41 @@
+feature: REQ-F-CTX-001
+title: Context Management
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: converged
+created: "2026-02-19T10:00:00Z"
+updated: "2026-02-21T10:00:00Z"
+parent_id: REQ-F-ENGINE-001
+
+description: |
+  Context[] as constraint surface, hierarchy, and spec reproducibility.
+  Includes project_constraints template, context manifest, ADR store.
+
+requirements:
+  - REQ-CTX-001
+  - REQ-CTX-002
+  - REQ-INTENT-004
+
+trajectory:
+  requirements:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+  design:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_architecture: pass
+  code:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      agent_completeness: pass
+      deterministic_config_validation: pass
+  unit_tests:
+    status: converged
+    iteration: 1
+    evaluator_results:
+      deterministic_pytest: pass

@@ -1,0 +1,125 @@
+feature: REQ-F-NAMEDCOMP-001
+title: "Named Composition Library and Intent Vector Envelope"
+intent: "INT-NAMEDCOMP-001"
+vector_type: feature
+profile: standard
+status: converged
+
+description: |
+  Implement the five-level compositional stack and intent vector envelope
+  specified in ADR-S-026. Covers: named composition registry (PLAN, POC,
+  SCHEMA_DISCOVERY, DATA_DISCOVERY), typed gap.intent output (composition
+  expressions replacing free text), intent vector schema extension (extended
+  tuple with source_kind, trigger_event, target_asset_type, produced_asset_ref,
+  disposition), project convergence vocabulary (quiescent/converged/bounded),
+  and the shared PLAN edge parameter template.
+
+source_asset: "specification/adrs/ADR-S-026-named-compositions-and-intent-vectors.md"
+
+trajectory:
+  requirements:
+    status: converged
+    asset: "specification/adrs/ADR-S-026-named-compositions-and-intent-vectors.md"
+    converged_at: "2026-03-08T19:00:00+11:00"
+    notes: "ADR-S-026 ratified — serves as requirements for implementation"
+
+  feature_decomposition:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-08T19:05:00+11:00"
+    converged_at: "2026-03-08T19:30:00+11:00"
+    asset: "specification/features/NAMEDCOMP_FEATURE_DECOMPOSITION.md"
+    evaluators_passed: 6
+    evaluators_total: 6
+    delta: 0
+
+  design_recommendations:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-08T19:31:00+11:00"
+    converged_at: "2026-03-08T20:00:00+11:00"
+    asset: "specification/features/NAMEDCOMP_DESIGN_RECOMMENDATIONS.md"
+    evaluators_passed: 6
+    evaluators_total: 6
+    delta: 0
+
+  design:
+    status: converged
+    iteration: 1
+    started_at: "2026-03-09T18:00:00Z"
+    converged_at: "2026-03-09T20:00:00Z"
+    evaluators_passed: 13
+    evaluators_total: 13
+    delta: 0
+    notes: |
+      P1: named_compositions.yml (4 macros + dispatch table).
+      P2A: feature_vector_template.yml extended (source_kind, trigger_event, target_asset_type,
+      produced_asset_ref, disposition, disposition_rationale).
+      P2B: config/named_compositions/plan.yml PLAN edge parameter template.
+      P3: intentengine_config.yml gap_type_dispatch section; observer agents updated
+      with composition resolution step.
+      P4: gen-status.md Project Convergence State algorithm (ITERATING/QUIESCENT/CONVERGED/BOUNDED).
+      P5: config_loader.py extended (load_named_compositions, resolve_composition,
+      validate_feature_vector, compute_project_convergence_state).
+      P6: Governance scaffold — composition_review.yml + composition_consensus.yml edge params;
+      named_composition asset type in graph_topology.yml; gen-init.md Step 9 README.
+    assets:
+      - "imp_claude/code/.claude-plugin/plugins/genesis/config/named_compositions.yml"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/config/named_compositions/plan.yml"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/config/feature_vector_template.yml"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/config/intentengine_config.yml"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/config/edge_params/composition_review.yml"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/config/edge_params/composition_consensus.yml"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-status.md"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-init.md"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/agents/gen-dev-observer.md"
+      - "imp_claude/code/.claude-plugin/plugins/genesis/agents/gen-cicd-observer.md"
+
+  code:
+    status: converged
+    converged_at: "2026-03-09T20:00:00Z"
+    asset: "imp_claude/code/genesis/config_loader.py"
+    notes: |
+      load_named_compositions() — loads library + project-local with shadow rule.
+      resolve_composition() — dispatch table lookup with caller binding override.
+      validate_feature_vector() — applies intent vector envelope defaults and consistency checks.
+      compute_project_convergence_state() — ITERATING/QUIESCENT/CONVERGED/BOUNDED algorithm.
+
+  unit_tests:
+    status: converged
+    converged_at: "2026-03-09T20:00:00Z"
+    notes: "171 tests passing across 5 new test files — all NC sub-features covered"
+    assets:
+      - "imp_claude/tests/test_named_compositions_registry.py"
+      - "imp_claude/tests/test_intent_vector_schema.py"
+      - "imp_claude/tests/test_typed_intent_raised.py"
+      - "imp_claude/tests/test_project_convergence_states.py"
+      - "imp_claude/tests/test_plan_template.py"
+
+  uat_tests:
+    status: converged
+    converged_at: "2026-03-09T20:02:00Z"
+    notes: "UAT acceptance criteria covered by 171 unit tests in P5; no separate UAT use case authored (NAMEDCOMP-001 is a methodology tooling feature, not a user-facing flow)"
+
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  active_units:
+    evaluate: F_D
+    construct: F_P
+    classify: F_D
+    route: F_H
+    propose: F_P
+    sense: F_D
+    emit: F_D
+    decide: F_H
+
+constraints:
+  spec_boundary: cross_cutting  # affects spec layer (feature vector schema) and implementation layer
+  cross_tenant: true            # registry schema and intent vector tuple must be valid for all tenants
+  depends_on:
+    - REQ-F-ENGINE-001          # named compositions compile to graph topology
+    - REQ-F-TOOL-001            # gen-init, gen-spawn, gen-status, gen-gaps commands
+    - REQ-F-TRACE-001           # feature vector traceability (intent vector extends feature vector)
+    - REQ-F-SENSE-001           # gap.intent typed output requires affect_triage and sensory monitors

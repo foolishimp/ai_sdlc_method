@@ -1,0 +1,75 @@
+feature: REQ-F-CONS-008
+title: Recovery Paths — re_open|narrow_scope|abandon + recovery_path_selected
+parent: REQ-F-CONSENSUS-001
+vector_type: feature
+profile: standard
+status: converged
+description: 'Feature vector projection of REQ-F-CONSENSUS-001.
+
+  See CONSENSUS_FEATURE_DECOMPOSITION.md §Feature REQ-F-CONS-008 for acceptance criteria.
+
+  '
+source_asset: specification/features/CONSENSUS_FEATURE_DECOMPOSITION.md
+trajectory:
+  requirements:
+    status: converged
+    asset: specification/adrs/ADR-S-025-consensus-functor.md
+    converged_at: '2026-03-08T17:45:00Z'
+    notes: Inherited from REQ-F-CONSENSUS-001 — ADR-S-025 ratified
+  design:
+    status: converged
+    iteration: 3
+    converged_at: '2026-03-09T12:00:00Z'
+    asset: imp_claude/design/CONSENSUS_DESIGN.md
+    notes: Design converged at parent feature level — iteration 3 adds versioning
+      semantics
+  code:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-09T05:33:12Z'
+    asset: imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-consensus-recover.md
+    notes: Code asset exists — command/engine implementation written and evaluated
+  unit_tests:
+    status: converged
+    iteration: 1
+    converged_at: '2026-03-09T05:33:12Z'
+    asset: imp_claude/tests/test_uc_consensus_001.py
+    notes: Covered by test_uc_consensus_001.py — 47 tests, all pass
+evaluator_contracts:
+  module: imp_claude/code/.claude-plugin/plugins/genesis/commands/gen-consensus-recover.md
+  note: gen-consensus-recover command to be created — REQ-F-CONS-008 implementation
+  contracts:
+  - id: CONS-008-C1
+    condition: proposer selects re_open after consensus_failed
+    emits: recovery_path_selected with path=re_open and new review window parameters
+    result: new consensus_requested emitted with same artifact, updated review_closes_at
+  - id: CONS-008-C2
+    condition: proposer selects narrow_scope
+    emits: recovery_path_selected with path=narrow_scope
+    result: fold-back to intent edge — contested portions removed from artifact, new
+      review cycle with reduced scope
+  - id: CONS-008-C3
+    condition: proposer selects abandon
+    emits: recovery_path_selected with path=abandon
+    result: 'feature closed with convergence_type: consensus_failed — no new review
+      opened'
+  - id: CONS-008-C4
+    condition: recovery_path_selected invoked on open session (no consensus_failed)
+    result: exits with error — recovery paths only valid after consensus_failed
+  - id: CONS-008-C5
+    condition: N re_open cycles without new artifact version or roster change
+    result: 'homeostasis monitor detects stuck-delta pattern — intent_raised with
+      signal_source: stuck emitted'
+functor:
+  strategy: balanced
+  mode: interactive
+  valence: medium
+  active_units:
+    evaluate: F_D
+    construct: F_P
+    classify: F_D
+    route: F_H
+    propose: F_P
+    sense: F_D
+    emit: F_D
+    decide: F_H

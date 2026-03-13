@@ -1,0 +1,68 @@
+feature: REQ-F-ROBUST-001
+title: Runtime Robustness for F_P Invocations
+intent: INT-AISDLC-001
+vector_type: feature
+profile: standard
+status: converged
+priority: critical
+created: "2026-02-27T22:00:00Z"
+updated: "2026-03-06T19:10:00Z"
+parent_id: REQ-F-ENGINE-001
+spawned_by: gap_analysis
+
+description: |
+  Runtime robustness for the engine's F_P invocations.
+  Trigger: 5-hour hang during test10 dogfood — claude -p subprocess became a
+  zombie, blocking the engine with no timeout recovery or failure events.
+
+  Scope: Process isolation, watchdog timeouts, failure event emission, and
+  session gap detection.
+
+  Design pivot (ADR-024, 2026-03-05): The subprocess path (fp_subprocess.py,
+  fp_construct.py, fp_evaluate.py) was deleted and replaced by the MCP actor
+  path (fp_functor.py + FpFunctor). The robustness requirements (timeout,
+  isolation, failure events) are now satisfied by the MCP actor contract:
+  _mcp_invoke() returns skipped=True when MCP is unavailable, and the actor
+  writes a fold-back result file that the engine reads. The supervisor pattern
+  (REQ-ROBUST-002) is now the actor's own timeout budget. Session gap detection
+  (REQ-ROBUST-003/008) remains in workspace_state.py and is unaffected by the
+  pivot. All requirements are satisfied by the new architecture.
+
+requirements:
+  - REQ-ROBUST-001  # F_P invocation isolation — satisfied by MCP actor boundary
+  - REQ-ROBUST-002  # Supervisor pattern — satisfied by actor budget enforcement
+  - REQ-ROBUST-003  # Crash recovery via event log gap detection
+  - REQ-ROBUST-007  # Failure event emission
+  - REQ-ROBUST-008  # Session gap detection
+  - REQ-SUPV-003    # Failure observability
+
+dependencies:
+  - feature: REQ-F-ENGINE-001
+    status: resolved
+    note: "Engine loop, evaluate, emit all converged"
+  - feature: REQ-F-FP-001
+    status: resolved
+    note: "F_P construct + batched evaluate converged"
+
+closure_note: |
+  ADR-024 (2026-03-05) deleted fp_subprocess.py, fp_construct.py, fp_evaluate.py
+  and replaced the subprocess F_P path with the MCP actor model (fp_functor.py).
+  All trajectory edges were converged prior to the pivot. The requirements are
+  satisfied by the new architecture. Feature closed as converged with design pivot
+  acknowledged. The _mcp_invoke() stub (currently raises) is tracked separately
+  as an MVP task — it is an implementation detail of the actor transport, not a
+  new robustness requirement.
+
+trajectory:
+  intent_requirements:
+    status: converged
+    note: "§14 Runtime Robustness added to spec (5 REQs, tech-agnostic)"
+  requirements_design:
+    status: converged
+    note: "Design in fp_subprocess.py, engine.py changes, workspace_state.py"
+  design_code:
+    status: converged
+    note: "fp_subprocess.py created then deleted (ADR-024 pivot). Requirements now satisfied by fp_functor.py MCP actor path."
+  code_unit_tests:
+    status: converged
+    note: "test_fp_subprocess.py deleted (dead code). test_session_gap_detection.py retained. workspace_state.py retained. 760 tests pass."
