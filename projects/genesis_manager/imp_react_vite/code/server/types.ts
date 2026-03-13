@@ -1,4 +1,4 @@
-// Implements: REQ-DATA-WORK-002, REQ-F-PROJ-004, REQ-F-OVR-001, REQ-F-SUP-001, REQ-F-EVI-001
+// Implements: REQ-DATA-WORK-002, REQ-F-PROJ-004, REQ-F-OVR-001, REQ-F-SUP-001, REQ-F-EVI-001, REQ-F-REL-001, REQ-F-REL-002, REQ-F-REL-003
 // Server-side shared types for the genesis_manager Express server (Node.js context)
 
 // ---------------------------------------------------------------------------
@@ -148,4 +148,35 @@ export interface TraceabilityEntry {
   kind: 'implements' | 'validates';
   filePath: string;
   lineNumber: number;
+}
+
+// ---------------------------------------------------------------------------
+// Release management types (REQ-F-REL-001, REQ-F-REL-002, REQ-F-REL-003)
+// ---------------------------------------------------------------------------
+
+export interface ReadinessCondition {
+  id: string;
+  label: string;
+  passed: boolean;
+  link?: string; // relative path to relevant work area
+}
+
+export interface ReleaseReadiness {
+  verdict: 'ready' | 'not-ready';
+  conditions: ReadinessCondition[];
+}
+
+export interface ReleaseScopeItem {
+  featureId: string;
+  title: string;
+  status: 'converged' | 'in_progress';
+  coveragePct: number;
+  convergedEdges: string[];
+  pendingEdges: string[];
+}
+
+export interface ReleaseResult {
+  version: string;
+  timestamp: string;
+  featuresIncluded: number;
 }

@@ -8,6 +8,7 @@ import { ProjectOverviewPage } from './features/overview/ProjectOverviewPage'
 import { SupervisionConsolePage } from './features/supervision/SupervisionConsolePage'
 import { EvidenceBrowserPage } from './features/evidence/EvidenceBrowserPage'
 import { FeatureDetailPage } from './features/feature-detail/FeatureDetailPage'
+import { ReleasePage } from './features/release/ReleasePage'
 import { ROUTES } from './routing/routes'
 
 // Router configuration — all canonical routes
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: ROUTES.EVIDENCE,
     element: <EvidenceBrowserPage />,
+  },
+  {
+    path: ROUTES.RELEASE,
+    element: <ReleasePage />,
   },
   {
     path: ROUTES.FEATURE_DETAIL,

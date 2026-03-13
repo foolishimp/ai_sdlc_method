@@ -19,6 +19,7 @@ import eventsRouter from './routes/events.js';
 import gapAnalysisRouter from './routes/gapAnalysis.js';
 import navRouter from './routes/nav.js';
 import fsRouter from './routes/fs.js';
+import releaseRouter from './routes/releases.js';
 
 // ---------------------------------------------------------------------------
 // ESM __dirname shim
@@ -70,6 +71,10 @@ app.use('/api', navRouter);
 // Filesystem browse: GET /api/fs/browse?path=<dir>
 // Implements: REQ-F-FSNAV-001
 app.use('/api/fs', fsRouter);
+
+// Release management: GET/POST /api/workspaces/:id/release/*
+// Implements: REQ-F-REL-001, REQ-F-REL-002, REQ-F-REL-003
+app.use('/api/workspaces', releaseRouter);
 
 // ---------------------------------------------------------------------------
 // Static SPA serving (production only)

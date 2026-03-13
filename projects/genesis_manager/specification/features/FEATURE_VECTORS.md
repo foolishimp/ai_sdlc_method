@@ -255,6 +255,9 @@ Every REQ-F-* key from REQUIREMENTS.md assigned to exactly one feature:
 | REQ-F-PROJ-002 | REQ-F-PROJ-001 | Projects |
 | REQ-F-PROJ-003 | REQ-F-PROJ-001 | Projects |
 | REQ-F-PROJ-004 | REQ-F-PROJ-001 | Projects |
+| REQ-F-FSNAV-001 | REQ-F-FSNAV-001 | Filesystem Navigation |
+| REQ-F-FSNAV-002 | REQ-F-FSNAV-001 | Filesystem Navigation |
+| REQ-F-FSNAV-003 | REQ-F-FSNAV-001 | Filesystem Navigation |
 | REQ-F-OVR-001 | REQ-F-OVR-001 | Overview |
 | REQ-F-OVR-002 | REQ-F-OVR-001 | Overview |
 | REQ-F-OVR-003 | REQ-F-OVR-001 | Overview |
@@ -282,7 +285,7 @@ Every REQ-F-* key from REQUIREMENTS.md assigned to exactly one feature:
 | REQ-F-UX-001 | REQ-F-UX-001 | UX Infrastructure |
 | REQ-F-UX-002 | REQ-F-UX-001 | UX Infrastructure |
 
-**Coverage**: 30/30 REQ-F-* keys assigned. No gaps. No duplicates.
+**Coverage**: 33/33 REQ-F-* keys assigned. No gaps. No duplicates.
 
 ---
 

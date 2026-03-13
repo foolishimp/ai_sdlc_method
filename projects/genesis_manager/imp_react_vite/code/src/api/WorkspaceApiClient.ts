@@ -14,6 +14,9 @@ import type {
   GapAnalysisData,
   ApiError,
   FsBrowseResult,
+  ReleaseReadiness,
+  ReleaseScopeItem,
+  ReleaseResult,
 } from './types'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
@@ -163,6 +166,46 @@ export class WorkspaceApiClient {
       body: JSON.stringify(event),
     })
     return handleResponse<void>(res)
+  }
+
+  // ─── Release Management ───────────────────────────────────────────────────
+
+  // Implements: REQ-F-REL-001
+  async getReleaseReadiness(workspaceId: string): Promise<ReleaseReadiness> {
+    const res = await fetch(
+      `${this.baseUrl}/api/workspaces/${encodeURIComponent(workspaceId)}/release/readiness`,
+    )
+    return handleResponse<ReleaseReadiness>(res)
+  }
+
+  // Implements: REQ-F-REL-002
+  async getReleaseScope(workspaceId: string): Promise<ReleaseScopeItem[]> {
+    const res = await fetch(
+      `${this.baseUrl}/api/workspaces/${encodeURIComponent(workspaceId)}/release/scope`,
+    )
+    return handleResponse<ReleaseScopeItem[]>(res)
+  }
+
+  // Implements: REQ-F-REL-003
+  async initiateRelease(workspaceId: string, version: string): Promise<ReleaseResult> {
+    const res = await fetch(
+      `${this.baseUrl}/api/workspaces/${encodeURIComponent(workspaceId)}/release/initiate`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version }),
+      },
+    )
+    return handleResponse<ReleaseResult>(res)
+  }
+
+  // Implements: REQ-F-REL-003 (version auto-suggestion)
+  async suggestNextVersion(workspaceId: string): Promise<string> {
+    const res = await fetch(
+      `${this.baseUrl}/api/workspaces/${encodeURIComponent(workspaceId)}/release/suggest-version`,
+    )
+    const data = await handleResponse<{ version: string }>(res)
+    return data.version
   }
 
   // Implements: REQ-F-CTL-004, REQ-DATA-WORK-002

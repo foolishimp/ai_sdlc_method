@@ -1,0 +1,47 @@
+version: "3.0.8"
+date: "2026-03-14"
+project: "genesis_manager"
+
+summary: |
+  Full traceability pass + release management feature. All 43 spec REQ keys
+  now have Implements: tags in code (100%). Test coverage raised from 25% to
+  93% (40/43) with 14 test files, 245 tests. FSNAV requirements backfilled
+  into spec. Release management UI (REQ-F-REL-001..003) implemented.
+
+changes_since_v3_0_7:
+  - "PROP-GAP-001: Added Validates: tags to all 6 existing test files"
+  - "PROP-GAP-002: Backfilled REQ-F-FSNAV-001..003 into REQUIREMENTS.md and FEATURE_VECTORS.md"
+  - "PROP-GM-003: Added Implements: tags for REQ-F-SYSTEM-001, REQ-NFR-ACC-001, REQ-NFR-PERF-001"
+  - "PROP-GM-001: 7 new test files covering 24 previously untested REQ keys (245 total tests)"
+  - "PROP-GM-002: Release management — ReleaseReader, /api/workspaces/:id/release/* routes, ReleasePage UI"
+
+features_included:
+  # All v3.0.7 features (carried forward)
+  REQ-F-SYSTEM-001: "Genesis Manager — System Requirements and Feature Decomposition"
+  REQ-F-PROJ-001:   "Project Navigator"
+  REQ-F-NAV-001:    "Navigation Infrastructure"
+  REQ-F-UX-001:     "UX Infrastructure"
+  REQ-F-OVR-001:    "Project Overview"
+  REQ-F-SUP-001:    "Supervision Console"
+  REQ-F-EVI-001:    "Evidence Browser"
+  REQ-F-CTL-001:    "Control Surface"
+  REQ-F-FSNAV-001:  "Filesystem Workspace Navigator"
+  REQ-F-VIS-001:    "Professional Dark Theme and Visual Hierarchy"
+  REQ-F-OVR-002:    "Overview Page Corrections"
+  REQ-F-OVR-003:    "Feature Detail Page"
+  # New in v3.0.8
+  REQ-F-REL-001:    "Ship/No-Ship Readiness"
+  REQ-F-REL-002:    "Release Scope Display"
+  REQ-F-REL-003:    "Initiate Release"
+
+coverage:
+  spec_keys_total: 43
+  in_code:  "43/43 (100%)"
+  in_tests: "40/43 (93%)"
+  telemetry: "0/43 (advisory — code→cicd not started)"
+
+known_gaps:
+  - id: advisory-visual
+    title: "REQ-F-VIS-001, REQ-F-SYSTEM-001, REQ-NFR-ACC-001 — no unit tests"
+    severity: low
+    reason: "Bootstrap entry points, pure visual theme, and a11y require integration/visual regression tests — not unit-testable"

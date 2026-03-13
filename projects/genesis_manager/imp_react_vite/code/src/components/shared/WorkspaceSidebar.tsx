@@ -4,7 +4,7 @@
 
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { buildOverviewPath, buildSupervisionPath, buildEvidencePath } from '../../routing/routes'
+import { buildOverviewPath, buildSupervisionPath, buildEvidencePath, buildReleasePath } from '../../routing/routes'
 
 interface WorkspaceSidebarProps {
   workspaceId: string
@@ -43,6 +43,7 @@ export function WorkspaceSidebar({ workspaceId, projectName }: WorkspaceSidebarP
   const isOverview = pathname.includes('/overview')
   const isSupervision = pathname.includes('/supervision')
   const isEvidence = pathname.includes('/evidence')
+  const isRelease = pathname.includes('/release')
 
   return (
     <aside className="flex-shrink-0 w-16 bg-secondary border-r border-border flex flex-col items-center py-3 gap-1">
@@ -86,6 +87,12 @@ export function WorkspaceSidebar({ workspaceId, projectName }: WorkspaceSidebarP
         label="Evidence"
         icon="≡"
         active={isEvidence}
+      />
+      <NavItem
+        to={buildReleasePath(workspaceId)}
+        label="Release"
+        icon="⬡"
+        active={isRelease}
       />
     </aside>
   )

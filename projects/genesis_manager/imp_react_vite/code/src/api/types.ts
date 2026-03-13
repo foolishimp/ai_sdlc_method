@@ -281,6 +281,35 @@ export interface FsBrowseResult {
   truncated?: boolean
 }
 
+// ─── Release Management (REQ-F-REL-001, REQ-F-REL-002, REQ-F-REL-003) ────────
+
+export interface ReadinessCondition {
+  id: string
+  label: string
+  passed: boolean
+  link?: string // relative path to relevant work area
+}
+
+export interface ReleaseReadiness {
+  verdict: 'ready' | 'not-ready'
+  conditions: ReadinessCondition[]
+}
+
+export interface ReleaseScopeItem {
+  featureId: string
+  title: string
+  status: 'converged' | 'in_progress'
+  coveragePct: number
+  convergedEdges: string[]
+  pendingEdges: string[]
+}
+
+export interface ReleaseResult {
+  version: string
+  timestamp: string
+  featuresIncluded: number
+}
+
 // ─── Errors ───────────────────────────────────────────────────────────────────
 
 export interface ApiError {

@@ -13,6 +13,7 @@ export const ROUTES = {
   OVERVIEW: '/project/:workspaceId/overview',
   SUPERVISION: '/project/:workspaceId/supervision',
   EVIDENCE: '/project/:workspaceId/evidence',
+  RELEASE: '/project/:workspaceId/release',
 
   // ─── Canonical detail pages ───────────────────────────────────────────────
   FEATURE_DETAIL: '/project/:workspaceId/feature/:featureId',
@@ -53,4 +54,8 @@ export function buildReqPath(workspaceId: string, reqKey: string): string {
 
 export function buildEventPath(workspaceId: string, eventIndex: number): string {
   return `/project/${encodeURIComponent(workspaceId)}/event/${eventIndex}`
+}
+
+export function buildReleasePath(workspaceId: string): string {
+  return `/project/${encodeURIComponent(workspaceId)}/release`
 }
