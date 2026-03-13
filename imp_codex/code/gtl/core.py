@@ -1,8 +1,8 @@
 """
-GTL constitutional object model — spike v0.1
+GTL constitutional object model — v0.2
 
-Tests whether plain Python over typed objects is readable enough to replace
-a custom text DSL as the authored surface.
+Python library as the authored surface. No custom DSL parser.
+AI assembles packages from this library; humans audit via to_mermaid().
 
 No external dependencies. Dataclasses + stdlib only.
 """
@@ -190,4 +190,81 @@ class Package:
                     lines.append(f"    {ov.name}: restrict to [{', '.join(ov.restrict_to)}] max_iter={ov.max_iter}")
                 else:
                     lines.append(f"    {ov.name}: additive")
+        return "\n".join(lines)
+
+    def to_mermaid(self, overlay: Optional["Overlay"] = None) -> str:
+        """Render the package topology as a Mermaid flowchart.
+
+        If an overlay with restrict_to is supplied, only those assets/edges are shown.
+        This is the human audit surface — generated from the object model, never authored.
+        """
+        active_asset_names: Optional[set[str]] = None
+        if overlay and overlay.restrict_to:
+            active_asset_names = set(overlay.restrict_to)
+
+        def _node(a: Asset) -> str:
+            label = a.name.replace("_", " ")
+            if a.operative:
+                return f'  {a.name}(["{label}\\noperative: {a.operative}"])'
+            return f'  {a.name}["{label}"]'
+
+        def _visible(a: Asset) -> bool:
+            return active_asset_names is None or a.name in active_asset_names
+
+        lines = ["```mermaid", f"graph LR"]
+
+        # Style classes
+        lines.append("  classDef governed fill:#ffeeba,stroke:#d4a017")
+        lines.append("  classDef product  fill:#d4edda,stroke:#28a745")
+        lines.append("  classDef coevolve fill:#cce5ff,stroke:#004085")
+
+        # Nodes
+        for a in self.assets:
+            if _visible(a):
+                lines.append(_node(a))
+
+        # Edges
+        for e in self.edges:
+            sources = e.source if isinstance(e.source, list) else [e.source]
+            if not all(_visible(s) for s in sources) or not _visible(e.target):
+                continue
+
+            gov_label = f"|{e.rule.name}|" if e.rule else ""
+            confirm_label = f" [{e.confirm}]"
+            ops_label = ", ".join(o.name for o in e.using[:2])  # first 2 ops for brevity
+            if len(e.using) > 2:
+                ops_label += f" +{len(e.using)-2}"
+            edge_label = f"|{ops_label}{confirm_label}|"
+
+            if e.co_evolve:
+                # bidirectional — render as two arrows
+                a, b = sources[0], sources[1]
+                lines.append(f"  {a.name} <-->|co_evolve| {b.name}")
+                lines.append(f"  {a.name}:::coevolve")
+                lines.append(f"  {b.name}:::coevolve")
+            elif len(sources) > 1:
+                # product arrow: synthetic join node
+                join = "join_" + "_".join(s.name for s in sources)
+                join_label = " × ".join(s.name for s in sources)
+                lines.append(f'  {join}(("{join_label}"))')
+                for s in sources:
+                    lines.append(f"  {s.name} --> {join}")
+                lines.append(f"  {join} --{edge_label}--> {e.target.name}")
+                lines.append(f"  {join}:::product")
+            else:
+                src = sources[0]
+                arrow = f"--{edge_label}-->"
+                if e.rule:
+                    lines.append(f"  {src.name} {arrow} {e.target.name}")
+                    lines.append(f"  {e.target.name}:::governed")
+                else:
+                    lines.append(f"  {src.name} {arrow} {e.target.name}")
+
+        title = self.name
+        if overlay:
+            title += f" [{overlay.name}]"
+        lines.append(f"  subgraph \" \"")
+        lines.append(f"    direction LR")
+        lines.append(f"  end")
+        lines.append("```")
         return "\n".join(lines)
