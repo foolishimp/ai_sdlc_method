@@ -1558,6 +1558,109 @@ The Draft Features Queue — the set of `feature_proposal` events not yet promot
 
 ---
 
+## 17. E2E and UAT Testing Standards
+
+### REQ-TEST-001: UAT as Primary Quality Gate
+
+**Priority**: Critical | **Phase**: 1
+
+UAT tests (end-to-end, no mocks) are the highest-priority evaluator type. A feature edge is not convergence-eligible until its UAT criteria pass against a real deployment. Unit and integration tests support development velocity but do not substitute for UAT as a convergence gate.
+
+**Acceptance Criteria**:
+- AC-1: Every feature vector must declare UAT acceptance criteria before the `code↔unit_tests` edge begins
+- AC-2: UAT tests must execute against real infrastructure — no mock databases, no stub APIs, no in-memory substitutes for production dependencies
+- AC-3: A feature vector's `uat_tests` trajectory edge must reach `converged` before the feature can be marked `status: converged`
+- AC-4: UAT test pass rate is the delta at the release gate — a release is blocked if any UAT test fails
+- AC-5: Unit tests are permitted to use mocks; any test file in a `uat/` directory is prohibited from importing mock/stub/fake infrastructure
+
+**Traces To**: Asset Graph Model §V (Iterate Function — evaluator hierarchy) | Bootloader §VII (F_H regime — persistent ambiguity requires real evidence) | REQ-EVAL-001 (Three Evaluator Types)
+
+---
+
+### REQ-TEST-002: E2E Test Structure — Scenario, Boundary, Feature
+
+**Priority**: High | **Phase**: 1
+
+Every e2e test module must follow a three-layer structure anchored to a named scenario. The scenario is a concrete, reproducible starting state. Boundary tests probe the edges of that state. Feature tests confirm nominal behaviour within it.
+
+**Acceptance Criteria**:
+- AC-1: Every e2e test class must declare a named scenario as a pytest fixture or test class setup — not inline per-test construction
+- AC-2: The scenario fixture must be fully reproducible: same inputs produce identical starting state across runs
+- AC-3: Boundary tests (class `TestXxxBoundary` or marked `boundary`) must cover: valid-to-invalid transitions, invariant violations, and state limits around the scenario
+- AC-4: Feature tests (class `TestXxxFeature` or marked `feature`) must cover the nominal behaviour the scenario was designed to exercise
+- AC-5: A test module that only has feature tests with no boundary tests is incomplete — delta > 0 until boundary coverage exists
+- AC-6: The scenario name must appear in the module docstring and in the `Validates:` tag comment at the top of the file
+
+**Example structure**:
+```python
+# Validates: REQ-F-FOO-001
+"""
+Scenario: genesis_sdlc standard profile with 2 converged edges and 1 in-progress
+"""
+
+@pytest.fixture(scope="module")
+def sdlc_mid_traversal():
+    """Named scenario — reproducible starting state."""
+    ...
+
+class TestSdlcMidTraversalBoundary:
+    """Boundary: violations and edge cases around the scenario."""
+    def test_adding_undeclared_operator_raises(self, sdlc_mid_traversal): ...
+    def test_consensus_zero_n_raises(self, sdlc_mid_traversal): ...
+
+class TestSdlcMidTraversalFeature:
+    """Feature: nominal behaviour within the scenario."""
+    def test_to_mermaid_shows_only_active_assets(self, sdlc_mid_traversal): ...
+    def test_overlay_restriction_masks_edges(self, sdlc_mid_traversal): ...
+```
+
+**Traces To**: Asset Graph Model §IV (Iterate — convergence loop) | Bootloader §X (Constraint Tolerances — every constraint must be measurable) | REQ-EVAL-002 (Evaluator Composition Per Edge)
+
+---
+
+### REQ-TEST-003: Visual Delivery Validation via Screenshot
+
+**Priority**: High | **Phase**: 1
+
+Every UI page that is a delivery surface must have a page spec (checklist of visible elements and behaviour) and an e2e screenshot test that captures the live page and evaluates it against that checklist. The screenshot is a first-class convergence artifact — not documentation.
+
+**Acceptance Criteria**:
+- AC-1: Every UI page under `specification/pages/` must have a corresponding `e2e/tests/*.spec.ts` test that: navigates to the page, captures a screenshot, and evaluates each checklist item
+- AC-2: The page spec checklist uses `- [ ] item` format so the evaluator (`eval.ts`) can extract it automatically
+- AC-3: The screenshot evaluation result (pass/fail per checklist item) is the delta for the visual convergence check — delta = count of failing required items
+- AC-4: Screenshots are captured via the headless Playwright capture tool (`e2e/capture.ts`) — no manual screenshots accepted as convergence evidence
+- AC-5: A page with no spec file is classified as having delta = ∞ (unconstrained delivery) — it cannot converge
+- AC-6: Screenshot tests are marked `@pytest.mark.e2e` (Python) or tagged `e2e` (Playwright) and run in a separate CI lane that requires a live server
+
+**Traces To**: Asset Graph Model §XII (Completeness Visibility — convergence visible before downstream proceeds) | REQ-UX-003 (Observability) | REQ-EVAL-001 (F_H evaluator regime)
+
+---
+
+### REQ-TEST-004: Test Tier Priority and Coverage Hierarchy
+
+**Priority**: High | **Phase**: 1
+
+Test tiers are ordered by evidential weight. Higher tiers may not be substituted by lower tiers for convergence decisions. Coverage metrics are reported per tier, not aggregated across tiers.
+
+**Tier ordering** (highest evidence weight first):
+
+| Tier | Type | Mocks | Convergence gate | Required per REQ key |
+|------|------|-------|-----------------|---------------------|
+| T1 | UAT / e2e screenshot | none | release gate | yes |
+| T2 | Integration / scenario | none | feature edge | yes |
+| T3 | Unit | permitted | development only | no |
+
+**Acceptance Criteria**:
+- AC-1: A REQ key is considered **covered** at T1 only if a UAT test or screenshot test validates it against real infrastructure
+- AC-2: T3 (unit) coverage does NOT count toward T1 or T2 coverage — they are separate metrics
+- AC-3: `/gen-gaps` reports coverage per tier: `T1: n/N`, `T2: n/N`, `T3: n/N` — never a single merged percentage
+- AC-4: The release gate requires T1 ≥ target% for all REQ keys in the release scope — T2 and T3 are informational at release
+- AC-5: A feature vector that claims `uat_tests: converged` with zero T1 tests is a Projection Authority violation (ADR-S-037)
+
+**Traces To**: REQ-TEST-001 (UAT Primary Gate) | REQ-TEST-003 (Visual Validation) | ADR-S-037 (Projection Authority) | Bootloader §XVII (Invariants — evaluators not empty)
+
+---
+
 ## Requirement Summary
 
 | Category | Count | Critical | High | Medium |
@@ -1577,10 +1680,11 @@ The Draft Features Queue — the set of `feature_proposal` events not yet promot
 | Supervision (IntentEngine) | 3 | 0 | 3 | 0 |
 | Runtime Robustness | 5 | 3 | 2 | 0 |
 | Spec Evolution | 5 | 0 | 4 | 1 |
-| **Total** | **83** | **13** | **53** | **13** |
+| E2E & UAT Testing Standards | 4 | 1 | 3 | 0 |
+| **Total** | **87** | **14** | **56** | **13** |
 
-### Phase 1 (Core Graph Engine): 57 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (F_P invocation isolation, supervisor pattern, crash recovery, failure events, session gap detection), spec evolution Phase 1 (workspace vectors trajectory-only, JOIN semantics for feature display, `spec_modified` event type).
+### Phase 1 (Core Graph Engine): 61 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (F_P invocation isolation, supervisor pattern, crash recovery, failure events, session gap detection), spec evolution Phase 1 (workspace vectors trajectory-only, JOIN semantics for feature display, `spec_modified` event type), E2E and UAT testing standards (UAT as primary gate, scenario/boundary/feature structure, visual screenshot validation, test tier hierarchy).
 
 ### Phase 2 (Full Lifecycle + Coordination): 22 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking, spec evolution Phase 2 (`feature_proposal` event type, Draft Features Queue).
