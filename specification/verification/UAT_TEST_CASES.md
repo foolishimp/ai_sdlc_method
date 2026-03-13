@@ -3144,6 +3144,360 @@ And dropout pattern analysis can identify systematic abandonment issues
 
 ---
 
+## UC-12: Human Proxy Mode
+
+**Feature Vector**: REQ-F-PROXY-001
+**Satisfies**: REQ-F-HPRX-001, REQ-F-HPRX-002, REQ-F-HPRX-003, REQ-F-HPRX-004, REQ-F-HPRX-005, REQ-F-HPRX-006, REQ-NFR-HPRX-001, REQ-NFR-HPRX-002, REQ-BR-HPRX-001, REQ-BR-HPRX-002
+
+### UC-12-01: Proxy mode requires --auto flag
+
+`Validates: REQ-F-HPRX-001` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given a practitioner wants to run unattended overnight
+When they invoke gen-start with --human-proxy but without --auto
+Then the system rejects the invocation with a clear error
+And explains that --human-proxy requires --auto
+So the gate is never silently bypassed
+```
+
+### UC-12-02: Proxy evaluates against F_H criteria explicitly
+
+`Validates: REQ-F-HPRX-002` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a feature vector at a human gate (F_H evaluator required)
+And the session was started with --human-proxy --auto
+When the proxy reaches the gate
+Then it loads the gate's F_H criteria
+And evaluates each criterion with explicit evidence from the candidate artifact
+And computes approved only if all required criteria pass
+```
+
+### UC-12-03: Proxy writes log before emitting event
+
+`Validates: REQ-F-HPRX-003` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a proxy session reaching a human gate
+When the proxy approves the candidate
+Then a proxy-log file is written to .ai-workspace/reviews/proxy-log/ BEFORE any event is emitted
+And the log records: criteria evaluated, evidence cited, decision rationale
+And only after the log is written does review_approved appear in events.jsonl
+So the decision is always auditable
+```
+
+### UC-12-04: Proxy rejection halts auto-loop immediately
+
+`Validates: REQ-F-HPRX-004` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a proxy session where the candidate fails one or more required F_H criteria
+When the proxy rejects the candidate
+Then the auto-loop pauses immediately
+And the feature remains in iterating status
+And the proxy does not retry the same edge in the same session
+So a bad candidate cannot be forced through by re-running
+```
+
+### UC-12-05: Proxy approval carries actor field
+
+`Validates: REQ-F-HPRX-005` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a proxy session that approves a candidate
+When review_approved is emitted
+Then the event carries actor: "human-proxy"
+And never actor: "human" or an absent actor field
+So proxy decisions are permanently distinguishable from human decisions in the audit log
+```
+
+### UC-12-06: Morning review surfaces proxy decisions
+
+`Validates: REQ-F-HPRX-006` | Fixture: POST_PROXY_RUN | **NEW**
+
+```gherkin
+Given an overnight proxy run that approved several candidates
+When the practitioner runs /gen-status the next morning
+Then proxy decisions made since the last attended session are surfaced
+And each entry shows: feature, edge, proxy verdict, proxy-log path
+So the human can review and override if needed
+```
+
+### UC-12-07: Same edge not retried after rejection
+
+`Validates: REQ-BR-HPRX-001` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a proxy rejected an edge in the current session
+When --auto continues running
+Then the rejected edge is not attempted again in this session
+And rejected_in_session tracks which edges were rejected
+So proxy cannot be circumvented by looping
+```
+
+### UC-12-08: Proxy decisions are provisional — human is authority
+
+`Validates: REQ-BR-HPRX-002` | Fixture: POST_PROXY_RUN | **NEW**
+
+```gherkin
+Given a proxy-approved feature visible in /gen-status
+When the practitioner reviews the proxy-log and disagrees
+Then they can override via /gen-review
+And the override creates a human-authored review_approved event
+And the proxy decision remains in the log as a permanent historical record
+```
+
+---
+
+## UC-13: Event Stream and Projections
+
+**Feature Vector**: REQ-F-EVENT-001
+**Satisfies**: REQ-EVENT-001, REQ-EVENT-002, REQ-EVENT-003, REQ-EVENT-004, REQ-EVENT-005
+
+### UC-13-01: Event log is append-only
+
+`Validates: REQ-EVENT-001` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given Genesis has been running and recording events
+When the practitioner reviews the event log
+Then every event written in the past is still present, unmodified
+And no previously written event has been altered or deleted
+So the history is permanent and auditable
+```
+
+### UC-13-02: Events appear in chronological order
+
+`Validates: REQ-EVENT-001` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given multiple events have been recorded for a feature
+When the practitioner reads the event log
+Then the events appear in the order they happened
+So the story of the work is coherent and replayable
+```
+
+### UC-13-03: Event log is the recovery medium
+
+`Validates: REQ-EVENT-001` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given Genesis was working and then stopped unexpectedly
+When Genesis starts again
+Then it reads the event log to know where it left off
+And can continue from there without losing any recorded work
+```
+
+### UC-13-04: Same event log always produces same status
+
+`Validates: REQ-EVENT-002` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given the event log has not changed
+When the practitioner runs the status command twice
+Then both runs show exactly the same feature status
+So the practitioner can trust what they see
+```
+
+### UC-13-05: STATUS.md can be regenerated from event log
+
+`Validates: REQ-EVENT-002` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given the status file has been accidentally deleted
+When the practitioner runs the status command
+Then Genesis regenerates it from the event log
+And the regenerated status is identical to the original
+So no work is lost even if derived files are deleted
+```
+
+### UC-13-06: Standard event types exist in taxonomy
+
+`Validates: REQ-EVENT-003` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given the event taxonomy is defined in the configuration
+When a monitoring tool inspects the event stream
+Then it finds standard events marking when iterations start and complete
+And the taxonomy is discoverable without reading source code
+So the tool can build progress views without custom parsing
+```
+
+### UC-13-07: Every event carries mandatory fields
+
+`Validates: REQ-EVENT-003` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given events have been recorded during normal operation
+When the audit team inspects each event
+Then every event has a timestamp showing when it was recorded
+And every event has a project identifier
+And every event has a type that describes what happened
+So the log is self-describing and auditable
+```
+
+### UC-13-08: Engine events identifiable without extra fields
+
+`Validates: REQ-EVENT-005` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given events were recorded by the deterministic engine
+When the monitoring tool reads those events
+Then it can identify them as engine-executed even without explicit labels
+Because engine events follow a recognisable format (OpenLineage structure)
+```
+
+### UC-13-09: Retroactively recorded events are labeled
+
+`Validates: REQ-EVENT-005` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given some work happened on the AI-assisted path without live event recording
+When the observation is recorded after the fact
+Then the event carries emission: retroactive
+So auditors can distinguish real-time records from catch-up records
+```
+
+### UC-13-10: Unrecorded work classified as dark
+
+`Validates: REQ-EVENT-005` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given an edge was traversed on the AI-assisted path
+But no events of any kind were recorded for it
+When an auditor inspects the observability status
+Then the edge is flagged as dark — work with no record at all
+So the practitioner knows where the observability gaps are
+```
+
+### UC-13-11: Compensation expressed as new events
+
+`Validates: REQ-EVENT-004` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given step A completed successfully and was recorded
+And then step B failed unexpectedly
+When the system records the compensation (undoing step A)
+Then it adds NEW events to the log describing the compensation
+And the original completion event for step A remains unmodified
+So the history shows both what happened and what was corrected
+```
+
+---
+
+## UC-14: E2E and UAT Testing Standards
+
+**Feature Vector**: REQ-F-TEST-001 (to be created)
+**Satisfies**: REQ-TEST-001, REQ-TEST-002, REQ-TEST-003, REQ-TEST-004
+
+### UC-14-01: UAT test blocks feature convergence without real infra
+
+`Validates: REQ-TEST-001` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a feature vector where uat_tests edge is pending
+And the only tests written use mock infrastructure
+When convergence is evaluated
+Then the uat_tests edge does not converge
+And the evaluator reports: "UAT requires real infrastructure — mocks detected"
+So a feature cannot ship with only mock-backed UAT
+```
+
+### UC-14-02: UAT test file in uat/ directory cannot import mocks
+
+`Validates: REQ-TEST-001` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given a test file located in a uat/ directory
+When it imports a mock, stub, or fake infrastructure object
+Then the test suite reports a test tier violation
+And recommends moving the test to unit/ or removing the mock
+So the uat/ directory is a mock-free zone by enforcement
+```
+
+### UC-14-03: E2E test module must declare a named scenario
+
+`Validates: REQ-TEST-002` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given a new e2e test module is written
+When it has no named scenario fixture at module scope
+Then gap analysis flags it: "e2e test missing named scenario fixture"
+And the test cannot converge until a reproducible scenario is declared
+So every e2e test has a concrete, replayable starting state
+```
+
+### UC-14-04: E2E module without boundary tests is incomplete
+
+`Validates: REQ-TEST-002` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given an e2e test module with feature tests but no boundary tests
+When gap analysis runs
+Then the module is flagged: "e2e test missing boundary coverage"
+And the delta includes: at least one boundary test class required
+So nominal behaviour tests are always paired with violation tests
+```
+
+### UC-14-05: UI page without spec file cannot converge
+
+`Validates: REQ-TEST-003` | Fixture: INITIALIZED | **NEW**
+
+```gherkin
+Given a UI page that has been implemented
+But no specification/pages/ spec file exists for it
+When convergence is evaluated for the visual delivery surface
+Then the delta is infinite — the page cannot converge
+And the evaluator reports: "No spec file — visual constraints undefined"
+So every UI page is constrained before it ships
+```
+
+### UC-14-06: Screenshot captured via headless tool is a convergence artifact
+
+`Validates: REQ-TEST-003` | Fixture: RUNNING_SERVER | **NEW**
+
+```gherkin
+Given a UI page with a spec file containing checklist items
+When the e2e test runs capture.ts against the live page
+Then a screenshot is produced and its path recorded in the test output
+And the evaluator reads the screenshot and marks each checklist item pass/fail
+And the delta equals the count of failing required items
+So visual convergence is measurable and reproducible
+```
+
+### UC-14-07: /gen-gaps reports T1/T2/T3 coverage separately
+
+`Validates: REQ-TEST-004` | Fixture: IN_PROGRESS | **NEW**
+
+```gherkin
+Given a workspace with a mix of unit, integration, and UAT tests
+When /gen-gaps runs
+Then coverage is reported as three separate metrics:
+  T1 (UAT/screenshot): n/N REQ keys covered
+  T2 (integration/scenario): n/N REQ keys covered
+  T3 (unit): n/N REQ keys covered
+And a single merged percentage is never shown
+So the practitioner knows the real quality tier of each REQ key
+```
+
+### UC-14-08: Release gate checks T1 coverage only
+
+`Validates: REQ-TEST-004` | Fixture: ALL_CONVERGED | **NEW**
+
+```gherkin
+Given a workspace where all features are converged
+And /gen-release is invoked
+When release readiness is evaluated
+Then the gate checks T1 (UAT/screenshot) coverage against the target threshold
+And T2 and T3 are shown as informational only
+And the release is blocked if T1 falls below the threshold
+Even if T2 + T3 together would satisfy a merged percentage
+So the release bar cannot be gamed by unit test volume
+```
+
+---
+
 ## Appendix A: Existing Test Coverage Map
 
 Summary of existing tests and their relationship to UAT scenarios.
@@ -3278,9 +3632,12 @@ Extends IN_PROGRESS with:
 | UC-09: User Experience | REQ-F-UX-001 | 7 | 33 | 27 | 6 |
 | UC-10: Multi-Agent Coordination | REQ-F-COORD-001 | 5 | 16 | 15 | 1 |
 | UC-11: IntentEngine / Supervision | REQ-F-SUPV-001 | 3 | 18 | 18 | 0 |
-| **Total** | **11 vectors** | **69** | **234** | **198** | **36** |
+| UC-12: Human Proxy Mode | REQ-F-PROXY-001 | 8 | 8 | 8 | 0 |
+| UC-13: Event Stream & Projections | REQ-F-EVENT-001 | 5 | 11 | 11 | 0 |
+| UC-14: E2E and UAT Testing Standards | REQ-F-TEST-001 | 4 | 8 | 8 | 0 |
+| **Total** | **14 vectors** | **86** | **261** | **225** | **36** |
 
-**234 scenarios. 69 REQ keys. 100% coverage. 198 genuinely new functional scenarios.**
+**261 scenarios. 86 REQ keys. UC-12/13 backfilled from existing test files. UC-14 new.**
 
 ---
 
