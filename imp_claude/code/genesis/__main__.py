@@ -640,10 +640,40 @@ def cmd_start(args: argparse.Namespace) -> int:
         # converged or stuck
         print(json.dumps(out))
 
+        if result.status == "converged":
+            _update_trajectory(workspace, target.feature_id, target.edge, _yaml)
+
         if result.status != "converged" and not auto:
             return 1
 
     return 0
+
+
+def _update_trajectory(workspace: Path, feature_id: str, edge: str, yaml_mod) -> None:
+    """Write-back convergence to the feature vector YAML projection.
+
+    The event stream is the source of truth. The feature vector YAML is a
+    derived projection. This write-back keeps _select_edge() from re-selecting
+    already-converged edges on the next call.
+    """
+    import datetime
+    fv_path = workspace / ".ai-workspace" / "features" / "active" / f"{feature_id}.yml"
+    if not fv_path.exists():
+        return
+    try:
+        fv = yaml_mod.safe_load(fv_path.read_text()) or {}
+        traj = fv.setdefault("trajectory", {})
+        # Trajectory key = target node name (after → or ↔)
+        import re as _re
+        edge_key = _re.split(r"[→↔]", edge)[-1].strip()
+        traj[edge_key] = {
+            "status": "converged",
+            "converged_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+        fv_path.write_text(yaml_mod.dump(fv, default_flow_style=False, allow_unicode=True))
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning(f"trajectory write-back failed: {exc}")
 
 
 # ── context subcommand ────────────────────────────────────────────

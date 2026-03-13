@@ -139,6 +139,16 @@ def _run_fd_evaluation(
                 "code↔unit_tests": "tdd",
                 "design→test_cases": "design_tests",
                 "design→uat_tests": "bdd",
+                "intent→requirements": "intent_requirements",
+                "requirements→feature_decomposition": "requirements_feature_decomp",
+                "feature_decomposition→design_recommendations": "feature_decomp_design_rec",
+                "design_recommendations→design": "requirements_design",
+                "requirements→design": "requirements_design",
+                "design→code": "design_code",
+                "design→module_decomposition": "design_module_decomp",
+                "module_decomposition→basis_projections": "module_decomp_basis_proj",
+                "basis_projections→code": "design_code",
+                "telemetry→intent": "feedback_loop",
             }
             fname = edge_map.get(target.edge, edge_key)
             edge_config_path = edge_params_dir / f"{fname}.yml"

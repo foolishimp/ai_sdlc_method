@@ -272,7 +272,7 @@ pytest imp_claude/tests/ -v
 <!-- GENESIS_BOOTLOADER_START -->
 # Genesis Bootloader: LLM Constraint Context for the AI SDLC
 
-**Version**: 3.0.0
+**Version**: 3.0.1
 **Purpose**: Minimal sufficient context to constrain an LLM to operate within the AI SDLC Asset Graph Model. Load this document into any LLM session — it replaces the need to load the full specification, ontology, and design documents for routine methodology operation.
 
 ---
@@ -708,9 +708,48 @@ Human proxy mode allows the LLM to act as an authorised F_H substitute during un
 
 ---
 
+## XX. Bug Triage and Post-Mortem Escalation
+
+Bugs during active development do not require a feature vector. The minimum viable artifact is a log entry. Post-mortem determines whether a formal response is warranted.
+
+### Phase 1 — Fix and log (reflex, always)
+
+Fix the bug directly. Append one `bug_fixed` event:
+
+```json
+{"event_type": "bug_fixed", "timestamp": "{ISO}", "project": "{name}",
+ "data": {"description": "{what was wrong and what changed}", "file": "{primary file}", "root_cause": "coding_error|design_flaw|unknown"}}
+```
+
+`root_cause` is provisional — post-mortem may reclassify it.
+
+| Value | Meaning |
+|-------|---------|
+| `coding_error` | Typo, wrong variable, obvious local mistake — discard after post-mortem |
+| `design_flaw` | Fix touched interfaces, contracts, or multiple components — escalate |
+| `unknown` | Cause unclear at fix time — investigate before discarding |
+
+### Phase 2 — Post-mortem triage (conscious, on demand)
+
+Run before releases, when a cluster appears, or when `/gen-status --health` surfaces a pattern.
+
+- `design_flaw` or `unknown` resolved to design flaw → emit `intent_raised{signal_source: bug_post_mortem}` → normal homeostatic loop
+- `unknown` resolved to coding error → discard
+- Pattern of `coding_error` in same area → may indicate missing abstraction → emit `intent_raised` for investigation
+
+### What is NOT required for a bug fix
+
+No feature vector. No iterate() cycle. No human gate. No REQ key traceability. Only the `bug_fixed` event is required.
+
+**The gradient test**: A coding error produces delta → 0 locally — the fix restores intended state, no design information generated. A design flaw produces a persistent delta — the symptom is patched but the constraint violation remains. Post-mortem detects which case applies and routes accordingly.
+
+*Reference: [ADR-S-039](../adrs/ADR-S-039-bug-triage-and-post-mortem-escalation.md)*
+
+---
+
 *Foundation: [Constraint-Emergence Ontology](https://github.com/foolishimp/constraint_emergence_ontology)*
 *Formal system: [AI SDLC Asset Graph Model v2.8](AI_SDLC_ASSET_GRAPH_MODEL.md) — four primitives, one operation, event stream substrate*
 *Projections: [Projections and Invariants v1.2](PROJECTIONS_AND_INVARIANTS.md)*
-*Key ADRs: [ADR-S-012](../adrs/ADR-S-012-event-stream-as-formal-model-medium.md) event stream · [ADR-S-013](../adrs/ADR-S-013-completeness-visibility.md) completeness visibility · [ADR-S-016](../adrs/ADR-S-016-invocation-contract.md) invocation contract*
+*Key ADRs: [ADR-S-012](../adrs/ADR-S-012-event-stream-as-formal-model-medium.md) event stream · [ADR-S-013](../adrs/ADR-S-013-completeness-visibility.md) completeness visibility · [ADR-S-016](../adrs/ADR-S-016-invocation-contract.md) invocation contract · [ADR-S-039](../adrs/ADR-S-039-bug-triage-and-post-mortem-escalation.md) bug triage*
 
 <!-- GENESIS_BOOTLOADER_END -->

@@ -2,7 +2,11 @@
 
 Run formal traceability validation across 3 layers: REQ tag coverage, test gap analysis, and telemetry gap analysis. Reports gaps with severity and recommended actions.
 
-<!-- Implements: REQ-TOOL-005 (Test Gap Analysis), REQ-TOOL-009 (Feature Views), REQ-EVOL-003 (feature_proposal Event Type — Stage 6c Affect Triage output) -->
+<!-- Implements: REQ-TOOL-005 -->
+<!-- Implements: REQ-TOOL-009 -->
+<!-- Implements: REQ-EVOL-003 -->
+<!-- Implements: REQ-TEST-001 -->
+<!-- Implements: REQ-TEST-004 -->
 
 ## Usage
 

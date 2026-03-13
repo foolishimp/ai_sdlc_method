@@ -274,9 +274,15 @@ def _select_edge(feature_vector: dict[str, Any]) -> str | None:
     trajectory = feature_vector.get("trajectory", {}) or {}
 
     for edge in edge_order:
-        # Convert edge to trajectory key format
+        # Convert edge to trajectory key format.
+        # Three key conventions in use across feature vectors:
+        #   "intent_requirements"  (full edge, underscored)
+        #   "intent→requirements"  (full edge, with arrow)
+        #   "requirements"         (target node only — used by _update_trajectory write-back)
+        import re as _re
         edge_key = edge.replace("→", "_").replace("↔", "_").replace(" ", "")
-        edge_info = trajectory.get(edge_key) or trajectory.get(edge)
+        target_key = _re.split(r"[→↔]", edge)[-1].strip()
+        edge_info = trajectory.get(edge_key) or trajectory.get(edge) or trajectory.get(target_key)
         if edge_info is None:
             # Not yet started — this is the first edge to run
             return edge
