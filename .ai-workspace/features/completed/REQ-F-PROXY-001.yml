@@ -7,32 +7,40 @@ priority: high
 profile: standard
 status: converged
 vector_type: feature
+notes: 'Observed gap during genesis_manager first boot: /gen-start --auto pauses at
+  every
 
-notes: |
-  Observed gap during genesis_manager first boot: /gen-start --auto pauses at every
   required: true F_H gate, making overnight unattended runs stop at the first human
+
   approval checkpoint.
 
-  The fix is --human-proxy mode: the LLM acts as an authorized human proxy at F_H gates,
-  evaluating artifacts against F_H criteria and recording decisions with reasoning rather
-  than pausing. All proxy decisions are logged to .ai-workspace/reviews/proxy-log/ for
+
+  The fix is --human-proxy mode: the LLM acts as an authorized human proxy at F_H
+  gates,
+
+  evaluating artifacts against F_H criteria and recording decisions with reasoning
+  rather
+
+  than pausing. All proxy decisions are logged to .ai-workspace/reviews/proxy-log/
+  for
+
   morning human review and potential override.
 
+  '
 constraints:
   acceptance_criteria:
-    # Critical: --human-proxy flag is only valid with --auto; standalone emits error
-    - "REQ-F-HPRX-001: --human-proxy flag requires --auto; used alone produces error '--human-proxy requires --auto'"
-    # Critical: proxy evaluates every F_H criterion, approved only if ALL required pass
-    - "REQ-F-HPRX-002: proxy evaluates all required F_H criteria per gate; overall decision approved iff all pass"
-    # Critical: one log file per decision written before event emitted
-    - "REQ-F-HPRX-003: proxy-log file written at .ai-workspace/reviews/proxy-log/{ISO}_{feature}_{edge}.md before review_approved event"
-    # Critical: review_approved event carries actor: human-proxy and proxy_log path
-    - "REQ-F-HPRX-004: review_approved event has actor field = 'human-proxy' (never 'human', never absent)"
-    # Critical: rejection halts loop; proxy may not self-correct after rejection
-    - "REQ-F-HPRX-005: proxy rejection pauses auto-loop; proxy may not re-invoke iterate on rejected edge in same session"
-    # Critical: proxy mode only activates via explicit --human-proxy flag; never via config or env var
-    - "REQ-BR-HPRX-002: --human-proxy is never activated by config, env var, or inference; explicit flag only"
-
+  - 'REQ-F-HPRX-001: --human-proxy flag requires --auto; used alone produces error
+    ''--human-proxy requires --auto'''
+  - 'REQ-F-HPRX-002: proxy evaluates all required F_H criteria per gate; overall decision
+    approved iff all pass'
+  - 'REQ-F-HPRX-003: proxy-log file written at .ai-workspace/reviews/proxy-log/{ISO}_{feature}_{edge}.md
+    before review_approved event'
+  - 'REQ-F-HPRX-004: review_approved event has actor field = ''human-proxy'' (never
+    ''human'', never absent)'
+  - 'REQ-F-HPRX-005: proxy rejection pauses auto-loop; proxy may not re-invoke iterate
+    on rejected edge in same session'
+  - 'REQ-BR-HPRX-002: --human-proxy is never activated by config, env var, or inference;
+    explicit flag only'
 trajectory:
   intent:
     status: converged
@@ -74,6 +82,9 @@ trajectory:
     converged_at: '2026-03-13T10:35:00Z'
     produced_asset_ref: imp_claude/tests/test_human_proxy_mode.py
   uat_tests:
-    status: pending
-
+    status: converged
+    iteration: 1
+    started_at: '2026-03-13T13:18:15Z'
+    converged_at: '2026-03-13T13:18:15Z'
+    produced_asset_ref: imp_claude/tests/uat/test_uc12_proxy_mode.py
 updated: '2026-03-13T10:35:00Z'

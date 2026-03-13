@@ -180,3 +180,17 @@ Either define it in AISDLC_IMPLEMENTATION_REQUIREMENTS.md or correct tag to REQ-
 **Evaluators**: 7/7 checks passed (5 agent, 2 human)
 **Asset**: imp_claude/tests/test_uc_schema_disc_001.feature
 **Next edge**: (none — feature fully converged on standard profile)
+
+### REQ-F-PROXY-001: design→uat_tests CONVERGED
+**Date**: 2026-03-14
+**Iterations**: 1
+**Evaluators**: 7/7 checks passed (5 agent, 2 human approved)
+**Asset**: imp_claude/tests/uat/test_uc12_proxy_mode.py (16 BDD scenarios, UC-12)
+**Next edge**: all edges converged — ready to move to completed/
+
+### REQ-F-EVENT-001: design→uat_tests CONVERGED
+**Date**: 2026-03-14
+**Iterations**: 1
+**Evaluators**: 7/7 checks passed (5 agent, 2 human approved)
+**Asset**: imp_claude/tests/uat/test_uc13_event_stream.py (12 BDD scenarios, UC-13)
+**Next edge**: all edges converged — moved to completed/
