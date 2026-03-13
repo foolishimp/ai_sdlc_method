@@ -1,0 +1,90 @@
+feature: REQ-F-OVR-002
+title: Overview Page Corrections
+intent: INT-001
+vector_type: feature
+profile: standard
+status: converged
+convergence_type: standard
+created: '2026-03-14T00:00:00Z'
+updated: '2026-03-14T00:30:01Z'
+source_kind: eval_driven_correction
+trigger_event: "playwright_eval:overview:delta=4"
+target_asset_type: code
+produced_asset_ref: null
+disposition: null
+disposition_rationale: null
+functor:
+  encoding_source: profile
+  mode: interactive
+  valence: medium
+  overrides: {}
+time_box:
+  enabled: false
+parent:
+  feature: REQ-F-OVR-001
+  edge: code
+  reason: Playwright evaluation found delta=4 failing required checks; corrections tracked as new iteration
+children: []
+satisfies:
+- REQ-F-OVR-001
+- REQ-F-OVR-002
+- REQ-F-OVR-003
+- REQ-F-OVR-004
+trajectory:
+  requirements:
+    status: converged
+    iteration: 0
+    converged_at: '2026-03-13T00:15:03Z'
+    asset: specification/requirements/REQUIREMENTS.md
+    escalations: []
+    note: Inherited from REQ-F-OVR-001
+  feature_decomposition:
+    status: converged
+    iteration: 0
+    converged_at: '2026-03-13T00:20:02Z'
+    asset: specification/features/FEATURE_VECTORS.md
+    escalations: []
+    note: Inherited from REQ-F-OVR-001
+  design_recommendations:
+    status: converged
+    iteration: 0
+    escalations: []
+    converged_at: '2026-03-13T11:30:00Z'
+    produced_asset_ref: specification/design_recommendations/DESIGN_RECOMMENDATIONS.md
+    note: Inherited from REQ-F-OVR-001
+  design:
+    status: converged
+    iteration: 0
+    converged_at: '2026-03-14T00:00:00Z'
+    produced_asset_ref: specification/pages/OVERVIEW_PAGE.md
+    escalations: []
+    note: Page spec updated with gap 8 correction and corrections priority list
+  code:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-14T00:01:00Z'
+    converged_at: '2026-03-14T00:30:01Z'
+    produced_asset_ref: src/features/overview/ProjectOverviewPage.tsx
+    escalations: []
+  unit_tests:
+    status: converged
+    iteration: 1
+    started_at: '2026-03-14T00:01:00Z'
+    converged_at: '2026-03-14T00:30:01Z'
+    produced_asset_ref: src/features/overview/ProjectOverviewPage.tsx
+    escalations: []
+dependencies:
+- feature: REQ-F-OVR-001
+  asset: code
+  status: converged
+constraints:
+  acceptance_criteria:
+  - "Status bar renders exactly 4 tiles (converged, in_progress, blocked, pending) — no Pending Gates tile"
+  - "InProgressFeature server response includes title field alongside featureId"
+  - "In-progress table renders feature title column"
+  - "Attention panel section exists in right column"
+  - "Attention panel shows pending gate cards when pendingGateCount > 0"
+  - "Attention panel shows blocked features when blocked count > 0"
+  - "Dismiss button clears highlights for all entries in featureLastEvents, not just recentActivity.featureId"
+  threshold_overrides: {}
+  additional_checks: []
