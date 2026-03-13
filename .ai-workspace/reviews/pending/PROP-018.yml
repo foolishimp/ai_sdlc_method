@@ -1,6 +1,8 @@
 proposal_id: "PROP-018"
 intent_id: "INT-025"
-status: draft
+status: dismissed
+dismissed_at: "2026-03-14T02:30:00Z"
+dismissed_reason: "Already delivered — test_nl_dispatch.py line 16 validates REQ-UX-008 with static routing coverage, intent_routed schema, and fd_classify categorisation"
 severity: high
 created: "2026-03-12T12:19:25Z"
 source: gap_analysis

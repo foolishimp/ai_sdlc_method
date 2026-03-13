@@ -10,7 +10,7 @@
 
 ## Feature Inventory
 
-Eight buildable features derived from the 23 REQ-F-* keys in the requirements.
+Nine buildable features derived from the 26 REQ-F-* keys in the requirements.
 Each feature is a coherent user-facing capability.
 
 ---
@@ -28,6 +28,21 @@ Each feature is a coherent user-facing capability.
 **Dependencies**: None
 
 **MVP**: Yes — foundational. All other features require a registered workspace and selected project.
+
+---
+
+### Feature: REQ-F-FSNAV-001 — Filesystem Workspace Navigator
+
+**Satisfies**: REQ-F-FSNAV-001, REQ-F-FSNAV-002, REQ-F-FSNAV-003
+
+**What converges**:
+- A server-side `GET /api/fs/browse` endpoint lists subdirectories of any filesystem path, identifies Genesis workspaces by presence of `.ai-workspace/events/events.jsonl`, and returns entries sorted with workspace directories first
+- A `FolderBrowser` React component renders the directory listing with breadcrumb navigation, Up button, Genesis badges, and "Add" actions for discovered workspaces
+- The `FolderBrowser` is embedded in the workspace configuration panel as the default input mode; the user can point-and-click to register a workspace without typing a path
+
+**Dependencies**: REQ-F-PROJ-001 (workspace registration target — FSNAV is the discovery mechanism for PROJ-004)
+
+**MVP**: Yes — workspace registration is the entry point for the product; browse mode lowers the barrier to correct path entry and eliminates manual path typing errors.
 
 ---
 
@@ -149,6 +164,7 @@ Each feature is a coherent user-facing capability.
 ```mermaid
 graph TD
     PROJ[REQ-F-PROJ-001<br/>Project Navigator]
+    FSNAV[REQ-F-FSNAV-001<br/>Filesystem Navigator]
     NAV[REQ-F-NAV-001<br/>Navigation Infrastructure]
     UX[REQ-F-UX-001<br/>UX Infrastructure]
     OVR[REQ-F-OVR-001<br/>Project Overview]
@@ -157,6 +173,7 @@ graph TD
     CTL[REQ-F-CTL-001<br/>Control Surface]
     REL[REQ-F-REL-001<br/>Release Dashboard]
 
+    PROJ --> FSNAV
     PROJ --> NAV
     PROJ --> UX
     NAV --> OVR
@@ -171,6 +188,7 @@ graph TD
     NAV --> REL
 
     style PROJ fill:#4a9,color:#fff
+    style FSNAV fill:#4a9,color:#fff
     style NAV fill:#4a9,color:#fff
     style UX fill:#4a9,color:#fff
     style OVR fill:#4a9,color:#fff
@@ -191,8 +209,9 @@ Topological sort of the dependency DAG. Features at the same level can be built 
 | Level | Feature | Depends On | Rationale |
 |-------|---------|-----------|-----------|
 | 1 | REQ-F-PROJ-001 Project Navigator | None | Entry point — workspace registration and project switching |
+| 2 | REQ-F-FSNAV-001 Filesystem Navigator | PROJ | Browse-mode workspace discovery — supports PROJ-004 registration |
 | 2 | REQ-F-NAV-001 Navigation Infrastructure | PROJ | Navigation handles used by all other features |
-| 2 | REQ-F-UX-001 UX Infrastructure | PROJ | Live polling used by all other features — build in parallel with NAV |
+| 2 | REQ-F-UX-001 UX Infrastructure | PROJ | Live polling used by all other features — build in parallel with NAV and FSNAV |
 | 3 | REQ-F-OVR-001 Project Overview | NAV, UX | First meaningful view after foundation |
 | 3 | REQ-F-SUP-001 Supervision Console | NAV, UX | Human gate queue — parallel with OVR |
 | 3 | REQ-F-EVI-001 Evidence Browser | NAV, UX | Evidence display — parallel with OVR and SUP |
@@ -205,11 +224,12 @@ Topological sort of the dependency DAG. Features at the same level can be built 
 
 ## MVP Scope
 
-**MVP includes** (7 of 8 features — minimum connected set delivering real value):
+**MVP includes** (8 of 9 features — minimum connected set delivering real value):
 
 | Feature | Why MVP |
 |---------|--------|
 | REQ-F-PROJ-001 Project Navigator | Without workspace registration there is nothing to display |
+| REQ-F-FSNAV-001 Filesystem Navigator | Lowers barrier to correct workspace registration — eliminates manual path entry errors |
 | REQ-F-NAV-001 Navigation Infrastructure | Core product invariant — every identifier navigable |
 | REQ-F-UX-001 UX Infrastructure | Live state + no-syntax requirement — foundational |
 | REQ-F-OVR-001 Project Overview | Answers "what is Genesis building?" and "what changed?" |

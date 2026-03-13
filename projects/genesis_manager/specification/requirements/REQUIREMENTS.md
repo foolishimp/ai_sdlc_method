@@ -123,6 +123,67 @@ genesis_manager is a **builder supervision console** for a person using Genesis 
 
 ---
 
+### Filesystem Navigation
+
+#### REQ-F-FSNAV-001: Filesystem Browse API
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system must provide a server-side API endpoint that lists subdirectories of a given filesystem path and identifies which directories contain a Genesis workspace.
+
+**Acceptance Criteria**:
+- AC-1: The endpoint returns a list of entries for subdirectories of the requested path; each entry includes `name`, `absolutePath`, `isDir`, and `hasWorkspace`; `hasWorkspace` is `true` when `.ai-workspace/events/events.jsonl` is accessible within that directory
+- AC-2: When no path parameter is supplied, the endpoint defaults to the server process working directory
+- AC-3: Path parameters containing `..` traversal sequences are resolved to their canonical absolute path before listing
+- AC-4: Entries are sorted: workspace directories first, then alphabetically within each group
+- AC-5: Hidden directories (names starting with `.`) are excluded from results
+- AC-6: When the directory contains more than 500 subdirectories, the response includes at most 500 entries and sets `truncated: true`
+- AC-7: The response includes a `parent` field with the absolute path of the parent directory, or `null` when the requested path is the filesystem root
+- AC-8: The endpoint returns HTTP 400 for a path that does not exist or is not a directory; HTTP 500 for a directory that cannot be read
+
+**Traces To**: INT-001, REQ-F-PROJ-004
+
+---
+
+#### REQ-F-FSNAV-002: Filesystem Browser Component
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The system must provide a UI component that allows the user to navigate the local filesystem directory tree and identify Genesis workspaces available for registration.
+
+**Acceptance Criteria**:
+- AC-1: The component displays the contents of the current directory using the filesystem browse API (REQ-F-FSNAV-001)
+- AC-2: Directories that contain a Genesis workspace are visually distinguished with a badge; directories without a workspace are shown as plain folder entries
+- AC-3: Clicking a directory entry navigates the component into that directory (the entry list updates to show the new directory's contents)
+- AC-4: A Genesis workspace directory shows an "Add" action; clicking "Add" triggers workspace registration for that path
+- AC-5: A breadcrumb trail displays the current path as a sequence of clickable ancestor segments; clicking a segment navigates directly to that ancestor
+- AC-6: An "Up" button navigates to the parent directory; the button is hidden when the current path is the filesystem root (`parent` is `null`)
+- AC-7: A loading indicator is shown while a directory listing is in flight; an error message is shown if the browse request fails
+- AC-8: When the response is truncated (more than 500 entries), a notice is displayed prompting the user to navigate into a subfolder
+
+**Traces To**: INT-001, REQ-F-PROJ-004
+
+---
+
+#### REQ-F-FSNAV-003: Workspace Navigator Access
+
+**Priority**: High
+**Type**: Functional
+
+**Description**: The filesystem browser component must be accessible from the workspace configuration panel in the project navigation sidebar, and must be the default mode for adding a new workspace.
+
+**Acceptance Criteria**:
+- AC-1: The workspace configuration panel (reachable from the project navigation sidebar) opens in browse mode by default, showing the filesystem browser component
+- AC-2: The panel provides a toggle to switch between browse mode (filesystem browser) and manual mode (direct path text entry)
+- AC-3: When the user selects a Genesis workspace via the filesystem browser ("Add" button), the workspace is registered immediately without requiring the user to type a path
+- AC-4: The registered workspace path is the `.ai-workspace/` subdirectory of the selected project root
+
+**Traces To**: INT-001, REQ-F-PROJ-004
+
+---
+
 ### Overview Work Area
 
 #### REQ-F-OVR-001: Single-Screen Build Status

@@ -1,4 +1,6 @@
 # Projection Profile: E2E Headless Test
+# Implements: REQ-TEST-002
+# Implements: REQ-TEST-004
 # Purpose: CI/headless e2e runs — no human gates, simplified graph.
 #
 # Differences from standard:

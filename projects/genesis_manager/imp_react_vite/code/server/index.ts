@@ -1,4 +1,4 @@
-// Implements: ADR-GM-002
+// Implements: ADR-GM-002, REQ-F-SYSTEM-001
 // Express server entry point — bridges the browser-filesystem gap.
 // Mounts all route modules under /api and serves the static Vite build in
 // production (NODE_ENV=production).

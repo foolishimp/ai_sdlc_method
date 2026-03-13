@@ -1,4 +1,4 @@
-// Implements: REQ-F-PROJ-001, REQ-F-PROJ-002, REQ-F-PROJ-003, REQ-F-PROJ-004, REQ-F-UX-001
+// Implements: REQ-F-PROJ-001, REQ-F-PROJ-002, REQ-F-PROJ-003, REQ-F-PROJ-004, REQ-F-UX-001, REQ-NFR-PERF-001
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'

@@ -1,5 +1,5 @@
 // @vitest-environment node
-// Validates: REQ-F-PROJ-001, REQ-F-OVR-001, REQ-F-SUP-001, REQ-NFR-REL-001
+// Validates: REQ-F-PROJ-001, REQ-F-OVR-001, REQ-F-SUP-001, REQ-NFR-REL-001, REQ-BR-SUPV-001, REQ-F-OVR-002, REQ-F-OVR-003, REQ-F-PROJ-002, REQ-F-SUP-003
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Dirent } from 'node:fs'

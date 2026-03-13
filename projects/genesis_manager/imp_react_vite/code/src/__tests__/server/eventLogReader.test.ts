@@ -1,5 +1,5 @@
 // @vitest-environment node
-// Validates: REQ-F-SUP-004, REQ-F-CTL-004, REQ-NFR-REL-001
+// Validates: REQ-F-SUP-004, REQ-F-CTL-004, REQ-NFR-REL-001, REQ-F-SUP-002, REQ-F-OVR-003
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 

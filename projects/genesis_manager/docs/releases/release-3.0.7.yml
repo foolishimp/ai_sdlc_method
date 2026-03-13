@@ -1,0 +1,68 @@
+version: "3.0.7"
+date: "2026-03-14"
+project: "genesis_manager"
+
+summary: |
+  Genesis Manager UI — first full release. All 11 features converged:
+  navigation, project overview, feature detail, evidence browser,
+  supervision console, control surface, filesystem workspace navigator,
+  visual hierarchy, and OVR corrections. Headless e2e capture/eval added.
+  E2E/UAT testing standards formalised (REQ-TEST-001..004).
+
+features_included:
+  REQ-F-SYSTEM-001: "Genesis Manager — System Requirements and Feature Decomposition"
+  REQ-F-PROJ-001:   "Project Navigator"
+  REQ-F-NAV-001:    "Navigation Infrastructure"
+  REQ-F-UX-001:     "UX Infrastructure"
+  REQ-F-OVR-001:    "Project Overview"
+  REQ-F-SUP-001:    "Supervision Console"
+  REQ-F-EVI-001:    "Evidence Browser"
+  REQ-F-CTL-001:    "Control Surface"
+  REQ-F-FSNAV-001:  "Filesystem Workspace Navigator"
+  REQ-F-VIS-001:    "Professional Dark Theme and Visual Hierarchy"
+  REQ-F-OVR-002:    "Overview Page Corrections"
+  REQ-F-OVR-003:    "Feature Detail Page"
+
+commits_since_v3_0_6:
+  - "feat(genesis_manager): headless e2e capture/eval + spec pages + domain model"
+  - "spec(req): REQ-TEST-001..004 — E2E/UAT testing standards as formal requirements"
+  - "spec(uat): UC-12 proxy mode + UC-13 event stream + UC-14 e2e testing standards"
+  - "wip(genesis_manager): mid-session save — feature detail + overview UI refactor"
+  - "test(gtl): 88 unit tests for GTL core — constitutional invariants + examples"
+
+coverage:
+  spec_keys_total: 41
+  in_code: "35/41 (85%)"
+  in_tests: "11/41 (27%)"
+  telemetry: "0/41 (advisory — code→cicd not started)"
+
+known_gaps:
+  - id: PROP-GAP-001
+    title: "Add Validates: tags to covered tests"
+    severity: high
+    req_keys: [REQ-BR-SUPV-001, REQ-BR-SUPV-002, REQ-DATA-WORK-001, REQ-DATA-WORK-002,
+               REQ-F-CTL-001, REQ-F-CTL-003, REQ-F-EVI-002, REQ-F-EVI-003, REQ-F-EVI-004,
+               REQ-F-NAV-001..005, REQ-F-OVR-002..004, REQ-F-PROJ-002..003, REQ-F-SUP-002..003,
+               REQ-F-UX-001..002, REQ-F-VIS-001]
+
+  - id: PROP-GAP-002
+    title: "Backfill FSNAV-002/003 into spec"
+    severity: medium
+    req_keys: [REQ-F-FSNAV-002, REQ-F-FSNAV-003]
+
+  - id: PROP-GM-001
+    title: "Frontend & handler unit tests for 24 untested REQ keys"
+    severity: high
+    req_keys: [REQ-BR-SUPV-001..002, REQ-DATA-WORK-001..002, REQ-F-CTL-001..003,
+               REQ-F-EVI-002..004, REQ-F-NAV-001..005, REQ-F-OVR-002..004,
+               REQ-F-PROJ-002..003, REQ-F-SUP-002..003, REQ-F-UX-001..002, REQ-F-VIS-001]
+
+  - id: PROP-GM-002
+    title: "Release management feature (REQ-F-REL-001..003) — not yet implemented"
+    severity: high
+    req_keys: [REQ-F-REL-001, REQ-F-REL-002, REQ-F-REL-003]
+
+  - id: PROP-GM-003
+    title: "NFR and system bootstrap REQ key tagging (advisory)"
+    severity: low
+    req_keys: [REQ-F-SYSTEM-001, REQ-NFR-ACC-001, REQ-NFR-PERF-001]

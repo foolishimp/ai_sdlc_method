@@ -1,5 +1,5 @@
 // @vitest-environment node
-// Validates: REQ-F-EVI-001
+// Validates: REQ-F-EVI-001, REQ-F-EVI-003, REQ-F-EVI-004
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import path from 'node:path'

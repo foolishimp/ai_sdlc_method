@@ -1,3 +1,4 @@
+# Implements: REQ-GTL-005
 """
 genesis_obligations — GTL as plain Python objects
 

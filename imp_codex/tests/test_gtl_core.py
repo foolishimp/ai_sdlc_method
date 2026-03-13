@@ -1,4 +1,8 @@
-# Validates: REQ-GTL-001, REQ-GTL-002, REQ-GTL-003, REQ-GTL-004, REQ-GTL-005
+# Validates: REQ-GTL-001
+# Validates: REQ-GTL-002
+# Validates: REQ-GTL-003
+# Validates: REQ-GTL-004
+# Validates: REQ-GTL-005
 """
 TDD unit tests for GTL core — Genesis Topology Language object model v0.2.1.
 

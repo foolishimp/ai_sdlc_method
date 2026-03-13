@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+// Implements: REQ-TEST-003
 /**
  * e2e/capture.ts — Headless Playwright page capture for spec evaluation
  *

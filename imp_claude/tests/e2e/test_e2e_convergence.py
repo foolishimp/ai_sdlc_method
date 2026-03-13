@@ -1,4 +1,9 @@
-# Validates: REQ-TOOL-005, REQ-EVAL-001, REQ-EVAL-002, REQ-EVAL-003
+# Validates: REQ-TOOL-005
+# Validates: REQ-EVAL-001
+# Validates: REQ-EVAL-002
+# Validates: REQ-EVAL-003
+# Validates: REQ-TEST-002
+# Validates: REQ-TEST-004
 """E2E convergence tests — headless Claude drives full methodology.
 
 These tests scaffold a tiny Python project (temperature converter),

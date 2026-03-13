@@ -1,4 +1,4 @@
-// Implements: REQ-F-OVR-001, REQ-F-SUP-001, REQ-F-EVI-001
+// Implements: REQ-F-OVR-001, REQ-F-SUP-001, REQ-F-EVI-001, REQ-NFR-PERF-001
 
 import { create } from 'zustand'
 import { apiClient } from '../api/WorkspaceApiClient'

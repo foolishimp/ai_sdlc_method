@@ -1,4 +1,7 @@
-# Validates: REQ-TOOL-005, REQ-F-DASH-001, REQ-F-DISC-001
+# Validates: REQ-TOOL-005
+# Validates: REQ-TEST-003
+# Validates: REQ-F-DASH-001
+# Validates: REQ-F-DISC-001
 """
 Playwright tests that validate genesis-monitor correctly displays e2e run output.
 

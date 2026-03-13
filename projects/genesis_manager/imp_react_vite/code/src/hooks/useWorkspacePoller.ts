@@ -1,4 +1,4 @@
-// Implements: REQ-F-UX-001
+// Implements: REQ-F-UX-001, REQ-NFR-PERF-001
 
 import { useEffect } from 'react'
 import { useProjectStore } from '../stores/projectStore'

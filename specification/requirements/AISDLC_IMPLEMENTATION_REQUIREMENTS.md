@@ -1661,6 +1661,104 @@ Test tiers are ordered by evidential weight. Higher tiers may not be substituted
 
 ---
 
+## 18. Graph Topology Language (GTL)
+
+GTL is the constitutional object model for Genesis package definitions. Packages are authored as plain Python using the `gtl.core` library — no custom DSL parser. All invariants are enforced at construction time. The human audit surface is the Mermaid diagram generated from `Package.to_mermaid()`.
+
+**ADR**: ADR-S-035 (GTL — Python library as authoring surface, accepted 2026-03-14)
+
+---
+
+### REQ-GTL-001: GTL Object Model
+
+**Priority**: High | **Phase**: 1
+
+The GTL library MUST provide constructable Python dataclasses for all constitutional elements: `Package`, `Asset`, `Edge`, `Operator`, `Rule`, `Context`, `Overlay`, `PackageSnapshot`, functor categories `F_D`/`F_P`/`F_H`, and `consensus(n, m)`. No external dependencies beyond Python stdlib.
+
+**Acceptance Criteria**:
+- AC-1: All nine types importable from `gtl.core` with no external dependencies
+- AC-2: `consensus(n, m)` validates `1 ≤ n ≤ m`; `Consensus` is frozen (immutable)
+- AC-3: `Operative` supports `approved` and `not_superseded` prime axes; frozen
+- AC-4: `PackageSnapshot` provides `to_dict()` → `package_snapshot_activated` event payload and `work_binding()` → `{package_name, package_snapshot_id}` (exactly two fields)
+- AC-5: All list fields use `field(default_factory=list)` — no mutable defaults
+
+**Traces To**: ADR-S-035 (GTL Python library) | Bootloader §VII (Evaluator types F_D/F_P/F_H) | Bootloader §V (Event stream — PackageSnapshot as work binding)
+
+---
+
+### REQ-GTL-002: Constitutional Invariants Enforced at Construction
+
+**Priority**: High | **Phase**: 1
+
+Every GTL construct MUST validate its invariants in `__post_init__` and raise `ValueError` or `TypeError` at construction time. Invalid packages must not reach runtime.
+
+**Acceptance Criteria**:
+- AC-1: `consensus(0, m)`, `consensus(n, 0)`, `consensus(n > m, m)` → `ValueError`
+- AC-2: `Context` with unknown locator scheme (not `git://`, `workspace://`, `event://`, `registry://`) → `ValueError`
+- AC-3: `Context` with digest not starting `sha256:` → `ValueError`
+- AC-4: `Rule` with `dissent` not in `{required, recorded, none}` → `ValueError`
+- AC-5: `Operator` with category not `F_D`/`F_P`/`F_H` → `TypeError`
+- AC-6: `Operator` with URI not using a known scheme (`agent://`, `exec://`, `check://`, `metric://`, `fh://`) → `ValueError`
+- AC-7: `Edge` with `confirm` not in `{question, markov, hypothesis}` → `ValueError`
+- AC-8: `Edge` with `co_evolve=True` and non-list `source` → `ValueError`
+- AC-9: `Overlay` without `approve` → `ValueError`; `restrict_to` + `add_*` mutually exclusive → `ValueError`
+- AC-10: `Package` with an edge referencing an undeclared operator → `ValueError`
+
+**Traces To**: ADR-S-035 §3 (Invariant enforcement) | Bootloader §XI (Asset stability — boundary + conditional independence)
+
+---
+
+### REQ-GTL-003: Topology Projection via to_mermaid()
+
+**Priority**: High | **Phase**: 1
+
+`Package.to_mermaid()` MUST produce a valid fenced Mermaid flowchart rendering the package topology. Overlay restriction and edge decorations (co-evolve, governed, product arrows) must be correctly reflected.
+
+**Acceptance Criteria**:
+- AC-1: Output starts with ` ```mermaid ` and ends with ` ``` `
+- AC-2: All package assets appear as Mermaid nodes; assets with `operative` show operative label
+- AC-3: Single-source edges render as `-->` with operator and confirm label
+- AC-4: Product-arrow edges (list source) render via a synthesised join node (`join_A_B`)
+- AC-5: `co_evolve=True` edges render as `<-->` with `coevolve` CSS class on both assets
+- AC-6: Governed edges (with `rule`) apply `governed` CSS class to target
+- AC-7: `to_mermaid(overlay=ov)` with `restrict_to` filters nodes and edges to the named subset
+
+**Traces To**: ADR-S-035 §4 (Audit surface — topology vs traversal) | Bootloader §XII (Completeness visibility — human-readable convergence)
+
+---
+
+### REQ-GTL-004: Package Describe
+
+**Priority**: Medium | **Phase**: 1
+
+`Package.describe()` MUST produce a human-readable text summary of all package elements, suitable for LLM prompting and log output.
+
+**Acceptance Criteria**:
+- AC-1: Output includes package name, asset count, operator count, rule count, context count, edge count
+- AC-2: Each edge line shows source → target (or `<->` for co-evolve), confirm value, and operator names
+- AC-3: Governed edges show rule name
+- AC-4: Overlays section present when `package.overlays` is non-empty
+
+**Traces To**: ADR-S-035 §4 (Authoring workflow — step 3 human audits)
+
+---
+
+### REQ-GTL-005: Example Package Proving Suite
+
+**Priority**: Medium | **Phase**: 1
+
+The GTL library MUST ship with at least two example packages that serve as the primary proving suite for the object model: one for software delivery (`genesis_sdlc`) and one for a non-software domain (`genesis_obligations`). Both must construct without error and pass Package validation.
+
+**Acceptance Criteria**:
+- AC-1: `genesis_sdlc` (SDLC package) constructs; contains at least one `co_evolve=True` edge (TDD) and restriction overlays for standard, poc, spike, hotfix profiles
+- AC-2: `genesis_obligations` constructs; contains at least one product-arrow edge (A × B → C applicability binding)
+- AC-3: Both produce valid `describe()` text and valid `to_mermaid()` Mermaid blocks
+- AC-4: `genesis_sdlc.to_mermaid(overlay=poc)` filters correctly to poc asset subset
+
+**Traces To**: ADR-S-035 §2 (Authoring workflow) | Bootloader §XV (Projections as Functors — profiles as restriction overlays)
+
+---
+
 ## Requirement Summary
 
 | Category | Count | Critical | High | Medium |
@@ -1681,10 +1779,11 @@ Test tiers are ordered by evidential weight. Higher tiers may not be substituted
 | Runtime Robustness | 5 | 3 | 2 | 0 |
 | Spec Evolution | 5 | 0 | 4 | 1 |
 | E2E & UAT Testing Standards | 4 | 1 | 3 | 0 |
-| **Total** | **87** | **14** | **56** | **13** |
+| Graph Topology Language (GTL) | 5 | 0 | 3 | 2 |
+| **Total** | **92** | **14** | **59** | **15** |
 
-### Phase 1 (Core Graph Engine): 61 requirements
-Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (F_P invocation isolation, supervisor pattern, crash recovery, failure events, session gap detection), spec evolution Phase 1 (workspace vectors trajectory-only, JOIN semantics for feature display, `spec_modified` event type), E2E and UAT testing standards (UAT as primary gate, scenario/boundary/feature structure, visual screenshot validation, test tier hierarchy).
+### Phase 1 (Core Graph Engine): 66 requirements
+Intent capture + spec, graph topology, iteration engine, evaluators, context, feature vectors, edge parameterisations, tooling (including installability, multi-tenant folder structure, output directory binding, observability integration contract), gradient mechanics (intent events, signal classification, spec change events, protocol enforcement, spec review as gradient check), sensory (artifact write observation), user experience (state-driven routing, progressive disclosure, observability, feature/edge selection, recovery, human gate awareness, edge zoom management), supervision (IntentEngine interface, constraint tolerances, failure observability), runtime robustness (F_P invocation isolation, supervisor pattern, crash recovery, failure events, session gap detection), spec evolution Phase 1 (workspace vectors trajectory-only, JOIN semantics for feature display, `spec_modified` event type), E2E and UAT testing standards (UAT as primary gate, scenario/boundary/feature structure, visual screenshot validation, test tier hierarchy), GTL object model (Package, Asset, Edge, Operator, Rule, Context, Overlay, PackageSnapshot, constitutional invariants, to_mermaid() topology projection, example proving suite).
 
 ### Phase 2 (Full Lifecycle + Coordination): 22 requirements
 Eco-intent, context hierarchy, CI/CD edges, telemetry/homeostasis, feedback loop closure, feature lineage in telemetry, dev observer agent, CI/CD observer agent, ops observer agent, interoceptive monitoring, exteroceptive monitoring, affect triage pipeline, sensory configuration, review boundary, agent identity, event-sourced assignment, work isolation, Markov-aligned parallelism, role-based evaluator authority, functor encoding tracking, spec evolution Phase 2 (`feature_proposal` event type, Draft Features Queue).

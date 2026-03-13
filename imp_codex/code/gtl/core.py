@@ -1,3 +1,7 @@
+# Implements: REQ-GTL-001
+# Implements: REQ-GTL-002
+# Implements: REQ-GTL-003
+# Implements: REQ-GTL-004
 """
 GTL constitutional object model — v0.2.1
 

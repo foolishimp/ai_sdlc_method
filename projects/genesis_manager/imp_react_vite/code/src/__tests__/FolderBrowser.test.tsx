@@ -1,5 +1,5 @@
-// Validates: REQ-F-FSNAV-002
 // @vitest-environment jsdom
+// Validates: REQ-F-FSNAV-001, REQ-F-FSNAV-002, REQ-F-FSNAV-003, REQ-NFR-PERF-001
 
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
