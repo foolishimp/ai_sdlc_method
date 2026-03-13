@@ -514,6 +514,138 @@ def cmd_construct(args: argparse.Namespace) -> int:
 
 
 
+# ── start subcommand ──────────────────────────────────────────────
+# Implements: ADR-032 (skills as dispatch surfaces)
+# This is the engine-side of the F_P dispatch loop.
+# Exit codes:
+#   0 — converged or nothing to do
+#   2 — fp_dispatched: MCP actor needed; manifest path in JSON stdout
+#   3 — fh_required: human gate; surfaces to user
+#   1 — error
+
+
+def cmd_start(args: argparse.Namespace) -> int:
+    """State-driven start: find work → run_edge → signal when F_P actor needed.
+
+    This is the engine half of the dispatch loop (ADR-032).
+    The skill (gen-iterate / gen-start) is the MCP half — it calls this,
+    reads exit code 2, dispatches the actor, then calls this again.
+    """
+    try:
+        import yaml as _yaml
+    except ImportError:
+        print(json.dumps({"status": "error", "error": "PyYAML required"}))
+        return 1
+
+    from .intent_observer import (
+        DispatchTarget,
+        _get_active_feature_ids,
+        _load_feature_vector,
+        _select_edge,
+        get_pending_dispatches,
+    )
+    from .edge_runner import run_edge as _run_edge
+
+    workspace = _find_workspace(
+        Path(args.workspace) if getattr(args, "workspace", None) else Path.cwd()
+    )
+    events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
+
+    # Project name
+    project_name = workspace.name
+    constraints_path = _find_constraints(workspace)
+    if constraints_path.exists():
+        try:
+            c = _yaml.safe_load(constraints_path.read_text()) or {}
+            pn = c.get("project_name") or (c.get("project") or {}).get("name")
+            if pn:
+                project_name = pn
+        except Exception:
+            pass
+
+    # --- Find targets ---------------------------------------------------------
+    # 1. Pending intents first (homeostatic loop)
+    targets = get_pending_dispatches(workspace)
+
+    # 2. If none, direct feature selection
+    if not targets:
+        feature_arg = getattr(args, "feature", None)
+        edge_arg = getattr(args, "edge", None)
+        if feature_arg:
+            fv = _load_feature_vector(workspace, feature_arg)
+            if fv:
+                edge = edge_arg or _select_edge(fv)
+                if edge:
+                    targets = [DispatchTarget(
+                        intent_id="manual",
+                        feature_id=feature_arg,
+                        edge=edge,
+                        feature_vector=fv,
+                    )]
+        else:
+            for fid in _get_active_feature_ids(workspace):
+                fv = _load_feature_vector(workspace, fid)
+                if not fv:
+                    continue
+                edge = _select_edge(fv)
+                if edge:
+                    targets.append(DispatchTarget(
+                        intent_id="auto",
+                        feature_id=fid,
+                        edge=edge,
+                        feature_vector=fv,
+                    ))
+
+    if not targets:
+        print(json.dumps({"status": "nothing_to_do",
+                          "message": "No active features with unconverged edges"}))
+        return 0
+
+    # --- Process targets ------------------------------------------------------
+    auto = getattr(args, "auto", False)
+
+    for target in targets:
+        result = _run_edge(
+            target=target,
+            workspace_root=workspace,
+            events_path=events_path,
+            project_name=project_name,
+        )
+
+        out: dict = {
+            "status": result.status,
+            "feature": result.feature_id,
+            "edge": result.edge,
+            "delta": result.delta,
+            "iterations": result.iterations,
+            "events": result.events_emitted,
+        }
+
+        if result.status == "fp_dispatched":
+            # Signal to skill: MCP actor needed. Manifest path in output.
+            out["fp_manifest_path"] = result.fp_manifest_path
+            print(json.dumps(out))
+            return 2  # skill reads this, dispatches actor, calls us again
+
+        if result.status == "fh_required":
+            out["message"] = "Human gate required — awaiting F_H approval"
+            print(json.dumps(out))
+            return 3  # skill surfaces gate to user
+
+        if result.status == "evaluator_error":
+            out["message"] = f"Evaluator infrastructure error: {result.evaluator_error}"
+            print(json.dumps(out))
+            return 1
+
+        # converged or stuck
+        print(json.dumps(out))
+
+        if result.status != "converged" and not auto:
+            return 1
+
+    return 0
+
+
 # ── context subcommand ────────────────────────────────────────────
 
 
@@ -775,6 +907,18 @@ def main() -> int:
         "--workspace", default=None, help="Workspace root (auto-detected if omitted)"
     )
 
+    # start subcommand — ADR-032 dispatch surface entry point
+    start_parser = subparsers.add_parser(
+        "start",
+        help="State-driven start: find work, run edge_runner, signal when F_P needed",
+    )
+    start_parser.add_argument("--workspace", default=None, help="Workspace root (auto-detected)")
+    start_parser.add_argument("--feature", default=None, help="Override feature selection")
+    start_parser.add_argument("--edge", default=None, help="Override edge selection")
+    start_parser.add_argument("--auto", action="store_true", help="Loop through all pending targets")
+    start_parser.add_argument("--human-proxy", action="store_true", dest="human_proxy",
+                              help="Act as F_H proxy at human gates (requires --auto)")
+
     args = parser.parse_args()
 
     if args.command == "evaluate":
@@ -785,6 +929,8 @@ def main() -> int:
         return cmd_construct(args)
     elif args.command == "context":
         return cmd_context(args)
+    elif args.command == "start":
+        return cmd_start(args)
     else:
         parser.print_help()
         return 1
