@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).parents[3]))
 from gtl.core import (
     Package, Asset, Edge, Operator, Rule, Context, Overlay,
     F_D, F_P, F_H, consensus,
+    OPERATIVE_ON_APPROVED, OPERATIVE_ON_APPROVED_NOT_SUPERSEDED,
 )
 
 # ── Rules ──────────────────────────────────────────────────────────────────
@@ -35,13 +36,13 @@ release_board  = Operator("release_board",  F_H, "fh://consensus/2-3")
 
 project_constraints = Context(
     name="project_constraints",
-    from_git="https://github.com/org/project.git//constraints/project.yml@abc123",
+    locator="git://github.com/org/project.git//constraints/project.yml@abc123",
     digest="sha256:1a2b3cabc...",
 )
 
 adrs = Context(
     name="adrs",
-    from_git="https://github.com/org/project.git//adrs/index.yml@def456",
+    locator="git://github.com/org/project.git//adrs/index.yml@def456",
     digest="sha256:4d5e6fdef...",
 )
 
@@ -58,7 +59,7 @@ requirements = Asset(
     id_format="REQ-{TYPE}-{DOMAIN}-{SEQ}",
     lineage=[intent],
     markov=["keys_testable", "intent_covered"],
-    operative="approved",
+    operative=OPERATIVE_ON_APPROVED,
 )
 
 feature_decomposition = Asset(
@@ -66,7 +67,7 @@ feature_decomposition = Asset(
     id_format="FD-{SEQ}",
     lineage=[requirements],
     markov=["all_req_keys_covered", "dependency_dag_valid", "mvp_boundary_defined"],
-    operative="approved",
+    operative=OPERATIVE_ON_APPROVED,
 )
 
 design = Asset(
@@ -74,7 +75,7 @@ design = Asset(
     id_format="DES-{SEQ}",
     lineage=[feature_decomposition],
     markov=["adrs_recorded", "ecosystem_bound"],
-    operative="approved and not superseded",
+    operative=OPERATIVE_ON_APPROVED_NOT_SUPERSEDED,
 )
 
 module_decomposition = Asset(
@@ -108,7 +109,7 @@ uat_tests = Asset(
     id_format="UAT-{SEQ}",
     lineage=[design],
     markov=["scenarios_covered"],
-    operative="approved",
+    operative=OPERATIVE_ON_APPROVED,
 )
 
 # ── Edges ──────────────────────────────────────────────────────────────────

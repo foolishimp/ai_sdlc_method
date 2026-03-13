@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).parents[3]))
 from gtl.core import (
     Package, Asset, Edge, Operator, Rule, Context, Overlay,
     F_D, F_P, F_H, consensus,
+    OPERATIVE_ON_APPROVED, OPERATIVE_ON_APPROVED_NOT_SUPERSEDED,
 )
 
 # ── Rules ──────────────────────────────────────────────────────────────────
@@ -42,19 +43,19 @@ interp_board      = Operator("interp_board",      F_H, "fh://consensus/3-4")
 
 institutional_scope = Context(
     name="institutional_scope",
-    from_git="https://github.com/org/obligations.git//ctx/institutional.yml@abc123",
+    locator="git://github.com/org/obligations.git//ctx/institutional.yml@abc123",
     digest="sha256:9c1d3fabc...",
 )
 
 interpretation_authority = Context(
     name="interpretation_authority",
-    from_git="https://github.com/org/obligations.git//ctx/authority.yml@def456",
+    locator="git://github.com/org/obligations.git//ctx/authority.yml@def456",
     digest="sha256:4a7b2edef...",
 )
 
 regulatory_domains = Context(
     name="regulatory_domains",
-    from_git="https://github.com/org/obligations.git//ctx/regulatory.yml@ghi789",
+    locator="git://github.com/org/obligations.git//ctx/regulatory.yml@ghi789",
     digest="sha256:8f2c5aghi...",
 )
 
@@ -71,7 +72,7 @@ interpretation_case = Asset(
     id_format="IC-{SEQ}",
     lineage=[source_provision],
     markov=["interpretation_drafted", "ambiguity_recorded"],
-    operative="approved and not superseded",
+    operative=OPERATIVE_ON_APPROVED_NOT_SUPERSEDED,
 )
 
 normalized_obligation = Asset(

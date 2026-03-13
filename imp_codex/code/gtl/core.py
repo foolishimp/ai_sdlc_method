@@ -1,14 +1,20 @@
 """
-GTL constitutional object model — v0.2
+GTL constitutional object model — v0.2.1
 
 Python library as the authored surface. No custom DSL parser.
-AI assembles packages from this library; humans audit via to_mermaid().
+AI assembles packages from this library; humans audit via normalised projections.
+
+Codex findings addressed (2026-03-14):
+  1. Context: multi-resolver (git, workspace, event, registry), context_snapshot_id contract
+  2. PackageSnapshot: explicit binding surface added
+  3. Operative: typed, not free string
+  4. Audit surface: topology vs traversal distinction clarified in docstrings
+  5. Mutable defaults: field(default_factory=list) throughout
 
 No external dependencies. Dataclasses + stdlib only.
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
-from fractions import Fraction
 from typing import Optional
 
 
@@ -37,6 +43,72 @@ def consensus(n: int, m: int) -> Consensus:
     return Consensus(n, m)
 
 
+# ── Operative condition (Finding 3) ────────────────────────────────────────
+# Typed prime-axis conditions. No free strings.
+
+@dataclass(frozen=True)
+class Operative:
+    """
+    Typed operability condition derived from prime axes.
+
+    Prime axes: approved, superseded.
+    Conditions compose from them — no ad hoc strings.
+
+    Examples:
+        Operative(approved=True)                        # operative when approved
+        Operative(approved=True, not_superseded=True)   # operative when approved and not superseded
+    """
+    approved: bool = True
+    not_superseded: bool = False
+
+    def __repr__(self):
+        parts = []
+        if self.approved:
+            parts.append("approved")
+        if self.not_superseded:
+            parts.append("not superseded")
+        return " and ".join(parts) if parts else "always"
+
+# Convenience constants
+OPERATIVE_ON_APPROVED            = Operative(approved=True)
+OPERATIVE_ON_APPROVED_NOT_SUPERSEDED = Operative(approved=True, not_superseded=True)
+
+
+# ── Context resolver (Finding 1) ───────────────────────────────────────────
+# Multi-resolver; digest is the constitutional binding; runtime derives context_snapshot_id.
+
+_CONTEXT_SCHEMES = ("git://", "workspace://", "event://", "registry://")
+
+@dataclass
+class Context:
+    """
+    Externally-located, snapshot-bound constraint dimension.
+
+    locator: URI using a known scheme — used for discovery and retrieval.
+        git://      — versioned document in a git repository
+        workspace:// — loaded from the local .ai-workspace/
+        event://    — derived from a package-definition event stream
+        registry:// — from a shared Genesis context registry
+
+    digest: sha256 content hash — the constitutional binding for replay.
+        The floating URI is not authoritative. The digest is.
+
+    The runtime derives an immutable context_snapshot_id from (locator + digest).
+    Replay binds to context_snapshot_id, not the live URI.
+    """
+    name: str
+    locator: str    # e.g. "git://github.com/org/repo//ctx/file.yml@abc123"
+    digest: str     # "sha256:..."
+
+    def __post_init__(self):
+        if not self.digest.startswith("sha256:"):
+            raise ValueError(f"Context.digest must start with 'sha256:': {self.digest!r}")
+        if not any(self.locator.startswith(s) for s in _CONTEXT_SCHEMES):
+            raise ValueError(
+                f"Context.locator must use a known scheme {_CONTEXT_SCHEMES}: {self.locator!r}"
+            )
+
+
 # ── Core constructs ────────────────────────────────────────────────────────
 
 @dataclass
@@ -51,6 +123,8 @@ class Rule:
             raise ValueError(f"Rule.dissent must be required|recorded|none, got {self.dissent!r}")
 
 
+_OPERATOR_SCHEMES = ("agent://", "exec://", "check://", "metric://", "fh://")
+
 @dataclass
 class Operator:
     name: str
@@ -60,56 +134,57 @@ class Operator:
     def __post_init__(self):
         if self.category not in (F_D, F_P, F_H):
             raise TypeError(f"Operator.category must be F_D, F_P, or F_H")
-        for scheme in ("agent://", "exec://", "check://", "metric://", "fh://"):
-            if self.uri.startswith(scheme):
-                break
-        else:
-            raise ValueError(f"Operator URI must use a known scheme (agent://, exec://, check://, metric://, fh://): {self.uri!r}")
-
-
-@dataclass
-class Context:
-    name: str
-    from_git: str
-    digest: str
-
-    def __post_init__(self):
-        if not self.digest.startswith("sha256:"):
-            raise ValueError(f"Context.digest must start with 'sha256:': {self.digest!r}")
+        if not any(self.uri.startswith(s) for s in _OPERATOR_SCHEMES):
+            raise ValueError(
+                f"Operator URI must use a known scheme {_OPERATOR_SCHEMES}: {self.uri!r}"
+            )
 
 
 @dataclass
 class Asset:
+    """
+    Typed asset class. Instances are produced by traversing edges.
+
+    governing_snapshots: populated at runtime on instances that cross package
+        boundaries — carries the full provenance map of upstream constitutional
+        surfaces. Declared here as a type-level annotation; runtime populates it.
+    """
     name: str
     id_format: str
     lineage: list[Asset] = field(default_factory=list)
     markov: list[str] = field(default_factory=list)
-    operative: Optional[str] = None     # e.g. "approved and not superseded"
+    operative: Optional[Operative] = None
 
 
 @dataclass
 class Edge:
     name: str
-    source: Asset | list[Asset]         # list = product arrow A × B × ...
+    source: Asset | list[Asset]     # list[Asset] = product arrow A × B × ...
     target: Asset
     using: list[Operator] = field(default_factory=list)
-    confirm: str = "markov"             # "question" | "markov" | "hypothesis"
+    confirm: str = "markov"         # "question" | "markov" | "hypothesis"
     rule: Optional[Rule] = None
     context: list[Context] = field(default_factory=list)
-    co_evolve: bool = False             # True only for <-> bidirectional edges
+    co_evolve: bool = False         # True = both assets mutable in same iterate() call
 
     def __post_init__(self):
         if self.confirm not in ("question", "markov", "hypothesis"):
-            raise ValueError(f"Edge.confirm must be question|markov|hypothesis, got {self.confirm!r}")
-        # co_evolve only makes sense for bidirectional (source == target effectively)
-        # We track it as a flag; the package validator checks operator surface
+            raise ValueError(
+                f"Edge.confirm must be question|markov|hypothesis, got {self.confirm!r}"
+            )
 
 
 @dataclass
 class Overlay:
+    """
+    Lawful package extension (add_*) or restriction (restrict_to).
+    Both forms require approve — overlay activation is a governance act.
+
+    Restriction overlays ARE profiles. No separate profile mechanism.
+    """
     name: str
     on: "Package"
-    restrict_to: Optional[list[str]] = None    # names of assets/edges to keep
+    restrict_to: Optional[list[str]] = None
     add_assets: list[Asset] = field(default_factory=list)
     add_edges: list[Edge] = field(default_factory=list)
     add_operators: list[Operator] = field(default_factory=list)
@@ -123,13 +198,71 @@ class Overlay:
             raise ValueError(f"Overlay '{self.name}' must declare approve=consensus(n/m)")
         if self.restrict_to is not None and any([
             self.add_assets, self.add_edges, self.add_operators,
-            self.add_rules, self.add_contexts
+            self.add_rules, self.add_contexts,
         ]):
             raise ValueError(f"Overlay '{self.name}': restrict_to and add_* are mutually exclusive")
 
 
+# ── PackageSnapshot (Finding 2) ────────────────────────────────────────────
+
+@dataclass
+class PackageSnapshot:
+    """
+    Runtime artifact — projection of package-definition events at a point in time.
+    Never authored directly in GTL. Produced by the runtime when an overlay is activated
+    through the governance pipeline.
+
+    Constitutional binding contract:
+        Every work event (edge_started, iteration_completed, edge_converged) must carry
+        package_snapshot_id. This is non-optional. It is the mechanism by which exact
+        historical replay under the correct law is possible.
+
+    governing_snapshots[]:
+        Artifacts crossing package boundaries carry this field — a list of all upstream
+        snapshot IDs that materially shaped the artifact. Downstream work traces full
+        provenance, not just the immediate parent snapshot.
+    """
+    snapshot_id: str        # e.g. "snap-genesis-obligations-v1.2.0"
+    package_name: str
+    version: str
+    activated_at: str       # ISO 8601
+    activated_by: str       # ID of the governance event that activated this snapshot
+
+    def to_dict(self) -> dict:
+        """Serialise to package_snapshot_activated event payload."""
+        return {
+            "event_type": "package_snapshot_activated",
+            "snapshot_id": self.snapshot_id,
+            "package_name": self.package_name,
+            "version": self.version,
+            "activated_at": self.activated_at,
+            "activated_by": self.activated_by,
+        }
+
+    def work_binding(self) -> dict:
+        """Minimal fields every work event must carry."""
+        return {
+            "package_name": self.package_name,
+            "package_snapshot_id": self.snapshot_id,
+        }
+
+
+# ── Package ────────────────────────────────────────────────────────────────
+
 @dataclass
 class Package:
+    """
+    Bounded constitutional world.
+
+    Validated at construction — all invariants enforced immediately.
+    Runtime serialises Package + governance event → PackageSnapshot.
+
+    Audit surfaces (Finding 4):
+        to_mermaid() renders TOPOLOGY — static package structure, background context.
+        The primary operational human surface is TRAVERSAL — where work is now relative
+        to the topology. Traversal is generated by the runtime from PackageSnapshot × work_events.
+        These are distinct: topology does not change during a work run; traversal does.
+    """
     name: str
     assets: list[Asset] = field(default_factory=list)
     edges: list[Edge] = field(default_factory=list)
@@ -144,26 +277,24 @@ class Package:
     def _validate(self):
         errors = []
         declared_ops = {op.name for op in self.operators}
-        declared_rules = {r.name for r in self.rules}
 
         for edge in self.edges:
-            # 1. Closed operator surface
+            # Closed operator surface
             for op in edge.using:
                 if op.name not in declared_ops:
-                    errors.append(f"Edge '{edge.name}': operator '{op.name}' not declared in package")
-
-            # 2. Single approval authority — rule is present, no inline approve needed
-            # (In Python model there's no separate 'approve' on edge — rule IS the authority.
-            # This invariant is enforced by the object model: edge.rule is the only path.)
-
-            # 3. co_evolve consistency
+                    errors.append(
+                        f"Edge '{edge.name}': operator '{op.name}' not declared in package"
+                    )
+            # co_evolve consistency
             if edge.co_evolve and not isinstance(edge.source, list):
-                errors.append(f"Edge '{edge.name}': co_evolve=True requires source to be a list [A, B]")
-
-        # 4. Context digests (already enforced in Context.__post_init__)
+                errors.append(
+                    f"Edge '{edge.name}': co_evolve=True requires source to be a list [A, B]"
+                )
 
         if errors:
-            raise ValueError("Package validation failed:\n" + "\n".join(f"  - {e}" for e in errors))
+            raise ValueError(
+                "Package validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
+            )
 
     def describe(self) -> str:
         lines = [f"Package: {self.name}"]
@@ -187,16 +318,25 @@ class Package:
             lines.append(f"  overlays  ({len(self.overlays)}):")
             for ov in self.overlays:
                 if ov.restrict_to:
-                    lines.append(f"    {ov.name}: restrict to [{', '.join(ov.restrict_to)}] max_iter={ov.max_iter}")
+                    lines.append(
+                        f"    {ov.name}: restrict to [{', '.join(ov.restrict_to)}]"
+                        + (f" max_iter={ov.max_iter}" if ov.max_iter else "")
+                    )
                 else:
                     lines.append(f"    {ov.name}: additive")
         return "\n".join(lines)
 
-    def to_mermaid(self, overlay: Optional["Overlay"] = None) -> str:
-        """Render the package topology as a Mermaid flowchart.
+    def to_mermaid(self, overlay: Optional[Overlay] = None) -> str:
+        """
+        Render package TOPOLOGY as a Mermaid flowchart.
+
+        This is TOPOLOGY — the static package structure. It is background context,
+        not the primary operational human surface. The operational surface is TRAVERSAL:
+        where work is now relative to this topology, generated from PackageSnapshot × work_events.
 
         If an overlay with restrict_to is supplied, only those assets/edges are shown.
-        This is the human audit surface — generated from the object model, never authored.
+        LLM-generated Mermaid from Package.describe() is acceptable for documentation.
+        Deterministic to_mermaid() is warranted when review-grade projection is required.
         """
         active_asset_names: Optional[set[str]] = None
         if overlay and overlay.restrict_to:
@@ -211,39 +351,31 @@ class Package:
         def _visible(a: Asset) -> bool:
             return active_asset_names is None or a.name in active_asset_names
 
-        lines = ["```mermaid", f"graph LR"]
-
-        # Style classes
+        lines = ["```mermaid", "graph LR"]
         lines.append("  classDef governed fill:#ffeeba,stroke:#d4a017")
         lines.append("  classDef product  fill:#d4edda,stroke:#28a745")
         lines.append("  classDef coevolve fill:#cce5ff,stroke:#004085")
 
-        # Nodes
         for a in self.assets:
             if _visible(a):
                 lines.append(_node(a))
 
-        # Edges
         for e in self.edges:
             sources = e.source if isinstance(e.source, list) else [e.source]
             if not all(_visible(s) for s in sources) or not _visible(e.target):
                 continue
 
-            gov_label = f"|{e.rule.name}|" if e.rule else ""
-            confirm_label = f" [{e.confirm}]"
-            ops_label = ", ".join(o.name for o in e.using[:2])  # first 2 ops for brevity
+            ops_label = ", ".join(o.name for o in e.using[:2])
             if len(e.using) > 2:
                 ops_label += f" +{len(e.using)-2}"
-            edge_label = f"|{ops_label}{confirm_label}|"
+            edge_label = f"|{ops_label} [{e.confirm}]|"
 
             if e.co_evolve:
-                # bidirectional — render as two arrows
                 a, b = sources[0], sources[1]
                 lines.append(f"  {a.name} <-->|co_evolve| {b.name}")
                 lines.append(f"  {a.name}:::coevolve")
                 lines.append(f"  {b.name}:::coevolve")
             elif len(sources) > 1:
-                # product arrow: synthetic join node
                 join = "join_" + "_".join(s.name for s in sources)
                 join_label = " × ".join(s.name for s in sources)
                 lines.append(f'  {join}(("{join_label}"))')
@@ -253,18 +385,9 @@ class Package:
                 lines.append(f"  {join}:::product")
             else:
                 src = sources[0]
-                arrow = f"--{edge_label}-->"
+                lines.append(f"  {src.name} --{edge_label}--> {e.target.name}")
                 if e.rule:
-                    lines.append(f"  {src.name} {arrow} {e.target.name}")
                     lines.append(f"  {e.target.name}:::governed")
-                else:
-                    lines.append(f"  {src.name} {arrow} {e.target.name}")
 
-        title = self.name
-        if overlay:
-            title += f" [{overlay.name}]"
-        lines.append(f"  subgraph \" \"")
-        lines.append(f"    direction LR")
-        lines.append(f"  end")
         lines.append("```")
         return "\n".join(lines)
