@@ -45,7 +45,7 @@ Dogfooding is not a test — it is the build process.
 
 | Artifact | Status |
 |----------|--------|
-| Spec | Complete — ADR-S-001..035 (ADR-S-035 PROPOSED, deferred v3.2) |
+| Spec | Complete — ADR-S-001..035 (ADR-S-035 ACCEPTED, GTL Python library) |
 | Implementation Requirements | 83 REQ keys |
 | Feature Vectors | 15 vectors, 83/83 tagged |
 | Tests | 1950+ imp_claude unit; 34 e2e |
