@@ -172,6 +172,10 @@ class Edge:
             raise ValueError(
                 f"Edge.confirm must be question|markov|hypothesis, got {self.confirm!r}"
             )
+        if self.co_evolve and not isinstance(self.source, list):
+            raise ValueError(
+                f"Edge '{self.name}': co_evolve=True requires source to be a list [A, B]"
+            )
 
 
 @dataclass

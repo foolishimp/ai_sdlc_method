@@ -19,9 +19,9 @@ slow = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["imp_claude/tests"]
-pythonpath = ["imp_claude/code"]
-norecursedirs = ["imp_claude/tests/e2e/runs", "imp_claude/.pytest_tmp", "imp_codex/.pytest_tmp"]
+testpaths = ["imp_claude/tests", "imp_codex/tests"]
+pythonpath = ["imp_claude/code", "imp_codex/code"]
+norecursedirs = ["imp_claude/tests/e2e/runs", "imp_claude/.pytest_tmp", "imp_codex/.pytest_tmp", "imp_codex/tests/e2e/runs"]
 markers = [
     "tdd: TDD unit tests — deterministic config validation",
     "bdd: BDD acceptance tests — methodology workflow validation",

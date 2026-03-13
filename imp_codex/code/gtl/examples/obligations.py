@@ -5,7 +5,7 @@ The hard edge pattern: F_P extraction → F_D checks → F_H supermajority board
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parents[3]))
+sys.path.insert(0, str(Path(__file__).parents[2]))
 
 from gtl.core import (
     Package, Asset, Edge, Operator, Rule, Context, Overlay,
