@@ -43,6 +43,7 @@ export interface InProgressFeature {
 
 export interface RecentActivity {
   featureId: string
+  title: string        // ADR-GM-001 Rule 1 — identifier must carry human-readable label
   edge: string
   iterationNumber: number
   timestamp: string // ISO 8601
@@ -50,14 +51,30 @@ export interface RecentActivity {
   runId: string | null
 }
 
+export interface PendingGateSummary {
+  id: string           // feature:edge:gate_name
+  feature: string      // featureId
+  edge: string
+  requestedAt: string  // ISO 8601
+  isStuck: boolean
+}
+
+export interface BlockedFeatureSummary {
+  featureId: string
+  title: string
+  reason: string | null
+}
+
 export interface WorkspaceOverview {
   projectName: string
   methodVersion: string
   statusCounts: FeatureStatusSummary
   inProgressFeatures: InProgressFeature[]
-  recentActivity: RecentActivity | null
+  recentActivities: RecentActivity[]       // last 5, newest first
   featureLastEvents: Record<string, string> // featureId → ISO timestamp
   pendingGateCount: number
+  pendingGates: PendingGateSummary[]       // full gate list for Attention panel
+  blockedFeatures: BlockedFeatureSummary[] // blocked feature summaries for Attention panel
 }
 
 // ─── Gates / Supervision ──────────────────────────────────────────────────────
@@ -170,6 +187,17 @@ export interface EventPayload {
 
 // ─── Feature Detail (REQ-F-NAV-003) ───────────────────────────────────────────
 
+export interface IterationSummary {
+  iteration: number
+  timestamp: string
+  delta: number | null
+  status: string
+  evaluatorsPassed: number
+  evaluatorsFailed: number
+  evaluatorsSkipped: number
+  evaluatorsTotal: number
+}
+
 export interface FeatureEdgeStatus {
   edge: string
   status: string
@@ -178,6 +206,14 @@ export interface FeatureEdgeStatus {
   lastRunId: string | null
   convergedAt: string | null
   producedAsset: string | null
+  iterations: IterationSummary[]
+}
+
+export interface ArtifactContent {
+  path: string
+  content: string
+  extension: string
+  sizeBytes: number
 }
 
 export interface FeatureEventSummary {
@@ -194,6 +230,10 @@ export interface FeatureEventSummary {
 export interface FeatureDetail {
   featureId: string
   title: string
+  description: string
+  intent: string
+  profile: string
+  vectorType: string
   status: string
   currentEdge: string | null
   currentDelta: number | null

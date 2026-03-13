@@ -7,6 +7,7 @@ import type {
   GateItem,
   FeatureVector,
   FeatureDetail,
+  ArtifactContent,
   TraceabilityEntry,
   WorkspaceEvent,
   EventPayload,
@@ -98,6 +99,13 @@ export class WorkspaceApiClient {
       `${this.baseUrl}/api/workspaces/${encodeURIComponent(id)}/features/${encodeURIComponent(featureId)}`,
     )
     return handleResponse<FeatureDetail>(res)
+  }
+
+  async getArtifact(id: string, artifactPath: string): Promise<ArtifactContent> {
+    const url = new URL(`${this.baseUrl}/api/workspaces/${encodeURIComponent(id)}/artifact`)
+    url.searchParams.set('path', artifactPath)
+    const res = await fetch(url.toString())
+    return handleResponse<ArtifactContent>(res)
   }
 
   // ─── Events ──────────────────────────────────────────────────────────────

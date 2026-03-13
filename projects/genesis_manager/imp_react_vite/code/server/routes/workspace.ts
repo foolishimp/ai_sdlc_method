@@ -19,6 +19,7 @@ import {
 } from '../readers/WorkspaceReader.js';
 import { scan } from '../readers/TraceabilityScanner.js';
 import { readAll } from '../readers/EventLogReader.js';
+import fs from 'node:fs/promises';
 
 const router = Router();
 
@@ -136,6 +137,48 @@ router.get('/:id/features/:featureId', async (req: Request, res: Response): Prom
   } catch (err) {
     console.error('[GET /workspaces/:id/features/:featureId]', err);
     res.status(500).json({ message: 'Failed to load feature detail' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/workspaces/:id/artifact?path=<relative path from project root>
+// Returns the raw text content of a produced asset file.
+// The path is relative to the project root (parent of .ai-workspace/).
+// ---------------------------------------------------------------------------
+
+router.get('/:id/artifact', async (req: Request, res: Response): Promise<void> => {
+  const id = req.params['id'] as string;
+  const relPath = typeof req.query['path'] === 'string' ? req.query['path'] : null;
+
+  if (!relPath) {
+    res.status(400).json({ message: 'path query parameter is required' });
+    return;
+  }
+
+  try {
+    const workspacePath = await resolveWorkspacePath(id, res);
+    if (!workspacePath) return;
+
+    // workspacePath IS .ai-workspace/; project root is its parent
+    const projectRoot = path.dirname(workspacePath);
+    const resolved = path.resolve(projectRoot, relPath);
+
+    // Safety: resolved path must be under projectRoot
+    if (!resolved.startsWith(projectRoot)) {
+      res.status(403).json({ message: 'path traversal not allowed' });
+      return;
+    }
+
+    const content = await fs.readFile(resolved, 'utf-8');
+    const ext = path.extname(resolved).toLowerCase().slice(1);
+    res.json({ path: relPath, content, extension: ext, sizeBytes: Buffer.byteLength(content, 'utf-8') });
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      res.status(404).json({ message: `Artifact not found: ${relPath}` });
+      return;
+    }
+    console.error('[GET /workspaces/:id/artifact]', err);
+    res.status(500).json({ message: 'Failed to read artifact' });
   }
 });
 

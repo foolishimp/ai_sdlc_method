@@ -11,6 +11,7 @@ import type {
   WorkspaceSummary,
   WorkspaceOverview,
   GateItem,
+  BlockedFeatureSummary,
   FeatureVector,
   WorkspaceEvent,
   InProgressFeature,
@@ -279,31 +280,44 @@ export async function getOverview(
       lastEventAt: featureLastEvents[f.feature] ?? new Date().toISOString(),
     }));
 
-  // ── Recent activity — last iteration_completed event ──────────────────────
-  let recentActivity: RecentActivity | null = null;
-  for (let i = events.length - 1; i >= 0; i--) {
+  // ── Recent activities — last 5 iteration_completed events ─────────────────
+  const featureTitleMap: Record<string, string> = {};
+  for (const f of features) { featureTitleMap[f.feature] = f.title; }
+
+  const recentActivities: RecentActivity[] = [];
+  for (let i = events.length - 1; i >= 0 && recentActivities.length < 5; i--) {
     const ev = events[i];
     if (ev.event_type === 'iteration_completed' && ev.feature && ev.edge) {
-      recentActivity = {
+      recentActivities.push({
         featureId: ev.feature,
+        title: featureTitleMap[ev.feature] ?? ev.feature,
         edge: ev.edge,
         iterationNumber: typeof ev['iteration'] === 'number' ? (ev['iteration'] as number) : 0,
         timestamp: ev.timestamp,
         delta: typeof ev['delta'] === 'number' ? (ev['delta'] as number) : 0,
         runId: typeof ev['run_id'] === 'string' ? (ev['run_id'] as string) : null,
-      };
-      break;
+      });
     }
   }
+
+  const blockedFeatures: BlockedFeatureSummary[] = features
+    .filter((f) => f.status === 'blocked')
+    .map((f) => ({
+      featureId: f.feature,
+      title: f.title,
+      reason: null,
+    }));
 
   return {
     projectName,
     methodVersion: 'v2.9',
     statusCounts,
     inProgressFeatures,
-    recentActivity,
+    recentActivities,
     featureLastEvents,
     pendingGateCount: pendingGates.length,
+    pendingGates,
+    blockedFeatures,
   };
 }
 
@@ -359,6 +373,17 @@ export async function getFeatures(
 // Feature detail
 // ---------------------------------------------------------------------------
 
+export interface IterationSummary {
+  iteration: number;
+  timestamp: string;
+  delta: number | null;
+  status: string;
+  evaluatorsPassed: number;
+  evaluatorsFailed: number;
+  evaluatorsSkipped: number;
+  evaluatorsTotal: number;
+}
+
 export interface FeatureEdgeStatus {
   edge: string;
   status: string;
@@ -367,6 +392,7 @@ export interface FeatureEdgeStatus {
   lastRunId: string | null;
   convergedAt: string | null;
   producedAsset: string | null;
+  iterations: IterationSummary[];
 }
 
 export interface FeatureEventSummary {
@@ -383,6 +409,10 @@ export interface FeatureEventSummary {
 export interface FeatureDetail {
   featureId: string;
   title: string;
+  description: string;
+  intent: string;
+  profile: string;
+  vectorType: string;
   status: string;
   currentEdge: string | null;
   currentDelta: number | null;
@@ -412,13 +442,27 @@ export async function getFeatureDetail(
     .map((ev, idx) => ({ ev, globalIndex: idx }))
     .filter(({ ev }) => ev.feature === featureId);
 
-  // Build per-edge last delta and runId from events
+  // Build per-edge last delta, runId, and per-iteration summaries from events
   const edgeDelta: Record<string, number | null> = {};
   const edgeRunId: Record<string, string | null> = {};
+  const edgeIterations: Record<string, IterationSummary[]> = {};
   for (const { ev } of featureEvents) {
     if (ev.event_type === 'iteration_completed' && ev.edge) {
       edgeDelta[ev.edge] = typeof ev['delta'] === 'number' ? (ev['delta'] as number) : null;
       edgeRunId[ev.edge] = typeof ev['run_id'] === 'string' ? (ev['run_id'] as string) : null;
+      const evalData = ev['evaluators'] as Record<string, unknown> | undefined;
+      const iter: IterationSummary = {
+        iteration: typeof ev['iteration'] === 'number' ? (ev['iteration'] as number) : 0,
+        timestamp: ev.timestamp,
+        delta: typeof ev['delta'] === 'number' ? (ev['delta'] as number) : null,
+        status: typeof ev['status'] === 'string' ? (ev['status'] as string) : 'iterating',
+        evaluatorsPassed: typeof evalData?.['passed'] === 'number' ? (evalData['passed'] as number) : 0,
+        evaluatorsFailed: typeof evalData?.['failed'] === 'number' ? (evalData['failed'] as number) : 0,
+        evaluatorsSkipped: typeof evalData?.['skipped'] === 'number' ? (evalData['skipped'] as number) : 0,
+        evaluatorsTotal: typeof evalData?.['total'] === 'number' ? (evalData['total'] as number) : 0,
+      };
+      if (!edgeIterations[ev.edge]) edgeIterations[ev.edge] = [];
+      edgeIterations[ev.edge].push(iter);
     }
     if (ev.event_type === 'edge_converged' && ev.edge) {
       edgeDelta[ev.edge] = 0;
@@ -440,6 +484,7 @@ export async function getFeatureDetail(
           lastRunId: edgeRunId[edgeName] ?? null,
           convergedAt: typeof e['converged_at'] === 'string' ? (e['converged_at'] as string) : null,
           producedAsset: typeof e['produced_asset_ref'] === 'string' ? (e['produced_asset_ref'] as string) : null,
+          iterations: edgeIterations[edgeName] ?? [],
         });
       }
     }
@@ -488,6 +533,10 @@ export async function getFeatureDetail(
   return {
     featureId,
     title: typeof raw['title'] === 'string' ? raw['title'] : '',
+    description: typeof raw['description'] === 'string' ? raw['description'] : '',
+    intent: typeof raw['intent'] === 'string' ? raw['intent'] : '',
+    profile: typeof raw['profile'] === 'string' ? raw['profile'] : '',
+    vectorType: typeof raw['vector_type'] === 'string' ? raw['vector_type'] : 'feature',
     status: typeof raw['status'] === 'string' ? raw['status'] : 'pending',
     currentEdge,
     currentDelta,

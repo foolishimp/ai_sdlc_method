@@ -117,6 +117,7 @@ export interface InProgressFeature {
 
 export interface RecentActivity {
   featureId: string;
+  title: string;
   edge: string;
   iterationNumber: number;
   timestamp: string;
@@ -124,14 +125,22 @@ export interface RecentActivity {
   runId: string | null;
 }
 
+export interface BlockedFeatureSummary {
+  featureId: string;
+  title: string;
+  reason: string | null;
+}
+
 export interface WorkspaceOverview {
   projectName: string;
   methodVersion: string;
   statusCounts: FeatureStatusSummary;
   inProgressFeatures: InProgressFeature[];
-  recentActivity: RecentActivity | null;
+  recentActivities: RecentActivity[];
   featureLastEvents: Record<string, string>;
   pendingGateCount: number;
+  pendingGates: GateItem[];
+  blockedFeatures: BlockedFeatureSummary[];
 }
 
 export interface TraceabilityEntry {

@@ -38,7 +38,7 @@ WorkspaceOverview {
   methodVersion:     string          — displayed in header (e.g. "v2.9")
   statusCounts:      FeatureStatusSummary
   inProgressFeatures: InProgressFeature[]
-  recentActivity:    RecentActivity | null
+  recentActivities:  RecentActivity[]     — last 5, newest first
   pendingGateCount:  int             — count only; full list in Supervision
   featureLastEvents: Map<featureId, ISO8601>  — for change detection
 }
@@ -189,15 +189,19 @@ Two sections, shown only if non-empty:
 - Data gap: `WorkspaceOverview` does not currently carry a `blockedFeatures` field
 - Fix: server must include `blockedFeatures: BlockedFeatureSummary[]` in overview response
 
-### Recent activity strip (h-12, bottom)
+### Recent activity list (bottom of right column, flex-shrink-0)
+Shows last 5 `iteration_completed` events, newest first. Each row is a compact entry.
+
 | Element | Data field | Behaviour |
 |---------|-----------|-----------|
-| Feature ID | `recentActivity.featureId` | Navigation handle → FeatureDetailPage |
-| Edge | `recentActivity.edge` | Plain text |
-| Iteration | `recentActivity.iterationNumber` | `#n` format |
-| δ | `recentActivity.delta` | Coloured number |
-| Timestamp | `recentActivity.timestamp` | `toLocaleTimeString()` |
-| Run ID | `recentActivity.runId` | Navigation handle → RunDetailPage (unimplemented; show plain if no route) |
+| Feature ID | `a.featureId` | Navigation handle → FeatureDetailPage |
+| Title | `a.title` | Truncated inline label (ADR-GM-001 Rule 1) |
+| Edge | `a.edge` | Plain text |
+| Iteration | `a.iterationNumber` | `#n` format |
+| δ | `a.delta` | `0` = emerald, `>0` = amber |
+| Timestamp | `a.timestamp` | `toLocaleString()` |
+
+Empty state: "No activity yet." when list is empty.
 
 ---
 
@@ -221,7 +225,7 @@ Two sections, shown only if non-empty:
 ```
 REQ-F-OVR-001  Single-Screen Build Status  PARTIAL — missing attention signals (gaps 1–3, 8)
 REQ-F-OVR-002  Feature Status Counts       PARTIAL — 5th tile violation (gap 8)
-REQ-F-OVR-003  Most Recent Activity        PARTIAL — run ID shown but not navigable (gap 5); feature title absent (gap 4)
+REQ-F-OVR-003  Most Recent Activity        PARTIAL — only 1 item shown; spec requires last 5 (gap 9)
 REQ-F-OVR-004  Change Highlighting         PARTIAL — implemented but dismiss scope is wrong (gap 6)
 ```
 
@@ -245,7 +249,8 @@ REQ-F-OVR-004  Change Highlighting         PARTIAL — implemented but dismiss s
 - [ ] Pending gates count is visually prominent when > 0 — shown in Attention panel header, not tile bar
 - [ ] At least one pending gate card is shown in the Attention panel when gates are waiting
 - [ ] Blocked features are surfaced in the Attention panel (non-zero blocked count shows feature IDs)
-- [ ] Most recent activity shows feature ID (nav), edge, iter, δ, timestamp
+- [ ] Recent activity shows last 5 items, newest first
+- [ ] Each activity row shows: feature ID (nav handle), title, edge, iter #n, δ, timestamp
 - [ ] Recent activity feature ID is accompanied by feature title (ADR-GM-001)
 - [ ] Changed features are highlighted (new event since session start)
 - [ ] Dismiss clears all change highlights, not just the most recent feature

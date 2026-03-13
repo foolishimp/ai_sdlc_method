@@ -13,7 +13,10 @@ Everything here is **tech-agnostic** (WHAT the product must do). Implementation 
 | Intent | `INTENT.md` | Draft |
 | Requirements | `requirements/REQUIREMENTS.md` | Pending |
 | Feature Vectors | `features/FEATURE_VECTORS.md` | Pending |
+| **Domain Model** | `domain/DOMAIN_MODEL.md` | **Draft** |
+| **Overview Page Spec** | `pages/OVERVIEW_PAGE.md` | **Draft** |
 | UX | `ux/UX.md` | Draft |
+| Design Recommendations | `design_recommendations/DESIGN_RECOMMENDATIONS.md` | Candidate |
 | UAT Test Cases | `verification/UAT_TEST_CASES.md` | Pending |
 
 ---
@@ -21,15 +24,19 @@ Everything here is **tech-agnostic** (WHAT the product must do). Implementation 
 ## Derivation Hierarchy
 
 ```
-INTENT.md                    ← anchor: the why
+INTENT.md                              ← anchor: the why
     ↓
-requirements/REQUIREMENTS.md ← WHAT the system must do (REQ-GM-* keys)
+requirements/REQUIREMENTS.md           ← WHAT the system must do (REQ-F-* keys)
     ↓
-features/FEATURE_VECTORS.md  ← WHICH buildable units (dependency DAG)
+features/FEATURE_VECTORS.md            ← WHICH buildable units (dependency DAG)
     ↓
-ux/UX.md                     ← user journeys, wireframes, validation
+domain/DOMAIN_MODEL.md                 ← WHAT DATA each page presents (entities + relationships)
     ↓
-verification/UAT_TEST_CASES.md ← acceptance contract (BDD-style)
+design_recommendations/DESIGN_RECOMMENDATIONS.md  ← HOW to structure the solution
+    ↓
+ux/UX.md                               ← user journeys, wireframes, validation
+    ↓
+verification/UAT_TEST_CASES.md         ← acceptance contract (BDD-style)
 ```
 
 ---

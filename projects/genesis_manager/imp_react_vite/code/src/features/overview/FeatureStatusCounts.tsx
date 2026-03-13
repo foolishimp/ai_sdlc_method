@@ -57,18 +57,6 @@ export function FeatureStatusCounts({ counts, onTileClick }: FeatureStatusCounts
         colorClass="bg-muted/40 border-border text-muted-foreground"
         onClick={() => onTileClick?.('pending')}
       />
-      {/* Pending gates — visually prominent per REQ-BR-SUPV-002 */}
-      <Tile
-        label="Pending Gates"
-        value={counts.pendingGates}
-        accent
-        colorClass={
-          counts.pendingGates > 0
-            ? 'bg-orange-900/30 border-orange-600/60 text-orange-400 ring-1 ring-orange-700'
-            : 'bg-muted/40 border-border text-muted-foreground'
-        }
-        onClick={() => onTileClick?.('pending_gates')}
-      />
     </div>
   )
 }
