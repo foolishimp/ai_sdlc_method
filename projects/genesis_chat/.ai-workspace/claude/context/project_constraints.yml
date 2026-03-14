@@ -1,0 +1,46 @@
+# Project Constraints — genesis_chat
+# AI SDLC Asset Graph Model v2.8
+
+project:
+  name: genesis_chat
+  description: "Multi-agent group chat relay — host server connecting human + Claude + Gemini + Codex via MCP"
+  version: "0.1.0"
+
+implementation:
+  platform: claude
+  language: typescript  # TODO: confirm — Node.js/TypeScript likely for MCP server + chat UI
+  test_runner: vitest   # TODO: configure
+  linter: eslint        # TODO: configure
+  formatter: prettier   # TODO: configure
+  type_checker: tsc
+
+ecosystem_compatibility:
+  language: typescript
+  version: "5.x"       # TODO: confirm
+  runtime: node
+  runtime_version: "20.x"  # TODO: confirm
+
+build_system:
+  tool: npm
+  module_structure: monolith  # v1 — single package
+
+constraint_dimensions:
+  # TODO: configure before requirements→design edge
+  performance:
+    message_relay_latency_ms: 500      # host receives → forwards to all agents
+    poll_interval_ms: 2000             # how often host polls each agent for responses
+    max_participants: 4                # human + 3 agents (v1 fixed)
+
+  reliability:
+    event_log_durability: append_only  # no deletes, no edits
+    event_time_authority: server       # server assigns event_time at append; caller-supplied is domain metadata only
+
+  security:
+    auth: none                         # v1 — local/self-hosted, no auth
+    network: localhost_only            # v1 — no remote access required
+
+  observability:
+    event_log: events.jsonl            # append-only canonical log
+    log_format: jsonl                  # one JSON object per line
+
+context_sources: []

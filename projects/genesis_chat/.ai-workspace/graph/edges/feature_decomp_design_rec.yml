@@ -1,0 +1,225 @@
+# Edge Parameterisation: Feature Decomposition → Design Recommendations
+# Reference: PROJECTIONS_AND_INVARIANTS.md §2.5, §2.6
+
+---
+
+edge: "feature_decomposition→design_recommendations"
+pattern: design_recommendations
+description: |
+  Synthesise the feature dependency DAG + MVP priority into ordered design directives.
+  This edge makes the feature→design pruning explicit: the constructor commits to a
+  design order, identifies cross-cutting concerns, and names the ADR areas that must be
+  resolved before component design begins.
+
+  Complexity management: the full feature set presents a combinatorial design space.
+  This intermediate artifact narrows that space before design begins — the designer
+  is not handed a flat list of features and asked to figure out everything at once.
+
+# Outputs
+outputs:
+  design_order:
+    description: |
+      Ordered list of feature groups for design, derived from the dependency DAG + MVP scope.
+      Groups features that can be designed in parallel; sequences groups that have dependencies.
+    required: true
+    template: |
+      ### Design Phase {n}: {label}
+      **Features**: {list of REQ-F-* in this phase}
+      **Rationale**: {why these are grouped and why at this point}
+      **Blocks**: {which later phases depend on this phase being done first}
+
+  cross_cutting:
+    description: |
+      Concerns that span multiple features — must be designed once, not per-feature.
+      Examples: authentication, error handling strategy, observability, event bus, data access layer.
+    required: true
+    template: |
+      ### Cross-Cutting: {concern name}
+      **Appears in**: {list of REQ-F-* that need this}
+      **Design implication**: {what must be decided before feature design}
+
+  adr_areas:
+    description: |
+      Architecture decisions that must be made before component design.
+      Named from constraint_dimensions in graph_topology.yml (ecosystem, security, deployment, etc.)
+      Can be "TBD — decide during design" but must be explicitly named.
+    required: true
+    template: |
+      - {ADR area}: {current status — resolved/TBD/constrained by X}
+
+  deferred:
+    description: "Features in deferred_scope — confirm design does not design for them"
+    required: true
+
+  constraints_from_features:
+    description: |
+      Constraints implied by the feature set as a whole — patterns the designer should know.
+      Example: "6 features need async notification → strongly suggests event bus"
+      These are not decisions — they are signals for the designer.
+    required: false
+
+# Document structure
+document_structure:
+  required_sections:
+    - title: "Design Order"
+      description: "Phased design sequence with rationale; Mermaid diagram of phase dependencies"
+    - title: "Cross-Cutting Concerns"
+      description: "Concerns that span features and must be designed centrally"
+    - title: "ADR Areas"
+      description: "Named ADR decisions required before design; current status of each"
+    - title: "Deferred Features"
+      description: "Explicit confirmation of what is out of scope for this design"
+  recommended_sections:
+    - title: "Feature-Implied Constraints"
+      description: "Patterns and signals from the feature set as a whole"
+
+# ═══════════════════════════════════════════════════════════════════════
+# SOURCE ANALYSIS CHECKS (Backward — analyse feature_decomposition)
+# ═══════════════════════════════════════════════════════════════════════
+
+source_analysis:
+
+  - name: "mvp_scope_clear"
+    functional_unit: sense
+    criterion: |
+      The feature_decomposition has a clear mvp_scope list.
+      Every feature in mvp_scope is in the dependency_dag.
+      Deferred features are explicitly listed — not just absent.
+    required: true
+
+  - name: "dependency_dag_readable"
+    functional_unit: sense
+    criterion: |
+      The feature dependency DAG is acyclic and has a derivable topological sort.
+      If not, flag as SOURCE_AMBIGUITY — the feature decomposition needs fixing first.
+    required: true
+
+  - name: "priorities_explicit"
+    functional_unit: sense
+    criterion: |
+      Features have priority annotations (critical, high, medium, low) or
+      MVP/deferred scope serves as the priority signal.
+      If neither, flag as SOURCE_GAP — cannot derive design order without priority.
+    required: true
+
+# ═══════════════════════════════════════════════════════════════════════
+# EVALUATOR CHECKLIST (Forward — evaluate the design recommendations)
+# ═══════════════════════════════════════════════════════════════════════
+
+checklist:
+
+  - name: "all_mvp_features_in_design_order"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Every feature in feature_decomposition.mvp_scope appears in exactly one
+      design phase in design_order. No MVP feature is missing.
+    source: default
+    required: true
+
+  - name: "design_order_respects_dag"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      The design_order phasing is consistent with the feature dependency DAG.
+      If feature B depends on feature A, A's design phase comes before B's.
+      Parallel phases contain only features with no dependency between them.
+    source: default
+    required: true
+
+  - name: "cross_cutting_addressed"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      At least one cross-cutting concern is identified, OR an explicit "none identified"
+      statement is present with rationale. An empty cross_cutting section is not acceptable
+      for any feature set larger than 3 features.
+    source: default
+    required: true
+
+  - name: "adr_areas_named"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      All mandatory constraint_dimensions from graph_topology.yml are named in adr_areas
+      with a current status. Status may be "TBD" but the area must be acknowledged.
+      Missing a mandatory dimension is a required check failure.
+    source: default
+    required: true
+
+  - name: "deferred_confirmed"
+    type: agent
+    functional_unit: evaluate
+    criterion: |
+      Deferred features are explicitly listed. The designer has consciously confirmed
+      they are not designing for deferred scope.
+    source: default
+    required: true
+
+  - name: "human_approves_design_order"
+    type: human
+    functional_unit: evaluate
+    criterion: |
+      Human confirms:
+      1. The phase ordering makes sense — nothing critical is scheduled late
+      2. Cross-cutting concerns are complete — nothing important is missing
+      3. ADR areas are correctly identified — no decisions are being deferred that shouldn't be
+    source: default
+    required: true
+
+convergence:
+  rule: "all_required_checks_pass"
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTEXT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+context_guidance:
+  required:
+    - "feature_decomposition artifact (dependency_dag, mvp_scope, build_order, deferred_scope)"
+    - "graph_topology.yml constraint_dimensions — to know which ADR areas are mandatory"
+    - "project_constraints.yml — existing technology decisions constrain ADR areas"
+  recommended:
+    - "requirements document — to understand the WHY behind feature priorities"
+    - "existing ADRs — some ADR areas may already be resolved"
+  notes: |
+    This edge is tech-agnostic. Design recommendations do not name technologies.
+    They name concerns that design must address. The design edge resolves those
+    concerns with technology-bound decisions.
+
+# ═══════════════════════════════════════════════════════════════════════
+# AGENT GUIDANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+agent_guidance: |
+  When synthesising design recommendations from feature decomposition:
+
+  1. READ the feature_decomposition:
+     - What features are in MVP scope?
+     - What is the dependency order (build_order)?
+     - What is deferred?
+
+  2. DERIVE the design order:
+     - Group features that can be designed in parallel (no dependencies between them)
+     - Sequence groups that have dependencies
+     - Flag the critical-path: which chain of dependencies is longest?
+
+  3. IDENTIFY cross-cutting concerns:
+     - Which concerns appear in 2+ features? (auth, data access, error handling, events, etc.)
+     - These must be designed once as shared infrastructure
+     - A concern that is re-invented per-feature is a design smell
+
+  4. NAME ADR areas:
+     - List all mandatory constraint_dimensions from graph_topology.yml
+     - For each: what is the current status? (resolved by existing ADR / TBD / constrained by X)
+     - Don't decide — just surface what must be decided
+
+  5. NOTE feature-implied constraints:
+     - Patterns in the feature set: "5 features need async" → event bus signal
+     - These are signals for the designer, not decisions
+
+  6. EVALUATE against checklist
+
+  7. Present to human — the human may reorder phases or add missed concerns
+
+  8. Report: source findings, checklist results, recommended design order
