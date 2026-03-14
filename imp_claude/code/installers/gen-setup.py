@@ -956,6 +956,7 @@ def setup_specification(target: Path, project_name: str, dry_run: bool) -> bool:
 def cmd_verify(args) -> int:
     """Verify an existing installation."""
     target = Path(args.target).resolve()
+    project_name = detect_project_name(target)
     print_banner("Installation Verify", VERSION)
 
     passed = 0
@@ -1095,11 +1096,73 @@ def cmd_verify(args) -> int:
     print(f"  Checks: {passed} passed, {failed} failed")
     if failed == 0:
         print("  Installation verified OK")
+        emit_install_event(
+            target, project_name, VERSION, "verify",
+            event_type="genesis_verified",
+            extra={"checks_passed": passed, "checks_failed": failed},
+        )
     else:
         print("  Installation incomplete — re-run installer to fix")
     print()
 
     return 0 if failed == 0 else 1
+
+
+# =============================================================================
+# Install Event Emission
+# Implements: REQ-LIFE-002 (Telemetry and Homeostasis), REQ-SUPV-003 (Failure Observability)
+# Implements: REQ-TOOL-011 (Installability)
+# =============================================================================
+
+
+def emit_install_event(
+    target: Path,
+    project_name: str,
+    version: str,
+    source_desc: str,
+    event_type: str = "genesis_installed",
+    extra: Optional[dict] = None,
+) -> None:
+    """Append a genesis_installed or genesis_verified event to events.jsonl.
+
+    Called at the end of every successful install and verify run so the
+    event stream carries a complete deployment + verification history.
+    On first install this is the first event (before project_initialized).
+    """
+    import datetime as _dt
+
+    events_file = target / ".ai-workspace" / "events" / "events.jsonl"
+    if not events_file.exists():
+        return  # workspace not set up (plugin-only mode) — skip
+
+    engine_dir = target / ".genesis" / "genesis"
+    engine_files = sum(1 for f in ENGINE_FILES if (engine_dir / f).exists())
+
+    edge_params_dir = engine_dir / "config" / "edge_params"
+    edge_params = sum(1 for f in EDGE_PARAMS_FILES if (edge_params_dir / f).exists()) if edge_params_dir.exists() else 0
+
+    commands_dir = target / ".claude" / "commands"
+    commands = sum(1 for cmd in COMMANDS if (commands_dir / f"{cmd}.md").exists())
+
+    now = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    data: dict = {
+        "version": version,
+        "source": source_desc,
+        "engine_files": engine_files,
+        "edge_params": edge_params,
+        "commands": commands,
+    }
+    if extra:
+        data.update(extra)
+
+    event = {
+        "event_type": event_type,
+        "timestamp": now,
+        "project": project_name,
+        "data": data,
+    }
+    with open(events_file, "a") as f:
+        f.write(json.dumps(event) + "\n")
 
 
 # =============================================================================
@@ -1189,6 +1252,11 @@ def cmd_install(args) -> int:
     if args.dry_run:
         print("  Dry run complete — no changes made")
     elif success:
+        emit_install_event(
+            target, project_name, version, source_config.describe(),
+            event_type="genesis_installed",
+            extra={"workspace_created": not args.no_workspace},
+        )
         print("  Setup complete!")
         print()
         print("  What was created:")
