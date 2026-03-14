@@ -61,14 +61,13 @@ class TestReleaseReadinessGates:
         ), f"FpActorResultMissing docstring should distinguish from silent skip: {doc}"
 
     def test_gate1_engine_catches_fp_actor_result_missing(self):
-        """Gate 1: Engine catches FpActorResultMissing and emits FpFailure (not re-raises)."""
-        engine_src = (GENESIS_PKG / "engine.py").read_text()
-        assert "FpActorResultMissing" in engine_src, (
-            "engine.py must import and handle FpActorResultMissing"
+        """Gate 1: FpFunctor catches FpActorResultMissing and converts to FpPending/FpFailed."""
+        functor_src = (GENESIS_PKG / "fp_functor.py").read_text()
+        assert "FpActorResultMissing" in functor_src, (
+            "fp_functor.py must import and handle FpActorResultMissing"
         )
-        # Engine should catch it — look for except block
-        assert "except FpActorResultMissing" in engine_src, (
-            "engine.py must catch FpActorResultMissing to emit FpFailure"
+        assert "except FpActorResultMissing" in functor_src, (
+            "fp_functor.py must catch FpActorResultMissing to convert to FpPending/FpFailed outcome"
         )
 
     def test_gate1_artifact_modified_in_event_taxonomy(self):

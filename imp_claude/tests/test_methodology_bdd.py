@@ -1290,7 +1290,14 @@ class TestProtocolEnforcementHooks:
 
     @pytest.mark.bdd
     def test_all_commands_emit_events(self):
-        """Every /gen-* command must emit events to events.jsonl."""
+        """Every /gen-* command must emit events to events.jsonl.
+
+        Per ADR-032, commands are dispatch surfaces. Event emission is via:
+          - `genesis emit-event` CLI (ADR-032 topology — new commands), OR
+          - `event_type` field in documentation (pre-ADR-032 commands still transitioning)
+        Either pattern satisfies the invariant that the command routes events through
+        the F_D event logger.
+        """
         event_emitting_commands = [
             "gen-init.md", "gen-iterate.md", "gen-spawn.md",
             "gen-checkpoint.md", "gen-review.md", "gen-gaps.md",
@@ -1299,7 +1306,11 @@ class TestProtocolEnforcementHooks:
         for cmd_name in event_emitting_commands:
             with open(COMMANDS_DIR / cmd_name) as f:
                 content = f.read()
-            assert "event_type" in content, f"{cmd_name} missing event_type emission"
+            assert "event_type" in content or "emit-event" in content, (
+                f"{cmd_name} missing event emission — "
+                f"must contain either 'event_type' (documented) or "
+                f"'emit-event' CLI call (ADR-032 dispatch surface)"
+            )
 
     @pytest.mark.bdd
     def test_event_type_field_standardised(self):

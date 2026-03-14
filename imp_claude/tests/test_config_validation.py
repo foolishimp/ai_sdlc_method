@@ -640,9 +640,9 @@ class TestVersionConsistency:
     """Version references must be consistent across spec, plugin, and configs."""
 
     @pytest.mark.tdd
-    def test_plugin_version_is_3_0_2(self, plugin_json):
-        """plugin.json version must be 3.0.2."""
-        assert plugin_json["version"] == "3.0.2"
+    def test_plugin_version_is_3_0_5(self, plugin_json):
+        """plugin.json version must be 3.0.5."""
+        assert plugin_json["version"] == "3.0.5"
 
     @pytest.mark.tdd
     def test_graph_topology_version_is_2_9(self, graph_topology):

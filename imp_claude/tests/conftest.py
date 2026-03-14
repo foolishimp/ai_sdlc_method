@@ -178,6 +178,11 @@ def green_constraints():
             "type_hints": "recommended",
             "test_structure": "AAA",
         },
+        "check_tags": {
+            "source_path": "src",
+            "tests_path": "tests",
+            "tests_exclude": "__init__.py __pycache__",
+        },
     }
 
 

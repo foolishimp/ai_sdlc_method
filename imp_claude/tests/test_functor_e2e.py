@@ -143,6 +143,11 @@ class TestGreenProject:
                 "type_hints": "recommended",
                 "test_structure": "AAA",
             },
+            "check_tags": {
+                "source_path": "src",
+                "tests_path": "tests",
+                "tests_exclude": "__init__.py __pycache__",
+            },
         }
 
     def test_full_green_pipeline(self, project, constraints):

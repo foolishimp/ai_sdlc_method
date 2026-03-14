@@ -139,9 +139,9 @@ class TestInstallAndVerify:
 
     @pytest.mark.uat
     def test_installer_emits_project_initialized(self, installed_project):
-        """First event in events.jsonl is project_initialized."""
+        """First event in events.jsonl is project_initialized; installer also emits genesis_installed."""
         events = load_events(installed_project)
-        assert len(events) == 1
+        assert len(events) >= 1
         assert events[0]["event_type"] == "project_initialized"
         assert events[0]["project"] == "my_project"
         assert "timestamp" in events[0]
@@ -511,11 +511,12 @@ class TestEventIntegrity:
             })
 
         events = load_events(project)
-        # project_initialized + 5 iterations
-        assert len(events) == 6
+        # project_initialized + genesis_installed + 5 iterations = 7
+        assert len(events) == 7
         assert events[0]["event_type"] == "project_initialized"
+        # events[1] is genesis_installed; events[2..6] are iteration_completed
         assert all(
-            events[i + 1]["event_type"] == "iteration_completed"
+            events[i + 2]["event_type"] == "iteration_completed"
             for i in range(5)
         )
 
@@ -554,7 +555,7 @@ class TestEventIntegrity:
         assert result.returncode == 0
 
         events_after = load_events(project)
-        assert len(events_after) == count_before, "Installer should not add events on re-run"
+        assert len(events_after) == count_before + 1, "Re-install should append exactly one genesis_installed event (idempotent: no duplicates of other events)"
 
 
 class TestPluginIntegration:

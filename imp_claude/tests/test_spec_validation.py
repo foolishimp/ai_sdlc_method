@@ -82,7 +82,7 @@ class TestRequirementsLineage:
         req_path = SPEC_REQUIREMENTS
         with open(req_path) as f:
             content = f.read()
-        assert "**83**" in content or "| **Total** | **83**" in content
+        assert "**92**" in content or "| **Total** | **92**" in content
 
     @pytest.mark.bdd
     def test_consciousness_loop_reqs_exist_in_spec(self):
@@ -116,11 +116,11 @@ class TestSensoryRequirements:
 
     @pytest.mark.tdd
     def test_requirement_count_is_83(self):
-        """Total requirement count must be 83."""
+        """Total requirement count must be 92 (updated from 83 to include REQ-TEST and REQ-GTL series)."""
         req_path = SPEC_REQUIREMENTS
         with open(req_path) as f:
             content = f.read()
-        assert "**83**" in content or "| **Total** | **83**" in content
+        assert "**92**" in content or "| **Total** | **92**" in content
 
     @pytest.mark.tdd
     def test_sensory_category_count_is_5(self):
