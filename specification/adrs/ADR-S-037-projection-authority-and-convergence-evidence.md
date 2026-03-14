@@ -2,6 +2,7 @@
 
 **Status**: PROPOSED — open for CONSENSUS review (REVIEW-adr-s-037-1)
 **Date**: 2026-03-12
+**Revised**: 2026-03-14 (§3 retroactive attribution rule rewritten — event_time is append-assigned by event logger; business timing goes in payload, not as event_time; backdating is log-integrity violation regardless of intent)
 **Deciders**: pending ratification
 **Tags**: methodology-core, event-stream, projection, convergence, workspace-integrity
 
@@ -84,7 +85,11 @@ preserves the sensory layer contract: observe → triage → route.
 
 Retroactively populated convergence events are valid provided they are:
 - Grounded in a real evaluator run against the actual artifacts (tests passed, delta=0)
-- Appended to the stream with accurate timestamps reflecting when evaluation occurred
+- Appended to the stream by the F_D event logger — `event_time` is the actual append timestamp
+  (system clock at the moment of repair). The time the evaluation originally occurred MUST be
+  recorded in payload fields (`effective_at`, `confirmed_at`) — **not as `event_time`**.
+  Retroactive does not mean backdated. The control surface records when confirmation was appended;
+  the payload records when the work happened.
 - Marked with `"emission": "retroactive"` on the event (per REQ-EVENT-005 executor attribution schema)
   so observability debt remains legible
 
@@ -92,9 +97,16 @@ A retroactive event that accurately records a real evaluator result closes the e
 A retroactive event that fabricates a result violates this rule and the Projection Authority
 Rule simultaneously.
 
+**What "retroactive" means and does not mean:**
+- It means: evaluation occurred at time T1; the confirming event was appended at time T2 > T1;
+  `event_time = T2` (append time); `effective_at = T1` (when the work was done). This is trace
+  debt being repaid — observability catching up to reality.
+- It does not mean: a control event with `event_time = T1` appended at T2. That is a backdated
+  log entry — a log-integrity violation regardless of whether the work actually occurred.
+
 The `emission: retroactive` marker is not a penalty — it is traceability. It distinguishes
-"we ran real evaluators after the fact and confirmed clean" from "we always had stream evidence."
-Both are valid states. Only the latter is invisible to future readers without the marker.
+"we confirmed convergence after the fact, event logged now" from "we always had stream evidence
+at the time of convergence." Both are valid states. Only the difference is invisible without the marker.
 
 **Naming**: Use `"emission": "retroactive"` (REQ-EVENT-005 field) not a separate `"retroactive": true`
 data field. These are the same concept; REQ-EVENT-005's schema is canonical.

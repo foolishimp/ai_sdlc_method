@@ -1,7 +1,7 @@
 # ADR-S-031: Supervisor Pattern, Event Sourcing, and Choreographed Saga
 
 **Status**: Accepted — 2026-03-09
-**Revised**: 2026-03-14 (adds delegated authority, accountability boundaries, speculative branching, and compensation vocabulary)
+**Revised**: 2026-03-14 (adds delegated authority, accountability boundaries, speculative branching, and compensation vocabulary; 2026-03-14b: tightens F_P relay role — F_P constructs artifacts/payloads, event logger is the F_D write boundary)
 **Scope**: Specification-level — applies to all Genesis implementations
 
 ---
@@ -117,9 +117,11 @@ observer decides: I am in this roster, I have a review mandate
 observer emits: triggers F_P (construct my review) or F_H (notify human)
 ```
 
-**Relay**: receives a mandate (intent event), executes behavior (F_D/F_P/F_H), emits result. The relay is the worker side — it fulfills one saga step and emits an event that the next observer reacts to.
+**Relay**: receives a mandate (intent event), executes behavior (F_D/F_P/F_H), and records the result by calling the event logger. The relay is the worker side — it fulfills one saga step; the event logger writes the entry that the next observer reacts to.
 
-That is the full scope. There are no stateful processes managing domain objects. No supervision trees. No location transparency. No process isolation infrastructure. Observers watch. Relays fulfill. Both emit events. The saga advances.
+**F_P's role in a relay is construction** — producing artifacts, proposals, and business-meaningful payloads. F_P does not write to `events.jsonl` directly. When construction is complete, F_P calls `emit_event(result_type, {artifact_ref, ...})`. The event logger (an F_D function) assigns `event_time`, enforces OL schema compliance, and performs the atomic append. The control event is recorded by the logger, not by F_P.
+
+That is the full scope. There are no stateful processes managing domain objects. No supervision trees. No location transparency. No process isolation infrastructure. Observers watch. Relays fulfill. All parties call the event logger to record events. The saga advances.
 
 ---
 
@@ -151,18 +153,25 @@ Compensating events are not rollbacks — the log is immutable. They are forward
 ## Minimum Operators
 
 ```
-emit(event_type, data, session_key?)
-  — record a mandate, result, or signal in the immutable log
+emit_event(event_type, data, session_key?)
+  — the F_D event logger function: the only admissible write path to events.jsonl
+  — assigns event_time from system clock at append
+  — enforces OL schema compliance
+  — caller passes event_type and data only; event_time is NOT a parameter
 
 subscribe(predicate) → event_stream
   — an observer's view: the events it is accountable for responding to
 
 react(event_stream, behavior)
-  — for each matching event: behavior(event) → emit*
+  — for each matching event: behavior(event) → emit_event*
   — behavior is F_D (deterministic), F_P (generative), or F_H (human channel)
+  — in all cases, the emit_event* calls go through the F_D event logger
+  — F_P behavior produces artifacts and payloads; it calls emit_event() to record them
 ```
 
-A human participant is a relay. Their subscribe predicate is a notification channel (email, Slack, webhook). Their react behavior is reading the artifact and forming a judgment. Their emit is a `vote_cast` event written back to the log. The protocol is identical to an agent relay — the delivery mechanism differs, the accountability contract does not.
+**The caller determines what to record. The event logger determines when and how.**
+
+A human participant is a relay. Their subscribe predicate is a notification channel (email, Slack, webhook). Their react behavior is reading the artifact and forming a judgment. Their `emit_event` call produces a `vote_cast` event written back to the log via the logger. The protocol is identical to an agent relay — the delivery mechanism differs, the accountability contract does not.
 
 ---
 
