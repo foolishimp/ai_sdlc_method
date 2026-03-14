@@ -18,6 +18,7 @@ Sandbox .ai-workspace is immutable evidence once run completes.
 from __future__ import annotations
 
 import dataclasses
+import hashlib
 import json
 import os
 import pathlib
@@ -180,8 +181,10 @@ SANDBOX_TEMPLATE_CLAUDE_MD = textwrap.dedent("""\
 
 SANDBOX_FEATURE_VECTOR = textwrap.dedent("""\
     ---
-    id: "REQ-F-HELLO-001"
+    feature: "REQ-F-HELLO-001"
     title: "Hello World greeting function"
+    intent: "INT-HELLO-001"
+    vector_type: feature
     status: pending
     profile: poc
     satisfies:
@@ -420,6 +423,7 @@ class ArtifactManifest:
     generated_code_files: list # files in src/
     generated_test_files: list # files in tests/
     provenance: dict           # copy of InstallerProvenance.to_dict()
+    content_hashes: dict       # {relative_path: sha256_hex} for events.jsonl + feature YAMLs
 
 
 class FrozenArtifactSet:
@@ -468,6 +472,26 @@ class FrozenArtifactSet:
         if tests_dir.exists():
             test_files = sorted(f.name for f in tests_dir.rglob("*.py"))
 
+        # Build content hashes: events.jsonl + all feature vector YAMLs
+        content_hashes: dict[str, str] = {}
+
+        # Hash events.jsonl
+        if sandbox.events_file.exists():
+            rel = str(sandbox.events_file.relative_to(ws))
+            content_hashes[rel] = hashlib.sha256(
+                sandbox.events_file.read_bytes()
+            ).hexdigest()
+
+        # Hash feature vector YAMLs
+        for subdir in ["active", "completed"]:
+            d = ws / "features" / subdir
+            if d.exists():
+                for yml_file in sorted(d.glob("*.yml")):
+                    rel = str(yml_file.relative_to(ws))
+                    content_hashes[rel] = hashlib.sha256(
+                        yml_file.read_bytes()
+                    ).hexdigest()
+
         manifest = ArtifactManifest(
             sandbox_path=str(sandbox.sandbox_dir),
             frozen_at=datetime.now(timezone.utc).isoformat(),
@@ -477,6 +501,7 @@ class FrozenArtifactSet:
             generated_code_files=code_files,
             generated_test_files=test_files,
             provenance=sandbox.provenance.to_dict(),
+            content_hashes=content_hashes,
         )
 
         meta_dir = sandbox.sandbox_dir / ".e2e-meta"
@@ -486,6 +511,19 @@ class FrozenArtifactSet:
         )
 
         return cls(sandbox.sandbox_dir, manifest)
+
+    def verify_integrity(self) -> dict[str, str]:
+        """Re-hash each recorded file and return {rel_path: "ok" | "MODIFIED" | "MISSING"}."""
+        ws = self.sandbox_dir / ".ai-workspace"
+        results: dict[str, str] = {}
+        for rel_path, expected_hash in self.manifest.content_hashes.items():
+            full_path = ws / rel_path
+            if not full_path.exists():
+                results[rel_path] = "MISSING"
+            else:
+                actual_hash = hashlib.sha256(full_path.read_bytes()).hexdigest()
+                results[rel_path] = "ok" if actual_hash == expected_hash else "MODIFIED"
+        return results
 
 
 # ===========================================================================
@@ -534,6 +572,9 @@ class ForensicDiagnosis:
     code_files_generated: list
     test_files_generated: list
     bugs: list                    # list of BugReport (serialised as dicts)
+    corrupt_event_lines: list     # descriptions of corrupt lines in events.jsonl
+    corrupt_feature_files: list   # descriptions of corrupt feature YAML files
+    exercise_state: str           # "install_only" | "partially_exercised" | "fully_exercised"
 
 
 class ForensicAnalyzer:
@@ -547,14 +588,16 @@ class ForensicAnalyzer:
         self.workspace_dir = sandbox_dir / ".ai-workspace"
 
     def analyze(self) -> ForensicDiagnosis:
-        events = self._load_events()
-        features = self._load_feature_vectors()
+        events, corrupt_event_lines = self._load_events()
+        features, corrupt_feature_files = self._load_feature_vectors()
         bugs = self._detect_bugs(events, features)
 
         event_types = Counter(e.get("event_type", "unknown") for e in events)
+        exercise_state = self._derive_exercise_state(events)
 
         converged = self._find_converged_features(features)
-        pending = [f.get("id", "?") for f in features if f.get("id") not in converged]
+        pending = [f.get("feature", f.get("id", "?")) for f in features
+                   if f.get("feature", f.get("id")) not in converged]
 
         genesis_installed = any(
             e.get("event_type") == "genesis_installed" for e in events
@@ -579,7 +622,7 @@ class ForensicAnalyzer:
             event_type_counts=dict(event_types),
             first_event=events[0] if events else None,
             last_event=events[-1] if events else None,
-            feature_vectors_found=[f.get("id", "?") for f in features],
+            feature_vectors_found=[f.get("feature", f.get("id", "?")) for f in features],
             converged_features=converged,
             pending_features=pending,
             genesis_installed_event_present=genesis_installed,
@@ -587,6 +630,9 @@ class ForensicAnalyzer:
             code_files_generated=code_files,
             test_files_generated=test_files,
             bugs=[dataclasses.asdict(b) for b in bugs],
+            corrupt_event_lines=corrupt_event_lines,
+            corrupt_feature_files=corrupt_feature_files,
+            exercise_state=exercise_state,
         )
 
         meta_dir = self.sandbox_dir / ".e2e-meta"
@@ -600,27 +646,31 @@ class ForensicAnalyzer:
 
     # -----------------------------------------------------------------------
 
-    def _load_events(self) -> list[dict]:
+    def _load_events(self) -> tuple[list[dict], list[str]]:
+        """Load events from events.jsonl. Returns (events, corrupt_line_descriptions)."""
         events_file = self.workspace_dir / "events" / "events.jsonl"
         if not events_file.exists():
-            return []
+            return [], []
         events = []
-        for line in events_file.read_text().splitlines():
+        corrupt_lines = []
+        for lineno, line in enumerate(events_file.read_text().splitlines(), start=1):
             line = line.strip()
             if line:
                 try:
                     events.append(json.loads(line))
-                except json.JSONDecodeError:
-                    pass
-        return events
+                except json.JSONDecodeError as exc:
+                    corrupt_lines.append(f"line {lineno}: JSONDecodeError: {exc}")
+        return events, corrupt_lines
 
-    def _load_feature_vectors(self) -> list[dict]:
+    def _load_feature_vectors(self) -> tuple[list[dict], list[str]]:
+        """Load feature vectors from features/ dirs. Returns (features, corrupt_file_descriptions)."""
         try:
             import yaml
         except ImportError:
-            return []
+            return [], []
 
         features = []
+        corrupt_files = []
         for subdir in ["active", "completed"]:
             d = self.workspace_dir / "features" / subdir
             if not d.exists():
@@ -630,14 +680,26 @@ class ForensicAnalyzer:
                     data = yaml.safe_load(f.read_text())
                     if data and isinstance(data, dict):
                         features.append(data)
-                except Exception:
-                    pass
-        return features
+                except Exception as exc:
+                    corrupt_files.append(f"{f.name}: {type(exc).__name__}: {exc}")
+        return features, corrupt_files
+
+    @staticmethod
+    def _derive_exercise_state(events: list[dict]) -> str:
+        """Derive exercise state from event types present."""
+        install_only_types = {"genesis_installed", "project_initialized", "genesis_verified"}
+        event_types = {e.get("event_type", "") for e in events}
+
+        if "edge_converged" in event_types:
+            return "fully_exercised"
+        if event_types & {"edge_started", "iteration_completed", "fp_dispatched"}:
+            return "partially_exercised"
+        return "install_only"
 
     def _find_converged_features(self, features: list[dict]) -> list[str]:
         converged = []
         for f in features:
-            fid = f.get("id", "?")
+            fid = f.get("feature", f.get("id", "?"))
             status = f.get("status", "")
             if status == "converged":
                 converged.append(fid)
@@ -766,6 +828,24 @@ class ForensicAnalyzer:
         ]
         for et, count in sorted(d.event_type_counts.items()):
             lines.append(f"  - `{et}`: {count}")
+
+        # Corruption Warnings section
+        if d.corrupt_event_lines or d.corrupt_feature_files:
+            lines += [
+                "",
+                "## Corruption Warnings",
+                "",
+            ]
+            if d.corrupt_event_lines:
+                lines.append("**Corrupt event lines**:")
+                for desc in d.corrupt_event_lines:
+                    lines.append(f"  - {desc}")
+            if d.corrupt_feature_files:
+                lines.append("")
+                lines.append("**Corrupt feature files**:")
+                for desc in d.corrupt_feature_files:
+                    lines.append(f"  - {desc}")
+
         lines += [
             "",
             "## Feature Vectors",
@@ -782,6 +862,24 @@ class ForensicAnalyzer:
             "## Bug Reports",
             "",
         ]
+
+        # Exercise state warning at top of Bug Reports section
+        if d.exercise_state == "install_only":
+            lines.append(
+                "⚠️  Sandbox was not exercised beyond installation. "
+                "Bug absence reflects installer correctness only — "
+                "methodology traversal has NOT been validated."
+            )
+        elif d.exercise_state == "partially_exercised":
+            lines.append(
+                "⚠️  Sandbox was partially exercised (edges started but none converged)."
+            )
+        elif d.exercise_state == "fully_exercised":
+            lines.append(
+                "✅ Sandbox was fully exercised (at least one edge converged)."
+            )
+        lines.append("")
+
         if not bugs:
             lines.append("No bugs found. ✅")
         else:
@@ -1222,6 +1320,57 @@ class TestEngineInSandbox:
             "Engine cannot run from sandbox — .ai-workspace/graph/graph_topology.yml missing"
         )
 
+    def test_emit_event_writes_to_sandbox_not_source_tree(
+        self, installed_sandbox: InstalledSandbox, tmp_path: pathlib.Path
+    ):
+        """emit-event writes to sandbox events.jsonl, not main repo events.jsonl.
+
+        Validates sandbox isolation: engine emits to its own workspace only.
+        """
+        main_events_file = (
+            PROJECT_ROOT / ".ai-workspace" / "events" / "events.jsonl"
+        )
+        main_count_before = 0
+        if main_events_file.exists():
+            main_count_before = sum(
+                1 for line in main_events_file.read_text().splitlines() if line.strip()
+            )
+
+        sandbox_count_before = 0
+        if installed_sandbox.events_file.exists():
+            sandbox_count_before = sum(
+                1 for line in installed_sandbox.events_file.read_text().splitlines()
+                if line.strip()
+            )
+
+        # Use emit-event to write an event to the sandbox
+        installed_sandbox.run_engine([
+            "emit-event",
+            "--type", "iteration_completed",
+            "--data", '{"feature": "REQ-F-HELLO-001", "edge": "design\u2192code", "iteration": 0}',
+        ], timeout=15)
+
+        sandbox_count_after = 0
+        if installed_sandbox.events_file.exists():
+            sandbox_count_after = sum(
+                1 for line in installed_sandbox.events_file.read_text().splitlines()
+                if line.strip()
+            )
+
+        main_count_after = 0
+        if main_events_file.exists():
+            main_count_after = sum(
+                1 for line in main_events_file.read_text().splitlines() if line.strip()
+            )
+
+        assert sandbox_count_after > sandbox_count_before, (
+            "emit-event did not write any event to sandbox events.jsonl"
+        )
+        assert main_count_after == main_count_before, (
+            f"emit-event wrote {main_count_after - main_count_before} events to "
+            f"main repo events.jsonl — sandbox isolation violated"
+        )
+
 
 # ===========================================================================
 # Tests: Frozen Artifact Set
@@ -1268,6 +1417,55 @@ class TestFrozenArtifactSet:
     def test_manifest_sandbox_path_matches(self, frozen_artifacts: FrozenArtifactSet):
         """Manifest sandbox_path matches the actual sandbox directory."""
         assert frozen_artifacts.manifest.sandbox_path == str(frozen_artifacts.sandbox_dir)
+
+    def test_manifest_has_content_hashes(self, frozen_artifacts: FrozenArtifactSet):
+        """Manifest content_hashes includes at least events.jsonl hash."""
+        assert len(frozen_artifacts.manifest.content_hashes) >= 1, (
+            "content_hashes is empty — events.jsonl must be hashed at freeze time"
+        )
+
+    def test_artifact_integrity_passes_after_freeze(
+        self, frozen_artifacts: FrozenArtifactSet
+    ):
+        """Integrity check returns 'ok' for all files immediately after freeze."""
+        results = frozen_artifacts.verify_integrity()
+        assert results, "verify_integrity() returned empty dict — no files were hashed"
+        failures = {k: v for k, v in results.items() if v != "ok"}
+        assert not failures, (
+            f"Integrity check failed for: {failures}"
+        )
+
+    def test_artifact_integrity_detects_mutation(self, tmp_path: pathlib.Path):
+        """Integrity check detects when events.jsonl is modified after freeze."""
+        # Create a fresh minimal sandbox and install
+        sb_dir = tmp_path / "integrity_test_sandbox"
+        sb_dir.mkdir()
+        _factory.scaffold_template(sb_dir)
+        sb = _installer.install(sb_dir)
+
+        # Freeze
+        frozen = sb.freeze()
+
+        # Sanity: integrity should be ok before mutation
+        pre_results = frozen.verify_integrity()
+        events_rel = "events/events.jsonl"
+        assert events_rel in pre_results, (
+            f"events.jsonl not hashed — keys: {list(pre_results.keys())}"
+        )
+        assert pre_results[events_rel] == "ok", (
+            f"Integrity not ok before mutation: {pre_results[events_rel]}"
+        )
+
+        # Mutate events.jsonl
+        events_file = sb.events_file
+        original = events_file.read_text()
+        events_file.write_text(original + "\n# mutated line\n")
+
+        # Now verify_integrity must detect MODIFIED
+        post_results = frozen.verify_integrity()
+        assert post_results[events_rel] == "MODIFIED", (
+            f"Expected MODIFIED after mutation, got: {post_results[events_rel]}"
+        )
 
 
 # ===========================================================================
@@ -1322,8 +1520,14 @@ class TestForensicDiagnosis:
             b for b in forensic_diagnosis.bugs
             if isinstance(b, dict) and b.get("severity") == "critical"
         ]
+        exercise_note = ""
+        if forensic_diagnosis.exercise_state == "install_only":
+            exercise_note = (
+                " NOTE: exercise_state=install_only — "
+                "this validates installer correctness only, not methodology traversal."
+            )
         assert not critical, (
-            f"Critical bugs found after successful install:\n"
+            f"Critical bugs found after successful install:{exercise_note}\n"
             + "\n".join(
                 f"  {b['bug_id']}: {b['title']}\n    {b['observation']}"
                 for b in critical
@@ -1350,6 +1554,33 @@ class TestForensicDiagnosis:
             "event_type_counts", "genesis_installed_event_present", "bugs",
         ):
             assert key in data, f"forensic_diagnosis.json missing '{key}'"
+
+    def test_exercise_state_is_install_only(self, tmp_path: pathlib.Path):
+        """exercise_state is install_only when only install-phase events are present."""
+        d = tmp_path / "install_only_sandbox"
+        d.mkdir()
+        _factory.scaffold_template(d)
+        ws = d / ".ai-workspace"
+        events_dir = ws / "events"
+        events_dir.mkdir(parents=True)
+        (ws / "features" / "active").mkdir(parents=True)
+        (ws / "features" / "completed").mkdir()
+
+        # Write only install-phase events
+        lines = []
+        for etype in ("genesis_installed", "project_initialized"):
+            lines.append(json.dumps({
+                "event_type": etype,
+                "event_time": datetime.now(timezone.utc).isoformat(),
+                "data": {"version": "test"},
+            }))
+        (events_dir / "events.jsonl").write_text("\n".join(lines) + "\n")
+
+        diagnosis = ForensicAnalyzer(d).analyze()
+        assert diagnosis.exercise_state == "install_only", (
+            f"Expected install_only with only install-phase events, "
+            f"got: {diagnosis.exercise_state}"
+        )
 
 
 # ===========================================================================
@@ -1494,6 +1725,58 @@ class TestBugReportChainTracing:
             "Forensic report does not include chain tracing"
         )
 
+    def test_corrupt_events_reported_not_swallowed(
+        self, tmp_path: pathlib.Path
+    ):
+        """Corrupt JSON lines in events.jsonl are reported in diagnosis, not silently dropped."""
+        d = tmp_path / "corrupt_events_sandbox"
+        d.mkdir()
+        _factory.scaffold_template(d)
+        ws = d / ".ai-workspace"
+        events_dir = ws / "events"
+        events_dir.mkdir(parents=True)
+        (ws / "features" / "active").mkdir(parents=True)
+        (ws / "features" / "completed").mkdir()
+
+        # One valid line + one malformed line
+        valid_line = json.dumps({
+            "event_type": "genesis_installed",
+            "event_time": datetime.now(timezone.utc).isoformat(),
+            "data": {"version": "test"},
+        })
+        (events_dir / "events.jsonl").write_text(valid_line + "\n{bad json line here\n")
+
+        diagnosis = ForensicAnalyzer(d).analyze()
+        assert len(diagnosis.corrupt_event_lines) == 1, (
+            f"Expected 1 corrupt event line reported, "
+            f"got {len(diagnosis.corrupt_event_lines)}: {diagnosis.corrupt_event_lines}"
+        )
+
+    def test_exercise_state_reflects_events(self, tmp_path: pathlib.Path):
+        """exercise_state is fully_exercised when edge_converged event is present."""
+        d = tmp_path / "exercised_sandbox"
+        d.mkdir()
+        _factory.scaffold_template(d)
+        ws = d / ".ai-workspace"
+        events_dir = ws / "events"
+        events_dir.mkdir(parents=True)
+        (ws / "features" / "active").mkdir(parents=True)
+        (ws / "features" / "completed").mkdir()
+
+        # Write one edge_converged event
+        evt = json.dumps({
+            "event_type": "edge_converged",
+            "event_time": datetime.now(timezone.utc).isoformat(),
+            "data": {"feature": "REQ-F-HELLO-001", "edge": "design→code"},
+        })
+        (events_dir / "events.jsonl").write_text(evt + "\n")
+
+        diagnosis = ForensicAnalyzer(d).analyze()
+        assert diagnosis.exercise_state == "fully_exercised", (
+            f"Expected fully_exercised with edge_converged event, "
+            f"got: {diagnosis.exercise_state}"
+        )
+
 
 # ===========================================================================
 # Tests: Full Sandbox E2E (Claude required)
@@ -1584,6 +1867,7 @@ class TestSandboxFullE2E:
 
         Validates: the sandbox isolation guarantee — engine reads/writes
         to the sandbox workspace, not the main repo workspace.
+        Uses emit-event which actually appends to events.jsonl.
         """
         sb = sandbox_with_feature
         # Check that no events appear in the main repo's events.jsonl
@@ -1596,8 +1880,24 @@ class TestSandboxFullE2E:
                 1 for line in main_events_file.read_text().splitlines() if line.strip()
             )
 
-        # Run engine directly in sandbox
-        sb.run_engine(["check-tags", "--path", str(sb.sandbox_dir / "src")], timeout=15)
+        sandbox_count_before = 0
+        if sb.events_file.exists():
+            sandbox_count_before = sum(
+                1 for line in sb.events_file.read_text().splitlines() if line.strip()
+            )
+
+        # Use emit-event to append an event to sandbox events.jsonl
+        sb.run_engine([
+            "emit-event",
+            "--type", "iteration_completed",
+            "--data", '{"feature": "REQ-F-HELLO-001", "edge": "design\u2192code", "iteration": 0}',
+        ], timeout=15)
+
+        sandbox_count_after = 0
+        if sb.events_file.exists():
+            sandbox_count_after = sum(
+                1 for line in sb.events_file.read_text().splitlines() if line.strip()
+            )
 
         main_count_after = 0
         if main_events_file.exists():
@@ -1605,6 +1905,10 @@ class TestSandboxFullE2E:
                 1 for line in main_events_file.read_text().splitlines() if line.strip()
             )
 
+        assert sandbox_count_after > sandbox_count_before, (
+            "emit-event did not write any event to sandbox events.jsonl — "
+            "sandbox isolation or emit-event functionality may be broken"
+        )
         assert main_count_after == main_count_before, (
             f"Engine ran in sandbox but wrote {main_count_after - main_count_before} "
             f"events to the main repo events.jsonl — sandbox isolation violated"
