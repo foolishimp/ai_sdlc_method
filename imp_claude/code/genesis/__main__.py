@@ -531,6 +531,11 @@ def cmd_start(args: argparse.Namespace) -> int:
     The skill (gen-iterate / gen-start) is the MCP half — it calls this,
     reads exit code 2, dispatches the actor, then calls this again.
     """
+    # ADR-020: --human-proxy requires --auto (proxy mode is only meaningful in the auto loop)
+    if getattr(args, "human_proxy", False) and not getattr(args, "auto", False):
+        print(json.dumps({"status": "error", "error": "--human-proxy requires --auto"}))
+        return 1
+
     try:
         import yaml as _yaml
     except ImportError:
@@ -854,6 +859,68 @@ def cmd_context(args: argparse.Namespace) -> int:
         print("ready: all features converged, no pending proposals")
     return 0
 
+
+# ── emit-event subcommand ─────────────────────────────────────────────
+# Implements: REQ-SUPV-003 (Failure Observability), REQ-LIFE-002 (Telemetry)
+#
+# The canonical emission path for the interactive slash-command mode.
+# F_P calls this CLI; the F_D event logger assigns event_time from the
+# system clock and appends atomically to events.jsonl.
+
+
+def cmd_emit_event(args: argparse.Namespace) -> int:
+    """Emit a single event to events.jsonl via the F_D event logger.
+
+    The logger assigns event_time from the system clock. Callers supply
+    event_type and a JSON payload only — no timestamp override is possible.
+
+    Usage:
+        python -m genesis emit-event --type iteration_completed --data '{}'
+    """
+    from .fd_emit import emit_event as fd_emit_event, make_event
+
+    workspace = Path(args.workspace) if args.workspace else _find_workspace(Path.cwd())
+    events_path = workspace / ".ai-workspace" / "events" / "events.jsonl"
+
+    extra: dict = {}
+    if args.data:
+        try:
+            extra = json.loads(args.data)
+        except json.JSONDecodeError as exc:
+            print(json.dumps({"error": f"invalid JSON in --data: {exc}"}), file=sys.stderr)
+            return 1
+        if not isinstance(extra, dict):
+            print(json.dumps({"error": "--data must be a JSON object"}), file=sys.stderr)
+            return 1
+
+    project_name: str = args.project or workspace.name
+    if not args.project:
+        constraints_path = _find_constraints(workspace)
+        if constraints_path.exists():
+            try:
+                import yaml as _yaml  # type: ignore[import]
+                c = _yaml.safe_load(constraints_path.read_text()) or {}
+                pn = c.get("project_name") or (c.get("project") or {}).get("name")
+                if pn:
+                    project_name = str(pn)
+            except Exception:
+                pass
+
+    # make_event assigns timestamp from system clock — F_P cannot override it
+    event = make_event(args.type, project_name, **extra)
+
+    try:
+        fd_emit_event(events_path, event)
+    except Exception as exc:
+        print(json.dumps({"error": f"emit failed: {exc}"}), file=sys.stderr)
+        return 1
+
+    record: dict = {"event_type": event.event_type, "timestamp": event.timestamp, "project": event.project}
+    record.update(event.data)
+    print(json.dumps(record))
+    return 0
+
+
 # \u2500\u2500 Shared CLI args \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 
@@ -1015,6 +1082,28 @@ def main() -> int:
         help="Filename patterns to exclude (default: __init__.py __pycache__)",
     )
 
+    # emit-event subcommand — F_D event logger boundary for interactive skills
+    emit_parser = subparsers.add_parser(
+        "emit-event",
+        help="Emit an event via the F_D event logger (assigns event_time from system clock)",
+    )
+    emit_parser.add_argument(
+        "--type", required=True, dest="type",
+        help="event_type value (e.g. iteration_completed, edge_converged)",
+    )
+    emit_parser.add_argument(
+        "--data", default=None,
+        help="JSON object of additional payload fields (no event_time — logger assigns it)",
+    )
+    emit_parser.add_argument(
+        "--project", default=None,
+        help="Project name (auto-detected from constraints if omitted)",
+    )
+    emit_parser.add_argument(
+        "--workspace", default=None,
+        help="Workspace root (auto-detected if omitted)",
+    )
+
     args = parser.parse_args()
 
     if args.command == "evaluate":
@@ -1029,6 +1118,8 @@ def main() -> int:
         return cmd_start(args)
     elif args.command == "check-tags":
         return cmd_check_tags(args)
+    elif args.command == "emit-event":
+        return cmd_emit_event(args)
     else:
         parser.print_help()
         return 1

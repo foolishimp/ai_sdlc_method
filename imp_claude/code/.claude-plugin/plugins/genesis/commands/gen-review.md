@@ -65,10 +65,18 @@ If rejected: provide feedback for next iteration.
 
 ### Step 5: Emit Event
 
-Append a `review_completed` event to `.ai-workspace/events/events.jsonl`:
+Emit via the F_D event logger (never write directly to events.jsonl):
 
-```json
-{"event_type": "review_completed", "timestamp": "{ISO 8601}", "project": "{project name from project_constraints.yml}", "data": {"feature": "REQ-F-*", "edge": "{source}→{target}", "iteration": {n}, "decision": "approved|rejected|refined", "feedback": "{human feedback text or empty}", "all_evaluators_pass": true|false}}
+```bash
+PYTHONPATH=.genesis python -m genesis emit-event \
+  --type review_completed \
+  --data '{"feature": "REQ-F-*", "edge": "{source}→{target}", "iteration": {n}, "decision": "approved|rejected|refined", "feedback": "{feedback text or empty}", "all_evaluators_pass": true|false}'
 ```
 
-If the decision is `approved` and all evaluators pass (triggering convergence), also emit an `edge_converged` event as specified in the iterate agent's Event Type Reference.
+If the decision is `approved` and all evaluators pass (triggering convergence), also emit `edge_converged`:
+
+```bash
+PYTHONPATH=.genesis python -m genesis emit-event \
+  --type edge_converged \
+  --data '{"feature": "REQ-F-*", "edge": "{source}→{target}", "iteration": {n}}'
+```

@@ -428,6 +428,33 @@ The three evaluator types operate across three processing phases (Spec §4.3): *
 - Record human feedback in iteration history
 - On edges with `human_required: true`, convergence requires explicit human approval
 
+### Human Proxy Mode (`--human-proxy`)
+
+When proxy mode is active (session flag only — never persisted):
+
+**Evaluation protocol** (per-criterion):
+1. Load the candidate artifact and the F_H criteria for this edge
+2. Evaluate **each required criterion** with explicit evidence from the artifact
+3. Decision: `approved` if every required F_H criterion is satisfied; `rejected` if any fail
+4. Do not introduce criteria beyond those defined in the edge evaluators
+
+**Proxy log** — write to `.ai-workspace/reviews/proxy-log/{ISO}_{feature}_{edge}.md` BEFORE emitting any event. Required fields: Feature, Edge, Iteration, Timestamp, Decision, Criterion, Evidence, Satisfied, Reasoning, Summary.
+
+The proxy log directory is auto-created if absent.
+
+**Event emission**:
+- Approval: `review_approved` with `actor: "human-proxy"` and `proxy_log: "{path}"`
+- Rejection: emit `review_rejected` with `actor: "human-proxy"`
+
+**Rejection halt**: emit `PROXY REJECTION` report identifying Feature, Edge, Criterion. Set feature status to `iterating`, do not retry this edge in the same session. Other features unaffected.
+
+### Auto-selection from Context
+
+When no `--feature`/`--edge` provided, select from `.ai-workspace/features/active/`:
+- Rank by recency (most recent event timestamp wins)
+- Auto-determine next edge from topology
+- Fall back to prompting on ambiguity
+
 ### Agent Evaluator (You)
 - You assess: coherence, completeness, consistency, gap analysis
 - You are honest about delta — if something is missing, say so

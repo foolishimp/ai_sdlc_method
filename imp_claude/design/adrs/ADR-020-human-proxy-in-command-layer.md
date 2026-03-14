@@ -1,6 +1,6 @@
 # ADR-020: Human Proxy Evaluation Lives in the Command Layer
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-03-13
 **Implements**: REQ-F-PROXY-001 (REQ-F-HPRX-001..006, REQ-NFR-HPRX-001..002, REQ-BR-HPRX-001..002)
 **Traces To**: INT-AISDLC-001
