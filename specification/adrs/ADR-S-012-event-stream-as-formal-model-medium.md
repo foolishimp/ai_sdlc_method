@@ -3,7 +3,7 @@
 **Series**: S (specification-level decisions — apply to all implementations)
 **Status**: Accepted
 **Date**: 2026-03-04
-**Revised**: 2026-03-14 (incorporates ADR-S-012.1; adds event-time semantics and gate-stream consistency)
+**Revised**: 2026-03-14 (incorporates ADR-S-012.1; adds event-time semantics and gate-stream consistency; 2026-03-14b: upgrades event-time invariant to architectural constraint — F_D event logger boundary)
 **Supersedes**: ADR-S-012.1 (projection scope and event registrations — folded in)
 **Scope**: `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §3–§5 — foundational model
 
@@ -58,13 +58,29 @@ iterate(Asset<Tn>, Context[], Evaluators) → Event+
 
 ### 4. Event-time semantics
 
-**`event_time` is append-assigned and non-overridable by the caller.** It is the timestamp of the log entry, set by the event log writer at the moment of append. A caller MUST NOT supply a historical timestamp to make a later entry masquerade as an earlier one.
+**`event_time` is append-assigned and non-overridable by the caller.** It is the timestamp of the log entry, set by the event log writer at the moment of append.
 
-Events MAY carry additional domain time fields (`effective_at`, `completed_at`, `observed_at`) describing the business nature of the underlying fact. These fields do not change the append order or the `event_time` of the log entry.
+#### The event logger as F_D boundary (architectural, not behavioral)
+
+This invariant is structural — enforced by the event logger function, not by caller discipline. The event logger is an F_D-controlled function and the **only admissible write path to `events.jsonl`**:
+
+```python
+emit_event(event_type: str, data: dict) → None
+    # assigns event_time from system clock at append
+    # enforces OL schema compliance
+    # appends atomically to events.jsonl
+```
+
+**F_P (LLM agents) call this function.** They cannot pass `event_time` — the function signature does not accept it. F_P is an unreliable narrator: it constructs content, not log entries. The event logger assigns the timestamp, enforces schema, and performs the write.
+
+Business timing fields (`effective_at`, `completed_at`, `observed_at`) MUST be passed inside `data`, not as `event_time`. They are payload — domain facts about when something occurred in the business domain. The event logger writes them as payload; it does not use them as the log entry timestamp.
+
+Events MAY carry these additional domain time fields describing the business nature of the underlying fact. These fields do not change the append order or the `event_time` of the log entry.
 
 **Prohibited acts** (non-conformant regardless of intent):
 - Appending a log entry with a forged earlier `event_time`
 - Using a late trace or review artifact to impersonate a missing earlier control decision
+- Writing to `events.jsonl` by any path other than the event logger function
 
 ### 5. Control surface and trace surface
 

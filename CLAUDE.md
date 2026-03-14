@@ -272,7 +272,7 @@ pytest imp_claude/tests/ -v
 <!-- GENESIS_BOOTLOADER_START -->
 # Genesis Bootloader: LLM Constraint Context for the AI SDLC
 
-**Version**: 3.0.1
+**Version**: 3.0.2
 **Purpose**: Minimal sufficient context to constrain an LLM to operate within the AI SDLC Asset Graph Model. Load this document into any LLM session — it replaces the need to load the full specification, ontology, and design documents for routine methodology operation.
 
 ---
@@ -368,6 +368,10 @@ Three projection invariants every implementation must satisfy:
 **Durability**: If a process fails mid-iteration, recovery is replay. No state is lost beyond the current iterate() call.
 
 **Push context**: External signals (webhooks, telemetry anomalies, downstream completions) are events appended to the stream — not exceptions to the model.
+
+**Event-time is append-assigned (architectural, not behavioral):** The event logger is an F_D-controlled function — the only admissible write path to `events.jsonl`. F_P calls `emit_event(event_type, data)`. The function assigns `event_time` from the system clock at the moment of append; F_P cannot pass `event_time` because the function signature does not accept it. **F_P constructs content; the event logger writes the log entry.** Business timing fields (`effective_at`, `completed_at`, `observed_at`) are payload in `data`, not system timestamps. This makes the invariant structural, not dependent on caller discipline.
+
+**Control surface vs trace surface:** Two distinct surfaces on the event stream. The *control surface* contains authoritative, gate-moving events — emitted at the moment the decision is made, truthfully, append-time-stamped. The *trace surface* contains projections, audit packs, telemetry summaries, review paperwork, and other visibility artifacts derived from the canonical log — these MAY be incomplete during normal operation and are eventually consistent. A missing proxy-log or unarchived review YAML is trace debt (detectable, repayable). A backdated `event_time` or a control-event emitted without the work having occurred is a log-integrity violation (permanent, unrepayable).
 
 ---
 
@@ -467,13 +471,15 @@ IntentEngine(intent + affect) = observer → evaluator → typed_output
 
 ### Three Output Types (exhaustive — no fourth category)
 
-| Output | When | What happens |
-|--------|------|-------------|
-| **reflex.log** | Ambiguity = 0 | Fire-and-forget event — action taken, logged, done |
-| **specEventLog** | Bounded ambiguity | Deferred intent — another iteration warranted |
-| **escalate** | Persistent ambiguity | Push to higher level — judgment, spec modification, or spawning required |
+The `requires_spec_change` field on `intent_raised` routes to one of three outputs:
 
-> **ADR-S-026 (2026-03-08)**: `specEventLog` and `escalate` outputs that raise new intent now carry a **typed composition expression** — not free text. The gap evaluator emits `{macro, version, bindings}` drawn from the named composition library, with a dispatch table mapping gap_type to named composition. `reflex.log` is unchanged. See [ADR-S-026](../adrs/ADR-S-026-named-compositions-and-intent-vectors.md) §3 for the execution contract (macro registry required before zero-interpretation claim holds).
+| Output | Condition | What happens |
+|--------|-----------|-------------|
+| **reflex.log** | Ambiguity = 0 | Fire-and-forget event — action taken, logged, done |
+| **composition_dispatched** | Bounded ambiguity; `requires_spec_change: false` | Named composition dispatched to execution layer — no spec change needed, F_H gate not required |
+| **feature_proposal** | Persistent ambiguity; `requires_spec_change: true` | Enters Draft Features Queue — F_H gate required; spec change, spawning, or human judgment needed |
+
+> **ADR-S-026 (2026-03-08)**: The `composition_dispatched` event carries a **typed composition expression** (`{macro, version, bindings}`) drawn from the named composition library. The gap evaluator calls `emit_event('composition_dispatched', {macro, version, bindings})` via the F_D event logger — it does not write events directly. A dispatch table maps `gap_type` to named composition. `reflex.log` is unchanged. See [ADR-S-026](../adrs/ADR-S-026-named-compositions-and-intent-vectors.md) §3 for the execution contract (macro registry required before zero-interpretation claim holds).
 
 ### Homeostasis: Intent Is Computed
 
@@ -634,7 +640,7 @@ Code disambiguation feeds back to **Spec** (business gap) or **Design** (tech ga
 | **Iterate** | Convergence loop producing events, deriving assets | No quality signal — one-shot |
 | **Evaluators** | At least one evaluator per active edge | No stopping condition |
 | **Spec + Context** | Constraint surface bounds construction | Degeneracy, hallucination |
-| **Event stream** | State derived from stream; no direct mutation | No replay, no recovery, no projection equivalence |
+| **Event stream** | State derived from stream; all writes via F_D event logger function — no direct mutation, no timestamp override | No replay, no recovery, no projection equivalence; timestamp integrity unenforceable |
 | **Completeness visibility** | Every convergence transition produces a human-readable summary before downstream proceeds | Silent convergence — system cannot be trusted |
 
 **Projection validity**: `valid(P) ⟺ ∃ G ⊆ G_full ∧ ∀ edge ∈ G: iterate(edge) defined ∧ evaluators(edge) ≠ ∅ ∧ convergence(edge) defined ∧ context(P) ≠ ∅`
@@ -674,7 +680,7 @@ The `.ai-workspace/` directory is partitioned by agent identity. Violating these
 
 | Territory | Who writes | Rule |
 |-----------|-----------|------|
-| `events/events.jsonl` | All agents | Append-only. Never modify or delete existing lines. |
+| `events/events.jsonl` | All agents via event logger only | **Never write directly.** Call `emit_event(event_type, data)`. The F_D event logger assigns `event_time`, enforces OL schema, and appends atomically. Append-only — never modify or delete existing lines. |
 | `features/active/*.yml` | Owning agent | State projection — update only the feature you are iterating. |
 | `features/completed/*.yml` | Owning agent | Move from active/ on full convergence. |
 | `comments/claude/` | Claude Code only | Claude writes here. Never write to `comments/codex/`, `comments/gemini/`, or `comments/bedrock/`. |
