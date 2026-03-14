@@ -3,7 +3,8 @@
 **Series**: S
 **Status**: Accepted
 **Date**: 2026-03-09
-**Scope**: Meta-ADR — resolves six authority conflicts across ADR-S-008 through ADR-S-026; parent for governance amendment ADR-S-001.1
+**Revised**: 2026-03-14 (child ADR index updated — all child ADRs folded into parents and deleted)
+**Scope**: Meta-ADR — resolves six authority conflicts across ADR-S-008 through ADR-S-026
 
 **Review record**:
 - Triggered by: Codex REVIEW `20260308T190451_REVIEW_Spec-ADR-integration-debt-and-authority-conflicts.md`
@@ -32,7 +33,7 @@ Six overlapping authority regions emerged across ADR-S-008 through ADR-S-026. Ea
 
 ## Resolutions
 
-Each resolution is implemented as a child amendment ADR. This document is the authority for the resolution; the child ADR is the binding specification change.
+Each resolution has been folded directly into the parent ADR. The child ADRs originally created to implement these resolutions have been deleted as of 2026-03-14 and their content merged into the relevant parent file. This document is the authority for the resolution rationale; the parent ADR is the binding specification change.
 
 ### Resolution 1: Event Model — Single Registry with Layer Separation
 
@@ -43,9 +44,9 @@ Each resolution is implemented as a child amendment ADR. This document is the au
 
 These are different concerns. New event types MUST be registered in ADR-S-012 (semantic) AND ADR-S-011 (encoding) before use — in that order.
 
-**Child ADRs implementing this resolution**:
-- `ADR-S-011.1` — registers CONSENSUS and Named Composition events in the OL transport layer
-- `ADR-S-012.1` — registers the same events in the semantic taxonomy; scope-limits projection to `.ai-workspace/`
+**Implementing ADRs** (folded in-place):
+- `ADR-S-011` — CONSENSUS and Named Composition events registered in OL transport layer (§eventType mapping)
+- `ADR-S-012` — same events registered in semantic taxonomy; projection scope limited to `.ai-workspace/` (§2, §8)
 
 ### Resolution 2: Homeostasis Output — Lifecycle Crosswalk
 
@@ -57,10 +58,10 @@ intent_raised
   └── requires_spec_change: true  → feature_proposal → F_H gate → spec_modified → composition_dispatched
 ```
 
-**Child ADRs implementing this resolution**:
-- `ADR-S-008.1` — adds `requires_spec_change` branch to Stage 3 of the pipeline
-- `ADR-S-010.1` — adds invariant that `feature_proposal` only emits when `requires_spec_change: true`
-- `ADR-S-026.1` — adds `requires_spec_change` field to the composition expression schema
+**Implementing ADRs** (folded in-place):
+- `ADR-S-008` — `requires_spec_change` branch added to Stage 3 (§Stage 3 Amendment)
+- `ADR-S-010` — `feature_proposal` only emits when `requires_spec_change: true` (§feature_proposal invariants)
+- `ADR-S-026` — `requires_spec_change` field on composition expression schema
 
 ### Resolution 3: Asset Source of Truth — Domain Split
 
@@ -69,25 +70,25 @@ intent_raised
 | `specification/` | Files are authoritative; events audit changes |
 | `.ai-workspace/` and code | Events are primary; files are materialized projections |
 
-**Child ADRs implementing this resolution**:
-- `ADR-S-009.1` — adds spec-layer source-of-truth note
-- `ADR-S-012.1` — scope-limits ADR-S-012's event-first model to `.ai-workspace/` and code domains
+**Implementing ADRs** (folded in-place):
+- `ADR-S-009` — spec-layer source-of-truth note and monitoring invariant added (§Layer 1)
+- `ADR-S-012` — event-first model scope-limited to `.ai-workspace/` and code domains (§2)
 
 ### Resolution 4: Consensus Terminology
 
 "Consensus" is reserved for ADR-S-025's quorum voting functor.
 ADR-S-024's mechanism is renamed "Design Signal Gate".
 
-**Child ADR implementing this resolution**:
-- `ADR-S-024.1` — renames throughout; substance unchanged
+**Implementing ADR** (folded in-place):
+- `ADR-S-024` — renamed throughout; substance unchanged (title, all section headings, canonical terminology table)
 
 ### Resolution 5: Vector Envelope — Formal Mapping
 
 `feature_vector` is a subtype of `intent_vector`. Formal mapping and YAML schema extension defined.
 
-**Child ADRs implementing this resolution**:
-- `ADR-S-009.1` — adds intent_vector schema extension to workspace YAML
-- `ADR-S-026.1` — adds vector subtype table
+**Implementing ADRs** (folded in-place):
+- `ADR-S-009` — intent_vector schema extension added to workspace YAML (§Intent Vector Schema Extension)
+- `ADR-S-026` — vector subtype table present in §4
 
 ### Resolution 6: Graph Abstraction — Level Separation
 
@@ -97,18 +98,20 @@ No child ADR required — the five-level stack in ADR-S-026 §1 already provides
 
 ---
 
-## Child ADR Index
+## Amendment Fold Record
 
-| Child ADR | Parent amended | Resolution |
-|-----------|---------------|-----------|
-| ADR-S-001.1 | ADR-S-001 | Hierarchical ADR numbering (meta-governance) |
-| ADR-S-008.1 | ADR-S-008 | Resolution 2: requires_spec_change branch |
-| ADR-S-009.1 | ADR-S-009 | Resolutions 3, 5: source-of-truth + schema extension |
-| ADR-S-010.1 | ADR-S-010 | Resolution 2: feature_proposal invariant |
-| ADR-S-011.1 | ADR-S-011 | Resolution 1: event type registrations (transport) |
-| ADR-S-012.1 | ADR-S-012 | Resolutions 1, 3: event registrations + projection scope |
-| ADR-S-024.1 | ADR-S-024 | Resolution 4: rename to Design Signal Gate |
-| ADR-S-026.1 | ADR-S-026 | Resolutions 2, 5: requires_spec_change + subtype table |
+As of 2026-03-14, the child ADR scheme has been retired (ADR-S-001 governance update). All children have been folded into their parent files and deleted. The table below records what was folded where:
+
+| Former child ADR | Content now in | Resolution |
+|-----------------|----------------|-----------|
+| ADR-S-001.1 | ADR-S-001 §ADR Amendment Governance | ADR governance — edit-in-place rule |
+| ADR-S-008.1 | ADR-S-008 §Stage 3 Amendment | Resolution 2: requires_spec_change branch |
+| ADR-S-009.1 | ADR-S-009 §Layer 1, §Intent Vector Schema Extension | Resolutions 3, 5 |
+| ADR-S-010.1 | ADR-S-010 §feature_proposal invariants, §Draft Features Queue | Resolution 2 |
+| ADR-S-011.1 | ADR-S-011 §eventType mapping, §sdlc:event_type, §Registration protocol | Resolution 1 |
+| ADR-S-012.1 | ADR-S-012 §2 (projection scope) + folded before this batch | Resolutions 1, 3 |
+| ADR-S-024.1 | ADR-S-024 (full rewrite with rename) | Resolution 4 |
+| ADR-S-026.1 | ADR-S-026 §3 | Resolutions 2, 5 |
 
 ---
 
@@ -143,6 +146,6 @@ No child ADR required — the five-level stack in ADR-S-026 §1 already provides
 ## References
 
 - Codex REVIEW: `.ai-workspace/comments/codex/20260308T190451_REVIEW_Spec-ADR-integration-debt-and-authority-conflicts.md`
-- ADR-S-001.1 — hierarchical ADR numbering (governance change enabling the child ADR pattern)
-- ADR-S-008.1, ADR-S-009.1, ADR-S-010.1, ADR-S-011.1, ADR-S-012.1, ADR-S-024.1, ADR-S-026.1 — implementing child ADRs
+- ADR-S-001 — ADR amendment governance (edit-in-place rule)
+- ADR-S-008, ADR-S-009, ADR-S-010, ADR-S-011, ADR-S-012, ADR-S-024, ADR-S-026 — resolution-implementing parent ADRs (children folded in)
 - ADR-S-028 — Veto Role Extension (pending)

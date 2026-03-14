@@ -10,7 +10,7 @@
 ## Context
 
 ADR-S-012 declares the event stream as the authoritative substrate from which all workspace
-state is derived. ADR-S-036.1 names Observability and State Legibility as invariant primes,
+state is derived. ADR-S-036 names Observability and State Legibility as invariant primes,
 with convergence evidence as a required terminal manifestation.
 
 However, no F_D check enforces this at the workspace boundary. Feature vector YAMLs can
@@ -103,7 +103,7 @@ data field. These are the same concept; REQ-EVENT-005's schema is canonical.
 
 ## What This Does Not Change
 
-- **No new invariant primes** — Observability and State Legibility (ADR-S-036.1) already
+- **No new invariant primes** — Observability and State Legibility (ADR-S-036) already
   cover this. This ADR adds the enforcing check, not a new prime.
 - **No new signal classes or signal taxonomies** — the existing `intent_raised` event with
   `signal_source: convergence_without_evidence` is sufficient. No new class hierarchy needed.
@@ -141,7 +141,7 @@ data field. These are the same concept; REQ-EVENT-005's schema is canonical.
 | ADR | Relationship |
 |-----|-------------|
 | **ADR-S-012** | This ADR makes the projection contract enforceable at the workspace claim boundary |
-| **ADR-S-036.1** | Convergence evidence added as a required terminal manifestation of Observability + State Legibility primes |
+| **ADR-S-036** | Convergence evidence added as a required terminal manifestation of Observability + State Legibility primes |
 | **ADR-S-013** | Adjacent (completeness visibility) but distinct — ADR-S-013 is about output visibility; this is about claim validity |
 | **Bootloader §V, §VIII** | Unchanged — governing principles already present; this ADR adds enforcement |
 

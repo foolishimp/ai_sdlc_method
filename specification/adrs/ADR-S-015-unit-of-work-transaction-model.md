@@ -35,7 +35,7 @@ Each invocation of `iterate()` for a single edge is a **transaction** with expli
 | Commit | `COMPLETE` (OL eventType) | All outputs written and hashed; transaction committed |
 | Rollback | `FAIL` or `ABORT` | Execution failed; prior state is authoritative |
 
-> **Saga scope note**: At saga scope, the term "rollback" is not used. Recovery before an irreversibility boundary is **re-anchoring** to the last accountability boundary. Recovery after an external commitment is **compensation**. Saga terminal failures (such as `consensus_failed`) are typed terminal failure resolutions, not rollbacks. Abandoned speculative branches are retained in immutable lineage — the event log is never rewritten. See ADR-S-031.1.
+> **Saga scope note**: At saga scope, the term "rollback" is not used. Recovery before an irreversibility boundary is **re-anchoring** to the last accountability boundary. Recovery after an external commitment is **compensation**. Saga terminal failures (such as `consensus_failed`) are typed terminal failure resolutions, not rollbacks. Abandoned speculative branches are retained in immutable lineage — the event log is never rewritten. See ADR-S-031 §Delegated Authority, Accountability Boundaries, and Speculative Branching.
 
 The **COMPLETE event is the commit point**. Writing it atomically to `events.jsonl` is the commit. Everything before the COMPLETE is uncommitted. An artifact written to disk without a corresponding COMPLETE is an uncommitted side effect.
 

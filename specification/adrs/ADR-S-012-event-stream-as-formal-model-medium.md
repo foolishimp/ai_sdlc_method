@@ -217,6 +217,6 @@ Two implementations are spec-equivalent if they produce the same asset projectio
 - [ADR-S-008](ADR-S-008-sensory-triage-intent-pipeline.md) — homeostasis pipeline events are a subset of the taxonomy here
 - [ADR-S-025](ADR-S-025-CONSENSUS-functor.md) — CONSENSUS event sources
 - [ADR-S-026](ADR-S-026-named-compositions-and-intent-vectors.md) — Named Composition event sources
-- [ADR-S-027](ADR-S-027-resolution-log.md) — Resolutions 1 and 3 (projection scope, event registrations)
+- [ADR-S-027](ADR-S-027-spec-consolidation-authority-boundaries.md) — Resolutions 1 and 3 (projection scope, event registrations)
 - [ADR-S-037](ADR-S-037-projection-authority-and-convergence-evidence.md) — enforcement at workspace boundary; retroactive-evidence language should be read in light of §5 (control vs trace surface)
 - `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §3, §4, §5

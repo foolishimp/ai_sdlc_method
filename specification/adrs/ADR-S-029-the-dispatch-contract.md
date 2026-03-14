@@ -140,7 +140,7 @@ compiled_to:
 - ADR-S-027 — Resolution 6: Level 3 compiles to Level 5
 - ADR-S-027.1 (superseded) — edge_sequence intermediate — git tag `adr-deleted/ADR-S-027.1`
 - ADR-S-026 §3 — Named compositions and their schema
-- ADR-S-011.1 — composition_dispatched OL transport registration
-- ADR-S-012.1 — composition_dispatched semantic registration
+- ADR-S-011 — composition_dispatched OL transport registration (§eventType mapping)
+- ADR-S-012 — composition_dispatched semantic registration (§8 Required event taxonomy)
 - Codex residual finding #1 (`20260309T020552`): composition_dispatched lacks binding executable intermediate
 - Proposal `20260309T120000`: Decision 2 — graph_fragment rationale
