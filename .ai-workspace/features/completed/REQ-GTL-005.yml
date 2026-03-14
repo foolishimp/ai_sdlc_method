@@ -1,15 +1,15 @@
 created: '2026-03-13T18:37:04Z'
-description: 'GTL Topology Projection — to_mermaid() with overlay support. Part of
-  the Genesis Topology Language (GTL) feature set.
+description: 'GTL Example Package Suite — genesis_obligations + genesis_sdlc. Part
+  of the Genesis Topology Language (GTL) feature set.
 
   '
-feature: REQ-GTL-003
+feature: REQ-GTL-005
 intent: INT-GTL-001
 profile: standard
 requirements:
-- REQ-GTL-003
-status: iterating
-title: GTL Topology Projection — to_mermaid() with overlay support
+- REQ-GTL-005
+status: converged
+title: GTL Example Package Suite — genesis_obligations + genesis_sdlc
 trajectory:
   basis_projections:
     converged_at: '2026-03-13T18:44:03Z'
@@ -43,3 +43,6 @@ trajectory:
     status: converged
 updated: '2026-03-13T18:37:04Z'
 vector_type: feature
+converged_at: '2026-03-14T01:55:09.004508+00:00'
+convergence_note: 'trivially_converged: no real F_D evaluators; GTL code pre-exists
+  in imp_codex'
