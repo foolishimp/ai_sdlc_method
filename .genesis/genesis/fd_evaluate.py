@@ -17,6 +17,7 @@ Heartbeat:
   Visible during long test runs; JSON result still goes to stdout.
 """
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -80,10 +81,23 @@ def run_check(
 
     wall_timeout = max(timeout * WALL_CEILING, 3600)  # at least 1h ceiling
 
+    env = os.environ.copy()
+    # Ensure sys.path entries (e.g. PYTHONPATH set by test harness) are propagated to subprocess
+    import sys as _sys
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    # Add any sys.path entries not already in PYTHONPATH
+    extras = [p for p in _sys.path if p and p not in existing_pythonpath.split(os.pathsep)]
+    if extras:
+        new_pythonpath = os.pathsep.join(extras)
+        if existing_pythonpath:
+            new_pythonpath = new_pythonpath + os.pathsep + existing_pythonpath
+        env["PYTHONPATH"] = new_pythonpath
+
     r = run_bounded(
         check.command,
         shell=True,
         cwd=cwd,
+        env=env,
         wall_timeout=wall_timeout,
         stall_timeout=timeout,
         heartbeat_interval=HEARTBEAT_INTERVAL,

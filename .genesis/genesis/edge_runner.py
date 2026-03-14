@@ -92,8 +92,9 @@ def _run_fd_evaluation(
         from .config_loader import load_yaml
         from .engine import EngineConfig, iterate_edge as engine_iterate_edge
 
-        # Load edge config
-        edge_params_dir = (
+        # Load edge config — search workspace-local dirs first, then source tree
+        _pkg_dir = Path(__file__).parent
+        _source_edge_params = (
             workspace_root
             / "imp_claude"
             / "code"
@@ -103,9 +104,17 @@ def _run_fd_evaluation(
             / "config"
             / "edge_params"
         )
+        _edge_candidates = [
+            workspace_root / ".ai-workspace" / "graph" / "edge_params",
+            workspace_root / ".ai-workspace" / "graph" / "edges",
+            _pkg_dir / "config" / "edge_params",
+            _source_edge_params,
+        ]
+        edge_params_dir = next((c for c in _edge_candidates if c.is_dir()), _source_edge_params)
 
-        # Load graph topology for EngineConfig
-        topology_path = (
+        # Load graph topology for EngineConfig — search workspace-local first
+        _topology_candidates = [
+            workspace_root / ".ai-workspace" / "graph" / "graph_topology.yml",
             workspace_root
             / "imp_claude"
             / "code"
@@ -113,8 +122,10 @@ def _run_fd_evaluation(
             / "plugins"
             / "genesis"
             / "config"
-            / "graph_topology.yml"
-        )
+            / "graph_topology.yml",
+        ]
+        topology_path = next((c for c in _topology_candidates if c.exists()),
+                             _topology_candidates[-1])
         graph_topology = load_yaml(topology_path) if topology_path.exists() else {}
 
         profiles_dir = edge_params_dir.parent / "profiles"
@@ -292,6 +303,27 @@ def run_edge(
     fp_iteration = 0
     failures: list[str] = []
     _log.info(f'edge_runner req="{target.feature_id}" edge="{target.edge}" intent="{target.intent_id}"')
+
+    # Resume any pending fp_intent for this edge+feature that already has a result.
+    # Each run_edge call generates a new run_id, so prior results are only findable
+    # by scanning the agents directory for matching intent files with a result.
+    _agents_dir = workspace_root / ".ai-workspace" / "agents"
+    if _agents_dir.is_dir():
+        for _intent_file in sorted(_agents_dir.glob("fp_intent_*-fp*.json")):
+            try:
+                _m = json.loads(_intent_file.read_text())
+                if _m.get("edge") == target.edge and _m.get("feature") == target.feature_id:
+                    _prior_run_id = _m.get("run_id", "")
+                    if _prior_run_id:
+                        _result_path = _agents_dir / f"fp_result_{_prior_run_id}.json"
+                        if _result_path.exists():
+                            # Prior result exists — reuse base run_id so _check_fp_result finds it
+                            _base = _prior_run_id.rsplit("-fp", 1)[0]
+                            run_id = _base
+                            _log.info(f'edge_runner resuming prior run_id="{run_id}" with existing fp_result')
+                            break
+            except Exception:
+                pass
 
     # Emit edge_started — carries intent_id (primary) + handled_intent_ids (all)
     # This closes out every contributing intent so find_unhandled_intents()
