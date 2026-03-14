@@ -166,7 +166,7 @@ react(event_stream, behavior)
   — for each matching event: behavior(event) → emit_event*
   — behavior is F_D (deterministic), F_P (generative), or F_H (human channel)
   — in all cases, the emit_event* calls go through the F_D event logger
-  — F_P behavior produces artifacts and payloads; it calls emit_event() to record them
+  — F_P behavior produces artifacts and payloads; the F_D layer reads them and calls emit_event()
 ```
 
 **The caller determines what to record. The event logger determines when and how.**

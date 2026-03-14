@@ -71,7 +71,7 @@ emit_event(event_type: str, data: dict) → None
     # appends atomically to events.jsonl
 ```
 
-**F_P (LLM agents) call this function.** They cannot pass `event_time` — the function signature does not accept it. F_P is an unreliable narrator: it constructs content, not log entries. The event logger assigns the timestamp, enforces schema, and performs the write.
+**In the canonical F_D engine path, the deterministic engine calls this function** — after evaluating F_P-produced output. F_P constructs artifacts and assessment payloads; the engine reads them, computes delta, then calls `emit_event()`. F_P does not call the event logger; the F_D engine does. F_P is an unreliable narrator: it constructs content, not log entries. The event logger assigns the timestamp, enforces schema, and performs the write.
 
 Business timing fields (`effective_at`, `completed_at`, `observed_at`) MUST be passed inside `data`, not as `event_time`. They are payload — domain facts about when something occurred in the business domain. The event logger writes them as payload; it does not use them as the log entry timestamp.
 

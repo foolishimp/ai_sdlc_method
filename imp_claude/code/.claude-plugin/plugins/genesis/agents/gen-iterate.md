@@ -277,14 +277,26 @@ Update the feature vector tracking file:
 
 ### Step 5a: Emit Event (every iteration)
 
-After every iteration (not just convergence), append a JSON event to `.ai-workspace/events/events.jsonl`.
+After every iteration, the F_D event logger must record an `iteration_completed` event.
 
-**This is MANDATORY. Every iteration MUST emit an event.** This is a **reflex-phase** operation (Spec §4.3) — it fires unconditionally at every iteration boundary, requires no judgment, and cannot be skipped by projection profiles. The event log is the source of truth for all observability — STATUS.md, ACTIVE_TASKS.md, feature vector trajectories, and external monitors all derive from it. Without this reflex, the consciousness loop goes dark.
+**This is MANDATORY.** This is a **reflex-phase** operation (Spec §4.3) — it fires unconditionally at every iteration boundary, requires no judgment, and cannot be skipped by projection profiles. The event log is the source of truth for all observability.
+
+**Dispatch model — F_D controls emission:**
+
+| Runtime path | How emission works |
+|---|---|
+| **F_D engine path** (`python -m genesis`) | The engine calls `fd_emit.emit_event()` after evaluating your output — you do NOT write to `events.jsonl` |
+| **Interactive slash-command path** | Call the genesis CLI: `python -m genesis emit-event --type iteration_completed --data '{...}'`. The CLI routes through `fd_emit.emit_event()`, which assigns `event_time` from the system clock. **Do NOT use Write/Edit tools to append directly to `events.jsonl`** — that would bypass the F_D event logger and allow F_P to control the timestamp. |
+
+**You are the unreliable narrator: you construct content, the F_D logger writes the log entry.**
+
+If `python -m genesis emit-event` is not yet available in the installed version, use the Write tool as a temporary fallback — but the timestamp MUST be the current system time at the moment of writing (not the time evaluation occurred), and the event MUST be output as a complete single-line JSON (no pretty-printing).
+
+**Event schema** (construct this as payload — do NOT include as raw JSON in events.jsonl directly):
 
 ```json
 {
   "event_type": "iteration_completed",
-  "timestamp": "{ISO 8601}",
   "project": "{project name from project_constraints.yml}",
   "feature": "{REQ-F-*}",
   "edge": "{source}→{target}",
@@ -309,14 +321,9 @@ After every iteration (not just convergence), append a JSON event to `.ai-worksp
 }
 ```
 
-The event log is **append-only** and **immutable**. Create `.ai-workspace/events/` on first event.
+The event log is **append-only** and **immutable**. Never modify or delete existing events.
 
-**Event emission protocol:**
-1. Build the JSON object with all required fields
-2. Append as a single line to `.ai-workspace/events/events.jsonl` (no trailing newline within the JSON, newline after)
-3. Never modify or delete existing events
-4. If the file or directory doesn't exist, create it
-5. **Circuit breaker**: if event emission itself fails (filesystem error, malformed JSON), log the failure as a TELEM signal in the iteration report rather than entering infinite regression. The iteration should not block on observability failure.
+**Circuit breaker**: if event emission fails (filesystem error, malformed JSON), log the failure as a TELEM signal in the iteration report rather than entering infinite regression. The iteration should not block on observability failure.
 
 ### Step 5b: Update Derived Views
 
