@@ -3,6 +3,7 @@
 **Series**: S (specification-level decisions — apply to all implementations)
 **Status**: Accepted
 **Date**: 2026-03-03
+**Revised**: 2026-03-14 (adds spec-file authority clarification and intent vector schema extension — ADR-S-027 Resolutions 3 and 5)
 **Scope**: Feature vector two-layer model — `specification/features/`, `.ai-workspace/features/`, `requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md` §6
 
 ---
@@ -45,6 +46,10 @@ The `REQ-F-*` key is the stable identifier. It appears in both layers. The layer
 - Per-tenant progress information
 
 **Owner:** The methodology author (human or homeostasis-approved agent). Written through the spec evolution process (ADR-S-010).
+
+**Spec files are authoritative artifacts, not event projections.** `spec_modified` events (ADR-S-010) are the audit trail of changes to those files — they do not replace the files as source of truth. If a `spec_modified` event and the current file disagree (hash mismatch), the investigation begins with the file and git history, not by overwriting the file from the event log.
+
+**Monitoring invariant**: a hash mismatch between a `specification/` file and its most recent `spec_modified` event MUST be classified as a **CRITICAL** gap by the sensory system. It triggers an `EVOLVE` cycle to resync the audit trail — either by emitting a corrective `spec_modified` event (if the file change was legitimate but unrecorded) or by reverting the file (if the change was unauthorised). This gap MUST NOT be silently ignored or deferred.
 
 ### Layer 2: Operational Trajectory (`.ai-workspace/features/active/*.yml`)
 
@@ -111,6 +116,23 @@ The inflate operation is the inverse of the fold-back operation: it creates an e
 | `spike` | Inline (question + findings replace definition + trajectory) | Same file |
 
 For `poc` and `spike` profiles, the definition/trajectory split is collapsed — these are short-lived, throwaway vectors not intended to contribute to the permanent spec. If a PoC produces a finding worth formalising, it does so through `gen-spawn` (which requires a spec definition entry first).
+
+### Intent Vector Schema Extension
+
+`feature_vector` is formally a subtype of `intent_vector` (ADR-S-026 §4). The `.ai-workspace/features/active/*.yml` schema is extended with the following fields. All new fields are **optional for existing vectors**; **required for vectors created after 2026-03-09**.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `source_kind` | enum | `abiogenesis \| gap_observation \| parent_spawn` |
+| `trigger_event` | string \| null | Event ID that caused this vector; null for abiogenesis |
+| `target_asset_type` | string | The asset type this vector produces |
+| `composition_expression` | object | `{macro, version, bindings}` per ADR-S-026 §3 |
+| `produced_asset_ref` | string \| null | Populated on convergence; null while iterating |
+| `disposition` | enum \| null | `converged \| blocked_accepted \| blocked_deferred \| abandoned \| null` |
+
+**Migration**: existing vectors without these fields are treated as `source_kind: abiogenesis` (if no trigger event exists) or `parent_spawn` (if spawned from another vector); `trigger_event: null`; `produced_asset_ref: null` (if active) or the known asset path (if converged); `disposition: null` (if active) or `converged` (if known converged).
+
+The two-layer deployment model (spec definition / workspace trajectory) is unchanged — this extends the YAML schema, not the deployment model.
 
 ---
 

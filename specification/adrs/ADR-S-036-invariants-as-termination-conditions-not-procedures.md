@@ -2,8 +2,9 @@
 
 **Status**: Ratified
 **Date**: 2026-03-12
+**Revised**: 2026-03-14 (adds invariant primes and terminal manifestations — proposed by Codex, ratified by human principal)
 **Deciders**: Jim (human principal)
-**Tags**: methodology-core, invariants, path-independence, agent-capability
+**Tags**: methodology-core, invariants, path-independence, agent-capability, conformance, ontology
 
 ---
 
@@ -159,6 +160,56 @@ These are the termination conditions. The path to reaching them is the agent's c
   it. Consistent with this ADR.
 - **ADR-S-030** (Gap-Driven Vector Lineage): gaps drive new vectors, not re-execution of the
   same path. Assurance gaps are handled by the assurance pass, not by re-doing construction.
+
+---
+
+## Invariant Primes and Terminal Manifestations
+
+The invariant checklist above mixes foundational conditions with derived evidence artifacts. This section sharpens the ontology by introducing two layers.
+
+### Invariant Prime
+
+An **invariant prime** is an irreducible validity condition of a Genesis workspace:
+- Necessary for validity; not derivable from the other primes
+- Path-independent; checkable from artifacts, projections, event stream, or explicit F_H judgment
+- Stable across implementations and profiles
+
+### Terminal Manifestation
+
+A **terminal manifestation** is a concrete required artifact, projection, or observable that demonstrates one or more invariant primes hold at convergence.
+
+### The Five Invariant Primes
+
+| Prime | Meaning |
+|-------|---------|
+| **Asset convergence** | Required stable assets exist and pass their required evaluators |
+| **Traceability** | Lineage is correct across spec, feature vectors, code, tests, and review artifacts |
+| **Observability** | The work is visible to the methodology through a complete enough event/projection record |
+| **State legibility** | Workspace state is structurally valid, replayable, and machine-readable |
+| **Homeostatic closure** | Detected gaps are classified, validated, and routed into governance/remediation paths |
+
+### Classification of the Invariant Checklist
+
+| Checklist item | Layer | Prime basis |
+|----------------|-------|-------------|
+| Code exists | Terminal manifestation | Asset convergence |
+| Tests pass | Terminal manifestation | Asset convergence |
+| REQ threading | Near-prime manifestation | Traceability |
+| Feature vectors correctly formatted | Terminal manifestation | State legibility |
+| Events emitted | Terminal manifestation | Observability |
+| Gaps validated | Terminal manifestation | Homeostatic closure |
+| Proposals drafted | Terminal manifestation | Homeostatic closure |
+| STATUS.md current | Derived manifestation | Observability + State legibility |
+
+`STATUS.md current` remains mandatory. Being a derived manifestation does not reduce its requirement — it clarifies *why* it is required. `REQ threading` is listed as "near-prime" because it sits at the boundary: it is both a concrete artifact check (grep for `# Implements:`) and a structural validity condition (without it the traceability chain is broken). Treat it as prime in practice.
+
+### Conformance Rule
+
+A workspace is valid at convergence when:
+1. **All five invariant primes are satisfied** for all active features in scope
+2. **All required terminal manifestations are present and accurate** — artifacts must correctly reflect the primes, not just exist
+
+Both conditions are necessary. A workspace where all artifacts exist but are inaccurate (e.g., fabricated REQ tags) fails condition 2. Evidence is mandatory, not optional.
 
 ---
 

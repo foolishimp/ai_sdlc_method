@@ -1,6 +1,7 @@
 # ADR-S-031: Supervisor Pattern, Event Sourcing, and Choreographed Saga
 
 **Status**: Accepted — 2026-03-09
+**Revised**: 2026-03-14 (adds delegated authority, accountability boundaries, speculative branching, and compensation vocabulary)
 **Scope**: Specification-level — applies to all Genesis implementations
 
 ---
@@ -232,3 +233,85 @@ All Genesis tenant designs (Claude, Gemini, Codex, Bedrock) must use the vocabul
 | ADR-S-025 (CONSENSUS Functor) | CONSENSUS is a saga: consensus_requested → vote_cast* → consensus_reached/failed |
 | ADR-S-026 (Named Compositions) | Named compositions are F_P relay behaviors dispatched by intent vector |
 | ADR-S-016 (Invocation Contract) | Invocation = emitting an intent event; the contract is the event schema |
+
+---
+
+## Delegated Authority, Accountability Boundaries, and Speculative Branching
+
+The vocabulary inherited from mutable workflow systems conflates three distinct operations under a single term — "rollback":
+
+| Situation | What actually happens |
+|-----------|----------------------|
+| Agent crashes mid-iteration | Return to the last committed state; no history is erased |
+| CONSENSUS saga fails (quorum not reached) | Terminal failure resolution with typed recovery paths |
+| Feature vector abandoned mid-trajectory | Head moves to prior anchor; abandoned branch retained in lineage |
+
+These are not the same operation. The following definitions replace "rollback" at saga scope.
+
+### Definitions
+
+**`delegated authority`** — bounded operational authority ceded by F_H to a relay or saga, allowing autonomous progression within a mandate without requiring live F_H approval at each step. A mandate (issued via `emit(intent_raised)`) is the mechanism by which authority is delegated. F_H retains accountability throughout — delegated authority licenses execution, it does not transfer accountability.
+
+**`accountability boundary`** — the most recent event in the log that represents a state the human principal has positively ratified — explicitly or by non-objection — within the current causal scope, and which has not been causally superseded.
+
+Machine-checkable: the most recent event of one of `COMPLETE` (ADR-S-015), `edge_converged`, or `consensus_reached`, scoped to the current causation/correlation chain (same `run_id`, `review_id`, or feature+edge session key), unless causally superseded by a later event that explicitly contests, reopens, or replaces it within the same causal scope.
+
+A later `intent_raised` for unrelated new work does **not** supersede a prior accountability boundary. The predicate is causal, not temporal.
+
+**`irreversibility boundary`** — a point in a saga after which external effects have been committed to systems outside the event log's authority domain and cannot be undone by replaying, re-anchoring, or editing events.
+
+**Scope**: irreversibility applies to external effects exclusively — payments, emails, API calls to outside systems, regulatory filings, user-visible notifications. Internal effects (file writes, event log entries, feature vector updates) are **not** irreversibility boundaries — they are within the event log's authority and can be re-anchored.
+
+**`speculative branch`** — a predictive branch explored under delegated authority before an irreversibility boundary has been crossed. Legal whenever: (1) the relay holds delegated authority, and (2) no irreversibility boundary has been crossed.
+
+**`abandoned branch`** — a retained but non-authoritative branch. Operationally inactive; historically present (the event log retains it). Abandonment changes which branch is authoritative, not whether the branch exists in history.
+
+**`compensation`** — forward recovery after an external or otherwise irreversible commitment has been made. Compensation is not undoing. It records what happened, describes the partial state, and prescribes what forward moves restore consistency. Applies only after an irreversibility boundary has been crossed. Before that boundary, recovery is re-anchoring, not compensation.
+
+### Normative Decisions
+
+**Decision 1 — F_H delegates without ceding accountability.** Mandate acceptance is not accountability transfer.
+
+**Decision 2 — Relays continue until a declared boundary condition.** The complete boundary condition set:
+1. Terminal completion — the mandate is fulfilled
+2. Irreversibility boundary — an external commit is about to occur
+3. Policy-sensitive boundary in Context[] — flagged as requiring live F_H approval
+4. Graph/edge/composition-declared live-approval boundary — intrinsic to the workflow shape
+5. Implementation-local event trigger — tenant-specific pause/escalation trigger
+
+Every relay must have at least one applicable boundary condition from this set.
+
+**Decision 3 — Speculative branching is allowed before an irreversibility boundary.** Internal file writes, draft artifacts, and provisional event log entries are not irreversibility events.
+
+**Decision 4 — Abandoned branches are retained in immutable lineage.** The event log is immutable; abandoned branches remain in the lineage record. Do not delete events from abandoned branches.
+
+**Decision 5 — Recovery before irreversible commitment is re-anchoring, not history rewrite.** The relay returns to the most recent accountability boundary and may proceed from there. The failed attempt remains in the log (abandoned branch). **Do not use the term "rollback" for this operation — use `re-anchor`.**
+
+**Decision 6 — Recovery after irreversible commitment is compensation, never rollback.** **Do not use the term "rollback" — use `compensate` or `compensation path`.**
+
+**Decision 7 — Non-compensable or policy-sensitive external boundaries require F_H approval or standing delegated policy authority.** Standing policy authority must: (a) live in Context[], (b) be auditable — source and version identifiable from Context[], and (c) be referenced in the emitted event so authorization is traceable in the event log.
+
+### Vocabulary Replacement
+
+| Situation | Prohibited term | Correct term |
+|-----------|----------------|-------------|
+| Agent crashes mid-iteration; returning to last committed state | "rollback" | **re-anchor** to the last accountability boundary |
+| CONSENSUS saga fails; quorum not reached | "rollback" | **terminal failure resolution** — typed outcome, recovery paths available |
+| External commitment made; subsequent steps fail | "rollback" | **compensation** — forward recovery after irreversibility boundary |
+| Feature vector abandoned mid-trajectory | "rollback" | **branch abandonment** — lineage retained, head moves |
+
+"Rollback" remains acceptable within ADR-S-015's edge-local transaction scope (`FAIL` / `ABORT` events at a single `iterate()` invocation). At saga scope — multi-step, multi-relay workflows — the terms above apply.
+
+**Note on CONSENSUS**: `consensus_failed` is a typed terminal failure resolution event, not a compensation event. It occurs before any irreversibility boundary in the normal governance saga. The recovery paths available after `consensus_failed` (re_open, narrow_scope, abandon per ADR-S-025) are forward moves in a governance saga, not compensation for an external commit.
+
+### Payment Dispatch Example
+
+A payment relay operates under delegated authority: `intent_raised {mandate: process_payment, scope: {max_amount: 10000, currency: USD}}`.
+
+**Before payment dispatch (speculative branch territory)**: validation, routing provider queries, route selection (one branch abandoned, non-authoritative), fee calculation. Everything re-anchorable — no external effects committed.
+
+**At payment dispatch (irreversibility boundary)**: relay checks Context[] for standing policy authority, calls external payment API, external system confirms `payment_id: PAY-001`, relay emits `COMPLETE` with payment_id and policy reference.
+
+**After payment confirmation (compensation territory)**: ledger update fails (503). Relay cannot undo the payment. Emits `compensation_triggered {cause: ledger_unavailable, committed_effect: PAY-001, compensation_path: retry_ledger_then_manual_reconcile}`. Compensation relay handles forward recovery.
+
+Three phases; three distinct vocabulary sets. No "rollback" appears.

@@ -1,8 +1,9 @@
-# ADR-S-024: Consensus Decision Gate — Marketplace-Driven Evaluation Checkpoints
+# ADR-S-024: Design Signal Gate — Marketplace-Driven Evaluation Checkpoints
 
 **Series**: S (specification-level decisions — apply to all implementations)
 **Status**: Accepted
 **Date**: 2026-03-07
+**Revised**: 2026-03-14 (renamed "Consensus Decision Gate" → "Design Signal Gate" to avoid collision with ADR-S-025 CONSENSUS functor)
 **Scope**: Multi-agent governance — how marketplace signals gate in-progress development
 
 ---
@@ -25,9 +26,9 @@ This is not a novel problem. It is the IntentEngine composition law (§VIII of t
 
 ## Decision
 
-### The Consensus Decision Gate
+### The Design Signal Gate
 
-A **consensus decision gate** is a naturally emergent evaluation checkpoint triggered when a marketplace artifact — a GAP, REVIEW, STRATEGY, or MATRIX post — enters the shared comments directory while development is active.
+A **design signal gate** is a naturally emergent evaluation checkpoint triggered when a marketplace artifact — a GAP, REVIEW, STRATEGY, or MATRIX post — enters the shared comments directory while development is active.
 
 The gate is not a blocking mutex. It is a **homeostatic check**: the running agent evaluates whether the new signal reprices current working assumptions enough to change the active trajectory. Three outcomes are possible, determined by the signal's ambiguity level:
 
@@ -39,7 +40,7 @@ The gate is not a blocking mutex. It is a **homeostatic check**: the running age
 
 ### Trigger Conditions
 
-A consensus decision gate fires when:
+A design signal gate fires when:
 
 1. **Session start**: the agent scans peers' `comments/` directories for new files since the last session. Any new file is a pending market signal.
 2. **Mid-session direction**: the user explicitly directs the agent to read a peer comment. This is an immediate gate trigger regardless of development state.
@@ -72,7 +73,7 @@ Agents do not self-ratify. Comment volume does not clear a gate.
 
 ### Natural Emergence
 
-The consensus decision gate is not a scheduled process. It emerges from the interaction of:
+The design signal gate is not a scheduled process. It emerges from the interaction of:
 - The session start scan (CONVENTIONS.md — scan peers' comments at start)
 - The convergence boundary (any sprint task completion)
 - The user's ability to trigger mid-session reads at any time
@@ -83,7 +84,7 @@ This means the marketplace is always live: while T-COMPLY-001 is being implement
 
 ## Relationship to the IntentEngine
 
-The consensus decision gate is the IntentEngine composition law applied to design decisions:
+The design signal gate is the IntentEngine composition law applied to design decisions:
 
 ```
 observer   = session start scan + boundary check + user direction
@@ -92,6 +93,17 @@ output     = reflex (halt) | specEventLog (note, continue) | escalate (pause at 
 ```
 
 The marketplace is an **exteroceptive sensory system** for design-level signals — it observes the external agent environment, not the codebase. The gate is its triage layer.
+
+---
+
+## Canonical Terminology
+
+| Term | Meaning | Owner |
+|------|---------|-------|
+| **Design Signal Gate** | Session-boundary evaluation of marketplace artifacts; routes by ambiguity level | ADR-S-024 |
+| **CONSENSUS** | Multi-stakeholder F_H evaluator functor; quorum voting on a proposed asset | ADR-S-025 |
+
+The rename from "Consensus Decision Gate" to "Design Signal Gate" removes a false equivalence between this exteroceptive triage mechanism and the CONSENSUS functor (ADR-S-025). CONSENSUS involves quorum voting and typed failure outcomes; this gate involves ambiguity routing at session boundaries. They are different constructs.
 
 ---
 
@@ -112,6 +124,7 @@ The marketplace is an **exteroceptive sensory system** for design-level signals 
 ## References
 
 - [specification/core/GENESIS_BOOTLOADER.md](../core/GENESIS_BOOTLOADER.md) §VI (Processing Phases), §VII (Sensory Systems), §VIII (IntentEngine)
-- [ADR-S-023](ADR-S-024-consensus-decision-gate.md) — workspace state partitioning
+- [ADR-S-023](ADR-S-023-workspace-state-partitioning.md) — workspace state partitioning
+- [ADR-S-025](ADR-S-025-CONSENSUS-functor.md) — CONSENSUS functor (distinct construct)
 - [ADR-S-008](ADR-S-008-sensory-triage-intent-pipeline.md) — sensory triage and intent pipeline
 - `.ai-workspace/comments/CONVENTIONS.md` — marketplace conventions and session start scan protocol

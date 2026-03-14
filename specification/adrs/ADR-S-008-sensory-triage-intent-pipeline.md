@@ -3,6 +3,7 @@
 **Series**: S (specification-level decisions — apply to all implementations)
 **Status**: Accepted
 **Date**: 2026-03-02
+**Revised**: 2026-03-14 (adds Stage 3 requires_spec_change branch — ADR-S-027 Resolution 2)
 **Scope**: Methodology observability — `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §7.3, `requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md` §8, §13
 
 ---
@@ -54,6 +55,35 @@ Escalated signals are reviewed at the "conscious" scale. This stage:
 1. **No Silent Failure**: If sensing fails (meta-monitoring), a reflex signal is emitted.
 2. **Draft-Only Autonomy**: Homeostatic responses (fixing the gap) are generated as **draft proposals** only. No autonomous modification of production assets without human approval.
 3. **Event-Sourced Provost**: The triage decision and intent generation are recorded as immutable events with a full causal chain (trace back to the sensory signal).
+
+### Stage 3 Amendment: requires_spec_change Branch
+
+Every `intent_raised` event MUST carry a `requires_spec_change: true | false` field. This field determines the routing out of Stage 3:
+
+```
+intent_raised
+  │
+  ├── requires_spec_change: false ──→ DISPATCHABLE
+  │                                   composition_dispatched event emitted
+  │                                   no feature_proposal required
+  │                                   no human gate required
+  │                                   (implementation resolves macro from registry)
+  │
+  └── requires_spec_change: true  ──→ PROMOTION REQUIRED
+                                      feature_proposal event emitted (ADR-S-010)
+                                      enters Draft Features Queue
+                                      F_H gate required before any work begins
+```
+
+**Classification rule**:
+
+| Delta type | requires_spec_change |
+|-----------|---------------------|
+| Gap in existing spec coverage (code, tests, telemetry missing for a defined REQ key) | false |
+| New capability not represented in spec (new REQ key, new feature, new requirement) | true |
+| Ecosystem change requiring spec response (new CVE, breaking API change) | true if spec must change; false if implementation can adapt within existing spec |
+
+**Invariant**: An `intent_raised` event with `requires_spec_change: true` MUST NOT result in `composition_dispatched` without an intervening `spec_modified` event that references its `feature_proposal`.
 
 ---
 

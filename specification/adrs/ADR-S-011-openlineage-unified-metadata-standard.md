@@ -3,6 +3,7 @@
 **Series**: S (specification-level decisions — apply to all implementations)
 **Status**: Accepted
 **Date**: 2026-03-03
+**Revised**: 2026-03-14 (registers CONSENSUS and Named Composition event types — ADR-S-027 Resolution 1; adds registration protocol)
 **Scope**: All events in `.ai-workspace/events/events.jsonl` — iterate events, homeostasis events, spec evolution events
 
 ---
@@ -80,7 +81,29 @@ Using `aisdlc://` as the job namespace ensures that multiple projects ingested i
 | `spawn_created` | `OTHER` | Feature vector inflate operation |
 | `status_generated` | `OTHER` | Derived view regenerated |
 
+**CONSENSUS functor events (ADR-S-025)**:
+
+| Semantic event | OL eventType | sdlc:event_type value |
+|---------------|-------------|----------------------|
+| `proposal_published` | OTHER | `proposal_published` |
+| `comment_received` | OTHER | `comment_received` |
+| `vote_cast` | OTHER | `vote_cast` |
+| `asset_version_changed` | OTHER | `asset_version_changed` |
+| `consensus_reached` | OTHER | `consensus_reached` |
+| `consensus_failed` | OTHER | `consensus_failed` |
+| `recovery_path_selected` | OTHER | `recovery_path_selected` |
+
+**Named Composition / Intent Vector events (ADR-S-026)**:
+
+| Semantic event | OL eventType | sdlc:event_type value |
+|---------------|-------------|----------------------|
+| `composition_dispatched` | OTHER | `composition_dispatched` |
+| `intent_vector_converged` | COMPLETE | `intent_vector_converged` |
+| `intent_vector_blocked` | FAIL | `intent_vector_blocked` |
+
 All `OTHER` events carry an `sdlc:event_type` facet (see below) encoding the semantic type. This preserves full semantic fidelity while conforming to the OL schema.
+
+**Registration protocol**: Any new semantic event type introduced in a future spec ADR MUST be registered in this ADR (by editing it in place) before the event type is used in code or tooling. The registration MUST precede or accompany the ADR that introduces the event.
 
 ### Custom facet library
 
@@ -94,7 +117,11 @@ Encodes the methodology-specific event type for `OTHER` events. Required on all 
 "sdlc:event_type": {
   "_producer": "https://github.com/foolishimp/ai_sdlc_method",
   "_schemaURL": "https://github.com/foolishimp/ai_sdlc_method/spec/facets/sdlc_event_type.json",
-  "type": "intent_raised | feature_proposal | spec_modified | iteration_completed | health_checked | gaps_validated | spawn_created | status_generated"
+  "type": "intent_raised | feature_proposal | spec_modified | iteration_completed |
+           health_checked | gaps_validated | spawn_created | status_generated |
+           proposal_published | comment_received | vote_cast | asset_version_changed |
+           consensus_reached | consensus_failed | recovery_path_selected |
+           composition_dispatched | intent_vector_converged | intent_vector_blocked"
 }
 ```
 

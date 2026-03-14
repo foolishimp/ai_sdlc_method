@@ -3,6 +3,7 @@
 **Series**: S (specification-level decisions — apply to all implementations)
 **Status**: Accepted
 **Date**: 2026-03-02
+**Revised**: 2026-03-14 (adds ADR amendment governance — edit-in-place replaces dot-notation scheme)
 **Scope**: `specification/` directory structure
 
 ---
@@ -64,6 +65,16 @@ A downstream document may not contradict an upstream one. In any conflict, the d
 ### New ADR series: ADR-S-*
 
 Decisions about the shared specification structure (this directory) use the `ADR-S-*` series. Implementation-specific decisions continue to use their own series (`ADR-008+` for Claude, `ADR-GG-*` for Gemini, etc.).
+
+### ADR Amendment Governance
+
+ADRs are edited **in place** when they need updating. The header carries a `**Revised**:` date marking when the update occurred. Git history is the amendment trail — `git log specification/adrs/ADR-S-NNN-*.md` shows all prior versions of any ADR.
+
+**The governance rule**: if an ADR needs to be amended, edit the parent file directly, update the `**Revised**:` date, and commit. The commit message is the amendment rationale. The old content is preserved in git history. No separate child `.N` file is created.
+
+**Why this replaces dot-notation child files**: the child-ADR scheme (format `ADR-S-X.N`) was introduced to preserve parent immutability while recording amendments. In practice it imposed a context-window tax on agentic builders: load parent, load child, reconcile them, detect supersession. A single merged document reduces this to one step. The parent is no longer immutable — the file is the current truth; git is the history.
+
+**Retrofit**: child ADRs created under the prior scheme (ADR-S-008.1 through ADR-S-036.1) have been folded back into their parent files as of 2026-03-14. The git commit that performed each fold is the amendment's audit record.
 
 ---
 

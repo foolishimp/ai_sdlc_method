@@ -3,6 +3,7 @@
 **Series**: S (specification-level decisions — apply to all implementations)
 **Status**: Accepted
 **Date**: 2026-03-03
+**Revised**: 2026-03-14 (adds feature_proposal scope invariant — requires_spec_change: true only — ADR-S-027 Resolution 2)
 **Scope**: Homeostasis → spec pipeline — `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §4.5, §7.3, `requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md` §15
 
 ---
@@ -56,6 +57,8 @@ Emitted by the homeostasis pipeline (Stage 3 of ADR-S-008 Conscious Review) when
 - The `proposed_feature_id` is provisional until promotion.
 - Each `feature_proposal` has a `trigger_intent_id` — the causal link back to the `intent_raised` event that generated it.
 - Status is always `draft` on emission.
+- **`feature_proposal` events are only emitted when `requires_spec_change: true`** (ADR-S-008 Stage 3 branch). An `intent_raised` with `requires_spec_change: false` produces a `composition_dispatched` event directly — no `feature_proposal`. Emitting `feature_proposal` for a gap that does not require a spec change is a pipeline conformance violation.
+- Add `requires_spec_change: true` as a required field on the event (always `true` — present to make the classification explicit and auditable).
 
 #### `spec_modified`
 
@@ -102,6 +105,8 @@ Draft Features Queue = {
 ```
 
 This queue is computable from the event log alone — it requires no additional state. `gen-status` must surface it (REQ-EVOL-005). It is the human review gate for homeostasis-generated features.
+
+The Queue contains **only** proposals that, if approved, will result in a `spec_modified` event. It does not contain dispatchable work items. Dispatchable work items (arising from `requires_spec_change: false` intents) are tracked in the workspace as active intent vectors.
 
 ### The Promotion Operation (F_H)
 
