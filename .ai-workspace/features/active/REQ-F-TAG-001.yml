@@ -1,0 +1,33 @@
+feature: REQ-F-TAG-001
+profile: standard
+requirements:
+- REQ-TOOL-003
+- REQ-EVAL-002
+status: iterating
+title: F_D tag coverage evaluator — check-tags subcommand + edge config wiring
+trajectory:
+  basis_projections:
+    converged_at: '2026-03-14T02:10:01Z'
+    status: converged
+  code:
+    converged_at: '2026-03-14T02:10:05Z'
+    status: converged
+  design:
+    converged_at: '2026-03-14T02:10:01Z'
+    status: converged
+  design_recommendations:
+    converged_at: '2026-03-14T02:10:00Z'
+    status: converged
+  feature_decomposition:
+    converged_at: '2026-03-14T02:09:56Z'
+    status: converged
+  module_decomposition:
+    converged_at: '2026-03-14T02:10:01Z'
+    status: converged
+  requirements:
+    converged_at: '2026-03-14T02:09:53Z'
+    status: converged
+  unit_tests:
+    converged_at: '2026-03-14T02:10:10Z'
+    status: converged
+vector_type: feature

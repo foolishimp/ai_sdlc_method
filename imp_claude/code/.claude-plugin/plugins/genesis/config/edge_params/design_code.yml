@@ -100,12 +100,15 @@ checklist:
     pass_criterion: "$tools.type_checker.pass_criterion"
 
 # ─── Traceability checks (composed from traceability.yml Layer 1) ────
+  # command: wired to F_D subprocess — exit code = untagged file count, 0 = PASS
   - name: "req_tags_in_code"
     type: deterministic
     functional_unit: evaluate
     criterion: "Every production code file has at least one 'Implements: REQ-*' tag"
     source: traceability
     required: true
+    command: "python -m genesis check-tags --type implements --path imp_claude/code/genesis"
+    pass_criterion: "exit code 0"
 
   - name: "req_tags_valid_format"
     type: deterministic

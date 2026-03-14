@@ -676,6 +676,55 @@ def _update_trajectory(workspace: Path, feature_id: str, edge: str, yaml_mod) ->
         logging.getLogger(__name__).warning(f"trajectory write-back failed: {exc}")
 
 
+# ── check-tags subcommand ─────────────────────────────────────────
+# Implements: REQ-TOOL-003 (Workflow Commands), REQ-EVAL-002 (Evaluator Composition)
+
+
+def cmd_check_tags(args: argparse.Namespace) -> int:
+    """F_D tag coverage check — exit code = number of untagged files.
+
+    Exit 0 = all files tagged (PASS).
+    Exit N = N files missing the required tag (FAIL — delta for engine).
+
+    Designed to be called by edge_params YAML as a deterministic evaluator:
+        command: "python -m genesis check-tags --type implements --path imp_claude/code/genesis"
+        pass_criterion: "exit code 0"
+    """
+    scan_path = Path(args.path)
+    if not scan_path.exists():
+        print(json.dumps({"error": f"path not found: {scan_path}"}))
+        return 1
+
+    tag_type = args.type
+    pattern = "Implements: REQ-" if tag_type == "implements" else "Validates: REQ-"
+    excludes = set(args.exclude or ["__init__.py", "__pycache__"])
+
+    py_files = [
+        f for f in sorted(scan_path.rglob("*.py"))
+        if not any(ex in str(f) for ex in excludes)
+    ]
+
+    missing = []
+    for f in py_files:
+        try:
+            if pattern not in f.read_text(errors="ignore"):
+                missing.append(str(f))
+        except OSError:
+            pass
+
+    result = {
+        "check": f"req_tags_{tag_type}",
+        "pattern": pattern,
+        "path": str(scan_path),
+        "total_files": len(py_files),
+        "tagged": len(py_files) - len(missing),
+        "untagged": len(missing),
+        "untagged_files": missing,
+    }
+    print(json.dumps(result, indent=2))
+    return len(missing)  # 0 = PASS, N = FAIL (delta)
+
+
 # ── context subcommand ────────────────────────────────────────────
 
 
@@ -949,6 +998,23 @@ def main() -> int:
     start_parser.add_argument("--human-proxy", action="store_true", dest="human_proxy",
                               help="Act as F_H proxy at human gates (requires --auto)")
 
+    tags_parser = subparsers.add_parser(
+        "check-tags",
+        help="F_D: check that source files carry Implements:/Validates: REQ-* tags",
+    )
+    tags_parser.add_argument(
+        "--type", choices=["implements", "validates"], required=True,
+        help="Tag type to check: 'implements' for code, 'validates' for tests",
+    )
+    tags_parser.add_argument(
+        "--path", required=True,
+        help="Directory to scan (relative to cwd)",
+    )
+    tags_parser.add_argument(
+        "--exclude", nargs="*", default=["__init__.py", "__pycache__"],
+        help="Filename patterns to exclude (default: __init__.py __pycache__)",
+    )
+
     args = parser.parse_args()
 
     if args.command == "evaluate":
@@ -961,6 +1027,8 @@ def main() -> int:
         return cmd_context(args)
     elif args.command == "start":
         return cmd_start(args)
+    elif args.command == "check-tags":
+        return cmd_check_tags(args)
     else:
         parser.print_help()
         return 1
