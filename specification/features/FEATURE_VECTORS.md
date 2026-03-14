@@ -647,7 +647,24 @@ ENGINE design is the critical path. Once it converges, four features parallelise
 | REQ-EVENT-005 | REQ-F-EVENT-001 |
 | REQ-TOOL-015 | REQ-F-TOOL-001 |
 | REQ-TOOL-016 | REQ-F-DISPATCH-001 |
-| **86/86 requirements covered. No orphans.**
+| REQ-TEST-001 | REQ-F-SENSE-001 |
+| REQ-TEST-002 | REQ-F-SENSE-001 |
+| REQ-TEST-003 | REQ-F-SENSE-001 |
+| REQ-TEST-004 | REQ-F-SENSE-001 |
+| REQ-GTL-001 | REQ-F-ENGINE-001 |
+| REQ-GTL-002 | REQ-F-ENGINE-001 |
+| REQ-GTL-003 | REQ-F-ENGINE-001 |
+| REQ-GTL-004 | REQ-F-ENGINE-001 |
+| REQ-GTL-005 | REQ-F-ENGINE-001 |
+| **97/97 requirements covered. No orphans.**
+
+---
+
+### REQ-F-TAG-001: REQ Key Tagging Enforcement
+
+**Satisfies**: REQ-TOOL-003, REQ-EVAL-002
+**Status**: converged
+**Description**: genesis check-tags F_D evaluator — enforces `Implements:`/`Validates:` tags in all source files. Wired into `tdd.yml` and `design_code.yml` edge configs.
 
 ---
 

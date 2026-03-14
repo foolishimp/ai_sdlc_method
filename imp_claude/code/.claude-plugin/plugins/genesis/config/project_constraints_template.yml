@@ -110,6 +110,11 @@ tools:
     pass_criterion: "exit code 0, zero errors"
     required: false             # false = advisory, not blocking convergence
 
+  check_tags:
+    source_path: "src"          # path(s) checked for Implements: REQ-* tags
+    tests_path: "tests"         # path(s) checked for Validates: REQ-* tags
+    tests_exclude: "__init__.py __pycache__"  # space-separated exclusions
+
   # Add project-specific tools as needed:
   # security_scanner:
   #   command: "bandit"

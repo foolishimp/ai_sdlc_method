@@ -293,6 +293,12 @@ structure:
     #   output_dir: ""         # e.g., "imp_scala_spark/"
     #   description: ""        # e.g., "Scala 2.13 + Spark 3.5 implementation"
   root_code_policy: reject     # reject | warn — whether source code at project root is allowed
+
+tools:
+  check_tags:
+    source_path: "src"          # path checked for Implements: REQ-* tags
+    tests_path: "tests"         # path checked for Validates: REQ-* tags
+    tests_exclude: "__init__.py __pycache__"  # space-separated exclusions
 """
 
 INTENT_TEMPLATE = """\

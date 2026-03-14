@@ -1,7 +1,7 @@
 {
   "name": "genesis",
-  "version": "3.0.5",
-  "description": "AI SDLC Asset Graph Model v3.0.4 — human proxy mode for autonomous overnight runs. --human-proxy flag substitutes F_H actor during --auto: evaluates criteria, logs decisions to proxy-log/, emits review_approved{actor: human-proxy}. Bootloader v3.0.0 adds §XIX workspace write territory (agent directory constraints) and proxy mode axioms. 34/34 features converged, 89/89 REQ keys covered. Universal iterate agent, edge-parameterised graph, event sourcing, projection profiles, two-command UX (Start + Status), spec-boundary reviews, escalation queue, graph zoom, IntentEngine, CONSENSUS functor, multi-tenant design marketplace. 4 agents, 19 commands, configurable YAML topology.",
+  "version": "3.1.0",
+  "description": "AI SDLC Asset Graph Model v3.1.0 \u2014 sandbox E2E framework with installer provenance and forensic diagnosis. gen-start F_H gate uses emit-event CLI (not direct JSON writes). Engine validates --human-proxy requires --auto. ADR-020 accepted. Sandbox E2E: SandboxFactory + SandboxInstaller + FrozenArtifactSet + ForensicAnalyzer + BugReport chain tracing (req\u2192design\u2192code\u2192tests\u2192events). 52 sandbox tests, 14 human-gate tests, 38 event-stream compliance tests. 2282 unit/UAT tests passing. REQ-GAP-001 and REQ-GAP-002 documented as xfail.",
   "author": {
     "name": "foolishimp"
   },

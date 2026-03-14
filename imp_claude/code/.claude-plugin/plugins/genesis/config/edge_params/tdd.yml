@@ -202,7 +202,7 @@ checklist:
     criterion: "Every production code file has at least one 'Implements: REQ-*' tag"
     source: traceability
     required: true
-    command: "python -m genesis check-tags --type implements --path imp_claude/code/genesis"
+    command: "python -m genesis check-tags --type implements --path $tools.check_tags.source_path"
     pass_criterion: "exit code 0"
 
   - name: "req_tags_in_tests"
@@ -211,7 +211,7 @@ checklist:
     criterion: "Every test file has at least one 'Validates: REQ-*' tag"
     source: traceability
     required: true
-    command: "python -m genesis check-tags --type validates --path imp_claude/tests --exclude __init__.py __pycache__ e2e/runs uat"
+    command: "python -m genesis check-tags --type validates --path $tools.check_tags.tests_path --exclude $tools.check_tags.tests_exclude"
     pass_criterion: "exit code 0"
 
   - name: "req_tags_valid_format"

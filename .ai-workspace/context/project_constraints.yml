@@ -43,6 +43,12 @@ constraints:
   error_handling:
     strategy: ""     # fail-fast | retry | circuit-breaker
 
+tools:
+  check_tags:
+    source_path: "imp_claude/code/genesis"
+    tests_path: "imp_claude/tests"
+    tests_exclude: "__init__.py __pycache__ e2e/runs uat"
+
 # Multi-tenant folder structure (REQ-TOOL-012, REQ-TOOL-013)
 # Controls where design→code edge places generated source code.
 # Each design variant gets its own imp_<name>/ directory.
