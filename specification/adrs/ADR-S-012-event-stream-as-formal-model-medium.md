@@ -3,41 +3,34 @@
 **Series**: S (specification-level decisions — apply to all implementations)
 **Status**: Accepted
 **Date**: 2026-03-04
-**Scope**: `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §3 (primitives), §4 (iterate), §5 (evaluators) — foundational model change
+**Revised**: 2026-03-14 (incorporates ADR-S-012.1; adds event-time semantics and gate-stream consistency)
+**Supersedes**: ADR-S-012.1 (projection scope and event registrations — folded in)
+**Scope**: `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §3–§5 — foundational model
 
 ---
 
 ## Context
 
-The current formal model is **state-centric**: assets are the primary objects, iterate() transitions between them, and events are secondary observations emitted alongside state changes. ADR-S-010 adds event sourcing to the spec evolution pipeline. ADR-S-011 standardises the event schema. Neither changes the formal model itself.
+The original formal model was **state-centric**: assets are the primary objects, iterate() transitions between them, events are secondary observations. Four structural gaps drove the change to an event-first substrate:
 
-Four structural gaps remain unaddressed:
+1. **No durability invariant** — recovery from mid-iteration failure was undefined at spec level
+2. **Context is pull-only** — no formal expression for async external signals (webhooks, batch completions, human approvals)
+3. **Fold-back is retry-only** — no compensation semantic for rolling back committed work when a downstream edge fails
+4. **No projection equivalence guarantee** — two conformant implementations could produce different observable behaviour
 
-1. **No durability invariant.** The model says nothing about what happens when a process fails mid-iteration. Asset state is wherever the implementation put it. Recovery is undefined at spec level.
-
-2. **Context is pull-only.** `Context[]` is implicitly a set of readable artifacts the agent consults. The model has no concept of context arriving asynchronously from an external system — a market event, a webhook, a downstream service completing. Long-running workflows require push context.
-
-3. **Fold-back is retry-only.** The current fold-back semantic is: asset did not converge → iterate again. There is no provision for a *completed* asset to be rolled back when a downstream edge fails. Compensation — undoing committed work in a chain — has no formal expression.
-
-4. **No implementation-independence guarantee.** Nothing in the spec says that two conformant implementations must produce equivalent observable behaviour. Each implementation builds its own state representation; there is no shared projection contract.
-
-These gaps are not solvable at the design level without spec-level grounding. An implementation can add a database, a message queue, and a saga library — but without spec invariants, conformance cannot be verified and implementations diverge silently.
-
-The root cause is the same in each case: **the model stores state rather than recording events**. A state-centric model cannot provide durability, push context, compensation, or projection equivalence without layering workarounds. Changing the substrate — making events primary and state derived — resolves all four structurally.
-
-This ADR was reviewed by both Claude Code and Gemini CLI prior to acceptance. Gemini independently validated each gap against observed problems in `imp_gemini_cloud`: asynchronous Vertex AI batch completions (push context), edges failing due to upstream structural flaws (compensation), and local vs cloud implementation drift (projection contract).
+All four are resolved structurally by making events primary and state derived.
 
 ---
 
 ## Decision
 
-### Event stream as the medium of the formal model
+### 1. Event stream as the substrate
 
 All primitive operations MUST be expressed as events on an **append-only, ordered event stream**. No operation modifies state directly. State is always derived by projecting the event stream.
 
-This is not a new primitive. The four primitives (Graph, Iterate, Evaluators, Spec+Context) are unchanged. What changes is their substrate: they now operate ON the event stream rather than on mutable state.
+The four primitives (Graph, Iterate, Evaluators, Spec+Context) are unchanged. What changes is their substrate: they now operate ON the event stream rather than on mutable state.
 
-### Asset redefined as a projection
+### 2. Asset redefined as a projection
 
 ```
 Asset<Tn> := project(EventStream[0..n], asset_type, instance_id)
@@ -49,21 +42,58 @@ An asset is not stored. It is derived on demand by replaying the event stream up
 - **Completeness**: every prior state of any asset is reconstructable — `Asset<Tk>` for any k ≤ n
 - **Isolation**: projecting instance I never reads or modifies the stream of instance J
 
-The spec does not mandate how projection is implemented — in-memory fold, materialised view, event store query. Any mechanism that satisfies the three invariants is conformant.
+**Projection scope**: The event-first model applies to `.ai-workspace/` operational state and code/test artifacts produced by the iterate engine. It does NOT apply to `specification/` files. Spec files (`specification/core/`, `specification/requirements/`, `specification/features/`, `specification/adrs/`, `specification/verification/`) are authoritative artifacts; `spec_modified` events (ADR-S-010) are their audit trail, not their substrate.
 
-### Iterate signature
+**Conflict resolution**: If a workspace file and the event log disagree, the event log is authoritative — regenerate the file from the stream. If a spec file and a `spec_modified` event disagree (hash mismatch), the file and git history are authoritative for the spec domain.
+
+### 3. Iterate signature
 
 ```
 iterate(Asset<Tn>, Context[], Evaluators) → Event+
 ```
 
-`iterate()` returns one or more events. The engine applies them to the stream. `Asset<Tn+1>` is the projection of the stream after those events are appended. The asset is a consequence of the event, not the direct output of the operation.
+`iterate()` returns one or more events. The engine appends them to the stream. `Asset<Tn+1>` is the projection of the stream after those events are appended — a consequence of the event, not the direct output.
 
-### Context sources unified
+`Context[]` includes **push context**: events arriving asynchronously from external sources (external systems, timers, human inputs, evaluator votes). Push context events are appended to the stream like any other event. `iterate()` may suspend waiting for a required context event and resume when it arrives. Pull and push are both events; the model does not distinguish them.
 
-`Context[]` is extended to include **push context**: events arriving from external sources (external systems, timers, human inputs, parallel evaluator votes). Push context events are appended to the stream like any other event. `iterate()` may suspend — waiting for a required context event to arrive — and resume when it does. The spec does not distinguish pull from push at the model level; both are events in the stream.
+### 4. Event-time semantics
 
-### Saga invariant (compensation)
+**`event_time` is append-assigned and non-overridable by the caller.** It is the timestamp of the log entry, set by the event log writer at the moment of append. A caller MUST NOT supply a historical timestamp to make a later entry masquerade as an earlier one.
+
+Events MAY carry additional domain time fields (`effective_at`, `completed_at`, `observed_at`) describing the business nature of the underlying fact. These fields do not change the append order or the `event_time` of the log entry.
+
+**Prohibited acts** (non-conformant regardless of intent):
+- Appending a log entry with a forged earlier `event_time`
+- Using a late trace or review artifact to impersonate a missing earlier control decision
+
+### 5. Control surface and trace surface
+
+The event stream has two distinct surfaces:
+
+**Control surface** — authoritative, gate-moving events in the canonical log. These govern causality: what the system decided, and when. Control events must be truthful, append-time-stamped, and emitted at the moment the decision is made.
+
+**Trace surface** — projections, correlations, audit packs, telemetry summaries, review paperwork, and other visibility artifacts derived from the canonical log. These govern legibility. Trace artifacts MAY be incomplete during normal operation. Later completion of tracing, correlation, or paperwork is **observability debt** — eventual consistency of the trace surface — not mutation of the historical control surface.
+
+The distinction matters for fault classification: a missing proxy-log or unarchived review YAML is trace debt (detectable, repayable). A backdated `event_time` or a control-event emitted without the work having occurred is a log-integrity violation (permanent, unrepayable by definition).
+
+### 6. Gate-stream self-consistency
+
+**Mandatory gates are defined by self-consistency within their gate stream**, not by whether every gate must be traversed.
+
+A gate stream is a bounded sequence of causally related events that together express a workflow transition (traversal, review, install, proxy decision). You may choose not to enter a gate. Once inside one, the events you emit must be internally consistent: the exit event must be causally preceded by the entry event, using valid IDs of the correct category.
+
+Mandatory gates are those whose gate-stream inconsistency corrupts downstream reasoning — specifically:
+
+| Gate stream | Self-consistency requirement |
+|-------------|------------------------------|
+| **Feature traversal** | `edge_started` → `iteration_completed` → `edge_converged` — exit requires entry; `edge_converged.feature` must resolve to a known feature vector in `features/active/` or `features/completed/` |
+| **Review** | `feature_proposal` → `review_approved` — approval requires a prior proposal with matching `proposal_id` in the same stream |
+| **Human-proxy** | `review_approved{actor: human-proxy}` — the referenced `proxy_log` file must exist in `reviews/proxy-log/` before the event is emitted |
+| **Install** | `genesis_installed` — `version` must match what was actually written to disk |
+
+Not every administrative process step is a mandatory gate. The test is: does gate-stream inconsistency here propagate errors downstream? If no downstream gate depends on this stream's consistency, it is advisory — a trace artifact that may lag.
+
+### 7. Saga invariant (compensation)
 
 The saga invariant is a spec-level correctness requirement for all multi-edge transitions:
 
@@ -75,15 +105,11 @@ Invariant (Saga Consistency):
   before any further IterationStarted(edge: A→B, instance: I).
 ```
 
-Compensation is expressed as compensating events appended to the stream — not as state mutation or rollback. The compensated asset state is the projection of the stream including the compensating events.
+Compensation is expressed as compensating events appended to the stream — not as state mutation or rollback. Implementations define the compensating event sequence for each edge type.
 
-Implementations are responsible for defining the compensating event sequence for each edge type. The spec requires the invariant holds; the design binds it to technology (saga orchestration, step functions, process coordinator).
+### 8. Required event taxonomy
 
-### Required event taxonomy
-
-The following event types are **required** by the spec. Implementations are conformant if and only if they emit these events with the required fields. Technology choice is irrelevant to conformance.
-
-All events carry universal fields `{ instance_id, actor, causation_id, correlation_id }` plus their type-specific payload below.
+The following event types are required by the spec. All carry universal fields `{instance_id, actor, causation_id, correlation_id}` plus their type-specific payload.
 
 ```
 # Iteration lifecycle
@@ -106,40 +132,36 @@ ContextArrived      { source_type, payload_ref }
 # Authorization
 TransitionAuthorized { edge, permissions }
 TransitionDenied     { edge, reason }
+
+# CONSENSUS functor (required when CONSENSUS is active on an edge)
+proposal_published    { asset_id, asset_version, roster_size, quorum, min_duration, review_closes_at }
+comment_received      { asset_id, participant, gating: bool, disposition: null }
+vote_cast             { asset_id, asset_version, participant, verdict, conditions: [] }
+asset_version_changed { asset_id, prior_version, new_version, materiality: material|non_material }
+consensus_reached     { asset_id, asset_version, approve_ratio, participation_ratio, gating_comments_dispositioned }
+consensus_failed      { asset_id, failure_reason, available_paths: [] }
+recovery_path_selected { asset_id, path: re_open|narrow_scope|abandon }
+
+# Named Composition / Intent Vector
+composition_dispatched  { intent_id, macro, version, bindings, vector_id }
+intent_vector_converged { vector_id, produced_asset_ref, edge }
+intent_vector_blocked   { vector_id, reason, disposition: null }
 ```
 
-Causal chain examples:
-
-```
-# Saga compensation chain
-IterationFailed(edge: B→C, causation_id: X, correlation_id: ROOT)
-  └─ CompensationTriggered(edge: A→B, causation_id: IterationFailed.runId, correlation_id: ROOT)
-      └─ CompensationCompleted(edge: A→B, causation_id: CompensationTriggered.runId, correlation_id: ROOT)
-
-# Root event — no parent
-IterationStarted(edge: intent→requirements, causation_id: self.runId, correlation_id: self.runId)
-  └─ IterationCompleted(causation_id: IterationStarted.runId, correlation_id: IterationStarted.runId)
-      └─ IterationStarted(edge: requirements→design, causation_id: IterationCompleted.runId, correlation_id: ROOT)
-```
-
-Every event MUST carry three universal fields in addition to its type-specific payload:
+**Universal fields** (every event):
 
 | Field | Type | Meaning |
-|---|---|---|
-| `instance_id` | string | Identifies the workflow instance — scopes projection and multi-tenancy |
-| `actor` | string | Identity of the subject that caused the event — human, agent, or system |
-| `causation_id` | UUID | `runId` of the immediate parent event that directly triggered this event |
-| `correlation_id` | UUID | `runId` of the root event of the entire causal chain (the originating intent or signal) |
+|-------|------|---------|
+| `instance_id` | string | Workflow instance — scopes projection and multi-tenancy |
+| `actor` | string | Subject that caused the event — human, agent, or system |
+| `causation_id` | UUID | `runId` of the immediate parent event |
+| `correlation_id` | UUID | `runId` of the root event of the entire causal chain |
 
-`causation_id` maps directly to OpenLineage `ParentRunFacet.run.runId` (ADR-S-011) and MUST be populated on every event. It enables causal graph traversal: "show me everything triggered by event X" without chain-walking. `correlation_id` enables root-cause lookup in O(1): "show me everything caused by intent INT-007" across an arbitrarily deep chain.
+For root events (no triggering parent), `causation_id = correlation_id = this event's own runId`. Implementations MUST propagate both IDs through the execution context. Lightweight implementations MAY use `"local"` as `correlation_id` for spike/minimal profiles.
 
-For root events (those with no triggering parent — e.g., a user-initiated `IterationStarted` or an external `ContextArrived`), `causation_id = correlation_id = this event's own runId`.
+All events MUST conform to the OpenLineage schema (ADR-S-011).
 
-Implementations MUST propagate both IDs through the execution context — analogous to distributed tracing span propagation. Every event emitter receives the current `causation_id` and `correlation_id` from its caller and sets them on the emitted event before the next event in the chain is produced.
-
-All events MUST conform to the OpenLineage schema defined in ADR-S-011.
-
-### Projection as the implementation contract
+### 9. Projection as the conformance contract
 
 An implementation is conformant if:
 
@@ -147,65 +169,54 @@ An implementation is conformant if:
 2. It satisfies the three projection invariants (determinism, completeness, isolation)
 3. It satisfies the saga invariant
 4. Events are append-only — no event is modified or deleted after emission
+5. `event_time` is append-assigned — no caller-supplied historical timestamps
 
-The implementation MAY store events in a local file, a database, a message queue, or any other durable medium. It MAY project assets eagerly (materialised views) or lazily (replay on demand). These are design decisions, not spec decisions.
-
-This establishes **projection as the conformance contract**: two implementations are spec-equivalent if they produce the same asset projections from the same event streams. A laptop implementation using `events.jsonl` and a cloud implementation using Firestore or DynamoDB streams are equally conformant if they satisfy the four conditions above.
+Two implementations are spec-equivalent if they produce the same asset projections from the same event streams. A laptop implementation using `events.jsonl` and a cloud implementation using DynamoDB streams are equally conformant if they satisfy the five conditions above.
 
 ---
 
 ## Consequences
 
 **Positive:**
-
-- **Durability is structural.** An append-only event stream is inherently durable. Any implementation that persists events survives process failure by definition — recovery is replay from the last known position. The spec no longer needs to specify recovery separately.
-
-- **Push context is native.** `ContextArrived` events integrate external inputs into the stream without special-casing. Long-running workflows that wait on async external signals (batch completions, human approvals, webhook callbacks) are expressed naturally — `iterate()` suspends until the event arrives.
-
-- **Compensation is formal.** The saga invariant gives implementations a verifiable correctness requirement. Conformance testing can assert: given an `IterationFailed` event, was `CompensationCompleted` emitted before the next `IterationStarted` on the same edge?
-
-- **Any technology is a valid projection.** Files, DynamoDB, Firestore, Kafka, BPMN audit logs — all are event stores. The spec is silent on choice. A cloud-native implementation using EventBridge and Step Functions is as conformant as a laptop implementation using `events.jsonl`.
-
-- **Downstream projections are free.** Audit trails, OpenLineage lineage, SLA monitoring, parallel consensus aggregation, multi-tenancy filtering — all are read-side projections of the same stream. They add no write-side complexity.
-
-- **Multi-instance is trivially supported.** Each workflow instance has an `instance_id`. Projection filters by `instance_id`. N concurrent instances of the same graph are N independent filtered views of a shared stream.
-
-- **Replay performance is manageable.** Implementations SHOULD treat existing checkpoints or snapshots as O(1) starting positions for projection — replay begins from the nearest snapshot, not from the beginning of the stream. This bounds replay cost regardless of stream length. Snapshots are implementation artefacts; the spec does not mandate them, but implementations that store them satisfy the Completeness invariant more efficiently.
+- Durability is structural — any implementation that persists events survives process failure by replay
+- Push context is native — `ContextArrived` events integrate async inputs without special-casing
+- Compensation is formal — the saga invariant is verifiable by event stream replay
+- Any event store technology is a valid substrate
+- Downstream projections (audit trails, lineage, monitoring, consensus aggregation) are free read-side views
+- Gate-stream consistency is an F_D check — deterministic, no LLM required
+- Trace debt is distinguishable from control-surface violations — correct fault classification without bureaucratic overhead
 
 **Negative / Trade-offs:**
-
-- **Model complexity increases.** `Asset<Tn> = project(EventStream)` is harder to explain than "asset is a document." The formal model requires a new §Event Stream Substrate section. The executive summary must be updated.
-
-- **Projection performance is implementation-specific.** Lazy replay is simple but slow for long streams without snapshots. Materialised views are fast but require consistency management. The spec is silent; implementations must choose.
-
-- **`actor` is required on every event.** This imposes an authorization model on implementations that previously had none. Lightweight implementations (local laptop, spike profile) must supply an actor identity — `"local-user"` is a valid minimal value.
-
-- **Saga invariant is testable but not free.** Conformance tests must replay event streams and verify the invariant. Implementations must build or adopt event replay infrastructure. This is non-trivial but the scope is bounded: a single method signature change in the engine (`iterate_edge` returns events rather than mutating state directly).
-
-- **Working tree synchronisation.** Implementations that materialise assets as local files must ensure the working tree stays consistent with the event stream. A sync phase after every event append — updating local artifacts to reflect the new projection — prevents state drift between the stream and the file system.
-
-- **Causal ID propagation is disciplined, not automatic.** `causation_id` and `correlation_id` do not self-populate. Implementations must thread both IDs through the execution context — the same discipline as distributed tracing. The cost is low (two UUID fields per event) and the payoff is free causal graph traversal via standard OpenLineage tooling. Lightweight implementations MAY use `"local"` as `correlation_id` for spike/minimal profiles where full chain tracing is not required.
+- `Asset<Tn> = project(EventStream)` is harder to explain than "asset is a document"
+- Projection performance is implementation-specific (lazy replay vs materialised views)
+- `actor` is required on every event — lightweight implementations must supply at minimum `"local-user"`
+- Saga invariant conformance tests require event replay infrastructure
+- Causal ID propagation requires implementation discipline — not automatic
+- Working tree synchronisation: implementations materialising assets as local files must keep the working tree consistent with the event stream
 
 ---
 
 ## Alternatives Considered
 
-**Leave the model state-centric; add durability and compensation at design level**: Each implementation independently solves durability, push context, and compensation. Rejected — implementations diverge, conformance becomes untestable, and the same problems are solved N times with incompatible interfaces.
+**Leave the model state-centric** — each implementation independently solves durability, push context, and compensation. Rejected — implementations diverge, conformance becomes untestable.
 
-**Add compensation as a new primitive (`compensate()`)**: Define a 5th operation alongside `iterate()`. Rejected — compensation is not a new primitive. It is a constrained sequence of events that the saga invariant requires. Adding a primitive overstates the change and complicates the model.
+**Add compensation as a new primitive `compensate()`** — rejected. Compensation is a constrained event sequence, not a new primitive.
 
-**Event sourcing for homeostasis only (ADR-S-010 scope)**: Keep iterate() state-centric; apply event sourcing only to spec evolution. Rejected — this creates a hybrid model where some operations are event-sourced and others are not. The push context and compensation gaps remain unaddressed. ADR-S-010 is correct as far as it goes; this ADR extends the same principle to the full formal model.
+**Event sourcing for homeostasis only** — rejected. Creates a hybrid model; push context and compensation gaps remain.
 
-**Require OpenLineage as the event store**: Mandate Marquez or equivalent backend. Rejected — ADR-S-011 already establishes local-first. The event store is a design decision; this ADR defines what goes INTO it, not where it lives.
+**Require OpenLineage as the event store** — rejected. ADR-S-011 establishes local-first. The event store is a design decision.
+
+**Amendment chain instead of merged ADR** — rejected. Amendment chains impose a context window tax on agentic builders, who must load parent and child, reconcile them, and detect which supersedes which. A single complete document is strictly better for agentic reasoning.
 
 ---
 
 ## References
 
-- [ADR-S-010](ADR-S-010-event-sourced-spec-evolution.md) — event sourcing applied to spec evolution; this ADR generalises that principle to the full formal model
-- [ADR-S-011](ADR-S-011-openlineage-unified-metadata-standard.md) — OpenLineage schema; the event taxonomy defined here MUST conform to that schema
-- [ADR-S-008](ADR-S-008-sensory-triage-intent-pipeline.md) — homeostasis pipeline events are a subset of the taxonomy defined here
-- `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §3, §4, §5 — sections requiring revision per this decision
-- `requirements/AISDLC_IMPLEMENTATION_REQUIREMENTS.md` — new REQ-EVENT-* series required
-- Peer review: `.ai-workspace/comments/claude/20260304T120000_STRATEGY_ADR-S-012-event-stream-formal-model.md`
-- Peer review: `.ai-workspace/comments/gemini/20260304T121500_REVIEW_ADR-S-012-event-stream-formal-model.md`
+- [ADR-S-010](ADR-S-010-event-sourced-spec-evolution.md) — event sourcing for spec evolution; this ADR generalises to the full formal model
+- [ADR-S-011](ADR-S-011-openlineage-unified-metadata-standard.md) — OpenLineage schema; event taxonomy defined here MUST conform
+- [ADR-S-008](ADR-S-008-sensory-triage-intent-pipeline.md) — homeostasis pipeline events are a subset of the taxonomy here
+- [ADR-S-025](ADR-S-025-CONSENSUS-functor.md) — CONSENSUS event sources
+- [ADR-S-026](ADR-S-026-named-compositions-and-intent-vectors.md) — Named Composition event sources
+- [ADR-S-027](ADR-S-027-resolution-log.md) — Resolutions 1 and 3 (projection scope, event registrations)
+- [ADR-S-037](ADR-S-037-projection-authority-and-convergence-evidence.md) — enforcement at workspace boundary; retroactive-evidence language should be read in light of §5 (control vs trace surface)
+- `core/AI_SDLC_ASSET_GRAPH_MODEL.md` §3, §4, §5
